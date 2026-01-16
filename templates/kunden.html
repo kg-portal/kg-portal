@@ -1,0 +1,199 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:32px">
+  <div>
+    <h1 style="font-size:32px;font-weight:900;color:#0f172a;margin:0;letter-spacing:-1px">Bestandskunden</h1>
+    <p style="color:#64748b;font-size:15px;margin:6px 0 0 0">Zentrale Verwaltung der Kundenstamm- und Vertragsdaten</p>
+  </div>
+  <div style="display:flex; gap:12px;">
+    <button onclick="window.print()" style="background:#f1f5f9;color:#475569;border:1px solid #e2e8f0;padding:12px 20px;border-radius:12px;font-weight:700;cursor:pointer">
+        <i class="fa-solid fa-print"></i> Liste Drucken
+    </button>
+    <button onclick="openNewModal()" style="background:#2563eb;color:#fff;border:none;padding:12px 24px;border-radius:12px;font-weight:700;cursor:pointer;box-shadow:0 10px 15px -3px rgba(37,99,235,0.3)">+ Neuer Kunde</button>
+  </div>
+</div>
+
+<div class="print-area" style="background:#fff;border:1px solid #e2e8f0;border-radius:20px;overflow:hidden;box-shadow:0 20px 25px -5px rgba(0,0,0,0.05)">
+  <table style="width:100%;border-collapse:collapse;text-align:left">
+    <thead style="background:#f8fafc;border-bottom:2px solid #f1f5f9">
+      <tr>
+        <th style="padding:20px;color:#475569;font-weight:700;font-size:13px">FIRMA</th>
+        <th style="padding:20px;color:#475569;font-weight:700;font-size:13px">STADT</th>
+        <th style="padding:20px;color:#475569;font-weight:700;font-size:13px">KUNDENNR.</th>
+        <th style="padding:20px;color:#475569;font-weight:700;font-size:13px">BETRAG</th>
+        <th style="padding:20px;color:#475569;font-weight:700;font-size:13px">HÄUFIGKEIT</th>
+        <th class="no-print" style="padding:20px;text-align:right">AKTIONEN</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for k in kunden %}
+      <tr id="row-{{ k.id }}" style="border-bottom:1px solid #f1f5f9;transition:all 0.2s" onmouseover="this.style.background='#fbfcfe'" onmouseout="this.style.background='transparent'">
+        <td class="t-firma" style="padding:20px;font-weight:800;color:#1e293b">{{ k.firma }}</td>
+        <td class="t-ort" style="padding:20px;color:#64748b">{{ k.ort }}</td>
+        <td style="padding:20px;"><span class="t-knr" style="background:#f1f5f9;padding:6px 12px;border-radius:8px;font-family:monospace;color:#2563eb">{{ k.kundennummer }}</span></td>
+        <td style="padding:20px;font-weight:700;color:#059669"><span class="t-monat">{{ k.monat }}</span> €</td>
+        <td style="padding:20px;"><span class="t-freq" style="color:#6366f1;background:#eef2ff;padding:6px 14px;border-radius:30px;font-size:12px;font-weight:700">{{ k.haeufigkeit }}</span></td>
+        
+        <td style="display:none">
+            <span class="t-strasse">{{ k.strasse }}</span>
+            <span class="t-plz">{{ k.plz }}</span>
+            <span class="t-name">{{ k.ansprechpartner_name }}</span>
+            <span class="t-tel">{{ k.telefon }}</span>
+            <span class="t-mail">{{ k.email }}</span>
+            <span class="t-beginn">{{ k.vertrag_beginn }}</span>
+            <span class="t-ende">{{ k.vertrag_ende }}</span>
+        </td>
+
+        <td class="no-print" style="padding:20px;text-align:right;display:flex;justify-content:flex-end;gap:8px">
+            <button title="Vorschau" onclick="previewKunde('{{ k.id }}')" style="background:#eef2ff;color:#6366f1;border:none;width:38px;height:38px;border-radius:10px;cursor:pointer"><i class="fa-solid fa-eye"></i></button>
+            <button title="Bearbeiten" onclick="editKunde('{{ k.id }}')" style="background:#f0fdf4;color:#16a34a;border:none;width:38px;height:38px;border-radius:10px;cursor:pointer"><i class="fa-solid fa-pen-to-square"></i></button>
+            <button title="Löschen" onclick="if(confirm('Kunde wirklich löschen?')) window.location.href='/kunden/delete/{{ k.id }}'" style="background:#fef2f2;color:#dc2626;border:none;width:38px;height:38px;border-radius:10px;cursor:pointer"><i class="fa-solid fa-trash"></i></button>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<div id="pv" style="display:none;position:fixed;inset:0;background:rgba(15,23,42,0.8);backdrop-filter:blur(10px);align-items:center;justify-content:center;z-index:1100">
+    <div style="background:#fff;width:450px;border-radius:28px;padding:40px;text-align:center;box-shadow:0 25px 50px -12px rgba(0,0,0,0.5)">
+        <div style="background:#eef2ff;width:80px;height:80px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 20px">
+            <i class="fa-solid fa-building" style="font-size:32px;color:#2563eb"></i>
+        </div>
+        <h2 id="pv-firma" style="margin:0;font-size:24px;color:#0f172a"></h2>
+        <p id="pv-details" style="color:#64748b;margin:10px 0 30px;line-height:1.6;text-align:left;background:#f8fafc;padding:15px;border-radius:12px"></p>
+        <button onclick="document.getElementById('pv').style.display='none'" class="btn-pri" style="width:100%">Schließen</button>
+    </div>
+</div>
+
+<div id="km" style="display:none;position:fixed;inset:0;background:rgba(15,23,42,0.8);backdrop-filter:blur(10px);align-items:center;justify-content:center;z-index:1000">
+  <form action="/kunden" method="POST" id="kundenForm" style="background:#fff;width:850px;max-width:95%;border-radius:28px;padding:40px;box-shadow:0 25px 50px -12px rgba(0,0,0,0.5)">
+    <input type="hidden" name="kunde_id" id="f_id">
+    
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:32px">
+      <h2 id="modalTitle" style="font-size:26px;font-weight:900;color:#0f172a;margin:0">Kunden-Stammdaten</h2>
+      <button type="button" onclick="closeModal()" style="background:#f1f5f9;border:none;width:36px;height:36px;border-radius:50%;cursor:pointer;font-weight:bold">✕</button>
+    </div>
+
+    <div style="margin-bottom:24px">
+      <label class="blue-label">FIRMENINFORMATIONEN</label>
+      <div style="display:grid;grid-template-columns:1.5fr 1fr 0.8fr 1.2fr;gap:12px">
+        <input class="m-input" name="firma" id="f_firma" placeholder="Firma" required>
+        <input class="m-input" name="strasse" id="f_strasse" placeholder="Straße + Nr.">
+        <input class="m-input" name="plz" id="f_plz" placeholder="PLZ" oninput="autoCityNRW()">
+        <input class="m-input" name="stadt" id="f_stadt" placeholder="Stadt" readonly style="background:#f8fafc">
+      </div>
+    </div>
+
+    <div style="margin-bottom:24px">
+      <label class="blue-label">ANSPRECHPARTNER</label>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px">
+        <input class="m-input" name="name" id="f_name" placeholder="Name">
+        <input class="m-input" name="telefon" id="f_tel" placeholder="Telefon">
+        <input class="m-input" name="email" id="f_mail" placeholder="E-Mail">
+      </div>
+    </div>
+
+    <div style="margin-bottom:32px">
+      <label class="blue-label">VERTRAGS- & TERMINDETAILS</label>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:12px;margin-bottom:12px">
+        <input class="m-input" name="kundennummer" id="f_knr" placeholder="Kundennummer">
+        <div style="position:relative">
+            <span class="m-tag">Beginn</span>
+            <input type="text" class="m-input date-picker" name="beginn" id="f_beginn" placeholder="tt.mm.jjjj">
+            <i class="fa-solid fa-calendar calendar-ico"></i>
+        </div>
+        <div style="position:relative">
+            <span class="m-tag">Ende</span>
+            <input type="text" class="m-input date-picker" name="ende" id="f_ende" placeholder="tt.mm.jjjj">
+            <i class="fa-solid fa-calendar calendar-ico"></i>
+        </div>
+        <input class="m-input" name="betrag" id="f_monat" placeholder="Betrag (€)">
+      </div>
+      <div style="margin-top:12px">
+        <select class="m-input" name="haeufigkeit" id="f_freq" style="background:#fff">
+          <option>1× wöchentlich</option><option selected>2× wöchentlich</option>
+          <option>3× wöchentlich</option><option>4× wöchentlich</option>
+          <option>5× wöchentlich</option><option>6× wöchentlich</option>
+          <option>7× wöchentlich</option><option>Täglich</option>
+        </select>
+      </div>
+    </div>
+
+    <div style="display:flex;justify-content:flex-end;gap:12px;padding-top:24px;border-top:1px solid #f1f5f9">
+      <button type="button" onclick="closeModal()" class="btn-sec">Abbrechen</button>
+      <button type="submit" class="btn-pri">Speichern</button>
+    </div>
+  </form>
+</div>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/de.js"></script>
+
+<style>
+  .m-input { width:100%;padding:14px;border:1.5px solid #e2e8f0;border-radius:12px;font-size:14px;outline:none;color:#1e293b;transition:all 0.2s;box-sizing:border-box }
+  .m-input:focus { border-color:#2563eb;box-shadow:0 0 0 4px rgba(37,99,235,0.1) }
+  .calendar-ico { position:absolute;right:15px;top:15px;color:#64748b;pointer-events:none;font-size:16px }
+  .blue-label { display:block;font-size:12px;font-weight:900;color:#2563eb;letter-spacing:1.2px;margin-bottom:12px;border-left:4px solid #2563eb;padding-left:10px }
+  .m-tag { position:absolute;top:-9px;left:12px;background:#fff;padding:0 6px;font-size:10px;font-weight:800;color:#2563eb;z-index:2 }
+  .btn-pri { background:#2563eb;color:#fff;border:none;padding:14px 32px;border-radius:12px;font-weight:700;cursor:pointer;transition:all 0.2s }
+  .btn-sec { background:#f1f5f9;color:#475569;border:none;padding:14px 32px;border-radius:12px;font-weight:700;cursor:pointer }
+  @media print { .sidebar, .no-print, button { display: none !important; } .main { padding: 0 !important; } .card, .print-area { border: none !important; box-shadow: none !important; } }
+</style>
+
+<script>
+const fp = flatpickr(".date-picker", { locale: "de", dateFormat: "d.m.Y", allowInput: true });
+
+function editKunde(id) {
+    const row = document.getElementById('row-' + id);
+    document.getElementById('f_id').value = id;
+    document.getElementById('f_firma').value = row.querySelector('.t-firma').innerText;
+    document.getElementById('f_strasse').value = row.querySelector('.t-strasse').innerText;
+    document.getElementById('f_plz').value = row.querySelector('.t-plz').innerText;
+    document.getElementById('f_stadt').value = row.querySelector('.t-ort').innerText;
+    document.getElementById('f_name').value = row.querySelector('.t-name').innerText;
+    document.getElementById('f_tel').value = row.querySelector('.t-tel').innerText;
+    document.getElementById('f_mail').value = row.querySelector('.t-mail').innerText;
+    document.getElementById('f_knr').value = row.querySelector('.t-knr').innerText;
+    document.getElementById('f_monat').value = row.querySelector('.t-monat').innerText;
+    document.getElementById('f_freq').value = row.querySelector('.t-freq').innerText;
+    
+    if(fp[0]) fp[0].setDate(row.querySelector('.t-beginn').innerText);
+    if(fp[1]) fp[1].setDate(row.querySelector('.t-ende').innerText);
+
+    document.getElementById('modalTitle').innerText = "Kunde bearbeiten";
+    document.getElementById('km').style.display = 'flex';
+}
+
+function previewKunde(id) {
+    const row = document.getElementById('row-' + id);
+    document.getElementById('pv-firma').innerText = row.querySelector('.t-firma').innerText;
+    document.getElementById('pv-details').innerHTML = `
+        <strong>Kundennummer:</strong> ${row.querySelector('.t-knr').innerText}<br>
+        <strong>Anschrift:</strong> ${row.querySelector('.t-strasse').innerText}, ${row.querySelector('.t-plz').innerText} ${row.querySelector('.t-ort').innerText}<br>
+        <strong>Ansprechpartner:</strong> ${row.querySelector('.t-name').innerText}<br>
+        <strong>Kontakt:</strong> ${row.querySelector('.t-tel').innerText} | ${row.querySelector('.t-mail').innerText}<br>
+        <strong>Vertrag:</strong> ${row.querySelector('.t-beginn').innerText} bis ${row.querySelector('.t-ende').innerText}<br>
+        <strong>Konditionen:</strong> ${row.querySelector('.t-monat').innerText}€ / ${row.querySelector('.t-freq').innerText}
+    `;
+    document.getElementById('pv').style.display = 'flex';
+}
+
+function openNewModal() {
+    document.getElementById('f_id').value = "";
+    document.getElementById('kundenForm').reset();
+    document.getElementById('modalTitle').innerText = "Neuer Kunde";
+    document.getElementById('km').style.display = 'flex';
+}
+
+function closeModal() { document.getElementById('km').style.display = 'none'; }
+
+function autoCityNRW(){
+  const nrw = {'40':'Düsseldorf','41':'Mönchengladbach','42':'Wuppertal','44':'Dortmund','45':'Essen','46':'Oberhausen','47':'Duisburg','48':'Münster','50':'Köln','51':'Leverkusen','52':'Aachen','53':'Bonn','57':'Siegen','58':'Hagen','59':'Hamm'};
+  const v = document.getElementById('f_plz').value.substring(0, 2);
+  document.getElementById('f_stadt').value = nrw[v] || (document.getElementById('f_plz').value.length > 2 ? "NRW Region" : "");
+}
+</script>
+{% endblock %}

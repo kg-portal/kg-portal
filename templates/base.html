@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>KG Portal V2</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root { --bg:#f8fafc; --sidebar:#ffffff; --accent:#2563eb; --border:#e2e8f0; --text:#1e293b; }
+        *{margin:0;padding:0;box-sizing:border-box}
+        body{ font-family: Arial, sans-serif; background:var(--bg); display:flex; height:100vh; overflow:hidden; }
+        .sidebar{ width:260px; background:#fff; border-right:1px solid var(--border); padding:30px 20px; display:flex; flex-direction:column; }
+        .sidebar h2{ font-weight:800; color:var(--accent); margin-bottom:40px; font-size:22px; }
+        .nav-item{ padding:14px 18px; border-radius:12px; color:#64748b; cursor:pointer; font-weight:600; font-size:14px; margin-bottom:8px; display:flex; align-items:center; gap:12px; text-decoration:none; transition:0.2s; }
+        .nav-item:hover{ background:#eef2ff; }
+        .nav-item.active{ background:var(--accent); color:#fff; }
+        .main{ flex:1; padding:30px; overflow-y:auto; }
+        .card{ background:#fff; border:1px solid var(--border); border-radius:24px; padding:30px; min-height: 100%; }
+    </style>
+</head>
+<body>
+<div class="sidebar">
+    <h2>KG-Portal V2</h2>
+    <a class="nav-item {% if request.path == '/' %}active{% endif %}" href="/">
+        <i class="fa-solid fa-chart-line"></i> Startseite
+    </a>
+    <a class="nav-item {% if request.path.startswith('/kunden') %}active{% endif %}" href="/kunden">
+        <i class="fa-solid fa-users"></i> Bestandskunden
+    </a>
+    
+    <a class="nav-item {% if request.path.startswith('/mitarbeiter') %}active{% endif %}" href="/mitarbeiter">
+        <i class="fa-solid fa-user-tie"></i> Mitarbeiter
+    </a>
+
+    <a class="nav-item {% if request.path == '/kalender' %}active{% endif %}" href="/kalender">
+        <i class="fa-solid fa-calendar-days"></i> Kalender
+    </a>
+</div>
+<div class="main">
+    <div class="card">
+        {% block content %}{% endblock %}
+    </div>
+</div>
+</body>
+</html>
