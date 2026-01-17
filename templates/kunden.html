@@ -44,27 +44,26 @@
 
 <div id="main_list" class="print-area"
      style="background:#fff;border:1px solid #e2e8f0;border-radius:20px;
-            overflow:hidden;box-shadow:0 20px 25px -5px rgba(0,0,0,0.05)">
+            overflow-x:auto;box-shadow:0 20px 25px -5px rgba(0,0,0,0.05)">
 
-  <table style="width:100%;border-collapse:collapse;text-align:left">
+  <table style="width:100%;border-collapse:collapse;text-align:left;table-layout:fixed">
 
     <thead style="background:#f8fafc;border-bottom:2px solid #f1f5f9">
       <tr>
-        <th style="padding:20px;font-weight:900;font-size:13px;color:#000">FIRMA</th>
-        <th style="padding:20px;font-weight:900;font-size:13px;color:#000">STRAßE + NR.</th>
-        <th style="padding:20px;font-weight:900;font-size:13px;color:#000">PLZ</th>
-        <th style="padding:20px;font-weight:900;font-size:13px;color:#000">STADT</th>
-        <th style="padding:20px;font-weight:900;font-size:13px;color:#000">KUNDENNUMMER</th>
-        <th style="padding:20px;font-weight:900;font-size:13px;color:#000">HÄUFIGKEIT</th>
+        <th style="padding:16px;font-weight:800;font-size:12px;color:#000;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">FIRMA</th>
+        <th style="padding:16px;font-weight:800;font-size:12px;color:#000;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">STRAßE + NR.</th>
+        <th style="padding:16px;font-weight:800;font-size:12px;color:#000;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">PLZ</th>
+        <th style="padding:16px;font-weight:800;font-size:12px;color:#000;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">STADT</th>
+        <th style="padding:16px;font-weight:800;font-size:12px;color:#000;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">KUNDENNUMMER</th>
+        <th style="padding:16px;font-weight:800;font-size:12px;color:#000;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">HÄUFIGKEIT</th>
 
-        <!-- ✅ SIRA DÜZELTİLDİ -->
-        <th style="padding:20px;font-weight:900;font-size:13px;color:#000">BEGINN</th>
-        <th style="padding:20px;font-weight:900;font-size:13px;color:#000">ENDE</th>
-        <th style="padding:20px;font-weight:900;font-size:13px;color:#000">VERTRAGSLAUFZEIT</th>
-        <th style="padding:20px;font-weight:900;font-size:13px;color:#000">VERTRAGSSTATUS</th>
+        <th style="padding:16px;font-weight:800;font-size:12px;color:#000;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">BEGINN</th>
+        <th style="padding:16px;font-weight:800;font-size:12px;color:#000;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">ENDE</th>
+        <th style="padding:16px;font-weight:800;font-size:12px;color:#000;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">VERTRAGSLAUFZEIT</th>
+        <th style="padding:16px;font-weight:800;font-size:12px;color:#000;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">VERTRAGSSTATUS</th>
 
-        <th style="padding:20px;font-weight:900;font-size:13px;color:#000">BETRAG (€)</th>
-        <th class="no-print" style="padding:20px;text-align:right;font-weight:900;color:#000">
+        <th style="padding:16px;font-weight:800;font-size:12px;color:#000;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">BETRAG (€)</th>
+        <th class="no-print" style="padding:16px;text-align:right;font-weight:800;font-size:12px;color:#000;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">
           AKTIONEN
         </th>
       </tr>
@@ -74,24 +73,25 @@
       {% for k in kunden %}
       <tr id="row-{{ k.id }}" style="border-bottom:1px solid #f1f5f9">
 
-        <td style="padding:20px;font-weight:800;color:#1e293b">{{ k.firma }}</td>
-        <td style="padding:20px;color:#64748b">{{ k.strasse }}</td>
-        <td style="padding:20px;color:#64748b">{{ k.plz }}</td>
-        <td style="padding:20px;color:#64748b">{{ k.ort }}</td>
+        <td style="padding:20px;font-weight:800;color:#1e293b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ k.firma }}</td>
+        <td style="padding:20px;color:#64748b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ k.strasse }}</td>
+        <td style="padding:20px;color:#64748b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ k.plz }}</td>
+        <td style="padding:20px;color:#64748b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ k.ort }}</td>
 
-        <td style="padding:20px">
+        <td style="padding:20px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">
           <span style="background:#f1f5f9;padding:6px 12px;border-radius:8px;
                        font-family:monospace;color:#2563eb">
             {{ k.kundennummer }}
           </span>
         </td>
 
-        <td style="padding:20px">
+        <td style="padding:20px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">
           <span style="color:#6366f1;background:#eef2ff;padding:6px 14px;
                        border-radius:30px;font-size:12px;font-weight:700">
             {{ k.haeufigkeit }}
           </span>
         </td>
+
 
         <!-- BEGINN -->
         <td style="padding:20px;color:#475569">{{ k.vertrag_beginn }}</td>
