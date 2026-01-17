@@ -11,7 +11,6 @@ import os
 app = Flask(__name__)
 DB_PATH = os.path.join('data', 'kg_portal.db')
 
-
 # =====================================================
 # VERİTABANI BAĞLANTISI
 # =====================================================
@@ -19,7 +18,6 @@ def get_db_connection():
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
     return conn
-
 
 # =====================================================
 # VERİTABANI OLUŞTURMA / KONTROL
@@ -30,34 +28,28 @@ def init_db():
 
     conn = get_db_connection()
 
-    # -----------------------------
-    # KUNDEN (MÜŞTERİLER) TABLOSU
-    # -----------------------------
     conn.execute('''
-    CREATE TABLE IF NOT EXISTS kunden (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        firma TEXT NOT NULL,
-        ort TEXT NOT NULL,
-        monat REAL NOT NULL,
-        created_at TEXT DEFAULT CURRENT_TIMESTAMP,
-        strasse TEXT,
-        plz TEXT,
-        ansprechpartner_name TEXT,
-        telefon TEXT,
-        email TEXT,
-        kundennummer TEXT,
-        vertrag_beginn TEXT,
-        vertrag_ende TEXT,
-        haeufigkeit TEXT,
-        vertragsstatus TEXT,
-        vertragslaufzeit TEXT,
-        data_json TEXT
-    )
-''')
+        CREATE TABLE IF NOT EXISTS kunden (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            firma TEXT NOT NULL,
+            ort TEXT NOT NULL,
+            monat REAL NOT NULL,
+            created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+            strasse TEXT,
+            plz TEXT,
+            ansprechpartner_name TEXT,
+            telefon TEXT,
+            email TEXT,
+            kundennummer TEXT,
+            vertrag_beginn TEXT,
+            vertrag_ende TEXT,
+            haeufigkeit TEXT,
+            vertragsstatus TEXT,
+            vertragslaufzeit TEXT,
+            data_json TEXT
+        )
+    ''')
 
-    # -----------------------------
-    # MITARBEITER (PERSONEL) TABLOSU
-    # -----------------------------
     conn.execute('''
         CREATE TABLE IF NOT EXISTS mitarbeiter (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -86,9 +78,7 @@ def init_db():
     conn.commit()
     conn.close()
 
-
 init_db()
-
 
 # =====================================================
 # ANA SAYFA
@@ -97,27 +87,26 @@ init_db()
 def index():
     return render_template("index.html")
 
-
 # =====================================================
-# KUNDEN (MÜŞTERİLER) SAYFASI
-# - Listeleme
-# - Yeni kayıt
-# - Güncelleme
+# KUNDEN
 # =====================================================
-@app.route("/kunden", methods=['GET', 'POST'])
+@app.route("/kunden", methods=["GET", "POST"])
 def kunden():
     conn = get_db_connection()
 
-    # -----------------------------
-    # KAYDET / GÜNCELLE
-    # -----------------------------
-    if request.method == 'POST':
-        kunde_id = request.form.get('kunde_id')
-        data_json = json.dumps(request.form.to_dict())
+    if request.method == "POST":
+        form_data = request.form.to_dict()
+        kunde_id = form_data.get("kunde_id")
 
-        if kunde_id and kunde_id.strip():
-            # GÜNCELLE
-            conn.execute('''
+        anrede = form_data.get("anrede", "").strip()
+        name = form_data.get("name", "").strip()
+        if anrede and name and not name.startswith(anrede):
+            name = f"{anrede} {name}"
+
+        data_json = json.dumps(form_data, ensure_ascii=False)
+
+        if kunde_id:
+            conn.execute("""
                 UPDATE kunden SET
                     firma=?,
                     ort=?,
@@ -135,196 +124,161 @@ def kunden():
                     vertragslaufzeit=?,
                     data_json=?
                 WHERE id=?
-            ''', (
-                request.form.get('firma'),
-                request.form.get('stadt'),
-                request.form.get('betrag'),
-                request.form.get('strasse'),
-                request.form.get('plz'),
-                request.form.get('name'),
-                request.form.get('telefon'),
-                request.form.get('email'),
-                request.form.get('kundennummer'),
-                request.form.get('beginn'),
-                request.form.get('ende'),
-                request.form.get('haeufigkeit'),
-                request.form.get('status'),
-                request.form.get('laufzeit'),
+            """, (
+                form_data.get("firma"),
+                form_data.get("stadt"),
+                form_data.get("betrag"),
+                form_data.get("strasse"),
+                form_data.get("plz"),
+                name,
+                form_data.get("telefon"),
+                form_data.get("email"),
+                form_data.get("kundennummer"),
+                form_data.get("beginn"),
+                form_data.get("ende"),
+                form_data.get("haeufigkeit"),
+                form_data.get("status"),
+                form_data.get("laufzeit"),
                 data_json,
                 kunde_id
             ))
         else:
-            # YENİ KAYIT
-            conn.execute('''
+            conn.execute("""
                 INSERT INTO kunden (
-                    firma,
-                    ort,
-                    monat,
-                    strasse,
-                    plz,
-                    ansprechpartner_name,
-                    telefon,
-                    email,
-                    kundennummer,
-                    vertrag_beginn,
-                    vertrag_ende,
-                    haeufigkeit,
-                    vertragsstatus,
-                    vertragslaufzeit,
-                    data_json
+                    firma, ort, monat, strasse, plz,
+                    ansprechpartner_name, telefon, email,
+                    kundennummer, vertrag_beginn, vertrag_ende,
+                    haeufigkeit, vertragsstatus, vertragslaufzeit, data_json
                 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            ''', (
-                request.form.get('firma'),
-                request.form.get('stadt'),
-                request.form.get('betrag'),
-                request.form.get('strasse'),
-                request.form.get('plz'),
-                request.form.get('name'),
-                request.form.get('telefon'),
-                request.form.get('email'),
-                request.form.get('kundennummer'),
-                request.form.get('beginn'),
-                request.form.get('ende'),
-                request.form.get('haeufigkeit'),
-                request.form.get('status'),
-                request.form.get('laufzeit'),
+            """, (
+                form_data.get("firma"),
+                form_data.get("stadt"),
+                form_data.get("betrag"),
+                form_data.get("strasse"),
+                form_data.get("plz"),
+                name,
+                form_data.get("telefon"),
+                form_data.get("email"),
+                form_data.get("kundennummer"),
+                form_data.get("beginn"),
+                form_data.get("ende"),
+                form_data.get("haeufigkeit"),
+                form_data.get("status"),
+                form_data.get("laufzeit"),
                 data_json
             ))
 
         conn.commit()
         conn.close()
-        return redirect(url_for('kunden'))
+        return redirect(url_for("kunden"))
 
-    # -----------------------------
-    # LİSTELE
-    # -----------------------------
     kunden = conn.execute(
-        'SELECT * FROM kunden ORDER BY id DESC'
+        "SELECT * FROM kunden ORDER BY id DESC"
     ).fetchall()
-
     conn.close()
     return render_template("kunden.html", kunden=kunden)
 
-
-
 # =====================================================
-# KUNDEN SİLME
+# KUNDEN LÖSCHEN
 # =====================================================
 @app.route("/kunden/delete/<int:id>")
 def delete_kunde(id):
     conn = get_db_connection()
-    conn.execute('DELETE FROM kunden WHERE id = ?', (id,))
+    conn.execute("DELETE FROM kunden WHERE id = ?", (id,))
     conn.commit()
     conn.close()
-    return redirect(url_for('kunden'))
-
+    return redirect(url_for("kunden"))
 
 # =====================================================
-# MITARBEITER (PERSONEL) SAYFASI
-# - Listeleme
-# - Yeni kayıt
-# - Güncelleme
+# MITARBEITER
 # =====================================================
-@app.route("/mitarbeiter", methods=['GET', 'POST'])
+@app.route("/mitarbeiter", methods=["GET", "POST"])
 def mitarbeiter():
     conn = get_db_connection()
 
-    # -----------------------------
-    # KAYDET / GÜNCELLE
-    # -----------------------------
-    if request.method == 'POST':
-        mitarbeiter_id = request.form.get('mitarbeiter_id')
-        data_json = json.dumps(request.form.to_dict())
+    if request.method == "POST":
+        form_data = request.form.to_dict()
+        mitarbeiter_id = form_data.get("mitarbeiter_id")
+        data_json = json.dumps(form_data, ensure_ascii=False)
 
-        if mitarbeiter_id and mitarbeiter_id.strip():
-            # GÜNCELLE
-            conn.execute('''
+        if mitarbeiter_id:
+            conn.execute("""
                 UPDATE mitarbeiter SET
                     vorname=?, nachname=?, ort=?, strasse=?, plz=?,
                     geburtsdatum=?, eintrittsdatum=?, telefon=?, email=?,
                     steuer_id=?, sv_nummer=?, krankenkasse=?, iban=?,
                     stundenlohn=?, urlaub=?, resturlaub=?, art=?, data_json=?
                 WHERE id=?
-            ''', (
-                request.form.get('vorname'),
-                request.form.get('nachname'),
-                request.form.get('stadt'),
-                request.form.get('strasse'),
-                request.form.get('plz'),
-                request.form.get('geburtsdatum'),
-                request.form.get('eintrittsdatum'),
-                request.form.get('telefon'),
-                request.form.get('email'),
-                request.form.get('steuer_id'),
-                request.form.get('sv_nummer'),
-                request.form.get('krankenkasse'),
-                request.form.get('iban'),
-                request.form.get('stundenlohn'),
-                request.form.get('urlaub'),
-                request.form.get('resturlaub'),
-                request.form.get('art'),
+            """, (
+                form_data.get("vorname"),
+                form_data.get("nachname"),
+                form_data.get("stadt"),
+                form_data.get("strasse"),
+                form_data.get("plz"),
+                form_data.get("geburtsdatum"),
+                form_data.get("eintrittsdatum"),
+                form_data.get("telefon"),
+                form_data.get("email"),
+                form_data.get("steuer_id"),
+                form_data.get("sv_nummer"),
+                form_data.get("krankenkasse"),
+                form_data.get("iban"),
+                form_data.get("stundenlohn"),
+                form_data.get("urlaub"),
+                form_data.get("resturlaub"),
+                form_data.get("art"),
                 data_json,
                 mitarbeiter_id
             ))
         else:
-            # YENİ KAYIT
-            conn.execute('''
+            conn.execute("""
                 INSERT INTO mitarbeiter (
                     vorname, nachname, ort, strasse, plz,
                     geburtsdatum, eintrittsdatum, telefon, email,
                     steuer_id, sv_nummer, krankenkasse, iban,
                     stundenlohn, urlaub, resturlaub, art, data_json
                 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            ''', (
-                request.form.get('vorname'),
-                request.form.get('nachname'),
-                request.form.get('stadt'),
-                request.form.get('strasse'),
-                request.form.get('plz'),
-                request.form.get('geburtsdatum'),
-                request.form.get('eintrittsdatum'),
-                request.form.get('telefon'),
-                request.form.get('email'),
-                request.form.get('steuer_id'),
-                request.form.get('sv_nummer'),
-                request.form.get('krankenkasse'),
-                request.form.get('iban'),
-                request.form.get('stundenlohn'),
-                request.form.get('urlaub'),
-                request.form.get('resturlaub'),
-                request.form.get('art'),
+            """, (
+                form_data.get("vorname"),
+                form_data.get("nachname"),
+                form_data.get("stadt"),
+                form_data.get("strasse"),
+                form_data.get("plz"),
+                form_data.get("geburtsdatum"),
+                form_data.get("eintrittsdatum"),
+                form_data.get("telefon"),
+                form_data.get("email"),
+                form_data.get("steuer_id"),
+                form_data.get("sv_nummer"),
+                form_data.get("krankenkasse"),
+                form_data.get("iban"),
+                form_data.get("stundenlohn"),
+                form_data.get("urlaub"),
+                form_data.get("resturlaub"),
+                form_data.get("art"),
                 data_json
             ))
 
         conn.commit()
         conn.close()
-        return redirect(url_for('mitarbeiter'))
+        return redirect(url_for("mitarbeiter"))
 
-    # -----------------------------
-    # LİSTELE
-    # -----------------------------
     mitarbeiter_liste = conn.execute(
-        'SELECT * FROM mitarbeiter ORDER BY created_at DESC'
+        "SELECT * FROM mitarbeiter ORDER BY created_at DESC"
     ).fetchall()
-
     conn.close()
-    return render_template(
-        "Mitarbeiter.html",
-        mitarbeiter_liste=mitarbeiter_liste
-    )
-
+    return render_template("Mitarbeiter.html", mitarbeiter_liste=mitarbeiter_liste)
 
 # =====================================================
-# MITARBEITER SİLME
+# MITARBEITER LÖSCHEN
 # =====================================================
 @app.route("/mitarbeiter/delete/<int:id>")
 def delete_mitarbeiter(id):
     conn = get_db_connection()
-    conn.execute('DELETE FROM mitarbeiter WHERE id = ?', (id,))
+    conn.execute("DELETE FROM mitarbeiter WHERE id = ?", (id,))
     conn.commit()
     conn.close()
-    return redirect(url_for('mitarbeiter'))
-
+    return redirect(url_for("mitarbeiter"))
 
 # =====================================================
 # KALENDER
@@ -333,9 +287,9 @@ def delete_mitarbeiter(id):
 def kalender():
     return render_template("kalender.html")
 
-
 # =====================================================
 # UYGULAMA BAŞLAT
 # =====================================================
 if __name__ == "__main__":
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    app.run(host="0.0.0.0", port=5000, debug=True)
+
