@@ -149,7 +149,7 @@
   <span class="t-plz">{{ k.plz }}</span>
   <span class="t-ort">{{ k.ort }}</span>
 
-  <span class="t-name">{{ k.name or "" }}</span>
+  <span class="t-name">{{ k.ansprechpartner_name or "" }}</span>
   <span class="t-tel">{{ k.telefon or "" }}</span>
   <span class="t-mail">{{ k.email or "" }}</span>
 
@@ -228,23 +228,35 @@
     </div>
 
     <!-- ANSPRECHPARTNER -->
-    <div style="margin-bottom:28px">
-      <label class="blue-label" style="color:#2563eb">ANSPRECHPARTNER</label>
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:22px">
-        <div>
-          <label class="input-lbl" style="color:#2563eb">Name</label>
-          <input class="m-input" name="name" id="f_name">
-        </div>
-        <div>
-          <label class="input-lbl" style="color:#2563eb">Telefon</label>
-          <input class="m-input" name="telefon" id="f_tel">
-        </div>
-        <div>
-          <label class="input-lbl" style="color:#2563eb">E-Mail</label>
-          <input class="m-input" name="email" id="f_mail">
-        </div>
-      </div>
+<div style="margin-bottom:28px">
+  <label class="blue-label" style="color:#2563eb">ANSPRECHPARTNER</label>
+
+  <!-- HERR / FRAU -->
+  <div style="display:flex;gap:20px;margin:10px 0 14px 0">
+    <label>
+      <input type="radio" name="anrede" value="Herr"> Herr
+    </label>
+    <label>
+      <input type="radio" name="anrede" value="Frau"> Frau
+    </label>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:22px">
+    <div>
+      <label class="input-lbl" style="color:#2563eb">Name</label>
+      <input class="m-input" name="name" id="f_name">
     </div>
+    <div>
+      <label class="input-lbl" style="color:#2563eb">Telefon</label>
+      <input class="m-input" name="telefon" id="f_tel">
+    </div>
+    <div>
+      <label class="input-lbl" style="color:#2563eb">E-Mail</label>
+      <input class="m-input" name="email" id="f_mail">
+    </div>
+  </div>
+</div>
+
 
     <!-- VERTRAG -->
     <div style="margin-bottom:36px">
@@ -461,6 +473,15 @@ function editKunde(id) {
 
   if (fp[0]) fp[0].setDate(row.querySelector('.t-beginn').innerText);
   if (fp[1]) fp[1].setDate(row.querySelector('.t-ende').innerText);
+
+  // HERR / FRAU RADIO GERI YUKLE
+  const fullName = row.querySelector('.t-name').innerText;
+  document.querySelectorAll('input[name="anrede"]').forEach(r => {
+    r.checked = false;
+    if (fullName.startsWith(r.value + " ")) {
+      r.checked = true;
+    }
+  });
 
   // VERTRAGSLAUFZEIT
   const laufzeit = row.querySelector('.t-laufzeit')?.innerText.trim().toLowerCase();
