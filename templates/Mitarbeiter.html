@@ -1,0 +1,354 @@
+{% extends "base.html" %}
+{% block content %}
+
+<!--
+..........................................................................................................
+..........................................................................................................
+.......... 🟦 Bölüm 1: Template Mirası ve Başlık (Header) ...............................
+..........................................................................................................
+..........................................................................................................
+-->
+
+<div class="no-print" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+    <div>
+        <h2 style="font-size: 32px; font-weight: 900; color: #16a34a; margin:0;">Personal Stammdaten</h2>
+        <p style="color:#2563eb; font-size:15px; margin:6px 0 0 0; font-weight:700">
+    Verwaltung der Mitarbeiter- und Abrechnungsdaten</p>
+    </div>
+    <div style="display:flex; gap:12px;">
+        <a href="https://chat.whatsapp.com/FNDtS0mJStA78WAND4XjZk" target="_blank" style="background:#25d366; color:white; padding:12px 20px; border-radius:12px; font-weight:700; text-decoration:none; display:inline-flex; align-items:center;">
+    <i class="fa-brands fa-whatsapp"></i> WhatsApp Gruppe
+</a>
+
+        <button onclick="window.print()" style="background:#f1f5f9;color:#475569;border:1px solid #e2e8f0;padding:12px 20px;border-radius:12px;font-weight:700;cursor:pointer">
+            <i class="fa-solid fa-print"></i> Liste Drucken
+        </button>
+
+        <button onclick="openNewMitarbeiterModal()" style="background: #2563eb; color: #fff; border: none; padding: 12px 25px; border-radius: 12px; font-weight: 700; cursor: pointer;">
+            <i class="fa-solid fa-user-plus"></i> Neuer Mitarbeiter
+        </button>
+    </div>
+</div>
+
+
+<!--
+..........................................................................................................
+..........................................................................................................
+.......... ⬜ Bölüm 2: Çalışan Ekleme/Düzenleme Formu (Modal) ...............................
+..........................................................................................................
+..........................................................................................................
+-->
+
+<div id="m_form" class="no-print" style="display: none; background: #fff; border: 1px solid #e2e8f0; border-radius: 20px; padding: 30px; margin-bottom: 30px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);">
+    <form method="POST" action="/mitarbeiter" id="mitarbeiterForm">
+        <input type="hidden" name="mitarbeiter_id" id="f_id">
+        <h3 id="modalTitle" style="color: #2563eb; margin-bottom: 15px; font-size: 18px;">Anrede & Basis</h3>
+        <div style="display: grid; grid-template-columns: 0.6fr 1.2fr 1.2fr; gap: 20px; margin-bottom: 25px;">
+            <div>
+                <label style="display:block; margin-bottom:5px; font-weight:600;">Anrede</label>
+                <select name="anrede" id="f_anrede" style="width:100%; padding:10px; border-radius:8px; border:1.5px solid #e2e8f0;">
+                    <option value="Frau">Frau</option>
+                    <option value="Herr">Herr</option>
+                </select>
+            </div>
+            <div>
+                <label style="display:block; margin-bottom:5px; font-weight:600;">Vorname</label>
+                <input type="text" name="vorname" id="f_vorname" required style="width:100%; padding:10px; border-radius:8px; border:1.5px solid #e2e8f0;">
+            </div>
+            <div>
+                <label style="display:block; margin-bottom:5px; font-weight:600;">Nachname</label>
+                <input type="text" name="nachname" id="f_nachname" required style="width:100%; padding:10px; border-radius:8px; border:1.5px solid #e2e8f0;">
+            </div>
+        </div>
+        <div style="display: grid; grid-template-columns: 1.5fr 0.8fr 1.2fr; gap: 20px; margin-bottom: 25px;">
+            <div>
+                <label style="display:block; margin-bottom:5px; font-weight:600;">Straße + Nr.</label>
+                <input type="text" name="strasse" id="f_strasse" style="width:100%; padding:10px; border-radius:8px; border:1.5px solid #e2e8f0;">
+            </div>
+            <div>
+                <label style="display:block; margin-bottom:5px; font-weight:600;">PLZ</label>
+                <input type="text" name="plz" id="f_plz" oninput="autoCity_M()" style="width:100%; padding:10px; border-radius:8px; border:1.5px solid #e2e8f0;">
+            </div>
+            <div>
+                <label style="display:block; margin-bottom:5px; font-weight:600;">Stadt</label>
+                <input type="text" name="stadt" id="m_stadt" readonly style="width:100%; padding:10px; border-radius:8px; border:1.5px solid #e2e8f0; background:#ffffff; color:#1e293b; font-weight:600;">
+            </div>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 20px; margin-bottom: 25px;">
+            <div style="position:relative;">
+                <label style="display:block; margin-bottom:5px; font-weight:600;">Geburtsdatum</label>
+                <input type="text" name="geburtsdatum" id="f_geb" class="date-picker" style="width:100%; padding:10px; border-radius:8px; border:1.5px solid #e2e8f0;">
+                <i class="fa-solid fa-calendar" style="position:absolute; right:10px; bottom:12px; color:#64748b; pointer-events:none;"></i>
+            </div>
+            <div style="position:relative;">
+                <label style="display:block; margin-bottom:5px; font-weight:600;">Eintrittsdatum</label>
+                <input type="text" name="eintrittsdatum" id="f_ein" class="date-picker" style="width:100%; padding:10px; border-radius:8px; border:1.5px solid #e2e8f0;">
+                <i class="fa-solid fa-calendar" style="position:absolute; right:10px; bottom:12px; color:#64748b; pointer-events:none;"></i>
+            </div>
+            <div>
+                <label style="display:block; margin-bottom:5px; font-weight:600;">Telefon</label>
+                <input type="text" name="telefon" id="f_tel" style="width:100%; padding:10px; border-radius:8px; border:1.5px solid #e2e8f0;">
+            </div>
+            <div>
+                <label style="display:block; margin-bottom:5px; font-weight:600;">E-Mail</label>
+                <input type="email" name="email" id="f_mail" style="width:100%; padding:10px; border-radius:8px; border:1.5px solid #e2e8f0;">
+            </div>
+        </div>
+        <h3 style="color: #2563eb; margin-bottom: 15px; font-size: 18px;">Abrechnungsdaten</h3>
+        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 20px; margin-bottom: 25px;">
+            <div><label style="display:block; margin-bottom:5px; font-weight:600;">Steuer-ID</label><input type="text" name="steuer_id" id="f_steuer" style="width:100%; padding:10px; border-radius:8px; border:1.5px solid #e2e8f0;"></div>
+            <div><label style="display:block; margin-bottom:5px; font-weight:600;">SV-Nummer</label><input type="text" name="sv_nummer" id="f_sv" style="width:100%; padding:10px; border-radius:8px; border:1.5px solid #e2e8f0;"></div>
+            <div><label style="display:block; margin-bottom:5px; font-weight:600;">Krankenkasse</label><input type="text" name="krankenkasse" id="f_krank" style="width:100%; padding:10px; border-radius:8px; border:1.5px solid #e2e8f0;"></div>
+            <div><label style="display:block; margin-bottom:5px; font-weight:600;">IBAN</label><input type="text" name="iban" id="f_iban" style="width:100%; padding:10px; border-radius:8px; border:1.5px solid #e2e8f0;"></div>
+        </div>
+        <h3 style="color: #2563eb; margin-bottom: 15px; font-size: 18px;">Vertragsdaten & Urlaub</h3>
+        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 20px;">
+            <div><label style="display:block; margin-bottom:5px; font-weight:600;">Stundenlohn (€)</label><input type="number" step="0.01" name="stundenlohn" id="f_lohn" style="width:100%; padding:10px; border-radius:8px; border:1.5px solid #e2e8f0;"></div>
+            <div><label style="display:block; margin-bottom:5px; font-weight:600;">Urlaub (Gesamt)</label><input type="number" name="urlaub" id="f_urlaub" style="width:100%; padding:10px; border-radius:8px; border:1.5px solid #e2e8f0;"></div>
+            <div><label style="display:block; margin-bottom:5px; font-weight:600;">Resturlaub</label><input type="number" name="resturlaub" id="f_resturlaub" style="width:100%; padding:10px; border-radius:8px; border:1.5px solid #e2e8f0;"></div>
+            <div>
+                <label style="display:block; margin-bottom:5px; font-weight:600;">Art</label>
+                <select name="art" id="f_art" style="width:100%; padding:10px; border-radius:8px; border:1.5px solid #e2e8f0;">
+                    <option value="Minijob (603 €)">Minijob (603€)</option>
+                    <option value="Teilzeit">Teilzeit</option>
+                    <option value="Vollzeit">Vollzeit</option>
+                </select>
+            </div>
+        </div>
+        <div style="margin-top: 30px; text-align: right;">
+            <button type="button" onclick="closeModal()" style="background:#f1f5f9; padding:10px 20px; border:none; border-radius:8px; cursor:pointer;">Abbrechen</button>
+            <button type="submit" style="background:#2563eb; color:#fff; padding:12px 40px; border:none; border-radius:10px; font-weight:700; cursor:pointer;">Speichern</button>
+        </div>
+    </form>
+</div>
+
+<!--
+..........................................................................................................
+..........................................................................................................
+.......... 🟧 Bölüm 3: Tekli Personel Önizleme Ekranı (Preview Modal) ...............................
+..........................................................................................................
+..........................................................................................................
+-->
+
+<div id="pv" style="display:none;position:fixed;inset:0;background:rgba(15,23,42,0.8);backdrop-filter:blur(10px);align-items:center;justify-content:center;z-index:1100">
+    <div style="background:#fff;width:500px;border-radius:28px;padding:40px;text-align:center;" id="single_print_area">
+        <h2 id="pv-name" style="margin-bottom:20px;color:#0f172a"></h2>
+        <div id="pv-details" style="text-align:left; background:#ffffff; padding:20px; border: 1px solid #e2e8f0; border-radius:12px; line-height:1.6; color:#1e293b;"></div>
+        <div class="no-print" style="margin-top:20px; display:flex; gap:10px;">
+            <button onclick="printSingle()" style="background:#f1f5f9; color:#475569; padding:12px; border:none; border-radius:12px; cursor:pointer; flex:1; font-weight:700;"><i class="fa-solid fa-print"></i> Einzeln Drucken</button>
+            <button onclick="document.getElementById('pv').style.display='none'" style="background:#2563eb; color:#fff; padding:12px; border:none; border-radius:12px; cursor:pointer; flex:1; font-weight:700;">Schließen</button>
+        </div>
+    </div>
+</div>
+
+<!--
+..........................................................................................................
+..........................................................................................................
+.......... 🟪 Bölüm 4: Çalışan Listesi Tablosu .......................
+..........................................................................................................
+..........................................................................................................
+-->
+
+<div id="main_list" style="background: #fff; border: 1px solid #e2e8f0; border-radius: 20px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);">
+    <table style="width: 100%; border-collapse: collapse;">
+        <tr style="background: #f8fafc; border-bottom: 1px solid #e2e8f0; text-align: left;">
+            <th style="padding: 15px; color:#475569; font-size:13px; font-weight:700;">MITARBEITER</th>
+            <th style="padding: 15px; color:#475569; font-size:13px; font-weight:700;">STADT</th>
+            <th style="padding: 15px; color:#475569; font-size:13px; font-weight:700;">LOHN</th>
+            <th style="padding: 15px; color:#475569; font-size:13px; font-weight:700;">URLAUB / REST</th>
+            <th style="padding: 15px; color:#475569; font-size:13px; font-weight:700;">ART</th>
+            <th class="no-print" style="padding: 15px; text-align: right; color:#475569; font-size:13px; font-weight:700;">AKTION</th>
+        </tr>
+        {% for m in mitarbeiter_liste if m.status == 'aktiv' %}
+        <tr id="row-{{ m.id }}" style="border-bottom: 1px solid #f1f5f9;">
+            <td class="display-name" style="padding: 15px; font-weight: 600; color:#1e293b;">{{ m.vorname }} {{ m.nachname }}</td>
+            <td class="display-stadt" style="padding: 15px; color:#1e293b; font-weight: 600;">{{ m.ort if m.ort and m.ort != 'None' else '' }}</td>
+            <td style="padding: 15px; color: #059669; font-weight: 700;">{{ "{:,.2f}".format(m.stundenlohn).replace(",", "X").replace(".", ",").replace("X", ".") if m.stundenlohn else "0,00" }} €</td>
+            <td style="padding: 15px; color:#1e293b;">{{ m.urlaub if m.urlaub and m.urlaub != 'None' else '0' }} / <span style="color:#ef4444; font-weight:700;">{{ m.resturlaub if m.resturlaub and m.resturlaub != 'None' else '0' }}</span></td>
+            <td style="padding: 15px;"><span style="background:#eef2ff; color:#2563eb; padding:4px 10px; border-radius:15px; font-size:12px; font-weight:700;">{{ m.art if m.art and m.art != 'None' else '' }}</span></td>
+            
+            <td style="display:none">
+                <span class="t-vorname">{{ m.vorname if m.vorname != 'None' else '' }}</span>
+                <span class="t-nachname">{{ m.nachname if m.nachname != 'None' else '' }}</span>
+                <span class="t-anrede">{{ m.anrede if m.anrede != 'None' else '' }}</span>
+                <span class="t-strasse">{{ m.strasse if m.strasse != 'None' else '' }}</span>
+                <span class="t-plz">{{ m.plz if m.plz != 'None' else '' }}</span>
+                <span class="t-stadt">{{ m.ort if m.ort != 'None' else '' }}</span>
+                <span class="t-geb">{{ m.geburtsdatum if m.geburtsdatum != 'None' else '' }}</span>
+                <span class="t-ein">{{ m.eintrittsdatum if m.eintrittsdatum != 'None' else '' }}</span>
+                <span class="t-tel">{{ m.telefon if m.telefon != 'None' else '' }}</span>
+                <span class="t-mail">{{ m.email if m.email != 'None' else '' }}</span>
+                <span class="t-steuer">{{ m.steuer_id if m.steuer_id != 'None' else '' }}</span>
+                <span class="t-sv">{{ m.sv_nummer if m.sv_nummer != 'None' else '' }}</span>
+                <span class="t-krank">{{ m.krankenkasse if m.krankenkasse != 'None' else '' }}</span>
+                <span class="t-iban">{{ m.iban if m.iban != 'None' else '' }}</span>
+                <span class="t-lohn">{{ m.stundenlohn if m.stundenlohn != 'None' else '' }}</span>
+                <span class="t-urlaub">{{ m.urlaub if m.urlaub != 'None' else '0' }}</span>
+                <span class="t-resturlaub">{{ m.resturlaub if m.resturlaub != 'None' else '0' }}</span>
+                <span class="t-art">{{ m.art if m.art != 'None' else '' }}</span>
+            </td>
+
+            <td class="no-print" style="padding: 15px; text-align: right; display:flex; justify-content:flex-end; gap:10px;">
+                <a href="https://wa.me/{{ m.telefon if m.telefon else '' }}" target="_blank" style="background:#25d366; color:white; padding:8px 10px; border-radius:8px; text-decoration:none; display:inline-flex; align-items:center;">
+                    <i class="fa-brands fa-whatsapp"></i>
+                </a>
+                <button onclick="previewMitarbeiter('{{ m.id }}')" style="background:#eef2ff; color:#6366f1; border:none; padding:8px; border-radius:8px; cursor:pointer;"><i class="fa-solid fa-eye"></i></button>
+                <button onclick="editMitarbeiter('{{ m.id }}')" style="background:#f0fdf4; color:#16a34a; border:none; padding:8px; border-radius:8px; cursor:pointer;"><i class="fa-solid fa-pen-to-square"></i></button>
+                <button onclick="if(confirm('Mitarbeiter wirklich löschen?')) window.location.href='/mitarbeiter/delete/{{ m.id }}'" style="background:#fef2f2; color:#dc2626; border:none; padding:8px; border-radius:8px; cursor:pointer;"><i class="fa-solid fa-trash-can"></i></button>
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+</div>
+
+<hr style="border: 0; height: 4px; background: #16a34a; margin: 60px 0 30px 0; border-radius: 10px;">
+
+<div style="margin-bottom: 20px;">
+    <h2 style="font-size: 32px; font-weight: 900; color: #dc2626; margin:0; letter-spacing:-1px;">
+        Ehemalige Mitarbeiter
+    </h2>
+    <p style="color:#64748b; font-size:15px; margin:6px 0 0 0; font-weight:700">
+        Archivierte Mitarbeiterdaten und Reaktivierung
+    </p>
+</div>
+
+<div style="background:#fff; border:1px solid #e2e8f0; border-radius:20px; overflow:hidden; opacity: 0.8;">
+  <table style="width:100%; border-collapse:collapse; text-align:left">
+    <thead style="background:#f8fafc; border-bottom:2px solid #f1f5f9">
+      <tr>
+        <th style="padding:20px; font-weight:700; font-size:13px; color:#475569">MITARBEITER</th>
+        <th style="padding:20px; font-weight:700; font-size:13px; color:#475569">STADT</th>
+        <th style="padding:20px; text-align:right; font-weight:700; font-size:13px; color:#475569">AKTION</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for m in mitarbeiter_liste if m.status == 'gelöscht' %}
+      <tr style="border-bottom:1px solid #f1f5f9; background: #fafafa;">
+        <td style="padding:20px; font-weight:600; color:#64748b">{{ m.vorname }} {{ m.nachname }}</td>
+        <td style="padding:20px; color:#94a3b8">{{ m.ort if m.ort != 'None' else '' }}</td>
+        <td style="padding:20px; text-align:right; display:flex; justify-content:flex-end; gap:10px;">
+          <button onclick="if(confirm('Mitarbeiter wirklich reaktivieren?')) window.location.href='/mitarbeiter/activate/{{ m.id }}'" 
+                  title="Reaktivieren"
+                  style="background:#f0fdf4; color:#16a34a; border:none; padding:10px; border-radius:10px; cursor:pointer;">
+            <i class="fa-solid fa-user-plus"></i> Reaktivieren
+          </button>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<!--
+..........................................................................................................
+..........................................................................................................
+.......... 🎨 Bölüm 5: Yazdırma Stilleri ve Scriptler .....................................
+..........................................................................................................
+..........................................................................................................
+-->
+
+<style>
+@media print {
+    body * { visibility: hidden; }
+    #main_list, #main_list * { visibility: visible; }
+    #main_list { position: absolute; left: 0; top: 0; width: 100%; border: none !important; box-shadow: none !important; }
+    .no-print { display: none !important; }
+}
+
+/* Sadece tekli önizleme basıldığında çalışacak stil */
+.printing-single #main_list { visibility: hidden !important; }
+.printing-single #pv, .printing-single #pv * { visibility: visible !important; }
+.printing-single #pv { position: absolute; left:0; top:0; width:100%; background:white; }
+</style>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/de.js"></script>
+
+<script>
+flatpickr(".date-picker", { locale: "de", dateFormat: "d.m.Y", allowInput: true });
+
+function printSingle() {
+    document.body.classList.add('printing-single');
+    window.print();
+    document.body.classList.remove('printing-single');
+}
+
+function editMitarbeiter(id) {
+    const row = document.getElementById('row-' + id);
+    if (!row) return;
+    document.getElementById('f_id').value = id;
+    document.getElementById('f_vorname').value = row.querySelector('.t-vorname').innerText;
+    document.getElementById('f_nachname').value = row.querySelector('.t-nachname').innerText;
+    document.getElementById('f_anrede').value = row.querySelector('.t-anrede').innerText;
+    document.getElementById('f_strasse').value = row.querySelector('.t-strasse').innerText;
+    document.getElementById('f_plz').value = row.querySelector('.t-plz').innerText;
+    document.getElementById('m_stadt').value = row.querySelector('.t-stadt').innerText;
+    document.getElementById('f_geb').value = row.querySelector('.t-geb').innerText;
+    document.getElementById('f_ein').value = row.querySelector('.t-ein').innerText;
+    document.getElementById('f_tel').value = row.querySelector('.t-tel').innerText;
+    document.getElementById('f_mail').value = row.querySelector('.t-mail').innerText;
+    document.getElementById('f_steuer').value = row.querySelector('.t-steuer').innerText;
+    document.getElementById('f_sv').value = row.querySelector('.t-sv').innerText;
+    document.getElementById('f_krank').value = row.querySelector('.t-krank').innerText;
+    document.getElementById('f_iban').value = row.querySelector('.t-iban').innerText;
+    document.getElementById('f_lohn').value = row.querySelector('.t-lohn').innerText;
+    document.getElementById('f_urlaub').value = row.querySelector('.t-urlaub').innerText;
+    document.getElementById('f_resturlaub').value = row.querySelector('.t-resturlaub').innerText;
+    document.getElementById('f_art').value = row.querySelector('.t-art').innerText;
+    document.getElementById('modalTitle').innerText = "Mitarbeiter bearbeiten";
+    document.getElementById('m_form').style.display = 'block';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function previewMitarbeiter(id) {
+    const row = document.getElementById('row-' + id);
+    if (!row) return;
+    document.getElementById('pv-name').innerText = row.querySelector('.display-name').innerText;
+    document.getElementById('pv-details').innerHTML = `
+        <h3 style="border-bottom:1px solid #eee; padding-bottom:10px;">Personal-Details</h3>
+        <strong>Stadt:</strong> ${row.querySelector('.t-stadt').innerText}<br>
+        <strong>Anschrift:</strong> ${row.querySelector('.t-strasse').innerText}, ${row.querySelector('.t-plz').innerText}<br>
+        <strong>Steuer-ID:</strong> ${row.querySelector('.t-steuer').innerText}<br>
+        <strong>IBAN:</strong> ${row.querySelector('.t-iban').innerText}<br>
+        <strong>Lohn:</strong> ${row.querySelector('.t-lohn').innerText} €<br>
+        <strong>Urlaub:</strong> ${row.querySelector('.t-urlaub').innerText} (Rest: ${row.querySelector('.t-resturlaub').innerText})
+    `;
+    document.getElementById('pv').style.display = 'flex';
+}
+
+function openNewMitarbeiterModal() {
+    document.getElementById('f_id').value = "";
+    document.getElementById('mitarbeiterForm').reset();
+    document.getElementById('modalTitle').innerText = "Neuer Mitarbeiter";
+    document.getElementById('m_form').style.display = 'block';
+}
+
+function closeModal() { document.getElementById('m_form').style.display = 'none'; }
+
+function autoCity_M(){
+    const nrw = {'40':'Düsseldorf','41':'Mönchengladbach','42':'Wuppertal','44':'Dortmund','45':'Essen','46':'Oberhausen','47':'Duisburg','48':'Münster','50':'Köln','51':'Leverkusen','52':'Aachen','53':'Bonn','57':'Siegen','58':'Hagen','59':'Hamm'};
+    const v = document.getElementById('f_plz').value.substring(0, 2);
+    document.getElementById('m_stadt').value = nrw[v] || (document.getElementById('f_plz').value.length > 2 ? "NRW Region" : "");
+}
+
+function sendBulkWhatsApp() {
+    const phones = [];
+    document.querySelectorAll('.t-tel').forEach(span => {
+        let num = span.innerText.trim();
+        if(num && num !== 'None' && num !== '') {
+            phones.push(num);
+        }
+    });
+
+    if(phones.length === 0) {
+        alert("Keine Telefonnummern gefunden!");
+        return;
+    }
+
+    const list = phones.join(',');
+    window.open(`https://wa.me/?text=Hallo%20Team&phone=${list}`, '_blank');
+}
+</script>
+{% endblock %}
+

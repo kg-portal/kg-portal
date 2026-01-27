@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div style="max-width: 800px; margin: 0 auto;">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:30px;">
+        <h2 style="font-size: 28px; font-weight: 800; color: #0f172a;">To-Do Liste</h2>
+        <span style="background: #eef2ff; color: #2563eb; padding: 8px 16px; border-radius: 12px; font-weight: 700;">
+            {{ todos|length }} Aufgaben
+        </span>
+    </div>
+
+    <form action="/todo/add" method="POST" style="display: flex; gap: 10px; margin-bottom: 30px; background: #fff; padding: 20px; border-radius: 16px; border: 1px solid #e2e8f0;">
+        <input type="text" name="task" placeholder="Yeni bir görev yazın..." required 
+               style="flex: 1; padding: 12px; border-radius: 10px; border: 1.5px solid #e2e8f0; outline: none;">
+        <button type="submit" style="background: #2563eb; color: white; border: none; padding: 12px 25px; border-radius: 10px; font-weight: 700; cursor: pointer;">
+            Ekle
+        </button>
+    </form>
+
+    <div style="background: #fff; border-radius: 20px; border: 1px solid #e2e8f0; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);">
+        {% for todo in todos %}
+        <div style="display: flex; align-items: center; justify-content: space-between; padding: 15px 20px; border-bottom: 1px solid #f1f5f9; {% if todo.done %}background: #f8fafc;{% endif %}">
+            <div style="display: flex; align-items: center; gap: 15px;">
+                <a href="/todo/toggle/{{ todo.id }}" style="text-decoration: none; color: {% if todo.done %}#10b981{% else %}#cbd5e1{% endif %}; font-size: 20px;">
+                    <i class="fa-solid {% if todo.done %}fa-circle-check{% else %}fa-circle{% endif %}"></i>
+                </a>
+                <span style="font-size: 16px; font-weight: 600; {% if todo.done %}text-decoration: line-through; color: #94a3b8;{% else %}color: #1e293b;{% endif %}">
+                    {{ todo.task }}
+                </span>
+            </div>
+            <a href="/todo/delete/{{ todo.id }}" style="color: #ef4444; padding: 8px; border-radius: 8px; transition: 0.2s;" onmouseover="this.style.background='#fef2f2'" onmouseout="this.style.background='transparent'">
+                <i class="fa-solid fa-trash-can"></i>
+            </a>
+        </div>
+        {% else %}
+        <div style="padding: 40px; text-align: center; color: #64748b;">
+            <i class="fa-solid fa-clipboard-list" style="font-size: 40px; margin-bottom: 10px; display: block;"></i>
+            Henüz hiç görev eklenmemiş.
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+{% endblock %}

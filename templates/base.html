@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>KG Portal V2</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root { --bg:#f8fafc; --sidebar:#ffffff; --accent:#2563eb; --border:#e2e8f0; --text:#1e293b; }
+        *{margin:0;padding:0;box-sizing:border-box}
+        body{ font-family: Arial, sans-serif; background:var(--bg); display:flex; height:100vh; overflow:hidden; }
+        .sidebar{ width:280px; background:#fff; border-right:1px solid var(--border); padding:30px 20px; display:flex; flex-direction:column; }
+        .sidebar h2{ font-weight:800; color:var(--accent); margin-bottom:40px; font-size:24px; }
+        
+        .nav-item{ 
+            padding:16px 20px; 
+            border-radius:12px; 
+            color:#64748b; 
+            cursor:pointer; 
+            font-weight:600; 
+            font-size:16px; 
+            margin-bottom:8px; 
+            display:flex; 
+            align-items:center; 
+            gap:15px; 
+            text-decoration:none; 
+            transition:0.2s; 
+        }
+        
+        .nav-item i {
+            font-size: 20px; 
+            width: 25px;    
+            text-align: center;
+        }
+
+        .nav-item:hover{ background:#eef2ff; }
+        .nav-item.active{ background:var(--accent); color:#fff; }
+        .nav-item.active i{ color: #fff !important; }
+        
+        /* Profesyonel CRM İkon Renkleri */
+        .icon-blue { color: #3b82f6; }
+        .icon-orange { color: #f59e0b; }
+        .icon-purple { color: #8b5cf6; }
+        .icon-green { color: #10b981; }
+        .icon-cyan { color: #06b6d4; }
+        .icon-indigo { color: #6366f1; }
+        .icon-teal { color: #14b8a6; } /* Vertretung için yeni renk */
+        .icon-red { color: #ef4444; }
+        .icon-pink { color: #ec4899; }
+
+        .main{ flex:1; padding:30px; overflow-y:auto; }
+        .card{ background:#fff; border:1px solid var(--border); border-radius:24px; padding:30px; min-height: 100%; }
+    </style>
+</head>
+<body>
+<div class="sidebar">
+    <h2>KG-Portal V2</h2>
+    
+    <a class="nav-item {% if request.path == '/' %}active{% endif %}" href="/">
+        <i class="fa-solid fa-chart-line icon-blue"></i> Startseite
+    </a>
+
+    <a class="nav-item {% if request.path == '/kalender' %}active{% endif %}" href="/kalender">
+        <i class="fa-solid fa-calendar-day icon-orange"></i> Kalender
+    </a>
+
+    <a class="nav-item {% if request.path.startswith('/datenbank') %}active{% endif %}" href="/datenbank">
+        <i class="fa-solid fa-server icon-purple"></i> Datenbank
+    </a>
+
+    <a class="nav-item {% if request.path.startswith('/besichtigung') %}active{% endif %}" href="/besichtigung">
+        <i class="fa-solid fa-clipboard-check icon-teal"></i> Besichtigung
+    </a>
+
+    <a class="nav-item {% if request.path.startswith('/angebot') %}active{% endif %}" href="/angebot">
+        <i class="fa-solid fa-file-signature icon-green"></i> Angebot & Vertrag
+    </a>
+
+    <a class="nav-item {% if request.path.startswith('/kunden') %}active{% endif %}" href="/kunden">
+        <i class="fa-solid fa-address-book icon-cyan"></i> Kunden
+    </a>
+    
+    <a class="nav-item {% if request.path.startswith('/mitarbeiter') %}active{% endif %}" href="/mitarbeiter">
+        <i class="fa-solid fa-user-group icon-indigo"></i> Mitarbeiter
+    </a>
+
+    <a class="nav-item {% if request.path.startswith('/stundenzettel') %}active{% endif %}" href="/stundenzettel">
+        <i class="fa-solid fa-clock-rotate-left icon-purple"></i> Stundenzettel
+    </a>
+
+    <a class="nav-item {% if request.path.startswith('/vertretung') %}active{% endif %}" href="/vertretung">
+        <i class="fa-solid fa-user-shield icon-teal"></i> Vertretung
+    </a>
+
+    <a class="nav-item {% if request.path.startswith('/buchhaltung') %}active{% endif %}" href="/buchhaltung">
+        <i class="fa-solid fa-vault icon-red"></i> Buchhaltung
+    </a>
+
+    <a class="nav-item {% if request.path.startswith('/todo') %}active{% endif %}" href="/todo">
+        <i class="fa-solid fa-clipboard-list icon-pink"></i> To Do Liste
+    </a>
+
+<!--
+..........................................................................................................
+..........................................................................................................
+.......... 🟦 Bölüm 2: Iscilere otomatik stundenzettel uyarisi gönder....................................
+..........................................................................................................
+..........................................................................................................
+-->
+</div>
+<div class="main">
+    <div class="card">
+        {% block content %}{% endblock %}
+    </div>
+</div>
+
+<script>
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/static/sw.js');
+  Notification.requestPermission();
+}
+</script>
+
+</body>
+</html>
+

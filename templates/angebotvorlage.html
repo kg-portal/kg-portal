@@ -1,0 +1,140 @@
+{% extends "base.html" %}
+{% block content %}
+
+<style>
+    /* Teklif Sayfası Özel Stilleri */
+    .angebot-pdf-view {
+        background: #fff;
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 50px;
+        border: 1px solid #e2e8f0;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+        color: #1e293b;
+        font-family: Arial, sans-serif;
+    }
+
+    .header-pdf { display: flex; justify-content: space-between; align-items: start; margin-bottom: 40px; }
+    .logo-kg { font-size: 42px; font-weight: 900; color: #1e40af; }
+    .logo-kg span { color: #3b82f6; }
+
+    .offer-title { font-size: 24px; font-weight: 800; color: #1e40af; margin-bottom: 20px; border-bottom: 2px solid #3b82f6; display: inline-block; }
+
+    .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-bottom: 30px; }
+    .address-box { line-height: 1.6; font-size: 14px; }
+
+    .service-table { width: 100%; border-collapse: collapse; margin: 30px 0; }
+    .service-table th { background: #f8fafc; text-align: left; padding: 12px; border-bottom: 2px solid #1e40af; font-size: 13px; }
+    .service-table td { padding: 15px 12px; border-bottom: 1px solid #f1f5f9; font-size: 14px; }
+
+    .price-tag { font-weight: 800; color: #1e40af; text-align: right; }
+    .advantage-list { background: #eff6ff; padding: 20px; border-radius: 15px; margin: 30px 0; }
+    .advantage-item { display: flex; gap: 10px; margin-bottom: 8px; font-size: 13px; font-weight: 600; }
+
+    .footer-pdf { margin-top: 50px; border-top: 1px solid #e2e8f0; padding-top: 20px; font-size: 11px; color: #64748b; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+    
+    .btn-print { background: #1e40af; color: white; padding: 10px 20px; border-radius: 8px; border: none; cursor: pointer; margin-bottom: 20px; font-weight: bold; }
+    
+    @media print { .no-print { display: none; } .angebot-pdf-view { border: none; box-shadow: none; padding: 0; } }
+</style>
+
+<button class="btn-print no-print" onclick="window.print()"><i class="fa-solid fa-print"></i> PDF / Drucken</button>
+
+<div class="angebot-pdf-view">
+    <div class="header-pdf">
+        <div class="logo-kg">KG <span>Gebäudereinigung</span></div>
+        <div style="text-align: right; font-size: 14px;">
+            <strong>Duisburg, {{ a.datum if a else '19. Januar 2026' }}</strong><br>
+            Angebot Nr: {{ a.angebot_nr if a else 'AN-2238' }}
+        </div>
+    </div>
+
+    <div class="info-grid">
+        <div class="address-box">
+            <label style="color: #64748b; font-size: 11px; font-weight: 800;">KUNDE:</label><br>
+            <strong>{{ a.firma if a else 'Zahnmedizin am Marktplatz' }}</strong><br>
+            {{ a.ansprechpartner if a else 'Herr Rüffer' }}<br>
+            {{ a.strasse if a else 'Kirchstr. 13' }}<br>
+            {{ a.plz if a else '47239' }} {{ a.ort if a else 'Duisburg' }}
+        </div>
+        <div class="address-box" style="text-align: right;">
+            <label style="color: #64748b; font-size: 11px; font-weight: 800;">ANBIETER:</label><br>
+            <strong>KG-Gebäudereinigung</strong><br>
+            Fliederstr. 59<br>
+            47055 Duisburg<br>
+            info@kg-reinigung.de
+        </div>
+    </div>
+
+    <h2 class="offer-title">Angebot: Professionelle Praxisreinigung</h2>
+
+    <p style="font-size: 14px; line-height: 1.5;">
+        Sehr geehrte Damen und Herren,<br><br>
+        herzlichen Dank für Ihr Interesse. Hiermit überreichen wir Ihnen das gewünschte Angebot für Ihr Objekt in {{ a.ort if a else 'Duisburg' }}.
+    </p>
+
+    <table class="service-table">
+        <thead>
+            <tr>
+                <th>Leistungsbeschreibung</th>
+                <th style="text-align: right;">Turnus</th>
+                <th style="text-align: right;">Betrag (Netto)</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><strong>Unterhaltsreinigung</strong> (Praxisfläche {{ a.m2 if a else '180' }} m²)</td>
+                <td style="text-align: right;">5x wöchentlich</td>
+                <td class="price-tag">{{ a.preis_monat if a else '1.194,00' }} €</td>
+            </tr>
+            <tr>
+                <td>Glas- und Fensterreinigung (inkl. Rahmen)</td>
+                <td style="text-align: right;">alle 3 Monate</td>
+                <td class="price-tag">inkl.</td>
+            </tr>
+            <tr>
+                <td>Jalousienreinigung</td>
+                <td style="text-align: right;">1x jährlich</td>
+                <td class="price-tag">inkl.</td>
+            </tr>
+        </tbody>
+        <tfoot>
+            <tr>
+                <td colspan="2" style="text-align: right; padding: 15px; font-weight: 800;">Gesamtbetrag mtl. zzgl. MwSt:</td>
+                <td class="price-tag" style="font-size: 18px; border-top: 2px solid #1e40af;">{{ a.preis_monat if a else '1.194,00' }} €</td>
+            </tr>
+        </tfoot>
+    </table>
+
+    <div class="advantage-list">
+        <h4 style="margin: 0 0 10px 0; color: #1e40af;">Ihre Vorteile auf einen Blick:</h4>
+        <div class="advantage-item"><i class="fa-solid fa-check-circle" style="color: #16a34a;"></i> 100% Organisierte Krankheits- und Urlaubsvertretung</div>
+        <div class="advantage-item"><i class="fa-solid fa-check-circle" style="color: #16a34a;"></i> Akribische Qualitätsprüfungen durch Objektleitung</div>
+        <div class="advantage-item"><i class="fa-solid fa-check-circle" style="color: #16a34a;"></i> Fester Ansprechpartner und 24/7 Erreichbarkeit</div>
+    </div>
+
+    <div style="margin-top: 30px; font-size: 14px;">
+        <p><strong>Ausführungszeitraum:</strong> ab {{ a.start_datum if a else '01.02.2026' }}</p>
+        <p><strong>Gültigkeit:</strong> 1 Woche ab Angebotsdatum</p>
+    </div>
+
+    <div class="footer-pdf">
+        <div>
+            <strong>Inhaberin:</strong> Damla Kicci<br>
+            USt.-ID: DE325770756<br>
+            Steuer-Nr.: 134/5102/3515
+        </div>
+        <div>
+            <strong>Kontakt:</strong><br>
+            Tel: 0203 47966822<br>
+            Web: www.kg-reinigung.de
+        </div>
+        <div>
+            <strong>Bankverbindung:</strong><br>
+            Sparkasse Duisburg<br>
+            IBAN: DE58 3505 0000 0200 3259 34
+        </div>
+    </div>
+</div>
+
+{% endblock %}

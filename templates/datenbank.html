@@ -1,0 +1,222 @@
+{% extends "base.html" %}
+{% block content %}
+
+<style>
+    .db-modern-container { animation: fadeIn 0.4s ease-out; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+    .db-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 25px; }
+    
+    .quick-stats { display: flex; gap: 15px; }
+    .stat-item { background: #fff; padding: 10px 18px; border-radius: 14px; border: 1px solid #e2e8f0; font-weight: 700; font-size: 13px; display: flex; align-items: center; gap: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
+
+    .filter-dashboard { background: #fff; padding: 20px; border-radius: 20px; border: 1px solid #e2e8f0; margin-bottom: 25px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
+    .filter-group label { display: block; font-size: 11px; font-weight: 800; color: #475569; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 1px; }
+    
+    .tag-container { display: flex; flex-wrap: wrap; gap: 8px; }
+    .tag { background: #f1f5f9; border: none; padding: 8px 16px; border-radius: 10px; font-size: 13px; font-weight: 700; color: #64748b; cursor: pointer; transition: 0.2s; border: 1px solid transparent; }
+    .tag:hover { background: #e2e8f0; color: #1e293b; }
+    .tag.active { background: #2563eb; color: #fff; box-shadow: 0 4px 10px rgba(37,99,235,0.3); border-color: #1d4ed8; }
+
+    .content-table-card { background: #fff; border-radius: 24px; border: 1px solid #e2e8f0; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.03); }
+    .table-controls { padding: 20px; display: flex; justify-content: space-between; border-bottom: 1px solid #f1f5f9; background: #fafafa; align-items: center; }
+    
+    .search-box { position: relative; width: 400px; }
+    .search-box i { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: #94a3b8; }
+    .search-box input { width: 100%; padding: 12px 12px 12px 42px; border-radius: 12px; border: 1.5px solid #e2e8f0; outline: none; font-weight: 600; transition: 0.3s; }
+    .search-box input:focus { border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37,99,235,0.1); }
+    
+    .btn-export { background: #fff; border: 1px solid #e2e8f0; padding: 10px 20px; border-radius: 12px; font-weight: 700; color: #475569; cursor: pointer; transition: 0.2s; }
+    .btn-export:hover { background: #f8fafc; color: #1e293b; }
+
+    .modern-scroll-table { max-height: 600px; overflow-y: auto; }
+    table { width: 100%; border-collapse: collapse; }
+    th { position: sticky; top: 0; background: #f8fafc; padding: 15px 20px; text-align: left; font-size: 11px; font-weight: 900; color: #64748b; text-transform: uppercase; z-index: 10; border-bottom: 1px solid #e2e8f0; }
+    td { padding: 16px 20px; border-bottom: 1px solid #f1f5f9; vertical-align: middle; }
+
+    .co-name { font-weight: 800; color: #1e293b; font-size: 15px; margin-bottom: 2px; }
+    .co-sector { font-size: 11px; font-weight: 800; color: #3b82f6; text-transform: uppercase; }
+    .co-city { font-weight: 700; color: #475569; font-size: 14px; }
+    .co-plz { font-size: 12px; color: #94a3b8; font-weight: 600; }
+    .co-person { font-weight: 700; color: #1e293b; font-size: 14px; }
+    .co-mail { font-size: 12px; color: #2563eb; font-weight: 600; text-decoration: none; }
+
+    .act-btn { background: #f8fafc; border: 1px solid #e2e8f0; width: 38px; height: 38px; border-radius: 10px; cursor: pointer; color: #64748b; transition: 0.2s; margin-left: 6px; }
+    .act-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+    .btn-mail:hover { color: #2563eb; border-color: #2563eb; background: #eff6ff; }
+    .btn-term:hover { color: #10b981; border-color: #10b981; background: #f0fdf4; }
+
+    .status-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; background: #cbd5e1; }
+    .status-sent { background: #10b981 !important; box-shadow: 0 0 8px rgba(16,185,129,0.4); }
+
+    .icon-blue { color: #3b82f6; } .icon-green { color: #10b981; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+</style>
+
+<div class="db-modern-container">
+    <div class="db-header">
+        <div>
+            <h1 style="font-size:30px; font-weight:900; color:#1e293b; margin:0">Datenbank Master-Panel</h1>
+            <p style="color:#64748b; font-weight:600; margin-top:5px">Automatisierte Akquise & Sektor-Management</p>
+        </div>
+        <div class="quick-stats">
+            <div class="stat-item"><i class="fa-solid fa-building icon-blue"></i> <span id="total-count">5</span> Kontakte</div>
+            <div class="stat-item"><i class="fa-solid fa-check-double icon-green"></i> <span id="sent-count">0</span> Verschickt</div>
+        </div>
+    </div>
+
+    <div class="filter-dashboard">
+        <div class="filter-group">
+            <label><i class="fa-solid fa-layer-group"></i> Branchen (Sektörler)</label>
+            <div class="tag-container" id="sector-tags">
+                <button class="tag active" data-filter="all">Alle</button>
+                <button class="tag" data-filter="IT">IT-Dienstleistung</button>
+                <button class="tag" data-filter="Logistik">Logistik</button>
+                <button class="tag" data-filter="Medizin">Medizin & Kliniken</button>
+                <button class="tag" data-filter="Industrie">Industrie</button>
+                <button class="tag" data-filter="Gastronomie">Gastronomie</button>
+            </div>
+        </div>
+        <div class="filter-group" style="margin-top:20px">
+            <label><i class="fa-solid fa-location-dot"></i> Regionen (NRW)</label>
+            <div class="tag-container" id="city-tags">
+                <button class="tag active" data-city="all">Alle</button>
+                <button class="tag" data-city="Duisburg">Duisburg</button>
+                <button class="tag" data-city="Essen">Essen</button>
+                <button class="tag" data-city="Düsseldorf">Düsseldorf</button>
+                <button class="tag" data-city="Köln">Köln</button>
+                <button class="tag" data-city="Dortmund">Dortmund</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="content-table-card">
+        <div class="table-controls">
+            <div class="search-box">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" id="dbSearchInput" placeholder="Firma veya PLZ ara...">
+            </div>
+            <button class="btn-export" onclick="alert('Export Excel...')"><i class="fa-solid fa-file-export"></i> Export</button>
+        </div>
+
+        <div class="modern-scroll-table">
+            <table id="dbTable">
+                <thead>
+                    <tr>
+                        <th style="width:50px">STATUS</th>
+                        <th>UNTERNEHMEN</th>
+                        <th>REGION</th>
+                        <th>KONTAKT</th>
+                        <th style="text-align:right">AKTIONEN</th>
+                    </tr>
+                </thead>
+                <tbody id="dbBody">
+                    <tr data-sector="IT" data-city="Duisburg">
+                        <td><span class="status-dot"></span></td>
+                        <td><div class="co-name">TARGOBANK IT-Center</div><div class="co-sector">IT-Dienstleistung</div></td>
+                        <td><div class="co-city">Duisburg</div><div class="co-plz">47057</div></td>
+                        <td><div class="co-person">Zentrale Ansprechpartner</div><div class="co-mail">info@targobank.de</div></td>
+                        <td style="text-align:right">
+                            <button class="act-btn btn-mail" onclick="sendAction(this, 'Profil')"><i class="fa-solid fa-paper-plane"></i></button>
+                            <button class="act-btn btn-term" onclick="sendAction(this, 'Termin')"><i class="fa-solid fa-calendar-check"></i></button>
+                        </td>
+                    </tr>
+                    <tr data-sector="Logistik" data-city="Duisburg">
+                        <td><span class="status-dot"></span></td>
+                        <td><div class="co-name">Duisburger Hafen AG</div><div class="co-sector">Logistik</div></td>
+                        <td><div class="co-city">Duisburg</div><div class="co-plz">47119</div></td>
+                        <td><div class="co-person">Einkauf Facility</div><div class="co-mail">mail@duisport.de</div></td>
+                        <td style="text-align:right">
+                            <button class="act-btn btn-mail" onclick="sendAction(this, 'Profil')"><i class="fa-solid fa-paper-plane"></i></button>
+                            <button class="act-btn btn-term" onclick="sendAction(this, 'Termin')"><i class="fa-solid fa-calendar-check"></i></button>
+                        </td>
+                    </tr>
+                    <tr data-sector="Medizin" data-city="Essen">
+                        <td><span class="status-dot"></span></td>
+                        <td><div class="co-name">Universitätsmedizin Essen</div><div class="co-sector">Medizin & Kliniken</div></td>
+                        <td><div class="co-city">Essen</div><div class="co-plz">45147</div></td>
+                        <td><div class="co-person">Hausverwaltung</div><div class="co-mail">kontakt@uk-essen.de</div></td>
+                        <td style="text-align:right">
+                            <button class="act-btn btn-mail" onclick="sendAction(this, 'Profil')"><i class="fa-solid fa-paper-plane"></i></button>
+                            <button class="act-btn btn-term" onclick="sendAction(this, 'Termin')"><i class="fa-solid fa-calendar-check"></i></button>
+                        </td>
+                    </tr>
+                    <tr data-sector="Industrie" data-city="Düsseldorf">
+                        <td><span class="status-dot"></span></td>
+                        <td><div class="co-name">Henkel AG & Co. KGaA</div><div class="co-sector">Industrie</div></td>
+                        <td><div class="co-city">Düsseldorf</div><div class="co-plz">40589</div></td>
+                        <td><div class="co-person">Facility Management</div><div class="co-mail">services@henkel.com</div></td>
+                        <td style="text-align:right">
+                            <button class="act-btn btn-mail" onclick="sendAction(this, 'Profil')"><i class="fa-solid fa-paper-plane"></i></button>
+                            <button class="act-btn btn-term" onclick="sendAction(this, 'Termin')"><i class="fa-solid fa-calendar-check"></i></button>
+                        </td>
+                    </tr>
+                    <tr data-sector="Gastronomie" data-city="Köln">
+                        <td><span class="status-dot"></span></td>
+                        <td><div class="co-name">Vapiano SE HQ</div><div class="co-sector">Gastronomie</div></td>
+                        <td><div class="co-city">Köln</div><div class="co-plz">50667</div></td>
+                        <td><div class="co-person">Management</div><div class="co-mail">office@vapiano.com</div></td>
+                        <td style="text-align:right">
+                            <button class="act-btn btn-mail" onclick="sendAction(this, 'Profil')"><i class="fa-solid fa-paper-plane"></i></button>
+                            <button class="act-btn btn-term" onclick="sendAction(this, 'Termin')"><i class="fa-solid fa-calendar-check"></i></button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+function sendAction(btn, type) {
+    const row = btn.closest('tr');
+    const statusDot = row.querySelector('.status-dot');
+    const oldIcon = btn.innerHTML;
+    
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+    btn.disabled = true;
+    
+    setTimeout(() => {
+        btn.innerHTML = '<i class="fa-solid fa-check"></i>';
+        btn.style.backgroundColor = "#ecfdf5";
+        btn.style.color = "#10b981";
+        btn.style.borderColor = "#10b981";
+        statusDot.classList.add('status-sent');
+        
+        let sentVal = document.getElementById('sent-count');
+        sentVal.innerText = parseInt(sentVal.innerText) + 1;
+        btn.disabled = false;
+    }, 1000);
+}
+
+document.querySelectorAll('.tag').forEach(tag => {
+    tag.addEventListener('click', function() {
+        this.parentElement.querySelectorAll('.tag').forEach(t => t.classList.remove('active'));
+        this.classList.add('active');
+        
+        const sector = document.querySelector('#sector-tags .active').dataset.filter;
+        const city = document.querySelector('#city-tags .active').dataset.city;
+        
+        const rows = document.querySelectorAll('#dbBody tr');
+        let count = 0;
+        
+        rows.forEach(row => {
+            const sMatch = (sector === 'all' || row.dataset.sector === sector);
+            const cMatch = (city === 'all' || row.dataset.city === city);
+            if(sMatch && cMatch) {
+                row.style.display = "";
+                count++;
+            } else {
+                row.style.display = "none";
+            }
+        });
+        document.getElementById('total-count').innerText = count;
+    });
+});
+
+document.getElementById('dbSearchInput').addEventListener('input', function() {
+    const val = this.value.toLowerCase();
+    document.querySelectorAll('#dbBody tr').forEach(row => {
+        row.style.display = row.innerText.toLowerCase().includes(val) ? "" : "none";
+    });
+});
+</script>
+{% endblock %}

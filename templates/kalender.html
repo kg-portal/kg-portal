@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block content %}
+<div id="calendar-wrapper" style="height: calc(100vh - 150px); display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;">
+    
+    <div id="landing-ui">
+        <div style="background: #eef2ff; width: 110px; height: 110px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 30px;">
+            <i class="fa-solid fa-calendar-check" style="font-size: 52px; color: #2563eb;"></i>
+        </div>
+        
+        <button onclick="openMuntazam()" 
+           style="background: #2563eb; color: #fff; border:none; padding: 22px 50px; border-radius: 18px; font-size: 22px; font-weight: 800; cursor:pointer; box-shadow: 0 20px 30px -10px rgba(37,99,235,0.5);">
+           Kalender Login
+        </button>
+    </div>
+</div>
+
+<script>
+function openMuntazam() {
+    window.location.href = "https://calendar.google.com/calendar/u/info@kg-reinigung.de/r?rm=minimal";
+}
+</script>
+{% endblock %}

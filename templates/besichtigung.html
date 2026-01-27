@@ -1,0 +1,832 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<!-- =========================
+1. TASARIM VE STİL AYARLARI (CSS)
+========================= -->
+<style>
+    .besichtigung-container { max-width: 1100px; margin: 0 auto; }
+    .header-section { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+    .termin-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; }
+    .termin-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 20px; transition: 0.3s; cursor: pointer; position: relative; overflow: hidden; }
+    .termin-card:hover { transform: translateY(-5px); border-color: #2563eb; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); }
+    .delete-btn { position: absolute; top: 15px; right: 15px; color: #ef4444; font-size: 18px; z-index: 10; opacity: 0.6; transition: 0.2s; }
+    .delete-btn:hover { opacity: 1; transform: scale(1.1); }
+    .detail-view { display: none; background: #fff; border-radius: 24px; padding: 40px; animation: fadeIn 0.4s ease; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    .form-section { margin-bottom: 35px; border-bottom: 1px solid #f1f5f9; padding-bottom: 25px; }
+    .form-section-title { font-size: 18px; font-weight: 700; color: #1e293b; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }
+    label { display: block; margin-bottom: 8px; font-weight: 600; color: #64748b; font-size: 14px; }
+    select, input { width: 100%; padding: 12px 16px; border-radius: 12px; border: 1.5px solid #e2e8f0; background: #f8fafc; font-size: 15px; transition: 0.2s; }
+    .option-grid { display: flex; flex-wrap: wrap; gap: 10px; }
+    .option-btn { padding: 10px 20px; text-align: center; border: 1.5px solid #e2e8f0; border-radius: 10px; cursor: pointer; font-weight: 600; background: #fff; transition: 0.2s; min-width: 90px; }
+    .option-btn.selected { background: #2563eb; color: #fff; border-color: #2563eb; }
+    .counter-group { display: flex; align-items: center; gap: 5px; background: #f1f5f9; padding: 5px; border-radius: 12px; width: fit-content; border: 1px solid #e2e8f0; }
+    .counter-btn { width: 32px; height: 32px; border-radius: 8px; border: none; background: #fff; color: #1e293b; font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+    .counter-btn:hover { background: #2563eb; color: #fff; }
+    .counter-input-manual { width: 90px !important; padding: 5px !important; border: none !important; background: transparent !important; text-align: center; font-weight: 800; color: #2563eb; font-size: 16px; }
+    .dynamic-input { display: none; margin-top: 15px; animation: slideDown 0.3s ease; }
+    @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+    .btn-save { background: #2563eb; color: #fff; padding: 15px 40px; border-radius: 12px; border: none; font-weight: 700; cursor: pointer; width: 100%; }
+</style>
+<!-- =========================
+2. RANDEVU LİSTE GÖRÜNÜMÜ
+========================= -->
+<div class="besichtigung-container">
+    <div id="listView">
+        <div class="header-section">
+            <h1>Besichtigungstermine</h1>
+            <button class="btn-save" style="width: auto;" onclick="showDetail()">+ Neuer Termin</button>
+        </div>
+        <div class="termin-grid">
+            {% for t in termine %}
+            <div class="termin-card">
+                <a href="/besichtigung/delete/{{ t.id }}" class="delete-btn" onclick="return confirm('Sicher löschen?')"><i class="fa-solid fa-trash-can"></i></a>
+                <div onclick="openTermin('{{ t.id }}', '{{ t.firma }}')">
+                    <h3>{{ t.firma or "None" }}</h3>
+                    <p><i class="fa-solid fa-user"></i> {{ t.ansprechpartner or "None" }}</p>
+                    <div style="margin-top: 15px;">{{ t.termin_datum or "None" }} | {{ t.termin_uhrzeit or "None" }}</div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+<!-- =========================
+3. BRANŞ VE NESNE TÜRÜ SEÇİMİ
+========================= -->
+    <div id="detailView" class="detail-view">
+        <div style="margin-bottom: 30px;">
+            <a href="javascript:void(0)" onclick="hideDetail()" style="text-decoration: none; color: #64748b; font-weight: 600;"><i class="fa-solid fa-arrow-left"></i> Zurück</a>
+            <h2 id="detailTitle" style="margin-top: 15px;">Termin Details</h2>
+        </div>
+
+        <form action="/besichtigung" method="POST">
+            <input type="hidden" name="besichtigung_id" id="form_id">
+            
+            <div class="form-section">
+                <div class="form-section-title"><i class="fa-solid fa-industry icon-blue"></i> Branche / Objektart</div>
+                <select name="art" required>
+                    <option value="">-- Bitte wählen --</option>
+                    <optgroup label="🟦 BÜRO">
+                        <option value="buero">Büro</option>
+                        <option value="verwaltungsbuero">Verwaltungsbüro</option>
+                        <option value="it_firma">IT-Firma</option>
+                        <option value="software_agentur">Software-Firma / Agentur</option>
+                        <option value="versicherung">Versicherung</option>
+                        <option value="immobilienbuero">Immobilienbüro</option>
+                        <option value="steuerberater">Steuerberater</option>
+                        <option value="kanzlei">Rechtsanwalt / Kanzlei</option>
+                        <option value="ingenieurbuero">Ingenieurbüro</option>
+                        <option value="architekturbuero">Architekturbüro</option>
+                        <option value="unternehmensberatung">Unternehmensberatung</option>
+                        <option value="callcenter">Callcenter</option>
+                        <option value="schulungsbuero">Schulungsbüro</option>
+                        <option value="marketingagentur">Marketingagentur</option>
+                        <option value="personalvermittlung">Personalvermittlung</option>
+                    </optgroup>
+                    <optgroup label="🟥 PRAXIS / MEDIZİN">
+                        <option value="arztpraxis">Arztpraxis</option>
+                        <option value="zahnarztpraxis">Zahnarztpraxis</option>
+                        <option value="kieferorthopaedie">Kieferorthopädie</option>
+                        <option value="physiotherapie">Physiotherapie</option>
+                        <option value="ergotherapie">Ergotherapie</option>
+                        <option value="logopaedie">Logopädie</option>
+                        <option value="heilpraktiker">Heilpraktiker</option>
+                        <option value="psychotherapie">Psychotherapie</option>
+                        <option value="mvz">Medizinisches Versorgungszentrum (MVZ)</option>
+                        <option value="podologie">Podologie / medizinische Fußpflege</option>
+                        <option value="kosmetik_med">Kosmetikstudio (medizinisch)</option>
+                        <option value="facharzt">Augenarzt / HNO / Facharzt</option>
+                    </optgroup>
+                    <optgroup label="🟧 LAGER / BETRIEB / UMKLEIDE">
+                        <option value="lagerhalle">Lagerhalle</option>
+                        <option value="logistik">Logistikbetrieb</option>
+                        <option value="versandzentrum">Versandzentrum</option>
+                        <option value="grosshandel">Großhandel</option>
+                        <option value="werkstatt">Werkstatt</option>
+                        <option value="handwerk">Handwerksbetrieb</option>
+                        <option value="produktion_nah">Produktionsnahe Bereiche</option>
+                        <option value="umkleideraeume">Umkleideräume</option>
+                        <option value="sozialraeume">Sozialräume</option>
+                        <option value="fitnessstudio">Fitnessstudio</option>
+                        <option value="sporthalle">Sporthalle</option>
+                        <option value="verein">Verein / Trainingszentrum</option>
+                    </optgroup>
+                    <optgroup label="🟨 GASTRO / KÜCHE">
+                        <option value="restaurant">Restaurant</option>
+                        <option value="cafe">Café</option>
+                        <option value="imbiss">Imbiss</option>
+                        <option value="kantine">Kantine</option>
+                        <option value="grosskueche">Großküche</option>
+                        <option value="baeckerei">Bäckerei</option>
+                        <option value="konditorei">Konditorei</option>
+                        <option value="catering">Cateringbetrieb</option>
+                        <option value="bar_lounge">Bar / Lounge</option>
+                    </optgroup>
+                    <optgroup label="🟫 INDUSTRIE / SPEZIAL">
+                        <option value="industriehalle">Industriehalle</option>
+                        <option value="produktionsbetrieb">Produktionsbetrieb</option>
+                        <option value="maschinenhalle">Maschinenhalle</option>
+                        <option value="metallverarbeitung">Metallverarbeitung</option>
+                        <option value="fett_intensiv">Öl- / Fettintensive Betriebe</option>
+                        <option value="chemie">Chemienahe Betriebe</option>
+                    </optgroup>
+                    <optgroup label="⬛ BAU / EINMALIG">
+                        <option value="bauendreinigung">Bauendreinigung</option>
+                        <option value="grundreinigung">Grundreinigung</option>
+                        <option value="erstbezug">Erstbezug</option>
+                        <option value="renovierung">Renovierung</option>
+                        <option value="sanierung">Sanierung</option>
+                        <option value="umzug">Umzug</option>
+                    </optgroup>
+                </select>
+            </div>
+
+
+<!-- =========================
+4. TEMİZLİK SIKLIĞI VE ALAN
+========================= -->
+<div class="form-section">
+    <div class="form-section-title">
+        <i class="fa-solid fa-calculator icon-orange"></i> Häufigkeit & Fläche
+    </div>
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px;">
+        <div>
+            <label>Häufigkeit</label>
+            <div class="option-grid">
+                {% for i in range(1, 8) %}
+                <div class="option-btn" onclick="selectOption(this, 'haeufigkeit', '{{i}}x')">{{i}}x</div>
+                {% endfor %}
+                <div class="option-btn" onclick="selectOption(this, 'haeufigkeit', 'Einmalig')">Einmalig</div>
+                <input type="hidden" name="haeufigkeit" id="haeufigkeit_val">
+            </div>
+        </div>
+        <div>
+            <label>Fläche (m²)</label>
+            <input type="number" name="m2" placeholder="z.B. 250">
+        </div>
+    </div>
+</div>
+
+<!-- =========================
+5. BÜRO KIR YOGUNLUGU BÖLÜMÜ
+========================= -->
+
+<style>
+    /* Slider'ın rayını ve yuvarlağını tam uca dayamak için gereken CSS */
+    #schmutzRange {
+        -webkit-appearance: none;
+        background: transparent !important;
+        padding: 0;
+        margin: 0;
+    }
+
+    /* Chrome, Edge, Safari (WebKit) Yuvarlak Düğme Ayarı */
+    #schmutzRange::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        height: 18px;
+        width: 18px;
+        border-radius: 50%;
+        background: #1a4ab2;
+        cursor: pointer;
+        margin-top: -6px; /* Rayın tam ortasına hizalar */
+        position: relative;
+        z-index: 2;
+    }
+
+    /* WebKit Ray Ayarı - Düğmenin sona vurmasını sağlar */
+    #schmutzRange::-webkit-slider-runnable-track {
+        width: 100%;
+        height: 6px;
+        background: #cbd5e1;
+        border-radius: 3px;
+    }
+
+    /* Firefox Yuvarlak Düğme Ayarı */
+    #schmutzRange::-moz-range-thumb {
+        height: 18px;
+        width: 18px;
+        border: none;
+        border-radius: 50%;
+        background: #1a4ab2;
+        cursor: pointer;
+    }
+
+    /* Firefox Ray Ayarı */
+    #schmutzRange::-moz-range-track {
+        width: 100%;
+        height: 6px;
+        background: #cbd5e1;
+        border-radius: 3px;
+    }
+</style>
+
+<div class="form-section">
+    <div class="form-section-title">
+        <i class="fa-solid fa-virus-slash icon-green"></i> Hygiene & Zustand
+    </div>
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px; align-items: center;">
+        <div>
+            <label>Desinfektion</label>
+            <div class="switch-container">
+                <select name="desinfektion">
+                    <option value="nein">Ohne</option>
+                    <option value="ja">Mit</option>
+                </select>
+            </div>
+            <small style="color: #64748b; margin-top: 5px; display: block;">*Empfohlen für medizinische Einrichtungen.</small>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 20px;">
+            <div style="flex: 1;">
+                <label>Schmutzgrad (0-10)</label>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <input type="range" name="schmutzgrad" id="schmutzRange" min="0" max="10" value="5" 
+                           style="cursor: pointer; flex: 1; accent-color: #1a4ab2;"
+                           oninput="updateStatusGraph(this.value)">
+                    <output id="schmutzOutput" style="font-weight: 800; color: #1a4ab2; font-size: 18px; min-width: 25px;">5</output>
+                </div>
+            </div>
+            
+            <div id="statusGraph" style="display: flex; align-items: flex-end; gap: 2px; height: 40px; padding: 8px; background: #f8fafc; border-radius: 10px; border: 1px solid #e2e8f0;">
+                </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function updateStatusGraph(val) {
+    const graph = document.getElementById('statusGraph');
+    const output = document.getElementById('schmutzOutput');
+    output.value = val;
+    graph.innerHTML = '';
+    
+    for (let i = 1; i <= 10; i++) {
+        const bar = document.createElement('div');
+        bar.style.height = (i * 10) + '%';
+        bar.style.width = '4px';
+        bar.style.borderRadius = '4px';
+        bar.style.transition = '0.2s';
+        
+        if (i <= val) {
+            bar.style.backgroundColor = (val <= 5) ? '#22c55e' : '#ef4444'; 
+        } else {
+            bar.style.backgroundColor = '#e2e8f0';
+        }
+        graph.appendChild(bar);
+    }
+}
+document.addEventListener('DOMContentLoaded', () => updateStatusGraph(5));
+</script>
+
+<!-- =========================
+6. CAM TEMİZLİĞİ AYARLARI
+========================= -->
+
+<style>
+    /* Slider'ın rayını ve yuvarlağını hizalamak için gerekli stil */
+    .sync-slider {
+        -webkit-appearance: none;
+        background: transparent !important;
+    }
+    /* Chrome, Edge, Safari için yuvarlak düğme (thumb) ayarı */
+    .sync-slider::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        height: 16px;
+        width: 16px;
+        border-radius: 50%;
+        background: #1a4ab2;
+        cursor: pointer;
+        margin-top: -5px; /* Rayın ortasına hizalar */
+        position: relative;
+        z-index: 2;
+    }
+    /* Chrome, Edge, Safari için ray (track) ayarı */
+    .sync-slider::-webkit-slider-runnable-track {
+        width: 100%;
+        height: 6px;
+        background: #cbd5e1;
+        border-radius: 3px;
+    }
+    /* Firefox için yuvarlak düğme ayarı */
+    .sync-slider::-moz-range-thumb {
+        height: 16px;
+        width: 16px;
+        border: none;
+        border-radius: 50%;
+        background: #1a4ab2;
+        cursor: pointer;
+    }
+    /* Firefox için ray ayarı */
+    .sync-slider::-moz-range-track {
+        width: 100%;
+        height: 6px;
+        background: #cbd5e1;
+        border-radius: 3px;
+    }
+</style>
+
+<div class="form-section">
+    <div class="form-section-title"><i class="fa-solid fa-window-maximize icon-blue"></i> Fensterreinigung</div>
+    
+    <div style="display: flex; align-items: center; gap: 20px; margin-bottom: 15px;">
+        <label style="margin:0; font-weight:600;">Fensterreinigung erwünscht?</label>
+        <select name="fenster_check" onchange="toggleExtra(this, 'fenster_box')" style="width: auto; min-width: 120px; padding: 8px;">
+            <option value="nein">Nein</option>
+            <option value="ja">Ja</option>
+        </select>
+    </div>
+
+    <div id="fenster_box" class="dynamic-input" style="background: #f8fafc; padding: 15px; border-radius: 12px; border: 1px dashed #cbd5e1;">
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 15px; flex-wrap: nowrap;">
+            
+            <div style="display: flex; align-items: center; gap: 10px; white-space: nowrap;">
+                <label style="margin:0;">Typ & m²:</label>
+                <select name="fenster_typ" style="width: auto; padding: 8px;">
+                    <option value="innen">Nur Innen</option>
+                    <option value="aussen">Nur Außen</option>
+                    <option value="beide">Innen + Außen</option>
+                </select>
+                <div class="counter-group" style="padding: 2px; display: flex; align-items: center;">
+                    <button type="button" class="counter-btn" onclick="stepVal('fen_val', -1, ' m²')">-</button>
+                    <input type="text" id="fen_display" class="counter-input-manual" value="0 m²" style="width:65px; text-align:center; font-weight:800;" onchange="manualEntry(this, 'fen_val', ' m²')">
+                    <button type="button" class="counter-btn" onclick="stepVal('fen_val', 1, ' m²')">+</button>
+                </div>
+                <input type="hidden" name="fenster_m2" id="fen_val" value="0 m²">
+            </div>
+
+            <div style="display: flex; align-items: center; gap: 10px; white-space: nowrap;">
+                <label style="margin:0;">Häufigkeit:</label>
+                <select name="fenster_frequenz" style="width: auto; padding: 8px;">
+                    <option value="einmalig">Einmalig</option>
+                    <option value="1x_mon">1x Monatlich</option>
+                    <option value="alle_2_mon">Alle 2 Monate</option>
+                    <option value="alle_3_mon">Alle 3 Monate</option>
+                    <option value="alle_4_mon">Alle 4 Monate</option>
+                    <option value="1x_jahr">1x Jährlich</option>
+                    <option value="alle_6_mon">2x Jährlich</option>
+                    
+                </select>
+            </div>
+
+            <div style="display: flex; align-items: center; gap: 10px; flex: 1; justify-content: flex-end;">
+                <label style="margin:0; white-space: nowrap;"><i class="fa-solid fa-broom" style="color: #1a4ab2;"></i> Schmutz:</label>
+                <input type="range" class="sync-slider" min="0" max="10" value="5" 
+                       style="cursor: pointer; width: 90px; accent-color: #1a4ab2;"
+                       oninput="syncGraph(this)">
+                <output style="font-weight: 800; color: #1a4ab2; font-size: 16px; min-width: 20px;">5</output>
+                <div class="sync-graph" style="display: flex; align-items: flex-end; gap: 1px; height: 30px; padding: 3px; background: #fff; border-radius: 6px; border: 1px solid #e2e8f0; min-width: 50px;">
+                    {% for i in range(1, 11) %}<div style="height: {{i*10}}%; width: 3px; background: #e2e8f0; border-radius: 2px;"></div>{% endfor %}
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script>
+function syncGraph(el) {
+    const val = parseInt(el.value);
+    const output = el.nextElementSibling;
+    const graphBox = el.parentElement.querySelector('.sync-graph');
+    const bars = graphBox.querySelectorAll('div');
+    
+    output.innerText = val;
+    
+    bars.forEach((bar, i) => {
+        if (i < val) {
+            bar.style.backgroundColor = (val <= 5) ? '#22c55e' : '#ef4444';
+        } else {
+            bar.style.backgroundColor = '#e2e8f0';
+        }
+    });
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('.sync-slider').forEach(s => syncGraph(s));
+});
+</script>
+
+<!-- =========================
+7. PANJUR TEMİZLİĞİ AYARLARI
+========================= -->
+
+<style>
+    /* Slider'ın rayını ve yuvarlağını tam uca dayamak için gereken CSS */
+    .sync-slider {
+        -webkit-appearance: none;
+        background: transparent !important;
+        padding: 0;
+        margin: 0;
+    }
+
+    /* Chrome, Edge, Safari (WebKit) Yuvarlak Düğme Ayarı */
+    .sync-slider::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        height: 16px;
+        width: 16px;
+        border-radius: 50%;
+        background: #1a4ab2;
+        cursor: pointer;
+        margin-top: -5px; /* Rayın tam ortasına hizalar */
+        position: relative;
+        z-index: 2;
+    }
+
+    /* WebKit Ray Ayarı */
+    .sync-slider::-webkit-slider-runnable-track {
+        width: 100%;
+        height: 6px;
+        background: #cbd5e1;
+        border-radius: 3px;
+    }
+
+    /* Firefox Yuvarlak Düğme Ayarı */
+    .sync-slider::-moz-range-thumb {
+        height: 16px;
+        width: 16px;
+        border: none;
+        border-radius: 50%;
+        background: #1a4ab2;
+        cursor: pointer;
+    }
+
+    /* Firefox Ray Ayarı */
+    .sync-slider::-moz-range-track {
+        width: 100%;
+        height: 6px;
+        background: #cbd5e1;
+        border-radius: 3px;
+    }
+</style>
+
+<div class="form-section">
+    <div class="form-section-title"><i class="fa-solid fa-border-all icon-orange"></i> Jalousienreinigung</div>
+    
+    <div style="display: flex; align-items: center; gap: 20px; margin-bottom: 15px;">
+        <label style="margin:0; font-weight:600;">Jalousienreinigung erwünscht?</label>
+        <select name="jalousien_check" onchange="toggleExtra(this, 'jalousien_box')" style="width: auto; min-width: 120px; padding: 8px;">
+            <option value="nein">Nein</option>
+            <option value="ja">Ja</option>
+        </select>
+    </div>
+
+    <div id="jalousien_box" class="dynamic-input" style="background: #f8fafc; padding: 15px; border-radius: 12px; border: 1px dashed #cbd5e1;">
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 15px; flex-wrap: nowrap;">
+            
+            <div style="display: flex; align-items: center; gap: 10px; white-space: nowrap;">
+                <label style="margin:0;">Typ & m²:</label>
+                <select name="jalousien_typ" style="width: auto; padding: 8px;">
+                    <option value="innen">Nur Innen</option>
+                    <option value="aussen">Nur Außen</option>
+                    <option value="beide">Innen + Außen</option>
+                </select>
+                <div class="counter-group" style="padding: 2px; display: flex; align-items: center;">
+                    <button type="button" class="counter-btn" onclick="stepVal('jal_val', -1, ' m²')">-</button>
+                    <input type="text" id="jal_display" class="counter-input-manual" value="0 m²" style="width:65px; text-align:center; font-weight:800;" onchange="manualEntry(this, 'jal_val', ' m²')">
+                    <button type="button" class="counter-btn" onclick="stepVal('jal_val', 1, ' m²')">+</button>
+                </div>
+                <input type="hidden" name="jalousien_m2" id="jal_val" value="0 m²">
+            </div>
+
+            <div style="display: flex; align-items: center; gap: 10px; white-space: nowrap;">
+                <label style="margin:0;">Häufigkeit:</label>
+                <select name="jalousien_frequenz" style="width: auto; padding: 8px;">
+                    <option value="einmalig">Einmalig</option>
+                    <option value="1x_mon">1x Monatlich</option>
+                    <option value="alle_3_mon">Alle 3 Monate</option>
+                    <option value="alle_4_mon">Alle 4 Monate</option>
+                    <option value="alle_6_mon">2x Jährlich</option>
+                    <option value="1x_jahr">1x Jährlich</option>
+                </select>
+            </div>
+
+            <div style="display: flex; align-items: center; gap: 10px; flex: 1; justify-content: flex-end;">
+                <label style="margin:0; white-space: nowrap;"><i class="fa-solid fa-broom" style="color: #1a4ab2;"></i> Schmutz:</label>
+                <input type="range" name="schmutzgrad_extra" class="sync-slider" min="0" max="10" value="5" 
+                       style="cursor: pointer; width: 90px; accent-color: #1a4ab2;"
+                       oninput="updateExtraGraph(this)">
+                <output style="font-weight: 800; color: #1a4ab2; font-size: 16px; min-width: 20px;">5</output>
+                <div class="extra-graph-box" style="display: flex; align-items: flex-end; gap: 1px; height: 30px; padding: 3px; background: #fff; border-radius: 6px; border: 1px solid #e2e8f0; min-width: 50px;">
+                    {% for i in range(1, 11) %}<div style="height: {{i*10}}%; width: 3px; background: #e2e8f0; border-radius: 2px;"></div>{% endfor %}
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script>
+function updateExtraGraph(input) {
+    const val = parseInt(input.value);
+    const output = input.nextElementSibling;
+    const graphBox = input.parentElement.querySelector('.extra-graph-box');
+    const bars = graphBox.querySelectorAll('div');
+    
+    output.innerText = val;
+    
+    bars.forEach((bar, i) => {
+        if (i < val) {
+            bar.style.backgroundColor = (val <= 5) ? '#22c55e' : '#ef4444';
+        } else {
+            bar.style.backgroundColor = '#e2e8f0';
+        }
+    });
+}
+</script>
+<!-- =========================
+10. BİNA VE NESNE DETAYLARI
+========================= -->
+<div class="form-section">
+                <div class="form-section-title">Objektdetails</div>
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px;">
+                    <div>
+                        <label><i class="fa-solid fa-building icon-blue"></i> Etage (von - bis)</label>
+                        <div style="display: flex; gap: 5px; align-items: center;">
+                            <select name="etage_von"><option value="0">0</option><option value="EG">EG</option></select>
+                            <span>-</span>
+                            <select name="etage_bis"><option value="0">0</option><option value="EG">EG</option>
+                            {% for i in range(1, 11) %}<option value="{{i}}.OG">{{i}}.OG</option>{% endfor %}</select>
+                        </div>
+                    </div>
+                    <div>
+                        <label><i class="fa-solid fa-stairs icon-purple"></i> Treppenhaus</label>
+                        <select name="treppenhaus" onchange="toggleExtra(this, 'treppe_cnt')"><option value="nein">Nein</option><option value="ja">Ja</option></select>
+                        <div id="treppe_cnt" class="dynamic-input">
+                            <div class="counter-group">
+                                <button type="button" class="counter-btn" onclick="stepVal('t_val', -1, 'x')">-</button>
+                                <input type="text" id="t_display" class="counter-input-manual" value="1x" onchange="manualEntry(this, 't_val', 'x')">
+                                <button type="button" class="counter-btn" onclick="stepVal('t_val', 1, 'x')">+</button>
+                            </div>
+                            <input type="hidden" name="treppe_stufen" id="t_val" value="1x">
+                        </div>
+                    </div>
+                    <div>
+                        <label><i class="fa-solid fa-elevator icon-indigo"></i> Aufzug</label>
+                        <select name="aufzug" onchange="toggleExtra(this, 'aufzug_cnt')"><option value="nein">Nein</option><option value="ja">Ja</option></select>
+                        <div id="aufzug_cnt" class="dynamic-input">
+                            <div class="counter-group">
+                                <button type="button" class="counter-btn" onclick="stepVal('a_val', -1, 'x')">-</button>
+                                <input type="text" id="a_display" class="counter-input-manual" value="1x" onchange="manualEntry(this, 'a_val', 'x')">
+                                <button type="button" class="counter-btn" onclick="stepVal('a_val', 1, 'x')">+</button>
+                            </div>
+                            <input type="hidden" name="aufzug_anzahl" id="a_val" value="1x">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <button type="submit" class="btn-save">Speichern & Berechnen</button>
+        </form>
+    </div>
+</div>
+
+<!-- =========================
+11. Leistungsverzeichnis
+========================= -->
+<div id="modern_lv_container" style="background: #f8fafc; padding: 40px 20px; font-family: 'Inter', system-ui, -apple-system, sans-serif;">
+    
+    <div style="max-width: 1100px; margin: 0 auto; background: #ffffff; border-radius: 24px; box-shadow: 0 20px 50px rgba(30, 64, 175, 0.05); overflow: hidden; border: 1px solid #e2e8f0;">
+        
+        <div style="background: linear-gradient(135deg, #1e40af 0%, #1e3a8a 100%); padding: 35px 40px; display: flex; justify-content: space-between; align-items: center;">
+            <div>
+                <h1 style="color: #ffffff; margin: 0; font-size: 24px; font-weight: 800; letter-spacing: -0.5px; text-transform: uppercase;">Leistungsverzeichnis</h1>
+                <p style="color: #93c5fd; margin: 5px 0 0 0; font-size: 14px; font-weight: 500;">Professionelle Reinigungsübersicht v2.0</p>
+            </div>
+            <div style="background: rgba(255,255,255,0.1); padding: 10px 20px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.2);">
+                <span style="color: #fff; font-weight: 700; font-size: 13px;">OBJEKT: PREMIUM STATUS</span>
+            </div>
+        </div>
+
+        <div style="display: flex; flex-wrap: wrap; gap: 15px; padding: 30px 40px; background: #fff; border-bottom: 1px solid #f1f5f9;">
+            <div style="display: flex; align-items: center; gap: 8px; background: #eff6ff; padding: 8px 16px; border-radius: 100px; border: 1px solid #bfdbfe;">
+                <div style="width: 10px; height: 10px; background: #3b82f6; border-radius: 50%;"></div>
+                <span style="font-size: 12px; font-weight: 700; color: #1e40af;">BÜRO / PRAXIS</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px; background: #fefce8; padding: 8px 16px; border-radius: 100px; border: 1px solid #fef08a;">
+                <div style="width: 10px; height: 10px; background: #eab308; border-radius: 50%;"></div>
+                <span style="font-size: 12px; font-weight: 700; color: #854d0e;">SANITÄR</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px; background: #f0fdf4; padding: 8px 16px; border-radius: 100px; border: 1px solid #bbf7d0;">
+                <div style="width: 10px; height: 10px; background: #22c55e; border-radius: 50%;"></div>
+                <span style="font-size: 12px; font-weight: 700; color: #166534;">KÜCHE</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px; background: #fef2f2; padding: 8px 16px; border-radius: 100px; border: 1px solid #fecaca;">
+                <div style="width: 10px; height: 10px; background: #ef4444; border-radius: 50%;"></div>
+                <span style="font-size: 12px; font-weight: 700; color: #991b1b;">WC / HYGIENE</span>
+            </div>
+        </div>
+
+        <div style="padding: 20px 40px 40px 40px;">
+            <table style="width: 100%; border-collapse: collapse;">
+                <thead>
+                    <tr style="text-align: left;">
+                        <th style="padding: 20px 15px; color: #64748b; font-size: 12px; font-weight: 700; text-transform: uppercase;">Service & Bereich</th>
+                        <th style="padding: 20px 15px; color: #64748b; font-size: 12px; font-weight: 700; text-transform: uppercase;">Methodik</th>
+                        <th style="padding: 20px 15px; color: #64748b; font-size: 12px; font-weight: 700; text-transform: uppercase;">Spezifikation</th>
+                        <th style="padding: 20px 15px; color: #64748b; font-size: 12px; font-weight: 700; text-transform: uppercase; text-align: right;">Turnus</th>
+                    </tr>
+                </thead>
+                <tbody id="lv_modern_body">
+                    </tbody>
+            </table>
+        </div>
+
+        <div style="background: #f8fafc; padding: 25px 40px; border-top: 1px solid #e2e8f0; display: flex; align-items: center; gap: 15px;">
+            <div style="background: #1e40af; color: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold;">i</div>
+            <p style="margin: 0; font-size: 14px; color: #475569; font-weight: 500;">
+                Alle Reinigungsmittel sind im Preis enthalten. Zertifizierte Hygieneartikel werden nach Bedarf aufgefüllt.
+            </p>
+        </div>
+    </div>
+</div>
+
+<script>
+// Tabloyu dolduran fonksiyon
+function renderModernLV() {
+    const data = [
+        { service: "Arbeitsplatzreinigung", cat: "BÜRO", spec: "IT-Equipment, Monitore & Schreibtische", freq: "Täglich", color: "#3b82f6", bg: "#eff6ff" },
+        { service: "Bodenflächenpflege", cat: "BÜRO", spec: "Saugen & Feuchtwischen (Mikrofaser)", freq: "2x Woche", color: "#3b82f6", bg: "#eff6ff" },
+        { service: "Sanitäranlagen", cat: "SANITÄR", spec: "Armaturen-Politur & Spiegelreinigung", freq: "Täglich", color: "#eab308", bg: "#fefce8" },
+        { service: "Küchen-Service", cat: "KÜCHE", spec: "Frontenreinigung & Kaffeemaschinen-Pflege", freq: "Täglich", color: "#22c55e", bg: "#f0fdf4" },
+        { service: "Tiefen-Desinfektion", cat: "WC", spec: "WC-Becken, Urinale & Kontaktpunkte", freq: "Täglich", color: "#ef4444", bg: "#fef2f2" }
+    ];
+
+    const body = document.getElementById('lv_modern_body');
+    body.innerHTML = data.map(item => `
+        <tr style="border-bottom: 1px solid #f1f5f9; transition: background 0.2s;" onmouseover="this.style.background='#fcfdfe'" onmouseout="this.style.background='transparent'">
+            <td style="padding: 20px 15px;">
+                <div style="font-weight: 700; color: #1e293b; font-size: 15px;">${item.service}</div>
+            </td>
+            <td style="padding: 20px 15px;">
+                <span style="background: ${item.bg}; color: ${item.color}; padding: 5px 12px; border-radius: 6px; font-size: 11px; font-weight: 800; border: 1px solid ${item.color}44;">
+                    ● ${item.cat}
+                </span>
+            </td>
+            <td style="padding: 20px 15px; color: #64748b; font-size: 14px; font-weight: 500;">${item.spec}</td>
+            <td style="padding: 20px 15px; text-align: right;">
+                <span style="background: #f1f5f9; color: #475569; padding: 6px 14px; border-radius: 8px; font-size: 12px; font-weight: 700;">${item.freq}</span>
+            </td>
+        </tr>
+    `).join('');
+}
+
+renderModernLV();
+</script>
+
+<!-- =========================
+12. LEISTUNGSVERZEICHNIS SABIT TANIMLADIKLARIM
+========================= -->
+<script>
+    const masterLeistungen = {{ sabit_hizmetler|safe }}; //
+
+    // "yarrak gibi" kodları profesyonel Almanca'ya çeviren sözlük
+    function formatFreq(val) {
+        const map = {
+            'einmalig': 'Einmalig',
+            '1x_mon': '1x Monatlich',
+            'alle_2_mon': 'Alle 2 Monate',
+            'alle_3_mon': 'Alle 3 Monate',
+            'alle_4_mon': 'Alle 4 Monate',
+            '1x_jahr': '1x Jährlich',
+            'alle_6_mon': '2x Jährlich'
+        };
+        return map[val] || val;
+    }
+
+    function updateLeistungTable() {
+        const bransSelect = document.querySelector('select[name="art"]');
+        const bransKey = bransSelect.value;
+        const bransMetni = bransSelect.options[bransSelect.selectedIndex].text;
+        
+        // GENEL FREKANS (1x, 2x, 3x... butonlarından gelen gerçek değer)
+        const genelFrekans = document.getElementById('haeufigkeit_val').value || '1x';
+        
+        const body = document.getElementById('lv_modern_body');
+        if (!bransKey || !masterLeistungen[bransKey]) return;
+
+        // Başlığı seçilen branşla güncelle
+        const headerBransTag = document.querySelector('#modern_lv_container span[style*="color: #1e40af"]');
+        if (headerBransTag) headerBransTag.innerText = bransMetni.toUpperCase();
+
+        // 1. ANA LİSTE (Büro vb. - Seçilen frekansa göre 1x/2x/3x anlık değişir)
+        let mainHTML = masterLeistungen[bransKey].leistungen.map(item => {
+            let color = "#3b82f6"; let bg = "#eff6ff"; let cat = "BÜRO";
+            const method = item.methodik.toLowerCase(); 
+
+            if (method.includes("wc") || method.includes("sanitär")) {
+                color = "#ef4444"; bg = "#fef2f2"; cat = "WC / HYGIENE";
+            } else if (method.includes("küche")) {
+                color = "#22c55e"; bg = "#f0fdf4"; cat = "KÜCHE";
+            }
+
+            return `
+                <tr style="border-bottom: 1px solid #f1f5f9;">
+                    <td style="padding: 20px 15px;"><div style="font-weight: 700; color: #1e293b;">${item.service}</div></td>
+                    <td style="padding: 20px 15px;"><span style="background:${bg};color:${color};padding:5px 12px;border-radius:6px;font-size:11px;font-weight:800;">● ${cat}</span></td>
+                    <td style="padding: 20px 15px; color:#64748b;">${item.spezifikation}</td>
+                    <td style="padding: 20px 15px; text-align:right;"><span style="background:#f1f5f9;color:#475569;padding:6px 14px;border-radius:8px;font-weight:800;">${genelFrekans}</span></td>
+                </tr>`;
+        }).join('');
+
+        // 2. EXTRAS (Seçildiği an m2 ve frekans bilgisiyle altına biner)
+        let extraHTML = '';
+        
+        const fensterCheck = document.getElementsByName('fenster_check')[0].value;
+        if (fensterCheck === 'ja') {
+            const fenM2 = document.getElementById('fen_val').value; 
+            const fenFreq = formatFreq(document.getElementsByName('fenster_frequenz')[0].value);
+            extraHTML += `
+                <tr style="border-bottom: 1px solid #f1f5f9; background: #f0f9ff;">
+                    <td style="padding: 20px 15px;"><div style="font-weight: 700; color: #0369a1;">Glasreinigung</div></td>
+                    <td style="padding: 20px 15px;"><span style="background:#e0f2fe;color:#0369a1;padding:5px 12px;border-radius:6px;font-size:11px;font-weight:800;">● EXTRAS</span></td>
+                    <td style="padding: 20px 15px; color:#64748b;">Osmose System (${fenM2})</td>
+                    <td style="padding: 20px 15px; text-align:right;"><span style="background:#e0f2fe;color:#0369a1;padding:6px 14px;border-radius:8px;font-weight:800;">${fenFreq}</span></td>
+                </tr>`;
+        }
+
+        const jalousieCheck = document.getElementsByName('jalousien_check')[0].value;
+        if (jalousieCheck === 'ja') {
+            const jalM2 = document.getElementById('jal_val').value; 
+            const jalFreq = formatFreq(document.getElementsByName('jalousien_frequenz')[0].value);
+            extraHTML += `
+                <tr style="border-bottom: 1px solid #f1f5f9; background: #fffbeb;">
+                    <td style="padding: 20px 15px;"><div style="font-weight: 700; color: #92400e;">Jalousienreinigung</div></td>
+                    <td style="padding: 20px 15px;"><span style="background:#fef3c7;color:#92400e;padding:5px 12px;border-radius:6px;font-size:11px;font-weight:800;">● EXTRAS</span></td>
+                    <td style="padding: 20px 15px; color:#64748b;">Außenreinigung (${jalM2})</td>
+                    <td style="padding: 20px 15px; text-align:right;"><span style="background:#fef3c7;color:#92400e;padding:6px 14px;border-radius:8px;font-weight:800;">${jalFreq}</span></td>
+                </tr>`;
+        }
+
+        body.innerHTML = mainHTML + extraHTML;
+    }
+
+    // TÜM ETKİLEŞİMLERİ İZLE (Formda ne değişirse tablo güncellenir)
+    document.querySelector('select[name="art"]').addEventListener('change', updateLeistungTable);
+    document.getElementsByName('fenster_check')[0].addEventListener('change', updateLeistungTable);
+    document.getElementsByName('jalousien_check')[0].addEventListener('change', updateLeistungTable);
+    document.getElementsByName('fenster_frequenz')[0].addEventListener('change', updateLeistungTable);
+    document.getElementsByName('jalousien_frequenz')[0].addEventListener('change', updateLeistungTable);
+
+    window.onload = updateLeistungTable;
+</script>
+
+<!-- =========================
+13. SAYFA FONKSİYONLARI (JAVASCRIPT)
+========================= -->
+<script>
+    function showDetail() { 
+        document.getElementById('listView').style.display = 'none'; 
+        document.getElementById('detailView').style.display = 'block'; 
+    }
+
+    function hideDetail() { 
+        document.getElementById('listView').style.display = 'block'; 
+        document.getElementById('detailView').style.display = 'none'; 
+    }
+
+    function openTermin(id, firma) { 
+        document.getElementById('form_id').value = id; 
+        document.getElementById('detailTitle').innerText = firma; 
+        showDetail(); 
+    }
+
+    function selectOption(el, targetId, value) {
+        const parent = el.parentElement;
+        parent.querySelectorAll('.option-btn').forEach(btn => btn.classList.remove('selected'));
+        el.classList.add('selected');
+        document.getElementById(targetId + '_val').value = value;
+        updateLeistungTable(); // ← EKLENEN TEK SATIR
+    }
+
+    function toggleExtra(select, targetId) {
+        const target = document.getElementById(targetId);
+        target.style.display = (select.value === 'ja' || select.value !== 'nein') ? 'block' : 'none';
+        updateLeistungTable(); // ← EKLENEN TEK SATIR
+    }
+
+    function stepVal(id, delta, unit) {
+        const input = document.getElementById(id);
+        const display = document.getElementById(
+            id.replace('val', 'display').replace('v', 'd').replace('t_', 't_').replace('a_', 'a_')
+        );
+        let current = parseInt(input.value.replace(unit, '').trim()) || 0;
+        let newVal = current + delta;
+        if (newVal < 0) newVal = 0;
+        input.value = newVal + unit;
+        display.value = newVal + unit;
+        updateLeistungTable(); // ← EKLENEN TEK SATIR
+    }
+
+    function manualEntry(el, hiddenId, unit) {
+        let val = parseInt(el.value.replace(unit, '').trim()) || 0;
+        if (val < 0) val = 0;
+        el.value = val + unit;
+        document.getElementById(hiddenId).value = val + unit;
+        updateLeistungTable(); // ← EKLENEN TEK SATIR
+    }
+</script>
+
+{% endblock %}

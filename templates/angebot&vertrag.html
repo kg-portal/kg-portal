@@ -1,0 +1,241 @@
+<!--
+......................................................................................................................................................
+......................................................................................................................................................
+......................................................................................................................................................
+🟦 1. Parça: Makro Tanımı (Şablon Fonksiyonu)
+......................................................................................................................................................
+......................................................................................................................................................
+......................................................................................................................................................
+-->
+
+{% extends "base.html" %}
+{% block content %}
+
+{% macro select_freq(name) %}
+<select name="service_{{ name }}" class="s-select">
+    <option value="Bitte auswählen">Bitte auswählen</option>
+    <option value="bei jedem Einsatz">bei jedem Einsatz</option>
+    <option value="1x wöchentlich">1x wöchentlich</option>
+    <option value="2x wöchentlich">2x wöchentlich</option>
+    <option value="1x monatlich">1x monatlich</option>
+    <option value="nach Bedarf">nach Bedarf</option>
+    <option value="keine">keine</option>
+</select>
+{% endmacro %}
+
+<!--
+......................................................................................................................................................
+......................................................................................................................................................
+......................................................................................................................................................
+🟦 2. Parça: Sol Panel (Müşteri ve Fiyat Bilgileri)
+......................................................................................................................................................
+......................................................................................................................................................
+......................................................................................................................................................
+-->
+
+<div class="angebot-container">
+    <div class="header-section">
+        <h1 style="font-weight:900; color:#1e40af; margin:0;">Neues Angebot Erstellen</h1>
+        <p style="color:#64748b; font-weight:600; margin-top:5px;">Profesyonel Hizmet Listesi ve Fiyatlandırma Paneli</p>
+    </div>
+
+    <form action="/angebot/create" method="POST" id="angebotForm">
+        <div class="main-grid">
+            <div class="side-panel">
+                <div class="card-mini">
+                    <h3 class="section-title"><i class="fa-solid fa-user-tie"></i> 1. Kundeninformationen</h3>
+                    <input type="text" name="firma" placeholder="Firma / Kunde" class="m-input-modern" required>
+                    <input type="text" name="ansprechpartner" placeholder="Ansprechpartner" class="m-input-modern">
+                    <input type="text" name="strasse" placeholder="Straße + Nr." class="m-input-modern">
+                    <div style="display:grid; grid-template-columns: 1fr 2fr; gap:10px;">
+                        <input type="text" name="plz" placeholder="PLZ" class="m-input-modern" id="plz_input">
+                        <input type="text" name="ort" placeholder="Ort" class="m-input-modern" id="ort_output" readonly>
+                    </div>
+                </div>
+
+                <div class="card-mini">
+                    <h3 class="section-title"><i class="fa-solid fa-calculator"></i> 2. Kalkulationsbasis</h3>
+                    <div class="input-group">
+                        <label>Fläche (m²)</label>
+                        <input type="number" name="m2" class="m-input-modern" placeholder="z.B. 250">
+                    </div>
+                    <div class="input-group">
+                        <label>Häufigkeit (Allgemein)</label>
+                        <select name="haeufigkeit_genel" class="m-input-modern">
+                            <option>1x wöchentlich</option>
+                            <option>2x wöchentlich</option>
+                            <option>3x wöchentlich</option>
+                            <option>5x wöchentlich (Täglich)</option>
+                            <option>Individuell</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <button type="submit" class="btn-generate">
+                    <i class="fa-solid fa-file-invoice-dollar"></i> ANGEBOT ERSTELLEN
+                </button>
+            </div>
+
+<!--
+......................................................................................................................................................
+......................................................................................................................................................
+......................................................................................................................................................
+🟦 3. Parça: Sağ Panel (Detaylı Hizmet Listesi)
+......................................................................................................................................................
+......................................................................................................................................................
+......................................................................................................................................................
+-->
+
+            <div class="main-panel">
+    <div class="card-main">
+        <h3 class="section-title">
+            <i class="fa-solid fa-clipboard-list"></i> 3. Leistungsverzeichnis
+        </h3>
+
+        <div class="services-grid">
+            <div class="service-category" style="background:#eff6ff; border:2px solid #1e40af; padding:15px; border-radius:15px;">
+                <h4 style="color:#1e40af;">Oberflächen</h4>
+                <div class="service-item"><span>Arbeitsflächen / Tische</span> {{ select_freq('tische') }}</div>
+                <div class="service-item"><span>PC, Drucker, Telefon</span> {{ select_freq('it') }}</div>
+                <div class="service-item"><span>Fensterbänke</span> {{ select_freq('fenster') }}</div>
+                <div class="service-item"><span>Griffspuren / Türen</span> {{ select_freq('tueren') }}</div>
+                <div class="service-item"><span>Spinnenweben</span> {{ select_freq('spinnen') }}</div>
+            </div>
+
+            <div class="service-category" style="background:#fefce8; border:2px solid #facc15; padding:15px; border-radius:15px;">
+                <h4 style="color:#854d0e;">Bodenarbeiten</h4>
+                <div class="service-item"><span>Teppich saugen</span> {{ select_freq('teppich') }}</div>
+                <div class="service-item"><span>PVC / Fliesen wischen</span> {{ select_freq('pvc') }}</div>
+                <div class="service-item"><span>Matten reinigen</span> {{ select_freq('matten') }}</div>
+                <div class="service-item"><span>Sockelleisten</span> {{ select_freq('sockel') }}</div>
+            </div>
+
+            <div class="service-category" style="background:#fef2f2; border:2px solid #dc2626; padding:15px; border-radius:15px;">
+                <h4 style="color:#dc2626;">Sanitärbereich</h4>
+                <div class="service-item"><span>WC, Waschbecken, Spiegel</span> {{ select_freq('wc') }}</div>
+                <div class="service-item"><span>Armaturen reinigen</span> {{ select_freq('armaturen') }}</div>
+                <div class="service-item"><span>Papier & Seife auffüllen</span> {{ select_freq('papier') }}</div>
+                <div class="service-item"><span>Abfallbehälter</span> {{ select_freq('abfall_wc') }}</div>
+            </div>
+
+            <div class="service-category" style="background:#f0fdf4; border:2px solid #16a34a; padding:15px; border-radius:15px;">
+                <h4 style="color:#16a34a;">Küche / Teeküche</h4>
+                <div class="service-item"><span>Spüle & Arbeitsfläche</span> {{ select_freq('kueche') }}</div>
+                <div class="service-item"><span>Geschirrspüler starten</span> {{ select_freq('spueler') }}</div>
+                <div class="service-item"><span>Abfall entsorgen</span> {{ select_freq('abfall_kueche') }}</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+</form>
+
+
+<!--
+......................................................................................................................................................
+......................................................................................................................................................
+......................................................................................................................................................
+🟦 4. Parça: Alt Panel (Teklif Listesi ve Tablo)
+......................................................................................................................................................
+......................................................................................................................................................
+......................................................................................................................................................
+-->
+
+    <hr style="margin:40px 0; border:0; border-top:2px solid #e2e8f0;">
+
+    <div class="list-section">
+        <h2 style="color:#1e40af; margin-bottom:20px; font-weight: 800;">Verschicktene Angebote & Status</h2>
+        <div class="modern-table-card">
+            <table style="width:100%; border-collapse:collapse;">
+                <thead style="background:#f8fafc; border-bottom: 2px solid #e2e8f0;">
+                    <tr>
+                        <th style="padding:15px; text-align:left; font-size: 13px; font-weight: 900;">FIRMA</th>
+                        <th style="padding:15px; text-align:left; font-size: 13px; font-weight: 900;">ORT</th>
+                        <th style="padding:15px; text-align:left; font-size: 13px; font-weight: 900;">STATUS</th>
+                        <th style="padding:15px; text-align:right; font-size: 13px; font-weight: 900;">AKTIONEN</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for a in angebote %}
+                    <tr style="border-bottom:1px solid #f1f5f9; transition: 0.2s;" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='transparent'">
+                        <td style="padding:15px; font-weight:800; color:#1e293b;">{{ a.firma }}</td>
+                        <td style="padding:15px; color: #64748b; font-weight: 600;">{{ a.ort }}</td>
+                        <td style="padding:15px;">
+                            <span class="status-badge status-{{ a.status|lower }}">{{ a.status }}</span>
+                        </td>
+                        <td style="padding:15px; text-align:right;">
+                            <div class="action-buttons">
+                                <a href="/angebot/update_status/{{ a.id }}/Interessiert" class="btn-sm btn-int">Interessiert</a>
+                                <a href="/angebot/update_status/{{ a.id }}/Abgelehnt" class="btn-sm btn-abg">Abgelehnt</a>
+                                <a href="/angebot/update_status/{{ a.id }}/Bestätigt" class="btn-sm btn-bes" onclick="return confirm('Müşteri tablosuna aktarılsın mı?')">Bestätigt ✅</a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="4" style="padding: 40px; text-align: center; color: #94a3b8; font-weight: 600;">
+                            Henüz gönderilmiş bir teklif bulunamadı.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!--
+......................................................................................................................................................
+......................................................................................................................................................
+......................................................................................................................................................
+🟦 5. Parça: Stil ve Fonksiyonlar (CSS & JS)
+......................................................................................................................................................
+......................................................................................................................................................
+......................................................................................................................................................
+-->
+
+<style>
+    /* GENEL TASARIM */
+    .angebot-container { animation: fadeIn 0.4s ease-out; }
+    .main-grid { display: grid; grid-template-columns: 320px 1fr; gap: 25px; margin-top: 25px; align-items: start; }
+    .card-mini, .card-main { background: #fff; border: 1px solid #e2e8f0; border-radius: 20px; padding: 22px; margin-bottom: 20px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02); }
+    .section-title { font-size: 15px; font-weight: 800; color: #1e40af; margin-bottom: 18px; display: flex; align-items: center; gap: 10px; text-transform: uppercase; }
+    .m-input-modern { width: 100%; padding: 11px; border: 1.5px solid #f1f5f9; border-radius: 10px; margin-bottom: 12px; outline: none; font-weight: 600; font-size: 14px; transition: 0.2s; }
+    .m-input-modern:focus { border-color: #3b82f6; background: #f8fafc; }
+    .input-group label { display: block; font-size: 11px; font-weight: 800; color: #64748b; margin-bottom: 5px; text-transform: uppercase; }
+    
+    /* HİZMET LİSTESİ */
+    .services-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 25px; }
+    .service-category h4 { font-size: 13px; color: #2563eb; border-bottom: 2px solid #eff6ff; padding-bottom: 6px; margin-bottom: 12px; font-weight: 800; text-transform: uppercase; }
+    .service-item { display: flex; justify-content: space-between; align-items: center; padding: 7px 0; border-bottom: 1px solid #f8fafc; font-size: 13px; font-weight: 600; color: #334155; }
+    .s-select { padding: 4px 8px; border-radius: 8px; border: 1.5px solid #f1f5f9; font-size: 12px; width: 150px; font-weight: 600; color: #475569; outline: none; }
+    .btn-generate { width: 100%; background: #1e40af; color: #fff; border: none; padding: 18px; border-radius: 15px; font-weight: 800; cursor: pointer; transition: 0.3s; font-size: 15px; }
+    .btn-generate:hover { transform: translateY(-3px); background: #1d4ed8; }
+
+    /* TABLO VE BADGE STİLLERİ */
+    .modern-table-card { background: #fff; border-radius: 20px; border: 1px solid #e2e8f0; overflow: hidden; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05); }
+    .status-badge { padding: 6px 14px; border-radius: 30px; font-size: 11px; font-weight: 800; text-transform: uppercase; }
+    .status-offen { background: #f1f5f9; color: #64748b; }
+    .status-interessiert { background: #fffbeb; color: #d97706; }
+    .status-abgelehnt { background: #fef2f2; color: #dc2626; }
+    .status-bestätigt { background: #f0fdf4; color: #16a34a; }
+    
+    .action-buttons { display: flex; gap: 8px; justify-content: flex-end; }
+    .btn-sm { padding: 8px 12px; border-radius: 10px; font-size: 11px; text-decoration: none; font-weight: 800; transition: 0.2s; }
+    .btn-int { background: #fff; color: #d97706; border: 1.5px solid #fde68a; }
+    .btn-abg { background: #fff; color: #dc2626; border: 1.5px solid #fecaca; }
+    .btn-bes { background: #16a34a; color: #fff; border: none; }
+    .btn-sm:hover { transform: translateY(-2px); box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+</style>
+
+<script>
+    document.getElementById('plz_input').addEventListener('input', function() {
+        const nrw = {'47':'Duisburg','40':'Düsseldorf','45':'Essen','44':'Dortmund','50':'Köln','51':'Leverkusen','42':'Wuppertal'};
+        const v = this.value.substring(0, 2);
+        document.getElementById('ort_output').value = nrw[v] || (this.value.length > 2 ? "NRW Region" : "");
+    });
+</script>
+
+{% endblock %}
