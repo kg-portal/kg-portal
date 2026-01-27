@@ -82,118 +82,37 @@
 
     <div style="background: #fff; border: 1px solid #e2e8f0; border-radius: 20px; overflow-x: auto; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05);">
         <table style="width: 100%; border-collapse: collapse; min-width: 1800px; table-layout: fixed;">
-            <thead style="background: #f8fafc; border-bottom: 3px solid #2563eb;">
-                <tr>
-                    <th style="width:110px;padding:18px;font-size:14px;font-weight:900;text-align:center;">📅 DATUM</th>
-                    <th style="width:90px;padding:18px;font-size:14px;font-weight:900;text-align:center;">MONAT</th>
-                    <th style="width:100px;padding:18px;font-size:14px;font-weight:900;text-align:center;">🕒 BEGINN</th>
-                    <th style="width:100px;padding:18px;font-size:14px;font-weight:900;text-align:center;">🕒 ENDE</th>
-                    <th style="width:280px;padding:18px;font-size:14px;font-weight:900;text-align:left;">📍 ORT / STATUS</th>
-                    <th style="width:100px;padding:18px;font-size:14px;font-weight:900;text-align:center;">✍️ UNTERSCHRIFT</th>
-                    <th style="width:180px;padding:18px;font-size:14px;font-weight:900;border-right:3px solid #2563eb;text-align:center;">📄 UNTERSCHRIFTSBESTÄTIGUNG</th>
-                    <th style="width:100px;padding:18px;background:#eff6ff;font-size:14px;font-weight:900;text-align:center;">STUNDE INSGESAMT</th>
-                    <th style="width:100px;padding:18px;background:#eff6ff;font-size:14px;font-weight:900;text-align:center;border-right:2px solid #e2e8f0;">LOHN INSGESAMT</th>
-                    <th class="extra-column" style="display:none;width:90px;padding:18px;background:#f0fdf4;font-size:14px;font-weight:900;text-align:center;">ARBEIT STUNDE</th>
-                    <th class="extra-column" style="display:none;width:90px;padding:18px;background:#fef2f2;font-size:14px;font-weight:900;text-align:center;">KRANK STUNDE</th>
-                    <th class="extra-column" style="display:none;width:90px;padding:18px;background:#fff7ed;font-size:14px;font-weight:900;text-align:center;">URLAUB STUNDE</th>
-                    <th class="extra-column" style="display:none;width:80px;padding:18px;background:#f8fafc;font-size:14px;font-weight:900;text-align:center;">EXTRA STUNDE</th>
-                    <th style="width:80px;padding:12px;text-align:center;">
-                        <button onclick="toggleExtra()" style="background:#16a34a;color:white;border:none;padding:10px 14px;border-radius:8px;font-weight:900;cursor:pointer;font-size:12px;">EXTRA</button>
-                    </th>
-                </tr>
-            </thead>
+<thead style="background: #f8fafc; border-bottom: 3px solid #2563eb;">
+    <tr>
+        <th style="width:110px;padding:18px;font-size:14px;font-weight:900;text-align:center;">📅 DATUM</th>
+        <th style="width:90px;padding:18px;font-size:14px;font-weight:900;text-align:center;">MONAT</th>
+        <th style="width:100px;padding:18px;font-size:14px;font-weight:900;text-align:center;">🕒 BEGINN</th>
+        <th style="width:100px;padding:18px;font-size:14px;font-weight:900;text-align:center;">🕒 ENDE</th>
+        <th style="width:280px;padding:18px;font-size:14px;font-weight:900;text-align:left;">📍 ORT / STATUS</th>
+        <th style="width:100px;padding:18px;font-size:14px;font-weight:900;text-align:center;">✍️ UNTERSCHRIFT</th>
+        <th style="width:180px;padding:18px;font-size:14px;font-weight:900;border-right:3px solid #2563eb;text-align:center;">📄 UNTERSCHRIFTSBESTÄTIGUNG</th>
+        <th style="width:100px;padding:18px;background:#eff6ff;font-size:14px;font-weight:900;text-align:center;">STUNDE INSGESAMT</th>
+        <th style="width:100px;padding:18px;background:#eff6ff;font-size:14px;font-weight:900;text-align:center;border-right:2px solid #e2e8f0;">LOHN INSGESAMT</th>
+
+        <th class="extra-column" style="display:none;width:90px;padding:18px;background:#f0fdf4;font-size:14px;font-weight:900;text-align:center;">ARBEIT STUNDE</th>
+        <th class="extra-column" style="display:none;width:90px;padding:18px;background:#fef2f2;font-size:14px;font-weight:900;text-align:center;">KRANK STUNDE</th>
+        <th class="extra-column" style="display:none;width:90px;padding:18px;background:#fff7ed;font-size:14px;font-weight:900;text-align:center;">URLAUB STUNDE</th>
+        <th class="extra-column" style="display:none;width:80px;padding:18px;background:#f8fafc;font-size:14px;font-weight:900;text-align:center;">EXTRA STUNDE</th>
+
+        <th style="width:80px;padding:12px;text-align:center;">
+            <button onclick="toggleExtra()" style="background:#16a34a;color:white;border:none;padding:10px 14px;border-radius:8px;font-weight:900;cursor:pointer;font-size:12px;">EXTRA</button>
+        </th>
+    </tr>
+</thead>
             <tbody id="sheetBody">
-                <!-- satırlar senin mevcut kodunla burada oluşuyor -->
             </tbody>
         </table>
 
-        <!-- 🔴 MOBİL KART GÖRÜNÜMÜ -->
+        <!-- 🔴 MOBİL KART GÖRÜNÜMÜ (SADECE MOBİLDE GÖRÜNÜR) -->
         <div class="mobile-cards" id="mobileCards"></div>
+
     </div>
 </div>
-
-<!-- ============================= -->
-<!-- 🔴 MOBİL CSS                -->
-<!-- ============================= -->
-<style>
-@media (max-width: 768px) {
-  table { display: none !important; }
-
-  .mobile-cards {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    padding: 12px;
-  }
-
-  .day-card {
-    background: #ffffff;
-    border-radius: 14px;
-    padding: 14px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-  }
-
-  .day-card h4 {
-    margin: 0 0 8px 0;
-    font-size: 16px;
-    font-weight: 800;
-  }
-
-  .day-row {
-    display: flex;
-    justify-content: space-between;
-    margin-top: 6px;
-    font-size: 14px;
-    font-weight: 600;
-  }
-
-  .time-pill {
-    background: #e0f2fe;
-    padding: 6px 12px;
-    border-radius: 999px;
-    font-weight: 700;
-  }
-}
-</style>
-
-<!-- ============================= -->
-<!-- 🔴 JS (openSheet + render)  -->
-<!-- ============================= -->
-<script>
-function openSheet(name) {
-  document.getElementById('workerNameDisplay').innerText = "Stundenzettel: " + name;
-  document.getElementById('timeSheetSection').style.display = 'block';
-
-  // NOT: sheetBody satırları zaten senin mevcut kodunla dolduruluyor.
-  // Burada SADECE mobil kartları üretip gösteriyoruz.
-  renderMobileCards();
-}
-
-function renderMobileCards() {
-  const cards = document.getElementById("mobileCards");
-  if (!cards) return;
-
-  cards.innerHTML = "";
-
-  const rows = document.querySelectorAll(".timesheet-row");
-  rows.forEach(row => {
-    const date  = row.children[0]?.innerText || "-";
-    const start = row.querySelector(".in-time")?.value || "-";
-    const end   = row.querySelector(".out-time")?.value || "-";
-    const loc   = row.querySelector(".loc-select")?.value || "-";
-
-    const card = document.createElement("div");
-    card.className = "day-card";
-    card.innerHTML = `
-      <h4>${date}</h4>
-      <div class="day-row"><span>Başlangıç</span><span class="time-pill">${start}</span></div>
-      <div class="day-row"><span>Bitiş</span><span class="time-pill">${end}</span></div>
-      <div class="day-row"><span>Durum</span><span class="time-pill">${loc}</span></div>
-    `;
-    cards.appendChild(card);
-  });
-}
-</script>
 
 
 <!--
