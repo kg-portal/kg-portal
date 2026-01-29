@@ -1,17 +1,50 @@
+
 # =====================================================
 # KG-PORTAL V2
 # Bölüm 1- ANA UYGULAMA DOSYASI (Flask) 
 # =====================================================
 
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify
+from functools import wraps
 import sqlite3
 import json
 import os
-
-from leistungen import LEISTUNGEN   # ← BURAYA
+from leistungen import LEISTUNGEN
 
 app = Flask(__name__)
-DB_PATH = os.path.join('data', 'kg_portal.db')
+app.secret_key = 'kg_reinigung_ozel_anahtar_2026' # Güvenlik anahtarı
+DB_PATH = os.path.join('data', 'kg_portal.db') 
+
+# GİRİŞ BİLGİLERİN (Eşinle kullanacağın şifre)
+USER_ID = "admin"
+USER_PASS = "Secret8391." 
+
+# BEKÇİ FONKSİYONU (Giriş kontrolü yapar)
+def login_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'logged_in' not in session:
+            # İşçi linkiyle geliniyorsa engelleme (ŞİFRESİZ GEÇİŞ)
+            if request.path.startswith('/stundenzettel/worker/'):
+                return f(*args, **kwargs)
+            return redirect(url_for('login'))
+        return f(*args, **kwargs)
+    return decorated_function
+
+@app.before_request
+def auto_login_check():
+    # 1. Login, statik dosyalar veya zaten giriş yapmış olanlar geçer
+    if request.endpoint in ['login', 'static'] or 'logged_in' in session:
+        return
+    
+    # 2. İŞÇİ LİNKLERİ İÇİN ŞİFRE SORMADAN GEÇİŞ İZNİ
+    if request.path.startswith('/stundenzettel/worker/'):
+        return
+
+    # 3. Diğer her yer için şifre ekranına yolla
+    return redirect(url_for('login'))
+
+# ... (Buradan aşağısı get_db_connection() diye devam ediyor, aynen kalsın)
 
 # =====================================================
 # Bölüm 2- VERİTABANI BAĞLANTISI
@@ -87,15 +120,22 @@ def init_db():
     # <<<<<< 🔥 BURASI BİTTİ 🔥 <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     # ####################################################################
 
-    # To-Do Listesi Tablosu
+# To-Do Listesi Tablosu
     conn.execute('''
         CREATE TABLE IF NOT EXISTS todos (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             task TEXT NOT NULL,
             done INTEGER DEFAULT 0,
+            deadline TEXT,
             created_at TEXT DEFAULT CURRENT_TIMESTAMP
         )
     ''')
+
+    # Mevcut veritabanında 'deadline' sütunu yoksa zorla ekler (Hata Önleyici)
+    try:
+        conn.execute("ALTER TABLE todos ADD COLUMN deadline TEXT")
+    except:
+        pass
 
     # ANGEBOTE TABLOSU (YENİ)
     conn.execute('''
@@ -139,16 +179,128 @@ def init_db():
 
 init_db()
 
+# =====================================================
+# Bölüm 4-GİRİŞ VE ÇIKIŞ İŞLEMLERİ (BURAYA GELDİ)
+# =====================================================
+
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    if request.method == "POST":
+        if request.form['username'] == USER_ID and request.form['password'] == USER_PASS:
+            session['logged_in'] = True
+            return redirect(url_for('index'))
+        else:
+            flash('Geçersiz kullanıcı adı veya şifre!', 'danger')
+    return render_template("login.html")
+
+@app.route("/logout")
+def logout():
+    session.pop('logged_in', None)
+    return redirect(url_for('login'))
 
 # =====================================================
-# Bölüm 4- ANA SAYFA
+# Bölüm 5- ANA SAYFA
 # =====================================================
 @app.route("/")
 def index():
-    return render_template("index.html")
+    conn = get_db_connection()
+    
+    # SADECE AKTİF MÜŞTERİ SAYISI
+    customer_count = conn.execute("SELECT COUNT(*) FROM kunden WHERE vertragsstatus != 'gekuendigt' OR vertragsstatus IS NULL").fetchone()[0]
+    
+    # GRAFİK İÇİN AYLIK VERİ (Örnek: Her ay sisteme giren müşteri sayısı)
+    # Bu sorgu her ay kaç müşteri eklendiğini sayar
+    kunden_stats = conn.execute("""
+        SELECT strftime('%m', created_at) as ay, COUNT(id) 
+        FROM kunden 
+        GROUP BY ay 
+        ORDER BY ay ASC
+    """).fetchall()
+    
+    # Grafik için 12 aylık bir liste hazırlıyoruz (boş aylar 0 görünür)
+    kunden_grafik_verisi = [0] * 12
+    for row in kunden_stats:
+        index = int(row['ay']) - 1
+        kunden_grafik_verisi[index] = row[1]
+
+    # -----------------------------------------------------
+    # 👥 AKTİF PERSONEL VERİLERİ (Mevcut Kodun)
+    # -----------------------------------------------------
+    employee_count = conn.execute("SELECT COUNT(*) FROM mitarbeiter WHERE status = 'aktiv'").fetchone()[0]
+    
+    personel_stats = conn.execute("""
+        SELECT strftime('%m', created_at) as ay, COUNT(id) 
+        FROM mitarbeiter 
+        WHERE status = 'aktiv' 
+        GROUP BY ay 
+        ORDER BY ay ASC
+    """).fetchall()
+    
+    personel_grafik_verisi = [0] * 12
+    for row in personel_stats:
+        idx = int(row['ay']) - 1
+        personel_grafik_verisi[idx] = row[1]
+
+    # -----------------------------------------------------
+    # 📊 ✅ TO-DO HAFTALIK GRAFİK VERİSİ (YENİ EKİ)
+    # -----------------------------------------------------
+    import datetime
+    today = datetime.datetime.now()
+    todo_kw_labels = []
+    todo_erledigt_verisi = []
+    todo_offen_verisi = []
+
+    # Son 2 hafta, bu hafta ve gelecek 2 haftayı (Toplam 5 hafta) hesaplar
+    for i in range(-2, 3):
+        target_date = today + datetime.timedelta(weeks=i)
+        kw_num = target_date.isocalendar()[1]
+        todo_kw_labels.append(f"KW {kw_num}")
+        
+        # O haftanın başlangıç (Pazartesi) ve bitiş (Pazar) tarihlerini bul
+        start_of_week = (target_date - datetime.timedelta(days=target_date.weekday())).strftime('%Y-%m-%d')
+        end_of_week = (target_date + datetime.timedelta(days=6-target_date.weekday())).strftime('%Y-%m-%d')
+        
+        # Veritabanından o haftaya ait bitenleri say
+        erledigt = conn.execute("SELECT COUNT(*) FROM todos WHERE done = 1 AND deadline BETWEEN ? AND ?", 
+                                (start_of_week, end_of_week)).fetchone()[0]
+        # Veritabanından o haftaya ait bekleyenleri say
+        offen = conn.execute("SELECT COUNT(*) FROM todos WHERE done = 0 AND deadline BETWEEN ? AND ?", 
+                             (start_of_week, end_of_week)).fetchone()[0]
+        
+        todo_erledigt_verisi.append(erledigt)
+        todo_offen_verisi.append(offen)
+
+    # =========================
+    # TODO BATTERY YÜZDE HESABI
+    # =========================
+    total_erledigt = sum(todo_erledigt_verisi)
+    total_offen = sum(todo_offen_verisi)
+
+    total = total_erledigt + total_offen
+    todo_percent = int((total_erledigt / total) * 100) if total > 0 else 0
+
+
+    conn.close()
+    
+    # -----------------------------------------------------
+    # 🚀 RENDER (TÜM VERİLER GÖNDERİLİYOR)
+    # -----------------------------------------------------
+    return render_template(
+    "index.html",
+    customer_count=customer_count,
+    kunden_grafik_verisi=kunden_grafik_verisi,
+    employee_count=employee_count,
+    personel_grafik_verisi=personel_grafik_verisi,
+    todo_kw_labels=todo_kw_labels,
+    todo_erledigt_verisi=todo_erledigt_verisi,
+    todo_offen_verisi=todo_offen_verisi,
+    todo_percent=todo_percent
+)
+
+
 
 # =====================================================
-# Bölüm 5- KUNDEN
+# Bölüm 6- KUNDEN
 # =====================================================
 @app.route("/kunden", methods=["GET", "POST"])
 def kunden():
@@ -239,7 +391,7 @@ def kunden():
     return render_template("kunden.html", kunden=kunden)
 
 # =====================================================
-# Bölüm 6- KUNDEN LÖSCHEN
+# Bölüm 7- KUNDEN LÖSCHEN
 # =====================================================
 @app.route("/kunden/delete/<int:id>")
 def delete_kunde(id):
@@ -250,7 +402,7 @@ def delete_kunde(id):
     return redirect(url_for("kunden"))
 
 # =====================================================
-# Bölüm 7- MITARBEITER
+# Bölüm 8- MITARBEITER
 # =====================================================
 @app.route("/mitarbeiter", methods=["GET", "POST"])
 def mitarbeiter():
@@ -330,7 +482,7 @@ def mitarbeiter():
     return render_template("Mitarbeiter.html", mitarbeiter_liste=mitarbeiter_liste)
 
 # =====================================================
-# Bölüm 8- MITARBEITER LÖSCHEN
+# Bölüm 9- MITARBEITER LÖSCHEN
 # =====================================================
 @app.route("/mitarbeiter/delete/<int:id>")
 def delete_mitarbeiter(id):
@@ -350,22 +502,62 @@ def activate_mitarbeiter(id):
     conn.close()
     return redirect(url_for("mitarbeiter"))
 
+@app.route("/mitarbeiter/hard_delete/<int:id>")
+def hard_delete_mitarbeiter(id):
+    conn = get_db_connection()
+    # Bu komut personeli veritabanından tamamen siler!
+    conn.execute("DELETE FROM mitarbeiter WHERE id = ?", (id,))
+    conn.commit()
+    conn.close()
+    return redirect(url_for("mitarbeiter"))
+
 # =====================================================
-# Bölüm 9- TO-DO LISTE
+# Bölüm 10- TO-DO LISTE (Haftalık Timeline Sistemi)
 # =====================================================
 @app.route("/todo")
 def todo_index():
+    import datetime
     conn = get_db_connection()
-    todos = conn.execute("SELECT * FROM todos ORDER BY id DESC").fetchall()
+    
+    # Deadline sütunu yoksa veritabanına ekle
+    try:
+        conn.execute("ALTER TABLE todos ADD COLUMN deadline TEXT")
+        conn.commit()
+    except:
+        pass
+
+    todos = conn.execute("SELECT * FROM todos ORDER BY deadline ASC").fetchall()
     conn.close()
-    return render_template("todo.html", todos=todos)
+
+    # Görevleri KW (Takvim Haftası) bazında gruplama mantığı
+    grouped_todos = {}
+    now = datetime.datetime.now()
+    now_date = now.strftime('%Y-%m-%d')
+
+    for todo in todos:
+        if todo['deadline']:
+            dt = datetime.datetime.strptime(todo['deadline'], '%Y-%m-%d')
+            kw = dt.isocalendar()[1] # Hafta numarasını al (KW)
+            key = f"KW {kw} ({dt.strftime('%d.%m.%Y')})"
+        else:
+            key = "Ungeplant"
+        
+        if key not in grouped_todos:
+            grouped_todos[key] = []
+        grouped_todos[key].append(todo)
+
+    return render_template("todo.html", 
+                           grouped_todos=grouped_todos, 
+                           total_count=len(todos),
+                           now_date=now_date)
 
 @app.route("/todo/add", methods=["POST"])
 def add_todo():
     task = request.form.get("task")
+    deadline = request.form.get("deadline") # Tarih verisini alıyoruz
     if task:
         conn = get_db_connection()
-        conn.execute("INSERT INTO todos (task) VALUES (?)", (task,))
+        conn.execute("INSERT INTO todos (task, deadline) VALUES (?, ?)", (task, deadline))
         conn.commit()
         conn.close()
     return redirect(url_for("todo_index"))
@@ -387,21 +579,21 @@ def delete_todo(id):
     return redirect(url_for("todo_index"))
 
 # =====================================================
-# Bölüm 10- DATENBANK
+# Bölüm 11- DATENBANK
 # =====================================================
 @app.route("/datenbank")
 def datenbank():
     return render_template("datenbank.html")
 
 # =====================================================
-# Bölüm 11- KALENDER
+# Bölüm 12- KALENDER
 # =====================================================
 @app.route("/kalender")
 def kalender():
     return render_template("kalender.html")
 
 # =====================================================
-# Bölüm 12- ANGEBOT & VERTRAG (STRATEJİK GÜNCELLEME)
+# Bölüm 13- ANGEBOT & VERTRAG (STRATEJİK GÜNCELLEME)
 # =====================================================
 
 @app.route("/angebot")
@@ -456,7 +648,7 @@ def update_angebot_status(id, status):
     return redirect(url_for('angebot_index'))
 
 # =====================================================
-# Bölüm 13- VERTRAG (SÖZLEŞME) SÜRECİ
+# Bölüm 14- VERTRAG (SÖZLEŞME) SÜRECİ
 # =====================================================
 
 @app.route("/vertrag/create/<int:id>")
@@ -486,7 +678,7 @@ def vertrag_submit():
     return redirect(url_for('kunden_list'))
 
 # =====================================================
-# Bölüm 14- BESICHTIGUNGSTERMINE
+# Bölüm 15- BESICHTIGUNGSTERMINE
 # =====================================================
 
 @app.route("/besichtigung", methods=["GET", "POST"])
@@ -546,7 +738,7 @@ def update_besichtigung_status(id, status):
     return redirect(url_for('besichtigung_index'))
 
 # =====================================================
-# Bölüm 15- STUNDENZETTEL (Dosya Sistemi ve Listeleme)
+# Bölüm 16- STUNDENZETTEL (Dosya Sistemi ve Listeleme)
 # =====================================================
 @app.route("/stundenzettel")
 def stundenzettel():
@@ -571,7 +763,7 @@ def stundenzettel():
     return render_template("stundenzettel.html", mitarbeiter_liste=mitarbeiter_liste)
 
 # =====================================================
-# Bölüm 16- STUNDENZETTEL DETAY (İşçiye Özel Sayfa)
+# Bölüm 17- STUNDENZETTEL DETAY (İşçiye Özel Sayfa)
 # =====================================================
 
 # BU SENİN ESKİ KODUN - DOKUNMA! (Admin için)
@@ -604,7 +796,7 @@ def worker_stundenzettel(id, name, code):
     return render_template("stundenzettel_worker.html", mitarbeiter_liste=[worker])
 
 # =====================================================
-# Bölüm 17- UYGULAMA BAŞLAT
+# Bölüm 18- UYGULAMA BAŞLAT
 # =====================================================
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=True)
