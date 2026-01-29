@@ -1,10 +1,20 @@
-<!DOCTYPE html>
-<html lang="de">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>KG-Portal Arbeitszeit</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        /* Mobilde inputlara odaklanınca ekranın fırlamasını/zoom yapmasını engellemek için */
+        @media screen and (max-width: 768px) {
+            input, select, textarea { 
+                font-size: 16px !important; 
+            }
+            h2 { 
+                font-size: 24px !important; 
+            }
+        }
+    </style>
 </head>
 <body style="background: #f8fafc; font-family: sans-serif; margin: 0; padding: 0;"> 
 
@@ -37,22 +47,21 @@
                 {% for m in mitarbeiter_liste %}
                 <tr style="border-bottom:1px solid #f1f5f9;">
                     <td style="padding:20px; font-weight:800; color:#1e293b; font-size: 16px;">
-                        {{ m.vorname }} {{ m.nachname }}
-                        <br>
-                        <small style="color:#64748b; font-weight:400; font-size:11px; background:#f1f5f9; padding:2px 6px; border-radius:4px; display:inline-block; margin-top:5px;">
-                            Link: /stundenzettel/worker/{{ m.id }}/{{ m.vorname }}_{{ m.nachname }}/{{ m.access_code if m.access_code else '1234' }}?reminder=1
-                        </small>
+                        <div style="display: flex; flex-direction: column; gap: 5px;">
+                            <span>{{ m.vorname }} {{ m.nachname }}</span>
+                            <small style="color:#64748b; font-weight:400; font-size:11px; background:#f1f5f9; padding:4px 8px; border-radius:6px; width: fit-content; word-break: break-all;">
+                                Link: /stundenzettel/worker/{{ m.id }}/{{ m.vorname }}_{{ m.nachname }}/{{ m.access_code if m.access_code else '1234' }}?reminder=1
+                            </small>
+                        </div>
                     </td>
-                    <td style="padding:20px; text-align:right; display:flex; justify-content:flex-end; gap:10px;">
-                        <button onclick="openSheet('{{ m.vorname }} {{ m.nachname }}')" 
-                                style="background:#2563eb; color:#fff; border:none; padding:10px 25px; border-radius:12px; font-weight:700; cursor:pointer; transition: 0.2s;">
-                            Öffnen
-                        </button>             
-                        
-                        <button onclick="if(confirm('Mitarbeiter archivieren?')) window.location.href='/mitarbeiter/delete/{{ m.id }}'" 
-                                style="background:#fef2f2; color:#dc2626; border:none; width:45px; height:45px; border-radius:12px; cursor:pointer; transition: 0.2s;">
-                            <i class="fa-solid fa-trash-can"></i>
-                        </button>
+                    <td style="padding:20px; text-align:right;">
+                        <div style="display:flex; justify-content:flex-end; gap:10px; align-items: center;">
+                            <button onclick="openSheet('{{ m.vorname }} {{ m.nachname }}')" 
+                                    style="background:#2563eb; color:#fff; border:none; padding:12px 22px; border-radius:12px; font-weight:700; cursor:pointer; flex-shrink: 0; white-space: nowrap; min-width: 90px;">
+                                Öffnen
+                            </button>             
+                            
+                      </div>
                     </td>
                 </tr>
                 {% endfor %}
@@ -70,50 +79,43 @@
 -->
 
 <div id="timeSheetSection" style="display: none; margin-top: 40px; border-top: 4px solid #16a34a; padding-top: 30px;">
-    <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 25px;">
+    <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 25px; padding: 0 10px;">
         <div>
-            <h3 id="workerNameDisplay" style="font-size: 28px; font-weight: 900; color: #1e293b; margin: 0;"></h3>
+            <h3 id="workerNameDisplay" style="font-size: clamp(20px, 5vw, 28px); font-weight: 900; color: #1e293b; margin: 0;"></h3>
             <p style="color: #2563eb; font-weight: 700; margin: 5px 0 0 0;">Januar 2026 - Arbeitszeitnachweis</p>
         </div>
-        <button onclick="closeSheet()" style="background: #64748b; color: white; border: none; padding: 10px 20px; border-radius: 12px; font-weight: 700; cursor: pointer;">
+        <button onclick="closeSheet()" style="background: #64748b; color: white; border: none; padding: 10px 20px; border-radius: 12px; font-weight: 700; cursor: pointer; white-space: nowrap; flex-shrink: 0;">
             <i class="fa-solid fa-xmark"></i> Schließen
         </button>
     </div>
 
-    <div style="background: #fff; border: 1px solid #e2e8f0; border-radius: 20px; overflow-x: auto; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05);">
-        <table style="width: 100%; border-collapse: collapse; min-width: 1800px; table-layout: fixed;">
-<thead style="background: #f8fafc; border-bottom: 3px solid #2563eb;">
-    <tr>
-        <th style="width:110px;padding:18px;font-size:14px;font-weight:900;text-align:center;">📅 DATUM</th>
-        <th style="width:90px;padding:18px;font-size:14px;font-weight:900;text-align:center;">MONAT</th>
-        <th style="width:100px;padding:18px;font-size:14px;font-weight:900;text-align:center;">🕒 BEGINN</th>
-        <th style="width:100px;padding:18px;font-size:14px;font-weight:900;text-align:center;">🕒 ENDE</th>
-        <th style="width:280px;padding:18px;font-size:14px;font-weight:900;text-align:left;">📍 ORT / STATUS</th>
-        <th style="width:100px;padding:18px;font-size:14px;font-weight:900;text-align:center;">✍️ UNTERSCHRIFT</th>
-        <th style="width:180px;padding:18px;font-size:14px;font-weight:900;border-right:3px solid #2563eb;text-align:center;">📄 UNTERSCHRIFTSBESTÄTIGUNG</th>
-        <th style="width:100px;padding:18px;background:#eff6ff;font-size:14px;font-weight:900;text-align:center;">STUNDE INSGESAMT</th>
-        <th style="width:100px;padding:18px;background:#eff6ff;font-size:14px;font-weight:900;text-align:center;border-right:2px solid #e2e8f0;">LOHN INSGESAMT</th>
-
-        <th class="extra-column" style="display:none;width:90px;padding:18px;background:#f0fdf4;font-size:14px;font-weight:900;text-align:center;">ARBEIT STUNDE</th>
-        <th class="extra-column" style="display:none;width:90px;padding:18px;background:#fef2f2;font-size:14px;font-weight:900;text-align:center;">KRANK STUNDE</th>
-        <th class="extra-column" style="display:none;width:90px;padding:18px;background:#fff7ed;font-size:14px;font-weight:900;text-align:center;">URLAUB STUNDE</th>
-        <th class="extra-column" style="display:none;width:80px;padding:18px;background:#f8fafc;font-size:14px;font-weight:900;text-align:center;">EXTRA STUNDE</th>
-
-        <th style="width:80px;padding:12px;text-align:center;">
-            <button onclick="toggleExtra()" style="background:#16a34a;color:white;border:none;padding:10px 14px;border-radius:8px;font-weight:900;cursor:pointer;font-size:12px;">EXTRA</button>
-        </th>
-    </tr>
-</thead>
+    <div style="background: #fff; border: 1px solid #e2e8f0; border-radius: 20px; overflow-x: auto; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05); -webkit-overflow-scrolling: touch;">
+        <table style="width: 100%; border-collapse: collapse; min-width: 1200px; table-layout: fixed;">
+            <thead style="background: #f8fafc; border-bottom: 3px solid #2563eb;">
+                <tr>
+                    <th style="width:95px;padding:10px;font-size:13px;font-weight:900;text-align:center;">📅 DATUM</th>
+                    <th style="width:85px;padding:10px;font-size:13px;font-weight:900;text-align:center;">MONAT</th>
+                    <th style="width:90px;padding:10px;font-size:13px;font-weight:900;text-align:center;">🕒 BEGINN</th>
+                    <th style="width:90px;padding:10px;font-size:13px;font-weight:900;text-align:center;">🕒 ENDE</th>
+                    <th style="width:200px;padding:10px;font-size:13px;font-weight:900;text-align:left;">📍 ORT / STATUS</th>
+                    <th style="width:100px;padding:10px;font-size:13px;font-weight:900;text-align:center;">✍️ UNTER- SCHRIFT</th>
+                    <th style="width:160px;padding:10px;font-size:13px;font-weight:900;border-right:3px solid #2563eb;text-align:center;">📄 UNTERSCHRIFTS-<br>BESTÄTIGUNG</th>
+                    <th style="width:95px;padding:10px;background:#eff6ff;font-size:13px;font-weight:900;text-align:center;">STUNDE INSGESAMT</th>
+                    <th style="width:95px;padding:10px;background:#eff6ff;font-size:13px;font-weight:900;text-align:center;border-right:2px solid #e2e8f0;">LOHN INSGESAMT</th>
+                    <th class="extra-column" style="display:none;width:85px;padding:10px;background:#f0fdf4;font-size:13px;font-weight:900;text-align:center;">ARBEIT STUNDE</th>
+                    <th class="extra-column" style="display:none;width:85px;padding:10px;background:#fef2f2;font-size:13px;font-weight:900;text-align:center;">KRANK STUNDE</th>
+                    <th class="extra-column" style="display:none;width:85px;padding:10px;background:#fff7ed;font-size:13px;font-weight:900;text-align:center;">URLAUB STUNDE</th>
+                    <th class="extra-column" style="display:none;width:75px;padding:10px;background:#f8fafc;font-size:13px;font-weight:900;text-align:center;">EXTRA STUNDE</th>
+                    <th style="width:80px;padding:8px;text-align:center;">
+                        <button onclick="toggleExtra()" style="background:#16a34a;color:white;border:none;padding:8px 12px;border-radius:8px;font-weight:900;cursor:pointer;font-size:11px;">EXTRA</button>
+                    </th>
+                </tr>
+            </thead>
             <tbody id="sheetBody">
             </tbody>
         </table>
-
-        <!-- 🔴 MOBİL KART GÖRÜNÜMÜ (SADECE MOBİLDE GÖRÜNÜR) -->
-        <div class="mobile-cards" id="mobileCards"></div>
-
     </div>
 </div>
-
 
 <!--
 ..........................................................................................................
@@ -164,7 +166,7 @@ function openSheet(name) {
     const body = document.getElementById('sheetBody');
     body.innerHTML = '';
     
-    let optionsHtml = '<option value="">-- Seç --</option>';
+    let optionsHtml = '<option value="">-- Bitte wählen --</option>';
     locations.forEach(loc => {
         optionsHtml += `<option value="${loc.name}" style="background:${loc.bg}; color:${loc.color}; font-weight:bold;">${loc.name}</option>`;
     });
@@ -177,24 +179,24 @@ function openSheet(name) {
             <td style="width: 90px; padding: 14px; color: #64748b; text-align: center;">Januar</td>
 
             <td style="width: 100px; padding: 14px; text-align: center;">
-                <input type="text" class="in-time" placeholder="10:00" readonly
-                       style="width: 90px; padding: 6px; border-radius: 8px; border: 2px solid #2563eb; text-align:center; font-weight:700; cursor:pointer; background:#fff;">
+                <input type="text" class="in-time" placeholder="10:00"
+                       style="width: 90px; padding: 6px; border-radius: 8px; border: 2px solid #2563eb; text-align:center; font-weight:700; cursor:pointer; background:#fff; font-size: 16px;">
             </td>
 
             <td style="width: 100px; padding: 14px; text-align: center;">
-                <input type="text" class="out-time" placeholder="10:00" readonly
-                       style="width: 90px; padding: 6px; border-radius: 8px; border: 2px solid #2563eb; text-align:center; font-weight:700; cursor:pointer; background:#fff;">
+                <input type="text" class="out-time" placeholder="10:00"
+                       style="width: 90px; padding: 6px; border-radius: 8px; border: 2px solid #2563eb; text-align:center; font-weight:700; cursor:pointer; background:#fff; font-size: 16px;">
             </td>
 
             <td style="width: 280px; padding: 14px;">
                 <select class="loc-select" onchange="updateRowStyle(this); updateCalculations()"
-                        style="width: 100%; padding: 8px; font-weight: 700; border-radius: 10px; border: 1px solid #ddd;">
+                        style="width: 100%; padding: 8px; font-weight: 700; border-radius: 10px; border: 1px solid #ddd; font-size: 16px;">
                     ${optionsHtml}
                 </select>
             </td>
 
             <td style="width: 100px; padding: 14px; text-align: center;">
-                <input type="checkbox" class="sign-check" onchange="updateSignature(this)" style="width:20px; height:20px;">
+                <input type="checkbox" class="sign-check" onchange="updateSignature(this)" style="width:24px; height:24px;">
             </td>
 
             <td class="sign-text" style="width: 180px; padding: 14px; font-size: 14px; color: #2563eb; border-right: 3px solid #2563eb; text-align: center; font-weight: bold;"></td>
@@ -211,7 +213,6 @@ function openSheet(name) {
         </tr>`;
     }
 
-    // MODERN TEKERLEK AKTİVASYONU - HER TIKLAMADA 10:00 BAŞLANGIÇ
     if (typeof flatpickr !== 'undefined') {
         flatpickr(".in-time, .out-time", {
             enableTime: true,
@@ -219,7 +220,7 @@ function openSheet(name) {
             dateFormat: "H:i",
             time_24hr: true,
             defaultDate: "10:00", 
-            disableMobile: false,
+            disableMobile: false, 
             onClose: function() {
                 if (typeof updateCalculations === "function") updateCalculations();
             }
@@ -350,6 +351,26 @@ function toggleExtra() {
 function closeSheet() {
     document.getElementById('timeSheetSection').style.display = 'none';
 }
+
+function closeSheet() {
+    document.getElementById('timeSheetSection').style.display = 'none';
+}
+
+// BURAYA YAPIŞTIR:
+if (typeof flatpickr !== 'undefined') {
+    flatpickr(".in-time, .out-time", {
+        enableTime: true,
+        noCalendar: true,
+        dateFormat: "H:i",
+        time_24hr: true,
+        defaultDate: "10:00", 
+        disableMobile: false, // Telefonun kendi saatini açar
+        onClose: function() {
+            if (typeof updateCalculations === "function") updateCalculations();
+        }
+    });
+}
+
 </script>
 
 <!--
