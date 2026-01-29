@@ -10,6 +10,7 @@ import sqlite3
 import json
 import os
 from leistungen import LEISTUNGEN
+from sevdesk import sync_sevdesk_to_db, get_cached_rechnungen
 
 app = Flask(__name__)
 app.secret_key = 'kg_reinigung_ozel_anahtar_2026' # Güvenlik anahtarı
@@ -174,6 +175,22 @@ def init_db():
         )
     ''')
 
+# SEVDESK VERİ DEPOSU (IŞIK HIZI İÇİN)
+    conn.execute('''
+        CREATE TABLE IF NOT EXISTS sevdesk_cache (
+            invoice_id TEXT PRIMARY KEY,
+            nr TEXT,
+            datum TEXT,
+            kunde TEXT,
+            brutto REAL,
+            netto REAL,
+            mwst REAL,
+            offen REAL,
+            status_code INTEGER,
+            last_updated TEXT DEFAULT CURRENT_TIMESTAMP
+        )
+    ''')
+
     conn.commit()
     conn.close()
 
@@ -204,6 +221,27 @@ def logout():
 @app.route("/")
 def index():
     conn = get_db_connection()
+
+    # BURAYA EKLE (SevDesk Hesaplama) -------------------------
+    sync_sevdesk_to_db() 
+    import datetime
+    now = datetime.datetime.now()
+    
+    search_pattern = f"{now.year}-{now.month:02d}-%"
+    monat_row = conn.execute("SELECT SUM(brutto) FROM sevdesk_cache WHERE datum LIKE ?", (search_pattern,)).fetchone()
+    monatlicher_umsatz = monat_row[0] if monat_row[0] else 0.0
+
+    jahres_grafik_verisi = []
+    jahres_umsatz = 0
+    for m in range(1, 13):
+        p = f"{now.year}-{m:02d}-%"
+        r = conn.execute("SELECT SUM(brutto) FROM sevdesk_cache WHERE datum LIKE ?", (p,)).fetchone()
+        val = r[0] if r[0] else 0.0
+        jahres_grafik_verisi.append(val)
+        jahres_umsatz += val
+    # -------------------------------------------------------
+
+    # Buradan sonrası senin eski kodların (Müşteri sayısı vs.) aynen devam etsin...
     
     # SADECE AKTİF MÜŞTERİ SAYISI
     customer_count = conn.execute("SELECT COUNT(*) FROM kunden WHERE vertragsstatus != 'gekuendigt' OR vertragsstatus IS NULL").fetchone()[0]
@@ -294,7 +332,10 @@ def index():
     todo_kw_labels=todo_kw_labels,
     todo_erledigt_verisi=todo_erledigt_verisi,
     todo_offen_verisi=todo_offen_verisi,
-    todo_percent=todo_percent
+    todo_percent=todo_percent,
+    monatlicher_umsatz=monatlicher_umsatz,
+    jahres_umsatz=jahres_umsatz,
+    jahres_grafik_verisi=jahres_grafik_verisi
 )
 
 
@@ -794,9 +835,34 @@ def worker_stundenzettel(id, name, code):
     
     # Her şey doğruysa menüsüz işçi sayfasını açar
     return render_template("stundenzettel_worker.html", mitarbeiter_liste=[worker])
+# =====================================================
+# Bölüm 18- BUCHHALTUNG (MUHASEBE)
+# =====================================================
+
+@app.route("/buchhaltung")
+@login_required
+def buchhaltung():
+    # 1. Arka planda veritabanını güncelle
+    sync_sevdesk_to_db()
+    
+    # 2. Verileri veritabanından çek
+    veriler = get_cached_rechnungen(1, 2026)
+    
+    return render_template("buchhaltung.html", rechnungen=veriler)
 
 # =====================================================
-# Bölüm 18- UYGULAMA BAŞLAT
+# Bölüm 19- SEVDESK BAĞLANTISI
+# =====================================================
+
+import sevdesk
+
+def init_services():
+    pass   # SADECE import yeterli, test çağrılmaz
+
+
+# =====================================================
+# Bölüm 20- UYGULAMA BAŞLAT
 # =====================================================
 if __name__ == "__main__":
+    init_services()
     app.run(host="0.0.0.0", port=5000, debug=True)
