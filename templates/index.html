@@ -208,12 +208,12 @@
 
 <div class="dashboard-grid">
     <div class="module-container">
-        <div class="kpi-card blue-active" onclick="setActive(this)"><div class="card-label">Monatlicher Umsatz</div><div class="card-value">10.000,00 €</div></div>
+        <div class="kpi-card blue-active" onclick="setActive(this)"><div class="card-label">Monatlicher Umsatz</div><div class="card-value">{{ "{:,.2f}".format(monatlicher_umsatz) }} €</div></div>
         <div class="chart-box"><div class="chart-title">Monatstrend</div><canvas id="monthlyTrendChart"></canvas></div>
     </div>
 
     <div class="module-container">
-        <div class="kpi-card" onclick="setActive(this)"><div class="card-label">Aktueller Gesamtumsatz</div><div class="card-value">145.500,00 €</div></div>
+        <div class="kpi-card" onclick="setActive(this)"><div class="card-label">Aktueller Gesamtumsatz</div><div class="card-value">{{ "{:,.2f}".format(jahres_umsatz) }} €</div></div> 
         <div class="chart-box"><div class="chart-title">Jahresübersicht 2026</div><canvas id="yearlyOverviewChart"></canvas></div>
     </div>
 
@@ -312,7 +312,7 @@
 
     // GRAFİKLER (Verilere dokunulmadı)
     new Chart(document.getElementById('monthlyTrendChart'), { type: 'line', data: { labels: ['Start', 'W1', 'W2', 'W3', 'Aktuell'], datasets: [{ data: [0, 4200, 3800, 7500, 10000], borderColor: '#1e40af', backgroundColor: 'rgba(30, 64, 175, 0.1)', fill: true, tension: 0.4 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } } });
-    new Chart(document.getElementById('yearlyOverviewChart'), { type: 'bar', data: { labels: ['Jan', 'Feb', 'Mär', 'Apr', 'Mai', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dez'], datasets: [{ data: [10000, 12000, 11500, 13000, 14500, 12000, 15000, 16000, 14000, 15500, 17000, 18000], backgroundColor: '#1e40af', borderRadius: 5 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } } });
+new Chart(document.getElementById('yearlyOverviewChart'), { type: 'bar', data: { labels: ['Jan', 'Feb', 'Mär', 'Apr', 'Mai', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dez'], datasets: [{ data: {{ jahres_grafik_verisi | tojson }}, backgroundColor: '#1e40af', borderRadius: 5 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } } });
 new Chart(document.getElementById('chart3'), { type: 'bar', data: { labels: ['Jan', 'Feb', 'Mär', 'Apr', 'Mai', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dez'], datasets: [{ data: {{ kunden_grafik_verisi | tojson }}, backgroundColor: '#059669', borderRadius: 5 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { min: 0, max: 150, ticks: { stepSize: 10 } } } } });
 new Chart(document.getElementById('chart4'), { type: 'bar', data: { labels: ['Jan', 'Feb', 'Mär', 'Apr', 'Mai', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dez'], datasets: [{ data: {{ personel_grafik_verisi | tojson }}, backgroundColor: '#6366f1', borderRadius: 5 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { min: 0, max: 100, ticks: { stepSize: 10 } } } } });
     new Chart(document.getElementById('chart5'), { type: 'doughnut', data: { labels: ['Bestätigt', 'Wartend', 'Nicht bestätigt'], datasets: [{ data: [1, 1, 1], backgroundColor: ['#059669', '#6366f1', '#dc2626'], cutout: '50%' }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 10, weight: 'bold' } } } } } });
