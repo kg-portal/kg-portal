@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KG-Portal Login</title>
+    <style>
+        body { 
+            background: linear-gradient(135deg, #1e40af, #3b82f6); 
+            height: 100vh; 
+            margin: 0;
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            font-family: 'Inter', sans-serif; 
+        }
+        .login-card { 
+            background: white; 
+            padding: 40px; 
+            border-radius: 24px; 
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3); 
+            width: 100%;
+            max-width: 360px; 
+            text-align: center; 
+        }
+        h2 { color: #1e40af; margin-bottom: 25px; font-weight: 800; }
+        input { 
+            width: 100%; 
+            padding: 14px; 
+            margin: 10px 0; 
+            border: 2px solid #e5e7eb; 
+            border-radius: 12px; 
+            box-sizing: border-box; 
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        input:focus { border-color: #3b82f6; outline: none; }
+        button { 
+            width: 100%; 
+            padding: 14px; 
+            background: #1e40af; 
+            color: white; 
+            border: none; 
+            border-radius: 12px; 
+            font-weight: 700; 
+            font-size: 16px;
+            cursor: pointer; 
+            margin-top: 15px;
+            transition: background 0.3s;
+        }
+        button:hover { background: #1e3a8a; }
+        .error { 
+            background: #fee2e2;
+            color: #dc2626; 
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 14px; 
+            margin-bottom: 15px; 
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-card">
+        <h2>KG-Portal</h2>
+        
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            {% for category, message in messages %}
+              <div class="error">{{ message }}</div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+
+        <form method="POST">
+            <input type="text" name="username" placeholder="Benutzername" required>
+            <input type="password" name="password" placeholder="Passwort" required>
+            <button type="submit">Einloggen</button>
+        </form>
+        <p style="margin-top: 20px; color: #64748b; font-size: 12px;">© 2026 KG-Gebäudereinigung</p>
+    </div>
+</body>
+</html>
