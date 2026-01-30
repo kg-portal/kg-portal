@@ -39,28 +39,28 @@
         <div class="col-md-3">
             <div class="card shadow-sm border-left-primary p-3">
                 <div class="text-uppercase text-primary font-weight-bold">Monatsumsatz</div>
-                <div class="h4 font-weight-bold">20.253,04 €</div>
+                <div class="h4 font-weight-bold">{{ "%.2f"|format(monatsumsatz) }} €</div>
             </div>
         </div>
 
         <div class="col-md-3">
             <div class="card shadow-sm border-left-success p-3">
                 <div class="text-uppercase text-success font-weight-bold">Bezahlt (Monat)</div>
-                <div class="h4 font-weight-bold">7.000,46 €</div>
+                <div class="h4 font-weight-bold">{{ "%.2f"|format(bezahlt_monat) }} €</div>
             </div>
         </div>
 
         <div class="col-md-3">
             <div class="card shadow-sm border-left-danger p-3">
                 <div class="text-uppercase text-danger font-weight-bold">Offene Forderungen</div>
-                <div class="h4 font-weight-bold">13.252,58 €</div>
+                <div class="h4 font-weight-bold">{{ "%.2f"|format(offene_forderungen) }} €</div>
             </div>
         </div>
 
         <div class="col-md-3">
             <div class="card shadow-sm border-left-info p-3">
                 <div class="text-uppercase text-info font-weight-bold">MwSt Zahllast</div>
-                <div class="h4 font-weight-bold">3.233,68 €</div>
+                <div class="h4 font-weight-bold">{{ "%.2f"|format(mwst_zahllast) }} €</div>
             </div>
         </div>
     </div>
