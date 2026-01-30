@@ -68,6 +68,15 @@
         gap: 20px;
     }
 
+    /* TABLET VE TELEFONDA KUTULARI DÜZENLER */
+    @media (max-width: 1400px) {
+        .dashboard-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 768px) {
+        .dashboard-grid { grid-template-columns: 1fr; }
+        .kpi-card { height: auto; min-height: 120px; }
+    }
+
     /* TO-DO ÖZEL STİLLERİ */
     .todo-input-group { display: flex; gap: 5px; margin-top: 5px; }
     .todo-input { border: 1px solid #e5e7eb; border-radius: 8px; padding: 5px; flex-grow: 1; font-size: 14px; }
