@@ -1,6 +1,15 @@
 {% extends "base.html" %}
 {% block content %}
 
+<!--
+..........................................................................................................
+..........................................................................................................
+.......... 🟦 BÖLÜM 1: Kütüphaneler ve Stil (CSS) .......................................................
+..........................................................................................................
+..........................................................................................................
+-->
+
+
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
@@ -37,6 +46,15 @@
     .rotate-icon { transform: rotate(180deg); }
 </style>
 
+<!--
+..........................................................................................................
+..........................................................................................................
+.......... ⬜ BÖLÜM 2: Başlık ve Yeni Görev Girişi..... .................................................
+..........................................................................................................
+..........................................................................................................
+-->
+
+
 <div style="max-width: 900px; margin: 0 auto;">
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:30px;">
         <h2 style="font-size: 32px; font-weight: 800; color: #1e40af; letter-spacing: -1px;">To-Do Liste</h2>
@@ -48,6 +66,15 @@
         <div style="position: relative;"><input type="text" name="deadline" id="todo_date" placeholder="tt.mm.jjjj" required class="styled-input"></div>
         <button type="submit" class="add-btn">Hinzufügen</button>
     </form>
+
+<!--
+..........................................................................................................
+..........................................................................................................
+.......... 🟧 BÖLÜM 3: Çeyrek Dönem (Quartal) Mantığı ...................................................
+..........................................................................................................
+..........................................................................................................
+-->
+
 
     {% set q_names = {1: '1. Quartal (Jan-Mär)', 2: '2. Quartal (Apr-Jun)', 3: '3. Quartal (Jul-Sep)', 4: '4. Quartal (Okt-Dez)'} %}
     
@@ -61,6 +88,15 @@
             </div>
             
             <div id="q{{ q_num }}" class="quartal-content">
+
+<!--
+..........................................................................................................
+..........................................................................................................
+.......... 🟪 BÖLÜM 4: Görev Listeleme (Aktif ve Tamamlanmış) ...........................................
+..........................................................................................................
+..........................................................................................................
+-->
+
                 {% for kw_label, tasks in grouped_todos.items() %}
                     {% if tasks[0].deadline and tasks[0].deadline.split('-')[1]|int in range((q_num*3)-2, (q_num*3)+1) %}
                         <div style="margin-bottom: 35px;">
@@ -76,6 +112,7 @@
                                         <span style="font-weight: 700; color: #1e293b;">{{ todo.task }}</span>
                                     </div>
                                     <div style="display: flex; gap: 15px;">
+                                        <a href="javascript:void(0)" onclick="editTodo({{ todo.id }})" style="color: #3b82f6; font-size: 22px;"><i class="fa-solid fa-pen-to-square"></i></a>
                                         <a href="/todo/toggle/{{ todo.id }}" style="color: #cbd5e1; font-size: 22px;"><i class="fa-solid fa-circle-check"></i></a>
                                         <a href="/todo/delete/{{ todo.id }}" onclick="return confirm('Möchten Sie das wirklich löschen?')" style="color: #ef4444;"><i class="fa-solid fa-trash-can"></i></a>
                                     </div>
@@ -92,8 +129,9 @@
                                         <span style="font-weight: 700; text-decoration: line-through; color: #94a3b8;">{{ todo.task }}</span>
                                     </div>
                                     <div style="display: flex; gap: 15px;">
+                                        <a href="javascript:void(0)" onclick="editTodo({{ todo.id }})" style="color: #3b82f6; font-size: 22px;"><i class="fa-solid fa-pen-to-square"></i></a>
                                         <a href="/todo/toggle/{{ todo.id }}" style="color: #059669; font-size: 22px;"><i class="fa-solid fa-circle-check"></i></a>
-                                        <a href="/todo/delete/{{ todo.id }}" onclick="return confirm('Möchten Sie das wirklich löschen?')" style="color: #ef4444;"><i class="fa-solid fa-trash-can"></i></a>
+                                        <a href="/todo/delete/{{ todo.id }}" onclick="return confirm('Möchten Sie das wirklich löschen??')" style="color: #ef4444;"><i class="fa-solid fa-trash-can"></i></a>
                                     </div>
                                 </div>
                             {% endfor %}
@@ -104,6 +142,35 @@
         </div>
     {% endfor %}
 </div>
+
+<div id="editModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:9999; align-items:center; justify-content:center;">
+    <div style="background:white; padding:30px; border-radius:20px; width:90%; max-width:400px; box-shadow: 0 20px 25px rgba(0,0,0,0.2);">
+        <h3 style="margin-bottom:20px; color:#1e40af; font-weight:800;">Aufgabe bearbeiten</h3>
+        <form action="/todo/update" method="POST">
+            <input type="hidden" name="id" id="edit_id">
+            <div style="margin-bottom:15px;">
+                <label style="display:block; font-size:12px; font-weight:800; color:#64748b; margin-bottom:5px;">AUFGABE</label>
+                <input type="text" name="task" id="edit_task" class="styled-input" required>
+            </div>
+            <div style="margin-bottom:20px;">
+                <label style="display:block; font-size:12px; font-weight:800; color:#64748b; margin-bottom:5px;">DATUM</label>
+                <input type="text" name="deadline" id="edit_deadline" class="styled-input" required>
+            </div>
+            <div style="display:flex; gap:10px;">
+                <button type="submit" class="add-btn" style="flex:1;">Speichern</button>
+                <button type="button" onclick="closeModal()" style="flex:1; background:#ef4444; border:none; border-radius:12px; color:white; font-weight:800; cursor:pointer;">Abbrechen</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!--
+..........................................................................................................
+..........................................................................................................
+.......... 🎨 BÖLÜM 5: Sayfa Dinamiği ve Fonksiyonlar (JavaScript).......................................
+..........................................................................................................
+..........................................................................................................
+-->
 
 <script>
     function saveToggle(id, el) {
@@ -131,5 +198,24 @@
     });
 
     flatpickr("#todo_date", { locale: "de", dateFormat: "Y-m-d", altInput: true, altFormat: "d.m.Y", allowInput: true });
+
+    // --- DÜZENLEME FONKSİYONLARI (YENİ) ---
+    function editTodo(id) {
+        fetch('/todo/get/' + id)
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById('edit_id').value = data.id;
+                document.getElementById('edit_task').value = data.task;
+                document.getElementById('edit_deadline').value = data.deadline;
+                document.getElementById('editModal').style.display = 'flex';
+                
+                // Modal açıldığında içindeki tarih seçiciyi tetikle
+                flatpickr("#edit_deadline", { locale: "de", dateFormat: "Y-m-d", altInput: true, altFormat: "d.m.Y" });
+            });
+    }
+
+    function closeModal() {
+        document.getElementById('editModal').style.display = 'none';
+    }
 </script>
 {% endblock %}
