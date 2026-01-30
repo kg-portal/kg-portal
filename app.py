@@ -619,6 +619,29 @@ def delete_todo(id):
     conn.close()
     return redirect(url_for("todo_index"))
 
+# --- DÜZENLEME İÇİN VERİ GETİRME ---
+@app.route("/todo/get/<int:id>")
+def get_todo(id):
+    conn = get_db_connection()
+    todo = conn.execute("SELECT * FROM todos WHERE id = ?", (id,)).fetchone()
+    conn.close()
+    if todo:
+        return jsonify(dict(todo))
+    return jsonify({"error": "Not found"}), 404
+
+# --- DÜZENLENEN VERİYİ KAYDETME ---
+@app.route("/todo/update", methods=["POST"])
+def update_todo():
+    todo_id = request.form.get("id")
+    task = request.form.get("task")
+    deadline = request.form.get("deadline")
+    
+    conn = get_db_connection()
+    conn.execute("UPDATE todos SET task = ?, deadline = ? WHERE id = ?", (task, deadline, todo_id))
+    conn.commit()
+    conn.close()
+    return redirect(url_for("todo_index"))
+
 # =====================================================
 # Bölüm 11- DATENBANK
 # =====================================================
