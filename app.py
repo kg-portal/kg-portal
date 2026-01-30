@@ -865,13 +865,32 @@ def worker_stundenzettel(id, name, code):
 @app.route("/buchhaltung")
 @login_required
 def buchhaltung():
-    # 1. Arka planda veritabanını güncelle
+    # 1. Sevdesk ile veritabanını eşitle
     sync_sevdesk_to_db()
     
-    # 2. Verileri veritabanından çek
-    veriler = get_cached_rechnungen(1, 2026)
+    # 2. Dinamik tarih al (Ocak 2026 için 1, 2026 gelir)
+    import datetime
+    now = datetime.datetime.now()
     
-    return render_template("buchhaltung.html", rechnungen=veriler)
+    # 3. Verileri çek
+    veriler = get_cached_rechnungen(now.month, now.year)
+    
+    # 4. ÜST KARTLAR İÇİN TOPLAMLARI HESAPLA
+    # Her faturanın brutto, offen ve mwst değerlerini topluyoruz
+    monatsumsatz = sum(r['brutto'] for r in veriler)
+    offene_forderungen = sum(r['offen'] for r in veriler)
+    bezahlt_monat = monatsumsatz - offene_forderungen
+    mwst_zahllast = sum(r['mwst'] for r in veriler)
+    
+    # 5. Tüm verileri HTML'e gönder
+    return render_template(
+        "buchhaltung.html", 
+        rechnungen=veriler,
+        monatsumsatz=monatsumsatz,
+        bezahlt_monat=bezahlt_monat,
+        offene_forderungen=offene_forderungen,
+        mwst_zahllast=mwst_zahllast
+    )
 
 # =====================================================
 # Bölüm 19- SEVDESK BAĞLANTISI
