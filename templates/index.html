@@ -173,6 +173,13 @@
     );
 }
 
+/* NAV BUTONLARI */
+    .nav-btn { 
+        background: none; border: none; color: #1e40af; font-size: 24px; 
+        cursor: pointer; transition: 0.2s; padding: 10px; user-select: none; 
+    }
+    .nav-btn:hover { transform: scale(1.2); }
+    .chart-container-row { display: flex; align-items: center; justify-content: space-between; }
 
 </style>
 
@@ -258,9 +265,13 @@
 
     <div class="chart-box">
         <div class="chart-title">Status: Offen vs Erledigt</div>
-        <canvas id="chart7"></canvas>
+        <div class="chart-container-row">
+            <button class="nav-btn" id="btnPrev">◀</button>
+            <div style="flex-grow: 1; height: 180px;"><canvas id="chart7"></canvas></div>
+            <button class="nav-btn" id="btnNext">▶</button>
+        </div>
     </div>
-</div>
+ </div>
 
 
     <div class="module-container">
@@ -328,23 +339,25 @@ new Chart(document.getElementById('chart4'), { type: 'bar', data: { labels: ['Ja
     new Chart(document.getElementById('chart6'), { type: 'bar', data: { labels: ['Jan', 'Feb', 'Mär', 'Apr', 'Mai', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dez'], datasets: [{ data: [20, 45, 30, 60, 80, 50, 90, 110, 70, 100, 120, 140], backgroundColor: '#db2777', borderRadius: 5 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { min: 0, max: 200, ticks: { stepSize: 20 } } } } });
 
     // TO-DO GRAFİĞİ: Haftalık İş Yükü (Stacked Bar) - CANLI BAĞLANTI
+const allLabels = {{ todo_kw_labels | tojson }};
+const allErledigt = {{ todo_erledigt_verisi | tojson }};
+const allOffen = {{ todo_offen_verisi | tojson }};
+let currentIndex = {{ initial_todo_index }}; 
+
 let todoChart = new Chart(document.getElementById('chart7'), {
     type: 'bar',
     data: {
-        // Python'dan gelen KW etiketleri
-        labels: {{ todo_kw_labels | tojson }}, 
+        labels: [], 
         datasets: [
             {
                 label: 'Erledigt',
-                // Python'dan gelen Biten iş sayıları
-                data: {{ todo_erledigt_verisi | tojson }}, 
+                data: [], 
                 backgroundColor: '#059669',
                 borderRadius: 5
             },
             {
                 label: 'Offen',
-                // Python'dan gelen Bekleyen iş sayıları
-                data: {{ todo_offen_verisi | tojson }}, 
+                data: [], 
                 backgroundColor: '#dc2626',
                 borderRadius: 5
             }
@@ -362,7 +375,8 @@ let todoChart = new Chart(document.getElementById('chart7'), {
         scales: {
             x: { 
                 stacked: true,
-                grid: { display: false }
+                grid: { display: false },
+                ticks: { autoSkip: false, maxRotation: 0 }
             }, 
             y: { 
                 stacked: true, 
@@ -372,6 +386,45 @@ let todoChart = new Chart(document.getElementById('chart7'), {
         }
     }
 });
+
+function updateTodoChart() {
+    // SADECE 5 HAFTALIK DİLİMİ GÖSTERİR (SIKIŞIKLIĞI BU ÇÖZER)
+    const sliceEnd = currentIndex + 5;
+    todoChart.data.labels = allLabels.slice(currentIndex, sliceEnd);
+    todoChart.data.datasets[0].data = allErledigt.slice(currentIndex, sliceEnd);
+    todoChart.data.datasets[1].data = allOffen.slice(currentIndex, sliceEnd);
+    todoChart.update('none'); 
+}
+
+// İLK AÇILIŞTA GÖSTER
+updateTodoChart();
+
+// KAYDIRMA VE BASILI TUTMA MOTORU
+let scrollInterval;
+function startScroll(step) {
+    clearInterval(scrollInterval);
+    currentIndex = Math.max(0, Math.min(currentIndex + step, 47));
+    updateTodoChart();
+    scrollInterval = setInterval(() => {
+        let n = currentIndex + step;
+        if (n >= 0 && n <= 47) { 
+            currentIndex = n; 
+            updateTodoChart(); 
+        }
+    }, 150);
+}
+
+// BUTONLARI BAĞLA
+document.getElementById('btnPrev').onmousedown = () => startScroll(-1);
+document.getElementById('btnNext').onmousedown = () => startScroll(1);
+window.onmouseup = () => clearInterval(scrollInterval);
+
+// MOBİL DESTEĞİ
+document.getElementById('btnPrev').ontouchstart = (e) => { e.preventDefault(); startScroll(-1); };
+document.getElementById('btnNext').ontouchstart = (e) => { e.preventDefault(); startScroll(1); };
+window.ontouchend = () => clearInterval(scrollInterval);
+
+
 
     // BUCHHALTUNG GRAFİĞİ
     new Chart(document.getElementById('chart8'), { type: 'bar', data: { labels: ['Jan', 'Feb', 'Mär', 'Apr', 'Mai', 'Jun'], datasets: [{ label: 'Einnahmen', data: [10000, 12000, 11000, 13000, 15000, 14000], backgroundColor: '#1e40af' }, { label: 'Ausgaben', data: [7000, 8000, 7500, 9000, 10000, 9500], backgroundColor: '#dc2626' }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } } });
