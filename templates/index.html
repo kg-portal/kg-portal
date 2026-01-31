@@ -89,16 +89,16 @@
     display:flex;
     justify-content:center;
     align-items:center;
-    gap:14px;
-    margin:12px 0 16px 0;
+    gap:15px;
+    margin:15px 0 20px 0;
 }
 
 /* DIŞ PİL */
 .battery.segmented{
-    width:160px;
-    height:34px;
-    border:2px solid #1e40af;
-    border-radius:8px;
+    width:220px;
+    height:45px;
+    border:3px solid #1e40af;
+    border-radius:10px;
     position:relative;
     padding:4px;
     box-sizing:border-box;
@@ -108,22 +108,22 @@
 .battery.segmented::after{
     content:'';
     position:absolute;
-    right:-10px;
-    top:9px;
-    width:8px;
-    height:14px;
+    right:-12px;
+    top:12px;
+    width:10px;
+    height:18px;
     background:#1e40af;
-    border-radius:3px;
+    border-radius:4px;
 }
 
 /* İÇ KADEMELİ DOLULUK */
 .battery-fill{
-    --segments:10;
+    --segments:20;
     height:100%;
     width:100%;
     display:grid;
     grid-template-columns:repeat(var(--segments), 1fr);
-    gap:4px;
+    gap:2px;
 }
 
 /* HER BİR SEGMENT */
@@ -133,18 +133,18 @@
     background:
         repeating-linear-gradient(
             90deg,
-            #22c55e 0 12px,
-            transparent 12px 16px
+            #22c55e 0 8px,
+            transparent 8px 10px
         );
-    border-radius:4px;
+    border-radius:2px;
 }
 
 /* YÜZDE */
 .battery-text{
-    font-size:18px;
+    font-size:22px;
     font-weight:900;
     color:#1e40af;
-    min-width:48px;
+    min-width:60px;
     text-align:left;
 }
 
@@ -152,24 +152,24 @@
 .battery-fill.low::before{
     background: repeating-linear-gradient(
         90deg,
-        #dc2626 0 12px,
-        transparent 12px 16px
+        #dc2626 0 8px,
+        transparent 8px 10px
     );
 }
 
 .battery-fill.mid::before{
     background: repeating-linear-gradient(
         90deg,
-        #f59e0b 0 12px,
-        transparent 12px 16px
+        #f59e0b 0 8px,
+        transparent 8px 10px
     );
 }
 
 .battery-fill.high::before{
     background: repeating-linear-gradient(
         90deg,
-        #22c55e 0 12px,
-        transparent 12px 16px
+        #22c55e 0 8px,
+        transparent 8px 10px
     );
 }
 
@@ -520,6 +520,9 @@ const percent = {{ todo_percent }};
 
     if (fill && text) {
         fill.style.setProperty('--level', percent);
+        // YENİ: CSS'deki 20 kademe ayarını buraya da işliyoruz (Çizgileri inceltir)
+        fill.style.setProperty('--segments', '20'); 
+        
         text.innerText = percent + "%";
 
         fill.classList.remove('low','mid','high');
@@ -532,3 +535,7 @@ const percent = {{ todo_percent }};
 </script>
 
 {% endblock %}
+
+
+
+
