@@ -191,6 +191,19 @@ def init_db():
         )
     ''')
 
+# BANKA İŞLEMLERİ ÖNBELLEĞİ (YENİ)
+    conn.execute('''
+        CREATE TABLE IF NOT EXISTS bank_cache (
+            transaction_id TEXT PRIMARY KEY,
+            account_slug TEXT,
+            payee TEXT,
+            datum TEXT,
+            description TEXT,
+            amount REAL,
+            last_updated TEXT DEFAULT CURRENT_TIMESTAMP
+        )
+    ''')
+
     conn.commit()
     conn.close()
 
@@ -878,7 +891,7 @@ def buchhaltung():
     # 1. Sevdesk ile veritabanını eşitle
     sync_sevdesk_to_db()
     
-    # 2. Dinamik tarih al (Ocak 2026 için 1, 2026 gelir)
+    # 2. Dinamik tarih al
     import datetime
     now = datetime.datetime.now()
     
@@ -886,11 +899,17 @@ def buchhaltung():
     veriler = get_cached_rechnungen(now.month, now.year)
     
     # 4. ÜST KARTLAR İÇİN TOPLAMLARI HESAPLA
-    # Her faturanın brutto, offen ve mwst değerlerini topluyoruz
     monatsumsatz = sum(r['brutto'] for r in veriler)
     offene_forderungen = sum(r['offen'] for r in veriler)
     bezahlt_monat = monatsumsatz - offene_forderungen
     mwst_zahllast = sum(r['mwst'] for r in veriler)
+    
+    # --- 🏦 BANKA VERİSİ ÇEKME ---
+    selected_bank = request.args.get('bank_account') 
+    bank_data = []
+    if selected_bank:
+        from sevdesk import get_bank_transactions
+        bank_data = get_bank_transactions(selected_bank)
     
     # 5. Tüm verileri HTML'e gönder
     return render_template(
@@ -899,8 +918,11 @@ def buchhaltung():
         monatsumsatz=monatsumsatz,
         bezahlt_monat=bezahlt_monat,
         offene_forderungen=offene_forderungen,
-        mwst_zahllast=mwst_zahllast
+        mwst_zahllast=mwst_zahllast,
+        bank_data=bank_data,
+        active_bank=selected_bank
     )
+
 
 # =====================================================
 # Bölüm 19- SEVDESK BAĞLANTISI
