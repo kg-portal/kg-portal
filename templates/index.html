@@ -331,7 +331,55 @@
     }
 
     // GRAFİKLER (Verilere dokunulmadı)
-    new Chart(document.getElementById('monthlyTrendChart'), { type: 'line', data: { labels: ['Start', 'W1', 'W2', 'W3', 'Aktuell'], datasets: [{ data: [0, 4200, 3800, 7500, 10000], borderColor: '#1e40af', backgroundColor: 'rgba(30, 64, 175, 0.1)', fill: true, tension: 0.4 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } } });
+    // 📈 MONATSTREND - RAKAM GÖSTERME (TOOLTIP) AKTİF
+new Chart(document.getElementById('monthlyTrendChart'), { 
+    type: 'line', 
+    data: { 
+        labels: ['Start', 'W1', 'W2', 'W3', 'Aktuell'], 
+        datasets: [{ 
+            label: 'Umsatz (€)', 
+            data: {{ monatstrend_grafik_verisi | tojson }}, 
+            borderColor: '#1e40af', 
+            backgroundColor: 'rgba(30, 64, 175, 0.1)', 
+            fill: true, 
+            tension: 0.4,
+            pointRadius: 5,         // Noktaları belirginleştirdik
+            pointHoverRadius: 8     // Mouse üzerine gelince nokta büyür
+        }] 
+    }, 
+    options: { 
+        responsive: true, 
+        maintainAspectRatio: false, 
+        interaction: {
+            intersect: false,       // Tam noktanın üstünde olmasan da yakalar
+            mode: 'index',
+        },
+        plugins: { 
+            legend: { display: false },
+            tooltip: { 
+                enabled: true,      // 🚀 RAKAMLARI GÖSTEREN AYAR BUDUR
+                backgroundColor: 'rgba(30, 64, 175, 0.9)',
+                titleFont: { size: 14, weight: 'bold' },
+                bodyFont: { size: 14 },
+                callbacks: {
+                    label: function(context) {
+                        // Rakamı 20.253,04 € formatına sokar
+                        return context.parsed.y.toLocaleString('de-DE', { minimumFractionDigits: 2 }) + ' €';
+                    }
+                }
+            }
+        },
+        scales: {
+            y: { 
+                beginAtZero: true,
+                ticks: { font: { weight: 'bold' } } 
+            },
+            x: { 
+                ticks: { font: { weight: 'bold' } } 
+            }
+        }
+    } 
+});
 new Chart(document.getElementById('yearlyOverviewChart'), { type: 'bar', data: { labels: ['Jan', 'Feb', 'Mär', 'Apr', 'Mai', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dez'], datasets: [{ data: {{ jahres_grafik_verisi | tojson }}, backgroundColor: '#1e40af', borderRadius: 5 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } } });
 new Chart(document.getElementById('chart3'), { type: 'bar', data: { labels: ['Jan', 'Feb', 'Mär', 'Apr', 'Mai', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dez'], datasets: [{ data: {{ kunden_grafik_verisi | tojson }}, backgroundColor: '#059669', borderRadius: 5 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { min: 0, max: 150, ticks: { stepSize: 10 } } } } });
 new Chart(document.getElementById('chart4'), { type: 'bar', data: { labels: ['Jan', 'Feb', 'Mär', 'Apr', 'Mai', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dez'], datasets: [{ data: {{ personel_grafik_verisi | tojson }}, backgroundColor: '#6366f1', borderRadius: 5 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { min: 0, max: 100, ticks: { stepSize: 10 } } } } });
@@ -484,7 +532,3 @@ const percent = {{ todo_percent }};
 </script>
 
 {% endblock %}
-
-
-
-
