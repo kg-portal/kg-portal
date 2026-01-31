@@ -18,6 +18,13 @@
 .table thead th{background:#343a40;color:#fff;border:none}
 .status-paid{background:#d4edda;color:#155724;font-weight:bold}
 .status-open{background:#f8d7da;color:#721c24;font-weight:bold}
+/* 🔥 SALİSELİK ATLAMAYI (FLICKER) BİTİREN KOD BURASI */
+.tab-content > .tab-pane {
+    display: none !important;
+}
+.tab-content > .active {
+    display: block !important;
+}
 </style>
 
 <!--
@@ -89,7 +96,7 @@
 
     <div class="tab-content bg-white shadow-sm p-4 border border-top-0">
 
-    <div class="tab-pane fade show active" id="rechnungen">
+    <div class="tab-pane fade {% if not active_bank %}show active{% endif %}" id="rechnungen">
         <h5 class="mb-3">Rechnungen – Januar 2026</h5>
 
         <div class="table-responsive">
@@ -126,17 +133,57 @@
         </div>
     </div>
 
-    <div class="tab-pane fade" id="rates">
-        <h5 class="mb-3">Raten & Leasing</h5>
-        <div class="alert alert-warning">Daten kommen aus dem Sheet „Raten“</div>
-    </div>
+    <div class="tab-pane fade {% if active_bank %}show active{% endif %}" id="bank">
+    <div class="row">
+        <div class="col-md-4">
+            <h5 class="mb-4 text-primary font-weight-bold">Bankkonten</h5>
+            <div class="list-group">
+                <a href="?bank_account=geschäftskonto-kg-gebäudereinigung#bank" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center shadow-sm mb-3 {% if active_bank == 'geschäftskonto-kg-gebäudereinigung' %}active text-white{% endif %}" style="border-left: 6px solid #007bff; border-radius: 8px;">
+                    <h6 class="mb-0 font-weight-bold">1- Geschäftskonto - KG-Gebäudereinigung</h6>
+                </a>
 
-    <div class="tab-pane fade" id="bank">
-        <h5 class="mb-3">Bankbewegungen</h5>
-        <p class="text-muted">Noch keine Bankdaten verbunden.</p>
-    </div>
+                <a href="?bank_account=geschäftskonto-amazon-energie#bank" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center shadow-sm mb-3 {% if active_bank == 'geschäftskonto-amazon-energie' %}active text-white{% endif %}" style="border-left: 6px solid #17a2b8; border-radius: 8px;">
+                    <h6 class="mb-0 font-weight-bold">2- Geschäftskonto - Amazon - Energie</h6>
+                </a>
 
+                <a href="?bank_account=damla-privat#bank" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center shadow-sm mb-3 {% if active_bank == 'damla-privat' %}active text-white{% endif %}" style="border-left: 6px solid #e83e8c; border-radius: 8px;">
+                    <h6 class="mb-0 font-weight-bold">3- Damla Privat</h6>
+                </a>
+
+                <a href="?bank_account=murat-privat#bank" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center shadow-sm mb-3 {% if active_bank == 'murat-privat' %}active text-white{% endif %}" style="border-left: 6px solid #6f42c1; border-radius: 8px;">
+                    <h6 class="mb-0 font-weight-bold">4- Murat Privat</h6>
+                </a>
+            </div>
+        </div>
+
+        <div class="col-md-8 border-left" style="max-height: 800px; overflow-y: auto;">
+            {% if bank_data %}
+                <h5 class="mb-4 text-dark font-weight-bold">Transaktionen</h5>
+                <div class="list-group shadow-sm">
+                    {% for t in bank_data %}
+                    <div class="list-group-item d-flex justify-content-between align-items-center py-3">
+                        <div style="max-width: 75%;">
+                            <div class="font-weight-bold text-dark">{{ t.payee }}</div>
+                            <div class="text-muted small text-truncate">{{ t.description }}</div>
+                            <small class="badge badge-light border mt-1">{{ t.date }}</small>
+                        </div>
+                        <div class="text-right">
+                            <span class="h6 font-weight-bold {{ 'text-success' if t.amount > 0 else 'text-dark' }}">
+                                {{ "%.2f"|format(t.amount) }} €
+                            </span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="text-center py-5">
+                    <p class="text-muted">Bitte wählen Sie ein Bankkonto aus, um die Bewegungen zu sehen.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
 </div>
+
 
 
 
@@ -151,5 +198,20 @@
 
 <script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.slim.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+$(document).ready(function() {
+    // 1. Sayfa yüklendiğinde URL'de #bank varsa o sekmeyi aç
+    var hash = window.location.hash;
+    if (hash) {
+        $('.nav-tabs a[href="' + hash + '"]').tab('show');
+    }
+
+    // 2. Sekmeye tıklandığında URL'yi güncelle (sayfa yenilense de orada kalsın)
+    $('.nav-tabs a').on('shown.bs.tab', function (e) {
+        window.location.hash = e.target.hash;
+    });
+});
+</script>
 
 {% endblock %}
