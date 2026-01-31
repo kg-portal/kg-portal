@@ -325,24 +325,28 @@ def index():
 
     conn.close()
     
+    # MONATSTREND GRAFİĞİ İÇİN VERİ (Start, W1, W2, W3, Aktuell)
+    monatstrend_grafik_verisi = [0, 2500, 5000, 7500, monatlicher_umsatz]
+    
     # -----------------------------------------------------
     # 🚀 RENDER (TÜM VERİLER GÖNDERİLİYOR)
     # -----------------------------------------------------
     return render_template(
-    "index.html",
-    customer_count=customer_count,
-    kunden_grafik_verisi=kunden_grafik_verisi,
-    employee_count=employee_count,
-    personel_grafik_verisi=personel_grafik_verisi,
-    todo_kw_labels=todo_kw_labels,
-    todo_erledigt_verisi=todo_erledigt_verisi,
-    todo_offen_verisi=todo_offen_verisi,
-    todo_percent=todo_percent,
-    monatlicher_umsatz=monatlicher_umsatz,
-    jahres_umsatz=jahres_umsatz,
-    jahres_grafik_verisi=jahres_grafik_verisi,
-    initial_todo_index=initial_todo_index
-)
+        "index.html",
+        customer_count=customer_count,
+        kunden_grafik_verisi=kunden_grafik_verisi,
+        employee_count=employee_count,
+        personel_grafik_verisi=personel_grafik_verisi,
+        todo_kw_labels=todo_kw_labels,
+        todo_erledigt_verisi=todo_erledigt_verisi,
+        todo_offen_verisi=todo_offen_verisi,
+        todo_percent=todo_percent,
+        monatlicher_umsatz=monatlicher_umsatz,
+        jahres_umsatz=jahres_umsatz,
+        jahres_grafik_verisi=jahres_grafik_verisi,
+        initial_todo_index=initial_todo_index,
+        monatstrend_grafik_verisi=monatstrend_grafik_verisi
+    )
 
 
 
