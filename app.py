@@ -288,34 +288,39 @@ def index():
     todo_erledigt_verisi = []
     todo_offen_verisi = []
 
-    # Son 2 hafta, bu hafta ve gelecek 2 haftayı (Toplam 5 hafta) hesaplar
-    for i in range(-2, 3):
-        target_date = today + datetime.timedelta(weeks=i)
-        kw_num = target_date.isocalendar()[1]
+    # Yılın ilk gününü bul (KW 1 başlangıcı)
+    start_of_year = datetime.datetime(today.year, 1, 1)
+    # İlk haftanın Pazartesi gününe git
+    start_date = start_of_year - datetime.timedelta(days=start_of_year.weekday())
+
+    for i in range(52):
+        week_start = start_date + datetime.timedelta(weeks=i)
+        week_end = week_start + datetime.timedelta(days=6)
+        kw_num = week_start.isocalendar()[1]
         todo_kw_labels.append(f"KW {kw_num}")
         
-        # O haftanın başlangıç (Pazartesi) ve bitiş (Pazar) tarihlerini bul
-        start_of_week = (target_date - datetime.timedelta(days=target_date.weekday())).strftime('%Y-%m-%d')
-        end_of_week = (target_date + datetime.timedelta(days=6-target_date.weekday())).strftime('%Y-%m-%d')
-        
-        # Veritabanından o haftaya ait bitenleri say
         erledigt = conn.execute("SELECT COUNT(*) FROM todos WHERE done = 1 AND deadline BETWEEN ? AND ?", 
-                                (start_of_week, end_of_week)).fetchone()[0]
-        # Veritabanından o haftaya ait bekleyenleri say
+                                (week_start.strftime('%Y-%m-%d'), week_end.strftime('%Y-%m-%d'))).fetchone()[0]
         offen = conn.execute("SELECT COUNT(*) FROM todos WHERE done = 0 AND deadline BETWEEN ? AND ?", 
-                             (start_of_week, end_of_week)).fetchone()[0]
+                             (week_start.strftime('%Y-%m-%d'), week_end.strftime('%Y-%m-%d'))).fetchone()[0]
         
         todo_erledigt_verisi.append(erledigt)
         todo_offen_verisi.append(offen)
 
-    # =========================
-    # TODO BATTERY YÜZDE HESABI
-    # =========================
-    total_erledigt = sum(todo_erledigt_verisi)
-    total_offen = sum(todo_offen_verisi)
+    # Başlangıçta hangi haftanın merkezde olacağını hesapla (Bugünkü hafta)
+    current_kw = today.isocalendar()[1]
+    initial_todo_index = max(0, min(current_kw - 3, 47))
 
-    total = total_erledigt + total_offen
-    todo_percent = int((total_erledigt / total) * 100) if total > 0 else 0
+    # =========================
+    # TODO BATTERY YÜZDE HESABI (Genel Toplam Üzerinden)
+    # =========================
+    total_erledigt_row = conn.execute("SELECT COUNT(*) FROM todos WHERE done = 1").fetchone()
+    total_offen_row = conn.execute("SELECT COUNT(*) FROM todos WHERE done = 0").fetchone()
+    
+    t_erledigt = total_erledigt_row[0] if total_erledigt_row else 0
+    t_offen = total_offen_row[0] if total_offen_row else 0
+    total_tasks = t_erledigt + t_offen
+    todo_percent = int((t_erledigt / total_tasks) * 100) if total_tasks > 0 else 0
 
 
     conn.close()
@@ -335,7 +340,8 @@ def index():
     todo_percent=todo_percent,
     monatlicher_umsatz=monatlicher_umsatz,
     jahres_umsatz=jahres_umsatz,
-    jahres_grafik_verisi=jahres_grafik_verisi
+    jahres_grafik_verisi=jahres_grafik_verisi,
+    initial_todo_index=initial_todo_index
 )
 
 
