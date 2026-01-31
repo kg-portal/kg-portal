@@ -93,3 +93,82 @@ def get_cached_rechnungen(month, year):
             "offen": r['offen']
         })
     return result
+
+# ...........................................................................
+# ...........................................................................
+# .......... 🏦 BÖLÜM 2: BANKA İŞLEMLERİ (YENİ) .............................
+# ...........................................................................
+# ...........................................................................
+
+def get_bank_transactions(account_slug):
+    """Banka hareketlerini SevDesk'ten gelen her türlü veriyi (payeePayerName, entryText vb.) yakalayacak şekilde çeker."""
+    headers = {"Authorization": SEVDESK_TOKEN, "Accept": "application/json"}
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+
+    bank_ids = {
+    "geschäftskonto-kg-gebäudereinigung": "5736092",
+    "geschäftskonto-amazon-energie": "5736093",
+    "damla-privat": "5965693",
+    "murat-privat": "6143808"
+}
+    
+    sev_id = bank_ids.get(account_slug)
+    
+    # LİMİT 500: Tüm geçmişi çekmek için
+    params = {
+        "checkAccount[id]": sev_id, 
+        "checkAccount[objectName]": "CheckAccount", 
+        "limit": 500
+    }
+
+    try:
+        r = requests.get(f"{BASE_URL}/CheckAccountTransaction", headers=headers, params=params, timeout=15)
+        transactions = r.json().get("objects", [])
+        
+        for t in transactions:
+            t_id = t.get("id")
+            raw_date = t.get("valueDate")[:10] 
+            
+            # --- 🔥 ZIRHLI VERİ YAKALAMA SİSTEMİ ---
+            # İsim için sırasıyla: Alıcı adı, API adı veya Banka işlem metnine bak
+            payee = t.get("payeePayerName") or t.get("payeeName") or t.get("entryText") or "Unbekannt"
+            
+            # Açıklama için sırasıyla: Ödeme amacı veya İşlem metnine bak
+            description = t.get("paymtPurpose") or t.get("entryText") or ""
+
+            # Veritabanına kaydet veya varsa güncelle (ID çakışmasında isim ve açıklamayı tazeler)
+            cursor.execute('''
+                INSERT INTO bank_cache (transaction_id, account_slug, payee, datum, description, amount)
+                VALUES (?, ?, ?, ?, ?, ?)
+                ON CONFLICT(transaction_id) DO UPDATE SET
+                    payee = excluded.payee,
+                    description = excluded.description
+            ''', (
+                t_id, account_slug, payee, raw_date,
+                description, float(t.get("amount") or 0)
+            ))
+        conn.commit()
+    except Exception as e:
+        print(f"Banka Hatası: {e}")
+
+    # Veritabanından tüm geçmişi (Cache) çek
+    rows = cursor.execute("""
+        SELECT * FROM bank_cache 
+        WHERE account_slug = ? 
+        ORDER BY datum DESC
+    """, (account_slug,)).fetchall()
+    
+    conn.close()
+
+    result = []
+    for r in rows:
+        # r[3] tarih sütunudur (YYYY-MM-DD -> DD.MM.YYYY)
+        formatted_date = datetime.strptime(r[3], "%Y-%m-%d").strftime("%d.%m.%Y")
+        result.append({
+            "payee": r[2],          
+            "date": formatted_date, 
+            "description": r[4],    
+            "amount": r[5]          
+        })
+    return result
