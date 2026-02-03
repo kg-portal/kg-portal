@@ -101,58 +101,53 @@ def get_cached_rechnungen(month, year):
 # ...........................................................................
 
 def get_bank_transactions(account_slug):
-    """Banka hareketlerini SevDesk'ten gelen her türlü veriyi (payeePayerName, entryText vb.) yakalayacak şekilde çeker."""
+    """Banka hareketlerini sadece eksikleri tamamlayacak şekilde (Incremental) çeker."""
     headers = {"Authorization": SEVDESK_TOKEN, "Accept": "application/json"}
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
 
     bank_ids = {
-    "geschäftskonto-kg-gebäudereinigung": "5736092",
-    "geschäftskonto-amazon-energie": "5736093",
-    "damla-privat": "5965693",
-    "murat-privat": "6143808"
-}
-    
+        "geschäftskonto-kg-gebäudereinigung": "5736092", 
+        "geschäftskonto-amazon-energie": "5736093",       
+        "damla-privat": "5965693",                        
+        "murat-privat": "6143807"
+    }
     sev_id = bank_ids.get(account_slug)
-    
-    # LİMİT 500: Tüm geçmişi çekmek için
+
+    # Önce cache'deki mevcut ID'leri alıyoruz
+    cursor.execute("SELECT transaction_id FROM bank_cache WHERE account_slug = ?", (account_slug,))
+    existing_ids = {row[0] for row in cursor.fetchall()}
+
+    # LİMİT 50: Hız için son işlemlere bakmak yeterli
     params = {
         "checkAccount[id]": sev_id, 
         "checkAccount[objectName]": "CheckAccount", 
-        "limit": 500
+        "limit": 50
     }
 
     try:
-        r = requests.get(f"{BASE_URL}/CheckAccountTransaction", headers=headers, params=params, timeout=15)
+        r = requests.get(f"{BASE_URL}/CheckAccountTransaction", headers=headers, params=params, timeout=10)
         transactions = r.json().get("objects", [])
         
         for t in transactions:
             t_id = t.get("id")
+            if t_id in existing_ids:
+                continue # Zaten varsa Sevdesk'e bir daha sorma, geç!
+
             raw_date = t.get("valueDate")[:10] 
-            
-            # --- 🔥 ZIRHLI VERİ YAKALAMA SİSTEMİ ---
-            # İsim için sırasıyla: Alıcı adı, API adı veya Banka işlem metnine bak
             payee = t.get("payeePayerName") or t.get("payeeName") or t.get("entryText") or "Unbekannt"
-            
-            # Açıklama için sırasıyla: Ödeme amacı veya İşlem metnine bak
             description = t.get("paymtPurpose") or t.get("entryText") or ""
 
-            # Veritabanına kaydet veya varsa güncelle (ID çakışmasında isim ve açıklamayı tazeler)
             cursor.execute('''
                 INSERT INTO bank_cache (transaction_id, account_slug, payee, datum, description, amount)
                 VALUES (?, ?, ?, ?, ?, ?)
-                ON CONFLICT(transaction_id) DO UPDATE SET
-                    payee = excluded.payee,
-                    description = excluded.description
-            ''', (
-                t_id, account_slug, payee, raw_date,
-                description, float(t.get("amount") or 0)
-            ))
+                ON CONFLICT(transaction_id) DO NOTHING
+            ''', (t_id, account_slug, payee, raw_date, description, float(t.get("amount") or 0)))
         conn.commit()
     except Exception as e:
         print(f"Banka Hatası: {e}")
 
-    # Veritabanından tüm geçmişi (Cache) çek
+    # Veritabanından (Cache) çek
     rows = cursor.execute("""
         SELECT * FROM bank_cache 
         WHERE account_slug = ? 
@@ -163,7 +158,6 @@ def get_bank_transactions(account_slug):
 
     result = []
     for r in rows:
-        # r[3] tarih sütunudur (YYYY-MM-DD -> DD.MM.YYYY)
         formatted_date = datetime.strptime(r[3], "%Y-%m-%d").strftime("%d.%m.%Y")
         result.append({
             "payee": r[2],          
@@ -172,3 +166,48 @@ def get_bank_transactions(account_slug):
             "amount": r[5]          
         })
     return result
+
+def get_all_bank_balances():
+    """Tüm banka bakiyelerini TEK BİR API isteğiyle topluca çeker (Hızı 4-8 kat artırır)."""
+    headers = {"Authorization": SEVDESK_TOKEN}
+    bank_mapping = {
+        "5736092": "geschäftskonto-kg-gebäudereinigung",
+        "5736093": "geschäftskonto-amazon-energie",
+        "5965693": "damla-privat",
+        "6143807": "murat-privat"
+    }
+    balances = {slug: 0.0 for slug in bank_mapping.values()}
+    try:
+        # Tek seferde tüm hesapları getirir
+        r = requests.get(f"{BASE_URL}/CheckAccount", headers=headers, timeout=10)
+        accounts = r.json().get("objects", [])
+        for acc in accounts:
+            acc_id = str(acc.get("id"))
+            if acc_id in bank_mapping:
+                balances[bank_mapping[acc_id]] = float(acc.get("balance", 0))
+    except:
+        pass
+    return balances
+
+def get_bank_balance(account_slug):
+    """SevDesk API'den doğrudan 'balance' değerini çeker (Toplama yapmaz)."""
+    bank_ids = {
+        "geschäftskonto-kg-gebäudereinigung": "5736092", 
+        "geschäftskonto-amazon-energie": "5736093",       
+        "damla-privat": "5965693",                        
+        "murat-privat": "6143807"
+    }
+    
+    acc_id = bank_ids.get(account_slug)
+    if not acc_id: return 0.0
+
+    url = f"{BASE_URL}/CheckAccount/{acc_id}"
+    headers = {"Authorization": SEVDESK_TOKEN}
+    
+    try:
+        res = requests.get(url, headers=headers)
+        if res.status_code == 200:
+            return float(res.json()['objects'][0]['balance'])
+    except:
+        pass
+    return 0.0
