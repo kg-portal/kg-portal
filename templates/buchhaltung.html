@@ -12,18 +12,50 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
 
 <style>
+/* Mevcut Stillerin (Dokunulmadı) */
 .card{border:none;border-radius:10px;transition:.3s}
-.card:hover{transform:translateY(-5px)}
+/* 🔥 BURAYI SABİTLEDİK: Mouse gelince zıplamayı durdurur */
+.card:hover{transform:none !important} 
 .nav-tabs .nav-link.active{background:#007bff;color:#fff!important;border-radius:5px 5px 0 0}
-.table thead th{background:#343a40;color:#fff;border:none}
+.table thead th{background:#28a745 !important;color:#fff;border:none}
 .status-paid{background:#d4edda;color:#155724;font-weight:bold}
 .status-open{background:#f8d7da;color:#721c24;font-weight:bold}
-/* 🔥 SALİSELİK ATLAMAYI (FLICKER) BİTİREN KOD BURASI */
-.tab-content > .tab-pane {
-    display: none !important;
+
+/* 🔥 TİTREME VE ZIPLAMAYI BİTİREN RADİKAL ÇÖZÜM 🔥 */
+html {
+    scroll-behavior: auto !important; /* Tarayıcının yumuşak kaydırma yapıp zıplamasını engeller */
 }
-.tab-content > .active {
+
+.tab-content {
+    min-height: 100vh; /* Sayfayı ekran boyuna sabitler, kısalıp uzamasını engeller */
     display: block !important;
+}
+
+.tab-pane {
+    display: none !important;
+    opacity: 1 !important;
+    border: none !important;
+}
+
+.tab-pane.active {
+    display: block !important;
+}
+
+/* Bootstrap'in tüm animasyonlarını devre dışı bırak */
+.fade {
+    transition: none !important;
+    animation: none !important;
+}
+
+/* Linke tıklandığında sayfanın odaklanmasını (focus) engelle */
+:focus {
+    outline: none !important;
+    box-shadow: none !important;
+}
+
+/* Sol menü için ek zırh: Mouse üzerine gelince kıpırdamasın */
+.list-group-item:hover {
+    transform: none !important;
 }
 </style>
 
@@ -42,32 +74,73 @@
         <span class="badge badge-secondary p-2">Stand: 29.01.2026</span>
     </div>
 
-    <div class="row mb-4">
-        <div class="col-md-3">
-            <div class="card shadow-sm border-left-primary p-3">
-                <div class="text-uppercase text-primary font-weight-bold">Monatsumsatz</div>
-                <div class="h4 font-weight-bold">{{ "%.2f"|format(monatsumsatz) }} €</div>
+    <div class="row mb-4" id="stats-parent-row">
+        <div id="bank-stats-wrapper" class="row col-12 p-0 m-0 d-none">
+            <div class="col-md-3">
+                <div class="card shadow-sm border-0 p-3" style="border-left: 6px solid #007bff;">
+                    <div class="text-uppercase text-primary font-weight-bold small">1- KG-Gebäudereinigung</div>
+                    <div class="h4 font-weight-bold mb-0 {% if all_balances.get('geschäftskonto-kg-gebäudereinigung', 0) >= 0 %}text-success{% else %}text-danger{% endif %}">{{ "{:,.2f}".format(all_balances.get('geschäftskonto-kg-gebäudereinigung', 0)).replace(',', 'X').replace('.', ',').replace('X', '.') }} €</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card shadow-sm border-0 p-3" style="border-left: 6px solid #007bff;">
+                    <div class="text-uppercase text-primary font-weight-bold small">2- Amazon - Energie</div>
+                    <div class="h4 font-weight-bold mb-0 {% if all_balances.get('geschäftskonto-amazon-energie', 0) >= 0 %}text-success{% else %}text-danger{% endif %}">{{ "{:,.2f}".format(all_balances.get('geschäftskonto-amazon-energie', 0)).replace(',', 'X').replace('.', ',').replace('X', '.') }} €</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card shadow-sm border-0 p-3" style="border-left: 6px solid #007bff;">
+                    <div class="text-uppercase text-primary font-weight-bold small">3- Damla Privat</div>
+                    <div class="h4 font-weight-bold mb-0 {% if all_balances.get('damla-privat', 0) >= 0 %}text-success{% else %}text-danger{% endif %}">{{ "{:,.2f}".format(all_balances.get('damla-privat', 0)).replace(',', 'X').replace('.', ',').replace('X', '.') }} €</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card shadow-sm border-0 p-3" style="border-left: 6px solid #007bff;">
+                    <div class="text-uppercase text-primary font-weight-bold small">4- Murat Privat</div>
+                    <div class="h4 font-weight-bold mb-0 {% if all_balances.get('murat-privat', 0) >= 0 %}text-success{% else %}text-danger{% endif %}">{{ "{:,.2f}".format(all_balances.get('murat-privat', 0)).replace(',', 'X').replace('.', ',').replace('X', '.') }} €</div>
+                </div>
             </div>
         </div>
 
-        <div class="col-md-3">
-            <div class="card shadow-sm border-left-success p-3">
-                <div class="text-uppercase text-success font-weight-bold">Bezahlt (Monat)</div>
-                <div class="h4 font-weight-bold">{{ "%.2f"|format(bezahlt_monat) }} €</div>
+        <div id="default-stats" class="row col-12 p-0 m-0">
+            <div class="col-md-3">
+                <div class="card shadow-sm border-left-primary p-3">
+                    <div class="text-uppercase text-primary font-weight-bold">Monatsumsatz</div>
+                    <div class="h4 font-weight-bold">{{ "{:,.2f}".format(monatsumsatz).replace(',', 'X').replace('.', ',').replace('X', '.') }} €</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card shadow-sm border-left-success p-3">
+                    <div class="text-uppercase text-success font-weight-bold">Bezahlt (Monat)</div>
+                    <div class="h4 font-weight-bold">{{ "{:,.2f}".format(bezahlt_monat).replace(',', 'X').replace('.', ',').replace('X', '.') }} €</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card shadow-sm border-left-danger p-3">
+                    <div class="text-uppercase text-danger font-weight-bold">Offene Forderungen</div>
+                    <div class="h4 font-weight-bold">{{ "{:,.2f}".format(offene_forderungen).replace(',', 'X').replace('.', ',').replace('X', '.') }} €</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card shadow-sm border-left-info p-3">
+                    <div class="text-uppercase text-info font-weight-bold">MwSt Zahllast</div>
+                    <div class="h4 font-weight-bold">{{ "{:,.2f}".format(mwst_zahllast).replace(',', 'X').replace('.', ',').replace('X', '.') }} €</div>
+                </div>
             </div>
         </div>
 
-        <div class="col-md-3">
-            <div class="card shadow-sm border-left-danger p-3">
-                <div class="text-uppercase text-danger font-weight-bold">Offene Forderungen</div>
-                <div class="h4 font-weight-bold">{{ "%.2f"|format(offene_forderungen) }} €</div>
+        <div id="rate-stats" class="row col-12 p-0 m-0 d-none">
+            <div class="col-md-6">
+                <div class="card shadow-sm border-0 p-4" style="border-left: 8px solid #28a745; border-radius: 15px;">
+                    <div class="text-uppercase text-dark font-weight-bold small mb-1">Gesamtbetrag</div>
+                    <div class="h2 font-weight-bold mb-0">{% set total_g = ratenzahlungen|sum(attribute='gesamtbetrag') %}{{ "{:,.2f}".format(total_g).replace(',', 'X').replace('.', ',').replace('X', '.') }} €</div>
+                </div>
             </div>
-        </div>
-
-        <div class="col-md-3">
-            <div class="card shadow-sm border-left-info p-3">
-                <div class="text-uppercase text-info font-weight-bold">MwSt Zahllast</div>
-                <div class="h4 font-weight-bold">{{ "%.2f"|format(mwst_zahllast) }} €</div>
+            <div class="col-md-6">
+                <div class="card shadow-sm border-0 p-4" style="border-left: 8px solid #dc3545; border-radius: 15px;">
+                    <div class="text-uppercase text-success font-weight-bold small mb-1">Restbetrag</div>
+                    <div class="h2 font-weight-bold mb-0 text-success">{% set total_r = ratenzahlungen|sum(attribute='restbetrag') %}{{ "{:,.2f}".format(total_r).replace(',', 'X').replace('.', ',').replace('X', '.') }} €</div>
+                </div>
             </div>
         </div>
     </div>
@@ -81,10 +154,25 @@
 -->
 
     <ul class="nav nav-tabs shadow-sm" role="tablist">
-        <li class="nav-item"><a class="nav-link active" data-toggle="tab" href="#rechnungen">Rechnungen</a></li>
-        <li class="nav-item"><a class="nav-link" data-toggle="tab" href="#rates">Ratenzahlung</a></li>
-        <li class="nav-item"><a class="nav-link" data-toggle="tab" href="#bank">Bank</a></li>
-    </ul>
+    <li class="nav-item">
+        <a class="nav-link active" data-toggle="tab" href="#rechnungen" style="font-weight:700;">Rechnungen</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" data-toggle="tab" href="#rates" style="font-weight:700;">Ratenzahlungen & Kredite</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" data-toggle="tab" href="#bank" style="font-weight:700;">Bank</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" data-toggle="tab" href="#miete" style="font-weight:700;">Miete</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" data-toggle="tab" href="#gewerbliche" style="font-weight:700;">Gewerbliche Ausgaben</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" data-toggle="tab" href="#private" style="font-weight:700;">Private Ausgaben</a>
+    </li>
+</ul>
 
 <!--
 ..........................................................................................................
@@ -97,89 +185,200 @@
     <div class="tab-content bg-white shadow-sm p-4 border border-top-0">
 
     <div class="tab-pane fade {% if not active_bank %}show active{% endif %}" id="rechnungen">
-        <h5 class="mb-3">Rechnungen – Januar 2026</h5>
-
-        <div class="table-responsive">
-            <table class="table table-hover table-bordered text-center">
-                <thead>
-                    <tr>
-                        <th>Rechnung</th>
-                        <th>Datum</th>
-                        <th>Kunde</th>
-                        <th>Brutto</th>
-                        <th>Netto</th>
-                        <th>MwSt</th>
-                        <th>Offen</th>
-                        <th>Status</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for r in rechnungen %}
-                    <tr>
-                        <td>{{ r.nr }}</td>
-                        <td>{{ r.datum }}</td>
-                        <td>{{ r.kunde }}</td>
-                        <td>{{ "%.2f"|format(r.brutto) }} €</td>
-                        <td>{{ "%.2f"|format(r.netto) }} €</td>
-                        <td>{{ "%.2f"|format(r.mwst) }} €</td>
-                        <td>{{ "%.2f"|format(r.offen) }} €</td>
-                        <td class="{{ 'status-paid' if r.offen == 0 else 'status-open' }}">
-                            {{ 'Bezahlt' if r.offen == 0 else 'Offen' }}
-                        </td>
-                    </tr>
+        <div class="row">
+            <div class="col-md-4">
+                <h5 class="mb-4 text-primary font-weight-bold">Abrechnungszeitraum</h5>
+                <div class="list-group">
+                    {% set monate = [
+                        ('01', 'Januar'), ('02', 'Februar'), ('03', 'März'), 
+                        ('04', 'April'), ('05', 'Mai'), ('06', 'Juni'),
+                        ('07', 'Juli'), ('08', 'August'), ('09', 'September'), 
+                        ('10', 'Oktober'), ('11', 'November'), ('12', 'Dezember')
+                    ] %}
+                    
+                    {% for m_num, m_name in monate %}
+                    <a href="?month={{ m_num }}&year=2026#rechnungen" 
+                       class="list-group-item list-group-item-action d-flex justify-content-between align-items-center shadow-sm mb-3 {% if selected_month == m_num %}active text-white{% endif %}"
+                       style="border-left: 6px solid #007bff; border-radius: 8px;">
+                        <h6 class="mb-0 font-weight-bold">{{ loop.index }}- {{ m_name }} 2026</h6>
+                    </a>
                     {% endfor %}
-                </tbody>
-            </table>
+                </div>
+            </div>
+
+            <div class="col-md-8 border-left" style="max-height: 800px; overflow-y: auto;">
+                <h5 class="mb-4 text-dark font-weight-bold">Rechnungen – {{ selected_month_name if selected_month_name else 'Januar' }} 2026</h5>
+                
+                {% if rechnungen %}
+                <div class="table-responsive">
+                    <table class="table table-hover table-bordered text-center shadow-sm">
+                        <thead>
+                            <tr>
+                                <th>Rechnung</th>
+                                <th>Datum</th>
+                                <th>Kunde</th>
+                                <th>Brutto</th>
+                                <th>Netto</th>
+                                <th>MwSt</th>
+                                <th>Offen</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tbody>
+                            {% for r in rechnungen %}
+                            <tr>
+                                <td>{{ r.nr }}</td>
+                                <td>{{ r.datum }}</td>
+                                <td>{{ r.kunde }}</td>
+                                <td style="padding:15px; font-weight:bold;">{{ "{:,.2f}".format(r.brutto).replace(',', 'X').replace('.', ',').replace('X', '.') }} €</td>
+                                <td>{{ "{:,.2f}".format(r.netto).replace(',', 'X').replace('.', ',').replace('X', '.') }} €</td>
+                                <td>{{ "{:,.2f}".format(r.mwst).replace(',', 'X').replace('.', ',').replace('X', '.') }} €</td>
+                                <td>{{ "{:,.2f}".format(r.offen).replace(',', 'X').replace('.', ',').replace('X', '.') }} €</td>
+                                <td class="{{ 'status-paid' if r.offen == 0 else 'status-open' }}">
+                                    {{ 'Bezahlt' if r.offen == 0 else 'Offen' }}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-5">
+                    <p class="text-muted">Keine Rechnungen for diesen Monat gefunden.</p>
+                </div>
+                {% endif %}
+            </div>
         </div>
     </div>
 
-    <div class="tab-pane fade {% if active_bank %}show active{% endif %}" id="bank">
-    <div class="row">
-        <div class="col-md-4">
-            <h5 class="mb-4 text-primary font-weight-bold">Bankkonten</h5>
-            <div class="list-group">
-                <a href="?bank_account=geschäftskonto-kg-gebäudereinigung#bank" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center shadow-sm mb-3 {% if active_bank == 'geschäftskonto-kg-gebäudereinigung' %}active text-white{% endif %}" style="border-left: 6px solid #007bff; border-radius: 8px;">
-                    <h6 class="mb-0 font-weight-bold">1- Geschäftskonto - KG-Gebäudereinigung</h6>
-                </a>
+    <div class="tab-pane fade" id="rates">
+        <div class="row">
+            <div class="col-md-4">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h5 class="text-primary font-weight-bold mb-0">Kreditliste</h5>
+                    <button onclick="openRateModal()" class="btn btn-primary shadow-sm" style="border-radius:10px; font-weight:700; padding: 8px 15px;">
+                        + Hinzufügen
+                    </button>
+                </div>
 
-                <a href="?bank_account=geschäftskonto-amazon-energie#bank" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center shadow-sm mb-3 {% if active_bank == 'geschäftskonto-amazon-energie' %}active text-white{% endif %}" style="border-left: 6px solid #17a2b8; border-radius: 8px;">
-                    <h6 class="mb-0 font-weight-bold">2- Geschäftskonto - Amazon - Energie</h6>
-                </a>
-
-                <a href="?bank_account=damla-privat#bank" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center shadow-sm mb-3 {% if active_bank == 'damla-privat' %}active text-white{% endif %}" style="border-left: 6px solid #e83e8c; border-radius: 8px;">
-                    <h6 class="mb-0 font-weight-bold">3- Damla Privat</h6>
-                </a>
-
-                <a href="?bank_account=murat-privat#bank" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center shadow-sm mb-3 {% if active_bank == 'murat-privat' %}active text-white{% endif %}" style="border-left: 6px solid #6f42c1; border-radius: 8px;">
-                    <h6 class="mb-0 font-weight-bold">4- Murat Privat</h6>
-                </a>
-            </div>
-        </div>
-
-        <div class="col-md-8 border-left" style="max-height: 800px; overflow-y: auto;">
-            {% if bank_data %}
-                <h5 class="mb-4 text-dark font-weight-bold">Transaktionen</h5>
-                <div class="list-group shadow-sm">
-                    {% for t in bank_data %}
-                    <div class="list-group-item d-flex justify-content-between align-items-center py-3">
-                        <div style="max-width: 75%;">
-                            <div class="font-weight-bold text-dark">{{ t.payee }}</div>
-                            <div class="text-muted small text-truncate">{{ t.description }}</div>
-                            <small class="badge badge-light border mt-1">{{ t.date }}</small>
+                <div class="list-group shadow-sm" style="max-height: 650px; overflow-y: auto;">
+                    {% for rate in ratenzahlungen %}
+                    <a href="javascript:void(0)" 
+                       class="list-group-item list-group-item-action d-flex justify-content-between align-items-center mb-3 shadow-sm"
+                       style="border-left: 6px solid #6f42c1; border-radius: 8px;">
+                        <div>
+                            <div>
+                            <h6 class="mb-0 font-weight-bold">{{ rate.kreditname }}</h6>
+                            <small class="text-muted">Rate: {{ "{:,.2f}".format(rate.monatliche_rate).replace(',', 'X').replace('.', ',').replace('X', '.') }} €</small>
                         </div>
-                        <div class="text-right">
-                            <span class="h6 font-weight-bold {{ 'text-success' if t.amount > 0 else 'text-dark' }}">
-                                {{ "%.2f"|format(t.amount) }} €
-                            </span>
                         </div>
-                    </div>
+                    </a>
                     {% endfor %}
                 </div>
-            {% else %}
-                <div class="text-center py-5">
-                    <p class="text-muted">Bitte wählen Sie ein Bankkonto aus, um die Bewegungen zu sehen.</p>
+            </div>
+
+            <div class="col-md-8 border-left">
+                <h5 class="mb-4 text-dark font-weight-bold">Details & Übersicht</h5>
+                <div class="card shadow-sm border-0" style="border-radius:15px; overflow:hidden;">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0 text-center">
+                            <thead style="background-color: #28a745 !important;"> <tr class="text-white">
+                                    <th style="font-weight:800; border:none; padding:15px;">Kreditname</th>
+                                    <th style="font-weight:800; border:none; padding:15px;">Gesamtbetrag</th>
+                                    <th style="font-weight:800; border:none; padding:15px;">Rate (mtl)</th>
+                                    <th style="font-weight:800; border:none; padding:15px;">Laufzeit</th>
+                                    <th style="font-weight:800; border:none; padding:15px;">Beginn</th>
+                                    <th style="font-weight:800; border:none; padding:15px;">Ende</th>
+                                    <th style="font-weight:800; border:none; padding:15px;">Einzahl Raten</th>
+                                    <th style="font-weight:800; border:none; padding:15px;">Rest Raten</th>
+                                    <th style="font-weight:800; border:none; padding:15px;">Restbetrag</th>
+                                    <th class="no-print" style="border:none; padding:15px;"></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            {% for rate in ratenzahlungen %}
+                            <tr style="border-bottom:1px solid #f1f5f9">
+                                <td style="padding:15px; font-weight:700;">{{ rate.kreditname }}</td>
+                                <td style="padding:15px;">{{ "{:,.2f}".format(rate.gesamtbetrag).replace(',', 'X').replace('.', ',').replace('X', '.') }} €</td>
+                                <td style="padding:15px;">{{ "{:,.2f}".format(rate.monatliche_rate).replace(',', 'X').replace('.', ',').replace('X', '.') }} €</td>
+                                <td style="padding:15px;">{{ rate.laufzeit }} Monate</td>
+                                <td style="padding:15px;">{{ rate.beginn }}</td>
+                                <td style="padding:15px;">{{ rate.ende }}</td>
+                                <td style="padding:15px;">{{ rate.einzahl_raten }}</td>
+                                <td style="padding:15px;">{{ rate.rest_raten }}</td>
+                                <td style="padding:15px; font-weight:800;">{{ "{:,.2f}".format(rate.restbetrag).replace(',', 'X').replace('.', ',').replace('X', '.') }} €</td>
+                                <td class="no-print" style="padding:15px; min-width:110px;">
+                                    <button onclick="editRate('{{ rate.id }}')" class="btn btn-sm btn-outline-primary mr-1" style="border-radius:8px;">
+                                        <i class="fa-solid fa-pen-to-square"></i>
+                                    </button>
+                                    <button onclick="deleteRate('{{ rate.id }}')" class="btn btn-sm btn-outline-danger" style="border-radius:8px;">
+                                        <i class="fa-solid fa-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
                 </div>
-            {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+    <div class="tab-pane fade {% if active_bank %}show active{% endif %}" id="bank">
+        <div class="row">
+            <div class="col-md-4">
+                <h5 class="mb-4 text-primary font-weight-bold">Bankkonten</h5>
+                <div class="list-group">
+                    <a href="?bank_account=geschäftskonto-kg-gebäudereinigung#bank" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center shadow-sm mb-3 {% if active_bank == 'geschäftskonto-kg-gebäudereinigung' %}active text-white{% endif %}" style="border-left: 6px solid #007bff; border-radius: 8px;">
+                        <h6 class="mb-0 font-weight-bold">1- Geschäftskonto - KG-Gebäudereinigung</h6>
+                    </a>
+                    <a href="?bank_account=geschäftskonto-amazon-energie#bank" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center shadow-sm mb-3 {% if active_bank == 'geschäftskonto-amazon-energie' %}active text-white{% endif %}" style="border-left: 6px solid #17a2b8; border-radius: 8px;">
+                        <h6 class="mb-0 font-weight-bold">2- Geschäftskonto - Amazon - Energie</h6>
+                    </a>
+                    <a href="?bank_account=damla-privat#bank" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center shadow-sm mb-3 {% if active_bank == 'damla-privat' %}active text-white{% endif %}" style="border-left: 6px solid #e83e8c; border-radius: 8px;">
+                        <h6 class="mb-0 font-weight-bold">3- Damla Privat</h6>
+                    </a>
+                    <a href="?bank_account=murat-privat#bank" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center shadow-sm mb-3 {% if active_bank == 'murat-privat' %}active text-white{% endif %}" style="border-left: 6px solid #6f42c1; border-radius: 8px;">
+                        <h6 class="mb-0 font-weight-bold">4- Murat Privat</h6>
+                    </a>
+                </div>
+            </div>
+
+            <div class="col-md-8 border-left" style="max-height: 800px; overflow-y: auto;">
+                {% if bank_data %}
+                    <div class="d-flex justify-content-between align-items-center mb-4 sticky-top bg-white py-2" style="z-index: 10;">
+    <h5 class="text-dark font-weight-bold mb-0">Transaktionen</h5>
+    <div class="text-right">
+        <span class="text-muted small font-weight-bold">Aktueller Kontostand</span>
+        <div class="h5 font-weight-bold mb-0 {% if total_bank_balance >= 0 %}text-success{% else %}text-danger{% endif %}">
+    {{ "{:,.2f}".format(total_bank_balance).replace(',', 'X').replace('.', ',').replace('X', '.') }} €
+        </div>
+    </div>
+</div>
+                    <div class="list-group shadow-sm">
+                        {% for t in bank_data %}
+                        <div class="list-group-item d-flex justify-content-between align-items-center py-3">
+                            <div style="max-width: 75%;">
+                                <div class="font-weight-bold text-dark">{{ t.payee }}</div>
+                                <div class="text-muted small text-truncate">{{ t.description }}</div>
+                                <small class="badge badge-light border mt-1">{{ t.date }}</small>
+                            </div>
+                            <div class="text-right">
+                                <span class="h6 font-weight-bold {{ 'text-success' if t.amount > 0 else 'text-dark' }}">
+    {{ "{:,.2f}".format(t.amount).replace(',', 'X').replace('.', ',').replace('X', '.') }} €
+                                </span>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-5">
+                        <p class="text-muted">Bitte wählen Sie ein Bankkonto aus, um die Bewegungen zu sehen.</p>
+                    </div>
+                {% endif %}
+            </div>
         </div>
     </div>
 </div>
@@ -196,21 +395,290 @@
 ..........................................................................................................
 -->
 
-<script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.slim.min.js"></script>
+<div id="rateModal" style="display:none;position:fixed;inset:0;background:rgba(15,23,42,0.8);backdrop-filter:blur(10px);align-items:center;justify-content:center;z-index:1500">
+    <form action="/add_ratenzahlung" method="POST" id="rateForm" lang="de" style="background:#fff;width:950px;max-width:95%;border-radius:24px;padding:40px;box-shadow:0 25px 50px -12px rgba(0,0,0,0.5)">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h3 class="text-primary font-weight-bold mb-0">Neue Ratenzahlung</h3>
+            <button type="button" onclick="closeRateModal()" style="background:none;border:none;font-size:24px;cursor:pointer;">✕</button>
+        </div>
+
+        <div class="row">
+            <div class="col-md-4 mb-3">
+                <label class="small font-weight-bold text-muted">Kreditname</label>
+                <input type="text" class="form-control" name="kreditname" placeholder="z.B. Auto Kredit" required oninvalid="this.setCustomValidity('Bitte füllen Sie dieses Feld aus.')" oninput="this.setCustomValidity('')" style="border-radius:10px;">
+            </div>
+            <div class="col-md-4 mb-3">
+                <label class="small font-weight-bold text-muted">Gesamtbetrag (€)</label>
+                <input type="number" step="0.01" class="form-control" name="gesamtbetrag" placeholder="10.000,00" required oninvalid="this.setCustomValidity('Bitte füllen Sie dieses Feld aus.')" oninput="this.setCustomValidity('')" style="border-radius:10px;">
+            </div>
+            <div class="col-md-4 mb-3">
+                <label class="small font-weight-bold text-muted">Rate (mtl) (€)</label>
+                <input type="number" step="0.01" class="form-control" name="monatliche_rate" placeholder="500,00" required oninvalid="this.setCustomValidity('Bitte füllen Sie dieses Feld aus.')" oninput="this.setCustomValidity('')" style="border-radius:10px;">
+            </div>
+
+            <div class="col-md-4 mb-3">
+                <label class="small font-weight-bold text-muted">Laufzeit (Monate)</label>
+                <input type="number" class="form-control" name="laufzeit" id="inputLaufzeit" placeholder="24" required oninvalid="this.setCustomValidity('Bitte füllen Sie dieses Feld aus.')" oninput="this.setCustomValidity('')" style="border-radius:10px;">
+            </div>
+            <div class="col-md-4 mb-3">
+                <label class="small font-weight-bold text-muted">Beginn</label>
+                <input type="text" class="form-control rate-date-picker" name="beginn" placeholder="tt.mm.jjjj" id="rateBeginnDate" required oninvalid="this.setCustomValidity('Bitte füllen Sie dieses Feld aus.')" oninput="this.setCustomValidity('')" style="border-radius:10px; background-color: #fff !important;">
+            </div>
+            <div class="col-md-4 mb-3">
+                <label class="small font-weight-bold text-muted">Ende</label>
+                <input type="text" class="form-control rate-date-picker" name="ende" placeholder="tt.mm.jjjj" style="border-radius:10px; background-color: #fff !important;">
+            </div>
+
+            <div class="col-md-4 mb-3">
+                <label class="small font-weight-bold text-muted">Einzahl Raten</label>
+                <input type="number" class="form-control" name="einzahl_raten" id="inputEinzahl" placeholder="0" style="border-radius:10px;">
+            </div>
+            <div class="col-md-4 mb-3">
+                <label class="small font-weight-bold text-muted">Rest Raten</label>
+                <input type="number" class="form-control" name="rest_raten" id="inputRestRaten" placeholder="24" style="border-radius:10px;">
+            </div>
+            <div class="col-md-4 mb-3">
+                <label class="small font-weight-bold text-muted" style="color:#28a745;">Restbetrag (€)</label>
+                <input type="number" step="0.01" class="form-control" name="restbetrag" id="inputRestBetrag" placeholder="10000.00" style="border-radius:10px;">
+            </div>
+        </div>
+
+        <div class="text-right mt-4 pt-3 border-top">
+            <button type="button" onclick="closeRateModal()" class="btn btn-light mr-2" style="border-radius:10px; font-weight:600;">Abbrechen</button>
+            <button type="submit" class="btn btn-primary" style="border-radius:10px; font-weight:600; padding:10px 30px;">Speichern</button>
+        </div>
+    </form>
+</div>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/de.js"></script>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
 $(document).ready(function() {
-    // 1. Sayfa yüklendiğinde URL'de #bank varsa o sekmeyi aç
-    var hash = window.location.hash;
-    if (hash) {
-        $('.nav-tabs a[href="' + hash + '"]').tab('show');
+    // 1. Zıplamayı önleme ve Scroll ayarları
+    if (window.location.hash) {
+        setTimeout(function() {
+            if (!localStorage.getItem('buchhaltungScrollPos')) {
+                window.scrollTo(0, 0);
+            }
+        }, 1);
     }
 
-    // 2. Sekmeye tıklandığında URL'yi güncelle (sayfa yenilense de orada kalsın)
-    $('.nav-tabs a').on('shown.bs.tab', function (e) {
-        window.location.hash = e.target.hash;
+    var scrollPos = localStorage.getItem('buchhaltungScrollPos');
+    if (scrollPos) {
+        window.scrollTo(0, scrollPos);
+        localStorage.removeItem('buchhaltungScrollPos');
+    }
+
+    $(document).on('click', '.list-group-item, .nav-link', function() {
+        localStorage.setItem('buchhaltungScrollPos', $(window).scrollTop());
     });
+
+    // 2. Sekme Yönetimi (KARTLARI DEĞİŞTİREN ZIRHLI SÜRÜM)
+    var activeTab = localStorage.getItem('buchhaltungActiveTab');
+    var hash = window.location.hash;
+    
+    if (hash) {
+        $('.nav-tabs a[href="' + hash + '"]').tab('show');
+    } else if (activeTab) {
+        $('.nav-tabs a[href="' + activeTab + '"]').tab('show');
+    }
+
+    // SEKME DEĞİŞİNCE ÜST KARTLARI DA DEĞİŞTİR
+    $('.nav-tabs a').on('shown.bs.tab', function (e) {
+    var currentHash = e.target.hash; 
+    
+    // Önce hepsini gizle (Temizlik)
+    $('#default-stats').addClass('d-none');
+    $('#rate-stats').addClass('d-none');
+    if($('#bank-stats-wrapper').length) $('#bank-stats-wrapper').addClass('d-none');
+
+    // Şimdi hangi sekmedeysek sadece onu göster
+    if (currentHash === '#rates') {
+        $('#rate-stats').removeClass('d-none'); // Kredi kartlarını göster
+    } else if (currentHash === '#bank') {
+        if($('#bank-stats-wrapper').length) $('#bank-stats-wrapper').removeClass('d-none'); // Banka kartlarını göster
+    } else {
+        $('#default-stats').removeClass('d-none'); // Rechnungen (Fatura) kartlarını göster
+    }
+
+    localStorage.setItem('buchhaltungActiveTab', currentHash);
+});
+
+    // 3. Flatpickr Almanca Tarih Seçici Başlatma
+    flatpickr(".rate-date-picker", {
+        locale: "de",
+        dateFormat: "d.m.Y",
+        allowInput: true,
+        altInput: true,
+        altFormat: "d.m.Y"
+    });
+
+    // Sayfa ilk yüklendiğinde doğru kartın görünmesini garantile
+    $(document).ready(function() {
+        var checkHash = window.location.hash || localStorage.getItem('buchhaltungActiveTab');
+        if (checkHash === '#rates') {
+            $('#default-stats').addClass('d-none');
+            $('#rate-stats').removeClass('d-none');
+        }
+    });
+});
+
+
+// ==========================================
+// 🚀 MODAL + SEKME + ÜST KART YÖNETİMİ (TEK PARÇA)
+// ==========================================
+
+// SEKME DEĞİŞİNCE ÜST KARTLARI GÖSTER/GİZLE
+$('.nav-tabs a').on('shown.bs.tab', function (e) {
+    var currentHash = e.target.hash;
+
+    $('#default-stats').addClass('d-none');
+    $('#rate-stats').addClass('d-none');
+    if ($('#bank-stats-wrapper').length) $('#bank-stats-wrapper').addClass('d-none');
+
+    if (currentHash === '#rates') {
+        $('#rate-stats').removeClass('d-none');
+    } else if (currentHash === '#bank') {
+        if ($('#bank-stats-wrapper').length) $('#bank-stats-wrapper').removeClass('d-none');
+    } else {
+        $('#default-stats').removeClass('d-none');
+    }
+
+    localStorage.setItem('buchhaltungActiveTab', currentHash);
+    if (history.pushState) {
+        history.pushState(null, null, currentHash);
+    }
+});
+
+// SAYFA YÜKLENİRKEN AKTİF SEKMEYE GÖRE ÜST KARTI ZORLA GÖSTER
+$(document).ready(function () {
+    var activeHash = window.location.hash || localStorage.getItem('buchhaltungActiveTab');
+
+    $('#default-stats').addClass('d-none');
+    $('#rate-stats').addClass('d-none');
+    if ($('#bank-stats-wrapper').length) $('#bank-stats-wrapper').addClass('d-none');
+
+    if (activeHash === '#rates') {
+        $('#rate-stats').removeClass('d-none');
+    } else if (activeHash === '#bank') {
+        if ($('#bank-stats-wrapper').length) $('#bank-stats-wrapper').removeClass('d-none');
+    } else {
+        $('#default-stats').removeClass('d-none');
+    }
+});
+
+// ==========================================
+// 🚀 TEK VE GERÇEK SEKME YÖNETİMİ
+// ==========================================
+$('.nav-tabs a').on('shown.bs.tab', function (e) {
+    var currentHash = e.target.hash; 
+
+    // 1. Önce Hepsini Gizle (Temizlik)
+    $('#default-stats').addClass('d-none');
+    $('#rate-stats').addClass('d-none');
+    if($('#bank-stats-wrapper').length) $('#bank-stats-wrapper').addClass('d-none');
+
+    // 2. Sadece İlgili Olanı Aç
+    if (currentHash === '#rates') {
+        $('#rate-stats').removeClass('d-none'); 
+    } else if (currentHash === '#bank') {
+        if($('#bank-stats-wrapper').length) $('#bank-stats-wrapper').removeClass('d-none');
+    } else {
+        // Burası 'Rechnungen' veya diğer her şey için ana kartları gösterir
+        $('#default-stats').removeClass('d-none'); 
+    }
+
+    // 3. Hafızaya Kaydet ve URL'yi Güncelle
+    localStorage.setItem('buchhaltungActiveTab', currentHash);
+    if (history.pushState) history.pushState(null, null, currentHash);
+});
+
+// MODAL AÇMA FONKSİYONU
+function openRateModal() {
+    document.getElementById('rateModal').style.display = 'flex';
+}
+
+// MODAL KAPATMA FONKSİYONU (TEMİZLİK YAPAR)
+function closeRateModal() {
+    document.getElementById('rateForm').reset();
+    document.getElementById('rateModal').style.display = 'none';
+    document.querySelector('#rateModal h3').innerText = "Neue Ratenzahlung";
+    const idInput = document.getElementById('edit_rate_id');
+    if (idInput) idInput.remove();
+    document.getElementById('inputRestRaten').value = '';
+    document.getElementById('inputRestBetrag').value = '';
+}
+
+// DÜZENLEME FONKSİYONU (KALEM SİMGESİ)
+function editRate(id) {
+    openRateModal();
+    document.querySelector('#rateModal h3').innerText = "Ratenzahlung bearbeiten";
+    
+    fetch('/get_ratenzahlung/' + id)
+        .then(response => response.json())
+        .then(data => {
+            const form = document.getElementById('rateForm');
+            form.kreditname.value = data.kreditname;
+            form.gesamtbetrag.value = data.gesamtbetrag;
+            form.monatliche_rate.value = data.monatliche_rate;
+            form.laufzeit.value = data.laufzeit;
+            form.beginn.value = data.beginn;
+            form.ende.value = data.ende;
+            form.einzahl_raten.value = data.einzahl_raten;
+            form.rest_raten.value = data.rest_raten;
+            form.restbetrag.value = data.restbetrag;
+
+            let idInput = document.getElementById('edit_rate_id');
+            if (!idInput) {
+                idInput = document.createElement('input');
+                idInput.type = 'hidden';
+                idInput.name = 'rate_id';
+                idInput.id = 'edit_rate_id';
+                form.appendChild(idInput);
+            }
+            idInput.value = id;
+        });
+}
+
+// SİLME FONKSİYONU (ÇÖP KUTUSU SİMGESİ - ALMANCA ONAYLI)
+function deleteRate(id) {
+    if(confirm('Möchten Sie diesen Schuldeneintrag wirklich löschen?')) {
+        window.location.href = '/delete_ratenzahlung/' + id;
+    }
+}
+
+// 🚀 GENEL HESAPLAMA SİSTEMİ (İster Araba, İster Banka, İster Şahıs Borcu!)
+function borcHesapla() {
+    // Sayıları kutulardan çekiyoruz
+    const toplamVade = parseInt(document.getElementById('inputLaufzeit')?.value) || 0; 
+    const odenenTaksit = parseInt(document.getElementById('inputEinzahl')?.value) || 0; 
+    const aylikTaksitTutari = parseFloat(document.querySelector('input[name="monatliche_rate"]')?.value) || 0;
+
+    // 1. Kalan Taksit Sayısını Hesapla (Toplam - Ödenen)
+    let kalanTaksit = toplamVade - odenenTaksit;
+    if (kalanTaksit < 0) kalanTaksit = 0; // Taksit eksiye düşmesin
+    
+    const restRatenField = document.getElementById('inputRestRaten');
+    if(restRatenField) restRatenField.value = kalanTaksit;
+
+    // 2. Toplam Kalan Borcu Hesapla (Kalan Taksit * Aylık Ödeme)
+    let kalanBorcMiktari = kalanTaksit * aylikTaksitTutari;
+    
+    const restBetragField = document.getElementById('inputRestBetrag');
+    if(restBetragField) restBetragField.value = kalanBorcMiktari.toFixed(2);
+}
+
+// Formdaki kutulara sayı girildiği an (yazarken) otomatik hesapla
+document.addEventListener('input', function(e) {
+    const izlenenAlanlar = ['inputLaufzeit', 'inputEinzahl'];
+    if (izlenenAlanlar.includes(e.target.id) || e.target.name === 'monatliche_rate') {
+        borcHesapla();
+    }
 });
 </script>
 
