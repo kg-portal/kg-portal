@@ -204,6 +204,23 @@ def init_db():
         )
     ''')
 
+# RATENZAHLUNGEN TABLOSU (KREDİLER) - YENİ
+    conn.execute('''
+        CREATE TABLE IF NOT EXISTS ratenzahlungen (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            kreditname TEXT,
+            gesamtbetrag REAL,
+            monatliche_rate REAL,
+            laufzeit INTEGER,
+            beginn TEXT,
+            ende TEXT,
+            einzahl_raten INTEGER,
+            rest_raten INTEGER,
+            restbetrag REAL,
+            created_at TEXT DEFAULT CURRENT_TIMESTAMP
+        )
+    ''')
+
     conn.commit()
     conn.close()
 
@@ -881,48 +898,144 @@ def worker_stundenzettel(id, name, code):
     
     # Her şey doğruysa menüsüz işçi sayfasını açar
     return render_template("stundenzettel_worker.html", mitarbeiter_liste=[worker])
+
 # =====================================================
-# Bölüm 18- BUCHHALTUNG (MUHASEBE)
+# Bölüm 18- BUCHHALTUNG (MUHASEBE) - TEK PARÇA & HIZLI
 # =====================================================
 
 @app.route("/buchhaltung")
 @login_required
 def buchhaltung():
-    # 1. Sevdesk ile veritabanını eşitle
-    sync_sevdesk_to_db()
+    # 1. Sevdesk ile veritabanını eşitle (Zırhlı sistem sadece eksikleri çeker)
+    sync_sevdesk_to_db() 
     
-    # 2. Dinamik tarih al
     import datetime
     now = datetime.datetime.now()
     
-    # 3. Verileri çek
-    veriler = get_cached_rechnungen(now.month, now.year)
+    # 2. Seçilen ay ve yıl bilgilerini al
+    selected_month = request.args.get('month', default=now.month, type=int)
+    selected_year = request.args.get('year', default=now.year, type=int)
     
-    # 4. ÜST KARTLAR İÇİN TOPLAMLARI HESAPLA
+    # 3. ÖNEMLİ: get_cached_rechnungen artık sadece veritabanından (cache) okur
+    # Sevdesk API'sine bir daha gitmez, bu yüzden milisaniyeler içinde açılır.
+    veriler = get_cached_rechnungen(selected_month, selected_year)
+    
+    # ... (Geri kalan hesaplamalar aynı kalıyor)    
+    # 4. ÜST KARTLARI SEÇİLEN AYA GÖRE HESAPLA
     monatsumsatz = sum(r['brutto'] for r in veriler)
     offene_forderungen = sum(r['offen'] for r in veriler)
     bezahlt_monat = monatsumsatz - offene_forderungen
     mwst_zahllast = sum(r['mwst'] for r in veriler)
     
-    # --- 🏦 BANKA VERİSİ ÇEKME ---
+    monat_isimleri = {
+        1: "Januar", 2: "Februar", 3: "März", 4: "April", 5: "Mai", 6: "Juni",
+        7: "Juli", 8: "August", 9: "September", 10: "Oktober", 11: "November", 12: "Dezember"
+    }
+    selected_month_name = monat_isimleri.get(selected_month)
+
+    # --- 🏦 BANKA VERİSİ VE CANLI BAKİYE KONTROLÜ (FİŞEK HIZI) ---
+    from sevdesk import get_bank_transactions, get_all_bank_balances # get_all_bank_balances ekledik
+    
     selected_bank = request.args.get('bank_account') 
     bank_data = []
+    total_bank_balance = 0.0
+    all_balances = {} 
+
+    # Eğer bir banka seçilmişse (yani Bank sekmesindeysek) verileri çek
     if selected_bank:
-        from sevdesk import get_bank_transactions
+        # 1. İşlemleri hızlıca çek (Artık 50 limitli ve sadece yenileri ekleyen zırhlı sistem)
         bank_data = get_bank_transactions(selected_bank)
+        
+        # 2. TÜM bakiyeleri TEK BİR API isteğiyle al (4 ayrı sorgu yerine tek sorgu - 4 kat hız)
+        all_balances = get_all_bank_balances()
+        
+        # 3. Sağ üstteki genel bakiye toplu listeden gelir
+        total_bank_balance = all_balances.get(selected_bank, 0.0)
+
+    conn = get_db_connection()
+    ratenzahlungen = conn.execute("SELECT * FROM ratenzahlungen ORDER BY id DESC").fetchall()
+    conn.close()
+
+    # --- KARTLAR İÇİN HESAPLAMA (Sildiğin yer burası, geri geldi!) ---
+    total_g = sum(r['gesamtbetrag'] for r in ratenzahlungen) if ratenzahlungen else 0.0
+    total_r = sum(r['restbetrag'] for r in ratenzahlungen) if ratenzahlungen else 0.0
     
     # 5. Tüm verileri HTML'e gönder
     return render_template(
         "buchhaltung.html", 
         rechnungen=veriler,
+        ratenzahlungen=ratenzahlungen,
         monatsumsatz=monatsumsatz,
         bezahlt_monat=bezahlt_monat,
         offene_forderungen=offene_forderungen,
         mwst_zahllast=mwst_zahllast,
         bank_data=bank_data,
-        active_bank=selected_bank
+        active_bank=selected_bank,
+        total_bank_balance=total_bank_balance,
+        all_balances=all_balances, 
+        selected_month=f"{selected_month:02d}",
+        selected_month_name=selected_month_name,
+        total_g=total_g,  # YEŞİL KART BURADAN DOLUYOR
+        total_r=total_r   # KIRMIZI KART BURADAN DOLUYOR
     )
 
+@app.route("/delete_ratenzahlung/<int:id>")
+@login_required
+def delete_ratenzahlung(id):
+    conn = get_db_connection()
+    conn.execute("DELETE FROM ratenzahlungen WHERE id = ?", (id,))
+    conn.commit()
+    conn.close()
+    return redirect(url_for('buchhaltung') + "#rates")
+
+# BU YENİ: DÜZENLEME İÇİN VERİ GETİRME (KALEM İÇİN)
+@app.route("/get_ratenzahlung/<int:id>")
+@login_required
+def get_ratenzahlung(id):
+    conn = get_db_connection()
+    rate = conn.execute("SELECT * FROM ratenzahlungen WHERE id = ?", (id,)).fetchone()
+    conn.close()
+    if rate:
+        return jsonify(dict(rate))
+    return jsonify({"error": "Not found"}), 404
+
+# BU DA GÜNCELLEDİĞİMİZ EKLEME/GÜNCELLEME FONKSİYONU
+@app.route("/add_ratenzahlung", methods=["POST"])
+@login_required
+def add_ratenzahlung():
+    f = request.form
+    rate_id = f.get("rate_id") 
+    conn = get_db_connection()
+    
+    try:
+        laufzeit = int(f.get("laufzeit", 0))
+        einzahl = int(f.get("einzahl_raten", 0))
+        rate_val = float(f.get("monatliche_rate", 0))
+        rest_raten = max(0, laufzeit - einzahl)
+        restbetrag = rest_raten * rate_val
+    except ValueError:
+        return "Geçersiz sayı formatı", 400
+
+    if rate_id: # ID varsa UPDATE yap
+        conn.execute('''
+            UPDATE ratenzahlungen SET 
+                kreditname=?, gesamtbetrag=?, monatliche_rate=?, laufzeit=?, 
+                beginn=?, ende=?, einzahl_raten=?, rest_raten=?, restbetrag=?
+            WHERE id=?
+        ''', (f.get("kreditname"), f.get("gesamtbetrag"), rate_val, laufzeit,
+              f.get("beginn"), f.get("ende"), einzahl, rest_raten, restbetrag, rate_id))
+    else: # ID yoksa INSERT yap
+        conn.execute('''
+            INSERT INTO ratenzahlungen (
+                kreditname, gesamtbetrag, monatliche_rate, laufzeit, 
+                beginn, ende, einzahl_raten, rest_raten, restbetrag
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ''', (f.get("kreditname"), f.get("gesamtbetrag"), rate_val, laufzeit,
+              f.get("beginn"), f.get("ende"), einzahl, rest_raten, restbetrag))
+    
+    conn.commit()
+    conn.close()
+    return redirect(url_for('buchhaltung') + "#rates")
 
 # =====================================================
 # Bölüm 19- SEVDESK BAĞLANTISI
