@@ -112,6 +112,7 @@ def init_db():
         )
     ''')
 
+
     #####################################################################
     # >>>>>> 🔥 BURAYI EKLEDİM - VERİTABANI HATASINI ÇÖZEN KISIM 🔥 <<<<<<
     try:
@@ -218,6 +219,45 @@ def init_db():
             rest_raten INTEGER,
             restbetrag REAL,
             created_at TEXT DEFAULT CURRENT_TIMESTAMP
+        )
+    ''')
+
+# 🔥 DOĞRU YER BURASI (init_db içinde, ratenzahlungen tablosunun bittiği yer)
+    try:
+        conn.execute("ALTER TABLE ratenzahlungen ADD COLUMN renk_kodu TEXT DEFAULT '#007bff'")
+    except:
+        pass
+
+    # 🔥 GEWERBLICHE AUSGABEN (İŞLETME GİDERLERİ)
+    conn.execute('''
+        CREATE TABLE IF NOT EXISTS gewerbliche_ausgaben (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            datum TEXT,
+            skr03_kod TEXT,
+            kategorie TEXT,
+            empfaenger TEXT,
+            zweck TEXT,
+            brutto REAL,
+            mwst_betrag REAL,
+            netto REAL,
+            konto TEXT,
+            monat TEXT
+        )
+    ''')
+
+    # 🔥 PRIVATE AUSGABEN (ŞAHSİ GİDERLER)
+    conn.execute('''
+        CREATE TABLE IF NOT EXISTS private_ausgaben (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            datum TEXT,
+            skr03_kod TEXT,
+            kategorie TEXT,
+            empfaenger TEXT,
+            zweck TEXT,
+            betrag REAL,
+            konto TEXT,
+            notiz TEXT,
+            monat TEXT
         )
     ''')
 
@@ -906,26 +946,45 @@ def worker_stundenzettel(id, name, code):
 @app.route("/buchhaltung")
 @login_required
 def buchhaltung():
+    # --- 🔥 ADIM 2: DİNAMİK VERİ TETİKLEYİCİSİ (EKLENDİ) ---
+    import datetime
+    import sevdesk
+    now = datetime.datetime.now()
+    
+    selected_month = request.args.get('month', default=now.month, type=int)
+    selected_year = request.args.get('year', default=now.year, type=int)
+
+    # SevDesk'ten seçilen ayın giderlerini dinamik çeker
+    sevdesk.sync_ausgaben_dinamik(selected_month, selected_year)
+    # ----------------------------------------------------
+
     # 1. Sevdesk ile veritabanını eşitle (Zırhlı sistem sadece eksikleri çeker)
     sync_sevdesk_to_db() 
     
-    import datetime
-    now = datetime.datetime.now()
-    
-    # 2. Seçilen ay ve yıl bilgilerini al
-    selected_month = request.args.get('month', default=now.month, type=int)
-    selected_year = request.args.get('year', default=now.year, type=int)
+    # 2. Seçilen ay ve yıl bilgilerini al (Aşağıdaki değişkenleri kullandığın için burası kalmalı)
+    # now ve selected_month/year yukarıda tanımlandığı için çakışmaz.
     
     # 3. ÖNEMLİ: get_cached_rechnungen artık sadece veritabanından (cache) okur
-    # Sevdesk API'sine bir daha gitmez, bu yüzden milisaniyeler içinde açılır.
     veriler = get_cached_rechnungen(selected_month, selected_year)
     
-    # ... (Geri kalan hesaplamalar aynı kalıyor)    
     # 4. ÜST KARTLARI SEÇİLEN AYA GÖRE HESAPLA
     monatsumsatz = sum(r['brutto'] for r in veriler)
     offene_forderungen = sum(r['offen'] for r in veriler)
     bezahlt_monat = monatsumsatz - offene_forderungen
     mwst_zahllast = sum(r['mwst'] for r in veriler)
+
+# --- 🏦 VERİTABANINDAN GİDERLERİ ÇEK ---
+    conn = get_db_connection()
+    gewerbliche_ausgaben = conn.execute(
+        'SELECT * FROM gewerbliche_ausgaben WHERE monat = ? ORDER BY datum DESC', 
+        (f"{selected_month:02d}",)
+    ).fetchall()
+    
+    private_ausgaben = conn.execute(
+        'SELECT * FROM private_ausgaben WHERE monat = ? ORDER BY datum DESC', 
+        (f"{selected_month:02d}",)
+    ).fetchall()
+    conn.close()
     
     monat_isimleri = {
         1: "Januar", 2: "Februar", 3: "März", 4: "April", 5: "Mai", 6: "Juni",
@@ -953,7 +1012,7 @@ def buchhaltung():
         total_bank_balance = all_balances.get(selected_bank, 0.0)
 
     conn = get_db_connection()
-    ratenzahlungen = conn.execute("SELECT * FROM ratenzahlungen ORDER BY id DESC").fetchall()
+    ratenzahlungen = conn.execute("SELECT * FROM ratenzahlungen ORDER BY id ASC").fetchall()
     conn.close()
 
     # --- KARTLAR İÇİN HESAPLAMA (Sildiğin yer burası, geri geldi!) ---
@@ -975,8 +1034,10 @@ def buchhaltung():
         all_balances=all_balances, 
         selected_month=f"{selected_month:02d}",
         selected_month_name=selected_month_name,
-        total_g=total_g,  # YEŞİL KART BURADAN DOLUYOR
-        total_r=total_r   # KIRMIZI KART BURADAN DOLUYOR
+        total_g=total_g,  
+        total_r=total_r,
+        gewerbliche_ausgaben=gewerbliche_ausgaben,         
+        private_ausgaben=private_ausgaben          
     )
 
 @app.route("/delete_ratenzahlung/<int:id>")
@@ -999,7 +1060,7 @@ def get_ratenzahlung(id):
         return jsonify(dict(rate))
     return jsonify({"error": "Not found"}), 404
 
-# BU DA GÜNCELLEDİĞİMİZ EKLEME/GÜNCELLEME FONKSİYONU
+# BU GÜNCELLEDİĞİMİZ EKLEME/GÜNCELLEME FONKSİYONU (RENK DESTEKLİ)
 @app.route("/add_ratenzahlung", methods=["POST"])
 @login_required
 def add_ratenzahlung():
@@ -1008,6 +1069,7 @@ def add_ratenzahlung():
     conn = get_db_connection()
     
     try:
+        # SENİN HESAPLAMA MANTIĞIN - HİÇ DOKUNULMADI
         laufzeit = int(f.get("laufzeit", 0))
         einzahl = int(f.get("einzahl_raten", 0))
         rate_val = float(f.get("monatliche_rate", 0))
@@ -1016,40 +1078,85 @@ def add_ratenzahlung():
     except ValueError:
         return "Geçersiz sayı formatı", 400
 
-    if rate_id: # ID varsa UPDATE yap
+    if rate_id: # ID varsa UPDATE yap (Renk dahil)
         conn.execute('''
             UPDATE ratenzahlungen SET 
                 kreditname=?, gesamtbetrag=?, monatliche_rate=?, laufzeit=?, 
-                beginn=?, ende=?, einzahl_raten=?, rest_raten=?, restbetrag=?
+                beginn=?, ende=?, einzahl_raten=?, rest_raten=?, restbetrag=?,
+                renk_kodu=?
             WHERE id=?
         ''', (f.get("kreditname"), f.get("gesamtbetrag"), rate_val, laufzeit,
-              f.get("beginn"), f.get("ende"), einzahl, rest_raten, restbetrag, rate_id))
-    else: # ID yoksa INSERT yap
+              f.get("beginn"), f.get("ende"), einzahl, rest_raten, restbetrag, 
+              f.get("renk_kodu"), rate_id))
+    else: # ID yoksa INSERT yap (Renk dahil)
         conn.execute('''
             INSERT INTO ratenzahlungen (
                 kreditname, gesamtbetrag, monatliche_rate, laufzeit, 
-                beginn, ende, einzahl_raten, rest_raten, restbetrag
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                beginn, ende, einzahl_raten, rest_raten, restbetrag, renk_kodu
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ''', (f.get("kreditname"), f.get("gesamtbetrag"), rate_val, laufzeit,
-              f.get("beginn"), f.get("ende"), einzahl, rest_raten, restbetrag))
+              f.get("beginn"), f.get("ende"), einzahl, rest_raten, restbetrag, 
+              f.get("renk_kodu", "#007bff")))
     
     conn.commit()
     conn.close()
     return redirect(url_for('buchhaltung') + "#rates")
-
 # =====================================================
-# Bölüm 19- SEVDESK BAĞLANTISI
+# Bölüm 19- SEVDESK BAĞLANTISI VE BAŞLATMA
 # =====================================================
 
 import sevdesk
 
 def init_services():
-    pass   # SADECE import yeterli, test çağrılmaz
+    """Uygulama başlarken Sevdesk verilerini günceller."""
+    try:
+        # Eski fatura senkronizasyonu
+        sevdesk.sync_sevdesk_to_db()
+        
+        # 🔥 DÜZELTİLDİ: Yeni dinamik fonksiyon çağrılıyor (Ocak için 1 gönderiyoruz)
+        sevdesk.sync_ausgaben_dinamik(1, 2026)
+        
+        print("🚀 Sevdesk Verileri ve Ocak 2026 Giderleri Başarıyla Güncellendi!")
+    except Exception as e:
+        print(f"⚠️ Init Services Hatası: {e}")
 
+# Uygulama ayağa kalkarken servisleri çalıştır
+init_services()
 
 # =====================================================
-# Bölüm 20- UYGULAMA BAŞLAT
+# BÖLÜM 20: UYGULAMA BAŞLATICI (NİHAİ ZIRHLI SÜRÜM)
 # =====================================================
+
+def run_db_migration():
+    """Eksik sütun hatasını (kategori) kökten çözer."""
+    conn = get_db_connection()
+    try:
+        # Tabloya 'kategori' sütununu zorla ekler
+        conn.execute("ALTER TABLE gewerbliche_ausgaben ADD COLUMN kategori TEXT")
+        conn.execute("ALTER TABLE private_ausgaben ADD COLUMN kategori TEXT")
+        conn.commit()
+        print("✅ Veritabanı yapısı güncellendi.")
+    except Exception:
+        # Sütun zaten varsa hata vermez
+        pass
+    finally:
+        conn.close()
+
 if __name__ == "__main__":
-    init_services()
+    # 1. Veritabanı yapısını kontrol et ve eksik sütunları tamamla
+    init_db()          
+    run_db_migration() 
+    
+    # 2. 🛡️ TEMİZLİK BİTTİ - BU SATIRLAR ARTIK PASİF (YORUMDA)
+    # Eğer her şeyi tekrar sıfırlamak istersen başlarındaki '#' işaretlerini kaldırabilirsin.
+    # conn = get_db_connection()
+    # conn.execute("DELETE FROM gewerbliche_ausgaben")
+    # conn.execute("DELETE FROM private_ausgaben")
+    # conn.commit(); conn.close()
+    # print("🧹 Çöpler temizlendi, veritabanı pırıl pırıl!")
+
+    # 3. SevDesk ve Banka verilerini çek (Zırhlı sistem sayesinde sadece yenileri ekler)
+    init_services()    
+
+    # 4. Uygulamayı başlat
     app.run(host="0.0.0.0", port=5000, debug=True)
