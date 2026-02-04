@@ -211,3 +211,152 @@ def get_bank_balance(account_slug):
     except:
         pass
     return 0.0
+# ...........................................................................
+# ...........................................................................
+# .......... 🚀 BÖLÜM 3: OTOMATİK GİDER DAĞITICI (OCAK 2026) ................
+# ...........................................................................
+# ...........................................................................
+
+def sync_ausgaben_dinamik(month, year=2026):
+    """Sevdesk banka hareketlerini transaction_id zırhı ve otomatik düzeltme motoru ile çeker."""
+    import calendar
+    import sqlite3
+    import requests
+
+    headers = {"Authorization": SEVDESK_TOKEN, "Accept": "application/json"}
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+
+    # Dinamik tarih aralığı belirleme
+    last_day = calendar.monthrange(year, int(month))[1]
+    start_date = f"{year}-{int(month):02d}-01T00:00:00Z"
+    end_date = f"{year}-{int(month):02d}-{last_day}T23:59:59Z"
+
+    params = {
+        "startDate": start_date,
+        "endDate": end_date,
+        "limit": 250 
+    }
+    
+    try:
+        r = requests.get(f"{BASE_URL}/CheckAccountTransaction", headers=headers, params=params, timeout=15)
+        transactions = r.json().get("objects", [])
+        
+        for t in transactions:
+            t_id = t.get("id")
+            amount = float(t.get("amount", 0))
+            
+            # Sadece giderleri işle
+            if amount >= 0: 
+                continue 
+            
+            # --- 🛡️ AKILLI GÜNCELLEME ZIRHI (UPSERT MANTIĞI) ---
+            search_id = f"%[ID:{t_id}]%"
+            
+            # Önce bu ID ile mevcut kayda bakıyoruz
+            cursor.execute("SELECT kategori FROM gewerbliche_ausgaben WHERE zweck LIKE ?", (search_id,))
+            row_g = cursor.fetchone()
+            
+            # Eğer kayıt varsa ve kategorisi zaten belirlenmişse (Sonstige değilse) atla
+            if row_g and row_g[0] != "Sonstige Ausgaben":
+                continue
+
+            cursor.execute("SELECT id FROM private_ausgaben WHERE zweck LIKE ?", (search_id,))
+            if cursor.fetchone(): 
+                continue 
+            # --------------------------------------------------
+
+            acc_id = str(t.get("checkAccount", {}).get("id"))
+            payee_raw = (t.get("payeeName") or t.get("payeePayerName") or "Bilinmiyor")
+            payee = payee_raw.upper()
+            purpose = (t.get("description") or t.get("paymtPurpose") or "").upper()
+            description = (t.get("description") or t.get("paymtPurpose") or "") + f" [ID:{t_id}]"
+            date = t.get("valueDate")[:10] 
+            brutto = abs(amount)
+
+            # --- 🛡️ BÖLÜM A: İŞLETME GİDERLERİ (KG ve Amazon) ---
+            if acc_id in ["5736092", "5736093"]:
+                netto = round(brutto / 1.19, 2)
+                mwst_betrag = round(brutto - netto, 2)
+                konto_adi = "KG" if acc_id == "5736092" else "Amazon"
+                
+                # --- 🧠 EN GELİŞMİŞ KATEGORİ MOTORU (FULL LİSTE) ---
+                skr_kod, kategori = "4900", "Sonstige Ausgaben" # Varsayılan
+
+                # 1. Müşteri İadeleri / Ödemeler (Resimdeki Liste) - SKR 8400
+                musteriler = [
+                    "JESKE", "HAASE", "DEMANT", "ROSSBACH", "BOLTEN", "BLÜGGEL", "PANZOG", "MÜLLER", 
+                    "PETERS IMMO", "RHEINBAU", "MB ENERGY", "GASSEN", "STAPELTOR", "LEFFEK", "DMG DIESEL", 
+                    "SYNERGIE", "NJP GROSTOLLEN", "WOHNWERT", "CTV DUISBURG", "KAPUSCZOK", "SURMUND", 
+                    "SCHWERTFEGER", "EGIT", "KARL-HEINZ EFKEMANN", "MALTESER", "CO-GEM"
+                ]
+                if any(m in payee for m in musteriler):
+                    skr_kod, kategori = "8400", "Erlöse/Zahlung"
+
+                # 2. Araç & Kredi & Leasing (SKR 4530 / 4970)
+                elif any(x in payee for x in ["SHELL", "ARAL", "ESSO", "TOTAL", "MERCEDES", "KARCHER", "MLF MERCATOR", "BARCLAYS", "CONSORS", "LEASING"]):
+                    skr_kod, kategori = "4530", "Kfz-Kosten / Kredi"
+                
+                # 3. Kiralar (Büro & Garaj) (SKR 4210)
+                elif any(x in payee for x in ["KIEFER & ZEHNER", "THOMAS NIESSEN", "MARGARETE GAUER", "CEM ÜLGER", "MIETE"]):
+                    skr_kod, kategori = "4210", "Miete/Pacht"
+
+                # 4. Sosyal Güvenlik & Sigorta (SKR 4130 / 4360)
+                elif any(x in payee for x in ["KNAPPSCHAFT", "IKK", "BG BAU", "SIGNAL IDUNA", "ERGO", "AXA", "DEURAG"]):
+                    skr_kod, kategori = "4130", "Sozialabgaben & Vers."
+
+                # 5. Personel Maaşları (SKR 4100)
+                elif "LOHN" in purpose or any(p in payee for p in ["ÖZDES MURAT", "AYHAN", "SEMRA", "MELIH", "PEDRIE", "ARZU", "SEVVAL", "KEMAL", "MUSTAFA", "RAMAZAN", "TULAY", "HATIC", "CIGDEM"]):
+                    skr_kod, kategori = "4100", "Löhne und Gehälter"
+
+                # 6. İnternet & Telefon (SKR 4910)
+                elif any(x in payee for x in ["TELEKOM", "TELEFONICA", "VODAFONE", "CHECKDOMAIN", "DOMAINFACTORY"]):
+                    skr_kod, kategori = "4910", "Internet & Telefon"
+
+                # 7. Enerji (Gas, Strom, Wasser) (SKR 4240)
+                elif "STADTWERKE" in payee or "EWE VERTRIEB" in payee:
+                    skr_kod, kategori = "4240", "Gas, Strom, Wasser"
+
+                # 8. Malzeme & Ofis (SKR 3400 / 4930)
+                elif any(x in payee for x in ["TOOM", "REWE", "CLEAN CONNECTION", "TRIVANTO", "METRO", "LIDL", "ALDI", "NETTO", "BIE-DRO"]):
+                    skr_kod, kategori = "3400", "Wareneinkauf"
+                elif any(x in payee for x in ["ADOBE", "OPENAI", "ESET", "NORTON", "MICROSOFT", "GOOGLE GSUITE", "ESELT GMBH", "TRINKGUT"]):
+                    skr_kod, kategori = "4930", "Bürobedarf & EDV"
+
+                # 9. Vergi & Banka & PayPal (SKR 1780 / 4970)
+                elif "FINANZAMT" in payee:
+                    skr_kod, kategori = "1780", "Umsatzsteuer"
+                elif "PAYPAL" in payee or "NEXI" in payee:
+                    skr_kod, kategori = "4970", "Nebenkosten Geldverkehr"
+
+                # 10. Nakit & Şahsi (SKR 1800)
+                elif any(x in payee for x in ["DAMLA KICCI", "MURAT KICCI", "WANH.ORT", "HOCHFELD"]):
+                    skr_kod, kategori = "1800", "Privatentnahme"
+
+                # --- GÜNCELLEME VEYA EKLEME KARARI ---
+                if row_g and row_g[0] == "Sonstige Ausgaben" and kategori != "Sonstige Ausgaben":
+                    cursor.execute('''
+                        UPDATE gewerbliche_ausgaben 
+                        SET skr03_kod = ?, kategori = ? 
+                        WHERE zweck LIKE ?
+                    ''', (skr_kod, kategori, search_id))
+                elif not row_g:
+                    cursor.execute('''
+                        INSERT INTO gewerbliche_ausgaben (datum, skr03_kod, kategori, empfaenger, zweck, brutto, mwst_betrag, netto, konto, monat)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    ''', (date, skr_kod, kategori, payee_raw, description, brutto, mwst_betrag, netto, konto_adi, f"{int(month):02d}"))
+
+            # --- 🏠 BÖLÜM B: ŞAHSİ GİDERLER (Damla ve Murat) ---
+            elif acc_id in ["5965693", "6143807"]:
+                owner = "Damla" if acc_id == "5965693" else "Murat"
+                cursor.execute('''
+                    INSERT INTO private_ausgaben (datum, skr03_kod, kategori, empfaenger, zweck, betrag, konto, monat)
+                    VALUES (?, '1800', 'Privatentnahme', ?, ?, ?, ?, ?)
+                ''', (date, payee_raw, description, brutto, owner, f"{int(month):02d}"))
+
+        conn.commit()
+        print(f"🚀 {month}/{year} Verileri ID Zırhı ve Otomatik Düzeltme ile Güncellendi!")
+    except Exception as e:
+        print(f"❌ Veri Çekme Hatası: {e}")
+    finally:
+        conn.close()
