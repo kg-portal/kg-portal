@@ -164,9 +164,6 @@ html {
         <a class="nav-link" data-toggle="tab" href="#bank" style="font-weight:700;">Bank</a>
     </li>
     <li class="nav-item">
-        <a class="nav-link" data-toggle="tab" href="#miete" style="font-weight:700;">Miete</a>
-    </li>
-    <li class="nav-item">
         <a class="nav-link" data-toggle="tab" href="#gewerbliche" style="font-weight:700;">Gewerbliche Ausgaben</a>
     </li>
     <li class="nav-item">
@@ -182,11 +179,11 @@ html {
 ..........................................................................................................
 -->
 
-    <div class="tab-content bg-white shadow-sm p-4 border border-top-0">
+<div class="tab-content bg-white shadow-sm p-4 border border-top-0">
 
     <div class="tab-pane fade {% if not active_bank %}show active{% endif %}" id="rechnungen">
         <div class="row">
-            <div class="col-md-4">
+            <div class="col-md-3">
                 <h5 class="mb-4 text-primary font-weight-bold">Abrechnungszeitraum</h5>
                 <div class="list-group">
                     {% set monate = [
@@ -199,14 +196,14 @@ html {
                     {% for m_num, m_name in monate %}
                     <a href="?month={{ m_num }}&year=2026#rechnungen" 
                        class="list-group-item list-group-item-action d-flex justify-content-between align-items-center shadow-sm mb-3 {% if selected_month == m_num %}active text-white{% endif %}"
-                       style="border-left: 6px solid #007bff; border-radius: 8px;">
+                       style="border-left: 6px solid #007bff; border-radius: 8px; padding: 18px;">
                         <h6 class="mb-0 font-weight-bold">{{ loop.index }}- {{ m_name }} 2026</h6>
                     </a>
                     {% endfor %}
                 </div>
             </div>
 
-            <div class="col-md-8 border-left" style="max-height: 800px; overflow-y: auto;">
+            <div class="col-md-9 border-left" style="max-height: 800px; overflow-y: auto;">
                 <h5 class="mb-4 text-dark font-weight-bold">Rechnungen – {{ selected_month_name if selected_month_name else 'Januar' }} 2026</h5>
                 
                 {% if rechnungen %}
@@ -225,7 +222,6 @@ html {
                             </tr>
                         </thead>
                         <tbody>
-                            <tbody>
                             {% for r in rechnungen %}
                             <tr>
                                 <td>{{ r.nr }}</td>
@@ -254,9 +250,9 @@ html {
 
     <div class="tab-pane fade" id="rates">
         <div class="row">
-            <div class="col-md-4">
-                <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h5 class="text-primary font-weight-bold mb-0">Kreditliste</h5>
+            <div class="col-md-2">
+    <div class="d-flex flex-column align-items-start mb-4">
+        <h5 class="text-primary font-weight-bold mb-2">Kreditliste</h5>
                     <button onclick="openRateModal()" class="btn btn-primary shadow-sm" style="border-radius:10px; font-weight:700; padding: 8px 15px;">
                         + Hinzufügen
                     </button>
@@ -266,24 +262,23 @@ html {
                     {% for rate in ratenzahlungen %}
                     <a href="javascript:void(0)" 
                        class="list-group-item list-group-item-action d-flex justify-content-between align-items-center mb-3 shadow-sm"
-                       style="border-left: 6px solid #6f42c1; border-radius: 8px;">
+                       style="border-left: 6px solid #6f42c1; border-radius: 8px; padding: 18px;">
                         <div>
-                            <div>
                             <h6 class="mb-0 font-weight-bold">{{ rate.kreditname }}</h6>
                             <small class="text-muted">Rate: {{ "{:,.2f}".format(rate.monatliche_rate).replace(',', 'X').replace('.', ',').replace('X', '.') }} €</small>
-                        </div>
                         </div>
                     </a>
                     {% endfor %}
                 </div>
             </div>
 
-            <div class="col-md-8 border-left">
-                <h5 class="mb-4 text-dark font-weight-bold">Details & Übersicht</h5>
-                <div class="card shadow-sm border-0" style="border-radius:15px; overflow:hidden;">
-                    <div class="table-responsive">
-                        <table class="table table-hover mb-0 text-center">
-                            <thead style="background-color: #28a745 !important;"> <tr class="text-white">
+            <div class="col-md-10 border-left">
+    <h5 class="mb-4 text-dark font-weight-bold">Details & Übersicht</h5>
+    <div class="card shadow-sm border-0" style="border-radius:15px; overflow:hidden;">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0 text-center" style="width: 100%; min-width: 100%;">
+                            <thead style="background-color: #28a745 !important;"> 
+    <tr class="text-white small">
                                     <th style="font-weight:800; border:none; padding:15px;">Kreditname</th>
                                     <th style="font-weight:800; border:none; padding:15px;">Gesamtbetrag</th>
                                     <th style="font-weight:800; border:none; padding:15px;">Rate (mtl)</th>
@@ -297,66 +292,67 @@ html {
                                 </tr>
                             </thead>
                             <tbody>
-                            {% for rate in ratenzahlungen %}
-                            <tr style="border-bottom:1px solid #f1f5f9">
-                                <td style="padding:15px; font-weight:700;">{{ rate.kreditname }}</td>
-                                <td style="padding:15px;">{{ "{:,.2f}".format(rate.gesamtbetrag).replace(',', 'X').replace('.', ',').replace('X', '.') }} €</td>
-                                <td style="padding:15px;">{{ "{:,.2f}".format(rate.monatliche_rate).replace(',', 'X').replace('.', ',').replace('X', '.') }} €</td>
-                                <td style="padding:15px;">{{ rate.laufzeit }} Monate</td>
-                                <td style="padding:15px;">{{ rate.beginn }}</td>
-                                <td style="padding:15px;">{{ rate.ende }}</td>
-                                <td style="padding:15px;">{{ rate.einzahl_raten }}</td>
-                                <td style="padding:15px;">{{ rate.rest_raten }}</td>
-                                <td style="padding:15px; font-weight:800;">{{ "{:,.2f}".format(rate.restbetrag).replace(',', 'X').replace('.', ',').replace('X', '.') }} €</td>
-                                <td class="no-print" style="padding:15px; min-width:110px;">
-                                    <button onclick="editRate('{{ rate.id }}')" class="btn btn-sm btn-outline-primary mr-1" style="border-radius:8px;">
-                                        <i class="fa-solid fa-pen-to-square"></i>
-                                    </button>
-                                    <button onclick="deleteRate('{{ rate.id }}')" class="btn btn-sm btn-outline-danger" style="border-radius:8px;">
-                                        <i class="fa-solid fa-trash"></i>
-                                    </button>
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
+                                {% for rate in ratenzahlungen %}
+                                <tr style="border-bottom: 1px solid #f1f5f9; color: {{ rate.renk_kodu or '#333' }};">
+    <td style="padding:15px; font-weight:700;">{{ rate.kreditname }}</td>
+    <td style="padding:15px;">{{ "{:,.2f}".format(rate.gesamtbetrag).replace(',', 'X').replace('.', ',').replace('X', '.') }} €</td>
+    <td style="padding:15px;">{{ "{:,.2f}".format(rate.monatliche_rate).replace(',', 'X').replace('.', ',').replace('X', '.') }} €</td>
+    <td style="padding:15px;">{{ rate.laufzeit }} Monate</td>
+    <td style="padding:15px;">{{ rate.beginn }}</td>
+    <td style="padding:15px;">{{ rate.ende }}</td>
+    <td style="padding:15px;">{{ rate.einzahl_raten }}</td>
+    <td style="padding:15px;">{{ rate.rest_raten }}</td>
+    <td style="padding:15px; font-weight:800;">{{ "{:,.2f}".format(rate.restbetrag).replace(',', 'X').replace('.', ',').replace('X', '.') }} €</td>
+    <td class="no-print" style="padding:15px; min-width:110px;">
+        <button onclick="editRate('{{ rate.id }}')" class="btn btn-sm btn-outline-primary mr-1" style="border-radius:8px;">
+            <i class="fa-solid fa-pen-to-square"></i>
+        </button>
+        <button onclick="deleteRate('{{ rate.id }}')" class="btn btn-sm btn-outline-danger" style="border-radius:8px;">
+            <i class="fa-solid fa-trash"></i>
+        </button>
+    </td>
+</tr>
+
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
 
     <div class="tab-pane fade {% if active_bank %}show active{% endif %}" id="bank">
         <div class="row">
-            <div class="col-md-4">
+            <div class="col-md-3">
                 <h5 class="mb-4 text-primary font-weight-bold">Bankkonten</h5>
                 <div class="list-group">
-                    <a href="?bank_account=geschäftskonto-kg-gebäudereinigung#bank" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center shadow-sm mb-3 {% if active_bank == 'geschäftskonto-kg-gebäudereinigung' %}active text-white{% endif %}" style="border-left: 6px solid #007bff; border-radius: 8px;">
+                    <a href="?bank_account=geschäftskonto-kg-gebäudereinigung#bank" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center shadow-sm mb-3 {% if active_bank == 'geschäftskonto-kg-gebäudereinigung' %}active text-white{% endif %}" style="border-left: 6px solid #007bff; border-radius: 8px; padding: 18px;">
                         <h6 class="mb-0 font-weight-bold">1- Geschäftskonto - KG-Gebäudereinigung</h6>
                     </a>
-                    <a href="?bank_account=geschäftskonto-amazon-energie#bank" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center shadow-sm mb-3 {% if active_bank == 'geschäftskonto-amazon-energie' %}active text-white{% endif %}" style="border-left: 6px solid #17a2b8; border-radius: 8px;">
+                    <a href="?bank_account=geschäftskonto-amazon-energie#bank" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center shadow-sm mb-3 {% if active_bank == 'geschäftskonto-amazon-energie' %}active text-white{% endif %}" style="border-left: 6px solid #17a2b8; border-radius: 8px; padding: 18px;">
                         <h6 class="mb-0 font-weight-bold">2- Geschäftskonto - Amazon - Energie</h6>
                     </a>
-                    <a href="?bank_account=damla-privat#bank" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center shadow-sm mb-3 {% if active_bank == 'damla-privat' %}active text-white{% endif %}" style="border-left: 6px solid #e83e8c; border-radius: 8px;">
+                    <a href="?bank_account=damla-privat#bank" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center shadow-sm mb-3 {% if active_bank == 'damla-privat' %}active text-white{% endif %}" style="border-left: 6px solid #e83e8c; border-radius: 8px; padding: 18px;">
                         <h6 class="mb-0 font-weight-bold">3- Damla Privat</h6>
                     </a>
-                    <a href="?bank_account=murat-privat#bank" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center shadow-sm mb-3 {% if active_bank == 'murat-privat' %}active text-white{% endif %}" style="border-left: 6px solid #6f42c1; border-radius: 8px;">
+                    <a href="?bank_account=murat-privat#bank" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center shadow-sm mb-3 {% if active_bank == 'murat-privat' %}active text-white{% endif %}" style="border-left: 6px solid #6f42c1; border-radius: 8px; padding: 18px;">
                         <h6 class="mb-0 font-weight-bold">4- Murat Privat</h6>
                     </a>
                 </div>
             </div>
 
-            <div class="col-md-8 border-left" style="max-height: 800px; overflow-y: auto;">
+            <div class="col-md-9 border-left" style="max-height: 800px; overflow-y: auto;">
                 {% if bank_data %}
                     <div class="d-flex justify-content-between align-items-center mb-4 sticky-top bg-white py-2" style="z-index: 10;">
-    <h5 class="text-dark font-weight-bold mb-0">Transaktionen</h5>
-    <div class="text-right">
-        <span class="text-muted small font-weight-bold">Aktueller Kontostand</span>
-        <div class="h5 font-weight-bold mb-0 {% if total_bank_balance >= 0 %}text-success{% else %}text-danger{% endif %}">
-    {{ "{:,.2f}".format(total_bank_balance).replace(',', 'X').replace('.', ',').replace('X', '.') }} €
-        </div>
-    </div>
-</div>
+                        <h5 class="text-dark font-weight-bold mb-0">Transaktionen</h5>
+                        <div class="text-right">
+                            <span class="text-muted small font-weight-bold">Aktueller Kontostand</span>
+                            <div class="h5 font-weight-bold mb-0 {% if total_bank_balance >= 0 %}text-success{% else %}text-danger{% endif %}">
+                                {{ "{:,.2f}".format(total_bank_balance).replace(',', 'X').replace('.', ',').replace('X', '.') }} €
+                            </div>
+                        </div>
+                    </div>
                     <div class="list-group shadow-sm">
                         {% for t in bank_data %}
                         <div class="list-group-item d-flex justify-content-between align-items-center py-3">
@@ -367,7 +363,7 @@ html {
                             </div>
                             <div class="text-right">
                                 <span class="h6 font-weight-bold {{ 'text-success' if t.amount > 0 else 'text-dark' }}">
-    {{ "{:,.2f}".format(t.amount).replace(',', 'X').replace('.', ',').replace('X', '.') }} €
+                                    {{ "{:,.2f}".format(t.amount).replace(',', 'X').replace('.', ',').replace('X', '.') }} €
                                 </span>
                             </div>
                         </div>
@@ -381,6 +377,115 @@ html {
             </div>
         </div>
     </div>
+
+    <div class="tab-pane fade" id="gewerbliche">
+        <div class="row">
+            <div class="col-md-3">
+                <h5 class="mb-4 text-primary font-weight-bold">Gewerbliche Ausgaben 2026</h5>
+                <div class="list-group">
+                    {% for m_num, m_name in monate %}
+                    <a href="?month={{ m_num }}&year=2026#gewerbliche" 
+                       class="list-group-item list-group-item-action d-flex justify-content-between align-items-center shadow-sm mb-3 {% if selected_month == m_num %}active text-white{% endif %}"
+                       style="border-left: 6px solid #28a745; border-radius: 8px; padding: 18px;">
+                        <h6 class="mb-0 font-weight-bold">{{ loop.index }}- {{ m_name }} 2026</h6>
+                    </a>
+                    {% endfor %}
+                </div>
+            </div>
+            <div class="col-md-9 border-left">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h5 class="text-dark font-weight-bold mb-0 text-uppercase">Gewerbliche Ausgaben - {{ selected_month_name if selected_month_name else 'Januar' }} 2026</h5>
+                    <button class="btn btn-success shadow-sm" style="border-radius:10px; font-weight:700; padding: 8px 15px;">+ Ausgabe Hinzufügen</button>
+                </div>
+                <div class="table-responsive shadow-sm">
+                    <table class="table table-hover table-bordered text-center small">
+                        <thead class="bg-success text-white">
+                            <tr>
+                                <th>Datum</th>
+                                <th>SKR 03</th>
+                                <th>Kategorie</th>
+                                <th>Empfänger</th>
+                                <th>Verwendungszweck</th>
+                                <th>Brutto</th>
+                                <th>MwSt €</th>
+                                <th>Netto</th>
+                                <th>Konto</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for g in gewerbliche_ausgaben %}
+                            <tr>
+                                <td>{{ g.datum }}</td>
+                                <td><span class="badge badge-light border">{{ g.skr03_kod }}</span></td>
+                                <td>{{ g.kategori }}</td>
+                                <td class="font-weight-bold">{{ g.empfaenger }}</td>
+                                <td class="small">{{ g.zweck }}</td>
+                                <td class="font-weight-bold">{{ "{:,.2f}".format(g.brutto).replace(',', 'X').replace('.', ',').replace('X', '.') }} €</td>
+                                <td>{{ "{:,.2f}".format(g.mwst_betrag).replace(',', 'X').replace('.', ',').replace('X', '.') }} €</td>
+                                <td>{{ "{:,.2f}".format(g.netto).replace(',', 'X').replace('.', ',').replace('X', '.') }} €</td>
+                                <td><span class="badge badge-primary">{{ g.konto }}</span></td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="tab-pane fade" id="private">
+        <div class="row">
+            <div class="col-md-3">
+                <h5 class="mb-4 text-primary font-weight-bold">Private Ausgaben 2026</h5>
+                <div class="list-group">
+                    {% for m_num, m_name in monate %}
+                    <a href="?month={{ m_num }}&year=2026#private" 
+                       class="list-group-item list-group-item-action d-flex justify-content-between align-items-center shadow-sm mb-3 {% if selected_month == m_num %}active text-white{% endif %}"
+                       style="border-left: 6px solid #e83e8c; border-radius: 8px; padding: 18px;">
+                        <h6 class="mb-0 font-weight-bold">{{ loop.index }}- {{ m_name }} 2026</h6>
+                    </a>
+                    {% endfor %}
+                </div>
+            </div>
+            <div class="col-md-9 border-left">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h5 class="text-dark font-weight-bold mb-0 text-uppercase">Private Ausgaben - {{ selected_month_name if selected_month_name else 'Januar' }} 2026</h5>
+                    <button class="btn btn-danger shadow-sm" style="background-color: #e83e8c; border: none; border-radius:10px; font-weight:700; padding: 8px 15px;">+ Ausgabe Hinzufügen</button>
+                </div>
+                <div class="table-responsive shadow-sm">
+                    <table class="table table-hover table-bordered text-center small">
+                        <thead style="background-color: #e83e8c; color: white;">
+                            <tr>
+                                <th>Datum</th>
+                                <th>Kod</th>
+                                <th>Kategorie</th>
+                                <th>Empfänger</th>
+                                <th>Verwendungszweck</th>
+                                <th>Betrag</th>
+                                <th>Konto</th>
+                                <th>Notiz</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for p in private_ausgaben %}
+                            <tr>
+                                <td>{{ p.datum }}</td>
+                                <td>{{ p.skr03_kod }}</td>
+                                <td>{{ p.kategori }}</td>
+                                <td class="font-weight-bold">{{ p.empfaenger }}</td>
+                                <td class="small">{{ p.zweck }}</td>
+                                <td class="text-danger font-weight-bold">{{ "{:,.2f}".format(p.betrag).replace(',', 'X').replace('.', ',').replace('X', '.') }} €</td>
+                                <td><span class="badge badge-info">{{ p.konto }}</span></td>
+                                <td class="text-muted italic small">{{ p.notiz or '-' }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
 </div>
 
 
@@ -407,7 +512,16 @@ html {
                 <label class="small font-weight-bold text-muted">Kreditname</label>
                 <input type="text" class="form-control" name="kreditname" placeholder="z.B. Auto Kredit" required oninvalid="this.setCustomValidity('Bitte füllen Sie dieses Feld aus.')" oninput="this.setCustomValidity('')" style="border-radius:10px;">
             </div>
-            <div class="col-md-4 mb-3">
+<div class="col-md-4 mb-3">
+    <label class="small font-weight-bold text-muted">Farbe</label>
+    <select class="form-control" name="renk_kodu" style="border-radius:10px; font-size: 20px;">
+        <option value="#28a745">🟢</option>
+        <option value="#007bff">🔵</option>
+        <option value="#fd7e14">🟠</option>
+        <option value="#6f42c1">🟣</option>
+        <option value="#dc3545">🔴</option>
+    </select>
+</div>            <div class="col-md-4 mb-3">
                 <label class="small font-weight-bold text-muted">Gesamtbetrag (€)</label>
                 <input type="number" step="0.01" class="form-control" name="gesamtbetrag" placeholder="10.000,00" required oninvalid="this.setCustomValidity('Bitte füllen Sie dieses Feld aus.')" oninput="this.setCustomValidity('')" style="border-radius:10px;">
             </div>
@@ -623,16 +737,24 @@ function editRate(id) {
         .then(response => response.json())
         .then(data => {
             const form = document.getElementById('rateForm');
+            
+            // Temel verileri doldur
             form.kreditname.value = data.kreditname;
             form.gesamtbetrag.value = data.gesamtbetrag;
             form.monatliche_rate.value = data.monatliche_rate;
             form.laufzeit.value = data.laufzeit;
-            form.beginn.value = data.beginn;
-            form.ende.value = data.ende;
             form.einzahl_raten.value = data.einzahl_raten;
             form.rest_raten.value = data.rest_raten;
             form.restbetrag.value = data.restbetrag;
 
+            // 🔥 TARİHLERİ BURASI HATIRLAR (BOŞ KALMAZ)
+            form.beginn.value = data.beginn || '';
+            form.ende.value = data.ende || '';
+            
+            // Seçilen rengi hatırla
+            if(form.renk_kodu) form.renk_kodu.value = data.renk_kodu || '#28a745';
+
+            // ID'yi gizli inputa ata
             let idInput = document.getElementById('edit_rate_id');
             if (!idInput) {
                 idInput = document.createElement('input');
@@ -641,7 +763,7 @@ function editRate(id) {
                 idInput.id = 'edit_rate_id';
                 form.appendChild(idInput);
             }
-            idInput.value = id;
+            idInput.value = data.id;
         });
 }
 
