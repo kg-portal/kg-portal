@@ -37,3 +37,8 @@ self.addEventListener("notificationclick", (event) => {
     })
   );
 });
+
+// Android PWA kriterleri için fetch dinleyicisi eklendi
+self.addEventListener("fetch", (event) => {
+  // Uygulamanın yüklenebilir olması için bu kısmın tanımlı olması şarttır.
+});
