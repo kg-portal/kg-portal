@@ -232,6 +232,12 @@
                   style="background:#f0fdf4; color:#16a34a; border:none; padding:10px; border-radius:10px; cursor:pointer;">
             <i class="fa-solid fa-user-plus"></i> Reaktivieren
           </button>
+
+          <button onclick="if(confirm('Mitarbeiter endgültig löschen?')) window.location.href='/mitarbeiter/hard_delete/{{ m.id }}'" 
+          title="Löschen"
+          style="background:#fef2f2; color:#dc2626; border:none; padding:10px; border-radius:10px; cursor:pointer;">
+          <i class="fa-solid fa-trash-can"></i>
+
         </td>
       </tr>
       {% endfor %}
