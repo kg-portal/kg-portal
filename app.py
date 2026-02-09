@@ -10,8 +10,7 @@ import sqlite3
 import json
 import os
 from leistungen import LEISTUNGEN
-from sevdesk import sync_sevdesk_to_db, get_cached_rechnungen
-
+from lexware import sync_lexware_to_db, get_cached_rechnungen
 app = Flask(__name__)
 app.secret_key = 'kg_reinigung_ozel_anahtar_2026' # Güvenlik anahtarı
 DB_PATH = os.path.join('data', 'kg_portal.db') 
@@ -85,6 +84,21 @@ def init_db():
             data_json TEXT
         )
     ''')
+
+    # ===============================
+    # LEXWARE ID ZIRHI
+    # ===============================
+    try:
+        conn.execute("ALTER TABLE kunden ADD COLUMN lexware_id TEXT")
+    except:
+        pass
+
+    try:
+        conn.execute(
+            "CREATE UNIQUE INDEX IF NOT EXISTS idx_kunden_lexware_id ON kunden(lexware_id)"
+        )
+    except:
+        pass
 
     conn.execute('''
         CREATE TABLE IF NOT EXISTS mitarbeiter (
@@ -176,9 +190,9 @@ def init_db():
         )
     ''')
 
-# SEVDESK VERİ DEPOSU (IŞIK HIZI İÇİN)
+# LEXWARE VERİ DEPOSU (IŞIK HIZI İÇİN)
     conn.execute('''
-        CREATE TABLE IF NOT EXISTS sevdesk_cache (
+        CREATE TABLE IF NOT EXISTS lexware_cache (
             invoice_id TEXT PRIMARY KEY,
             nr TEXT,
             datum TEXT,
@@ -187,7 +201,7 @@ def init_db():
             netto REAL,
             mwst REAL,
             offen REAL,
-            status_code INTEGER,
+            status_code TEXT,
             last_updated TEXT DEFAULT CURRENT_TIMESTAMP
         )
     ''')
@@ -266,6 +280,20 @@ def init_db():
 
 init_db()
 
+def run_db_migration():
+    conn = get_db_connection()
+    try:
+        conn.execute("ALTER TABLE gewerbliche_ausgaben ADD COLUMN kategori TEXT")
+        conn.execute("ALTER TABLE private_ausgaben ADD COLUMN kategori TEXT")
+        conn.commit()
+        print("✅ Veritabanı yapısı güncellendi.")
+    except Exception:
+        pass
+    finally:
+        conn.close()
+
+run_db_migration()
+
 # =====================================================
 # Bölüm 4-GİRİŞ VE ÇIKIŞ İŞLEMLERİ (BURAYA GELDİ)
 # =====================================================
@@ -292,20 +320,20 @@ def logout():
 def index():
     conn = get_db_connection()
 
-    # BURAYA EKLE (SevDesk Hesaplama) -------------------------
-    sync_sevdesk_to_db() 
+    # BURAYA EKLE (Lexware Hesaplama) -------------------------
+    sync_lexware_to_db() 
     import datetime
     now = datetime.datetime.now()
     
     search_pattern = f"{now.year}-{now.month:02d}-%"
-    monat_row = conn.execute("SELECT SUM(brutto) FROM sevdesk_cache WHERE datum LIKE ?", (search_pattern,)).fetchone()
+    monat_row = conn.execute("SELECT SUM(brutto) FROM lexware_cache WHERE datum LIKE ?", (search_pattern,)).fetchone()
     monatlicher_umsatz = monat_row[0] if monat_row[0] else 0.0
 
     jahres_grafik_verisi = []
     jahres_umsatz = 0
     for m in range(1, 13):
         p = f"{now.year}-{m:02d}-%"
-        r = conn.execute("SELECT SUM(brutto) FROM sevdesk_cache WHERE datum LIKE ?", (p,)).fetchone()
+        r = conn.execute("SELECT SUM(brutto) FROM lexware_cache WHERE datum LIKE ?", (p,)).fetchone()
         val = r[0] if r[0] else 0.0
         jahres_grafik_verisi.append(val)
         jahres_umsatz += val
@@ -421,7 +449,7 @@ def index():
 
 
 # =====================================================
-# Bölüm 6- KUNDEN
+# Bölüm 6- KUNDEN (ZIRHLI VE HATASIZ VERSİYON)
 # =====================================================
 @app.route("/kunden", methods=["GET", "POST"])
 def kunden():
@@ -439,44 +467,45 @@ def kunden():
         data_json = json.dumps(form_data, ensure_ascii=False)
 
         if kunde_id:
+            # --- 1. PORTAL VERİTABANINI GÜNCELLE (Mevcut yapı korundu) ---
             conn.execute("""
                 UPDATE kunden SET
-                    firma=?,
-                    ort=?,
-                    monat=?,
-                    strasse=?,
-                    plz=?,
-                    ansprechpartner_name=?,
-                    telefon=?,
-                    email=?,
-                    kundennummer=?,
-                    vertrag_beginn=?,
-                    vertrag_ende=?,
-                    haeufigkeit=?,
-                    vertragsstatus=?,
-                    vertragslaufzeit=?,
-                    data_json=?
+                    firma=?, ort=?, monat=?, strasse=?, plz=?,
+                    ansprechpartner_name=?, telefon=?, email=?,
+                    kundennummer=?, vertrag_beginn=?, vertrag_ende=?,
+                    haeufigkeit=?, vertragsstatus=?, vertragslaufzeit=?, data_json=?
                 WHERE id=?
             """, (
-                form_data.get("firma"),
-                form_data.get("stadt"),
-                form_data.get("betrag"),
-                form_data.get("strasse"),
-                form_data.get("plz"),
-                name,
-                form_data.get("telefon"),
-                form_data.get("email"),
-                form_data.get("kundennummer"),
-                form_data.get("beginn"),
-                form_data.get("ende"),
-                form_data.get("haeufigkeit"),
-                form_data.get("status"),
-                form_data.get("laufzeit"),
-                data_json,
-                kunde_id
+                form_data.get("firma"), form_data.get("stadt"), form_data.get("betrag"),
+                form_data.get("strasse"), form_data.get("plz"), name,
+                form_data.get("telefon"), form_data.get("email"),
+                form_data.get("kundennummer"), form_data.get("beginn"),
+                form_data.get("ende"), form_data.get("haeufigkeit"),
+                form_data.get("status"), form_data.get("laufzeit"),
+                data_json, kunde_id
             ))
+
+            # --- 🔥 AYNA SENKRON: BEARBEITEN YAPILINCA LEXWARE'I GÜNCELLE ---
+            try:
+                from lexware import update_lexware_contact
+                # Önce bu müşterinin lexware_id'sini bulalım
+                row = conn.execute("SELECT lexware_id FROM kunden WHERE id=?", (kunde_id,)).fetchone()
+                if row and row["lexware_id"]:
+                    update_lexware_contact(
+                        lexware_id=row["lexware_id"],
+                        firma_adi=form_data.get("firma"),
+                        sehir=form_data.get("stadt"),
+                        sokak=form_data.get("strasse"),
+                        plz=form_data.get("plz"),
+                        email=form_data.get("email"),
+                        telefon=form_data.get("telefon")
+                    )
+            except Exception as e:
+                print(f"⚠️ Lexware güncelleme hatası: {e}")
+
         else:
-            conn.execute("""
+            # --- 2. YENİ KAYIT EKLE (Mevcut yapı korundu) ---
+            cursor = conn.execute("""
                 INSERT INTO kunden (
                     firma, ort, monat, strasse, plz,
                     ansprechpartner_name, telefon, email,
@@ -484,32 +513,55 @@ def kunden():
                     haeufigkeit, vertragsstatus, vertragslaufzeit, data_json
                 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """, (
-                form_data.get("firma"),
-                form_data.get("stadt"),
-                form_data.get("betrag"),
-                form_data.get("strasse"),
-                form_data.get("plz"),
-                name,
-                form_data.get("telefon"),
-                form_data.get("email"),
-                form_data.get("kundennummer"),
-                form_data.get("beginn"),
-                form_data.get("ende"),
-                form_data.get("haeufigkeit"),
-                form_data.get("status"),
-                form_data.get("laufzeit"),
+                form_data.get("firma"), form_data.get("stadt"), form_data.get("betrag"),
+                form_data.get("strasse"), form_data.get("plz"), name,
+                form_data.get("telefon"), form_data.get("email"),
+                form_data.get("kundennummer"), form_data.get("beginn"),
+                form_data.get("ende"), form_data.get("haeufigkeit"),
+                form_data.get("status"), form_data.get("laufzeit"),
                 data_json
             ))
+            new_kunde_id = cursor.lastrowid # Yeni eklenen portal ID'si
+
+            # --- 🔥 AYNA SENKRON: YENİ KAYITTA LEXWARE ID'SİNİ AL VE KAYDET ---
+            try:
+                from lexware import create_lexware_contact
+                res = create_lexware_contact(
+                    firma_adi=form_data.get("firma"), 
+                    sehir=form_data.get("stadt"), 
+                    sokak=form_data.get("strasse"),
+                    plz=form_data.get("plz"),
+                    email=form_data.get("email"),
+                    telefon=form_data.get("telefon")
+                )
+                
+                # Eğer kayıt başarılıysa dönen ID'yi portal veritabanına geri yazalım
+                if res and (res.status_code == 201 or res.status_code == 200):
+                    lex_id = res.json().get("id")
+                    if lex_id:
+                        conn.execute("UPDATE kunden SET lexware_id=? WHERE id=?", (lex_id, new_kunde_id))
+            except Exception as e:
+                print(f"⚠️ Lexware kayıt hatası: {e}")
 
         conn.commit()
         conn.close()
         return redirect(url_for("kunden"))
 
-    kunden = conn.execute(
-        "SELECT * FROM kunden ORDER BY id DESC"
-    ).fetchall()
+    # 🔢 OTOMATİK NUMARA HESAPLAMA (YENİ)
+    # Veritabanındaki sadece rakamlardan oluşan en büyük numarayı bulur
+    last_nr_row = conn.execute("SELECT kundennummer FROM kunden WHERE kundennummer GLOB '[0-9]*' ORDER BY CAST(kundennummer AS INTEGER) DESC LIMIT 1").fetchone()
+    
+    if last_nr_row and last_nr_row['kundennummer']:
+        next_nr = int(last_nr_row['kundennummer']) + 1
+    else:
+        next_nr = 10002 # Veritabanı boşsa 10002'den başlar
+
+    # Müşteri listesini çek ve sayfayı yükle (Aşağıya doğru 1-2-3 sıralaması)
+    kunden_liste = conn.execute("SELECT * FROM kunden ORDER BY id ASC").fetchall()
     conn.close()
-    return render_template("kunden.html", kunden=kunden)
+    
+    # next_nr değişkenini kunden.html'e gönderiyoruz
+    return render_template("kunden.html", kunden=kunden_liste, next_nr=next_nr)
 
 # =====================================================
 # Bölüm 7- KUNDEN LÖSCHEN
@@ -946,20 +998,19 @@ def worker_stundenzettel(id, name, code):
 @app.route("/buchhaltung")
 @login_required
 def buchhaltung():
-    # --- 🔥 ADIM 2: DİNAMİK VERİ TETİKLEYİCİSİ (EKLENDİ) ---
+    # --- 🔥 ADIM 2: DİNAMİK VERİ TETİKLEYİCİSİ (GÜNCELLENDİ) ---
     import datetime
-    import sevdesk
+    # import sevdesk silindi!
     now = datetime.datetime.now()
     
     selected_month = request.args.get('month', default=now.month, type=int)
     selected_year = request.args.get('year', default=now.year, type=int)
 
-    # SevDesk'ten seçilen ayın giderlerini dinamik çeker
-    sevdesk.sync_ausgaben_dinamik(selected_month, selected_year)
+    # NOT: Lexware gider senkronizasyonu hazır olana kadar dinamik çekim pasif.
     # ----------------------------------------------------
 
-    # 1. Sevdesk ile veritabanını eşitle (Zırhlı sistem sadece eksikleri çeker)
-    sync_sevdesk_to_db() 
+    # 1. Lexware ile veritabanını eşitle
+    sync_lexware_to_db() 
     
     # 2. Seçilen ay ve yıl bilgilerini al (Aşağıdaki değişkenleri kullandığın için burası kalmalı)
     # now ve selected_month/year yukarıda tanımlandığı için çakışmaz.
@@ -991,9 +1042,6 @@ def buchhaltung():
         7: "Juli", 8: "August", 9: "September", 10: "Oktober", 11: "November", 12: "Dezember"
     }
     selected_month_name = monat_isimleri.get(selected_month)
-
-    # --- 🏦 BANKA VERİSİ VE CANLI BAKİYE KONTROLÜ (FİŞEK HIZI) ---
-    from sevdesk import get_bank_transactions, get_all_bank_balances # get_all_bank_balances ekledik
     
     selected_bank = request.args.get('bank_account') 
     bank_data = []
@@ -1102,26 +1150,22 @@ def add_ratenzahlung():
     conn.close()
     return redirect(url_for('buchhaltung') + "#rates")
 # =====================================================
-# Bölüm 19- SEVDESK BAĞLANTISI VE BAŞLATMA
+# Bölüm 19- LEXWARE BAĞLANTISI VE BAŞLATMA
 # =====================================================
 
-import sevdesk
-
 def init_services():
-    """Uygulama başlarken Sevdesk verilerini günceller."""
+    """Uygulama başlarken Lexware verilerini günceller."""
     try:
-        # Eski fatura senkronizasyonu
-        sevdesk.sync_sevdesk_to_db()
-        
-        # 🔥 DÜZELTİLDİ: Yeni dinamik fonksiyon çağrılıyor (Ocak için 1 gönderiyoruz)
-        sevdesk.sync_ausgaben_dinamik(1, 2026)
-        
-        print("🚀 Sevdesk Verileri ve Ocak 2026 Giderleri Başarıyla Güncellendi!")
+        # 1️⃣ Lexware fatura senkronizasyonu
+        sync_lexware_to_db()
+
+        # 2️⃣ 🔥 Lexware → Portal MÜŞTERİ SENKRONU (ELLE EKLENENLER)
+        from lexware import sync_lexware_customers_to_db
+        sync_lexware_customers_to_db()
+
+        print("🚀 Lexware Fatura + Müşteri Verileri Başarıyla Güncellendi!")
     except Exception as e:
         print(f"⚠️ Init Services Hatası: {e}")
-
-# Uygulama ayağa kalkarken servisleri çalıştır
-init_services()
 
 # =====================================================
 # BÖLÜM 20: UYGULAMA BAŞLATICI (NİHAİ ZIRHLI SÜRÜM)
@@ -1155,8 +1199,8 @@ if __name__ == "__main__":
     # conn.commit(); conn.close()
     # print("🧹 Çöpler temizlendi, veritabanı pırıl pırıl!")
 
-    # 3. SevDesk ve Banka verilerini çek (Zırhlı sistem sayesinde sadece yenileri ekler)
-    init_services()    
+    # 3. Lexware verilerini çek (Zırhlı sistem sayesinde sadece yenileri ekler)
+    init_services()  
 
     # 4. Uygulamayı başlat
     app.run(host="0.0.0.0", port=5000, debug=True)
