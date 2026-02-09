@@ -125,6 +125,10 @@ def init_db():
             created_at TEXT DEFAULT CURRENT_TIMESTAMP
         )
     ''')
+    try:
+        conn.execute("ALTER TABLE mitarbeiter ADD COLUMN anrede TEXT")
+    except:
+        pass
 
 
     #####################################################################
@@ -589,12 +593,13 @@ def mitarbeiter():
         if mitarbeiter_id:
             conn.execute("""
                 UPDATE mitarbeiter SET
-                    vorname=?, nachname=?, ort=?, strasse=?, plz=?,
+                    anrede=?, vorname=?, nachname=?, ort=?, strasse=?, plz=?,
                     geburtsdatum=?, eintrittsdatum=?, telefon=?, email=?,
                     steuer_id=?, sv_nummer=?, krankenkasse=?, iban=?,
                     stundenlohn=?, urlaub=?, resturlaub=?, art=?, data_json=?
                 WHERE id=?
             """, (
+                form_data.get("anrede"),
                 form_data.get("vorname"),
                 form_data.get("nachname"),
                 form_data.get("stadt"),
@@ -618,12 +623,13 @@ def mitarbeiter():
         else:
             conn.execute("""
                 INSERT INTO mitarbeiter (
-                    vorname, nachname, ort, strasse, plz,
+                    anrede, vorname, nachname, ort, strasse, plz,
                     geburtsdatum, eintrittsdatum, telefon, email,
                     steuer_id, sv_nummer, krankenkasse, iban,
                     stundenlohn, urlaub, resturlaub, art, data_json
                 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """, (
+                form_data.get("anrede"),
                 form_data.get("vorname"),
                 form_data.get("nachname"),
                 form_data.get("stadt"),
