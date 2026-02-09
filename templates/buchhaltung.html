@@ -169,7 +169,30 @@ html {
     <li class="nav-item">
         <a class="nav-link" data-toggle="tab" href="#private" style="font-weight:700;">Private Ausgaben</a>
     </li>
+    <li class="nav-item ml-auto">
+        <button onclick="lexwareMasasiniAc()" class="btn btn-sm" style="background-color: #007bff; color: white; font-weight: 800; border-radius: 8px; padding: 8px 18px; margin-top: 2px; margin-right: 10px; border: none; display: flex; align-items: center; gap: 10px; box-shadow: 0 4px 6px rgba(0,123,255,0.2); transition: 0.2s;">
+    <img src="https://app.lexware.de/favicon.svg" style="width: 20px; height: 20px; object-fit: contain;" alt="Lexware">
+    Lexware
+</button>
+
+    </li>
 </ul>
+
+<script>
+function lexwareMasasiniAc() {
+    const width = 1450;
+    const height = 950;
+    const left = (window.screen.width / 2) - (width / 2);
+    const top = (window.screen.height / 2) - (height / 2);
+    
+    // Lexware'i uygulama modunda (App-Mode) açar
+    window.open(
+        "https://app.lexware.de/dashboard/", 
+        "LexwareApp", 
+        `width=${width},height=${height},top=${top},left=${left},menubar=no,toolbar=no,location=no,status=no,resizable=yes`
+    );
+}
+</script>
 
 <!--
 ..........................................................................................................
