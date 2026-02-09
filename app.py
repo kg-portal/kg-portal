@@ -627,7 +627,8 @@ def mitarbeiter():
                     geburtsdatum, eintrittsdatum, telefon, email,
                     steuer_id, sv_nummer, krankenkasse, iban,
                     stundenlohn, urlaub, resturlaub, art, data_json
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+
             """, (
                 form_data.get("anrede"),
                 form_data.get("vorname"),
