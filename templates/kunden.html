@@ -113,7 +113,8 @@
         </td>
 
         <td style="padding:20px;font-weight:800;color:#059669">
-          {{ "{:,.2f}".format(k.monat).replace(",", "X").replace(".", ",").replace("X", ".") if k.monat else "0,00" }} €
+          {{ "{:,.2f}".format((k.monat|string|replace(",", ".")|float)).replace(",", "X").replace(".", ",").replace("X", ".") }} €
+
         </td>
 
  <td class="no-print"
@@ -165,7 +166,8 @@
 
   <span class="t-raw-monat">{{ k.monat if k.monat else "" }}</span>
   <span class="t-monat">
-    {{ "{:,.2f}".format(k.monat).replace(",", "X").replace(".", ",").replace("X", ".") if k.monat else "0,00" }} €
+    {{ "{:,.2f}".format((k.monat|string|replace(",", ".")|float)).replace(",", "X").replace(".", ",").replace("X", ".") }} €
+
   </span>
 </div>
 <!-- ✅ SADECE İLGİLİ DÜZELTME BİTTİ -->
