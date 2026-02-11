@@ -223,11 +223,11 @@
         </div>
         <div>
           <label class="input-lbl" style="color:#2563eb">PLZ</label>
-          <input class="m-input" name="plz" id="f_plz" oninput="autoCityNRW()">
+          <input class="m-input" name="plz" id="f_plz" maxlength="5" oninput="livePlzSearch()">
         </div>
         <div>
           <label class="input-lbl" style="color:#2563eb">Stadt</label>
-          <input class="m-input" name="stadt" id="f_stadt" readonly>
+          <input class="m-input" name="stadt" id="f_stadt">
         </div>
       </div>
     </div>
@@ -538,19 +538,34 @@ function closeModal() {
   document.getElementById('km').style.display = 'none';
 }
 
-/* ================================
-   PLZ → STADT (NRW)
-   ================================ */
-function autoCityNRW() {
-  const nrw = {
-    '40':'Düsseldorf','41':'Mönchengladbach','42':'Wuppertal','44':'Dortmund',
-    '45':'Essen','46':'Oberhausen','47':'Duisburg','48':'Münster',
-    '50':'Köln','51':'Leverkusen','52':'Aachen','53':'Bonn',
-    '57':'Siegen','58':'Hagen','59':'Hamm'
-  };
-  const v = document.getElementById('f_plz').value.substring(0, 2);
-  document.getElementById('f_stadt').value =
-    nrw[v] || (document.getElementById('f_plz').value.length > 2 ? "NRW Region" : "");
+/* ========================================================
+   🌍 PLZ → STADT (KG-Portal Backend Proxy)
+   ======================================================== */
+async function livePlzSearch() {
+
+  const plz = document.getElementById('f_plz').value.trim();
+  const cityInput = document.getElementById('f_stadt');
+
+  if (plz.length !== 5) return;
+
+  cityInput.placeholder = "Suche...";
+
+  try {
+
+    const response = await fetch("/api/plz/" + plz);
+    const data = await response.json();
+
+    if (data && data.city) {
+      cityInput.value = data.city;
+    } else {
+      cityInput.value = "";
+      cityInput.placeholder = "Nicht gefunden";
+    }
+
+  } catch (error) {
+    cityInput.value = "";
+    cityInput.placeholder = "Fehler";
+  }
 }
 </script>
 {% endblock %}
