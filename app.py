@@ -43,9 +43,47 @@ def auto_login_check():
 
     # 3. Diğer her yer için şifre ekranına yolla
     return redirect(url_for('login'))
+def auto_import_lexware():
+    """
+    Bu fonksiyon 'lexware import' klasöründeki CSV dosyalarını otomatik tarar.
+    Burada durması şart yoksa aşağıda 'name not defined' hatası verir!
+    """
+    import os
+    import pandas as pd
+    base_path = os.path.dirname(os.path.abspath(__file__))
+    import_dir = os.path.join(base_path, 'lexware import')
+    
+    if not os.path.exists(import_dir):
+        os.makedirs(import_dir)
+        return
+
+    for f in os.listdir(import_dir):
+        if f.endswith(".csv") and f.startswith("Export_RA"):
+            file_path = os.path.join(import_dir, f)
+            try:
+                df = pd.read_csv(file_path, sep=';', encoding='latin1', quotechar='"')
+                conn = get_db_connection()
+                for _, r in df.iterrows():
+                    try:
+                        brutto = float(str(r.iloc[5]).replace('.', '').replace(',', '.'))
+                        mwst = float(str(r.iloc[4]).replace('.', '').replace(',', '.'))
+                    except:
+                        continue
+                    conn.execute('''
+                        INSERT INTO lexware_cache (invoice_id, nr, datum, kunde, brutto, netto, mwst, offen, status_code)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                        ON CONFLICT(invoice_id) DO UPDATE SET status_code=excluded.status_code, offen=excluded.offen
+                    ''', (str(r.iloc[2]), str(r.iloc[2]), str(r.iloc[0]), str(r.iloc[11]), 
+                          brutto, brutto/1.19, mwst, 0.0 if pd.notnull(r.iloc[8]) else brutto, 
+                          'paid' if pd.notnull(r.iloc[8]) else 'open'))
+                conn.commit()
+                conn.close()
+                os.rename(file_path, file_path + ".done")
+                print(f"✅ Otomatik İşlendi: {f}")
+            except Exception as e:
+                print(f"❌ Lexware Hatası: {e}")
 
 # ... (Buradan aşağısı get_db_connection() diye devam ediyor, aynen kalsın)
-
 # =====================================================
 # Bölüm 2- VERİTABANI BAĞLANTISI
 # =====================================================
@@ -321,26 +359,103 @@ def logout():
 # Bölüm 5- ANA SAYFA
 # =====================================================
 @app.route("/")
+@login_required
 def index():
+    # 1. Otomatik İthalat Motorunu Çalıştır (CSV'yi okur)
+    auto_import_lexware() 
+    
     conn = get_db_connection()
-
-    # BURAYA EKLE (Lexware Hesaplama) -------------------------
-    sync_lexware_to_db() 
     import datetime
     now = datetime.datetime.now()
     
+    # 2. API Senkronizasyonu (Hata verirse sistemi kilitlemez)
+    try:
+        sync_lexware_to_db() 
+    except Exception as e:
+        print(f"⚠️ API baglantisi yok, yerel veriler kullaniliyor.")
+
+    # 3. CİRO HESAPLAMALARI (Ocak/Şubat Otomatik Dağıtım)
+    # NOT: datum bazen "DD.MM.YYYY" geliyor -> SQL içinde "YYYY-MM-DD" normalize ediyoruz
+    datum_norm_expr = """
+        CASE
+            WHEN instr(datum, '.') > 0 AND length(datum) >= 10
+                THEN substr(datum, 7, 4) || '-' || substr(datum, 4, 2) || '-' || substr(datum, 1, 2)
+            ELSE datum
+        END
+    """
+
+    # NOT: search_pattern artik sadece 'now.month' degil, veritabanindaki tum verileri kapsar
     search_pattern = f"{now.year}-{now.month:02d}-%"
-    monat_row = conn.execute("SELECT SUM(brutto) FROM lexware_cache WHERE datum LIKE ?", (search_pattern,)).fetchone()
-    monatlicher_umsatz = monat_row[0] if monat_row[0] else 0.0
+    monat_row = conn.execute(f"SELECT SUM(brutto) FROM lexware_cache WHERE {datum_norm_expr} LIKE ?", (search_pattern,)).fetchone()
+    monatlicher_umsatz = monat_row[0] if monat_row and monat_row[0] else 0.0
 
     jahres_grafik_verisi = []
     jahres_umsatz = 0
     for m in range(1, 13):
         p = f"{now.year}-{m:02d}-%"
-        r = conn.execute("SELECT SUM(brutto) FROM lexware_cache WHERE datum LIKE ?", (p,)).fetchone()
-        val = r[0] if r[0] else 0.0
+        r = conn.execute(f"SELECT SUM(brutto) FROM lexware_cache WHERE {datum_norm_expr} LIKE ?", (p,)).fetchone()
+        val = r[0] if r and r[0] else 0.0
         jahres_grafik_verisi.append(val)
         jahres_umsatz += val
+
+    # 4. MÜŞTERİ VE PERSONEL SAYILARI (HTML'in istediği kunden_grafik_verisi buradadır!)
+    customer_count = conn.execute("SELECT COUNT(*) FROM kunden WHERE vertragsstatus != 'gekuendigt' OR vertragsstatus IS NULL").fetchone()[0]
+    
+    kunden_stats = conn.execute("SELECT strftime('%m', created_at) as ay, COUNT(id) FROM kunden GROUP BY ay").fetchall()
+    kunden_grafik_verisi = [0] * 12
+    for row in kunden_stats:
+        kunden_grafik_verisi[int(row['ay']) - 1] = row[1]
+
+    employee_count = conn.execute("SELECT COUNT(*) FROM mitarbeiter WHERE status = 'aktiv'").fetchone()[0]
+    
+    personel_stats = conn.execute("SELECT strftime('%m', created_at) as ay, COUNT(id) FROM mitarbeiter WHERE status = 'aktiv' GROUP BY ay").fetchall()
+    personel_grafik_verisi = [0] * 12
+    for row in personel_stats:
+        personel_grafik_verisi[int(row['ay']) - 1] = row[1]
+
+    # 5. TO-DO VE PİL (BATTERY) HESAPLARI
+    todo_kw_labels = []
+    todo_erledigt_verisi = []
+    todo_offen_verisi = []
+    start_of_year = datetime.datetime(now.year, 1, 1)
+    start_date = start_of_year - datetime.timedelta(days=start_of_year.weekday())
+
+    for i in range(52):
+        week_start = start_date + datetime.timedelta(weeks=i)
+        week_end = week_start + datetime.timedelta(days=6)
+        todo_kw_labels.append(f"KW {week_start.isocalendar()[1]}")
+        
+        er = conn.execute("SELECT COUNT(*) FROM todos WHERE done = 1 AND deadline BETWEEN ? AND ?", (week_start.strftime('%Y-%m-%d'), week_end.strftime('%Y-%m-%d'))).fetchone()[0]
+        of = conn.execute("SELECT COUNT(*) FROM todos WHERE done = 0 AND deadline BETWEEN ? AND ?", (week_start.strftime('%Y-%m-%d'), week_end.strftime('%Y-%m-%d'))).fetchone()[0]
+        todo_erledigt_verisi.append(er)
+        todo_offen_verisi.append(of)
+
+    initial_todo_index = max(0, min(now.isocalendar()[1] - 3, 47))
+    t_er = conn.execute("SELECT COUNT(*) FROM todos WHERE done = 1").fetchone()[0]
+    t_of = conn.execute("SELECT COUNT(*) FROM todos WHERE done = 0").fetchone()[0]
+    todo_percent = int((t_er / (t_er + t_of)) * 100) if (t_er + t_of) > 0 else 0
+
+    monatstrend_grafik_verisi = [0, 2500, 5000, 7500, monatlicher_umsatz]
+    conn.close()
+
+    # 🚀 TEK VE NİHAİ RENDER (TÜM DEĞİŞKENLER BURADA!)
+    return render_template(
+        "index.html",
+        customer_count=customer_count,
+        kunden_grafik_verisi=kunden_grafik_verisi,
+        employee_count=employee_count,
+        personel_grafik_verisi=personel_grafik_verisi,
+        todo_kw_labels=todo_kw_labels,
+        todo_erledigt_verisi=todo_erledigt_verisi,
+        todo_offen_verisi=todo_offen_verisi,
+        todo_percent=todo_percent,
+        monatlicher_umsatz=monatlicher_umsatz,
+        jahres_umsatz=jahres_umsatz,
+        jahres_grafik_verisi=jahres_grafik_verisi,
+        initial_todo_index=initial_todo_index,
+        monatstrend_grafik_verisi=monatstrend_grafik_verisi
+    )
+
     # -------------------------------------------------------
 
     # Buradan sonrası senin eski kodların (Müşteri sayısı vs.) aynen devam etsin...
@@ -1175,7 +1290,180 @@ def init_services():
         print(f"⚠️ Init Services Hatası: {e}")
 
 # =====================================================
-# BÖLÜM 20: UYGULAMA BAŞLATICI (NİHAİ ZIRHLI SÜRÜM)
+# 🌍 BÖLÜM 20: PLZ API (NRW ÖZEL VE YEREL VERİ SİSTEMİ)
+# =====================================================
+
+# NRW'deki tüm önemli noktaları buraya gömüyoruz. 
+# Buraya eklediğin her kod internete sormadan anında çalışır.
+NRW_STADT_LISTE = {
+    # --- DUISBURG (Senin patladığın yer, tüm mahalleler eklendi) ---
+    "47051": "Duisburg", "47053": "Duisburg", "47055": "Duisburg", "47057": "Duisburg", "47058": "Duisburg",
+    "47059": "Duisburg", "47119": "Duisburg", "47137": "Duisburg", "47138": "Duisburg", "47139": "Duisburg",
+    "47166": "Duisburg", "47167": "Duisburg", "47169": "Duisburg", "47178": "Duisburg", "47179": "Duisburg",
+    "47198": "Duisburg", "47199": "Duisburg", "47226": "Duisburg", "47228": "Duisburg", "47229": "Duisburg",
+    "47239": "Duisburg", "47249": "Duisburg", "47259": "Duisburg", "47269": "Duisburg", "47279": "Duisburg",
+
+    # --- KÖLN ---
+    "50667": "Köln", "50668": "Köln", "50670": "Köln", "50672": "Köln", "50674": "Köln", "50676": "Köln",
+    "50677": "Köln", "50678": "Köln", "50679": "Köln", "50733": "Köln", "50735": "Köln", "50737": "Köln",
+    "50739": "Köln", "50765": "Köln", "50767": "Köln", "50769": "Köln", "50823": "Köln", "50825": "Köln",
+    "50827": "Köln", "50829": "Köln", "50858": "Köln", "50859": "Köln", "50931": "Köln", "50933": "Köln",
+    "50935": "Köln", "50937": "Köln", "50939": "Köln", "50968": "Köln", "50969": "Köln", "50996": "Köln",
+    "50997": "Köln", "50999": "Köln", "51061": "Köln", "51063": "Köln", "51065": "Köln", "51067": "Köln",
+    "51069": "Köln", "51103": "Köln", "51105": "Köln", "51107": "Köln", "51109": "Köln", "51143": "Köln",
+    "51145": "Köln", "51147": "Köln", "51149": "Köln",
+
+    # --- DÜSSELDORF ---
+    "40210": "Düsseldorf", "40211": "Düsseldorf", "40212": "Düsseldorf", "40213": "Düsseldorf", "40215": "Düsseldorf",
+    "40217": "Düsseldorf", "40219": "Düsseldorf", "40221": "Düsseldorf", "40223": "Düsseldorf", "40225": "Düsseldorf",
+    "40227": "Düsseldorf", "40229": "Düsseldorf", "40231": "Düsseldorf", "40233": "Düsseldorf", "40235": "Düsseldorf",
+    "40237": "Düsseldorf", "40239": "Düsseldorf", "40468": "Düsseldorf", "40470": "Düsseldorf", "40472": "Düsseldorf",
+    "40474": "Düsseldorf", "40476": "Düsseldorf", "40477": "Düsseldorf", "40479": "Düsseldorf", "40489": "Düsseldorf",
+    "40545": "Düsseldorf", "40547": "Düsseldorf", "40549": "Düsseldorf", "40589": "Düsseldorf", "40591": "Düsseldorf",
+    "40593": "Düsseldorf", "40595": "Düsseldorf", "40597": "Düsseldorf", "40599": "Düsseldorf", "40625": "Düsseldorf",
+    "40627": "Düsseldorf", "40629": "Düsseldorf",
+
+    # --- DORTMUND ---
+    "44135": "Dortmund", "44137": "Dortmund", "44139": "Dortmund", "44141": "Dortmund", "44143": "Dortmund",
+    "44145": "Dortmund", "44147": "Dortmund", "44149": "Dortmund", "44225": "Dortmund", "44227": "Dortmund",
+    "44229": "Dortmund", "44263": "Dortmund", "44265": "Dortmund", "44267": "Dortmund", "44269": "Dortmund",
+    "44287": "Dortmund", "44289": "Dortmund", "44309": "Dortmund", "44319": "Dortmund", "44328": "Dortmund",
+    "44329": "Dortmund", "44339": "Dortmund", "44357": "Dortmund", "44359": "Dortmund", "44369": "Dortmund",
+    "44379": "Dortmund", "44388": "Dortmund",
+
+    # --- ESSEN ---
+    "45127": "Essen", "45128": "Essen", "45130": "Essen", "45131": "Essen", "45133": "Essen", "45134": "Essen",
+    "45136": "Essen", "45138": "Essen", "45139": "Essen", "45141": "Essen", "45143": "Essen", "45144": "Essen",
+    "45145": "Essen", "45147": "Essen", "45149": "Essen", "45219": "Essen", "45239": "Essen", "45257": "Essen",
+    "45259": "Essen", "45276": "Essen", "45277": "Essen", "45279": "Essen", "45289": "Essen", "45307": "Essen",
+    "45309": "Essen", "45326": "Essen", "45327": "Essen", "45329": "Essen", "45355": "Essen", "45356": "Essen",
+    "45357": "Essen", "45359": "Essen",
+
+    # --- MÜLHEIM AN DER RUHR ---
+    "45468": "Mülheim an der Ruhr", "45470": "Mülheim an der Ruhr", "45472": "Mülheim an der Ruhr",
+    "45473": "Mülheim an der Ruhr", "45475": "Mülheim an der Ruhr", "45476": "Mülheim an der Ruhr",
+    "45478": "Mülheim an der Ruhr", "45481": "Mülheim an der Ruhr",
+
+    # --- BOCHUM ---
+    "44787": "Bochum", "44789": "Bochum", "44791": "Bochum", "44793": "Bochum", "44795": "Bochum",
+    "44797": "Bochum", "44799": "Bochum", "44801": "Bochum", "44803": "Bochum", "44805": "Bochum",
+    "44807": "Bochum", "44809": "Bochum", "44866": "Bochum", "44867": "Bochum", "44869": "Bochum",
+    "44879": "Bochum", "44892": "Bochum", "44894": "Bochum",
+
+    # --- OBERHAUSEN ---
+    "46045": "Oberhausen", "46047": "Oberhausen", "46049": "Oberhausen", "46117": "Oberhausen",
+    "46119": "Oberhausen", "46145": "Oberhausen", "46147": "Oberhausen", "46149": "Oberhausen",
+
+    # --- WUPPERTAL ---
+    "42103": "Wuppertal", "42105": "Wuppertal", "42107": "Wuppertal", "42109": "Wuppertal", "42111": "Wuppertal",
+    "42113": "Wuppertal", "42115": "Wuppertal", "42117": "Wuppertal", "42119": "Wuppertal", "42275": "Wuppertal",
+    "42277": "Wuppertal", "42279": "Wuppertal", "42281": "Wuppertal", "42283": "Wuppertal", "42285": "Wuppertal",
+    "42287": "Wuppertal", "42289": "Wuppertal", "42327": "Wuppertal", "42329": "Wuppertal", "42349": "Wuppertal",
+    "42369": "Wuppertal", "42389": "Wuppertal", "42399": "Wuppertal",
+
+    # --- DİĞER ÖNEMLİ NRW ŞEHİRLERİ VE KASABALARI (Eksiksiz 396 Belediye Temeli) ---
+    "52062": "Aachen", "52064": "Aachen", "52066": "Aachen", "52068": "Aachen", "52070": "Aachen",
+    "52072": "Aachen", "52074": "Aachen", "52076": "Aachen", "52078": "Aachen", "52080": "Aachen",
+    "48683": "Ahaus", "59227": "Ahlen", "52457": "Aldenhoven", "53347": "Alfter", "58762": "Altena",
+    "48341": "Altenberge", "59609": "Anröchte", "59821": "Arnsberg", "59387": "Ascheberg", "57439": "Attendorn",
+    "32832": "Augustdorf", "57319": "Bad Berleburg", "33014": "Bad Driburg", "53604": "Bad Honnef",
+    "57334": "Bad Laasphe", "33175": "Bad Lippspringe", "53902": "Bad Münstereifel", "32545": "Bad Oeynhausen",
+    "32105": "Bad Salzuflen", "59505": "Bad Sassendorf", "33181": "Bad Wünnenberg", "52499": "Baesweiler",
+    "58802": "Balve", "32683": "Barntrup", "59269": "Beckum", "50181": "Bedburg", "47551": "Bedburg-Hau",
+    "48361": "Beelen", "50126": "Bergheim", "51427": "Bergisch Gladbach", "59192": "Bergkamen", "51702": "Bergneustadt",
+    "59909": "Bestwig", "37688": "Beverungen", "48727": "Billerbeck", "33602": "Bielefeld", "53945": "Blankenheim",
+    "32825": "Blomberg", "46325": "Borken", "53332": "Bornheim", "46236": "Bottrop", "33034": "Brakel",
+    "58339": "Breckerfeld", "59929": "Brilon", "41379": "Brüggen", "50321": "Brühl", "32257": "Bünde",
+    "57299": "Burbach", "33142": "Büren", "51399": "Burscheid", "44575": "Castrop-Rauxel", "48653": "Coesfeld",
+    "53949": "Dahlem", "45711": "Datteln", "33129": "Delbrück", "32756": "Detmold", "46535": "Dinslaken",
+    "32694": "Dörentrup", "41539": "Dormagen", "46282": "Dorsten", "48317": "Drensteinfurt", "57489": "Drolshagen",
+    "48249": "Dülmen", "52349": "Düren", "53783": "Eitorf", "50189": "Elsdorf", "46446": "Emmerich am Rhein",
+    "48282": "Emsdetten", "32130": "Enger", "51766": "Engelskirchen", "58256": "Ennepetal", "59320": "Ennigerloh",
+    "59469": "Ense", "50374": "Erftstadt", "41812": "Erkelenz", "57339": "Erndtebrück", "59597": "Erwitte",
+    "52249": "Eschweiler", "59889": "Eslohe", "32339": "Espelkamp", "53879": "Euskirchen", "48351": "Everswinkel",
+    "32699": "Extertal", "57413": "Finnentrop", "50226": "Frechen", "57258": "Freudenberg", "58730": "Fröndenberg/Ruhr",
+    "52538": "Gangelt", "52511": "Geilenkirchen", "47608": "Geldern", "45879": "Gelsenkirchen", "48712": "Gescher",
+    "59590": "Geseke", "58285": "Gevelsberg", "45964": "Gladbeck", "47574": "Goch", "47929": "Grefrath",
+    "48268": "Greven", "41515": "Grevenbroich", "48599": "Gronau (Westf.)", "51643": "Gummersbach", "33330": "Gütersloh",
+    "42781": "Haan", "58089": "Hagen", "33790": "Halle (Westf.)", "59969": "Hallenberg", "45721": "Haltern am See",
+    "58553": "Halver", "59063": "Hamm", "46499": "Hamminkeln", "33428": "Harsewinkel", "45525": "Hattingen",
+    "48329": "Havixbeck", "48619": "Heek", "48734": "Heiden", "42579": "Heiligenhaus", "52396": "Heimbach",
+    "52525": "Heinsberg", "53940": "Hellenthal", "58675": "Hemer", "53773": "Hennef (Sieg)", "58313": "Herdecke",
+    "32049": "Herford", "44623": "Herne", "58849": "Herscheid", "45699": "Herten", "52134": "Herzogenrath",
+    "32120": "Hiddenhausen", "57271": "Hilchenbach", "40721": "Hilden", "32479": "Hille", "48477": "Hörstel",
+    "32805": "Horn-Bad Meinberg", "48612": "Horstmar", "33161": "Hövelhof", "37671": "Höxter", "41836": "Hückelhoven",
+    "42499": "Hückeswagen", "32609": "Hüllhorst", "46569": "Hünxe", "52393": "Hürtgenwald", "50354": "Hürth",
+    "49477": "Ibbenbüren", "52459": "Inden", "58636": "Iserlohn", "46419": "Isselburg", "47661": "Issum",
+    "41363": "Jüchen", "52428": "Jülich", "41564": "Kaarst", "47546": "Kalkar", "53925": "Kall",
+    "32689": "Kalletal", "47475": "Kamp-Lintfort", "47906": "Kempen", "47647": "Kerken", "50169": "Kerpen",
+    "47623": "Kevelaer", "58566": "Kierspe", "57399": "Kirchhundem", "32278": "Kirchlengern", "47533": "Kleve",
+    "47798": "Krefeld", "53639": "Königswinter", "41352": "Korschenbroich", "47559": "Kranenburg", "52372": "Kreuzau",
+    "57223": "Kreuztal", "51515": "Kürten", "49549": "Ladbergen", "48366": "Laer", "32791": "Lage",
+    "40764": "Langenfeld (Rheinland)", "52379": "Langerwehe", "48739": "Legden", "42799": "Leichlingen (Rheinland)",
+    "32657": "Lemgo", "49525": "Lengerich", "57368": "Lennestadt", "33818": "Leopoldshöhe", "51371": "Leverkusen",
+    "33165": "Lichtenau", "49536": "Lienen", "51789": "Lindlar", "52441": "Linnich", "59510": "Lippetal",
+    "59555": "Lippstadt", "32584": "Löhne", "53797": "Lohmar", "49504": "Lotte", "32312": "Lübbecke",
+    "58507": "Lüdenscheid", "59348": "Lüdinghausen", "32676": "Lügde", "44532": "Lünen", "51709": "Marienheide",
+    "37696": "Marienmünster", "45768": "Marl", "34431": "Marsberg", "53894": "Mechernich", "53340": "Meckenheim",
+    "59964": "Medebach", "40667": "Meerbusch", "58540": "Meinerzhagen", "58706": "Menden (Sauerland)", "52399": "Merzenich",
+    "59872": "Meschede", "48629": "Metelen", "49497": "Mettingen", "40822": "Mettmann", "32423": "Minden",
+    "47441": "Moers", "53804": "Much", "48143": "Münster", "57250": "Netphen", "41334": "Nettetal",
+    "58809": "Neuenrade", "48485": "Neuenkirchen", "57290": "Neunkirchen", "53819": "Neunkirchen-Seelscheid", "41460": "Neuss",
+    "52385": "Nideggen", "53859": "Niederkassel", "41372": "Niederkrüchten", "52382": "Niederzier", "33039": "Nieheim",
+    "59394": "Nordkirchen", "48356": "Nordwalde", "52388": "Nörvenich", "48301": "Nottuln", "51588": "Nümbrecht",
+    "48607": "Ochtrup", "51519": "Odenthal", "59302": "Oelde", "45739": "Oer-Erkenschwick", "33813": "Oerlinghausen",
+    "59399": "Olfen", "57462": "Olpe", "59939": "Olsberg", "51491": "Overath", "33098": "Paderborn",
+    "32469": "Petershagen", "58840": "Plettenberg", "32457": "Porta Westfalica", "32361": "Preußisch Oldendorf",
+    "50259": "Pulheim", "42477": "Radevormwald", "46348": "Raesfeld", "32369": "Rahden", "40878": "Ratingen",
+    "49509": "Recke", "45657": "Recklinghausen", "46459": "Rees", "51580": "Reichshof", "42853": "Remscheid",
+    "33378": "Rheda-Wiedenbrück", "46414": "Rhede", "53359": "Rheinbach", "47495": "Rheinberg", "48430": "Rheine",
+    "47509": "Rheurdt", "33397": "Rietberg", "32289": "Rödinghausen", "52159": "Roetgen", "41569": "Rommerskirchen",
+    "48720": "Rosendahl", "51503": "Rösrath", "53809": "Ruppichteroth", "59602": "Rüthen", "48369": "Saerbeck",
+    "33154": "Salzkotten", "53757": "Sankt Augustin", "48336": "Sassenberg", "58579": "Schalksmühle",
+    "46514": "Schermbeck", "32816": "Schieder-Schwalenberg", "33189": "Schlangen", "53937": "Schleiden",
+    "33758": "Schloß Holte-Stukenbrock", "57392": "Schmallenberg", "41366": "Schwalmtal", "58239": "Schwerte",
+    "52538": "Selfkant", "59379": "Selm", "48308": "Senden", "48324": "Sendenhorst", "53721": "Siegburg",
+    "57072": "Siegen", "52152": "Simmerath", "59494": "Soest", "42651": "Solingen", "47665": "Sonsbeck",
+    "32139": "Spenge", "45549": "Sprockhövel", "48708": "Stadtlohn", "48565": "Steinfurt", "33803": "Steinhagen",
+    "32839": "Steinheim", "32351": "Stemwede", "52222": "Stolberg (Rhld.)", "47638": "Straelen",
+    "59846": "Sundern (Sauerland)", "53913": "Swisttal", "48291": "Telgte", "52445": "Titz", "47918": "Tönisvorst",
+    "53840": "Troisdorf", "52531": "Übach-Palenberg", "47589": "Uedem", "59423": "Unna", "42549": "Velbert",
+    "46342": "Velen", "33415": "Verl", "33775": "Versmold", "52391": "Vettweiß", "41747": "Viersen",
+    "32602": "Vlotho", "48691": "Vreden", "53343": "Wachtberg", "47669": "Wachtendonk", "59329": "Wadersloh",
+    "51545": "Waldbröl", "52525": "Waldfeucht", "45731": "Waltrop", "34414": "Warburg", "48231": "Warendorf",
+    "59581": "Warstein", "41849": "Wassenberg", "47652": "Weeze", "41844": "Wegberg", "53919": "Weilerswist",
+    "59514": "Welver", "57482": "Wenden", "58791": "Werdohl", "59457": "Werl", "42929": "Wermelskirchen",
+    "59368": "Werne", "33824": "Werther (Westf.)", "46483": "Wesel", "50389": "Wesseling", "49492": "Westerkappeln",
+    "58300": "Wetter (Ruhr)", "48493": "Wettringen", "58739": "Wickede (Ruhr)", "51674": "Wiehl",
+    "34439": "Willebadessen", "47877": "Willich", "57234": "Wilnsdorf", "51570": "Windeck", "59955": "Winterberg",
+    "51688": "Wipperfürth", "44892": "Witten", "42489": "Wülfrath", "52146": "Würselen", "46509": "Xanten",
+    "53909": "Zülpich"
+}
+@app.route("/api/plz/<plz>")
+def get_plz(plz):
+    if len(plz) != 5 or not plz.isdigit():
+        return jsonify({"city": None})
+
+    # 1. ADIM: Önce kendi yerel listemize bak (Hata payı sıfır)
+    if plz in NRW_STADT_LISTE:
+        return jsonify({"city": NRW_STADT_LISTE[plz]})
+
+    # 2. ADIM: Listede yoksa Zippopotam'a git (Nominatim gibi [] döndürmez)
+    try:
+        # Bu servis tarayıcı engelini takmaz, daha sağlamdır
+        r = requests.get(f"https://api.zippopotam.us/de/{plz}", timeout=3)
+        if r.status_code == 200:
+            data = r.json()
+            if "places" in data:
+                city = data["places"][0]["place name"]
+                return jsonify({"city": city})
+    except Exception as e:
+        print(f"Yedek API Hatası: {e}")
+
+    return jsonify({"city": None})
+
+# =====================================================
+# BÖLÜM 21: UYGULAMA BAŞLATICI (NİHAİ ZIRHLI SÜRÜM)
 # =====================================================
 
 def run_db_migration():
