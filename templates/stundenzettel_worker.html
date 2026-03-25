@@ -473,20 +473,28 @@ function saveDayPopup() {
     const signed = document.getElementById('popupConfirm').checked;
     const status = document.querySelector('input[name="popupStatus"]:checked')?.value || 'Gearbeitet';
 
+    // Verileri tablodaki gizli inputlara aktar
     currentPopupRow.querySelector('.in-time').value = start;
     currentPopupRow.querySelector('.out-time').value = end;
-let finalValue = place;
+    
+    let finalValue = place;
+    if (status === 'Krank') finalValue = 'Krank';
+    if (status === 'Urlaub') finalValue = 'Urlaub';
 
-if (status === 'Krank') finalValue = 'Krank';
-if (status === 'Urlaub') finalValue = 'Urlaub';
+    currentPopupRow.querySelector('.loc-select').value = finalValue;
+    currentPopupRow.querySelector('.sign-check').value = signed ? '1' : '';
 
-currentPopupRow.querySelector('.loc-select').value = finalValue;    currentPopupRow.querySelector('.sign-check').value = signed ? '1' : '';
-
+    // Satırın özet metnini (Örn: 10:00 - 14:00) güncelle
     refreshDaySummary(currentPopupRow);
-    if (typeof updateCalculations === "function") updateCalculations();
+
+    // 🔥 MOBİL İÇİN KRİTİK DÜZELTME: Hesaplamayı burada zorla tetikliyoruz
+    if (typeof updateCalculations === "function") {
+        updateCalculations(); 
+    }
+    
+    // Popup'ı kapat
     closeDayPopup();
 }
-
 function refreshDaySummary(row) {
     const inTime = row.querySelector('.in-time')?.value || '';
     const outTime = row.querySelector('.out-time')?.value || '';
