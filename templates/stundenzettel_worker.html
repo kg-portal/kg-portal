@@ -19,18 +19,22 @@
                 flex-direction: column !important;
             }
 
-            /* 🔥 AY MENÜSÜ YATAY SCROLL */
+            /* 🔥 AY MENÜSÜ DİKEY LİSTE (MOBİL) */
             #monthSidebar {
                 display: flex !important;
-                flex-direction: row !important;
-                overflow-x: auto !important;
-                white-space: nowrap;
+                flex-direction: column !important;
+                max-height: 250px;
+                overflow-y: auto !important;
+                border: 1px solid #e2e8f0;
+                border-radius: 12px;
+                margin-bottom: 15px;
             }
 
             #monthSidebar button {
-                min-width: 140px;
-                flex-shrink: 0;
-                border-right: 1px solid #eee;
+                width: 100% !important;
+                min-width: unset !important;
+                border-bottom: 1px solid #eee !important;
+                text-align: left !important;
             }
 
             /* 🔥 SAĞ TARAF FULL WIDTH */
