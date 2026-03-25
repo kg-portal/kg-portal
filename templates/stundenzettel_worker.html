@@ -5,7 +5,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
-        /* Mobilde inputlara odaklanınca ekranın fırlamasını/zoom yapmasını engellemek için */
+        /* Mobil zoom engelle */
         @media screen and (max-width: 768px) {
             input, select, textarea { 
                 font-size: 16px !important; 
@@ -13,9 +13,39 @@
             h2 { 
                 font-size: 24px !important; 
             }
+
+            /* 🔥 ANA LAYOUT ALT ALTA */
+            #timeSheetSection div[style*="display:flex; gap:20px"] {
+                flex-direction: column !important;
+            }
+
+            /* 🔥 AY MENÜSÜ YATAY SCROLL */
+            #monthSidebar {
+                display: flex !important;
+                flex-direction: row !important;
+                overflow-x: auto !important;
+                white-space: nowrap;
+            }
+
+            #monthSidebar button {
+                min-width: 140px;
+                flex-shrink: 0;
+                border-right: 1px solid #eee;
+            }
+
+            /* 🔥 SAĞ TARAF FULL WIDTH */
+            #sheetBody {
+                width: 100% !important;
+            }
+
+            /* 🔥 SUMMARY 2x2 */
+            #timeSheetSection div[style*="grid-template-columns"] {
+                grid-template-columns: repeat(2, 1fr) !important;
+            }
         }
     </style>
 </head>
+
 <body style="background: #f8fafc; font-family: sans-serif; margin: 0; padding: 0;"> 
 
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
@@ -441,8 +471,12 @@ function saveDayPopup() {
 
     currentPopupRow.querySelector('.in-time').value = start;
     currentPopupRow.querySelector('.out-time').value = end;
-    currentPopupRow.querySelector('.loc-select').value = (status === 'Krank' || status === 'Urlaub') ? status : place;
-    currentPopupRow.querySelector('.sign-check').value = signed ? '1' : '';
+let finalValue = place;
+
+if (status === 'Krank') finalValue = 'Krank';
+if (status === 'Urlaub') finalValue = 'Urlaub';
+
+currentPopupRow.querySelector('.loc-select').value = finalValue;    currentPopupRow.querySelector('.sign-check').value = signed ? '1' : '';
 
     refreshDaySummary(currentPopupRow);
     if (typeof updateCalculations === "function") updateCalculations();
