@@ -5,52 +5,202 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
-        /* Mobil zoom engelle */
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            max-width: 100%;
+            overflow-x: hidden;
+            background: #f8fafc;
+            font-family: sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
         @media screen and (max-width: 768px) {
-            input, select, textarea { 
-                font-size: 16px !important; 
-            }
-            h2 { 
-                font-size: 24px !important; 
+
+            input, select, textarea, button {
+                font-size: 16px !important;
             }
 
-            /* 🔥 ANA LAYOUT ALT ALTA */
-            #timeSheetSection div[style*="display:flex; gap:20px"] {
-                flex-direction: column !important;
+
+            /* ÜST GENEL BOSLUKLAR */
+            #timeSheetSection {
+                margin-top: 24px !important;
+                padding-top: 20px !important;
+                width: 100% !important;
+                max-width: 100% !important;
             }
 
-            /* 🔥 AY MENÜSÜ DİKEY LİSTE (MOBİL) */
+            /* 1) SUMMARY BLOĞU */
+            #timeSheetSection > div:nth-child(1) {
+                padding: 0 12px !important;
+                margin-bottom: 16px !important;
+            }
+
+            #timeSheetSection > div:nth-child(1) > div > div {
+                display: grid !important;
+                grid-template-columns: 1fr 1fr !important;
+                gap: 10px !important;
+            }
+
+            /* 2) BASLIK + KAPAT */
+            #timeSheetSection > div:nth-child(2) {
+                display: block !important;
+                padding: 0 12px !important;
+                margin-bottom: 18px !important;
+            }
+
+            #timeSheetSection > div:nth-child(2) button {
+                display: block !important;
+                width: 100% !important;
+                margin-top: 12px !important;
+            }
+
+            /* 3) ANA FLEX LAYOUT -> BLOK */
+            #timeSheetSection > div:nth-child(3) {
+                display: block !important;
+                width: 100% !important;
+                max-width: 100% !important;
+                padding: 0 12px !important;
+            }
+
+            /* SOL AY KUTUSU */
+            #timeSheetSection > div:nth-child(3) > div:nth-child(1) {
+                display: block !important;
+                width: 100% !important;
+                min-width: 100% !important;
+                max-width: 100% !important;
+                margin: 0 0 14px 0 !important;
+            }
+
+            /* SAĞ GÜN LİSTESİ BLOĞU */
+            #timeSheetSection > div:nth-child(3) > div:nth-child(2) {
+                display: block !important;
+                width: 100% !important;
+                min-width: 100% !important;
+                max-width: 100% !important;
+            }
+
+            #timeSheetSection > div:nth-child(3) > div:nth-child(2) > div {
+                width: 100% !important;
+                min-width: 100% !important;
+                max-width: 100% !important;
+            }
+
             #monthSidebar {
                 display: flex !important;
                 flex-direction: column !important;
-                max-height: 250px;
+                max-height: 250px !important;
                 overflow-y: auto !important;
-                border: 1px solid #e2e8f0;
-                border-radius: 12px;
-                margin-bottom: 15px;
             }
 
             #monthSidebar button {
                 width: 100% !important;
-                min-width: unset !important;
-                border-bottom: 1px solid #eee !important;
-                text-align: left !important;
             }
 
-            /* 🔥 SAĞ TARAF FULL WIDTH */
             #sheetBody {
+                display: flex !important;
+                flex-direction: column !important;
                 width: 100% !important;
+                max-width: 100% !important;
             }
 
-            /* 🔥 SUMMARY 2x2 */
-            #timeSheetSection div[style*="grid-template-columns"] {
-                grid-template-columns: repeat(2, 1fr) !important;
+            /* GÜN SATIRI */
+            .timesheet-row {
+                width: 100% !important;
+                max-width: 100% !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                border-bottom: 1px solid #f1f5f9 !important;
+            }
+
+            .timesheet-row > div:first-child {
+                display: grid !important;
+                grid-template-columns: minmax(0, 1fr) auto !important;
+                align-items: center !important;
+                gap: 12px !important;
+                width: 100% !important;
+                padding: 14px 14px !important;
+                margin: 0 !important;
+            }
+
+            .timesheet-row > div:first-child > div:first-child {
+                display: flex !important;
+                flex-direction: column !important;
+                min-width: 0 !important;
+                width: 100% !important;
+                gap: 2px !important;
+            }
+
+            .row-date {
+                font-size: 16px !important;
+                font-weight: 800 !important;
+                line-height: 1.2 !important;
+                white-space: nowrap !important;
+                color: #0f172a !important;
+            }
+
+            .day-summary {
+                font-size: 12px !important;
+                line-height: 1.25 !important;
+                color: #64748b !important;
+                white-space: nowrap !important;
+                overflow: hidden !important;
+                text-overflow: ellipsis !important;
+            }
+
+            .timesheet-row > div:first-child > button {
+                width: 88px !important;
+                min-width: 88px !important;
+                height: 34px !important;
+                padding: 0 10px !important;
+                margin: 0 !important;
+                border-radius: 10px !important;
+                font-size: 12px !important;
+                font-weight: 700 !important;
+                justify-self: end !important;
+                flex-shrink: 0 !important;
+            }
+
+            /* POPUP */
+            #dayPopup {
+                padding: 12px !important;
+            }
+
+            #dayPopup > div {
+                width: 100% !important;
+                max-width: 100% !important;
+                border-radius: 18px !important;
+            }
+
+            #dayPopup div[style*="display:flex; gap:10px;"] {
+                flex-direction: column !important;
+            }
+
+            /* REMINDER */
+            #stundenReminderBox {
+                width: calc(100% - 24px) !important;
+                max-width: none !important;
+                padding: 20px !important;
+                border-radius: 18px !important;
+            }
+
+            #stundenReminderBox > div[style*="display:flex; gap:12px; align-items:center; justify-content:space-between;"] {
+                flex-direction: column !important;
+                align-items: stretch !important;
+            }
+
+            #confirmReminderBtn {
+                width: 100% !important;
             }
         }
     </style>
 </head>
 
-<body style="background: #f8fafc; font-family: sans-serif; margin: 0; padding: 0;"> 
+<body style="background: #f8fafc; font-family: sans-serif; margin: 0; padding: 0;">
 
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
@@ -111,58 +261,73 @@
 ..........................................................................................................
 ..........................................................................................................
 -->
-
 <div id="timeSheetSection" style="display:none; margin-top:40px; border-top:4px solid #16a34a; padding-top:30px;">
 
     <div style="padding:0 10px; margin-bottom:20px;">
-        <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:24px; padding:18px; box-shadow:0 10px 25px rgba(0,0,0,0.06);">
-            <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:12px;">
-                
-                <div style="background:#f8fafc; border-radius:18px; padding:14px;">
-                    <div style="font-size:12px; color:#64748b; font-weight:700;">Stunden insgesamt</div>
-                    <div id="summaryTotalStd" style="font-size:22px; font-weight:900; color:#0f172a; margin-top:8px;">
-                        0,00 Std <span style="font-size:15px; font-weight:700; color:#64748b;">(0,00 €)</span>
-                    </div>
+    <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:24px; padding:18px; box-shadow:0 10px 25px rgba(0,0,0,0.04);">
+        <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:12px;">
+            
+            <div style="background:#f8fafc; border-radius:18px; padding:16px; border:1px solid #e2e8f0;">
+                <div style="font-size:12px; color:#64748b; font-weight:700;">Stunden insgesamt</div>
+                <div id="summaryTotalStd" style="font-size:22px; font-weight:900; color:#0f172a; margin-top:8px;">
+                    0,00 Std
+                    <span style="display:block; font-size:14px; font-weight:700; color:#64748b;">(0,00 €)</span>
                 </div>
-
-                <div style="background:#fef2f2; border-radius:18px; padding:14px;">
-                    <div style="font-size:12px; color:#64748b; font-weight:700;">Urlaub</div>
-                    <div id="summaryUrlaub" style="font-size:22px; font-weight:900; color:#dc2626; margin-top:8px;">
-                        0,00 Std <span style="font-size:15px; font-weight:700; color:#64748b;">(0,00 €)</span>
-                    </div>
-                </div>
-
-                <div style="background:#ecfeff; border-radius:18px; padding:14px;">
-                    <div style="font-size:12px; color:#64748b; font-weight:700;">Krank</div>
-                    <div id="summaryKrank" style="font-size:22px; font-weight:900; color:#0f766e; margin-top:8px;">
-                        0,00 Std <span style="font-size:15px; font-weight:700; color:#64748b;">(0,00 €)</span>
-                    </div>
-                </div>
-
-                <div style="background:#fff7ed; border-radius:18px; padding:14px;">
-                    <div style="font-size:12px; color:#64748b; font-weight:700;">Extra</div>
-                    <div id="summaryExtra" style="font-size:22px; font-weight:900; color:#ea580c; margin-top:8px;">
-                        0,00 Std <span style="font-size:15px; font-weight:700; color:#64748b;">(0,00 €)</span>
-                    </div>
-                </div>
-
             </div>
+
+            <div style="background:#f1f5f9; border-radius:18px; padding:16px; border:1px solid #e2e8f0;">
+                <div style="font-size:12px; color:#64748b; font-weight:700;">Urlaub</div>
+                <div id="summaryUrlaub" style="font-size:22px; font-weight:900; color:#1e293b; margin-top:8px;">
+                    0,00 Std
+                    <span style="display:block; font-size:14px; font-weight:700; color:#64748b;">(0,00 €)</span>
+                </div>
+            </div>
+
+            <div style="background:#eef2f7; border-radius:18px; padding:16px; border:1px solid #e2e8f0;">
+                <div style="font-size:12px; color:#64748b; font-weight:700;">Krank</div>
+                <div id="summaryKrank" style="font-size:22px; font-weight:900; color:#334155; margin-top:8px;">
+                    0,00 Std
+                    <span style="display:block; font-size:14px; font-weight:700; color:#64748b;">(0,00 €)</span>
+                </div>
+            </div>
+
+            <div style="background:#f8fafc; border-radius:18px; padding:16px; border:1px solid #e2e8f0;">
+                <div style="font-size:12px; color:#64748b; font-weight:700;">Extra</div>
+                <div id="summaryExtra" style="font-size:22px; font-weight:900; color:#0f172a; margin-top:8px;">
+                    0,00 Std
+                    <span style="display:block; font-size:14px; font-weight:700; color:#64748b;">(0,00 €)</span>
+                </div>
+            </div>
+
         </div>
     </div>
+</div>
 
-    <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:25px; padding:0 10px;">
-        <div>
-            <h3 id="workerNameDisplay" style="font-size:clamp(20px, 5vw, 28px); font-weight:900; color:#1e293b; margin:0;"></h3>
-            <p id="monthTitle" style="color:#2563eb; font-weight:700; margin:5px 0 0 0;">April 2026 - Arbeitszeitnachweis</p>
-        </div>
-        <button onclick="closeSheet()" style="background:#64748b; color:white; border:none; padding:10px 20px; border-radius:12px; font-weight:700; cursor:pointer; white-space:nowrap; flex-shrink:0;">
-            <i class="fa-solid fa-xmark"></i> Schließen
+<div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:25px; padding:0 10px;">
+    
+    <div>
+        <h3 id="workerNameDisplay" style="font-size:clamp(20px, 5vw, 28px); font-weight:900; color:#1e293b; margin:0;"></h3>
+
+        <p id="monthTitle" style="color:#2563eb; font-weight:700; margin:5px 0 0 0;">
+            April 2026 - Arbeitszeitnachweis
+        </p>
+
+        <button id="singlePrintBtn" onclick="createPrintView()"
+            style="margin-top:10px; background:#16a34a; color:#fff; border:none; padding:10px 16px; border-radius:10px; font-weight:700; cursor:pointer;">
+            🖨 Erstellen / Drucken
         </button>
     </div>
 
-    <div style="display:flex; gap:20px; align-items:flex-start; padding:0 10px;">
+    <button onclick="closeSheet()" 
+        style="background:#64748b; color:white; border:none; padding:10px 20px; border-radius:12px; font-weight:700; cursor:pointer; white-space:nowrap; flex-shrink:0;">
+        <i class="fa-solid fa-xmark"></i> Schließen
+    </button>
+
+</div>
+
+    <div style="display:block; padding:0 10px; width:100%;">
         
-        <div style="width:260px; min-width:260px;">
+        <div style="width:100%; min-width:100%; margin-bottom:15px;">
             <div style="background:#fff; border:1px solid #e2e8f0; border-radius:20px; box-shadow:0 10px 15px -3px rgba(0,0,0,0.05); overflow:hidden;">
                 <div style="padding:16px 18px; border-bottom:1px solid #e2e8f0; font-size:13px; font-weight:800; color:#475569; text-transform:uppercase;">
                     Monate
@@ -171,8 +336,8 @@
             </div>
         </div>
 
-        <div style="flex:1; min-width:0;">
-            <div style="background:#fff; border:1px solid #e2e8f0; border-radius:20px; box-shadow:0 10px 15px -3px rgba(0,0,0,0.05); overflow:hidden; max-width:720px;">
+        <div style="width:100%;">
+            <div style="background:#fff; border:1px solid #e2e8f0; border-radius:20px; box-shadow:0 10px 15px -3px rgba(0,0,0,0.05); overflow:visible; width:100%; max-width:100%;">
                 <div id="sheetBody" style="display:flex; flex-direction:column;"></div>
             </div>
         </div>
@@ -297,6 +462,8 @@ const locations = [
 -->
 
 <script>
+const SAVED_LOGS = {{ saved_logs | safe if saved_logs else '{}' }};
+
 let currentPopupRow = null;
 let selectedMonthIndex = 0;
 
@@ -366,26 +533,33 @@ function renderMonthRows() {
         const year = currentMonth.year;
         const dateStr = `${day}.${month}.${year}`;
 
-        body.innerHTML += `
-<div class="timesheet-row" data-date="${year}-${month}-${day}" style="border-bottom:1px solid #f1f5f9; padding:14px 16px;">
-    <div style="display:flex; align-items:center; justify-content:space-between; gap:12px;">
-        <div style="display:flex; flex-direction:column; gap:4px;">
-            <div class="row-date" style="font-weight:800; font-size:18px; color:#0f172a;">${dateStr}</div>
-            <div class="day-summary" style="font-size:14px; color:#64748b;">Eintragen</div>
+const saved = SAVED_LOGS[`${year}-${month}-${day}`] || {};
+
+body.innerHTML += `
+<div class="timesheet-row" data-date="${year}-${month}-${day}" style="margin-bottom:12px;">
+    <div style="background:#ffffff; border-radius:18px; box-shadow:0 4px 14px rgba(0,0,0,0.06); padding:16px; display:flex; align-items:center; justify-content:space-between; gap:12px; width:100%;">
+        
+        <div style="min-width:0; flex:1; display:flex; flex-direction:column;">
+            <div class="row-date" style="font-weight:800; font-size:18px; color:#111827; line-height:1.2;">
+                ${dateStr}
+            </div>
+            <div class="day-summary" style="font-size:14px; color:#6b7280; margin-top:4px;">
+                Eintragen
+            </div>
         </div>
 
         <button type="button"
                 onclick="openDayPopup(this)"
-                style="background:#2563eb; color:#fff; border:none; padding:9px 16px; border-radius:12px; font-weight:700; cursor:pointer; flex-shrink:0;">
+                style="background:#2563eb; color:#fff; border:none; padding:10px 16px; border-radius:14px; font-weight:700; cursor:pointer; white-space:nowrap; flex-shrink:0;">
             Eintragen
         </button>
     </div>
 
     <div style="display:none;">
-        <input type="hidden" class="in-time" value="">
-        <input type="hidden" class="out-time" value="">
-        <input type="hidden" class="loc-select" value="">
-        <input type="hidden" class="sign-check" value="">
+        <input type="hidden" class="in-time" value="${saved.start || ''}">
+        <input type="hidden" class="out-time" value="${saved.end || ''}">
+        <input type="hidden" class="loc-select" value="${saved.place || ''}">
+        <input type="hidden" class="sign-check" value="${saved.signed ? '1' : ''}">
         <div class="sign-text"></div>
         <div class="cell-total-std"></div>
         <div class="cell-total-lohn"></div>
@@ -395,6 +569,9 @@ function renderMonthRows() {
         <div class="extra-column cell-extra"></div>
     </div>
 </div>`;
+
+const lastRow = body.lastElementChild;
+refreshDaySummary(lastRow);
     }
 
     if (typeof updateCalculations === "function") updateCalculations();
@@ -411,24 +588,40 @@ function openSheet(name) {
     document.getElementById('timeSheetSection').style.display = 'block';
 
     const popupPlace = document.getElementById('popupPlace');
-    popupPlace.innerHTML = '<option value="">-- Bitte wählen --</option>';
-    locations.forEach(loc => {
-        popupPlace.innerHTML += `<option value="${loc.name}">${loc.name}</option>`;
+popupPlace.innerHTML = '<option value="">-- Bitte wählen --</option>';
+locations.forEach(loc => {
+    popupPlace.innerHTML += `<option value="${loc.name}">${loc.name}</option>`;
+});
+
+buildMonthSidebar();
+renderMonthRows();
+
+if (typeof flatpickr !== 'undefined') {
+    flatpickr("#popupStart", {
+        enableTime: true,
+        noCalendar: true,
+        dateFormat: "H:i",
+        time_24hr: true,
+        defaultDate: "17:00",
+        disableMobile: false
     });
 
-    buildMonthSidebar();
-    renderMonthRows();
+    flatpickr("#popupEnd", {
+        enableTime: true,
+        noCalendar: true,
+        dateFormat: "H:i",
+        time_24hr: true,
+        defaultDate: "19:00",
+        disableMobile: false
+    });
+}
 
-    if (typeof flatpickr !== 'undefined') {
-        flatpickr("#popupStart, #popupEnd", {
-            enableTime: true,
-            noCalendar: true,
-            dateFormat: "H:i",
-            time_24hr: true,
-            defaultDate: "10:00",
-            disableMobile: false
-        });
+if (window.innerWidth <= 768) {
+    const btn = document.getElementById("singlePrintBtn");
+    if (btn) {
+        btn.style.display = "none";
     }
+  }
 }
 
 function openDayPopup(button) {
@@ -440,11 +633,26 @@ function openDayPopup(button) {
     const place = currentPopupRow.querySelector('.loc-select').value || '';
     const signed = currentPopupRow.querySelector('.sign-check').value === '1';
 
-    document.getElementById('popupDateTitle').innerText = dateText;
-    document.getElementById('popupStart').value = start;
-    document.getElementById('popupEnd').value = end;
-    document.getElementById('popupPlace').value = place;
-    document.getElementById('popupConfirm').checked = signed;
+document.getElementById('popupDateTitle').innerText = dateText;
+
+const popupStartEl = document.getElementById('popupStart');
+const popupEndEl = document.getElementById('popupEnd');
+
+const safeStart = start || "17:00";
+const safeEnd = end || "19:00";
+
+popupStartEl.value = safeStart;
+popupEndEl.value = safeEnd;
+
+if (popupStartEl._flatpickr) {
+    popupStartEl._flatpickr.setDate(safeStart, true, "H:i");
+}
+if (popupEndEl._flatpickr) {
+    popupEndEl._flatpickr.setDate(safeEnd, true, "H:i");
+}
+
+document.getElementById('popupPlace').value = place;
+document.getElementById('popupConfirm').checked = signed;
 
     document.querySelectorAll('input[name="popupStatus"]').forEach(r => r.checked = false);
 
@@ -467,34 +675,69 @@ function closeDayPopup() {
 function saveDayPopup() {
     if (!currentPopupRow) return;
 
+    // 1. Form verilerini oku
     const start = document.getElementById('popupStart').value || '';
     const end = document.getElementById('popupEnd').value || '';
     const place = document.getElementById('popupPlace').value || '';
     const signed = document.getElementById('popupConfirm').checked;
     const status = document.querySelector('input[name="popupStatus"]:checked')?.value || 'Gearbeitet';
 
-    // Verileri tablodaki gizli inputlara aktar
+    // 2. Nihai konumu belirle (Urlaub/Krank kontrolü)
+    const finalPlace = (status === 'Krank' || status === 'Urlaub') ? status : place;
+
+    // 3. Ekranda (HTML) değerleri hemen güncelle
     currentPopupRow.querySelector('.in-time').value = start;
     currentPopupRow.querySelector('.out-time').value = end;
-    
-    let finalValue = place;
-    if (status === 'Krank') finalValue = 'Krank';
-    if (status === 'Urlaub') finalValue = 'Urlaub';
-
-    currentPopupRow.querySelector('.loc-select').value = finalValue;
+    currentPopupRow.querySelector('.loc-select').value = finalPlace;
     currentPopupRow.querySelector('.sign-check').value = signed ? '1' : '';
 
-    // Satırın özet metnini (Örn: 10:00 - 14:00) güncelle
     refreshDaySummary(currentPopupRow);
+    if (typeof updateCalculations === "function") updateCalculations();
 
-    // 🔥 MOBİL İÇİN KRİTİK DÜZELTME: Hesaplamayı burada zorla tetikliyoruz
-    if (typeof updateCalculations === "function") {
-        updateCalculations(); 
+    // 🚀 4. VERİTABANINA GÖNDERME (ZIRHLI KISIM)
+    const urlParts = window.location.pathname.split('/');
+    // ID'yi bulmak için diziyi kontrol et (Eğer /worker/ kısmından sonra geliyorsa al)
+    const workerIdIndex = urlParts.indexOf('worker') + 1;
+    const workerId = urlParts[workerIdIndex]; 
+    const date = currentPopupRow.getAttribute('data-date');
+
+    if (!workerId || isNaN(workerId)) {
+        console.error("Hata: İşçi ID'si URL'den okunamadı!");
+        alert("Sistem hatası: İşçi kimliği bulunamadı, lütfen sayfayı yenileyip tekrar deneyin.");
+        return;
     }
-    
-    // Popup'ı kapat
+
+    const entry = {
+        date: date,
+        start: start,
+        end: end,
+        place: finalPlace,
+        signed: signed
+    };
+
+    fetch('/api/stundenzettel/save', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            worker_id: workerId,
+            entries: [entry]
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            console.log("✅ Veritabanına kaydedildi. Urlaub bakiyesi düşürüldü.");
+        } else {
+            alert("⚠️ Kayıt Hatası: " + data.error);
+        }
+    })
+    .catch(err => {
+        console.error("Bağlantı kesildi:", err);
+    });
+
     closeDayPopup();
 }
+
 function refreshDaySummary(row) {
     const inTime = row.querySelector('.in-time')?.value || '';
     const outTime = row.querySelector('.out-time')?.value || '';
@@ -524,13 +767,6 @@ function refreshDaySummary(row) {
 }
 </script>
 
-<!--
-..........................................................................................................
-..........................................................................................................
-.......... 🎨 Bölüm 5: HESAPLAMA VE STİL FONKSİYONLARI (GERÇEK MOTOR) ..................................................
-..........................................................................................................
-..........................................................................................................
--->
 
 <!--
 ..........................................................................................................
@@ -631,16 +867,16 @@ function updateCalculations() {
     const totalPay = grandTotalStd * hourlyWage > moneyLimit ? moneyLimit : grandTotalStd * hourlyWage;
 
     document.getElementById('summaryTotalStd').innerHTML =
-        `${grandTotalStd.toFixed(2).replace('.', ',')} Std <span style="font-size:15px; font-weight:700; color:#64748b;">(${totalPay.toFixed(2).replace('.', ',')} €)</span>`;
+        `${grandTotalStd.toFixed(2).replace('.', ',')} Std <span style="display:block; font-size:15px; font-weight:700; color:#64748b;">(${totalPay.toFixed(2).replace('.', ',')} €)</span>`;
 
     document.getElementById('summaryUrlaub').innerHTML =
-        `${urlaubInBase.toFixed(2).replace('.', ',')} Std <span style="font-size:15px; font-weight:700; color:#64748b;">(${(urlaubInBase * hourlyWage).toFixed(2).replace('.', ',')} €)</span>`;
+        `${urlaubInBase.toFixed(2).replace('.', ',')} Std <span style="display:block; font-size:15px; font-weight:700; color:#64748b;">(${(urlaubInBase * hourlyWage).toFixed(2).replace('.', ',')} €)</span>`;
 
     document.getElementById('summaryKrank').innerHTML =
-        `${krankInBase.toFixed(2).replace('.', ',')} Std <span style="font-size:15px; font-weight:700; color:#64748b;">(${(krankInBase * hourlyWage).toFixed(2).replace('.', ',')} €)</span>`;
+        `${krankInBase.toFixed(2).replace('.', ',')} Std <span style="display:block; font-size:15px; font-weight:700; color:#64748b;">(${(krankInBase * hourlyWage).toFixed(2).replace('.', ',')} €)</span>`;
 
     document.getElementById('summaryExtra').innerHTML =
-        `${totalExtra.toFixed(2).replace('.', ',')} Std <span style="font-size:15px; font-weight:700; color:#64748b;">(${(totalExtra * hourlyWage).toFixed(2).replace('.', ',')} €)</span>`;
+        `${totalExtra.toFixed(2).replace('.', ',')} Std <span style="display:block; font-size:15px; font-weight:700; color:#64748b;">(${(totalExtra * hourlyWage).toFixed(2).replace('.', ',')} €)</span>`;
 }
 
 function toggleExtra() {
@@ -748,6 +984,7 @@ document.addEventListener("DOMContentLoaded", function() {
     if (urlParams.get('reminder') === '1') {
         document.getElementById('stundenReminderBox').style.display = 'block';
     }
+
 });
 
 // Dil değiştirme fonksiyonu
@@ -766,13 +1003,208 @@ document.getElementById('confirmReminderBtn').addEventListener('click', function
 });
 </script>
 
+<!--
+..........................................................................................................
+..........................................................................................................
+.......... 🟥 Bölüm 7: Stundenzettel olusturma ve Yazma .................................................
+..........................................................................................................
+..........................................................................................................
+-->
+
+<script>
+function createPrintView() {
+
+    const workerNameRaw = document.getElementById('workerNameDisplay')?.innerText || '';
+    const workerName = workerNameRaw.replace('Stundenzettel: ', '').trim();
+
+    const monthTitle = document.getElementById('monthTitle')?.innerText?.trim() || '';
+    const monthNameOnly = monthTitle.split(' - ')[0] || '';
+
+    // AY ve YIL çıkar
+    const [monthName, year] = monthNameOnly.split(' ');
+    const monthMap = {
+        Januar:1, Februar:2, März:3, April:4, Mai:5, Juni:6,
+        Juli:7, August:8, September:9, Oktober:10, November:11, Dezember:12
+    };
+
+    const monthIndex = monthMap[monthName];
+    const daysInMonth = new Date(year, monthIndex, 0).getDate();
+
+    const rows = document.querySelectorAll('.timesheet-row');
+    const hourlyWage = 15;
+
+    let dataMap = {};
+    let totalHours = 0;
+
+    // 🔹 Mevcut girilen verileri map'e al
+    rows.forEach(row => {
+        const dateText = row.querySelector('.row-date')?.innerText?.trim() || '';
+        const start = row.querySelector('.in-time')?.value?.trim() || '';
+        const end = row.querySelector('.out-time')?.value?.trim() || '';
+        const place = row.querySelector('.loc-select')?.value?.trim() || '';
+        const signed = row.querySelector('.sign-check')?.value === '1';
+
+        if (!dateText) return;
+
+        const day = parseInt(dateText.split('.')[0]);
+
+        let hours = 0;
+
+        if (start && end) {
+            const [sH, sM] = start.split(':').map(Number);
+            const [eH, eM] = end.split(':').map(Number);
+
+            if (!isNaN(sH) && !isNaN(eH)) {
+                hours = (eH + eM/60) - (sH + sM/60);
+                if (hours < 0) hours += 24;
+            }
+        }
+
+        if (start || end || place || signed) {
+            totalHours += hours;
+
+            dataMap[day] = {
+                start,
+                end,
+                place,
+                signed,
+                hours
+            };
+        }
+    });
+
+    const totalWage = totalHours * hourlyWage;
+
+    // 🔹 TÜM AYI OLUŞTUR
+    let tableRows = '';
+
+    for (let d = 1; d <= daysInMonth; d++) {
+
+        const dayStr = d.toString().padStart(2,'0');
+        const fullDate = `${dayStr}.${monthIndex.toString().padStart(2,'0')}.${year}`;
+
+        const data = dataMap[d] || {};
+
+        tableRows += `
+        <tr>
+            <td>${fullDate}</td>
+            <td>${monthNameOnly}</td>
+            <td>${data.start || ''}</td>
+            <td>${data.end || ''}</td>
+            <td>${data.place || ''}</td>
+            <td style="text-align:center;">${data.signed ? '☑' : ''}</td>
+            <td style="text-align:center;">${data.signed ? '✔ ersetzt meine Unterschrift' : ''}</td>
+        </tr>
+        `;
+    }
+
+    const printWindow = window.open('', '_blank');
+
+    printWindow.document.write(`
+    <html>
+    <head>
+        <meta charset="UTF-8">
+        <title>${workerName}</title>
+        <style>
+            @page {
+                size: A4;
+                margin: 10mm;
+            }
+            body { 
+                font-family: Arial, sans-serif; 
+                margin: 0; 
+                padding: 10px; 
+                color: #000;
+            }
+            table { 
+                width: 100%; 
+                border-collapse: collapse; 
+                table-layout: fixed; 
+                font-size: 11px; 
+            }
+            th, td { 
+                border: 1px solid #000; 
+                padding: 6px 4px; 
+                word-wrap: break-word; 
+                text-align: left; 
+            }
+            th { background: #f2f2f2; }
+            .top { 
+                display: flex; 
+                justify-content: space-between; 
+                margin-bottom: 15px; 
+                font-weight: 700; 
+                font-size: 14px;
+            }
+            h2 { margin-top: 0; margin-bottom: 5px; }
+        </style>
+    </head>
+
+    <body>
+
+        <h2>Stundenzettel: ${workerName}</h2>
+        <div style="margin-bottom:10px;">${monthNameOnly} - Arbeitszeitnachweis</div>
+
+        <div class="top">
+            <div>Stunde Insgesamt: ${totalHours.toFixed(2).replace('.', ',')} Std</div>
+            <div>Lohn Insgesamt: ${totalWage.toFixed(2).replace('.', ',')} €</div>
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th style="width:12%;">Datum</th>
+                    <th style="width:15%;">Monat</th>
+                    <th style="width:10%;">Beginn</th>
+                    <th style="width:10%;">Ende</th>
+                    <th style="width:18%;">Ort</th>
+                    <th style="width:10%;">Unterschrift</th>
+                    <th style="width:25%;">Unterschriftsbestätigung</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${tableRows}
+            </tbody>
+        </table>
+
+    </body>
+    </html>
+    `);
+
+    printWindow.document.close();
+    setTimeout(() => {
+        printWindow.focus();
+        printWindow.print();
+    }, 250);
+}
+</script>
+
 
 <!--
 ..........................................................................................................
 ..........................................................................................................
-.......... 🟪 Bölüm 7: Programin Sonu ...................................................................
+.......... 🟪 Bölüm 8: Programin Sonu ...................................................................
 ..........................................................................................................
 ..........................................................................................................
 -->
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    openSheet("Damla Kicci");
+});
+
+function killPrintButtonMobile() {
+    if (window.innerWidth <= 768) {
+        document.querySelectorAll("button").forEach(btn => {
+            if (btn.innerText.includes("Drucken")) {
+                btn.remove();
+            }
+        });
+    }
+}
+document.addEventListener("DOMContentLoaded", killPrintButtonMobile);
+setInterval(killPrintButtonMobile, 500);
+window.addEventListener("resize", killPrintButtonMobile);
+</script>
 
 </body></html>
