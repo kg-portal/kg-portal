@@ -124,6 +124,28 @@ def init_db():
     ''')
 
     # ===============================
+    # Aynı günün üstüne kayıt yapabilmek için olan kaydi tekrarlamaz
+    # ===============================
+     
+    conn.execute('''
+        CREATE TABLE IF NOT EXISTS work_logs (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            worker_id INTEGER,
+            datum TEXT,
+            start_time TEXT,
+            end_time TEXT,
+            place TEXT,
+            signed INTEGER,
+            created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY(worker_id) REFERENCES mitarbeiter(id)
+        )
+    ''')
+
+    # 🚀 Bu satır olmazsa "Speichern" dediğinde aynı günün üstüne yazamaz, hata verir:
+    conn.execute("CREATE UNIQUE INDEX IF NOT EXISTS idx_worker_date ON work_logs(worker_id, datum)")
+
+
+    # ===============================
     # LEXWARE ID ZIRHI
     # ===============================
     try:
@@ -314,6 +336,21 @@ def init_db():
             konto TEXT,
             notiz TEXT,
             monat TEXT
+        )
+    ''')
+
+# 🟦STUNDENZETTEL VERİLERİ İÇİN TABLO
+    conn.execute('''
+        CREATE TABLE IF NOT EXISTS work_logs (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            worker_id INTEGER,
+            datum TEXT,
+            start_time TEXT,
+            end_time TEXT,
+            place TEXT,
+            signed INTEGER,
+            created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY(worker_id) REFERENCES mitarbeiter(id)
         )
     ''')
 
@@ -1094,6 +1131,7 @@ def edit_stundenzettel(id):
         return "Mitarbeiter nicht gefunden", 404
     return render_template("stundenzettel_detail.html", worker=worker)
 
+
 # BU DA İŞÇİ İÇİN OLAN KOD - GÜVENLİK VE İSİM EKLENMİŞ HALİ
 @app.route("/stundenzettel/worker/<int:id>/<string:name>/<string:code>")
 def worker_stundenzettel(id, name, code):
@@ -1104,14 +1142,35 @@ def worker_stundenzettel(id, name, code):
         "SELECT * FROM mitarbeiter WHERE id = ? AND (vorname || '_' || nachname) = ? AND access_code = ?", 
         (id, name, code)
     ).fetchone()
-    conn.close()
     
     if not worker:
-        # Eğer linkteki isim veya 4 haneli kod yanlışsa erişim yok!
+        conn.close()
         return "<h1>⚠️ Zugriff verweigert / Geçersiz Link</h1><p>Bilgiler uyuşmuyor.</p>", 403
-    
+
+    # 🔥 EKLENEN KISIM (KAYITLARI GERİ OKUMA)
+    logs = conn.execute("""
+        SELECT datum, start_time, end_time, place, signed
+        FROM work_logs
+        WHERE worker_id = ?
+    """, (id,)).fetchall()
+
+    conn.close()
+
+    saved_logs = {}
+    for log in logs:
+        saved_logs[log["datum"]] = {
+            "start": log["start_time"],
+            "end": log["end_time"],
+            "place": log["place"],
+            "signed": log["signed"]
+        }
+
     # Her şey doğruysa menüsüz işçi sayfasını açar
-    return render_template("stundenzettel_worker.html", mitarbeiter_liste=[worker])
+    return render_template(
+        "stundenzettel_worker.html",
+        mitarbeiter_liste=[worker],
+        saved_logs=json.dumps(saved_logs)
+    )
 
 # =====================================================
 # Bölüm 18- BUCHHALTUNG (MUHASEBE) - TEK PARÇA & HIZLI
@@ -1271,6 +1330,77 @@ def add_ratenzahlung():
     conn.commit()
     conn.close()
     return redirect(url_for('buchhaltung') + "#rates")
+
+
+# =====================================================
+# 🔥 BÖLÜM 18.5: STUNDENZETTEL KAYIT MOTORU (NİHAİ ZIRH)
+# =====================================================
+
+@app.route("/api/stundenzettel/<int:worker_id>")
+def get_stundenzettel(worker_id):
+    conn = get_db_connection()
+    logs = conn.execute("""
+        SELECT datum, start_time, end_time, place, signed
+        FROM work_logs
+        WHERE worker_id = ?
+        ORDER BY datum ASC
+    """, (worker_id,)).fetchall()
+    conn.close()
+
+    entries = []
+    for log in logs:
+        entries.append({
+            "date": log["datum"],
+            "start": log["start_time"] or "",
+            "end": log["end_time"] or "",
+            "place": log["place"] or "",
+            "signed": bool(log["signed"])
+        })
+
+    return jsonify({
+        "success": True,
+        "entries": entries
+    })
+
+
+
+@app.route("/api/stundenzettel/save", methods=["POST"])
+def save_stundenzettel():
+    data = request.json
+    worker_id = data.get("worker_id")
+    entries = data.get("entries") # JS'den gelen liste
+    
+    if not worker_id or not entries:
+        return jsonify({"success": False, "error": "Daten fehlen"}), 400
+
+    conn = get_db_connection()
+    try:
+        for e in entries:
+            # 🚀 Bölüm 18.5: UPSERT MANTIĞI 
+            # (Aynı işçi ve tarih varsa güncelle, yoksa yeni satır aç)
+            conn.execute('''
+                INSERT INTO work_logs (worker_id, datum, start_time, end_time, place, signed)
+                VALUES (?, ?, ?, ?, ?, ?)
+                ON CONFLICT(worker_id, datum) DO UPDATE SET
+                    start_time=excluded.start_time,
+                    end_time=excluded.end_time,
+                    place=excluded.place,
+                    signed=excluded.signed
+            ''', (worker_id, e['date'], e['start'], e['end'], e['place'], 1 if e['signed'] else 0))
+            
+            # 🔥 Bölüm 18.5: URALUB DÜŞME
+            if e['place'] == "Urlaub":
+                conn.execute("UPDATE mitarbeiter SET resturlaub = MAX(0, resturlaub - 1) WHERE id = ?", (worker_id,))
+
+        conn.commit()
+        return jsonify({"success": True})
+    except Exception as ex:
+        print(f"❌ DB Kayıt Hatası: {ex}")
+        return jsonify({"success": False, "error": str(ex)}), 500
+    finally:
+        conn.close()
+
+
 # =====================================================
 # Bölüm 19- LEXWARE BAĞLANTISI VE BAŞLATMA
 # =====================================================
