@@ -149,6 +149,26 @@
 ..........................................................................................................
 -->
 
+
+<DIV CLASS="NO-PRINT" STYLE="BACKGROUND: #FFF; BORDER: 1.5PX SOLID #16A34A; BORDER-RADIUS: 10PX; PADDING: 8PX 15PX; MARGIN-BOTTOM: 20PX; DISPLAY: FLEX; ALIGN-ITEMS: CENTER; GAP: 12PX; BOX-SHADOW: 0 3PX 7PX RGBA(22, 163, 74, 0.08); WIDTH: FIT-CONTENT; POSITION: RELATIVE; Z-INDEX: 999;">
+    
+    <DIV STYLE="DISPLAY: FLEX; ALIGN-ITEMS: CENTER; GAP: 10PX;">
+        <SPAN STYLE="BACKGROUND: #16A34A; COLOR: WHITE; PADDING: 6PX 12PX; BORDER-RADIUS: 7PX; FONT-WEIGHT: 800; FONT-SIZE: 11PX; TEXT-TRANSFORM: UPPERCASE; WHITE-SPACE: NOWRAP; DISPLAY: INLINE-BLOCK;">
+            <I CLASS="FA-SOLID FA-CALENDAR-DAYS"></I> DATUM AUSWÄHLEN
+        </SPAN>
+        
+        <SELECT ID="BULKMONTHSELECTOR" STYLE="WIDTH: 150PX; HEIGHT: 30PX; PADDING: 2PX 5PX; BORDER-RADIUS: 7PX; BORDER: 1.5PX SOLID #16A34A; FONT-WEIGHT: 800; COLOR: #1E293B; BACKGROUND: #FFF; CURSOR: POINTER; OUTLINE: NONE; FONT-SIZE: 12PX; POSITION: RELATIVE; Z-INDEX: 1000; DISPLAY: BLOCK !IMPORTANT;">
+            </SELECT>
+    </DIV>
+
+    <DIV STYLE="WIDTH: 1.5PX; HEIGHT: 25PX; BACKGROUND: #E2E8F0; MARGIN: 0 5PX;"></DIV>
+
+    <BUTTON onclick="startBulkPrintEngine()" STYLE="BACKGROUND: #16A34A; COLOR: WHITE; BORDER: NONE; PADDING: 8PX 18PX; BORDER-RADIUS: 7PX; FONT-WEIGHT: 800; CURSOR: POINTER; FONT-SIZE: 11PX; DISPLAY: FLEX; ALIGN-ITEMS: CENTER; GAP: 8PX; WHITE-SPACE: NOWRAP;">
+        <I CLASS="FA-SOLID FA-FILE-PDF"></I> ALLE STUNDENZETTEL DRUCKEN
+    </BUTTON>
+
+</DIV>
+
 <div id="main_list" style="background: #fff; border: 1px solid #e2e8f0; border-radius: 20px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);">
     <table style="width: 100%; border-collapse: collapse;">
         <tr style="background: #f8fafc; border-bottom: 1px solid #e2e8f0; text-align: left;">
@@ -167,8 +187,17 @@
   {{ "{:,.2f}".format((m.stundenlohn|string|replace(",", ".")|float)).replace(",", "X").replace(".", ",").replace("X", ".") }} €
 </td>
 
-            <td style="padding: 15px; color:#1e293b;">{{ m.urlaub if m.urlaub and m.urlaub != 'None' else '0' }} / <span style="color:#ef4444; font-weight:700;">{{ m.resturlaub if m.resturlaub and m.resturlaub != 'None' else '0' }}</span></td>
-            <td style="padding: 15px;"><span style="background:#eef2ff; color:#2563eb; padding:4px 10px; border-radius:15px; font-size:12px; font-weight:700;">{{ m.art if m.art and m.art != 'None' else '' }}</span></td>
+           <td style="padding: 15px; color:#1e293b;">
+    {{ m.urlaub if m.urlaub else '0' }} / 
+    <span style="color:#ef4444; font-weight:700;">
+        {{ m.resturlaub if m.resturlaub is not none else '0' }}
+    </span>
+</td>
+            <td style="padding: 15px;">
+                <span style="background:#eef2ff; color:#2563eb; padding:4px 10px; border-radius:15px; font-size:12px; font-weight:700;">
+                    {{ m.art if m.art and m.art != 'None' else '' }}
+                </span>
+            </td>
             
             <td style="display:none">
                 <span class="t-vorname">{{ m.vorname if m.vorname != 'None' else '' }}</span>
@@ -187,7 +216,7 @@
                 <span class="t-iban">{{ m.iban if m.iban != 'None' else '' }}</span>
                 <span class="t-lohn">{{ m.stundenlohn if m.stundenlohn != 'None' else '' }}</span>
                 <span class="t-urlaub">{{ m.urlaub if m.urlaub != 'None' else '0' }}</span>
-                <span class="t-resturlaub">{{ m.resturlaub if m.resturlaub != 'None' else '0' }}</span>
+                <span class="t-resturlaub">{{ m.resturlaub if m.resturlaub is not none else '0' }}</span>
                 <span class="t-art">{{ m.art if m.art != 'None' else '' }}</span>
             </td>
 
@@ -358,6 +387,238 @@ function sendBulkWhatsApp() {
     const list = phones.join(',');
     window.open(`https://wa.me/?text=Hallo%20Team&phone=${list}`, '_blank');
 }
+
+
+// 🔥🔥🔥 YENİ EKLEMELER: TOPLU YAZDIRMA MOTORU BAŞLIYOR 🔥🔥🔥
+
+document.addEventListener("DOMContentLoaded", function() {
+    const SEL = document.getElementById('BULKMONTHSELECTOR');
+    if (!SEL) return;
+
+    const MONATE = ["JANUAR", "FEBRUAR", "MÄRZ", "APRIL", "MAI", "JUNI", "JULI", "AUGUST", "SEPTEMBER", "OKTOBER", "NOVEMBER", "DEZEMBER"];
+    const NOW = new Date();
+    SEL.innerHTML = '';
+
+    for (let i = -12; i <= 24; i++) {
+        const d = new Date(NOW.getFullYear(), NOW.getMonth() + i, 1);
+        const opt = document.createElement('option');
+
+        opt.value = JSON.stringify({
+            month: d.getMonth() + 1,
+            year: d.getFullYear(),
+            label: MONATE[d.getMonth()] + " " + d.getFullYear()
+        });
+
+        opt.innerText = MONATE[d.getMonth()] + " " + d.getFullYear();
+
+        if (i === 0) opt.selected = true;
+        SEL.appendChild(opt);
+    }
+});
+
+async function startBulkPrintEngine() {
+    const SECIM_VAL = document.getElementById('BULKMONTHSELECTOR')?.value;
+    if (!SECIM_VAL) return;
+
+    const SECIM = JSON.parse(SECIM_VAL);
+
+    const monthMap = {
+        1: "Januar",
+        2: "Februar",
+        3: "März",
+        4: "April",
+        5: "Mai",
+        6: "Juni",
+        7: "Juli",
+        8: "August",
+        9: "September",
+        10: "Oktober",
+        11: "November",
+        12: "Dezember"
+    };
+
+    const daysInMonth = new Date(SECIM.year, SECIM.month, 0).getDate();
+    const monthNameOnly = `${monthMap[SECIM.month]} ${SECIM.year}`;
+    const hourlyWage = 15;
+
+    const workers = [];
+    document.querySelectorAll('#main_list tr[id^="row-"]').forEach(row => {
+        const id = row.id.replace('row-', '');
+        const name = row.querySelector('.display-name')?.innerText?.trim() || '';
+        if (id && name) {
+            workers.push({ id, name });
+        }
+    });
+
+    if (workers.length === 0) {
+        alert("KEINE AKTIVEN MITARBEITER GEFUNDEN!");
+        return;
+    }
+
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) {
+        alert("POPUP BLOCKIERT!");
+        return;
+    }
+
+    printWindow.document.write(`
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <title>ALLE STUNDENZETTEL - ${monthNameOnly}</title>
+            <style>
+                @page {
+                    size: A4;
+                    margin: 10mm;
+                }
+                body {
+                    font-family: Arial, sans-serif;
+                    margin: 0;
+                    padding: 0;
+                    color: #000;
+                }
+                .page {
+                    page-break-after: always;
+                    padding: 10px;
+                }
+                .page:last-child {
+                    page-break-after: auto;
+                }
+                table {
+                    width: 100%;
+                    border-collapse: collapse;
+                    table-layout: fixed;
+                    font-size: 11px;
+                }
+                th, td {
+                    border: 1px solid #000;
+                    padding: 6px 4px;
+                    word-wrap: break-word;
+                    text-align: left;
+                }
+                th {
+                    background: #f2f2f2;
+                }
+                .top {
+                    display: flex;
+                    justify-content: space-between;
+                    margin-bottom: 15px;
+                    font-weight: 700;
+                    font-size: 14px;
+                }
+                h2 {
+                    margin-top: 0;
+                    margin-bottom: 5px;
+                }
+            </style>
+        </head>
+        <body>
+    `);
+
+    for (const worker of workers) {
+        let dataMap = {};
+        let totalHours = 0;
+
+        try {
+            const res = await fetch(`/api/stundenzettel/${worker.id}`);
+            const data = await res.json();
+
+            if (data && data.success && Array.isArray(data.entries)) {
+                data.entries.forEach(entry => {
+                    if (!entry.date) return;
+
+                    const [y, m, d] = entry.date.split('-').map(Number);
+                    if (y === SECIM.year && m === SECIM.month) {
+                        let hours = 0;
+
+                        if (entry.start && entry.end) {
+                            const [sH, sM] = entry.start.split(':').map(Number);
+                            const [eH, eM] = entry.end.split(':').map(Number);
+
+                            if (!isNaN(sH) && !isNaN(eH)) {
+                                hours = (eH + eM / 60) - (sH + sM / 60);
+                                if (hours < 0) hours += 24;
+                            }
+                        }
+
+                        totalHours += hours;
+
+                        dataMap[d] = {
+                            start: entry.start || '',
+                            end: entry.end || '',
+                            place: entry.place || '',
+                            signed: !!entry.signed,
+                            hours: hours
+                        };
+                    }
+                });
+            }
+        } catch (err) {
+            console.error("FEHLER BEI MITARBEITER:", worker.id, err);
+        }
+
+        const totalWage = totalHours * hourlyWage;
+        let tableRows = '';
+
+        for (let d = 1; d <= daysInMonth; d++) {
+            const dayStr = d.toString().padStart(2, '0');
+            const fullDate = `${dayStr}.${String(SECIM.month).padStart(2, '0')}.${SECIM.year}`;
+            const rowData = dataMap[d] || {};
+
+            tableRows += `
+                <tr>
+                    <td>${fullDate}</td>
+                    <td>${monthNameOnly}</td>
+                    <td>${rowData.start || ''}</td>
+                    <td>${rowData.end || ''}</td>
+                    <td>${rowData.place || ''}</td>
+                    <td style="text-align:center;">${rowData.signed ? '☑' : ''}</td>
+                    <td style="text-align:center;">${rowData.signed ? '✔ ersetzt meine Unterschrift' : ''}</td>
+                </tr>
+            `;
+        }
+
+        printWindow.document.write(`
+            <div class="page">
+                <h2>Stundenzettel: ${worker.name}</h2>
+                <div style="margin-bottom:10px;">${monthNameOnly} - Arbeitszeitnachweis</div>
+
+                <div class="top">
+                    <div>Stunde Insgesamt: ${totalHours.toFixed(2).replace('.', ',')} Std</div>
+                    <div>Lohn Insgesamt: ${totalWage.toFixed(2).replace('.', ',')} €</div>
+                </div>
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width:12%;">Datum</th>
+                            <th style="width:15%;">Monat</th>
+                            <th style="width:10%;">Beginn</th>
+                            <th style="width:10%;">Ende</th>
+                            <th style="width:18%;">Ort</th>
+                            <th style="width:10%;">Unterschrift</th>
+                            <th style="width:25%;">Unterschriftsbestätigung</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${tableRows}
+                    </tbody>
+                </table>
+            </div>
+        `);
+    }
+
+    printWindow.document.write(`</body></html>`);
+    printWindow.document.close();
+
+    setTimeout(() => {
+        printWindow.focus();
+        printWindow.print();
+    }, 700);
+}
+
+// 🔥🔥🔥 YENİ EKLEMELER BİTTİ 🔥🔥🔥
+
 </script>
 {% endblock %}
 
