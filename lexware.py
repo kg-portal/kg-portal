@@ -3,54 +3,52 @@ import sqlite3
 import os
 from datetime import datetime
 
-
-# LEXWARE API ZIRHI
+# LEXWARE API AYARLARI
 LEXWARE_TOKEN = "Q7hU5KjS_5.u0e0HMc2d2QiLhZow5WsWQco.PP54VkP7xmtv"
-BASE_URL = "https://api.lexware.io/v1" # Lexware API ana giriş noktası
-print("LEXWARE BASE_URL =>", BASE_URL)
-
-# ADIM 1: DOSYA YOLUNU ZIRHLI HALE GETİRDİM
+BASE_URL = "https://api.lexware.io/v1"
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DB_PATH = os.path.join(BASE_DIR, 'data', 'kg_portal.db')
 
 def sync_lexware_to_db():
-    """Lexware'den sadece yeni veya durumu degisen faturalari cekip veritabanina yazar."""
+    """Lexware'den faturaları çeker ve borcu bitenleri otomatik 'paid' yapar."""
     headers = {"Authorization": f"Bearer {LEXWARE_TOKEN}", "Accept": "application/json"}
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
 
-    # --- 🔥 ÖDENMİŞLERİ ATLAMAK İÇİN BURAYI GÜNCELLEDİM ---
-    # Veritabanında zaten ödenmiş olanları çekiyoruz (Lexware'de durum genelde 'paid')
-    cursor.execute("SELECT invoice_id FROM lexware_cache WHERE status_code = 'paid'")
-    paid_invoice_ids = {row[0] for row in cursor.fetchall()}
-
-    # Lexware API'den faturaları çekiyoruz
     try:
-        # Not: Lexware endpoint yapısı ve limitleri SevDesk'ten farklıdır, 
-        # ancak mevcut yapıyı bozmamak için benzer bir mantıkla çekiyoruz.
-        r = requests.get(f"{BASE_URL}/invoices", headers=headers, timeout=10)
-        # Lexware verileri genellikle 'content' anahtarı altında döner
-        invoices = r.json().get("content", []) 
-    except Exception as e:
-        print(f"Hata: Lexware baglantisi kurulamadi: {e}")
-        return
+        page = 0
+        invoices = []
 
+        while True:
+            r = requests.get(
+                f"{BASE_URL}/voucherlist?voucherType=invoice&voucherStatus=any&page={page}",
+                headers=headers,
+                timeout=10
+            )
+            data = r.json()
+            invoices.extend(data.get("content", []))
+            if data.get("last", True):
+                break
+            page += 1
+
+    except Exception as e:
+        print(f"Hata: Lexware bağlantısı kurulamadı: {e}")
+        return    
     for inv in invoices:
         inv_id = inv.get("id")
-        
-        # EĞER FATURA ZATEN ÖDENMİŞSE TEKRAR SORMUYORUZ, ATLIYORUZ
-        if inv_id in paid_invoice_ids:
-            continue
-
-        status = inv.get("status", "open")
-        # 'paid' ise Bezahlt (0.0), degilse acik miktar Brüt tutardir
         total_amount = float(inv.get("totalAmount") or 0)
-        offen = 0.0 if status == "paid" else total_amount
+        offen = float(inv.get("openAmount") or 0)
         
+        # Eğer kalan borç 0 ise durum 'paid'dir.
+        if offen <= 0 or inv.get("voucherStatus") == "paid":
+            status = 'paid'
+            offen = 0.0
+        else:
+            status = inv.get("voucherStatus", "open")
+
         raw_date = inv.get("voucherDate")
         formatted_date = raw_date[:10] if raw_date else "2026-01-01"
 
-        # UPSERT: Kayit varsa güncelle, yoksa ekle (Tablo adı lexware_cache yapıldı)
         cursor.execute('''
             INSERT INTO lexware_cache (invoice_id, nr, datum, kunde, brutto, netto, mwst, offen, status_code)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
@@ -64,8 +62,8 @@ def sync_lexware_to_db():
             formatted_date, 
             inv.get("contactName"), 
             total_amount,
-            float(total_amount / 1.19), # KDV Dahil üzerinden hesaplama
-            float(total_amount * 0.19 / 1.19),
+            round(total_amount / 1.19, 2),
+            round(total_amount * 0.19 / 1.19, 2),
             offen, 
             status
         ))
@@ -74,34 +72,38 @@ def sync_lexware_to_db():
     conn.close()
     print("✅ Lexware senkronizasyonu tamamlandı.")
 
+# --- BURASI AYRILDI VE DÜZELTİLDİ ---
 def get_cached_rechnungen(month, year):
-    """Veritabanindan (depodan) verileri milisaniyeler icinde getirir."""
+    """Veritabanindan (depodan) verileri getirir."""
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
-    
-    # Secilen aya göre filtreleme (YYYY-MM-DD formatina göre)
     search_pattern = f"{year}-{month:02d}-%"
     
-    # Tablo adı lexware_cache olarak güncellendi
     rows = conn.execute("""
         SELECT * FROM lexware_cache 
         WHERE datum LIKE ? 
-        ORDER BY datum DESC
+        ORDER BY CAST(REPLACE(nr, 'RE', '') AS INTEGER) ASC
     """, (search_pattern,)).fetchall()
     
     conn.close()
     
     result = []
     for r in rows:
-        d_obj = datetime.strptime(r['datum'], '%Y-%m-%d')
+        try:
+            d_obj = datetime.strptime(r['datum'], '%Y-%m-%d')
+            datum_str = d_obj.strftime("%d.%m.%Y")
+        except:
+            datum_str = r['datum']
+            
         result.append({
             "nr": r['nr'], 
-            "datum": d_obj.strftime("%d.%m.%Y"),
+            "datum": datum_str,
             "kunde": r['kunde'], 
             "brutto": r['brutto'],
             "netto": r['netto'], 
             "mwst": r['mwst'], 
-            "offen": r['offen']
+            "offen": r['offen'],
+            "status": r['status_code'] # Durumu HTML'e gönderiyoruz
         })
     return result
 
