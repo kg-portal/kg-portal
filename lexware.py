@@ -15,6 +15,9 @@ def sync_lexware_to_db():
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
 
+    cursor.execute("DELETE FROM lexware_cache")
+    conn.commit()
+
     try:
         page = 0
         invoices = []
