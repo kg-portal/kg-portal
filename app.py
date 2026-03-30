@@ -43,45 +43,7 @@ def auto_login_check():
 
     # 3. Diğer her yer için şifre ekranına yolla
     return redirect(url_for('login'))
-def auto_import_lexware():
-    """
-    Bu fonksiyon 'lexware import' klasöründeki CSV dosyalarını otomatik tarar.
-    Burada durması şart yoksa aşağıda 'name not defined' hatası verir!
-    """
-    import os
-    import pandas as pd
-    base_path = os.path.dirname(os.path.abspath(__file__))
-    import_dir = os.path.join(base_path, 'lexware import')
-    
-    if not os.path.exists(import_dir):
-        os.makedirs(import_dir)
-        return
 
-    for f in os.listdir(import_dir):
-        if f.endswith(".csv") and f.startswith("Export_RA"):
-            file_path = os.path.join(import_dir, f)
-            try:
-                df = pd.read_csv(file_path, sep=';', encoding='latin1', quotechar='"')
-                conn = get_db_connection()
-                for _, r in df.iterrows():
-                    try:
-                        brutto = float(str(r.iloc[5]).replace('.', '').replace(',', '.'))
-                        mwst = float(str(r.iloc[4]).replace('.', '').replace(',', '.'))
-                    except:
-                        continue
-                    conn.execute('''
-                        INSERT INTO lexware_cache (invoice_id, nr, datum, kunde, brutto, netto, mwst, offen, status_code)
-                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-                        ON CONFLICT(invoice_id) DO UPDATE SET status_code=excluded.status_code, offen=excluded.offen
-                    ''', (str(r.iloc[2]), str(r.iloc[2]), str(r.iloc[0]), str(r.iloc[11]), 
-                          brutto, brutto/1.19, mwst, 0.0 if pd.notnull(r.iloc[8]) else brutto, 
-                          'paid' if pd.notnull(r.iloc[8]) else 'open'))
-                conn.commit()
-                conn.close()
-                os.rename(file_path, file_path + ".done")
-                print(f"✅ Otomatik İşlendi: {f}")
-            except Exception as e:
-                print(f"❌ Lexware Hatası: {e}")
 
 # ... (Buradan aşağısı get_db_connection() diye devam ediyor, aynen kalsın)
 # =====================================================
@@ -398,57 +360,59 @@ def logout():
 @app.route("/")
 @login_required
 def index():
-    # 1. Otomatik İthalat Motorunu Çalıştır (CSV'yi okur)
-    auto_import_lexware() 
-    
-    conn = get_db_connection()
-    import datetime
-    now = datetime.datetime.now()
-    
-    # 2. API Senkronizasyonu (Hata verirse sistemi kilitlemez)
+    # 1. API Senkronizasyonu (En güncel veriyi çekmek için)
     try:
         sync_lexware_to_db() 
     except Exception as e:
-        print(f"⚠️ API baglantisi yok, yerel veriler kullaniliyor.")
+        print(f"⚠️ API baglantisi yok: {e}")
 
-    # 3. CİRO HESAPLAMALARI (Ocak/Şubat Otomatik Dağıtım)
-    # NOT: datum bazen "DD.MM.YYYY" geliyor -> SQL içinde "YYYY-MM-DD" normalize ediyoruz
-    datum_norm_expr = """
-        CASE
-            WHEN instr(datum, '.') > 0 AND length(datum) >= 10
-                THEN substr(datum, 7, 4) || '-' || substr(datum, 4, 2) || '-' || substr(datum, 1, 2)
-            ELSE datum
-        END
-    """
+    conn = get_db_connection()
+    import datetime
+    now = datetime.datetime.now()
 
-    # NOT: search_pattern artik sadece 'now.month' degil, veritabanindaki tum verileri kapsar
-    search_pattern = f"{now.year}-{now.month:02d}-%"
-    monat_row = conn.execute(f"SELECT SUM(brutto) FROM lexware_cache WHERE {datum_norm_expr} LIKE ?", (search_pattern,)).fetchone()
+    # 2. CİRO HESAPLAMA (Mart başındaki faturaları da yakalayan zırhlı sorgu)
+    target_month = f"{now.month:02d}"
+    target_year = str(now.year)
+
+    monat_row = conn.execute("""
+        SELECT SUM(brutto) FROM lexware_cache 
+        WHERE (datum LIKE ? OR datum LIKE ?)
+    """, (f"{target_year}-{target_month}-%", f"%.{target_month}.{target_year}")).fetchone()
+
     monatlicher_umsatz = monat_row[0] if monat_row and monat_row[0] else 0.0
 
+    # 3. YILLIK GRAFİK VERİSİ (Boşluk hatası giderilmiş temiz versiyon)
     jahres_grafik_verisi = []
     jahres_umsatz = 0
     for m in range(1, 13):
-        p = f"{now.year}-{m:02d}-%"
-        r = conn.execute(f"SELECT SUM(brutto) FROM lexware_cache WHERE {datum_norm_expr} LIKE ?", (p,)).fetchone()
+        p_iso = f"{now.year}-{m:02d}-%"
+        p_dot = f"%.{m:02d}.{now.year}"
+        
+        r = conn.execute("""
+            SELECT SUM(brutto) FROM lexware_cache 
+            WHERE (datum LIKE ? OR datum LIKE ?)
+        """, (p_iso, p_dot)).fetchone()
+        
         val = r[0] if r and r[0] else 0.0
         jahres_grafik_verisi.append(val)
         jahres_umsatz += val
 
-    # 4. MÜŞTERİ VE PERSONEL SAYILARI (HTML'in istediği kunden_grafik_verisi buradadır!)
+    # 4. MÜŞTERİ VE PERSONEL SAYILARI
     customer_count = conn.execute("SELECT COUNT(*) FROM kunden WHERE vertragsstatus != 'gekuendigt' OR vertragsstatus IS NULL").fetchone()[0]
     
     kunden_stats = conn.execute("SELECT strftime('%m', created_at) as ay, COUNT(id) FROM kunden GROUP BY ay").fetchall()
     kunden_grafik_verisi = [0] * 12
     for row in kunden_stats:
-        kunden_grafik_verisi[int(row['ay']) - 1] = row[1]
+        if row['ay']:
+            kunden_grafik_verisi[int(row['ay']) - 1] = row[1]
 
     employee_count = conn.execute("SELECT COUNT(*) FROM mitarbeiter WHERE status = 'aktiv'").fetchone()[0]
     
     personel_stats = conn.execute("SELECT strftime('%m', created_at) as ay, COUNT(id) FROM mitarbeiter WHERE status = 'aktiv' GROUP BY ay").fetchall()
     personel_grafik_verisi = [0] * 12
     for row in personel_stats:
-        personel_grafik_verisi[int(row['ay']) - 1] = row[1]
+        if row['ay']:
+            personel_grafik_verisi[int(row['ay']) - 1] = row[1]
 
     # 5. TO-DO VE PİL (BATTERY) HESAPLARI
     todo_kw_labels = []
@@ -475,7 +439,6 @@ def index():
     monatstrend_grafik_verisi = [0, 2500, 5000, 7500, monatlicher_umsatz]
     conn.close()
 
-    # 🚀 TEK VE NİHAİ RENDER (TÜM DEĞİŞKENLER BURADA!)
     return render_template(
         "index.html",
         customer_count=customer_count,
@@ -1199,11 +1162,22 @@ def buchhaltung():
     # 3. ÖNEMLİ: get_cached_rechnungen artık sadece veritabanından (cache) okur
     veriler = get_cached_rechnungen(selected_month, selected_year)
     
-    # 4. ÜST KARTLARI SEÇİLEN AYA GÖRE HESAPLA
-    monatsumsatz = sum(r['brutto'] for r in veriler)
-    offene_forderungen = sum(r['offen'] for r in veriler)
+    # 4. ÜST KARTLARI SEÇİLEN AYA GÖRE HESAPLA (YENİ ZIRHLI SİSTEM)
+    p_iso = f"{selected_year}-{selected_month:02d}-%"
+    p_dot = f"%.{selected_month:02d}.{selected_year}"
+    
+    conn = get_db_connection()
+    row = conn.execute("""
+        SELECT SUM(brutto), SUM(offen), SUM(mwst) 
+        FROM lexware_cache 
+        WHERE (datum LIKE ? OR datum LIKE ?)
+    """, (p_iso, p_dot)).fetchone()
+    
+    monatsumsatz = row[0] if row[0] else 0.0
+    offene_forderungen = row[1] if row[1] else 0.0
     bezahlt_monat = monatsumsatz - offene_forderungen
-    mwst_zahllast = sum(r['mwst'] for r in veriler)
+    mwst_zahllast = row[2] if row[2] else 0.0
+    conn.close()
 
 # --- 🏦 VERİTABANINDAN GİDERLERİ ÇEK ---
     conn = get_db_connection()
