@@ -3,6 +3,7 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 
+
 <!--
 ..........................................................................................................
 ..........................................................................................................
@@ -31,15 +32,39 @@
                     <td style="padding:20px; font-weight:800; color:#1e293b; font-size: 16px;">
                         {{ m.vorname }} {{ m.nachname }}
                         <br>
+
+                        <!-- ❌ SİLİNEN -->
+                        <!--
                         <small style="color:#64748b; font-weight:400; font-size:11px; background:#f1f5f9; padding:2px 6px; border-radius:4px; display:inline-block; margin-top:5px;">
-                            Link: /stundenzettel/worker/{{ m.id }}/{{ m.vorname }}_{{ m.nachname }}/{{ m.access_code if m.access_code else '1234' }}?reminder=1
+                            Link: {{ request.host_url.rstrip('/') }}/stundenzettel/worker/{{ m.access_code }}
                         </small>
+                        -->
+
+                        <!-- ✅ EKLENEN -->
+                        <div style="margin-top:6px; display:flex; gap:6px; align-items:center;">
+                            <input
+                                type="text"
+                                readonly
+                                value="{{ request.host_url.rstrip('/') }}/stundenzettel/worker/{{ m.access_code }}"
+                                style="flex:1; padding:8px 10px; border:1px solid #dbe2ea; border-radius:8px; font-size:12px; background:#f8fafc;">
+                            <button
+                                onclick="
+                                    navigator.clipboard.writeText('{{ request.host_url.rstrip('/') }}/stundenzettel/worker/{{ m.access_code }}');
+                                    this.innerText='KOPIERT!';
+                                    setTimeout(() => this.innerText='KOPIEREN', 1500);
+                                "
+                                style="padding:8px 12px; background:#16a34a; color:white; border:none; border-radius:8px; font-size:12px; cursor:pointer;">
+                                KOPIEREN
+                            </button>
+                        </div>
+
                     </td>
                     <td style="padding:20px; text-align:right; display:flex; justify-content:flex-end; gap:10px;">
-                        <button onclick="window.location.href='/stundenzettel/worker/{{ m.id }}/{{ m.vorname }}_{{ m.nachname }}/{{ m.access_code if m.access_code else '1234' }}?reminder=1'" 
-                                style="background:#2563eb; color:#fff; border:none; padding:10px 25px; border-radius:12px; font-weight:700; cursor:pointer; transition: 0.2s;">
+                        <button 
+                            onclick="window.location.href='{{ request.host_url.rstrip('/') }}/stundenzettel/worker/{{ m.access_code }}'"
+                            style="background:#2563eb; color:#fff; border:none; padding:10px 25px; border-radius:12px; font-weight:700; cursor:pointer; transition: 0.2s;">
                             Öffnen
-                        </button>             
+                        </button>
                         <button onclick="if(confirm('Mitarbeiter archivieren?')) window.location.href='/mitarbeiter/delete/{{ m.id }}'" 
                                 style="background:#fef2f2; color:#dc2626; border:none; width:45px; height:45px; border-radius:12px; cursor:pointer; transition: 0.2s;">
                             <i class="fa-solid fa-trash-can"></i>
