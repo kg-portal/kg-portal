@@ -18,6 +18,12 @@
         * {
             box-sizing: border-box;
         }
+    
+        @media screen and (max-width: 768px) {
+        .mobile-hide-link {
+            display: none !important;
+        }
+    }
 
         @media screen and (max-width: 768px) {
 
@@ -213,11 +219,15 @@
 ..........................................................................................................
 -->
 
-
 <div style="padding: 20px;">
     <h2 style="font-size: 32px; font-weight: 900; color: #16a34a; margin-bottom: 25px; letter-spacing: -1px;">
-        Mitarbeiterliste (Stundenzettel)
+        Mitarbeiter - Stundenzettel
     </h2>
+<div style="text-align:center; font-weight:900; font-size:17px; margin-bottom:20px; line-height:1.6; color:#dc2626;">
+    ⚠️ Bitte füllen Sie den gesamten Monat vollständig spätestens bis zum 20. jedes Monats aus.<br>
+     <hr style="margin:8px 0; border:none; border-top:1px solid #e5e7eb;">
+    ⚠️ Lütfen her ayın tamamını en geç ayın 20’sine kadar eksiksiz doldurun.
+</div>
 
     <div style="background:#fff; border:1px solid #e2e8f0; border-radius:20px; overflow:hidden; box-shadow:0 10px 15px -3px rgba(0,0,0,0.05);">
         <table style="width:100%; border-collapse:collapse; text-align:left">
@@ -233,7 +243,17 @@
                     <td style="padding:20px; font-weight:800; color:#1e293b; font-size: 16px;">
                         <div style="display: flex; flex-direction: column; gap: 5px;">
                             <span>{{ m.vorname }} {{ m.nachname }}</span>
-                            <small style="color:#64748b; font-weight:400; font-size:11px; background:#f1f5f9; padding:4px 8px; border-radius:6px; width: fit-content; word-break: break-all;">
+
+                            <!-- ✅ EKLENEN (YENİ) -->
+                            <div style="font-size:12px; color:#64748b; font-weight:600;">
+                                Urlaub: {{ m.urlaub }} Tage
+                            </div>
+                            <div style="font-size:12px; color:#64748b; font-weight:600;">
+                                Resturlaub: {{ m.resturlaub }} Tage
+                            </div>
+
+                            <!-- MEVCUT (DOKUNMADIM) -->
+                            <small class="mobile-hide-link" style="color:#64748b; font-weight:400; font-size:11px; background:#f1f5f9; padding:4px 8px; border-radius:6px; width: fit-content; word-break: break-all;">
                                 Link: /stundenzettel/worker/{{ m.id }}/{{ m.vorname }}_{{ m.nachname }}/{{ m.access_code if m.access_code else '1234' }}?reminder=1
                             </small>
                         </div>
@@ -392,15 +412,6 @@
                             Gearbeitet
                         </label>
 
-                        <label style="display:flex; align-items:center; gap:8px; font-size:16px; color:#0f172a;">
-                            <input type="radio" name="popupStatus" value="Krank">
-                            Krank
-                        </label>
-
-                        <label style="display:flex; align-items:center; gap:8px; font-size:16px; color:#0f172a;">
-                            <input type="radio" name="popupStatus" value="Urlaub">
-                            Urlaub
-                        </label>
                     </div>
 
                     <div style="font-size:14px; font-weight:700; color:#475569; margin-bottom:8px;">Bestätigung</div>
@@ -429,26 +440,30 @@
 
 <script>
 const locations = [
-    { name: "Duisburg", bg: "#1e40af", color: "#fff" },
-    { name: "Walsum", bg: "#e5e7eb", color: "#1f2937" },
-    { name: "Hamborn", bg: "#fecaca", color: "#991b1b" },
-    { name: "Meiderich / Beeck", bg: "#ffedd5", color: "#9a3412" },
-    { name: "Ruhrort", bg: "#fef9c3", color: "#854d0e" },
-    { name: "Rheinhausen", bg: "#dcfce7", color: "#166534" },
-    { name: "Duisburg Mitte", bg: "#dbeafe", color: "#1e40af" },
-    { name: "Duisburg Süd", bg: "#d1fae5", color: "#065f46" },
-    { name: "Großenbaum", bg: "#f3e8ff", color: "#6b21a8" },
-    { name: "Neudorf", bg: "#4b5563", color: "#fff" },
-    { name: "Moers", bg: "#78350f", color: "#fff" },
-    { name: "Neukirchen - Vlyn", bg: "#422006", color: "#fff" },
-    { name: "Wanheimerort", bg: "#065f46", color: "#fff" },
-    { name: "Grundreinigung", bg: "#1d4ed8", color: "#fff" },
-    { name: "Feiertag", bg: "#b91c1c", color: "#fff" },
-    { name: "Krank", bg: "#0f766e", color: "#fff" },
-    { name: "Urlaub", bg: "#991b1b", color: "#fff" },
-    { name: "Demant", bg: "#bfdbfe", color: "#1e40af" },
-    { name: "I.S.I Neudorf", bg: "#fecaca", color: "#991b1b" },
-    { name: "Neuenkamp", bg: "#2563eb", color: "#fff" }
+    { name: "Duisburg" },
+    { name: "Walsum" },
+    { name: "Hamborn" },
+    { name: "Meiderich / Beeck" },
+    { name: "Ruhrort" },
+    { name: "Rheinhausen" },
+    { name: "Duisburg Mitte" },
+    { name: "Duisburg Süd" },
+    { name: "Großenbaum" },
+    { name: "Neudorf" },
+    { name: "Wanheimerort" },
+    { name: "Neuenkamp" },
+
+    { name: "Grundreinigung" },
+
+    { name: "Düsseldorf" },
+    { name: "Moers" },
+    { name: "Neukirchen-Vluyn" },
+    { name: "Oberhausen" },
+    { name: "Essen" },
+
+    { name: "Feiertag" },
+    { name: "Krank" },
+    { name: "Urlaub" }
 ];
 </script>
 
@@ -654,15 +669,6 @@ if (popupEndEl._flatpickr) {
 document.getElementById('popupPlace').value = place;
 document.getElementById('popupConfirm').checked = signed;
 
-    document.querySelectorAll('input[name="popupStatus"]').forEach(r => r.checked = false);
-
-    if (place === 'Krank') {
-        document.querySelector('input[name="popupStatus"][value="Krank"]').checked = true;
-    } else if (place === 'Urlaub') {
-        document.querySelector('input[name="popupStatus"][value="Urlaub"]').checked = true;
-    } else {
-        document.querySelector('input[name="popupStatus"][value="Gearbeitet"]').checked = true;
-    }
 
     document.getElementById('dayPopup').style.display = 'flex';
 }
@@ -680,10 +686,9 @@ function saveDayPopup() {
     const end = document.getElementById('popupEnd').value || '';
     const place = document.getElementById('popupPlace').value || '';
     const signed = document.getElementById('popupConfirm').checked;
-    const status = document.querySelector('input[name="popupStatus"]:checked')?.value || 'Gearbeitet';
 
     // 2. Nihai konumu belirle (Urlaub/Krank kontrolü)
-    const finalPlace = (status === 'Krank' || status === 'Urlaub') ? status : place;
+    const finalPlace = place;
 
     // 3. Ekranda (HTML) değerleri hemen güncelle
     currentPopupRow.querySelector('.in-time').value = start;
@@ -695,17 +700,8 @@ function saveDayPopup() {
     if (typeof updateCalculations === "function") updateCalculations();
 
     // 🚀 4. VERİTABANINA GÖNDERME (ZIRHLI KISIM)
-    const urlParts = window.location.pathname.split('/');
-    // ID'yi bulmak için diziyi kontrol et (Eğer /worker/ kısmından sonra geliyorsa al)
-    const workerIdIndex = urlParts.indexOf('worker') + 1;
-    const workerId = urlParts[workerIdIndex]; 
+    const workerId = {{ mitarbeiter_liste[0].id }};
     const date = currentPopupRow.getAttribute('data-date');
-
-    if (!workerId || isNaN(workerId)) {
-        console.error("Hata: İşçi ID'si URL'den okunamadı!");
-        alert("Sistem hatası: İşçi kimliği bulunamadı, lütfen sayfayı yenileyip tekrar deneyin.");
-        return;
-    }
 
     const entry = {
         date: date,
@@ -715,7 +711,7 @@ function saveDayPopup() {
         signed: signed
     };
 
-    fetch('/api/stundenzettel/save', {
+    fetch(window.location.origin + '/api/stundenzettel/save', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -797,12 +793,14 @@ function updateRowStyle(select) {
 function updateCalculations() {
     const rows = document.querySelectorAll('.timesheet-row');
     const hourlyWage = 15.00;
+    const grundreinigungWage = 17.00;
     const hourLimit = 40.00;
     const moneyLimit = 600.00;
 
     let rawArbeit = 0;
     let rawKrank = 0;
     let rawUrlaub = 0;
+    let rawGrund = 0;
 
     rows.forEach(row => {
         const inT = row.querySelector('.in-time').value;
@@ -821,13 +819,15 @@ function updateCalculations() {
                     rawKrank += diff;
                 } else if (status === "Urlaub") {
                     rawUrlaub += diff;
+                } else if (status === "Grundreinigung") {
+                    rawArbeit += diff;
+                    rawGrund += diff;
                 } else {
                     rawArbeit += diff;
                 }
             }
         }
     });
-
     const krankInBase = Math.min(rawKrank, hourLimit);
     const urlaubInBase = Math.min(rawUrlaub, Math.max(0, hourLimit - krankInBase));
     const arbeitInBase = Math.min(rawArbeit, Math.max(0, hourLimit - krankInBase - urlaubInBase));
@@ -835,6 +835,8 @@ function updateCalculations() {
     const rawTotal = rawArbeit + rawKrank + rawUrlaub;
     const grandTotalStd = Math.min(hourLimit, rawTotal);
     const totalExtra = Math.max(0, rawTotal - hourLimit);
+    const grundInBase = Math.min(rawGrund, arbeitInBase);
+    const normalArbeitInBase = Math.max(0, arbeitInBase - grundInBase);
 
     rows.forEach((row, idx) => {
         const c = {
@@ -849,7 +851,11 @@ function updateCalculations() {
         if (idx === 0) {
             c.std.innerHTML = `${grandTotalStd.toFixed(2).replace('.', ',')} Std`;
 
-            let basePay = grandTotalStd * hourlyWage;
+            let basePay =
+                (normalArbeitInBase * hourlyWage) +
+                (grundInBase * grundreinigungWage) +
+                (krankInBase * hourlyWage) +
+                (urlaubInBase * hourlyWage);
             let finalLohn = basePay > moneyLimit ? moneyLimit : basePay;
             c.lohn.innerHTML = `${finalLohn.toFixed(2).replace('.', ',')} €`;
 
@@ -864,7 +870,7 @@ function updateCalculations() {
         }
     });
 
-    const totalPay = grandTotalStd * hourlyWage > moneyLimit ? moneyLimit : grandTotalStd * hourlyWage;
+    const totalPay = ((normalArbeitInBase * hourlyWage) + (grundInBase * grundreinigungWage) + (krankInBase * hourlyWage) + (urlaubInBase * hourlyWage)) > moneyLimit ? moneyLimit : ((normalArbeitInBase * hourlyWage) + (grundInBase * grundreinigungWage) + (krankInBase * hourlyWage) + (urlaubInBase * hourlyWage));
 
     document.getElementById('summaryTotalStd').innerHTML =
         `${grandTotalStd.toFixed(2).replace('.', ',')} Std <span style="display:block; font-size:15px; font-weight:700; color:#64748b;">(${totalPay.toFixed(2).replace('.', ',')} €)</span>`;
@@ -930,31 +936,72 @@ if (typeof flatpickr !== 'undefined') {
     box-shadow: 0 0 0 1000vw rgba(0,0,0,0.85); /* Arkadaki her şeyi tamamen karartır */
 ">
 
-    <h3 style="margin:0 0 20px 0; color:#c2410c; font-size:24px; font-weight:900; text-align:center;">
-        ⚠️ WICHTIG / ÖNEMLİ
-    </h3>
+    <h3 id="reminderTitle" style="margin:0 0 20px 0; color:#dc2626; font-size:26px; font-weight:900; text-align:center; text-transform:uppercase;">
+    ⚠️ ACHTUNG
+</h3>
 
-    <div id="reminderTextDE" style="font-size:15px; line-height:1.7; color:#1e293b; margin-bottom:20px;">
-        <strong>Bitte tragen Sie Ihre Arbeitszeiten vollständig ein:</strong><br><br>
-        • Stunden prüfen, nichts offen lassen.<br>
-        • Urlaub / Vertretung / Feiertag entsprechend markieren.<br>
-        • Feiertag: gearbeitet = eintragen, nicht gearbeitet = leer lassen.<br>
-        • Krank = <b>KRANK</b> markieren.<br>
-        • ✅ Bestätigung nicht vergessen.<br>
-        • Fehlende Stunden werden <b>nicht</b> nachgetragen.<br>
-        • Wir prüfen <b>nicht erneut</b>.
-    </div>
+<!-- DE -->
+<div id="reminderTextDE" style="font-size:15px; line-height:1.8; color:#1e293b; margin-bottom:20px;">
+    <strong>Bitte tragen Sie Ihre Arbeitszeiten vollständig ein:</strong><br><br>
 
-    <div id="reminderTextTR" style="display:none; font-size:15px; line-height:1.7; color:#1e293b; margin-bottom:20px;">
-        <strong>Lütfen çalışma saatlerinizi eksiksiz giriniz:</strong><br><br>
-        • Saatlerinizi kontrol edin, eksik bırakmayın.<br>
-        • Urlaub / Vertretung / Feiertag varsa işaretleyin.<br>
-        • Feiertag: çalıştıysanız yazın, çalışmadıysanız boş bırakın.<br>
-        • Krank aldıysanız <b>KRANK</b> işaretleyin.<br>
-        • ✅ Onayı unutmayın.<br>
-        • Eksik saatler <b>sonradan girilmeyecektir</b>.<br>
-        • Saatler tekrar kontrol edilmeyecektir.
-    </div>
+    • Stunden prüfen, nichts offen lassen.<br>
+
+    • <span style="color:#2563eb; font-weight:700;">Urlaub</span> /
+      <span style="color:#7c3aed; font-weight:700;">Vertretung</span> /
+      <span style="color:#dc2626; font-weight:700;">Feiertag</span> markieren.<br>
+
+    • <span style="color:#dc2626; font-weight:700;">Feiertag:</span> gearbeitet = eintragen, nicht gearbeitet = leer lassen. Bitte prüfen, ob es Ihr Arbeitstag ist.<br>
+
+    • <span style="color:#f97316; font-weight:800;">Krank</span> markieren, wenn Sie einen Krankenschein haben.<br>
+
+    • Sie sind für fehlende Stunden selbst verantwortlich.<br>
+
+    • Stunden werden nicht erneut kontrolliert.<br>
+
+    • Vergessen Sie nicht, statt Ihrer Unterschrift mit ✅ zu bestätigen.
+</div>
+
+<!-- TR -->
+<div id="reminderTextTR" style="display:none; font-size:15px; line-height:1.8; color:#1e293b; margin-bottom:20px;">
+    <strong>Lütfen çalışma saatlerinizi eksiksiz giriniz:</strong><br><br>
+
+    • Saatlerinizi kontrol edin, eksik bırakmayın.<br>
+
+    • <span style="color:#2563eb; font-weight:700;">Urlaub</span> /
+      <span style="color:#7c3aed; font-weight:700;">Vertretung</span> /
+      <span style="color:#dc2626; font-weight:700;">Feiertag</span> varsa işaretleyin.<br>
+
+    • <span style="color:#dc2626; font-weight:700;">Feiertag:</span> çalıştıysanız = yazın, çalışmadıysanız = boş bırakın. Lütfen bunun iş gününüze denk gelip gelmediğini kontrol edin.<br>
+
+    • <span style="color:#f97316; font-weight:800;">Krank</span> aldıysanız işaretleyin.<br>
+
+    • Eksik girilen saatlerden siz sorumlusunuz.<br>
+
+    • Saatler tekrar kontrol edilmeyecektir.<br>
+
+    • İmzanız yerine ✅ ile onay vermeyi unutmayın.
+</div>
+
+<script>
+function switchReminderLang(lang) {
+    const de = document.getElementById('reminderTextDE');
+    const tr = document.getElementById('reminderTextTR');
+    const btn = document.getElementById('confirmReminderBtn');
+    const title = document.getElementById('reminderTitle');
+
+    if (lang === 'de') {
+        de.style.display = 'block';
+        tr.style.display = 'none';
+        btn.innerText = "✔ OK, GELESEN";
+        title.innerText = "⚠️ ACHTUNG";
+    } else {
+        de.style.display = 'none';
+        tr.style.display = 'block';
+        btn.innerText = "✔ OK, ANLADIM";
+        title.innerText = "⚠️ DİKKAT";
+    }
+}
+</script>
 
     <div style="display:flex; gap:12px; align-items:center; justify-content:space-between; border-top:1px solid #eee; padding-top:20px;">
         <div>
@@ -978,21 +1025,35 @@ if (typeof flatpickr !== 'undefined') {
 </div>
 
 <script>
-// Sayfa yüklendiğinde URL parametresine göre kutuyu aç
+// Sayfa yüklendiğinde URL parametresine göre kutuyu aç (Sadece 19'u)
 document.addEventListener("DOMContentLoaded", function() {
     const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.get('reminder') === '1') {
+    const today = new Date().getDate();
+
+    if (new Date().getDate() === 19 && urlParams.get('reminder') === '1') {
         document.getElementById('stundenReminderBox').style.display = 'block';
     }
-
 });
 
 // Dil değiştirme fonksiyonu
 function switchReminderLang(lang) {
-    document.getElementById('reminderTextDE').style.display = (lang === 'de') ? 'block' : 'none';
-    document.getElementById('reminderTextTR').style.display = (lang === 'tr') ? 'block' : 'none';
-}
+    const de = document.getElementById('reminderTextDE');
+    const tr = document.getElementById('reminderTextTR');
+    const btn = document.getElementById('confirmReminderBtn');
+    const title = document.getElementById('reminderTitle');
 
+    if (lang === 'de') {
+        de.style.display = 'block';
+        tr.style.display = 'none';
+        btn.innerText = "✔ OK, GELESEN";
+        title.innerText = "⚠️ ACHTUNG";
+    } else {
+        de.style.display = 'none';
+        tr.style.display = 'block';
+        btn.innerText = "✔ OK, ANLADIM";
+        title.innerText = "⚠️ DİKKAT";
+    }
+}
 // Kapatma ve URL temizleme
 document.getElementById('confirmReminderBtn').addEventListener('click', function() {
     document.getElementById('stundenReminderBox').style.display = 'none';
