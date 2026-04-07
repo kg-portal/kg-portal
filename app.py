@@ -9,6 +9,7 @@ from functools import wraps
 import sqlite3
 import json
 import os
+import secrets  # ✅ EKLENDİ
 from leistungen import LEISTUNGEN
 from lexware import sync_lexware_to_db, get_cached_rechnungen
 from starmoney_import import (
@@ -21,6 +22,31 @@ from starmoney_import import (
 app = Flask(__name__)
 app.secret_key = 'kg_reinigung_ozel_anahtar_2026' # Güvenlik anahtarı
 DB_PATH = os.path.join('data', 'kg_portal.db') 
+
+# 🔥 YENİ ROUTE (ESKİLERİ DÜZELTİR)
+@app.route("/fix_access_codes")
+def fix_access_codes():
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+
+    cursor.execute("SELECT id, access_code FROM mitarbeiter")
+    rows = cursor.fetchall()
+
+    updated = 0
+
+    for row in rows:
+        if not row[1]:  # access_code boşsa
+            new_code = secrets.token_urlsafe(16)
+            cursor.execute(
+                "UPDATE mitarbeiter SET access_code=? WHERE id=?",
+                (new_code, row[0])
+            )
+            updated += 1
+
+    conn.commit()
+    conn.close()
+
+    return f"{updated} kişi güncellendi"
 
 # GİRİŞ BİLGİLERİN (Eşinle kullanacağın şifre)
 USER_ID = "admin"
