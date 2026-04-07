@@ -23,7 +23,7 @@ app = Flask(__name__)
 app.secret_key = 'kg_reinigung_ozel_anahtar_2026' # Güvenlik anahtarı
 DB_PATH = os.path.join('data', 'kg_portal.db') 
 
-# 🔥 YENİ ROUTE (ESKİLERİ DÜZELTİR)
+# 🔥 YENİ ROUTE (ESKİLERİ + 1234'LERİ DÜZELTİR)
 @app.route("/fix_access_codes")
 def fix_access_codes():
     conn = sqlite3.connect(DB_PATH)
@@ -35,7 +35,7 @@ def fix_access_codes():
     updated = 0
 
     for row in rows:
-        if not row[1]:  # access_code boşsa
+        if not row[1] or row[1] == "1234":  # 🔥 BURASI KRİTİK
             new_code = secrets.token_urlsafe(16)
             cursor.execute(
                 "UPDATE mitarbeiter SET access_code=? WHERE id=?",
@@ -76,7 +76,6 @@ def auto_login_check():
 
     # 3. Diğer her yer için şifre ekranına yolla
     return redirect(url_for('login'))
-
 
 # ... (Buradan aşağısı get_db_connection() diye devam ediyor, aynen kalsın)
 # =====================================================
