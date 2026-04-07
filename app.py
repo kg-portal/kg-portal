@@ -11,6 +11,13 @@ import json
 import os
 from leistungen import LEISTUNGEN
 from lexware import sync_lexware_to_db, get_cached_rechnungen
+from starmoney_import import (
+    sync_starmoney_to_db,
+    get_starmoney_transactions,
+    get_starmoney_all_balances,
+    get_starmoney_balance
+)
+
 app = Flask(__name__)
 app.secret_key = 'kg_reinigung_ozel_anahtar_2026' # Güvenlik anahtarı
 DB_PATH = os.path.join('data', 'kg_portal.db') 
@@ -25,7 +32,7 @@ def login_required(f):
     def decorated_function(*args, **kwargs):
         if 'logged_in' not in session:
             # İşçi linkiyle geliniyorsa engelleme (ŞİFRESİZ GEÇİŞ)
-            if request.path.startswith('/stundenzettel/worker/'):
+            if request.path.startswith('/stundenzettel/worker/') or request.path.startswith('/api/stundenzettel/'):
                 return f(*args, **kwargs)
             return redirect(url_for('login'))
         return f(*args, **kwargs)
@@ -38,7 +45,7 @@ def auto_login_check():
         return
     
     # 2. İŞÇİ LİNKLERİ İÇİN ŞİFRE SORMADAN GEÇİŞ İZNİ
-    if request.path.startswith('/stundenzettel/worker/'):
+    if request.path.startswith('/stundenzettel/worker/') or request.path.startswith('/api/stundenzettel/'):
         return
 
     # 3. Diğer her yer için şifre ekranına yolla
@@ -151,16 +158,6 @@ def init_db():
         conn.execute("ALTER TABLE mitarbeiter ADD COLUMN anrede TEXT")
     except:
         pass
-
-
-    #####################################################################
-    # >>>>>> 🔥 BURAYI EKLEDİM - VERİTABANI HATASINI ÇÖZEN KISIM 🔥 <<<<<<
-    try:
-        conn.execute("ALTER TABLE mitarbeiter ADD COLUMN access_code TEXT DEFAULT '1234'")
-    except:
-        pass # Eğer sütun zaten varsa hata vermez, sessizce geçer.
-    # <<<<<< 🔥 BURASI BİTTİ 🔥 <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    # ####################################################################
 
 # To-Do Listesi Tablosu
     conn.execute('''
@@ -736,13 +733,16 @@ def mitarbeiter():
                 mitarbeiter_id
             ))
         else:
+            import secrets
+            access_code = secrets.token_urlsafe(24)
+
             conn.execute("""
                 INSERT INTO mitarbeiter (
                     anrede, vorname, nachname, ort, strasse, plz,
                     geburtsdatum, eintrittsdatum, telefon, email,
                     steuer_id, sv_nummer, krankenkasse, iban,
-                    stundenlohn, urlaub, resturlaub, art, data_json
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    stundenlohn, urlaub, resturlaub, art, data_json, access_code
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 
             """, (
                 form_data.get("anrede"),
@@ -763,7 +763,8 @@ def mitarbeiter():
                 form_data.get("urlaub"),
                 form_data.get("resturlaub"),
                 form_data.get("art"),
-                data_json
+                data_json,
+                access_code
             ))
 
         conn.commit()
@@ -1063,7 +1064,7 @@ def stundenzettel():
     import os
     conn = get_db_connection()
     # Sadece aktif işçileri çekiyoruz
-    mitarbeiter_liste = conn.execute("SELECT id, vorname, nachname FROM mitarbeiter WHERE status = 'aktiv'").fetchall()
+    mitarbeiter_liste = conn.execute("SELECT id, vorname, nachname, access_code FROM mitarbeiter WHERE status = 'aktiv'").fetchall()
     conn.close()
 
     # 1. Ana klasörü kontrol et (data/stundenzettel)
@@ -1096,27 +1097,23 @@ def edit_stundenzettel(id):
 
 
 # BU DA İŞÇİ İÇİN OLAN KOD - GÜVENLİK VE İSİM EKLENMİŞ HALİ
-@app.route("/stundenzettel/worker/<int:id>/<string:name>/<string:code>")
-def worker_stundenzettel(id, name, code):
+@app.route("/stundenzettel/worker/<string:code>")
+def worker_stundenzettel(code):
     conn = get_db_connection()
-    # Veritabanından ID, İsim ve 4 haneli Gizli Kodun hepsini aynı anda kontrol ediyoruz!
-    # (vorname || '_' || nachname) kısmı isimleri "Murat_Kicci" formatında birleştirir.
     worker = conn.execute(
-        "SELECT * FROM mitarbeiter WHERE id = ? AND (vorname || '_' || nachname) = ? AND access_code = ?", 
-        (id, name, code)
+        "SELECT * FROM mitarbeiter WHERE access_code = ?",
+        (code,)
     ).fetchone()
-    
+
     if not worker:
         conn.close()
         return "<h1>⚠️ Zugriff verweigert / Geçersiz Link</h1><p>Bilgiler uyuşmuyor.</p>", 403
 
-    # 🔥 EKLENEN KISIM (KAYITLARI GERİ OKUMA)
     logs = conn.execute("""
         SELECT datum, start_time, end_time, place, signed
         FROM work_logs
         WHERE worker_id = ?
-    """, (id,)).fetchall()
-
+    """, (worker["id"],)).fetchall()
     conn.close()
 
     saved_logs = {}
@@ -1134,7 +1131,6 @@ def worker_stundenzettel(id, name, code):
         mitarbeiter_liste=[worker],
         saved_logs=json.dumps(saved_logs)
     )
-
 # =====================================================
 # Bölüm 18- BUCHHALTUNG (MUHASEBE) - TEK PARÇA & HIZLI
 # =====================================================
@@ -1142,6 +1138,11 @@ def worker_stundenzettel(id, name, code):
 @app.route("/buchhaltung")
 @login_required
 def buchhaltung():
+    try:
+        sync_starmoney_to_db()
+    except Exception as e:
+        print(f"⚠️ StarMoney hata: {e}")
+
     # --- 🔥 ADIM 2: DİNAMİK VERİ TETİKLEYİCİSİ (GÜNCELLENDİ) ---
     import datetime
     # import sevdesk silindi!
@@ -1179,7 +1180,7 @@ def buchhaltung():
     mwst_zahllast = row[2] if row[2] else 0.0
     conn.close()
 
-# --- 🏦 VERİTABANINDAN GİDERLERİ ÇEK ---
+    # --- 🏦 VERİTABANINDAN GİDERLERİ ÇEK ---
     conn = get_db_connection()
     gewerbliche_ausgaben = conn.execute(
         'SELECT * FROM gewerbliche_ausgaben WHERE monat = ? ORDER BY datum DESC', 
@@ -1198,33 +1199,27 @@ def buchhaltung():
     }
     selected_month_name = monat_isimleri.get(selected_month)
     
-    selected_bank = request.args.get('bank_account') 
+    selected_bank = request.args.get('bank_account')
     bank_data = []
     total_bank_balance = 0.0
-    all_balances = {} 
-
-    # Eğer bir banka seçilmişse (yani Bank sekmesindeysek) verileri çek
+    all_balances = get_starmoney_all_balances()
+    
     if selected_bank:
-        # 1. İşlemleri hızlıca çek (Artık 50 limitli ve sadece yenileri ekleyen zırhlı sistem)
-        bank_data = get_bank_transactions(selected_bank)
-        
-        # 2. TÜM bakiyeleri TEK BİR API isteğiyle al (4 ayrı sorgu yerine tek sorgu - 4 kat hız)
-        all_balances = get_all_bank_balances()
-        
-        # 3. Sağ üstteki genel bakiye toplu listeden gelir
-        total_bank_balance = all_balances.get(selected_bank, 0.0)
-
+        bank_data = get_starmoney_transactions(selected_bank, selected_month, selected_year)
+        total_bank_balance = get_starmoney_balance(selected_bank)
+    
+    # 🔥 BURASI DIŞARIDA OLACAK
     conn = get_db_connection()
     ratenzahlungen = conn.execute("SELECT * FROM ratenzahlungen ORDER BY id ASC").fetchall()
     conn.close()
-
-    # --- KARTLAR İÇİN HESAPLAMA (Sildiğin yer burası, geri geldi!) ---
+    
+    # --- KARTLAR İÇİN HESAPLAMA ---
     total_g = sum(r['gesamtbetrag'] for r in ratenzahlungen) if ratenzahlungen else 0.0
     total_r = sum(r['restbetrag'] for r in ratenzahlungen) if ratenzahlungen else 0.0
     
     # 5. Tüm verileri HTML'e gönder
     return render_template(
-        "buchhaltung.html", 
+        "buchhaltung.html",
         rechnungen=veriler,
         ratenzahlungen=ratenzahlungen,
         monatsumsatz=monatsumsatz,
@@ -1234,13 +1229,13 @@ def buchhaltung():
         bank_data=bank_data,
         active_bank=selected_bank,
         total_bank_balance=total_bank_balance,
-        all_balances=all_balances, 
+        all_balances=all_balances,
         selected_month=f"{selected_month:02d}",
         selected_month_name=selected_month_name,
-        total_g=total_g,  
+        total_g=total_g,
         total_r=total_r,
-        gewerbliche_ausgaben=gewerbliche_ausgaben,         
-        private_ausgaben=private_ausgaben          
+        gewerbliche_ausgaben=gewerbliche_ausgaben,
+        private_ausgaben=private_ausgaben
     )
 
 @app.route("/delete_ratenzahlung/<int:id>")
@@ -1304,7 +1299,6 @@ def add_ratenzahlung():
     conn.commit()
     conn.close()
     return redirect(url_for('buchhaltung') + "#rates")
-
 
 # =====================================================
 # 🔥 BÖLÜM 18.5: STUNDENZETTEL KAYIT MOTORU (NİHAİ ZIRH)
