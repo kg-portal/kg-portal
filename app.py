@@ -22,13 +22,12 @@ from datetime import datetime
 
 from leistungen import LEISTUNGEN
 from lexware import sync_lexware_to_db, get_cached_rechnungen
-from starmoney_import import (
-    sync_starmoney_to_db,
-    get_starmoney_transactions,
-    get_starmoney_all_balances,
-    get_starmoney_balance
+from fints_import import (
+    sync_fints_to_db,
+    get_fints_transactions,
+    get_fints_all_balances,
+    get_fints_balance
 )
-
 app = Flask(__name__)
 app.secret_key = 'kg_reinigung_ozel_anahtar_2026' # Güvenlik anahtarı
 DB_PATH = os.path.join('data', 'kg_portal.db') 
@@ -1475,10 +1474,7 @@ def worker_stundenzettel(code):
 @app.route("/buchhaltung")
 @login_required
 def buchhaltung():
-    try:
-        sync_starmoney_to_db()
-    except Exception as e:
-        print(f"⚠️ StarMoney hata: {e}")
+
 
     # --- 🔥 ADIM 2: DİNAMİK VERİ TETİKLEYİCİSİ (GÜNCELLENDİ) ---
     import datetime
@@ -1539,11 +1535,11 @@ def buchhaltung():
     selected_bank = request.args.get('bank_account')
     bank_data = []
     total_bank_balance = 0.0
-    all_balances = get_starmoney_all_balances()
+    all_balances = get_fints_all_balances()
     
     if selected_bank:
-        bank_data = get_starmoney_transactions(selected_bank, selected_month, selected_year)
-        total_bank_balance = get_starmoney_balance(selected_bank)
+        bank_data = get_fints_transactions(selected_bank, selected_month, selected_year)
+        total_bank_balance = get_fints_balance(selected_bank)
     
     # 🔥 BURASI DIŞARIDA OLACAK
     conn = get_db_connection()
@@ -1982,7 +1978,20 @@ def save_raten_order():
         return jsonify({"success": False, "error": str(e)}), 500
 
 # =====================================================
-# BÖLÜM 22: UYGULAMA BAŞLATICI (NİHAİ ZIRHLI SÜRÜM)
+# Bölüm 23- SPARKASSE BAĞLANTISI
+# =====================================================
+
+@app.route("/api/sparkasse-sync")
+@login_required
+def sparkasse_sync():
+    try:
+        result = sync_fints_to_db()
+        return jsonify(result)
+    except Exception as e:
+        return jsonify({"ok": "0", "message": str(e)})
+
+# =====================================================
+# BÖLÜM 23: UYGULAMA BAŞLATICI (NİHAİ ZIRHLI SÜRÜM)
 # =====================================================
 
 def run_db_migration():
