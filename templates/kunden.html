@@ -71,12 +71,12 @@
       </tr>
     </thead>
 
-    <tbody>
+    <tbody id="kundenSortable">
       {% for k in kunden %}
-      <tr id="row-{{ k.id }}" style="border-bottom:1px solid #f1f5f9">
+      <tr data-id="{{ k.id }}" style="border-bottom:1px solid #f1f5f9">
 
-        <td style="padding:20px;font-weight:800;color:#1e293b" title="{{ k.firma }}">
-  {{ k.firma[:14] }}{% if k.firma|length > 14 %}...{% endif %}
+        <td class="drag-handle" style="padding:20px;font-weight:800;color:#1e293b; cursor:grab;" title="{{ k.firma }}">
+    ☰ {{ k.firma[:14] }}{% if k.firma|length > 14 %}...{% endif %}
 </td>
         <td style="padding:20px;color:#64748b">{{ k.strasse }}</td>
         <td style="padding:20px;color:#64748b">{{ k.plz }}</td>
@@ -570,5 +570,54 @@ async function livePlzSearch() {
     cityInput.placeholder = "Fehler";
   }
 }
+
+
+/* ========================================================
+   🌍 Drag & Drop Sort + Save (SortableJS) Kunden kaydirinca kaydedici
+   ======================================================== */
+
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+
+<script>
+
+document.addEventListener("DOMContentLoaded", function () {
+
+    const kundenBody = document.getElementById("kundenSortable");
+
+    if (kundenBody) {
+        new Sortable(kundenBody, {
+            animation: 150,
+            handle: ".drag-handle",
+
+            onEnd: async function () {
+                const ids = Array.from(kundenBody.querySelectorAll("tr[data-id]"))
+                    .map(row => parseInt(row.dataset.id))
+                    .filter(id => !isNaN(id));
+
+                try {
+                    const res = await fetch("/kunden/save-order", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify({ order: ids })
+                    });
+
+                    const data = await res.json();
+
+                    if (!data.success) {
+                        alert("Speichern fehlgeschlagen!");
+                    }
+
+                } catch (err) {
+                    alert("Fehler beim Speichern!");
+                    console.error(err);
+                }
+            }
+        });
+    }
+
+});
+
 </script>
 {% endblock %}
