@@ -314,10 +314,12 @@ function lexwareMasasiniAc() {
                                     <th class="no-print" style="border:none; padding:15px;"></th>
                                 </tr>
                             </thead>
-                            <tbody>
-                                {% for rate in ratenzahlungen %}
-                                <tr style="border-bottom: 1px solid #f1f5f9; color: {{ rate.renk_kodu or '#333' }};">
-    <td style="padding:15px; font-weight:700;">{{ rate.kreditname }}</td>
+                            <tbody id="ratenSortable">
+                                 {% for rate in ratenzahlungen %}
+                                 <tr data-id="{{ rate.id }}" style="border-bottom: 1px solid #f1f5f9; color: {{ rate.renk_kodu or '#333' }};">
+    <td class="drag-handle" style="padding:15px; font-weight:700; cursor:grab;">
+    ☰ {{ rate.kreditname }}
+</td>
     <td style="padding:15px;">{{ "{:,.2f}".format(rate.gesamtbetrag).replace(',', 'X').replace('.', ',').replace('X', '.') }} €</td>
     <td style="padding:15px;">{{ "{:,.2f}".format(rate.monatliche_rate).replace(',', 'X').replace('.', ',').replace('X', '.') }} €</td>
     <td style="padding:15px;">{{ rate.laufzeit }} Monate</td>
@@ -615,38 +617,7 @@ $(document).ready(function() {
         localStorage.setItem('buchhaltungScrollPos', $(window).scrollTop());
     });
 
-    // 2. Sekme Yönetimi (KARTLARI DEĞİŞTİREN ZIRHLI SÜRÜM)
-    var activeTab = localStorage.getItem('buchhaltungActiveTab');
-    var hash = window.location.hash;
-    
-    if (hash) {
-        $('.nav-tabs a[href="' + hash + '"]').tab('show');
-    } else if (activeTab) {
-        $('.nav-tabs a[href="' + activeTab + '"]').tab('show');
-    }
-
-    // SEKME DEĞİŞİNCE ÜST KARTLARI DA DEĞİŞTİR
-    $('.nav-tabs a').on('shown.bs.tab', function (e) {
-    var currentHash = e.target.hash; 
-    
-    // Önce hepsini gizle (Temizlik)
-    $('#default-stats').addClass('d-none');
-    $('#rate-stats').addClass('d-none');
-    if($('#bank-stats-wrapper').length) $('#bank-stats-wrapper').addClass('d-none');
-
-    // Şimdi hangi sekmedeysek sadece onu göster
-    if (currentHash === '#rates') {
-        $('#rate-stats').removeClass('d-none'); // Kredi kartlarını göster
-    } else if (currentHash === '#bank') {
-        if($('#bank-stats-wrapper').length) $('#bank-stats-wrapper').removeClass('d-none'); // Banka kartlarını göster
-    } else {
-        $('#default-stats').removeClass('d-none'); // Rechnungen (Fatura) kartlarını göster
-    }
-
-    localStorage.setItem('buchhaltungActiveTab', currentHash);
-});
-
-    // 3. Flatpickr Almanca Tarih Seçici Başlatma
+    // 2. Flatpickr Almanca Tarih Seçici Başlatma
     flatpickr(".rate-date-picker", {
         locale: "de",
         dateFormat: "d.m.Y",
@@ -655,16 +626,45 @@ $(document).ready(function() {
         altFormat: "d.m.Y"
     });
 
-    // Sayfa ilk yüklendiğinde doğru kartın görünmesini garantile
-    $(document).ready(function() {
-        var checkHash = window.location.hash || localStorage.getItem('buchhaltungActiveTab');
-        if (checkHash === '#rates') {
-            $('#default-stats').addClass('d-none');
+    // 3. Sayfa açılınca son aktif sekmeyi aç
+    var activeHash = window.location.hash || localStorage.getItem('buchhaltungActiveTab') || '#rechnungen';
+    $('.nav-tabs a[href="' + activeHash + '"]').tab('show');
+
+    // 4. Üst kartları doğru göster
+    $('#default-stats').addClass('d-none');
+    $('#rate-stats').addClass('d-none');
+    if ($('#bank-stats-wrapper').length) $('#bank-stats-wrapper').addClass('d-none');
+
+    if (activeHash === '#rates') {
+        $('#rate-stats').removeClass('d-none');
+    } else if (activeHash === '#bank') {
+        if ($('#bank-stats-wrapper').length) $('#bank-stats-wrapper').removeClass('d-none');
+    } else {
+        $('#default-stats').removeClass('d-none');
+    }
+
+    // 5. Sekme değişince hafızaya kaydet
+    $('.nav-tabs a').on('shown.bs.tab', function (e) {
+        var currentHash = e.target.hash;
+
+        $('#default-stats').addClass('d-none');
+        $('#rate-stats').addClass('d-none');
+        if ($('#bank-stats-wrapper').length) $('#bank-stats-wrapper').addClass('d-none');
+
+        if (currentHash === '#rates') {
             $('#rate-stats').removeClass('d-none');
+        } else if (currentHash === '#bank') {
+            if ($('#bank-stats-wrapper').length) $('#bank-stats-wrapper').removeClass('d-none');
+        } else {
+            $('#default-stats').removeClass('d-none');
+        }
+
+        localStorage.setItem('buchhaltungActiveTab', currentHash);
+        if (history.pushState) {
+            history.pushState(null, null, currentHash);
         }
     });
 });
-
 
 // ==========================================
 // 🚀 MODAL + SEKME + ÜST KART YÖNETİMİ (TEK PARÇA)
@@ -762,20 +762,31 @@ function editRate(id) {
             const form = document.getElementById('rateForm');
             
             // Temel verileri doldur
-            form.kreditname.value = data.kreditname;
-            form.gesamtbetrag.value = data.gesamtbetrag;
-            form.monatliche_rate.value = data.monatliche_rate;
-            form.laufzeit.value = data.laufzeit;
-            form.einzahl_raten.value = data.einzahl_raten;
-            form.rest_raten.value = data.rest_raten;
-            form.restbetrag.value = data.restbetrag;
+            form.kreditname.value = data.kreditname || '';
+            form.gesamtbetrag.value = data.gesamtbetrag || '';
+            form.monatliche_rate.value = data.monatliche_rate || '';
+            form.laufzeit.value = data.laufzeit || '';
+            form.einzahl_raten.value = data.einzahl_raten || '';
+            form.rest_raten.value = data.rest_raten || '';
+            form.restbetrag.value = data.restbetrag || '';
 
-            // 🔥 TARİHLERİ BURASI HATIRLAR (BOŞ KALMAZ)
-            form.beginn.value = data.beginn || '';
-            form.ende.value = data.ende || '';
+            // 🔥 TARİHLERİ FLATPICKR ÜZERİNDEN DOLDUR
+            if (form.beginn && form.beginn._flatpickr) {
+                form.beginn._flatpickr.setDate(data.beginn || '', true, "d.m.Y");
+            } else {
+                form.beginn.value = data.beginn || '';
+            }
+
+            if (form.ende && form.ende._flatpickr) {
+                form.ende._flatpickr.setDate(data.ende || '', true, "d.m.Y");
+            } else {
+                form.ende.value = data.ende || '';
+            }
             
             // Seçilen rengi hatırla
-            if(form.renk_kodu) form.renk_kodu.value = data.renk_kodu || '#28a745';
+            if (form.renk_kodu) {
+                form.renk_kodu.value = data.renk_kodu || '#28a745';
+            }
 
             // ID'yi gizli inputa ata
             let idInput = document.getElementById('edit_rate_id');
@@ -789,7 +800,6 @@ function editRate(id) {
             idInput.value = data.id;
         });
 }
-
 // SİLME FONKSİYONU (ÇÖP KUTUSU SİMGESİ - ALMANCA ONAYLI)
 function deleteRate(id) {
     if(confirm('Möchten Sie diesen Schuldeneintrag wirklich löschen?')) {
@@ -825,6 +835,64 @@ document.addEventListener('input', function(e) {
         borcHesapla();
     }
 });
-</script>
 
+
+</script>
+<!-- ========================================== -->
+<!-- 🚀 BÖLÜM 6: RATEN KAYDIRMA SİSTEMİ -->
+<!-- ========================================== -->
+
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    const ratenBody = document.getElementById("ratenSortable");
+
+    console.log("ratenBody:", ratenBody);
+    console.log("Sortable:", typeof Sortable);
+
+    if (ratenBody && typeof Sortable !== "undefined") {
+
+        new Sortable(ratenBody, {
+            animation: 150,
+            handle: ".drag-handle",
+
+            onEnd: async function () {
+
+                const ids = Array.from(ratenBody.querySelectorAll("tr[data-id]"))
+                    .map(row => parseInt(row.dataset.id))
+                    .filter(id => !isNaN(id));
+
+                console.log("Giden order:", ids);
+
+                try {
+                    const res = await fetch("/raten/save-order", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify({ order: ids })
+                    });
+
+                    const data = await res.json();
+                    console.log("Save cevap:", data);
+
+                    if (!data.success) {
+                        alert("Speichern fehlgeschlagen!");
+                    }
+
+                } catch (err) {
+                    console.error("HATA:", err);
+                    alert("Fehler beim Speichern!");
+                }
+            }
+        });
+
+    } else {
+        console.log("❌ Sortable baglanmadi");
+    }
+
+});
+</script>
 {% endblock %}
