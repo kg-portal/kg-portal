@@ -99,27 +99,100 @@
             <div><label style="display:block; margin-bottom:5px; font-weight:600;">Steuer-ID</label><input type="text" name="steuer_id" id="f_steuer" style="width:100%; padding:10px; border-radius:8px; border:1.5px solid #e2e8f0;"></div>
             <div><label style="display:block; margin-bottom:5px; font-weight:600;">SV-Nummer</label><input type="text" name="sv_nummer" id="f_sv" style="width:100%; padding:10px; border-radius:8px; border:1.5px solid #e2e8f0;"></div>
             <div><label style="display:block; margin-bottom:5px; font-weight:600;">Krankenkasse</label><input type="text" name="krankenkasse" id="f_krank" style="width:100%; padding:10px; border-radius:8px; border:1.5px solid #e2e8f0;"></div>
-            <div><label style="display:block; margin-bottom:5px; font-weight:600;">IBAN</label><input type="text" name="iban" id="f_iban" style="width:100%; padding:10px; border-radius:8px; border:1.5px solid #e2e8f0;"></div>
+            <div><label style="display:block; margin-bottom:5px; font-weight:600;">IBAN / Bankname</label><input type="text" name="iban" id="f_iban" style="width:100%; padding:10px; border-radius:8px; border:1.5px solid #e2e8f0;"></div>
         </div>
-        <h3 style="color: #2563eb; margin-bottom: 15px; font-size: 18px;">Vertragsdaten & Urlaub</h3>
-        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 20px;">
-            <div><label style="display:block; margin-bottom:5px; font-weight:600;">Stundenlohn (€)</label><input type="number" step="0.01" name="stundenlohn" id="f_lohn" style="width:100%; padding:10px; border-radius:8px; border:1.5px solid #e2e8f0;"></div>
-            <div><label style="display:block; margin-bottom:5px; font-weight:600;">Urlaub (Gesamt)</label><input type="number" name="urlaub" id="f_urlaub" style="width:100%; padding:10px; border-radius:8px; border:1.5px solid #e2e8f0;"></div>
-            <div><label style="display:block; margin-bottom:5px; font-weight:600;">Resturlaub</label><input type="number" name="resturlaub" id="f_resturlaub" style="width:100%; padding:10px; border-radius:8px; border:1.5px solid #e2e8f0;"></div>
-            <div>
-                <label style="display:block; margin-bottom:5px; font-weight:600;">Art</label>
-                <select name="art" id="f_art" style="width:100%; padding:10px; border-radius:8px; border:1.5px solid #e2e8f0;">
-                    <option value="Minijob (603 €)">Minijob (603€)</option>
-                    <option value="Teilzeit">Teilzeit</option>
-                    <option value="Vollzeit">Vollzeit</option>
-                </select>
-            </div>
-        </div>
-        <div style="margin-top: 30px; text-align: right;">
-            <button type="button" onclick="closeModal()" style="background:#f1f5f9; padding:10px 20px; border:none; border-radius:8px; cursor:pointer;">Abbrechen</button>
-            <button type="submit" style="background:#2563eb; color:#fff; padding:12px 40px; border:none; border-radius:10px; font-weight:700; cursor:pointer;">Speichern</button>
-        </div>
-    </form>
+<h3 style="color: #2563eb; margin-bottom: 15px; font-size: 18px;">Vertragsdaten & Urlaub</h3>
+<div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 20px;">
+
+    <!-- POSITION -->
+    <div>
+        <label style="display:block; margin-bottom:5px; font-weight:600;">Position</label>
+        <select name="position" id="f_position" style="width:100%; padding:10px; border-radius:8px; border:1.5px solid #e2e8f0;">
+            <option value="Reinigungskraft">Reinigungskraft</option>
+            <option value="Vorarbeiter">Vorarbeiter</option>
+            <option value="Teamleiter">Teamleiter</option>
+            <option value="Glasreiniger">Glasreiniger</option>
+            <option value="Telefonakquise">Telefonakquise</option>
+        </select>
+    </div>
+
+    <!-- ARBEITSZEIT -->
+    <div>
+        <label style="display:block; margin-bottom:5px; font-weight:600;">Arbeitszeit</label>
+        <select name="arbeitstage_woche" id="f_arbeitstage" style="width:100%; padding:10px; border-radius:8px; border:1.5px solid #e2e8f0;">
+            <option value="1">1x w</option>
+            <option value="2">2x w</option>
+            <option value="3">3x w</option>
+            <option value="4">4x w</option>
+            <option value="5">5x w</option>
+            <option value="6">6x w</option>
+        </select>
+    </div>
+
+    <!-- PROBEZEIT -->
+    <div>
+        <label style="display:block; margin-bottom:5px; font-weight:600;">Probezeit</label>
+        <select name="probezeit" id="f_probezeit" style="width:100%; padding:10px; border-radius:8px; border:1.5px solid #e2e8f0;">
+            <option value="0">Keine</option>
+            <option value="1">1 Monat</option>
+            <option value="2">2 Monate</option>
+            <option value="3">3 Monate</option>
+        </select>
+    </div>
+
+    <!-- WEITERE BESCHÄFTIGUNG -->
+    <div>
+        <label style="display:block; margin-bottom:5px; font-weight:600;">Weitere Beschäftigung</label>
+        <select name="weitere_beschaeftigung" id="f_weitere" onchange="toggleWeitere()" style="width:100%; padding:10px; border-radius:8px; border:1.5px solid #e2e8f0;">
+            <option value="Keine">Keine</option>
+            <option value="Ja">Ja</option>
+        </select>
+        <input type="text" name="weitere_firma" id="f_weitere_firma" placeholder="Firma eingeben" style="display:none; margin-top:8px; width:100%; padding:10px; border-radius:8px; border:1.5px solid #e2e8f0;">
+    </div>
+
+    <!-- MEVCUT ALANLAR -->
+<div><label style="display:block; margin-bottom:5px; font-weight:600;">Stundenlohn (€)</label><input type="number" step="0.01" name="stundenlohn" id="f_lohn" style="width:100%; padding:10px; border-radius:8px; border:1.5px solid #e2e8f0;"></div>
+
+<div><label style="display:block; margin-bottom:5px; font-weight:600;">Urlaub (Gesamt)</label><input type="number" name="urlaub" id="f_urlaub" style="width:100%; padding:10px; border-radius:8px; border:1.5px solid #e2e8f0;"></div>
+
+<div><label style="display:block; margin-bottom:5px; font-weight:600;">Resturlaub</label><input type="number" name="resturlaub" id="f_resturlaub" style="width:100%; padding:10px; border-radius:8px; border:1.5px solid #e2e8f0;"></div>
+
+<div>
+    <label style="display:block; margin-bottom:5px; font-weight:600;">Art</label>
+    <select name="art" id="f_art" style="width:100%; padding:10px; border-radius:8px; border:1.5px solid #e2e8f0;">
+        <option value="Minijob (603 €)">Minijob (603€)</option>
+        <option value="Teilzeit">Teilzeit</option>
+        <option value="Vollzeit">Vollzeit</option>
+    </select>
+</div>
+
+</div> <!-- GRID BİTTİ -->
+
+<!-- 🔥 YENİ LOHN (GRID DIŞINDA) -->
+<div style="margin-top:15px;">
+  <label style="display:block; margin-bottom:5px; font-weight:600;">Lohn (€)</label>
+  <input type="text" name="lohn" id="vertragLohn" placeholder="603,00 €"
+         style="width:250px; padding:10px; border-radius:8px; border:1.5px solid #e2e8f0;">
+</div>
+
+<script>
+function toggleWeitere(){
+    const select = document.getElementById("f_weitere");
+    const input = document.getElementById("f_weitere_firma");
+    if(select.value === "Ja"){
+        input.style.display = "block";
+    } else {
+        input.style.display = "none";
+        input.value = "";
+    }
+}
+</script>
+
+<div style="margin-top: 30px; text-align: right;">
+    <button type="button" onclick="closeModal()" style="background:#f1f5f9; padding:10px 20px; border:none; border-radius:8px; cursor:pointer;">Abbrechen</button>
+    <button type="submit" style="background:#2563eb; color:#fff; padding:12px 40px; border:none; border-radius:10px; font-weight:700; cursor:pointer;">Speichern</button>
+</div>
+</form>
 </div>
 
 <!--
@@ -150,76 +223,293 @@
 -->
 
 
-<DIV CLASS="NO-PRINT" STYLE="BACKGROUND: #FFF; BORDER: 1.5PX SOLID #16A34A; BORDER-RADIUS: 10PX; PADDING: 8PX 15PX; MARGIN-BOTTOM: 20PX; DISPLAY: FLEX; ALIGN-ITEMS: CENTER; GAP: 12PX; BOX-SHADOW: 0 3PX 7PX RGBA(22, 163, 74, 0.08); WIDTH: FIT-CONTENT; POSITION: RELATIVE; Z-INDEX: 999;">
-    
+<DIV CLASS="NO-PRINT" STYLE="
+    BACKGROUND: #FFF;
+    BORDER: 1.5PX SOLID #16A34A;
+    BORDER-RADIUS: 12PX;
+    PADDING: 10PX 18PX;
+    MARGIN-BOTTOM: 20PX;
+    DISPLAY: FLEX;
+    ALIGN-ITEMS: CENTER;
+    GAP: 12PX;
+    BOX-SHADOW: 0 4PX 12PX RGBA(22, 163, 74, 0.12);
+    WIDTH: FIT-CONTENT;
+    POSITION: RELATIVE;
+    Z-INDEX: 999;
+    FONT-FAMILY: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    -WEBKIT-FONT-SMOOTHING: ANTIALIASED;
+    TEXT-RENDERING: OPTIMIZELEGIBILITY;
+">
+
     <DIV STYLE="DISPLAY: FLEX; ALIGN-ITEMS: CENTER; GAP: 10PX;">
-        <SPAN STYLE="BACKGROUND: #16A34A; COLOR: WHITE; PADDING: 6PX 12PX; BORDER-RADIUS: 7PX; FONT-WEIGHT: 800; FONT-SIZE: 11PX; TEXT-TRANSFORM: UPPERCASE; WHITE-SPACE: NOWRAP; DISPLAY: INLINE-BLOCK;">
-            <I CLASS="FA-SOLID FA-CALENDAR-DAYS"></I> DATUM AUSWÄHLEN
+        <SPAN STYLE="
+            BACKGROUND: #16A34A;
+            COLOR: WHITE;
+            HEIGHT: 36PX;
+            PADDING: 0 14PX;
+            BORDER-RADIUS: 8PX;
+            FONT-WEIGHT: 700;
+            FONT-SIZE: 11PX;
+            TEXT-TRANSFORM: UPPERCASE;
+            DISPLAY: INLINE-FLEX;
+            ALIGN-ITEMS: CENTER;
+            WHITE-SPACE: NOWRAP;
+            LETTER-SPACING: 0.3PX;
+        ">
+            <I CLASS="FA-SOLID FA-CALENDAR-DAYS" STYLE="MARGIN-RIGHT: 8PX;"></I> DATUM AUSWÄHLEN
         </SPAN>
-        
-        <SELECT ID="BULKMONTHSELECTOR" STYLE="WIDTH: 150PX; HEIGHT: 30PX; PADDING: 2PX 5PX; BORDER-RADIUS: 7PX; BORDER: 1.5PX SOLID #16A34A; FONT-WEIGHT: 800; COLOR: #1E293B; BACKGROUND: #FFF; CURSOR: POINTER; OUTLINE: NONE; FONT-SIZE: 12PX; POSITION: RELATIVE; Z-INDEX: 1000; DISPLAY: BLOCK !IMPORTANT;">
-            </SELECT>
+
+        <SELECT ID="BULKMONTHSELECTOR" STYLE="
+            WIDTH: 160PX;
+            HEIGHT: 36PX;
+            PADDING: 0 10PX;
+            BORDER-RADIUS: 8PX;
+            BORDER: 1.5PX SOLID #16A34A;
+            FONT-WEIGHT: 700;
+            COLOR: #1E293B;
+            BACKGROUND: #FFF;
+            CURSOR: POINTER;
+            OUTLINE: NONE;
+            FONT-SIZE: 12PX;
+            FONT-FAMILY: INHERIT;
+            APPEARANCE: NONE;
+            -WEBKIT-APPEARANCE: NONE;
+        ">
+        </SELECT>
     </DIV>
 
-    <DIV STYLE="WIDTH: 1.5PX; HEIGHT: 25PX; BACKGROUND: #E2E8F0; MARGIN: 0 5PX;"></DIV>
+    <DIV STYLE="WIDTH: 1.5PX; HEIGHT: 28PX; BACKGROUND: #E2E8F0; MARGIN: 0 4PX;"></DIV>
 
-    <BUTTON onclick="startBulkPrintEngine()" STYLE="BACKGROUND: #16A34A; COLOR: WHITE; BORDER: NONE; PADDING: 8PX 18PX; BORDER-RADIUS: 7PX; FONT-WEIGHT: 800; CURSOR: POINTER; FONT-SIZE: 11PX; DISPLAY: FLEX; ALIGN-ITEMS: CENTER; GAP: 8PX; WHITE-SPACE: NOWRAP;">
+    <BUTTON onclick="startBulkPrintEngine()" STYLE="
+        BACKGROUND: #16A34A;
+        COLOR: WHITE;
+        BORDER: NONE;
+        HEIGHT: 36PX;
+        PADDING: 0 20PX;
+        BORDER-RADIUS: 8PX;
+        FONT-WEIGHT: 700;
+        CURSOR: POINTER;
+        FONT-SIZE: 11PX;
+        DISPLAY: INLINE-FLEX;
+        ALIGN-ITEMS: CENTER;
+        JUSTIFY-CONTENT: CENTER;
+        GAP: 8PX;
+        WHITE-SPACE: NOWRAP;
+        TEXT-TRANSFORM: UPPERCASE;
+        LETTER-SPACING: 0.3PX;
+        FONT-FAMILY: INHERIT;
+        TRANSITION: ALL 0.2S;
+    ">
         <I CLASS="FA-SOLID FA-FILE-PDF"></I> ALLE STUNDENZETTEL DRUCKEN
     </BUTTON>
 
-</DIV>
+    <div id="vertragBar" style="
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        position: relative;
+    ">
+        <span style="
+            background: #2563EB;
+            color: #FFF;
+            height: 36px;
+            padding: 0 14px;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 11px;
+            text-transform: uppercase;
+            white-space: nowrap;
+            display: inline-flex;
+            align-items: center;
+            letter-spacing: 0.3px;
+        ">
+            <i class="fa-solid fa-calendar-days" style="margin-right: 8px;"></i> Datum auswählen
+        </span>
 
+        <input id="vertragDatum" type="text" class="vertrag-date-picker" placeholder="TT.MM.JJJJ"
+               style="
+                   width: 130px;
+                   height: 36px;
+                   padding: 0 10px;
+                   border-radius: 8px;
+                   border: 1.5px solid #2563EB;
+                   font-weight: 700;
+                   color: #1E293B;
+                   background: #FFF;
+                   outline: none;
+                   font-size: 12px;
+                   font-family: inherit;
+                   box-sizing: border-box;
+               ">
+
+        <button id="mitarbeiterSelectBtn"
+                onclick="toggleMitarbeiterDropdown()"
+                style="
+                    background: #2563EB;
+                    color: white;
+                    border: none;
+                    height: 36px;
+                    padding: 0 16px;
+                    border-radius: 8px;
+                    font-weight: 700;
+                    font-size: 11px;
+                    cursor: pointer;
+                    white-space: nowrap;
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                    text-transform: uppercase;
+                    letter-spacing: 0.3px;
+                    font-family: inherit;
+                ">
+            Mitarbeiter auswählen
+        </button>
+
+        <button id="vertragErstellenBtn"
+                style="
+                    background: #16A34A;
+                    color: white;
+                    border: none;
+                    height: 36px;
+                    padding: 0 20px;
+                    border-radius: 8px;
+                    font-weight: 700;
+                    font-size: 11px;
+                    cursor: pointer;
+                    white-space: nowrap;
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                    text-transform: uppercase;
+                    letter-spacing: 0.3px;
+                    font-family: inherit;
+                ">
+            Vertrag erstellen
+        </button>
+
+        <button id="befreiungErstellenBtn"
+                style="
+                    background: #F59E0B;
+                    color: white;
+                    border: none;
+                    height: 36px;
+                    padding: 0 20px;
+                    border-radius: 8px;
+                    font-weight: 700;
+                    font-size: 11px;
+                    cursor: pointer;
+                    white-space: nowrap;
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                    text-transform: uppercase;
+                    letter-spacing: 0.3px;
+                    font-family: inherit;
+                ">
+            Befreiungsantrag erstellen
+        </button>
+
+        <div id="mitarbeiterDropdown" style="
+            display: none;
+            position: absolute;
+            top: 42px;
+            left: 145px;
+            width: 260px;
+            max-height: 300px;
+            overflow-y: auto;
+            background: #FFF;
+            border: 1px solid #E2E8F0;
+            border-radius: 12px;
+            padding: 6px;
+            box-shadow: 0 12px 30px rgba(0,0,0,0.15);
+            z-index: 2000;
+        ">
+            {% for m in mitarbeiter_liste | sort(attribute='vorname') if m.status == 'aktiv' %}
+                <div onclick="selectMitarbeiter('{{ m.id }}', '{{ m.vorname }} {{ m.nachname }}')" 
+                     onmouseover="this.style.background='#F1F5F9'" 
+                     onmouseout="this.style.background='#FFF'" 
+                     style="
+                        padding: 10px 14px;
+                        cursor: pointer;
+                        border-radius: 8px;
+                        font-weight: 600;
+                        color: #1E293B;
+                        font-size: 13px;
+                        transition: background 0.2s;
+                     ">
+                    {{ m.vorname }} {{ m.nachname }}
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</DIV>
 <div id="main_list" style="background: #fff; border: 1px solid #e2e8f0; border-radius: 20px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);">
     <table style="width: 100%; border-collapse: collapse;">
-        <tr style="background: #f8fafc; border-bottom: 1px solid #e2e8f0; text-align: left;">
-            <th style="padding: 15px; color:#475569; font-size:13px; font-weight:700;">MITARBEITER</th>
-            <th style="padding: 15px; color:#475569; font-size:13px; font-weight:700;">STADT</th>
-            <th style="padding: 15px; color:#475569; font-size:13px; font-weight:700;">LOHN</th>
-            <th style="padding: 15px; color:#475569; font-size:13px; font-weight:700;">URLAUB / REST</th>
-            <th style="padding: 15px; color:#475569; font-size:13px; font-weight:700;">ART</th>
-            <th class="no-print" style="padding: 15px; text-align: right; color:#475569; font-size:13px; font-weight:700;">AKTION</th>
-        </tr>
-        {% for m in mitarbeiter_liste | sort(attribute='id') if m.status == 'aktiv' %}
-        <tr id="row-{{ m.id }}" style="border-bottom: 1px solid #f1f5f9;">
-            <td class="display-name" style="padding: 15px; font-weight: 600; color:#1e293b;">{{ m.vorname }} {{ m.nachname }}</td>
-            <td class="display-stadt" style="padding: 15px; color:#1e293b; font-weight: 600;">{{ m.ort if m.ort and m.ort != 'None' else '' }}</td>
-            <td style="padding: 15px; color: #059669; font-weight: 700;">
+    <thead>
+    <tr style="background: #f8fafc; border-bottom: 1px solid #e2e8f0; text-align: left;">
+    <th class="no-print" style="padding: 15px; width:44px;"></th>
+    <th style="padding: 15px; color:#475569; font-size:13px; font-weight:700;">MITARBEITER</th>
+    <th style="padding: 15px; color:#475569; font-size:13px; font-weight:700;">STADT</th>
+    <th style="padding: 15px; color:#475569; font-size:13px; font-weight:700;">LOHN</th>
+    <th style="padding: 15px; color:#475569; font-size:13px; font-weight:700;">URLAUB / REST</th>
+    <th style="padding: 15px; color:#475569; font-size:13px; font-weight:700;">ART</th>
+    <th class="no-print" style="padding: 15px; text-align: right; color:#475569; font-size:13px; font-weight:700;">AKTION</th>
+  </tr>
+</thead>
+        <tbody id="mitarbeiterSortable">
+        {% for m in mitarbeiter_liste if m.status == 'aktiv' %}
+        <tr id="row-{{ m.id }}" data-id="{{ m.id }}" style="border-bottom: 1px solid #f1f5f9;">
+            <td class="no-print" style="padding: 15px; width:44px; color:#94a3b8; text-align:center;">
+    <span class="drag-handle" style="cursor:grab; font-size:18px; user-select:none;">☰</span>
+</td>
+<td class="display-name" style="padding: 15px; font-weight: 600; color:#1e293b;">
+    {{ m.vorname }} {{ m.nachname }}
+
+    <div style="display:none">
+        <span class="t-vorname">{{ m.vorname if m.vorname != 'None' else '' }}</span>
+        <span class="t-nachname">{{ m.nachname if m.nachname != 'None' else '' }}</span>
+        <span class="t-anrede">{{ m.anrede if m.anrede != 'None' else '' }}</span>
+        <span class="t-strasse">{{ m.strasse if m.strasse != 'None' else '' }}</span>
+        <span class="t-plz">{{ m.plz if m.plz != 'None' else '' }}</span>
+        <span class="t-stadt">{{ m.ort if m.ort != 'None' else '' }}</span>
+        <span class="t-geb">{{ m.geburtsdatum if m.geburtsdatum != 'None' else '' }}</span>
+        <span class="t-ein">{{ m.eintrittsdatum if m.eintrittsdatum != 'None' else '' }}</span>
+        <span class="t-tel">{{ m.telefon if m.telefon != 'None' else '' }}</span>
+        <span class="t-mail">{{ m.email if m.email != 'None' else '' }}</span>
+        <span class="t-steuer">{{ m.steuer_id if m.steuer_id != 'None' else '' }}</span>
+        <span class="t-sv">{{ m.sv_nummer if m.sv_nummer != 'None' else '' }}</span>
+        <span class="t-krank">{{ m.krankenkasse if m.krankenkasse != 'None' else '' }}</span>
+        <span class="t-iban">{{ m.iban if m.iban != 'None' else '' }}</span>
+        <span class="t-position">{{ m.position if m.position != 'None' else '' }}</span>
+        <span class="t-arbeitstage">{{ m.arbeitstage_woche if m.arbeitstage_woche != 'None' else '1' }}</span>
+        <span class="t-probezeit">{{ m.probezeit if m.probezeit != 'None' else '0' }}</span>
+        <span class="t-weitere">{{ m.weitere_beschaeftigung if m.weitere_beschaeftigung != 'None' else 'Keine' }}</span>
+        <span class="t-weitere-firma">{{ m.weitere_firma if m.weitere_firma != 'None' else '' }}</span>
+        <span class="t-lohn">{{ m.stundenlohn if m.stundenlohn != 'None' else '' }}</span>
+        <span class="t-vertraglohn">{{ m.lohn if m.lohn != 'None' else '' }}</span>
+        <span class="t-urlaub">{{ m.urlaub if m.urlaub != 'None' else '0' }}</span>
+        <span class="t-resturlaub">{{ m.resturlaub if m.resturlaub is not none else '0' }}</span>
+        <span class="t-art">{{ m.art if m.art != 'None' else '' }}</span>
+    </div>
+</td>
+
+<td class="display-stadt" style="padding: 15px; color:#1e293b; font-weight: 600;">{{ m.ort if m.ort and m.ort != 'None' else '' }}</td>
+<td style="padding: 15px; color: #059669; font-weight: 700;">
   {{ "{:,.2f}".format((m.stundenlohn|string|replace(",", ".")|float)).replace(",", "X").replace(".", ",").replace("X", ".") }} €
 </td>
 
-           <td style="padding: 15px; color:#1e293b;">
-    {{ m.urlaub if m.urlaub else '0' }} / 
+<td style="padding: 15px; color:#1e293b;">
+    {{ m.urlaub if m.urlaub else '0' }} /
     <span style="color:#ef4444; font-weight:700;">
         {{ m.resturlaub if m.resturlaub is not none else '0' }}
     </span>
 </td>
-            <td style="padding: 15px;">
-                <span style="background:#eef2ff; color:#2563eb; padding:4px 10px; border-radius:15px; font-size:12px; font-weight:700;">
-                    {{ m.art if m.art and m.art != 'None' else '' }}
-                </span>
-            </td>
-            
-            <td style="display:none">
-                <span class="t-vorname">{{ m.vorname if m.vorname != 'None' else '' }}</span>
-                <span class="t-nachname">{{ m.nachname if m.nachname != 'None' else '' }}</span>
-                <span class="t-anrede">{{ m.anrede if m.anrede != 'None' else '' }}</span>
-                <span class="t-strasse">{{ m.strasse if m.strasse != 'None' else '' }}</span>
-                <span class="t-plz">{{ m.plz if m.plz != 'None' else '' }}</span>
-                <span class="t-stadt">{{ m.ort if m.ort != 'None' else '' }}</span>
-                <span class="t-geb">{{ m.geburtsdatum if m.geburtsdatum != 'None' else '' }}</span>
-                <span class="t-ein">{{ m.eintrittsdatum if m.eintrittsdatum != 'None' else '' }}</span>
-                <span class="t-tel">{{ m.telefon if m.telefon != 'None' else '' }}</span>
-                <span class="t-mail">{{ m.email if m.email != 'None' else '' }}</span>
-                <span class="t-steuer">{{ m.steuer_id if m.steuer_id != 'None' else '' }}</span>
-                <span class="t-sv">{{ m.sv_nummer if m.sv_nummer != 'None' else '' }}</span>
-                <span class="t-krank">{{ m.krankenkasse if m.krankenkasse != 'None' else '' }}</span>
-                <span class="t-iban">{{ m.iban if m.iban != 'None' else '' }}</span>
-                <span class="t-lohn">{{ m.stundenlohn if m.stundenlohn != 'None' else '' }}</span>
-                <span class="t-urlaub">{{ m.urlaub if m.urlaub != 'None' else '0' }}</span>
-                <span class="t-resturlaub">{{ m.resturlaub if m.resturlaub is not none else '0' }}</span>
-                <span class="t-art">{{ m.art if m.art != 'None' else '' }}</span>
-            </td>
 
+<td style="padding: 15px;">
+    <span style="background:#eef2ff; color:#2563eb; padding:4px 10px; border-radius:15px; font-size:12px; font-weight:700;">
+        {{ m.art if m.art and m.art != 'None' else '' }}
+    </span>
+</td>
             <td class="no-print" style="padding: 15px; text-align: right; display:flex; justify-content:flex-end; gap:10px;">
                 <a href="https://wa.me/{{ m.telefon if m.telefon else '' }}" target="_blank" style="background:#25d366; color:white; padding:8px 10px; border-radius:8px; text-decoration:none; display:inline-flex; align-items:center;">
                     <i class="fa-brands fa-whatsapp"></i>
@@ -230,6 +520,7 @@
             </td>
         </tr>
         {% endfor %}
+      </tbody>
     </table>
 </div>
 
@@ -273,7 +564,7 @@
         </td>
       </tr>
       {% endfor %}
-    </tbody>
+      </tbody>
   </table>
 </div>
 
@@ -292,19 +583,34 @@
     #main_list { position: absolute; left: 0; top: 0; width: 100%; border: none !important; box-shadow: none !important; }
     .no-print { display: none !important; }
 }
-
 /* Sadece tekli önizleme basıldığında çalışacak stil */
 .printing-single #main_list { visibility: hidden !important; }
 .printing-single #pv, .printing-single #pv * { visibility: visible !important; }
 .printing-single #pv { position: absolute; left:0; top:0; width:100%; background:white; }
+
+/* DRAG & DROP */
+.drag-ghost {
+    opacity: 0.45;
+    background: #eef6ff !important;
+}
+
+.drag-chosen {
+    background: #f8fbff !important;
+}
+
+.drag-handle:active {
+    cursor: grabbing;
+}
 </style>
 
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/de.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
 
 <script>
 flatpickr(".date-picker", { locale: "de", dateFormat: "d.m.Y", allowInput: true });
+flatpickr(".vertrag-date-picker", { locale: "de", dateFormat: "d.m.Y", allowInput: true });
 
 function printSingle() {
     document.body.classList.add('printing-single');
@@ -330,12 +636,19 @@ function editMitarbeiter(id) {
     document.getElementById('f_sv').value = row.querySelector('.t-sv').innerText;
     document.getElementById('f_krank').value = row.querySelector('.t-krank').innerText;
     document.getElementById('f_iban').value = row.querySelector('.t-iban').innerText;
+    document.getElementById('f_position').value = row.querySelector('.t-position').innerText;
+    document.getElementById('f_arbeitstage').value = row.querySelector('.t-arbeitstage').innerText;
+    document.getElementById('f_probezeit').value = row.querySelector('.t-probezeit').innerText;
+    document.getElementById('f_weitere').value = row.querySelector('.t-weitere').innerText;
+    toggleWeitere();
+    document.getElementById('f_weitere_firma').value = row.querySelector('.t-weitere-firma').innerText;
     document.getElementById('f_lohn').value = row.querySelector('.t-lohn').innerText;
     document.getElementById('f_urlaub').value = row.querySelector('.t-urlaub').innerText;
     document.getElementById('f_resturlaub').value = row.querySelector('.t-resturlaub').innerText;
     document.getElementById('f_art').value = row.querySelector('.t-art').innerText;
     document.getElementById('modalTitle').innerText = "Mitarbeiter bearbeiten";
     document.getElementById('m_form').style.display = 'block';
+    document.getElementById("vertragLohn").value = row.querySelector('.t-vertraglohn')?.innerText || "";
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
@@ -617,8 +930,168 @@ async function startBulkPrintEngine() {
     }, 700);
 }
 
-// 🔥🔥🔥 YENİ EKLEMELER BİTTİ 🔥🔥🔥
+// 🔥 IBAN → BANKNAME OTOMATİK (ANINDA)
+let ibanTimer;
 
+document.getElementById("f_iban").addEventListener("input", function () {
+    let input = this;
+
+    clearTimeout(ibanTimer);
+
+    ibanTimer = setTimeout(async () => {
+        let rawValue = input.value.trim();
+
+        if (!rawValue) return;
+        if (rawValue.includes(" / ")) return;
+
+        let iban = rawValue.replace(/\s+/g, "");
+
+        // DE IBAN = 22 karakter → sadece o zaman çalış
+        if (iban.length !== 22) return;
+
+        try {
+            let res = await fetch("https://openiban.com/validate/" + iban + "?getBIC=true&validateBankCode=true");
+            let data = await res.json();
+
+            if (data.valid && data.bankData && data.bankData.name) {
+                input.value = iban + " / " + data.bankData.name;
+            }
+        } catch (e) {
+            console.log("Bank API hatası:", e);
+        }
+    }, 400);
+});
+
+
+// 🔥 MITARBEITER DROPDOWN + VERTRAG SYSTEM
+
+let selectedMitarbeiterId = null;
+
+function toggleMitarbeiterDropdown() {
+    const el = document.getElementById("mitarbeiterDropdown");
+    el.style.display = (el.style.display === "none" || el.style.display === "") ? "block" : "none";
+}
+
+function selectMitarbeiter(id, name) {
+    selectedMitarbeiterId = id;
+    document.getElementById("mitarbeiterSelectBtn").innerText = name;
+    document.getElementById("mitarbeiterDropdown").style.display = "none";
+}
+window.addEventListener("pageshow", function () {
+    selectedMitarbeiterId = null;
+    document.getElementById("mitarbeiterSelectBtn").innerText = "Mitarbeiter auswählen";
+    document.getElementById("vertragDatum").value = "";
+    document.getElementById("mitarbeiterDropdown").style.display = "none";
+});
+
+document.addEventListener("click", function (e) {
+    const dropdown = document.getElementById("mitarbeiterDropdown");
+    const button = document.getElementById("mitarbeiterSelectBtn");
+
+    if (!dropdown || !button) return;
+
+    if (!dropdown.contains(e.target) && !button.contains(e.target)) {
+        dropdown.style.display = "none";
+    }
+});
+
+function getParams() {
+    const datum = document.getElementById("vertragDatum").value.trim();
+
+    if (!datum) {
+        alert("Bitte Datum auswählen.");
+        return null;
+    }
+
+    if (!selectedMitarbeiterId) {
+        alert("Bitte Mitarbeiter auswählen.");
+        return null;
+    }
+
+    const row = document.getElementById("row-" + selectedMitarbeiterId);
+
+    if (!row) {
+        alert("Mitarbeiterdaten konnten nicht gefunden werden.");
+        return null;
+    }
+
+    const lohn = row.querySelector(".t-vertraglohn")?.innerText || "";
+
+    return new URLSearchParams({
+        mitarbeiter_id: selectedMitarbeiterId,
+        datum: datum,
+        lohn: lohn
+    });
+}
+
+// 🟢 Vertrag → yeni sekme + otomatik print
+document.getElementById("vertragErstellenBtn").addEventListener("click", function () {
+    const params = getParams();
+    if (!params) return;
+
+    const win = window.open("/mitarbeiter/vertrag-pdf?" + params.toString(), "_blank");
+
+    const timer = setInterval(() => {
+        if (win.document.readyState === "complete") {
+            clearInterval(timer);
+            win.focus();
+            win.print();
+        }
+    }, 300);
+});
+
+// 🟠 Befreiung → yeni sekme + otomatik print
+document.getElementById("befreiungErstellenBtn").addEventListener("click", function () {
+    const params = getParams();
+    if (!params) return;
+
+    const win = window.open("/mitarbeiter/befreiung-pdf?" + params.toString(), "_blank");
+
+    const timer = setInterval(() => {
+        if (win.document.readyState === "complete") {
+            clearInterval(timer);
+            win.focus();
+            win.print();
+        }
+    }, 300);
+});
+
+// 🔥 DRAG & DROP BAŞLAT
+const sortableBody = document.getElementById("mitarbeiterSortable");
+
+if (sortableBody) {
+    new Sortable(sortableBody, {
+        animation: 150,
+        handle: ".drag-handle",
+        ghostClass: "drag-ghost",
+        chosenClass: "drag-chosen",
+
+        onEnd: async function () {
+            const ids = Array.from(sortableBody.querySelectorAll("tr[data-id]"))
+                .map(row => parseInt(row.dataset.id))
+                .filter(id => !isNaN(id));
+
+            try {
+                const res = await fetch("/mitarbeiter/save-order", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ order: ids })
+                });
+
+                const data = await res.json();
+
+                if (!data.success) {
+                    alert("Speichern fehlgeschlagen!");
+                }
+
+            } catch (err) {
+                alert("Fehler beim Speichern!");
+                console.error(err);
+            }
+        }
+    });
+}
 </script>
 {% endblock %}
-
