@@ -3,3 +3,4 @@ pandas
 requests
 gunicorn
 playwright
+python-docx
