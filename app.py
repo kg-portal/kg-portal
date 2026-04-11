@@ -4,12 +4,22 @@
 # Bölüm 1- ANA UYGULAMA DOSYASI (Flask) 
 # =====================================================
 
-from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify
+import io
+from playwright.sync_api import sync_playwright
+
+from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify, send_file
 from functools import wraps
 import sqlite3
 import json
 import os
 import secrets
+
+from docx import Document
+from docx.shared import RGBColor
+from docx.enum.text import WD_COLOR_INDEX
+import tempfile
+from datetime import datetime
+
 from leistungen import LEISTUNGEN
 from lexware import sync_lexware_to_db, get_cached_rechnungen
 from starmoney_import import (
@@ -53,13 +63,216 @@ def auto_login_check():
     return redirect(url_for('login'))
 
 # ... (Buradan aşağısı get_db_connection() diye devam ediyor, aynen kalsın)
+
 # =====================================================
 # Bölüm 2- VERİTABANI BAĞLANTISI
 # =====================================================
 def get_db_connection():
-    conn = sqlite3.connect(DB_PATH)
+    conn = sqlite3.connect(DB_PATH, timeout=10)
     conn.row_factory = sqlite3.Row
     return conn
+
+VERTRAG_HTML_PATH = os.path.join("templates", "Mitarbeiter Vertrag Vorlage.html")
+BEFREIUNG_HTML_PATH = os.path.join("templates", "Befreiungsantrag-fuer-Arbeitnehmer-im-Gewerbe.html")
+
+def temiz(v):
+    if v is None:
+        return ""
+    s = str(v).strip()
+    return "" if s.lower() == "none" else s
+
+def tarih(v):
+    v = temiz(v)
+    if not v:
+        return ""
+    try:
+        return datetime.strptime(v, "%Y-%m-%d").strftime("%d.%m.%Y")
+    except:
+        return v
+
+def para(v):
+    try:
+        return f"{float(str(v).replace(',', '.')):.2f}".replace(".", ",")
+    except:
+        return temiz(v)
+
+def urlaub_calc(woche):
+    return {
+        "1": "4",
+        "2": "8",
+        "3": "12",
+        "4": "16",
+        "5": "20",
+        "6": "24"
+    }.get(str(temiz(woche)), "0")
+
+def art_fix(art):
+    art_text = temiz(art).lower()
+    if "minijob" in art_text:
+        return "603,00 €"
+    if "teilzeit" in art_text:
+        return "Teilzeit"
+    if "vollzeit" in art_text:
+        return "Vollzeit"
+    return ""
+
+def mitarbeiter_vertrag_daten_holen(mitarbeiter_id, datum_text):
+    conn = get_db_connection()
+    row = conn.execute("SELECT * FROM mitarbeiter WHERE id = ?", (mitarbeiter_id,)).fetchone()
+    conn.close()
+
+    if not row:
+        raise Exception("Mitarbeiter bulunamadı")
+
+    d = dict(row)
+
+    iban_raw = temiz(d.get("iban"))
+
+    if "/" in iban_raw:
+        parts = iban_raw.split("/", 1)
+        iban = parts[0].strip()
+        bank = parts[1].strip()
+    else:
+        iban = iban_raw
+        bank = ""
+
+    weitere = temiz(d.get("weitere_beschaeftigung"))
+    weitere_firma = temiz(d.get("weitere_firma"))
+
+    if weitere.lower() == "ja" and weitere_firma:
+        weitere_text = weitere_firma
+    elif weitere:
+        weitere_text = weitere
+    else:
+        weitere_text = "Keine"
+
+    return {
+        "{{Anrede}}": temiz(d.get("anrede")),
+        "{{ANREDE}}": temiz(d.get("anrede")),
+        "{{Vorname}}": temiz(d.get("vorname")),
+        "{{VORNAME}}": temiz(d.get("vorname")), 
+        "{{Nachname}}": temiz(d.get("nachname")),
+        "{{NACHNAME}}": temiz(d.get("nachname")),
+        "{{Eintrittsdatum}}": tarih(d.get("eintrittsdatum")),
+        "{{Position}}": temiz(d.get("position")),
+        "{{Stadt}}": temiz(d.get("ort")),
+        "{{Probezeit}}": temiz(d.get("probezeit")),
+        "{{Stundenlohn (€)}}": para(d.get("stundenlohn")),
+        "{{Art}}": art_fix(d.get("art")),
+        "{{Bankname}}": bank,
+        "{{IBAN}}": iban,
+        "{{WEITERE_BESCHAEFTIGUNG}}": weitere_text,
+        "{{ARBEITSTAGE_WOCHE}}": temiz(d.get("arbeitstage_woche")),
+        "{{DATUM}}": temiz(datum_text),
+        "{{ORT}}": temiz(d.get("ort")),
+        "{{Ort}}": temiz(d.get("ort")),
+        "{{SV_NUMMER}}": temiz(d.get("sv_nummer")),
+        "{{URLAUBSTAGE}}": urlaub_calc(d.get("arbeitstage_woche")),
+    }
+
+def inject_print_css(html_text):
+    extra_css = """
+<style>
+@page {
+    size: A4 portrait;
+    margin: 0;
+}
+
+html, body {
+    margin: 0 !important;
+    padding: 0 !important;
+    background: white !important;
+}
+
+@media print {
+    html, body {
+        margin: 0 !important;
+        padding: 0 !important;
+        width: 210mm !important;
+        background: white !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+
+    .pdf24_view {
+        font-size: 1em !important;
+        transform: none !important;
+        -webkit-transform: none !important;
+        -moz-transform: none !important;
+        transform-origin: top left !important;
+        -webkit-transform-origin: top left !important;
+        -moz-transform-origin: top left !important;
+    }
+
+    .pdf24_03,
+    .pdf24_04,
+    .pdf24_05,
+    .pdf24_06 {
+        break-inside: avoid !important;
+        page-break-inside: avoid !important;
+    }
+
+    .pdf24_05 {
+        width: 210mm !important;
+        min-height: 297mm !important;
+        max-height: 297mm !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        overflow: hidden !important;
+        break-after: page !important;
+        page-break-after: always !important;
+    }
+
+    .pdf24_05:last-of-type {
+        break-after: auto !important;
+        page-break-after: auto !important;
+    }
+
+    .pdf24_02 {
+        width: 210mm !important;
+        height: 297mm !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        overflow: hidden !important;
+        display: block !important;
+    }
+}
+</style>
+"""
+    if "</head>" in html_text:
+        return html_text.replace("</head>", extra_css + "\n</head>")
+    return extra_css + "\n" + html_text
+
+
+def html_vertrag_olustur(template_path, data):
+    with open(template_path, "r", encoding="utf-8") as f:
+        html = f.read()
+
+    for key, val in data.items():
+        html = html.replace(key, str(val))
+
+    svnr = data.get("{{SV_NUMMER}}", "")
+    i = 0
+    result = ""
+    for ch in html:
+        if ch == "¤":
+            if i < len(svnr):
+                result += svnr[i]
+                i += 1
+            else:
+                result += ""
+        else:
+            result += ch
+
+    html = result
+    return html
+
+
+def html_to_pdf_download_response(html_text, download_name):
+    return html_text, 200, {
+        "Content-Type": "text/html; charset=utf-8"
+    }
+
 
 # =====================================================
 # Bölüm 3- VERİTABANI OLUŞTURMA / KONTROL
@@ -88,14 +301,19 @@ def init_db():
             haeufigkeit TEXT,
             vertragsstatus TEXT,
             vertragslaufzeit TEXT,
-            data_json TEXT
+            data_json TEXT,
+            sort_order INTEGER DEFAULT 0
         )
     ''')
+
+    try:
+        conn.execute("ALTER TABLE kunden ADD COLUMN sort_order INTEGER DEFAULT 0")
+    except Exception:
+        pass
 
     # ===============================
     # Aynı günün üstüne kayıt yapabilmek için olan kaydi tekrarlamaz
     # ===============================
-     
     conn.execute('''
         CREATE TABLE IF NOT EXISTS work_logs (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -113,20 +331,44 @@ def init_db():
     # 🚀 Bu satır olmazsa "Speichern" dediğinde aynı günün üstüne yazamaz, hata verir:
     conn.execute("CREATE UNIQUE INDEX IF NOT EXISTS idx_worker_date ON work_logs(worker_id, datum)")
 
+    try:
+        conn.execute("ALTER TABLE mitarbeiter ADD COLUMN position TEXT")
+    except Exception:
+        pass
+
+    try:
+        conn.execute("ALTER TABLE mitarbeiter ADD COLUMN arbeitstage_woche TEXT")
+    except Exception:
+        pass
+
+    try:
+        conn.execute("ALTER TABLE mitarbeiter ADD COLUMN probezeit TEXT")
+    except Exception:
+        pass
+
+    try:
+        conn.execute("ALTER TABLE mitarbeiter ADD COLUMN weitere_beschaeftigung TEXT")
+    except Exception:
+        pass
+
+    try:
+        conn.execute("ALTER TABLE mitarbeiter ADD COLUMN weitere_firma TEXT")
+    except Exception:
+        pass
 
     # ===============================
     # LEXWARE ID ZIRHI
     # ===============================
     try:
         conn.execute("ALTER TABLE kunden ADD COLUMN lexware_id TEXT")
-    except:
+    except Exception:
         pass
 
     try:
         conn.execute(
             "CREATE UNIQUE INDEX IF NOT EXISTS idx_kunden_lexware_id ON kunden(lexware_id)"
         )
-    except:
+    except Exception:
         pass
 
     conn.execute('''
@@ -145,21 +387,39 @@ def init_db():
             sv_nummer TEXT,
             krankenkasse TEXT,
             iban TEXT,
+            access_code TEXT,
+            position TEXT,
+            arbeitstage_woche TEXT,
+            probezeit TEXT,
+            weitere_beschaeftigung TEXT,
+            weitere_firma TEXT,
             stundenlohn REAL,
             urlaub INTEGER,
             resturlaub INTEGER,
             art TEXT,
             data_json TEXT,
+            sort_order INTEGER DEFAULT 0,
             status TEXT DEFAULT 'aktiv',
             created_at TEXT DEFAULT CURRENT_TIMESTAMP
         )
     ''')
+
     try:
         conn.execute("ALTER TABLE mitarbeiter ADD COLUMN anrede TEXT")
-    except:
+    except Exception:
         pass
 
-# To-Do Listesi Tablosu
+    try:
+        conn.execute("ALTER TABLE mitarbeiter ADD COLUMN lohn TEXT")
+    except Exception:
+        pass
+
+    try:
+        conn.execute("ALTER TABLE mitarbeiter ADD COLUMN sort_order INTEGER DEFAULT 0")
+    except Exception:
+        pass
+
+    # To-Do Listesi Tablosu
     conn.execute('''
         CREATE TABLE IF NOT EXISTS todos (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -173,7 +433,7 @@ def init_db():
     # Mevcut veritabanında 'deadline' sütunu yoksa zorla ekler (Hata Önleyici)
     try:
         conn.execute("ALTER TABLE todos ADD COLUMN deadline TEXT")
-    except:
+    except Exception:
         pass
 
     # ANGEBOTE TABLOSU (YENİ)
@@ -213,7 +473,7 @@ def init_db():
         )
     ''')
 
-# LEXWARE VERİ DEPOSU (IŞIK HIZI İÇİN)
+    # LEXWARE VERİ DEPOSU (IŞIK HIZI İÇİN)
     conn.execute('''
         CREATE TABLE IF NOT EXISTS lexware_cache (
             invoice_id TEXT PRIMARY KEY,
@@ -229,7 +489,7 @@ def init_db():
         )
     ''')
 
-# BANKA İŞLEMLERİ ÖNBELLEĞİ (YENİ)
+    # BANKA İŞLEMLERİ ÖNBELLEĞİ (YENİ)
     conn.execute('''
         CREATE TABLE IF NOT EXISTS bank_cache (
             transaction_id TEXT PRIMARY KEY,
@@ -242,7 +502,7 @@ def init_db():
         )
     ''')
 
-# RATENZAHLUNGEN TABLOSU (KREDİLER) - YENİ
+    # RATENZAHLUNGEN TABLOSU (KREDİLER) - YENİ
     conn.execute('''
         CREATE TABLE IF NOT EXISTS ratenzahlungen (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -259,10 +519,14 @@ def init_db():
         )
     ''')
 
-# 🔥 DOĞRU YER BURASI (init_db içinde, ratenzahlungen tablosunun bittiği yer)
+    try:
+        conn.execute("ALTER TABLE ratenzahlungen ADD COLUMN sort_order INTEGER DEFAULT 0")
+    except Exception:
+        pass
+
     try:
         conn.execute("ALTER TABLE ratenzahlungen ADD COLUMN renk_kodu TEXT DEFAULT '#007bff'")
-    except:
+    except Exception:
         pass
 
     # 🔥 GEWERBLICHE AUSGABEN (İŞLETME GİDERLERİ)
@@ -298,21 +562,6 @@ def init_db():
         )
     ''')
 
-# 🟦STUNDENZETTEL VERİLERİ İÇİN TABLO
-    conn.execute('''
-        CREATE TABLE IF NOT EXISTS work_logs (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            worker_id INTEGER,
-            datum TEXT,
-            start_time TEXT,
-            end_time TEXT,
-            place TEXT,
-            signed INTEGER,
-            created_at TEXT DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY(worker_id) REFERENCES mitarbeiter(id)
-        )
-    ''')
-
     conn.commit()
     conn.close()
 
@@ -331,6 +580,7 @@ def run_db_migration():
         conn.close()
 
 run_db_migration()
+
 
 # =====================================================
 # Bölüm 4-GİRİŞ VE ÇIKIŞ İŞLEMLERİ (BURAYA GELDİ)
@@ -673,7 +923,7 @@ def kunden():
         next_nr = 10002 # Veritabanı boşsa 10002'den başlar
 
     # Müşteri listesini çek ve sayfayı yükle (Aşağıya doğru 1-2-3 sıralaması)
-    kunden_liste = conn.execute("SELECT * FROM kunden ORDER BY id ASC").fetchall()
+    kunden_liste = conn.execute("SELECT * FROM kunden ORDER BY sort_order ASC, id ASC").fetchall()
     conn.close()
     
     # next_nr değişkenini kunden.html'e gönderiyoruz
@@ -708,7 +958,8 @@ def mitarbeiter():
                     anrede=?, vorname=?, nachname=?, ort=?, strasse=?, plz=?,
                     geburtsdatum=?, eintrittsdatum=?, telefon=?, email=?,
                     steuer_id=?, sv_nummer=?, krankenkasse=?, iban=?,
-                    stundenlohn=?, urlaub=?, resturlaub=?, art=?, data_json=?
+                    position=?, arbeitstage_woche=?, probezeit=?, weitere_beschaeftigung=?, weitere_firma=?,
+                    stundenlohn=?, urlaub=?, resturlaub=?, art=?, lohn=?, data_json=?
                 WHERE id=?
             """, (
                 form_data.get("anrede"),
@@ -725,10 +976,16 @@ def mitarbeiter():
                 form_data.get("sv_nummer"),
                 form_data.get("krankenkasse"),
                 form_data.get("iban"),
+                form_data.get("position"),
+                form_data.get("arbeitstage_woche"),
+                form_data.get("probezeit"),
+                form_data.get("weitere_beschaeftigung"),
+                form_data.get("weitere_firma"),
                 form_data.get("stundenlohn"),
                 form_data.get("urlaub"),
                 form_data.get("resturlaub"),
                 form_data.get("art"),
+                form_data.get("lohn"),
                 data_json,
                 mitarbeiter_id
             ))
@@ -741,8 +998,9 @@ def mitarbeiter():
                     anrede, vorname, nachname, ort, strasse, plz,
                     geburtsdatum, eintrittsdatum, telefon, email,
                     steuer_id, sv_nummer, krankenkasse, iban,
-                    stundenlohn, urlaub, resturlaub, art, data_json, access_code
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    position, arbeitstage_woche, probezeit, weitere_beschaeftigung, weitere_firma,
+                    stundenlohn, urlaub, resturlaub, art, lohn, data_json, access_code
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 
             """, (
                 form_data.get("anrede"),
@@ -759,10 +1017,16 @@ def mitarbeiter():
                 form_data.get("sv_nummer"),
                 form_data.get("krankenkasse"),
                 form_data.get("iban"),
+                form_data.get("position"),
+                form_data.get("arbeitstage_woche"),
+                form_data.get("probezeit"),
+                form_data.get("weitere_beschaeftigung"),
+                form_data.get("weitere_firma"),
                 form_data.get("stundenlohn"),
                 form_data.get("urlaub"),
                 form_data.get("resturlaub"),
                 form_data.get("art"),
+                form_data.get("lohn"),
                 data_json,
                 access_code
             ))
@@ -772,10 +1036,83 @@ def mitarbeiter():
         return redirect(url_for("mitarbeiter"))
 
     mitarbeiter_liste = conn.execute(
-        "SELECT * FROM mitarbeiter ORDER BY created_at DESC"
-    ).fetchall()
+    "SELECT * FROM mitarbeiter ORDER BY sort_order ASC, id ASC"
+).fetchall()
     conn.close()
     return render_template("Mitarbeiter.html", mitarbeiter_liste=mitarbeiter_liste)
+@app.route("/mitarbeiter/vertrag-erstellen", methods=["POST"])
+@login_required
+def mitarbeiter_vertrag_erstellen():
+    mitarbeiter_id = request.form.get("mitarbeiter_id", "").strip()
+    datum_text = request.form.get("datum", "").strip()
+    lohn = request.form.get("lohn", "").strip()
+
+    if not mitarbeiter_id or not datum_text:
+        return jsonify({"success": False, "message": "Daten fehlen"}), 400
+
+    try:
+        data = mitarbeiter_vertrag_daten_holen(int(mitarbeiter_id), datum_text)
+        data["{{lohn}}"] = temiz(lohn)
+
+        vertrag_html = html_vertrag_olustur("templates/Mitarbeiter Vertrag Vorlage.html", data)
+        vertrag_html = inject_print_css(vertrag_html)
+
+        befreiung_html = html_vertrag_olustur("templates/Befreiungsantrag-fuer-Arbeitnehmer-im-Gewerbe.html", data)
+
+        final_html = vertrag_html + '\n<div style="page-break-before: always !important;"></div>\n' + befreiung_html
+
+        return final_html, 200, {'Content-Type': 'text/html; charset=utf-8'}
+
+    except Exception as e:
+        return jsonify({"success": False, "message": f"Vertrag Fehler: {str(e)}"}), 500
+
+
+# 🔽🔽🔽 BURADAN SONRA EKLENDİ 🔽🔽🔽
+
+@app.route("/mitarbeiter/vertrag-pdf", methods=["GET"])
+@login_required
+def mitarbeiter_vertrag_pdf():
+    mitarbeiter_id = request.args.get("mitarbeiter_id", "").strip()
+    datum_text = request.args.get("datum", "").strip()
+    lohn = request.args.get("lohn", "").strip()
+
+    if not mitarbeiter_id or not datum_text:
+        return jsonify({"success": False, "message": "Daten fehlen"}), 400
+
+    try:
+        data = mitarbeiter_vertrag_daten_holen(int(mitarbeiter_id), datum_text)
+        data["{{lohn}}"] = temiz(lohn)
+
+        html = html_vertrag_olustur("templates/Mitarbeiter Vertrag Vorlage.html", data)
+        html = inject_print_css(html)
+
+        return html_to_pdf_download_response(html, "Vertrag.pdf")
+
+    except Exception as e:
+        return jsonify({"success": False, "message": f"Vertrag Fehler: {str(e)}"}), 500
+
+
+@app.route("/mitarbeiter/befreiung-pdf", methods=["GET"])
+@login_required
+def mitarbeiter_befreiung_pdf():
+    mitarbeiter_id = request.args.get("mitarbeiter_id", "").strip()
+    datum_text = request.args.get("datum", "").strip()
+    lohn = request.args.get("lohn", "").strip()
+
+    if not mitarbeiter_id or not datum_text:
+        return jsonify({"success": False, "message": "Daten fehlen"}), 400
+
+    try:
+        data = mitarbeiter_vertrag_daten_holen(int(mitarbeiter_id), datum_text)
+        data["{{lohn}}"] = temiz(lohn)
+
+        html = html_vertrag_olustur("templates/Befreiungsantrag-fuer-Arbeitnehmer-im-Gewerbe.html", data)
+        html = inject_print_css(html)
+
+        return html_to_pdf_download_response(html, "Befreiung.pdf")
+
+    except Exception as e:
+        return jsonify({"success": False, "message": f"Befreiung Fehler: {str(e)}"}), 500
 
 # =====================================================
 # Bölüm 9- MITARBEITER LÖSCHEN
@@ -1210,7 +1547,7 @@ def buchhaltung():
     
     # 🔥 BURASI DIŞARIDA OLACAK
     conn = get_db_connection()
-    ratenzahlungen = conn.execute("SELECT * FROM ratenzahlungen ORDER BY id ASC").fetchall()
+    ratenzahlungen = conn.execute("SELECT * FROM ratenzahlungen ORDER BY sort_order ASC, id ASC").fetchall()
     conn.close()
     
     # --- KARTLAR İÇİN HESAPLAMA ---
@@ -1561,7 +1898,91 @@ def get_plz(plz):
     return jsonify({"city": None})
 
 # =====================================================
-# BÖLÜM 21: UYGULAMA BAŞLATICI (NİHAİ ZIRHLI SÜRÜM)
+# Bölüm 21 - SORT ORDER Kaydirma Sistemi Kaydetme
+# =====================================================
+
+@app.route("/mitarbeiter/save-order", methods=["POST"])
+@login_required
+def save_mitarbeiter_order():
+    try:
+        data = request.get_json(silent=True) or {}
+        order = data.get("order", [])
+
+        if not isinstance(order, list) or not order:
+            return jsonify({"success": False}), 400
+
+        conn = get_db_connection()
+
+        for index, mitarbeiter_id in enumerate(order, start=1):
+            conn.execute(
+                "UPDATE mitarbeiter SET sort_order = ? WHERE id = ?",
+                (index, mitarbeiter_id)
+            )
+
+        conn.commit()
+        conn.close()
+
+        return jsonify({"success": True})
+
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
+@app.route("/kunden/save-order", methods=["POST"])
+@login_required
+def save_kunden_order():
+    try:
+        data = request.get_json(silent=True) or {}
+        order = data.get("order", [])
+
+        if not isinstance(order, list) or not order:
+            return jsonify({"success": False}), 400
+
+        conn = get_db_connection()
+
+        for index, kunden_id in enumerate(order, start=1):
+            conn.execute(
+                "UPDATE kunden SET sort_order = ? WHERE id = ?",
+                (index, kunden_id)
+            )
+
+        conn.commit()
+        conn.close()
+
+        return jsonify({"success": True})
+
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
+@app.route("/raten/save-order", methods=["POST"])
+@login_required
+def save_raten_order():
+    try:
+        data = request.get_json(silent=True) or {}
+        order = data.get("order", [])
+
+        if not isinstance(order, list) or not order:
+            return jsonify({"success": False}), 400
+
+        conn = get_db_connection()
+
+        for index, rate_id in enumerate(order, start=1):
+            conn.execute(
+                "UPDATE ratenzahlungen SET sort_order = ? WHERE id = ?",
+                (index, rate_id)
+            )
+
+        conn.commit()
+        conn.close()
+
+        return jsonify({"success": True})
+
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+# =====================================================
+# BÖLÜM 22: UYGULAMA BAŞLATICI (NİHAİ ZIRHLI SÜRÜM)
 # =====================================================
 
 def run_db_migration():
