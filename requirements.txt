@@ -4,4 +4,4 @@ requests
 gunicorn
 playwright
 python-docx
-fints==4.2.3
+fints
