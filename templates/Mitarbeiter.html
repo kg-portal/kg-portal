@@ -755,13 +755,16 @@ async function startBulkPrintEngine() {
     const hourlyWage = 15;
 
     const workers = [];
-    document.querySelectorAll('#main_list tr[id^="row-"]').forEach(row => {
-        const id = row.id.replace('row-', '');
-        const name = row.querySelector('.display-name')?.innerText?.trim() || '';
-        if (id && name) {
-            workers.push({ id, name });
-        }
-    });
+document.querySelectorAll('#main_list tr[id^="row-"]').forEach(row => {
+    const id = row.id.replace('row-', '');
+    const name = row.querySelector('.display-name')?.childNodes[0]?.textContent?.trim() || '';
+
+    if (id && name) {
+        workers.push({ id, name });
+    }
+});
+
+    let reportData = [];  
 
     if (workers.length === 0) {
         alert("KEINE AKTIVEN MITARBEITER GEFUNDEN!");
@@ -830,7 +833,10 @@ async function startBulkPrintEngine() {
 
     for (const worker of workers) {
         let dataMap = {};
-        let totalHours = 0;
+let totalHours = 0;
+let arbeitHours = 0;
+let krankHours = 0;
+let urlaubHours = 0;
 
         try {
             const res = await fetch(`/api/stundenzettel/${worker.id}`);
@@ -854,15 +860,23 @@ async function startBulkPrintEngine() {
                             }
                         }
 
-                        totalHours += hours;
+                        if (entry.place === 'Krank') {
+    krankHours += hours;
+} else if (entry.place === 'Urlaub') {
+    urlaubHours += hours;
+} else {
+    arbeitHours += hours;
+}
 
-                        dataMap[d] = {
-                            start: entry.start || '',
-                            end: entry.end || '',
-                            place: entry.place || '',
-                            signed: !!entry.signed,
-                            hours: hours
-                        };
+totalHours += hours;
+
+dataMap[d] = {
+    start: entry.start || '',
+    end: entry.end || '',
+    place: entry.place || '',
+    signed: !!entry.signed,
+    hours: hours
+};
                     }
                 });
             }
@@ -870,8 +884,21 @@ async function startBulkPrintEngine() {
             console.error("FEHLER BEI MITARBEITER:", worker.id, err);
         }
 
-        const totalWage = totalHours * hourlyWage;
+        const printHours = totalHours > 40 ? 40 : totalHours;
+        const extraHours = Math.max(0, totalHours - 40);
+
+        const printWage = printHours * hourlyWage;
+        const extraWage = extraHours * hourlyWage;
         let tableRows = '';
+
+        reportData.push({
+    name: worker.name,
+    arbeit: arbeitHours,
+    total: totalHours,
+    urlaub: urlaubHours,
+    krank: krankHours,
+    extra: extraHours
+});
 
         for (let d = 1; d <= daysInMonth; d++) {
             const dayStr = d.toString().padStart(2, '0');
@@ -897,8 +924,8 @@ async function startBulkPrintEngine() {
                 <div style="margin-bottom:10px;">${monthNameOnly} - Arbeitszeitnachweis</div>
 
                 <div class="top">
-                    <div>Stunde Insgesamt: ${totalHours.toFixed(2).replace('.', ',')} Std</div>
-                    <div>Lohn Insgesamt: ${totalWage.toFixed(2).replace('.', ',')} €</div>
+                    <div>Stunde Insgesamt: ${printHours.toFixed(2).replace('.', ',')} Std</div>
+                    <div>Lohn Insgesamt: ${printWage.toFixed(2).replace('.', ',')} €</div>
                 </div>
 
                 <table>
@@ -920,6 +947,40 @@ async function startBulkPrintEngine() {
             </div>
         `);
     }
+
+    let reportRows = '';
+
+reportData.forEach(r => {
+    reportRows += `
+    <tr>
+        <td>${r.name}</td>
+        <td>${r.total.toFixed(2).replace('.', ',')}</td>
+        <td>${r.urlaub}</td>
+        <td>${r.krank}</td>
+        <td>${r.extra.toFixed(2).replace('.', ',')}</td>
+    </tr>
+    `;
+});
+printWindow.document.write(`
+<div class="page">
+    <h2>Extra Rapor</h2>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Insgesamt Std</th>
+                <th>Urlaub</th>
+                <th>Krank</th>
+                <th>Extra</th>
+            </tr>
+        </thead>
+        <tbody>
+            ${reportRows}
+        </tbody>
+    </table>
+</div>
+`);
 
     printWindow.document.write(`</body></html>`);
     printWindow.document.close();
