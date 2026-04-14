@@ -687,6 +687,12 @@ function saveDayPopup() {
     const place = document.getElementById('popupPlace').value || '';
     const signed = document.getElementById('popupConfirm').checked;
 
+    // YENİ EKLENEN KONTROL
+    if (!start || !end || !place || !signed) {
+        alert("Bitte füllen Sie Beginn, Ende, Einsatzort und Bestätigung vollständig aus.");
+        return;
+    }
+
     // 2. Nihai konumu belirle (Urlaub/Krank kontrolü)
     const finalPlace = place;
 
