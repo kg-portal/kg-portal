@@ -366,7 +366,6 @@
 
 </div>
 
-<!--
 
 <!--
 ..........................................................................................................
@@ -421,14 +420,72 @@
                     </label>
                 </div>
 
-                <button type="button" onclick="saveDayPopup()"
-                        style="width:100%; margin-top:6px; background:#16a34a; color:#fff; border:none; padding:14px 16px; border-radius:14px; font-size:18px; font-weight:800; cursor:pointer;">
-                    Speichern
-                </button>
+                <div style="display:flex; gap:10px; margin-top:6px;">
+                    <button type="button" onclick="clearDayPopup()"
+                            style="width:40%; background:#dc2626; color:#fff; border:none; padding:14px 16px; border-radius:14px; font-size:16px; font-weight:800; cursor:pointer;">
+                        Löschen
+                    </button>
+
+                    <button type="button" onclick="saveDayPopup()"
+                            style="width:60%; margin-top:0; background:#16a34a; color:#fff; border:none; padding:14px 16px; border-radius:14px; font-size:18px; font-weight:800; cursor:pointer;">
+                        Speichern
+                    </button>
+                </div>
             </div>
         </div>
     </div>
 </div>
+
+<script>
+function clearDayPopup() {
+    const ok = confirm('Wirklich löschen?');
+    if (!ok) return;
+    if (!currentPopupRow) return;
+
+    const workerId = {{ mitarbeiter_liste[0].id }};
+    const date = currentPopupRow.getAttribute('data-date');
+
+    fetch(window.location.origin + '/api/stundenzettel/delete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            worker_id: workerId,
+            date: date
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (!data.success) {
+            alert("⚠️ Löschfehler: " + data.error);
+            return;
+        }
+
+        document.getElementById('popupStart').value = '';
+        document.getElementById('popupEnd').value = '';
+        document.getElementById('popupPlace').value = '';
+        document.getElementById('popupConfirm').checked = false;
+
+        currentPopupRow.querySelector('.in-time').value = '';
+        currentPopupRow.querySelector('.out-time').value = '';
+        currentPopupRow.querySelector('.loc-select').value = '';
+        currentPopupRow.querySelector('.sign-check').value = '';
+
+        const summary = currentPopupRow.querySelector('.day-summary');
+        if (summary) summary.innerText = 'Eintragen';
+
+        const button = currentPopupRow.querySelector('button');
+        if (button) button.innerText = 'Eintragen';
+
+        if (typeof updateCalculations === "function") updateCalculations();
+
+        closeDayPopup();
+    })
+    .catch(err => {
+        console.error("Löschfehler:", err);
+        alert("⚠️ Verbindung fehlgeschlagen.");
+    });
+}
+</script>
 
 <!--
 ..........................................................................................................
