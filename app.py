@@ -1702,6 +1702,32 @@ def save_stundenzettel():
         conn.close()
 
 
+@app.route('/api/stundenzettel/delete', methods=['POST'])
+def delete_stundenzettel():
+    data = request.json
+
+    worker_id = data.get('worker_id')
+    date = data.get('date')
+
+    if not worker_id or not date:
+        return jsonify({"success": False, "error": "Daten fehlen"}), 400
+
+    conn = get_db_connection()
+    try:
+        conn.execute("""
+            DELETE FROM work_logs
+            WHERE worker_id = ? AND datum = ?
+        """, (worker_id, date))
+
+        conn.commit()
+        return jsonify({"success": True})
+
+    except Exception as e:
+        print(f"❌ DB Silme Hatası: {e}")
+        return jsonify({"success": False, "error": str(e)}), 500
+    finally:
+        conn.close()
+
 # =====================================================
 # Bölüm 19- LEXWARE BAĞLANTISI VE BAŞLATMA
 # =====================================================
@@ -1991,7 +2017,60 @@ def sparkasse_sync():
         return jsonify({"ok": "0", "message": str(e)})
 
 # =====================================================
-# BÖLÜM 23: UYGULAMA BAŞLATICI (NİHAİ ZIRHLI SÜRÜM)
+# Bölüm 24 - REINIGUNG HESAPLAMA API
+# =====================================================
+
+@app.route("/api/calc", methods=["POST"])
+def calc():
+    data = request.json
+
+    branche = data.get("branche")
+    m2 = float(data.get("m2", 0))
+    schmutz = int(data.get("schmutz", 3))
+
+    # 🔥 BASE WERTE
+    REINIGUNGSWERTE = {
+        "buero": 170,
+        "arztpraxis": 140,
+        "fitnessstudio": 150,
+        "restaurant": 120,
+        "industriehalle": 100,
+        "grundreinigung": 80
+    }
+
+    # 🔥 SENİN MODEL (0-3 BASE)
+    def schmutz_faktor(level):
+        if level <= 3:
+            return 1.0
+        elif level == 4:
+            return 0.95
+        elif level == 5:
+            return 0.90
+        elif level == 6:
+            return 0.85
+        elif level == 7:
+            return 0.80
+        elif level == 8:
+            return 0.70
+        elif level == 9:
+            return 0.60
+        else:
+            return 0.50
+
+    basis = REINIGUNGSWERTE.get(branche, 170)
+
+    faktor = schmutz_faktor(schmutz)
+    leistung_effektiv = basis * faktor
+
+    stunden = m2 / leistung_effektiv
+
+    return jsonify({
+        "leistung": round(leistung_effektiv, 2),
+        "stunden": round(stunden, 2)
+    })
+
+# =====================================================
+# BÖLÜM 24: UYGULAMA BAŞLATICI (NİHAİ ZIRHLI SÜRÜM)
 # =====================================================
 
 def run_db_migration():
