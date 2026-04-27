@@ -67,6 +67,50 @@ def sync_lexware_to_db():
             status
         ))
 
+    # =====================================================
+    # GEÇİCİ SEVDESK DEVİR KAYITLARI
+    # Ocak + Şubat 2026
+    # İLERİDE RECHNUNGLAR DİREKT YÜKLENİNCE BU BLOK SİLİNECEK
+    # =====================================================
+    cursor.executemany('''
+        INSERT INTO lexware_cache
+        (invoice_id, nr, datum, kunde, brutto, netto, mwst, offen, status_code)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ON CONFLICT(invoice_id) DO UPDATE SET
+            nr = excluded.nr,
+            datum = excluded.datum,
+            kunde = excluded.kunde,
+            brutto = excluded.brutto,
+            netto = excluded.netto,
+            mwst = excluded.mwst,
+            offen = excluded.offen,
+            status_code = excluded.status_code,
+            last_updated = CURRENT_TIMESTAMP
+    ''', [
+        (
+            'SEVDESK-2026-01',
+            'SV-2026-01',
+            '2026-01-31',
+            'SevDesk Übertrag Januar 2026 - später löschen',
+            20253.04,
+            17019.36,
+            3233.68,
+            0.00,
+            'paid'
+        ),
+        (
+            'SEVDESK-2026-02',
+            'SV-2026-02',
+            '2026-02-28',
+            'SevDesk Übertrag Februar 2026 - später löschen',
+            25790.37,
+            21672.57,
+            4117.80,
+            0.00,
+            'paid'
+        )
+    ])
+
     conn.commit()
     conn.close()
     print("✅ Lexware senkronizasyonu tamamlandı.")
