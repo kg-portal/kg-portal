@@ -26,6 +26,40 @@
         flex-direction: column;
         gap: 15px;
         box-shadow: 0 10px 25px rgba(30, 64, 175, 0.3);
+        position: relative;
+    }
+
+    .module-drag-handle {
+        position: absolute;
+        top: 10px;
+        right: 12px;
+        width: 34px;
+        height: 34px;
+        border-radius: 12px;
+        background: rgba(255,255,255,0.92);
+        color: #1e40af;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+        font-weight: 900;
+        cursor: grab;
+        z-index: 5;
+        box-shadow: 0 6px 14px rgba(15,23,42,0.14);
+        user-select: none;
+    }
+
+    .module-drag-handle:active {
+        cursor: grabbing;
+    }
+
+    .module-sortable-ghost {
+        opacity: 0.45;
+        transform: scale(0.98);
+    }
+
+    .module-sortable-chosen {
+        box-shadow: 0 18px 38px rgba(30, 64, 175, 0.42);
     }
 
     /* İÇ KUTULAR: BEYAZ */
@@ -35,10 +69,12 @@
         color: #111827;
         border-radius: 20px;
         padding: 22px;
-        height: 140px;
+        height: auto;
+        min-height: 160px;
         display: flex;
         flex-direction: column;
-        justify-content: center;
+        justify-content: flex-start;
+        gap: 10px;
         transition: all 0.3s ease;
         cursor: pointer;
     }
@@ -48,8 +84,139 @@
         border: 3px solid #1e40af !important;
     }
 
-    .card-label { color: #64748b; font-size: 18px; font-weight: 600; }
-    .card-value { font-size: 26px; font-weight: 800; margin-top: 8px; color: #1e40af; } 
+    .card-label {
+        color: #64748b;
+        font-size: 18px;
+        font-weight: 600;
+        margin: 0;
+    }
+
+    .card-value {
+        font-size: 26px;
+        font-weight: 800;
+        margin-top: 0;
+        color: #1e40af;
+    } 
+
+    .card-month-badge {
+        align-self: flex-start;
+        display: inline-flex;
+        align-items: center;
+        background: linear-gradient(135deg, #1e40af, #3b82f6);
+        color: #ffffff;
+        border-radius: 999px;
+        padding: 6px 12px;
+        margin: 0;
+        font-size: 13px;
+        font-weight: 900;
+        letter-spacing: 0.2px;
+        line-height: 1;
+        box-shadow: 0 8px 18px rgba(30, 64, 175, 0.18);
+    }
+
+    .accounting-lines {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        margin-top: 0;
+    }
+
+    .accounting-pill {
+        border-radius: 14px;
+        padding: 5px 10px;
+        color: #ffffff;
+        font-size: 12px;
+        font-weight: 900;
+        line-height: 1.15;
+        box-shadow: 0 8px 18px rgba(15, 23, 42, 0.12);
+    }
+
+    .accounting-pill.income {
+        background: linear-gradient(135deg, #1e40af, #3b82f6);
+    }
+
+    .accounting-pill.expense {
+        background: linear-gradient(135deg, #b91c1c, #ef4444);
+    }
+
+    .accounting-period {
+        opacity: 0.95;
+        font-weight: 800;
+    }
+
+    .accounting-amount {
+    display: block;
+    margin-top: 2px;
+    font-size: 14px;
+    font-weight: 900;
+}
+
+.dashboard-card-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    width: 100%;
+}
+
+.dashboard-stat-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 7px;
+    width: 100%;
+    margin-top: 0;
+}
+
+.dashboard-stat-item {
+    border-radius: 14px;
+    padding: 8px 9px;
+    color: #ffffff;
+    font-size: 12px;
+    font-weight: 900;
+    line-height: 1.15;
+    box-shadow: 0 8px 18px rgba(15, 23, 42, 0.12);
+    min-height: 40px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.dashboard-stat-item span {
+    display: block;
+    font-size: 16px;
+    font-weight: 900;
+    margin-top: 2px;
+}
+
+.dashboard-stat-item.blue { background: linear-gradient(135deg, #1e40af, #3b82f6); }
+.dashboard-stat-item.green { background: linear-gradient(135deg, #047857, #10b981); }
+.dashboard-stat-item.purple { background: linear-gradient(135deg, #4f46e5, #818cf8); }
+.dashboard-stat-item.pink { background: linear-gradient(135deg, #be185d, #ec4899); }
+.dashboard-stat-item.red { background: linear-gradient(135deg, #b91c1c, #ef4444); }
+.dashboard-stat-item.gray { background: linear-gradient(135deg, #475569, #94a3b8); }
+
+.dashboard-count-bubble {
+    min-width: 52px;
+    height: 42px;
+    border-radius: 999px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    font-weight: 900;
+    color: #ffffff;
+    background: linear-gradient(135deg, #1e40af, #3b82f6);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 10px 22px rgba(30, 64, 175, 0.22);
+    line-height: 1;
+}
+
+.dashboard-simple-sub {
+    margin-top: 2px;
+    font-size: 13px;
+    font-weight: 800;
+    color: #64748b;
+}
 
     .chart-box {
         background: #ffffff;
@@ -90,7 +257,7 @@
     justify-content:center;
     align-items:center;
     gap:15px;
-    margin:15px 0 20px 0;
+    margin:5px 0 10px 0;
 }
 
 /* DIŞ PİL */
@@ -181,6 +348,247 @@
     .nav-btn:hover { transform: scale(1.2); }
     .chart-container-row { display: flex; align-items: center; justify-content: space-between; }
 
+/* =========================
+   INDEX OBERE BLAUE FLÄCHE
+========================= */
+.index-hero {
+    background: linear-gradient(135deg, #183a91 0%, #2563eb 100%);
+    color: #ffffff;
+    padding: 28px 30px;
+    border-radius: 24px;
+    margin-bottom: 28px;
+    box-shadow: 0 18px 50px rgba(24, 58, 145, 0.18);
+    position: relative;
+    overflow: hidden;
+}
+
+.index-hero::after {
+    content: "";
+    position: absolute;
+    right: -90px;
+    top: -110px;
+    width: 280px;
+    height: 280px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.11);
+}
+
+.index-hero-top {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    grid-template-columns: minmax(360px, 1fr) 280px minmax(300px, 1fr);
+    gap: 22px;
+    align-items: center;
+    margin-bottom: 0;
+}
+
+.index-brand {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    min-width: 0;
+}
+
+.index-logo-box {
+    width: 118px;
+    height: 118px;
+    border-radius: 24px;
+    background: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 12px 28px rgba(15,23,42,0.14);
+    flex: 0 0 auto;
+}
+
+.index-logo-box img {
+    max-height: 92px;
+    max-width: 98px;
+    width: auto;
+}
+
+.index-title h1 {
+    margin: 0;
+    font-size: 30px;
+    line-height: 1.08;
+    font-weight: 900;
+    letter-spacing: -0.5px;
+}
+
+.index-title p {
+    margin: 9px 0 0 0;
+    font-size: 14px;
+    line-height: 1.45;
+    font-weight: 700;
+    color: rgba(255,255,255,0.86);
+}
+
+.index-live-box,
+.index-weather-box {
+    display: grid;
+    justify-items: center;
+    gap: 6px;
+    padding: 15px 18px;
+    border-radius: 22px;
+    background: rgba(255,255,255,0.13);
+    border: 1px solid rgba(255,255,255,0.22);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.14), 0 10px 22px rgba(15,23,42,0.08);
+    backdrop-filter: blur(6px);
+}
+
+.index-live-box {
+    min-height: 112px;
+}
+
+.index-weather-box {
+    justify-self: end;
+    min-width: 270px;
+    min-height: 112px;
+}
+
+.index-time {
+    font-size: 34px;
+    line-height: 1;
+    font-weight: 900;
+    letter-spacing: -0.7px;
+    color: #ffffff;
+}
+
+.index-date {
+    font-size: 13px;
+    font-weight: 800;
+    color: rgba(255,255,255,0.92);
+    text-align: center;
+}
+
+.index-small-label {
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.7px;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.68);
+    text-align: center;
+}
+
+.index-weather-title {
+    font-size: 12px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.7px;
+    color: rgba(255,255,255,0.72);
+}
+
+.index-weather-main {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 17px;
+    font-weight: 900;
+    color: #ffffff;
+}
+
+#index-weather-icon,
+#weather-icon {
+    width: 46px;
+    height: 46px;
+    object-fit: contain;
+    display: block;
+    flex: 0 0 auto;
+}
+
+.index-hero-stats {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 18px;
+}
+
+.index-info-box {
+    background: #ffffff;
+    border: 1px solid rgba(255,255,255,0.85);
+    border-radius: 18px;
+    padding: 18px 22px;
+}
+
+.index-info-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.7px;
+    font-weight: 800;
+    color: #1d4ed8;
+    margin-bottom: 7px;
+}
+
+.index-info-value {
+    font-size: 22px;
+    line-height: 1.15;
+    font-weight: 900;
+    color: #183a91;
+}
+
+.index-info-sub {
+    margin-top: 6px;
+    font-size: 11px;
+    font-weight: 700;
+    color: #2563eb;
+}
+
+@media (max-width: 1200px) {
+    .index-hero-top {
+        grid-template-columns: 1fr 260px;
+    }
+
+    .index-weather-box {
+        grid-column: 1 / 3;
+        justify-self: stretch;
+    }
+
+    .index-hero-stats {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 720px) {
+    .index-hero {
+        padding: 20px;
+    }
+
+    .index-hero-top {
+        grid-template-columns: 1fr;
+    }
+
+    .index-brand {
+        align-items: flex-start;
+    }
+
+    .index-logo-box {
+        width: 88px;
+        height: 88px;
+        border-radius: 18px;
+    }
+
+    .index-logo-box img {
+        max-height: 68px;
+        max-width: 74px;
+    }
+
+    .index-title h1 {
+        font-size: 24px;
+    }
+
+    .index-weather-box {
+        grid-column: auto;
+        justify-self: stretch;
+        min-width: 0;
+    }
+
+    .index-hero-stats {
+        grid-template-columns: 1fr;
+    }
+}
+
 </style>
 
 
@@ -188,45 +596,40 @@
 <!--
 ..........................................................................................................
 ..........................................................................................................
-.......... ⬜ BÖLÜM 2: Üst Bilgi Paneli (Saat, Tarih ve Hava Durumu)..... ...............................
+.......... ⬜ BÖLÜM 2: Üst Bilgi Paneli (Datenbank Hero Tasarımı) ........................................
 ..........................................................................................................
 ..........................................................................................................
 -->
 
-<div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px;">
+<section class="index-hero">
+    <div class="index-hero-top">
+        <div class="index-brand">
+            <div class="index-logo-box">
+                <img src="/static/kg_logo.png" alt="KG Gebäudereinigung Logo">
+            </div>
 
-    <!-- SOL: LOGO + YAZI -->
-    <div style="display: flex; align-items: center; gap: 15px;">
-
-        <!-- BÜYÜK LOGO -->
-        <img src="/static/kg_logo.png" style="height: 180px; width: auto;">
-
-        <!-- YAZI (SİLİNMEDİ!) -->
-        <div style="color: #1e40af; font-size: 28px; font-weight: 800;">
-            Willkommen bei KG-Gebäudereinigung
+            <div class="index-title">
+                <h1>KG Steuerzentrale</h1>
+                <p>Umsatz · Kunden · Mitarbeiter · Aufgaben</p>
+            </div>
         </div>
 
-    </div>
-
-    <!-- SAĞ TARAF -->
-    <div style="text-align: right; font-family: sans-serif; min-width: 180px;">
-        <div id="digital-clock" style="font-size: 18px; font-weight: 800; line-height: 1.4; color: #1e40af;">00:00</div>
-        <div id="current-date" style="font-size: 18px; font-weight: 700; line-height: 1.4; color: #000000;">Duisburg, --.--.----</div>
-        <div style="font-size: 18px; font-weight: 700; line-height: 1.4; color: #000000;">
-            Wetter: <span id="weather-desc">Laden...</span> <span id="weather-temp"></span>
+        <div class="index-live-box">
+            <div class="index-small-label">Live Übersicht</div>
+            <div id="digital-clock" class="index-time">00:00</div>
+            <div id="current-date" class="index-date">Duisburg, --.--.----</div>
         </div>
-        <div id="weather-icon" style="font-size: 45px; margin-top: 5px;"></div>
+
+        <div class="index-weather-box">
+            <div class="index-weather-title">Wetter Duisburg</div>
+            <div class="index-weather-main">
+                <img id="weather-icon" src="/static/sunny.png" alt="Wetter">
+                <span><span id="weather-desc">Laden...</span> <span id="weather-temp"></span></span>
+            </div>
+            <div class="index-small-label">Automatisch aktualisiert</div>
+        </div>
     </div>
-
-</div>
-
-<h1 style="font-size:28px; font-weight:800; margin-bottom:6px;">
-    Leistungsübersicht
-</h1>
-
-<div style="color:#64748b; font-weight: 600; margin-bottom:30px;">
-    Aktueller Status · Fortschritt & Ergebnisse
-</div>
+</section>
 
 
 <!--
@@ -239,32 +642,46 @@
 
 <div class="dashboard-grid">
     <div class="module-container">
-        <div class="kpi-card blue-active" onclick="setActive(this)"><div class="card-label">Monatlicher Umsatz</div><div class="card-value">{{ "{:,.2f}".format(monatlicher_umsatz) }} €</div></div>
+        <div class="kpi-card blue-active" onclick="setActive(this)">
+            <div id="current-month-label" class="card-month-badge">April 2026</div>
+            <div class="card-label">Monatlicher Umsatz</div>
+            <div class="card-value">{{ "{:,.2f}".format(monatlicher_umsatz) }} €</div>
+        </div>
         <div class="chart-box"><div class="chart-title">Monatstrend</div><canvas id="monthlyTrendChart"></canvas></div>
     </div>
 
     <div class="module-container">
-        <div class="kpi-card" onclick="setActive(this)"><div class="card-label">Aktueller Gesamtumsatz</div><div class="card-value">{{ "{:,.2f}".format(jahres_umsatz) }} €</div></div> 
-        <div class="chart-box"><div class="chart-title">Jahresübersicht 2026</div><canvas id="yearlyOverviewChart"></canvas></div>
+        <div class="kpi-card" onclick="setActive(this)">
+            <div id="current-year-label" class="card-month-badge">Jahr 2026</div>
+            <div class="card-label">Aktueller Gesamtumsatz</div>
+            <div class="card-value">{{ "{:,.2f}".format(jahres_umsatz) }} €</div>
+        </div> 
+        <div class="chart-box"><div id="yearly-overview-title" class="chart-title">Jahresübersicht 2026</div><canvas id="yearlyOverviewChart"></canvas></div>
     </div>
 
     <div class="module-container">
         <div class="kpi-card" onclick="setActive(this)">
-            <div class="card-label">Buchhaltung</div>
-            <div style="display: flex; flex-direction: column; margin-top: 5px; font-size: 16px; font-weight: 800;">
-                <div style="color: #1e40af;">Einnahmen: 10.000 €</div>
-                <div style="color: #dc2626;">Ausgaben: 0 €</div>
+            <div class="card-label card-month-badge">Buchhaltung</div>
+            <div class="accounting-lines">
+                <div class="accounting-pill income">
+                    Einnahmen / <span id="accounting-income-period" class="accounting-period">April 2026</span>
+                    <span class="accounting-amount">10.000 €</span>
+                </div>
+                <div class="accounting-pill expense">
+                    Ausgaben / <span id="accounting-expense-period" class="accounting-period">April 2026</span>
+                    <span class="accounting-amount">0 €</span>
+                </div>
             </div>
         </div>
         <div class="chart-box">
-            <div class="chart-title">Bilanz Übersicht 2026</div>
+            <div id="accounting-overview-title" class="chart-title">Bilanzübersicht 2026</div>
             <canvas id="chart8"></canvas>
         </div>
     </div>
 
     <div class="module-container">
     <div class="kpi-card" onclick="setActive(this)">
-        <div class="card-label">To-Do Liste</div>
+        <div class="card-label card-month-badge">To-Do Liste</div>
 
        <!-- SEGMENTED BATTERY (KADEMELİ) -->
 <div class="todo-battery-wrap">
@@ -290,43 +707,63 @@
 
 
     <div class="module-container">
-        <div class="kpi-card" onclick="setActive(this)">
-            <div class="card-label">Telefonakquise</div>
-            <div style="font-size: 18px; color: #1e40af; font-weight: 800; margin-top: 2px;">Anrufe: 0</div>
-            <div style="font-size: 14px; color: #64748b; font-weight: 700; margin-top: 2px;">Unternehmensportfolio: 0</div>
-            <div style="display: flex; flex-direction: column; margin-top: 5px; font-size: 14px; font-weight: 800;">
-                <div style="color: #64748b;">Besichtigungstermine: 0</div>
-                <div style="color: #db2777;">Verträge: 0</div>
-            </div>
+    <div class="kpi-card" onclick="setActive(this)">
+        <div class="dashboard-card-head">
+            <div class="card-label card-month-badge">Telefonakquise</div>
         </div>
-        <div class="chart-box">
-            <div class="chart-title">Akquise Statistik 2026</div>
-            <canvas id="chart6"></canvas>
+        <div class="dashboard-stat-grid">
+            <div class="dashboard-stat-item blue">Anrufe<span>0</span></div>
+            <div class="dashboard-stat-item gray">Portfolio<span>0</span></div>
+            <div class="dashboard-stat-item purple">Besichtigung<span>0</span></div>
+            <div class="dashboard-stat-item pink">Verträge<span>0</span></div>
         </div>
     </div>
+    <div class="chart-box">
+        <div class="chart-title">Akquise Statistik 2026</div>
+        <canvas id="chart6"></canvas>
+    </div>
+</div>
 
     <div class="module-container">
-        <div class="kpi-card" onclick="setActive(this)">
-            <div class="card-label">Angebot</div>
-            <div style="font-size: 18px; color: #1e40af; font-weight: 800; margin-top: 2px;">Gesendet: 0</div>
-            <div style="display: flex; flex-direction: column; margin-top: 5px; font-size: 14px; font-weight: 800;">
-                <div style="color: #059669;">Bestätigt: 0</div>
-                <div style="color: #6366f1;">Wartend: 0</div> 
-                <div style="color: #dc2626;">Nicht bestätigt: 0</div>
-            </div>
+    <div class="kpi-card" onclick="setActive(this)">
+        <div class="dashboard-card-head">
+            <div class="card-label card-month-badge">Angebot</div>
         </div>
-        <div class="chart-box"><canvas id="chart5"></canvas></div>
+        <div class="dashboard-stat-grid">
+            <div class="dashboard-stat-item blue">Gesendet<span>0</span></div>
+            <div class="dashboard-stat-item green">Bestätigt<span>0</span></div>
+            <div class="dashboard-stat-item purple">Wartend<span>0</span></div>
+            <div class="dashboard-stat-item red">Nicht bestätigt<span>0</span></div>
+        </div>
     </div>
+    <div class="chart-box"><canvas id="chart5"></canvas></div>
+</div>
 
     <div class="module-container">
-        <div class="kpi-card" onclick="setActive(this)"><div class="card-label">Aktive Kunden</div><div class="card-value">{{ customer_count }}</div></div>
-        <div class="chart-box"><div class="chart-title">Kundenübersicht 2026</div><canvas id="chart3"></canvas></div>
+    <div class="kpi-card" onclick="setActive(this)">
+        <div class="dashboard-card-head">
+            <div class="card-label card-month-badge">Aktive Kunden</div>
+            <div class="dashboard-count-bubble">{{ customer_count }}</div>
+        </div>
+        <div class="dashboard-stat-grid" style="grid-template-columns: 1fr; margin-top: 5px;">
+            <div class="dashboard-stat-item green">Bestandskunden im System</div>
+        </div>
     </div>
+    <div class="chart-box"><div class="chart-title">Kundenübersicht 2026</div><canvas id="chart3"></canvas></div>
+</div>
 
     <div class="module-container">
-        <div class="kpi-card" onclick="setActive(this)"><div class="card-label">Aktive Mitarbeiter</div><div class="card-value">{{ employee_count }}</div></div>
-        <div class="chart-box"><div class="chart-title">Personal Statistik 2026</div><canvas id="chart4"></canvas></div>
+    <div class="kpi-card" onclick="setActive(this)">
+        <div class="dashboard-card-head">
+            <div class="card-label card-month-badge">Aktive Mitarbeiter</div>
+            <div class="dashboard-count-bubble">{{ employee_count }}</div>
+        </div>
+        <div class="dashboard-stat-grid" style="grid-template-columns: 1fr; margin-top: 5px;">
+            <div class="dashboard-stat-item purple">Aktuell eingesetztes Personal</div>
+        </div>
     </div>
+    <div class="chart-box"><div class="chart-title">Personal Statistik 2026</div><canvas id="chart4"></canvas></div>
+</div>
 </div>
 
 
@@ -338,12 +775,100 @@
 ..........................................................................................................
 -->
 
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
+    function kgFallbackValue(rawValue, fallbackValue) {
+        const rawText = String(rawValue).trim();
+        if (rawText.includes('{{') || rawText.includes('}}') || rawText === '' || rawText === 'undefined' || rawText === 'null') {
+            return fallbackValue;
+        }
+        const numberValue = Number(rawText);
+        return Number.isFinite(numberValue) ? numberValue : fallbackValue;
+    }
+
+    function kgFallbackArray(rawValue, fallbackValue) {
+        const rawText = String(rawValue).trim();
+        if (rawText.includes('{{') || rawText.includes('}}') || rawText === '' || rawText === 'undefined' || rawText === 'null') {
+            return fallbackValue;
+        }
+        try {
+            const parsed = JSON.parse(rawText);
+            return Array.isArray(parsed) ? parsed : fallbackValue;
+        } catch (e) {
+            return fallbackValue;
+        }
+    }
+
+    const kgMonatstrendGrafikVerisi = kgFallbackArray('{{ monatstrend_grafik_verisi | tojson }}', [0, 2500, 5200, 7800, 10000]);
+    const kgJahresGrafikVerisi = kgFallbackArray('{{ jahres_grafik_verisi | tojson }}', [10000, 12000, 11000, 13000, 15000, 14000, 14500, 15200, 16000, 17000, 18000, 19000]);
+    const kgKundenGrafikVerisi = kgFallbackArray('{{ kunden_grafik_verisi | tojson }}', [12, 18, 24, 30, 34, 38, 44, 50, 56, 63, 70, 76]);
+    const kgPersonelGrafikVerisi = kgFallbackArray('{{ personel_grafik_verisi | tojson }}', [4, 5, 6, 7, 8, 8, 9, 10, 11, 12, 13, 14]);
+    const kgTodoKwLabels = kgFallbackArray('{{ todo_kw_labels | tojson }}', ['KW 01', 'KW 02', 'KW 03', 'KW 04', 'KW 05', 'KW 06', 'KW 07', 'KW 08']);
+    const kgTodoErledigtVerisi = kgFallbackArray('{{ todo_erledigt_verisi | tojson }}', [2, 4, 3, 5, 6, 4, 7, 5]);
+    const kgTodoOffenVerisi = kgFallbackArray('{{ todo_offen_verisi | tojson }}', [5, 3, 4, 2, 1, 3, 2, 4]);
+    const kgInitialTodoIndex = kgFallbackValue('{{ initial_todo_index }}', 0);
+    const kgTodoPercent = kgFallbackValue('{{ todo_percent }}', 65);
+
     function setActive(element) {
         document.querySelectorAll('.kpi-card').forEach(card => card.classList.remove('blue-active'));
         element.classList.add('blue-active');
     }
+
+    function initDashboardSorting() {
+        const dashboardGrid = document.querySelector('.dashboard-grid');
+        if (!dashboardGrid || typeof Sortable === 'undefined') return;
+
+        const modules = Array.from(dashboardGrid.querySelectorAll('.module-container'));
+
+        modules.forEach((module, index) => {
+            const label = module.querySelector('.card-label')?.textContent?.trim() || 'modul-' + index;
+            const safeKey = label
+                .toLowerCase()
+                .replaceAll('ä', 'ae')
+                .replaceAll('ö', 'oe')
+                .replaceAll('ü', 'ue')
+                .replaceAll('ß', 'ss')
+                .replaceAll(' ', '-')
+                .replaceAll('.', '')
+                .replaceAll(',', '')
+                .replaceAll(':', '')
+                .replaceAll('/', '-')
+                .replaceAll('€', 'eur');
+
+            module.dataset.widgetKey = safeKey || 'modul-' + index;
+
+            if (!module.querySelector('.module-drag-handle')) {
+                const dragHandle = document.createElement('div');
+                dragHandle.className = 'module-drag-handle';
+                dragHandle.title = 'Kachel verschieben';
+                dragHandle.innerHTML = '<span style="font-size:22px;line-height:1;letter-spacing:-2px;">☰</span>';
+                module.prepend(dragHandle);
+            }
+        });
+
+        const savedOrder = JSON.parse(localStorage.getItem('kg_dashboard_module_order') || '[]');
+        if (savedOrder.length) {
+            savedOrder.forEach(key => {
+                const item = dashboardGrid.querySelector('.module-container[data-widget-key="' + key + '"]');
+                if (item) dashboardGrid.appendChild(item);
+            });
+        }
+
+        new Sortable(dashboardGrid, {
+            animation: 180,
+            handle: '.module-drag-handle',
+            draggable: '.module-container',
+            ghostClass: 'module-sortable-ghost',
+            chosenClass: 'module-sortable-chosen',
+            onEnd: function () {
+                const order = Array.from(dashboardGrid.querySelectorAll('.module-container')).map(item => item.dataset.widgetKey);
+                localStorage.setItem('kg_dashboard_module_order', JSON.stringify(order));
+            }
+        });
+    }
+
+    initDashboardSorting();
 
     // GRAFİKLER (Verilere dokunulmadı)
     // 📈 MONATSTREND - RAKAM GÖSTERME (TOOLTIP) AKTİF
@@ -353,7 +878,7 @@ new Chart(document.getElementById('monthlyTrendChart'), {
         labels: ['Start', 'W1', 'W2', 'W3', 'Aktuell'], 
         datasets: [{ 
             label: 'Umsatz (€)', 
-            data: {{ monatstrend_grafik_verisi | tojson }}, 
+            data: kgMonatstrendGrafikVerisi, 
             borderColor: '#1e40af', 
             backgroundColor: 'rgba(30, 64, 175, 0.1)', 
             fill: true, 
@@ -395,17 +920,158 @@ new Chart(document.getElementById('monthlyTrendChart'), {
         }
     } 
 });
-new Chart(document.getElementById('yearlyOverviewChart'), { type: 'bar', data: { labels: ['Jan', 'Feb', 'Mär', 'Apr', 'Mai', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dez'], datasets: [{ data: {{ jahres_grafik_verisi | tojson }}, backgroundColor: '#1e40af', borderRadius: 5 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } } });
-new Chart(document.getElementById('chart3'), { type: 'bar', data: { labels: ['Jan', 'Feb', 'Mär', 'Apr', 'Mai', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dez'], datasets: [{ data: {{ kunden_grafik_verisi | tojson }}, backgroundColor: '#059669', borderRadius: 5 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { min: 0, max: 150, ticks: { stepSize: 10 } } } } });
-new Chart(document.getElementById('chart4'), { type: 'bar', data: { labels: ['Jan', 'Feb', 'Mär', 'Apr', 'Mai', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dez'], datasets: [{ data: {{ personel_grafik_verisi | tojson }}, backgroundColor: '#6366f1', borderRadius: 5 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { min: 0, max: 100, ticks: { stepSize: 10 } } } } });
+new Chart(document.getElementById('yearlyOverviewChart'), {
+    type: 'bar',
+    data: {
+        labels: ['Jan', 'Feb', 'Mär', 'Apr', 'Mai', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dez'],
+        datasets: [{
+            label: 'Gesamtumsatz',
+            data: kgJahresGrafikVerisi,
+            backgroundColor: '#1e40af',
+            borderRadius: 5
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: {
+            intersect: false,
+            mode: 'index'
+        },
+        plugins: {
+            legend: { display: false },
+            tooltip: {
+                enabled: true,
+                backgroundColor: 'rgba(30, 64, 175, 0.95)',
+                titleFont: { size: 14, weight: 'bold' },
+                bodyFont: { size: 14 },
+                callbacks: {
+                    label: function(context) {
+                        return context.dataset.label + ': ' + context.parsed.y.toLocaleString('de-DE', { minimumFractionDigits: 2 }) + ' €';
+                    }
+                }
+            }
+        }
+    }
+});
+new Chart(document.getElementById('chart3'), {
+    type: 'bar',
+    data: {
+        labels: ['Jan', 'Feb', 'Mär', 'Apr', 'Mai', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dez'],
+        datasets: [{
+            label: 'Kunden',
+            data: kgKundenGrafikVerisi,
+            backgroundColor: '#059669',
+            borderRadius: 5
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: {
+            intersect: false,
+            mode: 'index'
+        },
+        plugins: {
+            legend: { display: false },
+            tooltip: {
+                enabled: true,
+                backgroundColor: 'rgba(30, 64, 175, 0.95)',
+                titleFont: { size: 14, weight: 'bold' },
+                bodyFont: { size: 14 },
+                callbacks: {
+                    label: function(context) {
+                        return context.dataset.label + ': ' + context.parsed.y;
+                    }
+                }
+            }
+        },
+        scales: {
+            y: { min: 0, max: 150, ticks: { stepSize: 10 } }
+        }
+    }
+});
+new Chart(document.getElementById('chart4'), {
+    type: 'bar',
+    data: {
+        labels: ['Jan', 'Feb', 'Mär', 'Apr', 'Mai', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dez'],
+        datasets: [{
+            label: 'Mitarbeiter',
+            data: kgPersonelGrafikVerisi,
+            backgroundColor: '#6366f1',
+            borderRadius: 5
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: {
+            intersect: false,
+            mode: 'index'
+        },
+        plugins: {
+            legend: { display: false },
+            tooltip: {
+                enabled: true,
+                backgroundColor: 'rgba(30, 64, 175, 0.95)',
+                titleFont: { size: 14, weight: 'bold' },
+                bodyFont: { size: 14 },
+                callbacks: {
+                    label: function(context) {
+                        return context.dataset.label + ': ' + context.parsed.y;
+                    }
+                }
+            }
+        },
+        scales: {
+            y: { min: 0, max: 100, ticks: { stepSize: 10 } }
+        }
+    }
+});
     new Chart(document.getElementById('chart5'), { type: 'doughnut', data: { labels: ['Bestätigt', 'Wartend', 'Nicht bestätigt'], datasets: [{ data: [1, 1, 1], backgroundColor: ['#059669', '#6366f1', '#dc2626'], cutout: '50%' }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 10, weight: 'bold' } } } } } });
-    new Chart(document.getElementById('chart6'), { type: 'bar', data: { labels: ['Jan', 'Feb', 'Mär', 'Apr', 'Mai', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dez'], datasets: [{ data: [20, 45, 30, 60, 80, 50, 90, 110, 70, 100, 120, 140], backgroundColor: '#db2777', borderRadius: 5 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { min: 0, max: 200, ticks: { stepSize: 20 } } } } });
+    new Chart(document.getElementById('chart6'), {
+        type: 'bar',
+        data: {
+            labels: ['Jan', 'Feb', 'Mär', 'Apr', 'Mai', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dez'],
+            datasets: [{
+                label: 'Anrufe',
+                data: [20, 45, 30, 60, 80, 50, 90, 110, 70, 100, 120, 140],
+                backgroundColor: '#db2777',
+                borderRadius: 5
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: {
+                intersect: false,
+                mode: 'index'
+            },
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    enabled: true,
+                    backgroundColor: 'rgba(30, 64, 175, 0.95)',
+                    titleFont: { size: 14, weight: 'bold' },
+                    bodyFont: { size: 14 },
+                    callbacks: {
+                        label: function(context) {
+                            return context.dataset.label + ': ' + context.parsed.y;
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: { min: 0, max: 200, ticks: { stepSize: 20 } }
+            }
+        }
+    });
 
     // TO-DO GRAFİĞİ: Haftalık İş Yükü (Stacked Bar) - CANLI BAĞLANTI
-const allLabels = {{ todo_kw_labels | tojson }};
-const allErledigt = {{ todo_erledigt_verisi | tojson }};
-const allOffen = {{ todo_offen_verisi | tojson }};
-let currentIndex = {{ initial_todo_index }}; 
+const allLabels = kgTodoKwLabels;
+const allErledigt = kgTodoErledigtVerisi;
+const allOffen = kgTodoOffenVerisi;
+let currentIndex = kgInitialTodoIndex; 
 
 let todoChart = new Chart(document.getElementById('chart7'), {
     type: 'bar',
@@ -507,6 +1173,46 @@ function updateClock() {
     }
     setInterval(updateClock, 1000); updateClock();
 
+    function updateCurrentMonthLabel() {
+        const monthLabel = document.getElementById('current-month-label');
+        if (!monthLabel) return;
+
+        const now = new Date();
+        const monthYear = now.toLocaleDateString('de-DE', { month: 'long', year: 'numeric' });
+        monthLabel.textContent = monthYear.charAt(0).toUpperCase() + monthYear.slice(1);
+    }
+
+    function updateCurrentYearLabel() {
+        const yearLabel = document.getElementById('current-year-label');
+        const yearlyTitle = document.getElementById('yearly-overview-title');
+        const currentYear = new Date().getFullYear();
+
+        if (yearLabel) yearLabel.textContent = "Jahr " + currentYear;
+        if (yearlyTitle) yearlyTitle.textContent = "Jahresübersicht " + currentYear;
+    }
+
+    function updateAccountingPeriodLabels() {
+        const accountingIncomePeriod = document.getElementById('accounting-income-period');
+        const accountingExpensePeriod = document.getElementById('accounting-expense-period');
+        const accountingTitle = document.getElementById('accounting-overview-title');
+        const now = new Date();
+        const monthYear = now.toLocaleDateString('de-DE', { month: 'long', year: 'numeric' });
+        const formattedMonthYear = monthYear.charAt(0).toUpperCase() + monthYear.slice(1);
+
+        if (accountingIncomePeriod) accountingIncomePeriod.textContent = formattedMonthYear;
+        if (accountingExpensePeriod) accountingExpensePeriod.textContent = formattedMonthYear;
+        if (accountingTitle) accountingTitle.textContent = "Bilanzübersicht " + now.getFullYear();
+    }
+
+    setInterval(updateCurrentMonthLabel, 3600000);
+    updateCurrentMonthLabel();
+
+    setInterval(updateCurrentYearLabel, 3600000);
+    updateCurrentYearLabel();
+
+    setInterval(updateAccountingPeriodLabels, 3600000);
+    updateAccountingPeriodLabels();
+
     async function fetchWeather() {
     try {
         const response = await fetch('https://wttr.in/Duisburg?format=j1');
@@ -515,20 +1221,60 @@ function updateClock() {
         const temp = data.current_condition[0].temp_C;
         const desc = data.current_condition[0].weatherDesc[0].value.toLowerCase();
 
-        let icon = "☀️";
+        let iconPath = "/static/sunny.png";
+        let germanDesc = "Sonnig";
 
-        if (desc.includes("rain")) icon = "🌧️";
-        else if (desc.includes("cloud")) icon = "☁️";
-        else if (desc.includes("overcast")) icon = "☁️";
-        else if (desc.includes("snow")) icon = "❄️";
-        else if (desc.includes("mist") || desc.includes("fog")) icon = "🌫️";
+        // KARLI
+        if (desc.includes("snow") || desc.includes("sleet") || desc.includes("blizzard")) {
+            iconPath = "/static/snow.png";
+            germanDesc = "Schnee";
+        }
 
-        document.getElementById('weather-desc').textContent = desc;
+        // YAĞMURLU
+        else if (desc.includes("rain") || desc.includes("drizzle") || desc.includes("shower") || desc.includes("thunder")) {
+            iconPath = "/static/heavy-rain.png";
+            germanDesc = "Regen";
+        }
+
+        // PARÇALI BULUTLU
+        else if (desc.includes("partly cloudy") || desc.includes("partly")) {
+            iconPath = "/static/cloudy.png";
+            germanDesc = "Teilweise bewölkt";
+        }
+
+        // BULUTLU / KAPALI
+        else if (desc.includes("overcast")) {
+            iconPath = "/static/clouds.png";
+            germanDesc = "Bedeckt";
+        }
+        else if (desc.includes("cloud") || desc.includes("cloudy")) {
+            iconPath = "/static/clouds.png";
+            germanDesc = "Bewölkt";
+        }
+
+        // SİSLİ - şimdilik bulut ikonuyla
+        else if (desc.includes("mist") || desc.includes("fog") || desc.includes("haze")) {
+            iconPath = "/static/clouds.png";
+            germanDesc = "Nebel";
+        }
+
+        // AÇIK / GÜNEŞLİ
+        else if (desc.includes("clear")) {
+            iconPath = "/static/sunny.png";
+            germanDesc = "Klar";
+        }
+        else if (desc.includes("sunny")) {
+            iconPath = "/static/sunny.png";
+            germanDesc = "Sonnig";
+        }
+
+        document.getElementById('weather-desc').textContent = germanDesc;
         document.getElementById('weather-temp').textContent = temp + "°C";
-        document.getElementById('weather-icon').textContent = icon;
+        document.getElementById('weather-icon').src = iconPath;
 
     } catch (error) {
         document.getElementById('weather-desc').textContent = "Offline";
+        document.getElementById('weather-icon').src = "/static/clouds.png";
     }
 }
 
@@ -538,7 +1284,7 @@ fetchWeather();
     // TODO BATTERY – CANLI RENK & YÜZDE
     // =======================
     // Python'dan gelen gerçek yüzdeyi buraya çekiyoruz
-const percent = {{ todo_percent }};
+const percent = kgTodoPercent;
 
     const fill = document.getElementById('todoBatteryFill');
     const text = document.getElementById('todoBatteryText');
@@ -560,6 +1306,3 @@ const percent = {{ todo_percent }};
 </script>
 
 {% endblock %}
-
-
-
