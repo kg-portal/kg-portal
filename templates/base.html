@@ -175,9 +175,58 @@
         }
 
         .portal-nav-list {
+            
+        }
+
+        .portal-nav-section-title {
+            font-size:11px;
+            font-weight:700;
+            letter-spacing:1.5px;
+            color:var(--kg-muted);
+            margin:0 0 3px 6px;
+            text-transform:uppercase;
+        }
+
+        .portal-nav-group-title {
+            color:#000000;
+            font-size:11px;
+            font-weight:900;
+            letter-spacing:1.5px;
+            text-transform:uppercase;
+            margin:0 0 12px 6px;
+            line-height:1;
+            user-select:none;
+            flex-shrink:0;
+        }
+
+        .portal-nav-list {
             display:flex;
             flex-direction:column;
             width:100%;
+        }
+
+        .portal-nav-item {
+            
+        }
+
+        .portal-nav-item[data-nav-key="startseite"] {
+            margin-bottom:26px;
+        }
+
+        .portal-nav-item[data-nav-key="todo"] {
+            margin-bottom:36px;
+        }
+
+        .portal-nav-item[data-nav-key="vertrag"] {
+            margin-bottom:36px;
+        }
+
+        .portal-nav-item[data-nav-key="kunden"] {
+            margin-bottom:36px;
+        }
+
+        .portal-nav-item[data-nav-key="vertretung"] {
+            margin-bottom:36px;
         }
 
         .portal-nav-item {
@@ -313,7 +362,6 @@
             filter:none;
         }
 
-        /* Profesyonel CRM İkon Renkleri */
         .icon-blue { color:#3b82f6; }
         .icon-orange { color:#f59e0b; }
         .icon-purple { color:#8b5cf6; }
@@ -343,9 +391,6 @@
             overflow:visible;
         }
 
-/* =====================================================
-           Bölüm 1- MOBİL VE TABLET UYUMLULUK AYARLARI
-           ===================================================== */
         @media (max-width:1024px) {
             .portal-sidebar {
                 position:relative;
@@ -390,10 +435,19 @@
                 <i class="fa-solid fa-grip-vertical portal-drag-handle"></i>
             </a>
 
+            <div class="portal-nav-group-title" id="planungTitle">Planung</div>
+
             <a class="portal-nav-item {% if request.path == '/kalender' %}active{% endif %}" href="/kalender" data-nav-key="kalender">
                 <span class="portal-nav-content"><i class="fa-solid fa-calendar-day icon-orange"></i> Kalender</span>
                 <i class="fa-solid fa-grip-vertical portal-drag-handle"></i>
             </a>
+
+            <a class="portal-nav-item {% if request.path.startswith('/todo') %}active{% endif %}" href="/todo" data-nav-key="todo">
+                <span class="portal-nav-content"><i class="fa-solid fa-clipboard-list icon-pink"></i> To Do Liste</span>
+                <i class="fa-solid fa-grip-vertical portal-drag-handle"></i>
+            </a>
+
+            <div class="portal-nav-group-title" id="kundengewinnungTitle">Kundengewinnung</div>
 
             <a class="portal-nav-item {% if request.path.startswith('/datenbank') %}active{% endif %}" href="/datenbank" data-nav-key="datenbank">
                 <span class="portal-nav-content"><i class="fa-solid fa-server icon-purple"></i> Datenbank</span>
@@ -411,14 +465,23 @@
             </a>
 
             <a class="portal-nav-item {% if request.path.startswith('/leistungsverzeichnis') %}active{% endif %}" href="/leistungsverzeichnis" data-nav-key="leistungsverzeichnis">
-                <span class="portal-nav-content"><i class="fa-solid fa-list-check icon-indigo"></i> Leistungen (LV)</span>
+                <span class="portal-nav-content"><i class="fa-solid fa-list-check icon-indigo"></i> Leistungen</span>
                 <i class="fa-solid fa-grip-vertical portal-drag-handle"></i>
             </a>
+
+            <a class="portal-nav-item {% if request.path.startswith('/vertrag') %}active{% endif %}" href="/vertrag" data-nav-key="vertrag">
+                <span class="portal-nav-content"><i class="fa-solid fa-file-contract icon-green"></i> Vertrag</span>
+                <i class="fa-solid fa-grip-vertical portal-drag-handle"></i>
+            </a>
+
+            <div class="portal-nav-group-title" id="kundenverwaltungTitle">Kundenverwaltung</div>
 
             <a class="portal-nav-item {% if request.path.startswith('/kunden') %}active{% endif %}" href="/kunden" data-nav-key="kunden">
                 <span class="portal-nav-content"><i class="fa-solid fa-address-book icon-cyan"></i> Kunden</span>
                 <i class="fa-solid fa-grip-vertical portal-drag-handle"></i>
             </a>
+
+            <div class="portal-nav-group-title" id="personalTitle">Personal</div>
 
             <a class="portal-nav-item {% if request.path.startswith('/mitarbeiter') %}active{% endif %}" href="/mitarbeiter" data-nav-key="mitarbeiter">
                 <span class="portal-nav-content"><i class="fa-solid fa-user-group icon-indigo"></i> Mitarbeiter</span>
@@ -435,24 +498,14 @@
                 <i class="fa-solid fa-grip-vertical portal-drag-handle"></i>
             </a>
 
+            <div class="portal-nav-group-title" id="finanzenTitle">Finanzen</div>
+
             <a class="portal-nav-item {% if request.path.startswith('/buchhaltung') %}active{% endif %}" href="/buchhaltung" data-nav-key="buchhaltung">
                 <span class="portal-nav-content"><i class="fa-solid fa-vault icon-red"></i> Buchhaltung</span>
                 <i class="fa-solid fa-grip-vertical portal-drag-handle"></i>
             </a>
-
-            <a class="portal-nav-item {% if request.path.startswith('/todo') %}active{% endif %}" href="/todo" data-nav-key="todo">
-                <span class="portal-nav-content"><i class="fa-solid fa-clipboard-list icon-pink"></i> To Do Liste</span>
-                <i class="fa-solid fa-grip-vertical portal-drag-handle"></i>
-            </a>
         </nav>
 
-<!--
-..........................................................................................................
-..........................................................................................................
-.......... 🟦 Bölüm 2: Iscilere otomatik stundenzettel uyarisi gönder....................................
-..........................................................................................................
-..........................................................................................................
--->
     </aside>
 
     <main class="portal-main">
@@ -470,29 +523,65 @@ if ('serviceWorker' in navigator) {
 }
 </script>
 
-<!--
-..........................................................................................................
-..........................................................................................................
-.......... 🟦 Bölüm 3: Kaydirmalari Kaydetme Fonksiyonu..................................................
-..........................................................................................................
-..........................................................................................................
--->
-
 <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
 
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     const nav = document.getElementById('portalNavSortable');
-    if (!nav || typeof Sortable === 'undefined') return;
+    if (!nav) return;
 
     const storageKey = 'kgPortalNavOrder';
-    const savedOrder = JSON.parse(localStorage.getItem(storageKey) || '[]');
+    localStorage.removeItem(storageKey);
 
-    if (savedOrder.length) {
-        savedOrder.forEach(function (key) {
-            const item = nav.querySelector('[data-nav-key="' + key + '"]');
-            if (item) nav.appendChild(item);
-        });
+    const fixedOrder = [
+        'startseite',
+        'kalender',
+        'todo',
+        'datenbank',
+        'besichtigung',
+        'angebot',
+        'leistungsverzeichnis',
+        'vertrag',
+        'kunden',
+        'mitarbeiter',
+        'stundenzettel',
+        'vertretung',
+        'buchhaltung'
+    ];
+
+    fixedOrder.forEach(function (key) {
+        const item = nav.querySelector('[data-nav-key="' + key + '"]');
+        if (item) nav.appendChild(item);
+    });
+
+    const planungTitle = document.getElementById('planungTitle');
+    const kalenderItem = nav.querySelector('[data-nav-key="kalender"]');
+    if (planungTitle && kalenderItem) {
+        nav.insertBefore(planungTitle, kalenderItem);
+    }
+
+    const kundengewinnungTitle = document.getElementById('kundengewinnungTitle');
+    const datenbankItem = nav.querySelector('[data-nav-key="datenbank"]');
+    if (kundengewinnungTitle && datenbankItem) {
+        nav.insertBefore(kundengewinnungTitle, datenbankItem);
+    }
+
+    const kundenverwaltungTitle = document.getElementById('kundenverwaltungTitle');
+    const kundenItem = nav.querySelector('[data-nav-key="kunden"]');
+    if (kundenverwaltungTitle && kundenItem) {
+        nav.insertBefore(kundenverwaltungTitle, kundenItem);
+    }
+
+    const personalTitle = document.getElementById('personalTitle');
+    const mitarbeiterItem = nav.querySelector('[data-nav-key="mitarbeiter"]');
+    if (personalTitle && mitarbeiterItem) {
+        nav.insertBefore(personalTitle, mitarbeiterItem);
+    }
+
+    const finanzenTitle = document.getElementById('finanzenTitle');
+    const buchhaltungItem = nav.querySelector('[data-nav-key="buchhaltung"]');
+    if (finanzenTitle && buchhaltungItem) {
+        nav.insertBefore(finanzenTitle, buchhaltungItem);
     }
 
     const currentPath = window.location.pathname || '/';
@@ -507,19 +596,6 @@ document.addEventListener('DOMContentLoaded', function () {
     if (!nav.querySelector('.portal-nav-item.active') && navItems.length) {
         navItems[0].classList.add('active');
     }
-
-    new Sortable(nav, {
-        animation:150,
-        handle:'.portal-drag-handle',
-        ghostClass:'portal-nav-ghost',
-        chosenClass:'portal-nav-chosen',
-        onEnd:function () {
-            const order = Array.from(nav.querySelectorAll('.portal-nav-item'))
-                .map(function (item) { return item.dataset.navKey; })
-                .filter(Boolean);
-            localStorage.setItem(storageKey, JSON.stringify(order));
-        }
-    });
 });
 </script>
 
