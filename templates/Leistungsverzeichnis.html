@@ -1,0 +1,554 @@
+{% extends "base.html" %}
+{% block content %}
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+<style>
+* {
+    box-sizing: border-box;
+}
+
+html, body {
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    background: #e9eef5;
+    font-family: 'Inter', Arial, sans-serif;
+    color: #0f172a;
+    padding: 34px 0;
+}
+
+.lv-page {
+    width: min(100%, 1180px);
+    margin: 0 auto;
+    background: #ffffff;
+    border-radius: 24px;
+    box-shadow: 0 18px 50px rgba(15, 23, 42, 0.12);
+    border: 1px solid #dbe3ef;
+    overflow: hidden;
+}
+
+.lv-hero {
+    background: linear-gradient(135deg, #183a91 0%, #2563eb 100%);
+    color: #ffffff;
+    padding: 34px 38px 32px 38px;
+}
+
+.lv-title {
+    margin: 0 0 24px 0;
+    font-size: 28px;
+    line-height: 1.1;
+    font-weight: 900;
+    letter-spacing: -0.4px;
+}
+
+.lv-info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr;
+    gap: 18px;
+}
+
+.lv-info-box {
+    background: rgba(255,255,255,0.16);
+    border: 1px solid rgba(255,255,255,0.14);
+    border-radius: 18px;
+    padding: 18px 22px;
+}
+
+.lv-info-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.7px;
+    font-weight: 800;
+    opacity: 0.82;
+    margin-bottom: 7px;
+}
+
+.lv-info-value {
+    font-size: 17px;
+    line-height: 1.35;
+    font-weight: 800;
+}
+
+.lv-info-value.multi-line {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.lv-info-value.multi-line span {
+    display: block;
+    white-space: nowrap;
+}
+
+.lv-content {
+    padding: 28px 38px 38px 38px;
+}
+
+.lv-intro {
+    margin-bottom: 24px;
+}
+
+.lv-intro h2 {
+    margin: 0 0 8px 0;
+    font-size: 24px;
+    font-weight: 900;
+    letter-spacing: -0.3px;
+}
+
+.lv-intro p {
+    margin: 0;
+    max-width: 100%;
+    font-size: 13.2px;
+    line-height: 1.55;
+    color: #334155;
+    white-space: nowrap;
+}
+
+.standard-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+    margin-bottom: 28px;
+}
+
+.standard-card {
+    border-radius: 18px;
+    overflow: hidden;
+    border: 1px solid #dbe3ef;
+    background: #ffffff;
+    box-shadow: 0 8px 22px rgba(15, 23, 42, 0.06);
+}
+
+.standard-head {
+    padding: 16px 18px;
+    color: #ffffff;
+    min-height: 92px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.standard-head h3 {
+    margin: 0 0 7px 0;
+    font-size: 20px;
+    line-height: 1.15;
+    font-weight: 900;
+}
+
+.standard-head span {
+    font-size: 12px;
+    line-height: 1.35;
+    font-weight: 700;
+    opacity: 0.92;
+}
+
+.buro .standard-head { background: linear-gradient(135deg, #1e40af 0%, #2563eb 100%); }
+.kueche .standard-head { background: linear-gradient(135deg, #15803d 0%, #22c55e 100%); }
+.wc .standard-head { background: linear-gradient(135deg, #b91c1c 0%, #ef4444 100%); }
+.flur .standard-head { background: linear-gradient(135deg, #d97706 0%, #f59e0b 100%); }
+
+.standard-body {
+    padding: 14px 18px 18px 18px;
+}
+
+.standard-body ul {
+    margin: 0;
+    padding-left: 17px;
+}
+
+.standard-body li {
+    font-size: 12.5px;
+    line-height: 1.55;
+    margin-bottom: 7px;
+    color: #0f172a;
+}
+
+.lv-section {
+    border: 1px solid #dbe3ef;
+    border-radius: 16px;
+    overflow: hidden;
+    margin-bottom: 20px;
+    background: #ffffff;
+}
+
+.lv-section-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 18px;
+    font-size: 16px;
+    font-weight: 900;
+}
+
+.dot {
+    width: 16px;
+    height: 16px;
+    border-radius: 5px;
+    flex: 0 0 auto;
+}
+
+.lv-section.buro-section .lv-section-title { background: #eff6ff; color: #1d4ed8; }
+.lv-section.kueche-section .lv-section-title { background: #ecfdf5; color: #15803d; }
+.lv-section.wc-section .lv-section-title { background: #fff1f2; color: #dc2626; }
+.lv-section.flur-section .lv-section-title { background: #fff7ed; color: #d97706; }
+
+.dot.blue { background: #2563eb; }
+.dot.green { background: #16a34a; }
+.dot.red { background: #ef4444; }
+.dot.orange { background: #f59e0b; }
+
+.lv-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.lv-table th {
+    background: #f8fafc;
+    color: #334155;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    text-align: left;
+    padding: 13px 18px;
+    border-top: 1px solid #e2e8f0;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.lv-table th:last-child {
+    text-align: right;
+}
+
+.lv-table td {
+    padding: 12px 18px;
+    border-bottom: 1px solid #e2e8f0;
+    font-size: 13.5px;
+    line-height: 1.45;
+    vertical-align: top;
+}
+
+.lv-table tr:last-child td {
+    border-bottom: none;
+}
+
+.freq {
+    color: #0f3d91;
+    font-weight: 800;
+    white-space: nowrap;
+    text-align: right;
+}
+
+.note-box {
+    margin-top: 26px;
+    background: #f8fafc;
+    border-left: 4px solid #2563eb;
+    border-radius: 10px;
+    padding: 16px 18px;
+    font-size: 13px;
+    line-height: 1.6;
+    color: #334155;
+}
+
+.note-box b {
+    color: #0f172a;
+}
+
+@media print {
+    @page {
+        size: A4 portrait;
+        margin: 0;
+    }
+
+    body {
+        background: #ffffff;
+        padding: 0;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+
+    .lv-page {
+        width: 210mm;
+        min-height: 297mm;
+        border-radius: 0;
+        box-shadow: none;
+        border: none;
+    }
+
+    .lv-hero {
+        padding: 24mm 16mm 12mm 16mm;
+    }
+
+    .lv-content {
+        padding: 12mm 16mm 16mm 16mm;
+    }
+
+    .standard-grid {
+        gap: 8px;
+    }
+
+    .standard-body li {
+        font-size: 10.5px;
+    }
+
+    .lv-table td {
+        font-size: 11.5px;
+        padding: 8px 12px;
+    }
+}
+
+@media (max-width: 900px) {
+    body { padding: 0; }
+    .lv-page { border-radius: 0; }
+    .lv-info-grid { grid-template-columns: 1fr; }
+    .standard-grid { grid-template-columns: 1fr 1fr; }
+}
+
+@media (max-width: 560px) {
+    .lv-content, .lv-hero { padding: 22px; }
+    .standard-grid { grid-template-columns: 1fr; }
+    .lv-table th:nth-child(2), .lv-table td:nth-child(2) { width: 130px; }
+}
+</style>
+
+<div class="lv-page">
+    <section class="lv-hero">
+        <h1 class="lv-title">Leistungsverzeichnis</h1>
+
+        <div class="lv-info-grid">
+            <div class="lv-info-box">
+                <div class="lv-info-label">Kunde</div>
+                <div class="lv-info-value">{{Kunde}}</div>
+            </div>
+
+            <div class="lv-info-box">
+                <div class="lv-info-label">Objekt</div>
+                <div class="lv-info-value">{{Adresse}}, {{Plz}} {{Ort}}</div>
+            </div>
+
+            <div class="lv-info-box">
+                <div class="lv-info-label">Leistung</div>
+                <div class="lv-info-value multi-line">{{Leistungsart}}</div>
+            </div>
+
+            <div class="lv-info-box">
+                <div class="lv-info-label">Wie häufig</div>
+                <div class="lv-info-value multi-line">{{Haeufigkeit}}</div>
+            </div>
+        </div>
+    </section>
+
+    <main class="lv-content">
+        <div class="lv-intro">
+            <h2>Büroreinigung – Standardleistungen</h2>
+            <p>
+                Dieses Leistungsverzeichnis ist Anlage zum Angebot und beschreibt die regelmäßig auszuführenden Reinigungsarbeiten
+                für Büro-, Küchen-, Sanitär- und Verkehrsflächen.
+            </p>
+        </div>
+
+        <section class="standard-grid">
+            <div class="standard-card buro">
+                <div class="standard-head">
+                    <h3>Büro</h3>
+                    <span>Büroräume, Arbeitsplätze und sichtbare Oberflächen</span>
+                </div>
+                <div class="standard-body">
+                    <ul>
+                        <li>Freie Arbeitsflächen feucht abwischen</li>
+                        <li>Papierkörbe leeren</li>
+                        <li>Bodenflächen saugen und bei Hartboden feucht wischen</li>
+                        <li>Türgriffe und Fensterbänke kontrollieren und abwischen</li>
+                        <li>Spinnweben monatlich kontrollieren und bei Bedarf entfernen</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="standard-card kueche">
+                <div class="standard-head">
+                    <h3>Küche</h3>
+                    <span>Küchenflächen, Spüle und Pausenbereich</span>
+                </div>
+                <div class="standard-body">
+                    <ul>
+                        <li>Spüle und Armaturen reinigen</li>
+                        <li>Küchenmüll leeren und bestücken</li>
+                        <li>Bodenflächen saugen und bei Hartboden feucht wischen</li>
+                        <li>Freie Arbeitsplatte reinigen</li>
+                        <li>Sichtbare Schrankfronten außen reinigen</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="standard-card wc">
+                <div class="standard-head">
+                    <h3>WC</h3>
+                    <span>Sanitärbereich, WC, Urinal und Waschbecken</span>
+                </div>
+                <div class="standard-body">
+                    <ul>
+                        <li>Waschbecken, Armaturen und Spiegel reinigen</li>
+                        <li>Mülleimer leeren und bestücken</li>
+                        <li>Bodenflächen feucht wischen</li>
+                        <li>WC-Becken, WC-Sitz und Deckel reinigen</li>
+                        <li>Urinale reinigen, soweit vorhanden</li>
+                        <li>Verbrauchsmaterialien bei Bedarf auffüllen</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="standard-card flur">
+                <div class="standard-head">
+                    <h3>Flur</h3>
+                    <span>Verkehrsflächen, Eingang und Kontaktflächen</span>
+                </div>
+                <div class="standard-body">
+                    <ul>
+                        <li>Empfangsbereich abstauben</li>
+                        <li>Eingangsbereich und Laufwege reinigen</li>
+                        <li>Bodenflächen saugen und bei Hartboden feucht wischen</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <section class="lv-section buro-section">
+            <div class="lv-section-title"><span class="dot blue"></span>Büro, Arbeitsplätze & allgemeine Flächen</div>
+            <table class="lv-table">
+                <thead>
+                    <tr>
+                        <th>Leistungsbeschreibung</th>
+                        <th>Häufigkeit</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Freie Arbeitsflächen, Schreibtische und Tische feucht abwischen</td>
+                        <td class="freq">{{Freq_Schreibtische}}</td>
+                    </tr>
+                    <tr>
+                        <td>PC, Bildschirme, Telefone und Drucker trocken/nebel-feucht entstauben</td>
+                        <td class="freq">{{Freq_Elektro}}</td>
+                    </tr>
+                    <tr>
+                        <td>Papierkörbe leeren</td>
+                        <td class="freq">{{Freq_Muell}}</td>
+                    </tr>
+                    <tr>
+                        <td>Türgriffe und Fensterbänke kontrollieren und abwischen</td>
+                        <td class="freq">{{Freq_Tueren}}</td>
+                    </tr>
+                    <tr>
+                        <td>Bodenflächen je nach Bodenart reinigen</td>
+                        <td class="freq">{{Freq_Boden_Teppich}}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <section class="lv-section kueche-section">
+            <div class="lv-section-title"><span class="dot green"></span>Küche / Teeküche</div>
+            <table class="lv-table">
+                <thead>
+                    <tr>
+                        <th>Leistungsbeschreibung</th>
+                        <th>Häufigkeit</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Freie Arbeitsflächen und Spüle reinigen</td>
+                        <td class="freq">{{Freq_Kueche_Flaechen}}</td>
+                    </tr>
+                    <tr>
+                        <td>Geschirrspüler einräumen / ausräumen, sofern in der Besichtigung ausgewählt</td>
+                        <td class="freq">{{Freq_Spuelmaschine}}</td>
+                    </tr>
+                    <tr>
+                        <td>Küchengeräte von außen feucht abwischen, soweit vereinbart</td>
+                        <td class="freq">{{Freq_Kuechengeraete}}</td>
+                    </tr>
+                    <tr>
+                        <td>Mülleimer leeren und bestücken</td>
+                        <td class="freq">{{Freq_Kueche_Muell}}</td>
+                    </tr>
+                    <tr>
+                        <td>Bodenflächen je nach Bodenart reinigen</td>
+                        <td class="freq">{{Freq_Boden_Kueche}}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <section class="lv-section wc-section">
+            <div class="lv-section-title"><span class="dot red"></span>Sanitäranlagen / WC</div>
+            <table class="lv-table">
+                <thead>
+                    <tr>
+                        <th>Leistungsbeschreibung</th>
+                        <th>Häufigkeit</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>WC-Becken, WC-Sitz, Deckel und Urinale reinigen</td>
+                        <td class="freq">{{Freq_WC}}</td>
+                    </tr>
+                    <tr>
+                        <td>Waschbecken, Armaturen und Spiegel reinigen</td>
+                        <td class="freq">{{Freq_Waschbecken}}</td>
+                    </tr>
+                    <tr>
+                        <td>Toilettenpapier, Handtuchpapier und Seife kontrollieren und bei Bedarf auffüllen, soweit vereinbart</td>
+                        <td class="freq">{{Freq_Auffuellen}}</td>
+                    </tr>
+                    <tr>
+                        <td>Mülleimer leeren und bestücken</td>
+                        <td class="freq">{{Freq_Sanitaer_Muell}}</td>
+                    </tr>
+                    <tr>
+                        <td>Bodenflächen je nach Bodenart reinigen</td>
+                        <td class="freq">{{Freq_Boden_Sanitaer}}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <section class="lv-section flur-section">
+            <div class="lv-section-title"><span class="dot orange"></span>Flur / Verkehrsflächen</div>
+            <table class="lv-table">
+                <thead>
+                    <tr>
+                        <th>Leistungsbeschreibung</th>
+                        <th>Häufigkeit</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Empfangsbereich abstauben</td>
+                        <td class="freq">{{Freq_Flur_Kontakt}}</td>
+                    </tr>
+                    <tr>
+                        <td>Eingangsbereich und Laufwege reinigen</td>
+                        <td class="freq">{{Freq_Flur_Sicht}}</td>
+                    </tr>
+                    <tr>
+                        <td>Bodenflächen je nach Bodenart reinigen</td>
+                        <td class="freq">{{Freq_Flur_Boden}}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <div class="note-box">
+            <b>Hinweis:</b> Dieses Leistungsverzeichnis beschreibt die vereinbarten Standardleistungen der Büroreinigung.
+            Objektbezogene Zusatzleistungen werden nur nach vorheriger Vereinbarung ausgeführt und separat im Angebot aufgeführt.
+            Reinigungsmittel und Arbeitsgeräte werden von der KG Gebäudereinigung gestellt und sind im Preis enthalten,
+            sofern nicht anders vereinbart.
+        </div>
+    </main>
+
+</div>
+
+{% endblock %}
