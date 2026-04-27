@@ -7,124 +7,444 @@
     <link rel="manifest" href="/static/manifest.json">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        :root { --bg:#f8fafc; --sidebar:#ffffff; --accent:#2563eb; --border:#e2e8f0; --text:#1e293b; }
-        *{margin:0;padding:0;box-sizing:border-box}
-        body { font-family: Arial, sans-serif; background: var(--bg); display: flex; min-height: 100vh; overflow-y: auto; }
-        .sidebar{ width:280px; background:#fff; border-right:1px solid var(--border); padding:30px 20px; display:flex; flex-direction:column; }
-        .sidebar h2{ font-weight:800; color:var(--accent); margin-bottom:40px; font-size:24px; }
-        
-        .nav-item{ 
-            padding:16px 20px; 
-            border-radius:12px; 
-            color:#64748b; 
-            cursor:pointer; 
-            font-weight:600; 
-            font-size:16px; 
-            margin-bottom:8px; 
-            display:flex; 
-            align-items:center; 
-            gap:15px; 
-            text-decoration:none; 
-            transition:0.2s; 
-        }
-        
-        .nav-item i {
-            font-size: 20px; 
-            width: 25px;    
-            text-align: center;
+        :root {
+            --kg-bg:#f8fafc;
+            --kg-sidebar:#ffffff;
+            --kg-accent:#2563eb;
+            --kg-border:#e2e8f0;
+            --kg-text:#1e293b;
+            --kg-muted:#64748b;
+            --kg-hover:#eef2ff;
+            --kg-sidebar-width:280px;
         }
 
-        .nav-item:hover{ background:#eef2ff; }
-        .nav-item.active{ background:var(--accent); color:#fff; }
-        .nav-item.active i{ color: #fff !important; }
-        
+        html,
+        body {
+            margin:0 !important;
+            padding:0 !important;
+            min-height:100vh !important;
+            background:var(--kg-bg) !important;
+            font-family:Arial, Helvetica, sans-serif !important;
+            color:var(--kg-text) !important;
+            overflow-x:hidden !important;
+        }
+
+        .kg-portal-body,
+        .kg-portal-body *:not(i):not(.fa):not(.fa-solid):not(.fa-regular):not(.fa-brands),
+        .kg-portal-body button,
+        .kg-portal-body input,
+        .kg-portal-body select,
+        .kg-portal-body textarea {
+            font-family:Arial, Helvetica, sans-serif !important;
+        }
+
+        *,
+        *::before,
+        *::after {
+            box-sizing:border-box;
+        }
+
+        body.kg-portal-body {
+            background:var(--kg-bg) !important;
+        }
+
+        .kg-portal-shell {
+            width:100%;
+            min-height:100vh;
+            background:var(--kg-bg);
+        }
+
+        .portal-sidebar {
+            position:fixed;
+            left:0;
+            top:0;
+            width:var(--kg-sidebar-width);
+            height:100vh;
+            background:var(--kg-sidebar);
+            border-right:1px solid var(--kg-border);
+            padding:58px 20px 30px 20px;
+            display:flex;
+            flex-direction:column;
+            overflow-y:auto;
+            overflow-x:hidden;
+            z-index:9999;
+        }
+
+        .portal-sidebar-title {
+            position:relative;
+            overflow:hidden;
+            display:flex;
+            flex-direction:column;
+            align-items:center;
+            justify-content:center;
+            text-decoration:none;
+            cursor:pointer;
+            text-align:center;
+            margin:0 0 40px 0;
+            min-height:106px;
+            padding:22px 18px 20px 18px;
+            border-radius:20px;
+            background:linear-gradient(135deg, #071a44 0%, #123a8f 44%, #2563eb 100%);
+            border:1px solid rgba(255,255,255,0.34);
+            box-shadow:0 16px 30px rgba(15,47,131,0.20), inset 0 1px 0 rgba(255,255,255,0.24);
+            color:#ffffff;
+            isolation:isolate;
+        }
+
+        .portal-sidebar-title::before {
+            content:"";
+            position:absolute;
+            top:-70%;
+            left:-45%;
+            width:58%;
+            height:240%;
+            background:linear-gradient(120deg, transparent 0%, rgba(255,255,255,0.08) 35%, rgba(255,255,255,0.38) 50%, rgba(255,255,255,0.08) 65%, transparent 100%);
+            transform:rotate(18deg);
+            pointer-events:none;
+            z-index:1;
+        }
+
+        .portal-sidebar-title::after {
+            content:"";
+            position:absolute;
+            left:36px;
+            right:36px;
+            bottom:17px;
+            height:2px;
+            border-radius:999px;
+            background:linear-gradient(90deg, transparent, rgba(255,255,255,0.88), rgba(147,197,253,0.95), transparent);
+            box-shadow:0 0 14px rgba(147,197,253,0.65);
+            pointer-events:none;
+            z-index:2;
+        }
+
+        .portal-logo-mark {
+            width:48px;
+            height:48px;
+            border-radius:16px;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            flex-shrink:0;
+            font-size:19px;
+            line-height:1;
+            font-weight:900;
+            letter-spacing:-1px;
+            color:#ffffff;
+            background:linear-gradient(135deg, #0f2f83 0%, #1d4ed8 55%, #60a5fa 100%);
+            box-shadow:0 12px 22px rgba(37,99,235,0.28), inset 0 1px 0 rgba(255,255,255,0.28);
+        }
+
+        .portal-title-wrap {
+            display:flex;
+            flex-direction:column;
+            min-width:0;
+        }
+
+        .portal-title-main {
+            position:relative;
+            z-index:3;
+            display:block;
+            font-size:30px;
+            line-height:0.95;
+            font-weight:900;
+            letter-spacing:-1.2px;
+            color:#ffffff;
+            white-space:nowrap;
+        }
+
+        .portal-title-sub {
+            position:relative;
+            z-index:3;
+            display:inline-flex;
+            align-items:center;
+            justify-content:center;
+            margin-top:12px;
+            padding:6px 12px 5px 14px;
+            border-radius:999px;
+            font-size:10px;
+            line-height:1;
+            font-weight:900;
+            letter-spacing:2.8px;
+            text-transform:uppercase;
+            color:#dbeafe;
+            background:rgba(255,255,255,0.12);
+            border:1px solid rgba(255,255,255,0.26);
+            box-shadow:inset 0 1px 0 rgba(255,255,255,0.22);
+            white-space:nowrap;
+        }
+
+        .portal-nav-list {
+            display:flex;
+            flex-direction:column;
+            width:100%;
+        }
+
+        .portal-nav-item {
+            position:relative;
+            overflow:hidden;
+            padding:16px 14px 16px 20px;
+            border-radius:14px;
+            color:#ffffff;
+            cursor:pointer;
+            font-weight:800;
+            font-size:15px;
+            margin-bottom:10px;
+            display:flex;
+            align-items:center;
+            justify-content:space-between;
+            gap:12px;
+            text-decoration:none;
+            transition:0.2s ease;
+            flex-shrink:0;
+            user-select:none;
+            background:linear-gradient(135deg, #0f2f83 0%, #1d4ed8 48%, #60a5fa 100%);
+            border:1px solid rgba(255,255,255,0.32);
+            box-shadow:inset 0 1px 0 rgba(255,255,255,0.20);
+        }
+
+        .portal-nav-content {
+            display:flex;
+            align-items:center;
+            gap:15px;
+            min-width:0;
+        }
+
+        .portal-drag-handle {
+            width:auto !important;
+            font-size:15px !important;
+            color:rgba(255,255,255,0.86) !important;
+            cursor:grab;
+            opacity:0.9;
+            margin-left:auto;
+            position:relative;
+            z-index:2;
+        }
+
+        .portal-drag-handle:active {
+            cursor:grabbing;
+        }
+
+        .portal-nav-item:hover .portal-drag-handle {
+            opacity:1;
+        }
+
+        .portal-nav-item.active .portal-drag-handle {
+            color:#fff !important;
+            opacity:0.9;
+        }
+
+        .portal-nav-ghost {
+            opacity:0.45;
+            background:#dbeafe !important;
+        }
+
+        .portal-nav-chosen {
+            box-shadow:none;
+        }
+
+        .portal-nav-item i {
+            font-size:20px;
+            width:25px;
+            text-align:center;
+            flex-shrink:0;
+        }
+
+        .portal-nav-item::before {
+            content:"";
+            position:absolute;
+            top:-70%;
+            left:-50%;
+            width:58%;
+            height:240%;
+            background:linear-gradient(120deg, transparent 0%, rgba(255,255,255,0.08) 35%, rgba(255,255,255,0.38) 50%, rgba(255,255,255,0.08) 65%, transparent 100%);
+            transform:rotate(18deg);
+            pointer-events:none;
+        }
+
+        .portal-nav-item::after {
+            display:none;
+        }
+
+        .portal-nav-item:hover {
+            background:linear-gradient(135deg, #0b2a75 0%, #2563eb 48%, #93c5fd 100%);
+            box-shadow:inset 0 1px 0 rgba(255,255,255,0.24);
+            transform:translateY(-1px);
+        }
+
+        .portal-nav-item.active {
+            background:#ffffff;
+            color:#123a8f;
+            border:2px solid #1d4ed8;
+            box-shadow:inset 0 1px 0 rgba(255,255,255,0.95);
+        }
+
+        .portal-nav-item.active::after {
+            display:none;
+        }
+
+        .portal-nav-item.active .portal-nav-content {
+            color:#123a8f !important;
+        }
+
+        .portal-nav-item.active i {
+            color:#1d4ed8 !important;
+        }
+
+        .portal-nav-item.active .portal-drag-handle {
+            color:#1d4ed8 !important;
+        }
+
+        .portal-nav-item .portal-nav-content,
+        .portal-nav-item .portal-drag-handle {
+            position:relative;
+            z-index:2;
+        }
+
+        .portal-nav-item .portal-nav-content {
+            color:#ffffff;
+            text-shadow:none;
+            font-weight:900;
+            letter-spacing:0.1px;
+        }
+
+        .portal-nav-item i {
+            color:#ffffff !important;
+            filter:none;
+        }
+
         /* Profesyonel CRM İkon Renkleri */
-        .icon-blue { color: #3b82f6; }
-        .icon-orange { color: #f59e0b; }
-        .icon-purple { color: #8b5cf6; }
-        .icon-green { color: #10b981; }
-        .icon-cyan { color: #06b6d4; }
-        .icon-indigo { color: #6366f1; }
-        .icon-teal { color: #14b8a6; } /* Vertretung için yeni renk */
-        .icon-red { color: #ef4444; }
-        .icon-pink { color: #ec4899; }
+        .icon-blue { color:#3b82f6; }
+        .icon-orange { color:#f59e0b; }
+        .icon-purple { color:#8b5cf6; }
+        .icon-green { color:#10b981; }
+        .icon-cyan { color:#06b6d4; }
+        .icon-indigo { color:#6366f1; }
+        .icon-teal { color:#14b8a6; }
+        .icon-red { color:#ef4444; }
+        .icon-pink { color:#ec4899; }
 
-        .main{ flex:1; padding:30px; overflow-y:auto; }
-        .card{ background:#fff; border:1px solid var(--border); border-radius:24px; padding:30px; min-height: 100%; }
+        .portal-main {
+            width:calc(100% - var(--kg-sidebar-width));
+            min-height:100vh;
+            margin-left:var(--kg-sidebar-width);
+            padding:30px;
+            background:var(--kg-bg);
+            overflow:visible;
+        }
+
+        .portal-card {
+            width:100%;
+            min-height:calc(100vh - 60px);
+            background:#fff;
+            border:1px solid var(--kg-border);
+            border-radius:24px;
+            padding:30px;
+            overflow:visible;
+        }
 
 /* =====================================================
-           Bölüm 1- MOBİL VE TABLET UYUMLULUK AYARLARI 
+           Bölüm 1- MOBİL VE TABLET UYUMLULUK AYARLARI
            ===================================================== */
-        @media (max-width: 1024px) {
-            body { 
-                flex-direction: column; 
-                overflow-y: auto; 
-                height: auto;
+        @media (max-width:1024px) {
+            .portal-sidebar {
+                position:relative;
+                left:auto;
+                top:auto;
+                width:100%;
+                height:auto;
+                border-right:none;
+                border-bottom:1px solid var(--kg-border);
+                padding:15px;
+                z-index:10;
             }
-            .sidebar { 
-                width: 100% !important; 
-                height: auto; 
-                border-right: none;
-                border-bottom: 1px solid var(--border);
-                padding: 15px;
+
+            .portal-sidebar-title {
+                margin-bottom:20px;
             }
-            .main { 
-                padding: 15px; 
-                overflow-y: visible; 
+
+            .portal-main {
+                width:100%;
+                margin-left:0;
+                min-height:auto;
+                padding:15px;
             }
-            .sidebar h2 { margin-bottom: 20px; }
+
+            .portal-card {
+                min-height:auto;
+                border-radius:20px;
+                padding:20px;
+            }
         }
-
-
     </style>
 </head>
-<body>
-<div class="sidebar">
-    <h2 style="text-align:center; font-size:28px;">KG-Portal</h2>
-    
-    <a class="nav-item {% if request.path == '/' %}active{% endif %}" href="/">
-        <i class="fa-solid fa-chart-line icon-blue"></i> Startseite
-    </a>
+<body class="kg-portal-body">
+<div class="kg-portal-shell">
 
-    <a class="nav-item {% if request.path == '/kalender' %}active{% endif %}" href="/kalender">
-        <i class="fa-solid fa-calendar-day icon-orange"></i> Kalender
-    </a>
+    <aside class="portal-sidebar">
+        <a class="portal-sidebar-title" href="/"><span class="portal-title-main">KG CRM</span><span class="portal-title-sub">NAVIGATION</span></a>
 
-    <a class="nav-item {% if request.path.startswith('/datenbank') %}active{% endif %}" href="/datenbank">
-        <i class="fa-solid fa-server icon-purple"></i> Datenbank
-    </a>
+        <nav id="portalNavSortable" class="portal-nav-list">
+            <a class="portal-nav-item {% if request.path == '/' %}active{% endif %}" href="/" data-nav-key="startseite">
+                <span class="portal-nav-content"><i class="fa-solid fa-chart-line icon-blue"></i> Startseite</span>
+                <i class="fa-solid fa-grip-vertical portal-drag-handle"></i>
+            </a>
 
-    <a class="nav-item {% if request.path.startswith('/besichtigung') %}active{% endif %}" href="/besichtigung">
-        <i class="fa-solid fa-clipboard-check icon-teal"></i> Besichtigung
-    </a>
+            <a class="portal-nav-item {% if request.path == '/kalender' %}active{% endif %}" href="/kalender" data-nav-key="kalender">
+                <span class="portal-nav-content"><i class="fa-solid fa-calendar-day icon-orange"></i> Kalender</span>
+                <i class="fa-solid fa-grip-vertical portal-drag-handle"></i>
+            </a>
 
-    <a class="nav-item {% if request.path.startswith('/angebot') %}active{% endif %}" href="/angebot">
-        <i class="fa-solid fa-file-signature icon-green"></i> Angebot & Vertrag
-    </a>
+            <a class="portal-nav-item {% if request.path.startswith('/datenbank') %}active{% endif %}" href="/datenbank" data-nav-key="datenbank">
+                <span class="portal-nav-content"><i class="fa-solid fa-server icon-purple"></i> Datenbank</span>
+                <i class="fa-solid fa-grip-vertical portal-drag-handle"></i>
+            </a>
 
-    <a class="nav-item {% if request.path.startswith('/kunden') %}active{% endif %}" href="/kunden">
-        <i class="fa-solid fa-address-book icon-cyan"></i> Kunden
-    </a>
-    
-    <a class="nav-item {% if request.path.startswith('/mitarbeiter') %}active{% endif %}" href="/mitarbeiter">
-        <i class="fa-solid fa-user-group icon-indigo"></i> Mitarbeiter
-    </a>
+            <a class="portal-nav-item {% if request.path.startswith('/besichtigung') %}active{% endif %}" href="/besichtigung" data-nav-key="besichtigung">
+                <span class="portal-nav-content"><i class="fa-solid fa-clipboard-check icon-teal"></i> Besichtigung</span>
+                <i class="fa-solid fa-grip-vertical portal-drag-handle"></i>
+            </a>
 
-    <a class="nav-item {% if request.path.startswith('/stundenzettel') %}active{% endif %}" href="/stundenzettel">
-        <i class="fa-solid fa-clock-rotate-left icon-purple"></i> Stundenzettel
-    </a>
+            <a class="portal-nav-item {% if request.path.startswith('/angebotvorlage') %}active{% endif %}" href="/angebotvorlage" data-nav-key="angebot">
+                <span class="portal-nav-content"><i class="fa-solid fa-file-signature icon-green"></i> Angebot</span>
+                <i class="fa-solid fa-grip-vertical portal-drag-handle"></i>
+            </a>
 
-    <a class="nav-item {% if request.path.startswith('/vertretung') %}active{% endif %}" href="/vertretung">
-        <i class="fa-solid fa-user-shield icon-teal"></i> Vertretung
-    </a>
+            <a class="portal-nav-item {% if request.path.startswith('/leistungsverzeichnis') %}active{% endif %}" href="/leistungsverzeichnis" data-nav-key="leistungsverzeichnis">
+                <span class="portal-nav-content"><i class="fa-solid fa-list-check icon-indigo"></i> Leistungen (LV)</span>
+                <i class="fa-solid fa-grip-vertical portal-drag-handle"></i>
+            </a>
 
-    <a class="nav-item {% if request.path.startswith('/buchhaltung') %}active{% endif %}" href="/buchhaltung">
-        <i class="fa-solid fa-vault icon-red"></i> Buchhaltung
-    </a>
+            <a class="portal-nav-item {% if request.path.startswith('/kunden') %}active{% endif %}" href="/kunden" data-nav-key="kunden">
+                <span class="portal-nav-content"><i class="fa-solid fa-address-book icon-cyan"></i> Kunden</span>
+                <i class="fa-solid fa-grip-vertical portal-drag-handle"></i>
+            </a>
 
-    <a class="nav-item {% if request.path.startswith('/todo') %}active{% endif %}" href="/todo">
-        <i class="fa-solid fa-clipboard-list icon-pink"></i> To Do Liste
-    </a>
+            <a class="portal-nav-item {% if request.path.startswith('/mitarbeiter') %}active{% endif %}" href="/mitarbeiter" data-nav-key="mitarbeiter">
+                <span class="portal-nav-content"><i class="fa-solid fa-user-group icon-indigo"></i> Mitarbeiter</span>
+                <i class="fa-solid fa-grip-vertical portal-drag-handle"></i>
+            </a>
+
+            <a class="portal-nav-item {% if request.path.startswith('/stundenzettel') %}active{% endif %}" href="/stundenzettel" data-nav-key="stundenzettel">
+                <span class="portal-nav-content"><i class="fa-solid fa-clock-rotate-left icon-purple"></i> Stundenzettel</span>
+                <i class="fa-solid fa-grip-vertical portal-drag-handle"></i>
+            </a>
+
+            <a class="portal-nav-item {% if request.path.startswith('/vertretung') %}active{% endif %}" href="/vertretung" data-nav-key="vertretung">
+                <span class="portal-nav-content"><i class="fa-solid fa-user-shield icon-teal"></i> Vertretung</span>
+                <i class="fa-solid fa-grip-vertical portal-drag-handle"></i>
+            </a>
+
+            <a class="portal-nav-item {% if request.path.startswith('/buchhaltung') %}active{% endif %}" href="/buchhaltung" data-nav-key="buchhaltung">
+                <span class="portal-nav-content"><i class="fa-solid fa-vault icon-red"></i> Buchhaltung</span>
+                <i class="fa-solid fa-grip-vertical portal-drag-handle"></i>
+            </a>
+
+            <a class="portal-nav-item {% if request.path.startswith('/todo') %}active{% endif %}" href="/todo" data-nav-key="todo">
+                <span class="portal-nav-content"><i class="fa-solid fa-clipboard-list icon-pink"></i> To Do Liste</span>
+                <i class="fa-solid fa-grip-vertical portal-drag-handle"></i>
+            </a>
+        </nav>
 
 <!--
 ..........................................................................................................
@@ -133,11 +453,14 @@
 ..........................................................................................................
 ..........................................................................................................
 -->
-</div>
-<div class="main">
-    <div class="card">
-        {% block content %}{% endblock %}
-    </div>
+    </aside>
+
+    <main class="portal-main">
+        <section class="portal-card">
+            {% block content %}{% endblock %}
+        </section>
+    </main>
+
 </div>
 
 <script>
@@ -157,7 +480,48 @@ if ('serviceWorker' in navigator) {
 
 <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
 
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const nav = document.getElementById('portalNavSortable');
+    if (!nav || typeof Sortable === 'undefined') return;
+
+    const storageKey = 'kgPortalNavOrder';
+    const savedOrder = JSON.parse(localStorage.getItem(storageKey) || '[]');
+
+    if (savedOrder.length) {
+        savedOrder.forEach(function (key) {
+            const item = nav.querySelector('[data-nav-key="' + key + '"]');
+            if (item) nav.appendChild(item);
+        });
+    }
+
+    const currentPath = window.location.pathname || '/';
+    const navItems = Array.from(nav.querySelectorAll('.portal-nav-item'));
+    navItems.forEach(function (item) {
+        const href = item.getAttribute('href') || '';
+        const isHome = currentPath === '/' && href === '/';
+        const isSubPage = href !== '/' && currentPath.startsWith(href);
+        item.classList.toggle('active', isHome || isSubPage);
+    });
+
+    if (!nav.querySelector('.portal-nav-item.active') && navItems.length) {
+        navItems[0].classList.add('active');
+    }
+
+    new Sortable(nav, {
+        animation:150,
+        handle:'.portal-drag-handle',
+        ghostClass:'portal-nav-ghost',
+        chosenClass:'portal-nav-chosen',
+        onEnd:function () {
+            const order = Array.from(nav.querySelectorAll('.portal-nav-item'))
+                .map(function (item) { return item.dataset.navKey; })
+                .filter(Boolean);
+            localStorage.setItem(storageKey, JSON.stringify(order));
+        }
+    });
+});
+</script>
 
 </body>
 </html>
-
