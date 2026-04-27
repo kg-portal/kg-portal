@@ -1,222 +1,2291 @@
 {% extends "base.html" %}
 {% block content %}
 
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
+
 <style>
-    .db-modern-container { animation: fadeIn 0.4s ease-out; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-    .db-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 25px; }
+* {
+    box-sizing: border-box;
+}
+
+html, body {
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    background: #f8fafc;
+    font-family: Arial, Helvetica, sans-serif;
+    color: #0f172a;
+    padding: 0;
+    min-height: 100vh;
+}
+
+.portal-layout {
+    display: flex;
+    width: 100%;
+    min-height: 100vh;
+    background: #f8fafc;
+}
+
+/* portal-sidebar base.html tarafından yönetiliyor, burada dokunulmayacak */
+.portal-logo {
+    font-size: 26px;
+    font-weight: 900;
+    color: #2563eb;
+    margin: 0 0 32px 14px;
+}
+
+.portal-menu {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.portal-menu a {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 13px 14px;
+    border-radius: 10px;
+    text-decoration: none;
+    color: #475569;
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.portal-menu a.active {
+    background: #2563eb;
+    color: #ffffff;
+}
+
+.portal-content {
+    flex: 1;
+    padding: 28px;
+    min-width: 0;
+}
+
+.db-page {
+    width: 100%;
+    max-width: 1900px;
+    min-height: calc(100vh - 56px);
+    margin: 0 auto;
+    background: #ffffff;
+    border-radius: 24px;
+    box-shadow: 0 18px 50px rgba(15, 23, 42, 0.08);
+    border: 1px solid #dbe3ef;
+    overflow: hidden;
+}
+
+/* =========================
+   OBERE BLAUE FLÄCHE
+========================= */
+.db-hero {
+    background: linear-gradient(135deg, #183a91 0%, #2563eb 100%);
+    color: #ffffff;
+    padding: 28px 30px 28px 30px;
+}
+
+.db-title-row {
+    display: grid;
+    grid-template-columns: minmax(330px, 1fr) minmax(260px, 1fr) minmax(360px, 1fr);
+    gap: 18px;
+    align-items: flex-start;
+    margin-bottom: 26px;
+}
+
+.db-title {
+    grid-column: 1 / 2;
+}
+
+.db-module-info {
+    grid-column: 2 / 3;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+}
+
+.db-title h1 {
+    margin: 0;
+    font-size: 28px;
+    line-height: 1.1;
+    font-weight: 900;
+    letter-spacing: -0.4px;
+}
+
+.db-title p {
+    margin: 8px 0 0 0;
+    font-size: 13px;
+    line-height: 1.5;
+    font-weight: 600;
+    opacity: 0.88;
+}
+
+.live-date-box {
+    margin-top: 0;
+    width: 260px;
+    display: grid;
+    grid-template-columns: 1fr;
+    align-items: center;
+    justify-items: center;
+    gap: 6px;
+    padding: 14px 18px;
+    border-radius: 22px;
+    background: rgba(255,255,255,0.13);
+    border: 1px solid rgba(255,255,255,0.20);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.14), 0 10px 22px rgba(15,23,42,0.08);
+    backdrop-filter: blur(6px);
+}
+
+.live-time-pill {
+    width: auto;
+    height: auto;
+    border-radius: 0;
+    background: transparent;
+    color: #ffffff;
+    display: block;
+    font-size: 26px;
+    line-height: 1;
+    font-weight: 900;
+    letter-spacing: -0.6px;
+}
+
+.live-date-main {
+    font-size: 12px;
+    font-weight: 800;
+    color: rgba(255,255,255,0.92);
+    line-height: 1.2;
+    text-align: center;
+}
+
+.live-date-sub {
+    font-size: 11px;
+    font-weight: 700;
+    color: rgba(255,255,255,0.68);
+    line-height: 1.15;
+    text-align: center;
+}
+
+.hero-actions {
+    grid-column: 3 / 4;
+    display: flex;
+    gap: 10px;
+    flex-wrap: nowrap;
+    justify-content: flex-end;
+    align-items: flex-start;
+}
+
+.hero-btn {
+    border: 1px solid rgba(255,255,255,0.28);
+    background: rgba(255,255,255,0.14);
+    color: #ffffff;
+    border-radius: 14px;
+    padding: 11px 14px;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.1px;
+    cursor: pointer;
+    white-space: nowrap;
+    line-height: 1.2;
+}
+
+.hero-btn.primary {
+    background: #ffffff;
+    color: #183a91;
+    border-color: #ffffff;
+    font-weight: 700;
+}
+
+.db-info-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 18px;
+}
+
+.month-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 18px;
+    margin-bottom: 18px;
+}
+
+.today-live-label {
+    margin: 4px 0 12px 0;
+    font-size: 12px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.7px;
+    color: #ffffff;
+    opacity: 0.92;
+}
+
+.db-info-box {
+    background: #ffffff;
+    border: 1px solid rgba(255,255,255,0.85);
+    border-radius: 18px;
+    padding: 18px 22px;
+}
+
+.db-info-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.7px;
+    font-weight: 800;
+    color: #1d4ed8;
+    opacity: 1;
+    margin-bottom: 7px;
+}
+
+.db-info-value {
+    font-size: 22px;
+    line-height: 1.15;
+    font-weight: 900;
+    color: #183a91;
+}
+
+.db-info-sub {
+    margin-top: 6px;
+    font-size: 11px;
+    font-weight: 700;
+    color: #2563eb;
+    opacity: 1;
+}
+
+/* =========================
+   ALLGEMEINER INHALT
+========================= */
+.db-content {
+    padding: 28px 30px 32px 30px;
+    background: linear-gradient(180deg, #f8fbff 0%, #f3f6fb 100%);
+}
+
+.view-hidden {
+    display: none !important;
+}
+
+.section-title {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 22px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid #e5edf7;
+}
+
+.day-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 22px;
+    background: linear-gradient(135deg, #183a91 0%, #2563eb 100%);
+    border-radius: 22px;
+    padding: 24px 30px;
+    box-shadow: 0 14px 30px rgba(24, 58, 145, 0.12);
+}
+
+.section-title h2 {
+    margin: 0;
+    font-size: 30px;
+    font-weight: 800;
+    color: #0f172a;
+    letter-spacing: -0.4px;
+}
+
+.day-title h2 {
+    margin: 0;
+    font-size: 28px;
+    font-weight: 900;
+    color: #ffffff;
+    letter-spacing: -0.4px;
+}
+
+.section-sub {
+    margin-top: 6px;
+    font-size: 14px;
+    color: #475569;
+    font-weight: 700;
+}
+
+.day-date {
+    margin-top: 6px;
+    font-size: 13px;
+    color: rgba(255,255,255,0.88);
+    font-weight: 600;
+}
+
+.branchen-toggle-card {
+    width: 100%;
+    border: 1px solid #dbe7f5;
+    background: linear-gradient(135deg, #ffffff 0%, #f4f8ff 100%);
+    border-radius: 22px;
+    padding: 18px 20px;
+    margin-bottom: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+    cursor: pointer;
+    box-shadow: 0 14px 30px rgba(37, 99, 235, 0.07);
+    transition: 0.18s ease;
+}
+
+.branchen-toggle-card:hover {
+    border-color: #93c5fd;
+    transform: translateY(-2px);
+    box-shadow: 0 18px 38px rgba(37, 99, 235, 0.11);
+}
+
+.branchen-toggle-left {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    min-width: 0;
+}
+
+.branchen-toggle-icon {
+    width: 46px;
+    height: 46px;
+    border-radius: 16px;
+    background: linear-gradient(135deg, #183a91 0%, #2563eb 100%);
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    font-weight: 900;
+    flex: 0 0 auto;
+}
+
+.branchen-toggle-title {
+    font-size: 22px;
+    font-weight: 900;
+    color: #123a8f;
+    line-height: 1.15;
+    letter-spacing: -0.25px;
+}
+
+.branchen-toggle-sub {
+    margin-top: 5px;
+    font-size: 13px;
+    font-weight: 700;
+    color: #64748b;
+    line-height: 1.35;
+}
+
+.branchen-toggle-right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: 0 0 auto;
+}
+
+.branchen-toggle-day-btn {
+    border: 1px solid #2563eb;
+    background: #2563eb;
+    color: #ffffff;
+    border-radius: 999px;
+    padding: 10px 14px;
+    font-size: 12px;
+    font-weight: 800;
+    cursor: pointer;
+    white-space: nowrap;
+    box-shadow: 0 8px 18px rgba(37,99,235,0.18);
+}
+
+.branchen-toggle-pill {
+    background: #eff6ff;
+    color: #1d4ed8;
+    border: 1px solid #bfdbfe;
+    border-radius: 999px;
+    padding: 9px 12px;
+    font-size: 12px;
+    font-weight: 900;
+    white-space: nowrap;
+}
+
+.branchen-toggle-arrow {
+    width: 38px;
+    height: 38px;
+    border-radius: 14px;
+    background: #ffffff;
+    border: 1px solid #dbe7f5;
+    color: #1d4ed8;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    font-weight: 900;
+    transition: 0.18s ease;
+}
+
+.branchen-toggle-card.open .branchen-toggle-arrow {
+    transform: rotate(180deg);
+}
+
+.day-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+}
+
+.day-btn {
+    border: 1px solid #dbe7f5;
+    background: #ffffff;
+    color: #1d4ed8;
+    border-radius: 999px;
+    padding: 10px 14px;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.1px;
+    cursor: pointer;
+    box-shadow: 0 8px 20px rgba(15,23,42,0.04);
+    line-height: 1.2;
+}
+
+.day-btn.primary {
+    background: #2563eb;
+    color: #ffffff;
+    border-color: #2563eb;
+    font-weight: 700;
+}
+
+.day-head .day-btn {
+    background: rgba(255,255,255,0.14);
+    border: 1px solid rgba(255,255,255,0.28);
+    color: #ffffff;
+    box-shadow: none;
+    padding: 16px 28px;
+    font-size: 14px;
+}
+
+.day-head .day-btn.primary {
+    background: #ffffff;
+    color: #183a91;
+    border-color: #ffffff;
+}
+
+/* =========================
+   ANA SAYFA: MESLEK GRUPLARI
+========================= */
+.branchen-master.compact {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(150px, 1fr));
+    gap: 16px;
+}
+
+.branche-block.main-category {
+    position: relative;
+    min-height: 230px;
+    padding: 18px 18px 16px 18px;
+    border-radius: 22px;
+    border: 1px solid #d8e4f4;
+    background: linear-gradient(180deg, rgba(255,255,255,0.98) 0%, rgba(246,250,255,0.98) 100%);
+    box-shadow: 0 16px 40px rgba(37,99,235,0.06), 0 4px 12px rgba(15,23,42,0.03);
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    cursor: grab;
+    transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+    overflow: hidden;
+}
+
+.branche-block.main-category::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 4px;
+    background: linear-gradient(90deg, #1e40af 0%, #2563eb 55%, #60a5fa 100%);
+}
+
+.branche-block.main-category:hover {
+    transform: translateY(-4px);
+    border-color: #9cc2f5;
+    box-shadow: 0 22px 46px rgba(37,99,235,0.10), 0 8px 18px rgba(15,23,42,0.05);
+}
+
+.branche-block.sortable-ghost,
+.lead-item.sortable-ghost {
+    opacity: 0.35;
+}
+
+.branche-block.sortable-chosen,
+.lead-item.sortable-chosen {
+    border-color: #2563eb;
+    box-shadow: 0 12px 24px rgba(37,99,235,0.13);
+}
+
+.card-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.category-number {
+    width: 28px;
+    height: 28px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 700;
+    color: #1d4ed8;
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
+    flex: 0 0 auto;
+}
+
+.drag-handle,
+.lead-drag {
+    width: 36px;
+    height: 36px;
+    border-radius: 11px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+    font-size: 13px;
+    line-height: 0.9;
+    font-weight: 800;
+    color: #64748b;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    cursor: grab;
+    flex: 0 0 auto;
+    user-select: none;
+}
+
+.drag-handle:active,
+.lead-drag:active {
+    cursor: grabbing;
+}
+
+.branche-head {
+    margin: 0;
+    font-size: 15px;
+    line-height: 1.22;
+    font-weight: 800;
+    color: #123a8f;
+    letter-spacing: -0.2px;
+    min-height: 38px;
+}
+
+.branche-text {
+    font-size: 11.5px;
+    line-height: 1.42;
+    color: #475569;
+    font-weight: 400;
+    flex: 1;
+}
+
+.branche-count {
+    margin-top: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 42px;
+    text-align: center;
+    padding: 9px 10px;
+    border-radius: 14px;
+    background: linear-gradient(180deg, #eff6ff 0%, #e8f1ff 100%);
+    border: 1px solid #bfd7ff;
+    color: #1243a6;
+    font-size: 11px;
+    font-weight: 800;
+    line-height: 1.28;
+}
+
+/* =========================
+   KG TAGESARBEIT
+========================= */
+.daily-board {
+    display: grid;
+    grid-template-columns: 280px minmax(0, 1fr);
+    gap: 18px;
+    align-items: start;
+}
+
+.side-panel,
+.daily-list-card {
+    border: 1px solid #dbe3ef;
+    background: #ffffff;
+    border-radius: 22px;
+    box-shadow: 0 12px 26px rgba(15,23,42,0.045);
+    overflow: hidden;
+}
+
+.panel-head {
+    padding: 15px 18px;
+    background: #f8fafc;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.panel-head h3 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 900;
+    color: #0f172a;
+}
+
+.panel-body {
+    padding: 16px;
+}
+
+.work-filter {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.filter-btn {
+    width: 100%;
+    border: 1px solid #e2e8f0;
+    background: #ffffff;
+    color: #334155;
+    border-radius: 14px;
+    padding: 12px 14px;
+    text-align: left;
+    font-size: 13px;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.filter-btn.active {
+    background: #eff6ff;
+    color: #1d4ed8;
+    border-color: #bfdbfe;
+}
+
+.today-box {
+    margin-top: 16px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    padding: 14px;
+}
+
+.today-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    color: #64748b;
+    font-weight: 900;
+    margin-bottom: 8px;
+}
+
+.today-main {
+    font-size: 24px;
+    line-height: 1;
+    font-weight: 900;
+    color: #183a91;
+}
+
+.today-sub {
+    margin-top: 7px;
+    font-size: 12px;
+    color: #64748b;
+    line-height: 1.4;
+    font-weight: 700;
+}
+
+.search-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 170px;
+    gap: 12px;
+    padding: 16px;
+    background: #ffffff;
+    border-bottom: 1px solid #edf2f7;
+}
+
+.search-row input,
+.search-row select {
+    width: 100%;
+    border: 1px solid #dbe3ef;
+    background: #f8fafc;
+    border-radius: 14px;
+    padding: 13px 15px;
+    font-size: 13px;
+    font-weight: 700;
+    color: #0f172a;
+    outline: none;
+}
+
+.daily-list {
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+/* === AKORDEON (AÇILIR KAPANIR) LİSTE YAPISI === */
+.lead-item {
+    border: 1px solid #e2e8f0;
+    background: #ffffff;
+    border-radius: 16px;
+    box-shadow: 0 6px 14px rgba(15,23,42,0.025);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    overflow: hidden;
+}
+
+.lead-item:hover {
+    border-color: #93c5fd;
+    box-shadow: 0 8px 20px rgba(37,99,235,0.08);
+}
+
+.lead-item.open {
+    border-color: #93c5fd;
+    background: #fbfdff;
+}
+
+.lead-summary {
+    display: grid;
+    grid-template-columns: 36px minmax(0, 1fr) 160px 240px 32px;
+    gap: 12px;
+    align-items: center;
+    padding: 12px;
+    cursor: pointer;
+    background: transparent;
+}
+
+.lead-item.open .lead-summary {
+    background: #fbfdff;
+}
+
+.lead-toggle {
+    width: 32px;
+    height: 32px;
+    border-radius: 10px;
+    background: #f1f5f9;
+    color: #64748b;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: 900;
+    transition: transform 0.2s ease, background 0.2s ease;
+}
+
+.lead-summary:hover .lead-toggle {
+    background: #e2e8f0;
+    color: #0f172a;
+}
+
+.lead-item.open .lead-toggle {
+    transform: rotate(180deg);
+    background: #eff6ff;
+    color: #1d4ed8;
+}
+
+.lead-details {
+    display: none;
+    padding: 16px 16px 16px 60px;
+    border-top: 1px dashed #edf2f7;
+    background: #f8fafc;
+}
+
+.lead-item.open .lead-details {
+    display: block;
+}
+
+.detail-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+}
+
+.detail-box {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.detail-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: 800;
+    color: #64748b;
+}
+
+.detail-value {
+    font-size: 13px;
+    font-weight: 600;
+    color: #0f172a;
+}
+
+.detail-value a {
+    color: #2563eb;
+    text-decoration: none;
+}
+
+.detail-value a:hover {
+    text-decoration: underline;
+}
+
+/* ======================================= */
+
+.lead-drag {
+    width: 34px;
+    height: 34px;
+    font-size: 12px;
+}
+
+.lead-company {
+    font-size: 14px;
+    font-weight: 900;
+    color: #0f172a;
+    line-height: 1.25;
+}
+
+.lead-meta {
+    margin-top: 5px;
+    display: flex;
+    gap: 7px;
+    flex-wrap: wrap;
+    align-items: center;
+    font-size: 12px;
+    color: #64748b;
+    font-weight: 700;
+}
+
+.badge {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 999px;
+    padding: 5px 8px;
+    font-size: 11px;
+    font-weight: 900;
+    white-space: nowrap;
+}
+
+.badge.blue {
+    background: #eff6ff;
+    color: #1d4ed8;
+}
+
+.lead-contact {
+    font-size: 12.5px;
+    line-height: 1.45;
+    color: #334155;
+    font-weight: 700;
+}
+
+.lead-contact span {
+    color: #2563eb;
+}
+
+.lead-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 7px;
+}
+
+.action-btn {
+    border: none;
+    border-radius: 11px;
+    padding: 9px 10px;
+    font-size: 12px;
+    font-weight: 900;
+    cursor: pointer;
+}
+
+.action-blue {
+    background: #eff6ff;
+    color: #1d4ed8;
+}
+
+.action-green {
+    background: #ecfdf5;
+    color: #047857;
+}
+
+.action-gray {
+    background: #f1f5f9;
+    color: #475569;
+}
+
+.action-red {
+    background: #fef2f2;
+    color: #dc2626;
+}
+
+.workflow-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 16px;
+    margin-bottom: 18px;
+}
+
+.workflow-card {
+    border-radius: 22px;
+    padding: 18px 18px 16px 18px;
+    box-shadow: 0 14px 30px rgba(15, 23, 42, 0.08);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    min-height: 170px;
+    transition: transform 0.18s ease, box-shadow 0.18s ease;
+    cursor: grab;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.workflow-card:active {
+    cursor: grabbing;
+}
+
+.workflow-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 18px 38px rgba(15, 23, 42, 0.15);
+}
+
+.workflow-card.sortable-ghost {
+    opacity: 0.35;
+}
+
+/* TAM BOYALI KUTU RENKLERİ */
+.card-blue-full { background: linear-gradient(135deg, #1e40af 0%, #2563eb 100%); }
+.card-orange-full { background: linear-gradient(135deg, #d97706 0%, #f59e0b 100%); }
+.card-red-full { background: linear-gradient(135deg, #b91c1c 0%, #ef4444 100%); }
+.card-green-full { background: linear-gradient(135deg, #15803d 0%, #22c55e 100%); }
+
+.card-blue-full .workflow-title,
+.card-orange-full .workflow-title,
+.card-red-full .workflow-title,
+.card-green-full .workflow-title {
+    color: #ffffff;
+}
+
+.card-blue-full .workflow-text,
+.card-orange-full .workflow-text,
+.card-red-full .workflow-text,
+.card-green-full .workflow-text {
+    color: rgba(255, 255, 255, 0.88);
+}
+
+.card-blue-full .workflow-count,
+.card-orange-full .workflow-count,
+.card-red-full .workflow-count,
+.card-green-full .workflow-count {
+    background: rgba(255, 255, 255, 0.2);
+    color: #ffffff;
+    border-color: rgba(255, 255, 255, 0.3);
+}
+
+.card-blue-full .workflow-btn { background: #ffffff; color: #1e40af; border-color: #ffffff; }
+.card-orange-full .workflow-btn { background: #ffffff; color: #d97706; border-color: #ffffff; }
+.card-red-full .workflow-btn { background: #ffffff; color: #b91c1c; border-color: #ffffff; }
+.card-green-full .workflow-btn { background: #ffffff; color: #15803d; border-color: #ffffff; }
+
+.workflow-top {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 12px;
+}
+
+.workflow-count {
+    min-width: 52px;
+    height: 42px;
+    border-radius: 999px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    font-weight: 900;
+}
+
+.workflow-title {
+    font-size: 17px;
+    line-height: 1.2;
+    font-weight: 900;
+}
+
+.workflow-text {
+    font-size: 12.5px;
+    line-height: 1.45;
+    font-weight: 700;
+    flex: 1;
+}
+
+.workflow-btn {
+    border-radius: 999px;
+    padding: 10px 14px;
+    font-size: 12px;
+    font-weight: 800;
+    cursor: pointer;
+    width: 100%;
+    box-shadow: 0 8px 18px rgba(15, 23, 42, 0.1);
+    transition: 0.15s ease;
+}
+
+.workflow-btn:hover {
+    opacity: 0.9;
+}
+
+@media (max-width: 1280px) {
+    .branchen-master.compact {
+        grid-template-columns: repeat(4, minmax(180px, 1fr));
+    }
     
-    .quick-stats { display: flex; gap: 15px; }
-    .stat-item { background: #fff; padding: 10px 18px; border-radius: 14px; border: 1px solid #e2e8f0; font-weight: 700; font-size: 13px; display: flex; align-items: center; gap: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
+    .workflow-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
 
-    .filter-dashboard { background: #fff; padding: 20px; border-radius: 20px; border: 1px solid #e2e8f0; margin-bottom: 25px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
-    .filter-group label { display: block; font-size: 11px; font-weight: 800; color: #475569; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 1px; }
-    
-    .tag-container { display: flex; flex-wrap: wrap; gap: 8px; }
-    .tag { background: #f1f5f9; border: none; padding: 8px 16px; border-radius: 10px; font-size: 13px; font-weight: 700; color: #64748b; cursor: pointer; transition: 0.2s; border: 1px solid transparent; }
-    .tag:hover { background: #e2e8f0; color: #1e293b; }
-    .tag.active { background: #2563eb; color: #fff; box-shadow: 0 4px 10px rgba(37,99,235,0.3); border-color: #1d4ed8; }
+@media (max-width: 1000px) {
+    body {
+        padding: 0;
+    }
 
-    .content-table-card { background: #fff; border-radius: 24px; border: 1px solid #e2e8f0; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.03); }
-    .table-controls { padding: 20px; display: flex; justify-content: space-between; border-bottom: 1px solid #f1f5f9; background: #fafafa; align-items: center; }
-    
-    .search-box { position: relative; width: 400px; }
-    .search-box i { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: #94a3b8; }
-    .search-box input { width: 100%; padding: 12px 12px 12px 42px; border-radius: 12px; border: 1.5px solid #e2e8f0; outline: none; font-weight: 600; transition: 0.3s; }
-    .search-box input:focus { border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37,99,235,0.1); }
-    
-    .btn-export { background: #fff; border: 1px solid #e2e8f0; padding: 10px 20px; border-radius: 12px; font-weight: 700; color: #475569; cursor: pointer; transition: 0.2s; }
-    .btn-export:hover { background: #f8fafc; color: #1e293b; }
+    .db-page {
+        width: 100%;
+        border-radius: 0;
+        border-left: none;
+        border-right: none;
+    }
 
-    .modern-scroll-table { max-height: 600px; overflow-y: auto; }
-    table { width: 100%; border-collapse: collapse; }
-    th { position: sticky; top: 0; background: #f8fafc; padding: 15px 20px; text-align: left; font-size: 11px; font-weight: 900; color: #64748b; text-transform: uppercase; z-index: 10; border-bottom: 1px solid #e2e8f0; }
-    td { padding: 16px 20px; border-bottom: 1px solid #f1f5f9; vertical-align: middle; }
+    .section-title,
+    .day-head {
+        flex-direction: column;
+        align-items: flex-start;
+    }
 
-    .co-name { font-weight: 800; color: #1e293b; font-size: 15px; margin-bottom: 2px; }
-    .co-sector { font-size: 11px; font-weight: 800; color: #3b82f6; text-transform: uppercase; }
-    .co-city { font-weight: 700; color: #475569; font-size: 14px; }
-    .co-plz { font-size: 12px; color: #94a3b8; font-weight: 600; }
-    .co-person { font-weight: 700; color: #1e293b; font-size: 14px; }
-    .co-mail { font-size: 12px; color: #2563eb; font-weight: 600; text-decoration: none; }
+    .db-title-row {
+        grid-template-columns: 1fr 1fr;
+    }
 
-    .act-btn { background: #f8fafc; border: 1px solid #e2e8f0; width: 38px; height: 38px; border-radius: 10px; cursor: pointer; color: #64748b; transition: 0.2s; margin-left: 6px; }
-    .act-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
-    .btn-mail:hover { color: #2563eb; border-color: #2563eb; background: #eff6ff; }
-    .btn-term:hover { color: #10b981; border-color: #10b981; background: #f0fdf4; }
+    .db-title,
+    .db-module-info,
+    .hero-actions {
+        grid-column: auto;
+    }
 
-    .status-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; background: #cbd5e1; }
-    .status-sent { background: #10b981 !important; box-shadow: 0 0 8px rgba(16,185,129,0.4); }
+    .db-module-info {
+        grid-template-columns: 1fr;
+    }
 
-    .icon-blue { color: #3b82f6; } .icon-green { color: #10b981; }
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    .hero-actions {
+        justify-content: flex-start;
+        flex-wrap: wrap;
+    }
+
+    .db-info-grid,
+    .month-stats-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .daily-board {
+        grid-template-columns: 1fr;
+    }
+
+    /* Akordeon Mobil Düzenlemesi */
+    .lead-summary {
+        grid-template-columns: 36px minmax(0, 1fr) 32px;
+    }
+
+    .lead-contact {
+        grid-column: 2 / 3;
+    }
+
+    .lead-actions {
+        grid-column: 2 / 4;
+        margin-top: 4px;
+    }
+
+    .lead-details {
+        padding-left: 16px;
+    }
+
+    .branchen-master.compact {
+        grid-template-columns: repeat(2, minmax(220px, 1fr));
+    }
+}
+
+@media (max-width: 640px) {
+    .branchen-toggle-card {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .branchen-toggle-right {
+        width: 100%;
+        justify-content: space-between;
+        flex-wrap: wrap;
+    }
+
+    .db-hero,
+    .db-content {
+        padding: 18px;
+    }
+
+    .db-info-grid,
+    .month-stats-grid,
+    .search-row,
+    .branchen-master.compact,
+    .workflow-grid {
+        grid-template-columns: 1fr;
+    }
+}
 </style>
 
-<div class="db-modern-container">
-    <div class="db-header">
-        <div>
-            <h1 style="font-size:30px; font-weight:900; color:#1e293b; margin:0">Datenbank Master-Panel</h1>
-            <p style="color:#64748b; font-weight:600; margin-top:5px">Automatisierte Akquise & Sektor-Management</p>
-        </div>
-        <div class="quick-stats">
-            <div class="stat-item"><i class="fa-solid fa-building icon-blue"></i> <span id="total-count">5</span> Kontakte</div>
-            <div class="stat-item"><i class="fa-solid fa-check-double icon-green"></i> <span id="sent-count">0</span> Verschickt</div>
-        </div>
-    </div>
+<div class="db-page">
+    <section class="db-hero">
+        <div class="db-title-row">
+            <div class="db-title">
+                <h1>KG PORTAL DATENBANK</h1>
+                <p>CRM-Zentrale für Leads, Tagesliste, Besichtigung und Angebot.</p>
+            </div>
 
-    <div class="filter-dashboard">
-        <div class="filter-group">
-            <label><i class="fa-solid fa-layer-group"></i> Branchen (Sektörler)</label>
-            <div class="tag-container" id="sector-tags">
-                <button class="tag active" data-filter="all">Alle</button>
-                <button class="tag" data-filter="IT">IT-Dienstleistung</button>
-                <button class="tag" data-filter="Logistik">Logistik</button>
-                <button class="tag" data-filter="Medizin">Medizin & Kliniken</button>
-                <button class="tag" data-filter="Industrie">Industrie</button>
-                <button class="tag" data-filter="Gastronomie">Gastronomie</button>
+            <div class="db-module-info">
+                <div class="live-date-box">
+                    <div class="live-time-pill" id="liveTimeOnly">00:00</div>
+                    <div class="live-date-main" id="liveDateOnly">Montag, 1. Januar 2026</div>
+                    <div class="live-date-sub" id="liveMonthName">Monatsübersicht Januar</div>
+                </div>
+            </div>
+
+            <div class="hero-actions">
+                <button class="hero-btn primary">+ Neuer Lead</button>
+                <button class="hero-btn">Import</button>
+                <button class="hero-btn" onclick="showDamlaPage()">Tagesliste öffnen</button>
             </div>
         </div>
-        <div class="filter-group" style="margin-top:20px">
-            <label><i class="fa-solid fa-location-dot"></i> Regionen (NRW)</label>
-            <div class="tag-container" id="city-tags">
-                <button class="tag active" data-city="all">Alle</button>
-                <button class="tag" data-city="Duisburg">Duisburg</button>
-                <button class="tag" data-city="Essen">Essen</button>
-                <button class="tag" data-city="Düsseldorf">Düsseldorf</button>
-                <button class="tag" data-city="Köln">Köln</button>
-                <button class="tag" data-city="Dortmund">Dortmund</button>
+
+        <div class="month-stats-grid">
+            <div class="db-info-box">
+                <div class="db-info-label">Gesamt hinzugefügte Leads</div>
+                <div class="db-info-value">128</div>
+                <div class="db-info-sub" id="monthLeadPoolLabel">im System gespeichert</div>
+            </div>
+
+            <div class="db-info-box">
+                <div class="db-info-label">Dieser Monat · Angerufen</div>
+                <div class="db-info-value">186</div>
+                <div class="db-info-sub" id="monthCallsLabel">Januar gesamt</div>
+            </div>
+
+            <div class="db-info-box">
+                <div class="db-info-label">Dieser Monat · Interessiert</div>
+                <div class="db-info-value">27</div>
+                <div class="db-info-sub" id="monthInterestedLabel">Januar gesamt</div>
+            </div>
+
+            <div class="db-info-box">
+                <div class="db-info-label">Dieser Monat · Besichtigung</div>
+                <div class="db-info-value">11</div>
+                <div class="db-info-sub" id="monthVisitsLabel">Januar gesamt</div>
             </div>
         </div>
-    </div>
 
-    <div class="content-table-card">
-        <div class="table-controls">
-            <div class="search-box">
-                <i class="fa-solid fa-magnifying-glass"></i>
-                <input type="text" id="dbSearchInput" placeholder="Firma veya PLZ ara...">
+        <div class="today-live-label">Live heute</div>
+
+        <div class="db-info-grid">
+            <div class="db-info-box">
+                <div class="db-info-label">Tagesliste</div>
+                <div class="db-info-value">30</div>
+                <div class="db-info-sub">heute zu bearbeiten</div>
             </div>
-            <button class="btn-export" onclick="alert('Export Excel...')"><i class="fa-solid fa-file-export"></i> Export</button>
-        </div>
 
-        <div class="modern-scroll-table">
-            <table id="dbTable">
-                <thead>
-                    <tr>
-                        <th style="width:50px">STATUS</th>
-                        <th>UNTERNEHMEN</th>
-                        <th>REGION</th>
-                        <th>KONTAKT</th>
-                        <th style="text-align:right">AKTIONEN</th>
-                    </tr>
-                </thead>
-                <tbody id="dbBody">
-                    <tr data-sector="IT" data-city="Duisburg">
-                        <td><span class="status-dot"></span></td>
-                        <td><div class="co-name">TARGOBANK IT-Center</div><div class="co-sector">IT-Dienstleistung</div></td>
-                        <td><div class="co-city">Duisburg</div><div class="co-plz">47057</div></td>
-                        <td><div class="co-person">Zentrale Ansprechpartner</div><div class="co-mail">info@targobank.de</div></td>
-                        <td style="text-align:right">
-                            <button class="act-btn btn-mail" onclick="sendAction(this, 'Profil')"><i class="fa-solid fa-paper-plane"></i></button>
-                            <button class="act-btn btn-term" onclick="sendAction(this, 'Termin')"><i class="fa-solid fa-calendar-check"></i></button>
-                        </td>
-                    </tr>
-                    <tr data-sector="Logistik" data-city="Duisburg">
-                        <td><span class="status-dot"></span></td>
-                        <td><div class="co-name">Duisburger Hafen AG</div><div class="co-sector">Logistik</div></td>
-                        <td><div class="co-city">Duisburg</div><div class="co-plz">47119</div></td>
-                        <td><div class="co-person">Einkauf Facility</div><div class="co-mail">mail@duisport.de</div></td>
-                        <td style="text-align:right">
-                            <button class="act-btn btn-mail" onclick="sendAction(this, 'Profil')"><i class="fa-solid fa-paper-plane"></i></button>
-                            <button class="act-btn btn-term" onclick="sendAction(this, 'Termin')"><i class="fa-solid fa-calendar-check"></i></button>
-                        </td>
-                    </tr>
-                    <tr data-sector="Medizin" data-city="Essen">
-                        <td><span class="status-dot"></span></td>
-                        <td><div class="co-name">Universitätsmedizin Essen</div><div class="co-sector">Medizin & Kliniken</div></td>
-                        <td><div class="co-city">Essen</div><div class="co-plz">45147</div></td>
-                        <td><div class="co-person">Hausverwaltung</div><div class="co-mail">kontakt@uk-essen.de</div></td>
-                        <td style="text-align:right">
-                            <button class="act-btn btn-mail" onclick="sendAction(this, 'Profil')"><i class="fa-solid fa-paper-plane"></i></button>
-                            <button class="act-btn btn-term" onclick="sendAction(this, 'Termin')"><i class="fa-solid fa-calendar-check"></i></button>
-                        </td>
-                    </tr>
-                    <tr data-sector="Industrie" data-city="Düsseldorf">
-                        <td><span class="status-dot"></span></td>
-                        <td><div class="co-name">Henkel AG & Co. KGaA</div><div class="co-sector">Industrie</div></td>
-                        <td><div class="co-city">Düsseldorf</div><div class="co-plz">40589</div></td>
-                        <td><div class="co-person">Facility Management</div><div class="co-mail">services@henkel.com</div></td>
-                        <td style="text-align:right">
-                            <button class="act-btn btn-mail" onclick="sendAction(this, 'Profil')"><i class="fa-solid fa-paper-plane"></i></button>
-                            <button class="act-btn btn-term" onclick="sendAction(this, 'Termin')"><i class="fa-solid fa-calendar-check"></i></button>
-                        </td>
-                    </tr>
-                    <tr data-sector="Gastronomie" data-city="Köln">
-                        <td><span class="status-dot"></span></td>
-                        <td><div class="co-name">Vapiano SE HQ</div><div class="co-sector">Gastronomie</div></td>
-                        <td><div class="co-city">Köln</div><div class="co-plz">50667</div></td>
-                        <td><div class="co-person">Management</div><div class="co-mail">office@vapiano.com</div></td>
-                        <td style="text-align:right">
-                            <button class="act-btn btn-mail" onclick="sendAction(this, 'Profil')"><i class="fa-solid fa-paper-plane"></i></button>
-                            <button class="act-btn btn-term" onclick="sendAction(this, 'Termin')"><i class="fa-solid fa-calendar-check"></i></button>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
+            <div class="db-info-box">
+                <div class="db-info-label">Heute angerufen</div>
+                <div class="db-info-value">0</div>
+                <div class="db-info-sub">live Stand</div>
+            </div>
+
+            <div class="db-info-box">
+                <div class="db-info-label">Heute interessiert</div>
+                <div class="db-info-value">0</div>
+                <div class="db-info-sub">live Stand</div>
+            </div>
+
+            <div class="db-info-box">
+                <div class="db-info-label">Heute Besichtigung</div>
+                <div class="db-info-value">0</div>
+                <div class="db-info-sub">live Stand</div>
+            </div>
         </div>
-    </div>
+    </section>
+
+    <main class="db-content">
+        <section id="mainView">
+            <div class="workflow-grid" id="workflowSortable">
+                <div class="workflow-card card-blue-full">
+                    <div class="workflow-top">
+                        <div class="workflow-count">30</div>
+                    </div>
+                    <div class="workflow-title">Tagesliste</div>
+                    <div class="workflow-text">Täglich neu erzeugte Arbeitsliste für Telefonakquise und Lead-Bearbeitung.</div>
+                    <button type="button" class="workflow-btn" onclick="showDamlaPage()">Tagesliste öffnen</button>
+                </div>
+
+                <div class="workflow-card card-orange-full">
+                    <div class="workflow-top">
+                        <div class="workflow-count">4</div>
+                    </div>
+                    <div class="workflow-title">Besichtigungstermine</div>
+                    <div class="workflow-text">Interessierte Leads, die zur Besichtigung vorbereitet oder terminiert werden.</div>
+                    <button type="button" class="workflow-btn" onclick="showBesichtigungPage()">Besichtigung öffnen</button>
+                </div>
+
+                <div class="workflow-card card-red-full">
+                    <div class="workflow-top">
+                        <div class="workflow-count">3</div>
+                    </div>
+                    <div class="workflow-title">Angebot Warteliste</div>
+                    <div class="workflow-text">Besichtigungen, die abgeschlossen sind und als Angebot vorbereitet werden.</div>
+                    <button type="button" class="workflow-btn" onclick="showAngebotPage()">Angebote öffnen</button>
+                </div>
+
+                <div class="workflow-card card-green-full">
+                    <div class="workflow-top">
+                        <div class="workflow-count" id="kundenWorkflowCount">0</div>
+                    </div>
+                    <div class="workflow-title">Kunden geworden</div>
+                    <div class="workflow-text">Leads, die nach Angebot oder Besichtigung zu Kunden umgewandelt wurden.</div>
+                    <button type="button" class="workflow-btn" onclick="showKundenPage()">Kundenliste öffnen</button>
+                </div>
+            </div>
+
+            <div class="branchen-toggle-card" id="branchenToggle" onclick="toggleBranchenPanel()">
+                <div class="branchen-toggle-left">
+                    <div class="branchen-toggle-icon">12</div>
+                    <div>
+                        <div class="branchen-toggle-title">Branchen-Auswahl</div>
+                        <div class="branchen-toggle-sub">Hauptgruppen für Lead-Zuordnung und spätere Tageslisten.</div>
+                    </div>
+                </div>
+
+                <div class="branchen-toggle-right">
+                    <span class="branchen-toggle-pill">Öffnen / schließen</span>
+                    <div class="branchen-toggle-arrow">⌄</div>
+                </div>
+            </div>
+
+            <section class="branchen-master compact view-hidden" id="branchenSortable">
+                <div class="branche-block main-category">
+                    <div class="card-top"><div class="category-number">1</div><div class="drag-handle"><span>↕</span><span>↔</span></div></div>
+                    <div class="branche-head">Büro & Verwaltung</div>
+                    <div class="branche-text">Bürogebäude, Verwaltungsbüro, Kanzlei, Rechtsanwalt, Steuerberater, Wirtschaftsprüfer, Notar, Immobilienbüro, Unternehmensberatung, Architekturbüro, Ingenieurbüro, Callcenter, Coworking Space, Versicherungsbüro, Verwaltungsstandort</div>
+                    <div class="branche-count">Büro- und Verwaltungsflächen</div>
+                </div>
+
+                <div class="branche-block main-category">
+                    <div class="card-top"><div class="category-number">2</div><div class="drag-handle"><span>↕</span><span>↔</span></div></div>
+                    <div class="branche-head">Medizin & Gesundheit</div>
+                    <div class="branche-text">Arztpraxis, Zahnarztpraxis, Facharztpraxis, Gemeinschaftspraxis, Medizinisches Versorgungszentrum, Physiotherapie, Ergotherapie, Logopädie, Psychotherapie, Radiologie, Labor, Dialysezentrum, Apotheke, Sanitätshaus, Heilpraktikerpraxis</div>
+                    <div class="branche-count">Praxis- und Gesundheitsflächen</div>
+                </div>
+
+                <div class="branche-block main-category">
+                    <div class="card-top"><div class="category-number">3</div><div class="drag-handle"><span>↕</span><span>↔</span></div></div>
+                    <div class="branche-head">Pflege & Soziales</div>
+                    <div class="branche-text">Pflegedienst, Tagespflege, Seniorenbetreuung, Pflegeheim, Seniorenheim, Betreutes Wohnen, Sozialstation, Wohngruppe, Behindertenhilfe, Jugendhilfe, Familienhilfe, Beratungsstelle, Hilfsorganisation, Caritas, Diakonie, AWO</div>
+                    <div class="branche-count">Pflege- und Sozialflächen</div>
+                </div>
+
+                <div class="branche-block main-category">
+                    <div class="card-top"><div class="category-number">4</div><div class="drag-handle"><span>↕</span><span>↔</span></div></div>
+                    <div class="branche-head">Bildung & Betreuung</div>
+                    <div class="branche-text">Kindergarten, Kita, Kindertagespflege, Schule, Privatschule, Nachhilfeinstitut, Sprachschule, Musikschule, Fahrschule, Berufsschule, Weiterbildungsträger, Schulungszentrum, Akademie, Seminarraum Anbieter, Hochschule / Universität Bereich</div>
+                    <div class="branche-count">Bildungs- und Betreuungsflächen</div>
+                </div>
+
+                <div class="branche-block main-category">
+                    <div class="card-top"><div class="category-number">5</div><div class="drag-handle"><span>↕</span><span>↔</span></div></div>
+                    <div class="branche-head">Einzelhandel & Verkaufsflächen</div>
+                    <div class="branche-text">Drogerie, Modegeschäft, Schuhgeschäft, Möbelhaus, Elektronikgeschäft, Optiker, Hörgeräteakustiker, Blumenladen, Buchhandlung, Juwelier, Sanitätshaus Verkaufsfläche, Telekommunikationsshop, Handyshop, Matratzenstudio, Küchenstudio, Showroom, Verkaufsfläche allgemein</div>
+                    <div class="branche-count">Kunden- und Verkaufsflächen</div>
+                </div>
+
+                <div class="branche-block main-category">
+                    <div class="card-top"><div class="category-number">6</div><div class="drag-handle"><span>↕</span><span>↔</span></div></div>
+                    <div class="branche-head">Fitness, Sport & Freizeit</div>
+                    <div class="branche-text">Fitnessstudio, EMS Studio, Yoga Studio, Pilates Studio, Tanzschule, Kampfsportschule, Sportverein Gebäude, Tennisclub, Sporthalle, Schwimmschule, Freizeitcenter, Bowlingcenter, Indoor-Spielplatz, Kletterhalle, Reha-Sport Zentrum</div>
+                    <div class="branche-count">Sport- und Freizeitflächen</div>
+                </div>
+
+                <div class="branche-block main-category">
+                    <div class="card-top"><div class="category-number">7</div><div class="drag-handle"><span>↕</span><span>↔</span></div></div>
+                    <div class="branche-head">Industrie & Produktion</div>
+                    <div class="branche-text">Produktionshalle, Maschinenbau, Metallverarbeitung, Kunststoffverarbeitung, Elektrotechnik Produktion, Verpackungsproduktion, Druckerei, Textilproduktion, Möbelproduktion, Montagebetrieb, Fertigungsbetrieb, Werkhalle, Industrieunternehmen, Produktionsstandort, Technischer Betrieb</div>
+                    <div class="branche-count">Produktions- und Industrieflächen</div>
+                </div>
+
+                <div class="branche-block main-category">
+                    <div class="card-top"><div class="category-number">8</div><div class="drag-handle"><span>↕</span><span>↔</span></div></div>
+                    <div class="branche-head">Lager, Logistik & Großhandel</div>
+                    <div class="branche-text">Lagerhalle, Versandlager, Logistikzentrum, Spedition, Paketdienst Standort, Großhandel, Baustoffhandel, Technikgroßhandel, Elektrogroßhandel, Sanitärgroßhandel, Werkzeughandel, Import / Export Betrieb, Umschlaglager, Warenlager, Fulfillment Standort</div>
+                    <div class="branche-count">Lager- und Logistikflächen</div>
+                </div>
+
+                <div class="branche-block main-category">
+                    <div class="card-top"><div class="category-number">9</div><div class="drag-handle"><span>↕</span><span>↔</span></div></div>
+                    <div class="branche-head">Immobilien & Hausverwaltung</div>
+                    <div class="branche-text">Hausverwaltung, WEG-Verwaltung, Mietverwaltung, Immobilienverwaltung, Wohnungsbaugesellschaft, Bauträger, Projektentwickler, Immobilienmakler, Gewerbeobjekt Verwaltung, Bürokomplex Verwaltung, Ärztehaus Verwaltung, Wohnanlage, Tiefgarage, Gemeinschaftsflächen, Objektverwaltung</div>
+                    <div class="branche-count">Objekt- und Verwaltungsflächen</div>
+                </div>
+
+                <div class="branche-block main-category">
+                    <div class="card-top"><div class="category-number">10</div><div class="drag-handle"><span>↕</span><span>↔</span></div></div>
+                    <div class="branche-head">Finanzen, Versicherung & Beratung</div>
+                    <div class="branche-text">Bankfiliale, Versicherung, Versicherungsmakler, Finanzberater, Kreditvermittler, Buchhaltungsbüro, Lohnbüro, Unternehmensberatung, Inkassobüro, Wirtschaftsberatung, Vermögensberatung, Finanzdienstleister, Steuerkanzlei, Beratungsbüro allgemein</div>
+                    <div class="branche-count">Beratungs- und Finanzbüros</div>
+                </div>
+
+                <div class="branche-block main-category">
+                    <div class="card-top"><div class="category-number">11</div><div class="drag-handle"><span>↕</span><span>↔</span></div></div>
+                    <div class="branche-head">IT, Medien & Kommunikation</div>
+                    <div class="branche-text">IT Dienstleister, Softwarefirma, Webagentur, Marketingagentur, Werbeagentur, Medienbüro, Verlag, Fotostudio, Videoproduktion, Telekommunikationsanbieter, Designagentur, Grafikbüro, App Entwicklung, Online Marketing Büro, Kommunikationsagentur</div>
+                    <div class="branche-count">IT-, Medien- und Agenturflächen</div>
+                </div>
+
+                <div class="branche-block main-category">
+                    <div class="card-top"><div class="category-number">12</div><div class="drag-handle"><span>↕</span><span>↔</span></div></div>
+                    <div class="branche-head">Sonstige / Nicht zugeordnet</div>
+                    <div class="branche-text">Unklare Firma, keine eindeutige Branche, gemischter Betrieb, sonstiger Dienstleister, Verein ohne klare Kategorie, Stiftung ohne klare Kategorie, privatähnlicher Eintrag, nur Adresse ohne Branche, nur Telefonnummer ohne Branche, fehlende Firmendaten, mehrere Tätigkeiten gleichzeitig, manuell prüfen</div>
+                    <div class="branche-count">Restgruppe / manuell prüfen</div>
+                </div>
+            </section>
+        </section>
+
+        <section id="damlaView" class="view-hidden">
+<div class="day-head">
+                <div class="day-title">
+                    <h2>KG Portal Tagesliste</h2>
+                    <div class="day-date" id="germanDate">Montag, 1. Januar 2026</div>
+                </div>
+
+                <div class="day-actions">
+                    <button class="day-btn" onclick="showMainPage()">Zurück zur Datenbank</button>
+                    <button class="day-btn primary">30 Leads laden</button>
+                    <button class="day-btn">Reihenfolge speichern</button>
+                </div>
+            </div>
+
+<iframe title="KG Portal Tagesliste" style="width:100%;height:1350px;border:0;border-radius:22px;display:block;background:#e9eef5;" srcdoc="&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;de&quot;&gt;
+&lt;head&gt;
+&lt;meta charset=&quot;UTF-8&quot;&gt;
+&lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot;&gt;
+&lt;title&gt;Tagesliste Test&lt;/title&gt;
+&lt;script src=&quot;https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js&quot;&gt;&lt;/script&gt;
+&lt;style&gt;
+*{box-sizing:border-box}html,body{margin:0;padding:0}body{background:#e9eef5;font-family:Arial,Helvetica,sans-serif;color:#0f172a;padding:18px}.page{width:min(100%,1180px);margin:0 auto}.goal{display:grid;grid-template-columns:1fr auto;gap:22px;align-items:center;margin-bottom:18px;padding:22px 26px;border-radius:24px;background:linear-gradient(135deg,#183a91,#2563eb);color:#fff;box-shadow:0 16px 34px rgba(24,58,145,.16);position:relative;overflow:hidden}.goal:after{content:&quot;&quot;;position:absolute;right:-70px;top:-90px;width:230px;height:230px;border-radius:50%;background:rgba(255,255,255,.12)}.goal-text{position:relative;z-index:1}.goal-label{display:inline-flex;margin-bottom:8px;padding:7px 11px;border-radius:999px;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.22);font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:.65px}.goal-title{font-size:24px;font-weight:900}.goal-sub{margin-top:6px;font-size:13px;font-weight:700;color:rgba(255,255,255,.86)}.goal-number{position:relative;z-index:1;min-width:112px;height:86px;border-radius:22px;background:#fff;color:#183a91;display:flex;align-items:center;justify-content:center;font-size:42px;font-weight:900}.card{border:1px solid #dbe3ef;background:#fff;border-radius:22px;box-shadow:0 12px 26px rgba(15,23,42,.045);overflow:hidden}.search{display:grid;grid-template-columns:1fr 190px;gap:12px;padding:16px;border-bottom:1px solid #edf2f7}.search input,.search select{border:1px solid #dbe3ef;background:#f8fafc;border-radius:14px;padding:13px 15px;font-size:13px;font-weight:700;color:#0f172a;outline:none}.addbar{padding:0 16px 16px 16px;border-bottom:1px solid #edf2f7}.addtoggle{width:100%;border:1px dashed #93c5fd;background:#eff6ff;color:#1d4ed8;border-radius:16px;padding:13px 16px;font-size:13px;font-weight:900;cursor:pointer;text-align:left}.addform{display:none;margin-top:12px;padding:14px;border:1px solid #dbe7f5;background:#f8fbff;border-radius:18px}.addform.open{display:block}.addgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.addgrid input{width:100%;border:1px solid #dbe3ef;background:#fff;border-radius:12px;padding:11px 12px;font-size:12px;font-weight:800;color:#0f172a;outline:none}.addactions{margin-top:12px;display:flex;gap:10px;justify-content:flex-end}.addbtn{border:none;border-radius:12px;padding:11px 15px;font-size:12px;font-weight:900;cursor:pointer}.addsave{background:#183a91;color:#fff}.addclear{background:#f1f5f9;color:#475569}.list{padding:16px}.lead{position:relative;border:1px solid #dbe7f5;background:linear-gradient(180deg,#fff,#f9fbff);border-radius:20px;box-shadow:0 10px 24px rgba(15,23,42,.045);overflow:hidden;transition:.18s}.lead.search-match{border-color:#2563eb;box-shadow:0 14px 30px rgba(37,99,235,.14);transform:translateY(-1px)}.lead.search-muted{opacity:.42;filter:grayscale(.15)}.lead:before{content:&quot;&quot;;position:absolute;left:0;top:0;width:5px;height:100%;background:linear-gradient(180deg,#183a91,#2563eb)}.summary{padding:16px 16px 14px 20px;cursor:pointer}.mainrow{display:grid;grid-template-columns:42px 1fr 38px;gap:14px;align-items:center}.drag{width:38px;height:58px;border-radius:15px;display:flex;align-items:center;justify-content:center;font-size:22px;line-height:1;font-weight:900;color:#64748b;background:#f8fafc;border:1px solid #e2e8f0;cursor:grab;user-select:none}.kicker{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:7px}.badge,.status{display:inline-flex;align-items:center;border-radius:999px;padding:6px 9px;font-size:11px;font-weight:900}.badge{background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe}.status{color:#475569;background:#f1f5f9;border:1px solid #e2e8f0}.company{font-size:17px;font-weight:900;color:#0f172a}.meta{margin-top:7px;font-size:12px;color:#64748b;font-weight:800}.contact-label{font-size:10px;text-transform:uppercase;font-weight:900;color:#64748b}.contact-name{margin-top:5px;font-size:13px;font-weight:900;color:#0f172a}.phone{display:inline-flex;margin-top:6px;font-size:13px;font-weight:900;color:#2563eb;text-decoration:none}.toggle{width:36px;height:36px;border-radius:14px;background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe;display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:900;transition:.2s}.lead.open .toggle{transform:rotate(180deg);background:#1d4ed8;color:#fff}.actions{margin-top:14px;padding-left:56px;display:grid;grid-template-columns:repeat(6,1fr);gap:9px;position:relative}.btn{border:1px solid transparent;border-radius:14px;padding:11px 10px;font-size:12px;font-weight:900;cursor:pointer;min-height:42px;display:flex;align-items:center;justify-content:center;gap:7px}.blue{background:#eff6ff;color:#1d4ed8;border-color:#bfdbfe}.green{background:#ecfdf5;color:#047857;border-color:#bbf7d0}.form{background:#f5f3ff;color:#6d28d9;border-color:#ddd6fe}.later{background:#fffbeb;color:#b45309;border-color:#fde68a}.red{background:#fef2f2;color:#dc2626;border-color:#fecaca}.active-blue{background:#1d4ed8!important;color:#fff!important;border-color:#1d4ed8!important}.active-green{background:#047857!important;color:#fff!important;border-color:#047857!important}.active-form{background:#6d28d9!important;color:#fff!important;border-color:#6d28d9!important}.active-later{background:#b45309!important;color:#fff!important;border-color:#b45309!important}.active-red{background:#b91c1c!important;color:#fff!important;border-color:#b91c1c!important}.datepick{position:absolute;opacity:0;width:1px;height:1px;left:0;bottom:0}.actions.form-open{padding-bottom:62px}.form-choice{display:none;position:absolute;left:56px;right:0;top:51px;z-index:5;grid-template-columns:1fr 1fr;gap:8px;padding:10px;border:1px solid #ddd6fe;background:#ffffff;border-radius:16px;box-shadow:0 12px 26px rgba(15,23,42,.12)}.form-choice.open{display:grid}.form-choice-btn{border:1px solid #ddd6fe;background:#f5f3ff;color:#6d28d9;border-radius:12px;padding:10px 12px;font-size:12px;font-weight:900;cursor:pointer}.form-choice-btn:hover{background:#6d28d9;color:#fff}.actions.visit-open{padding-bottom:62px}.visit-choice{display:none;position:absolute;left:56px;right:0;top:51px;z-index:6;grid-template-columns:220px 1fr 1fr;gap:8px;padding:10px;border:1px solid #bfdbfe;background:#ffffff;border-radius:16px;box-shadow:0 12px 26px rgba(15,23,42,.12)}.visit-choice.open{display:grid}.visit-date{border:1px solid #dbe3ef;background:#f8fafc;border-radius:12px;padding:10px 12px;font-size:12px;font-weight:800;color:#0f172a;outline:none}.visit-choice-btn{border:1px solid #bfdbfe;background:#eff6ff;color:#1d4ed8;border-radius:12px;padding:10px 12px;font-size:12px;font-weight:900;cursor:pointer}.visit-choice-btn:hover{background:#1d4ed8;color:#fff}.details{display:none;padding:0 16px 16px 76px}.lead.open .details{display:block}.details-inner{border-top:1px dashed #dbe7f5;background:#f8fafc;border-radius:16px;padding:14px}.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.box{background:#fff;border:1px solid #e2e8f0;border-radius:14px;padding:12px}.box-label{font-size:10px;text-transform:uppercase;font-weight:900;color:#64748b}.box-value{margin-top:5px;font-size:13px;font-weight:800}.box-value a{color:#2563eb;text-decoration:none}.note-row{margin-top:12px;display:grid;grid-template-columns:1fr 170px;gap:12px}.note{min-height:46px;resize:vertical;border:1px solid #dbe3ef;border-radius:14px;padding:12px 13px;font-size:13px;font-weight:700;font-family:Arial}.save{border:none;border-radius:14px;background:#183a91;color:#fff;font-size:13px;font-weight:900;cursor:pointer}@media(max-width:900px){.mainrow{grid-template-columns:42px 1fr 38px}.contact{grid-column:2/4}.actions{padding-left:56px;grid-template-columns:repeat(2,1fr)}.details{padding-left:20px}.grid,.note-row{grid-template-columns:1fr}}@media(max-width:640px){body{padding:12px}.goal{grid-template-columns:1fr}.goal-number{width:100%}.search{grid-template-columns:1fr}.actions{padding-left:0}}
+.delete-modal{position:fixed;inset:0;background:rgba(15,23,42,.45);display:none;align-items:center;justify-content:center;z-index:9999;padding:18px}.delete-modal.open{display:flex}.delete-box{width:min(100%,360px);background:#fff;border:1px solid #dbe3ef;border-radius:22px;box-shadow:0 22px 55px rgba(15,23,42,.22);padding:20px}.delete-title{font-size:19px;font-weight:900;color:#0f172a}.delete-text{margin-top:8px;font-size:13px;font-weight:700;color:#64748b;line-height:1.45}.delete-actions{margin-top:18px;display:grid;grid-template-columns:1fr 1fr;gap:10px}.delete-cancel,.delete-ok{height:44px;border:0;border-radius:14px;font-size:13px;font-weight:900;cursor:pointer}.delete-cancel{background:#f1f5f9;color:#475569}.delete-ok{background:#dc2626;color:#fff}.delete-ok:hover{background:#b91c1c}
+&lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;div class=&quot;page&quot;&gt;
+  &lt;div class=&quot;goal&quot;&gt;
+    &lt;div class=&quot;goal-text&quot;&gt;
+      &lt;div class=&quot;goal-label&quot;&gt;Ziel heute&lt;/div&gt;
+      &lt;div class=&quot;goal-title&quot;&gt;Leads sauber abarbeiten&lt;/div&gt;
+      &lt;div class=&quot;goal-sub&quot;&gt;Telefonate führen, Interesse markieren und gute Kontakte direkt für die Besichtigung übernehmen.&lt;/div&gt;
+    &lt;/div&gt;
+    &lt;div class=&quot;goal-number&quot;&gt;30&lt;/div&gt;
+  &lt;/div&gt;
+
+  &lt;section class=&quot;card&quot;&gt;
+    &lt;div class=&quot;search&quot;&gt;
+      &lt;input id=&quot;leadSearchInput&quot; type=&quot;text&quot; name=&quot;kgLeadSearchNoMemory&quot; placeholder=&quot;Firma, Branche, Stadt oder PLZ suchen...&quot; autocomplete=&quot;new-password&quot; autocorrect=&quot;off&quot; autocapitalize=&quot;off&quot; spellcheck=&quot;false&quot; readonly onfocus=&quot;this.removeAttribute(&#x27;readonly&#x27;)&quot; value=&quot;&quot;&gt;
+      &lt;select id=&quot;leadGroupFilter&quot;&gt;&lt;option&gt;Alle Gruppen&lt;/option&gt;&lt;option&gt;Büro &amp; Verwaltung&lt;/option&gt;&lt;option&gt;Praxen &amp; Gesundheit&lt;/option&gt;&lt;option&gt;Fitness, Sport &amp; Freizeit&lt;/option&gt;&lt;/select&gt;
+    &lt;/div&gt;
+
+    &lt;div class=&quot;addbar&quot;&gt;
+      &lt;button type=&quot;button&quot; class=&quot;addtoggle&quot; onclick=&quot;toggleAddForm()&quot;&gt;+ Firma hinzufügen&lt;/button&gt;
+      &lt;div class=&quot;addform&quot; id=&quot;addFormBox&quot;&gt;
+        &lt;div class=&quot;addgrid&quot;&gt;
+          &lt;input id=&quot;newFirma&quot; placeholder=&quot;Firma&quot;&gt;
+          &lt;input id=&quot;newTag&quot; placeholder=&quot;Branche&quot;&gt;
+          &lt;input id=&quot;newStr&quot; placeholder=&quot;Straße / Hausnummer&quot;&gt;
+          &lt;input id=&quot;newPlz&quot; placeholder=&quot;PLZ&quot;&gt;
+          &lt;input id=&quot;newOrt&quot; placeholder=&quot;Stadt&quot;&gt;
+          &lt;input id=&quot;newKontakt&quot; placeholder=&quot;Ansprechpartner&quot;&gt;
+          &lt;input id=&quot;newTel&quot; placeholder=&quot;Telefon&quot;&gt;
+          &lt;input id=&quot;newMail&quot; placeholder=&quot;E-Mail&quot;&gt;
+          &lt;input id=&quot;newWeb&quot; placeholder=&quot;Webseite&quot;&gt;
+        &lt;/div&gt;
+        &lt;div class=&quot;addactions&quot;&gt;
+          &lt;button type=&quot;button&quot; class=&quot;addbtn addclear&quot; onclick=&quot;clearAddForm()&quot;&gt;Leeren&lt;/button&gt;
+          &lt;button type=&quot;button&quot; class=&quot;addbtn addsave&quot; onclick=&quot;addManualLead()&quot;&gt;Firma speichern&lt;/button&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+
+    &lt;div class=&quot;list&quot; id=&quot;dailySortable&quot;&gt;&lt;/div&gt;
+  &lt;/section&gt;
+
+  &lt;div class=&quot;delete-modal&quot; id=&quot;deleteModal&quot;&gt;
+    &lt;div class=&quot;delete-box&quot;&gt;
+      &lt;div class=&quot;delete-title&quot;&gt;Wirklich löschen?&lt;/div&gt;
+      &lt;div class=&quot;delete-text&quot;&gt;Dieser Lead wird aus der Tagesliste entfernt.&lt;/div&gt;
+      &lt;div class=&quot;delete-actions&quot;&gt;
+        &lt;button class=&quot;delete-cancel&quot; onclick=&quot;cancelDeleteLead()&quot;&gt;Abbrechen&lt;/button&gt;
+        &lt;button class=&quot;delete-ok&quot; onclick=&quot;confirmDeleteLead()&quot;&gt;Löschen&lt;/button&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+&lt;script&gt;
+const leads=[
+{tag:&#x27;Praxis&#x27;,firma:&#x27;Nordrhein Medizinzentrum GmbH&#x27;,ort:&#x27;Düsseldorf&#x27;,plz:&#x27;40212&#x27;,str:&#x27;Königsallee 10&#x27;,kontakt:&#x27;Frau Dr. Hohenberg&#x27;,tel:&#x27;0203 000000&#x27;,mail:&#x27;info@med-nordrhein.de&#x27;,web:&#x27;www.med-nordrhein.de&#x27;},
+{tag:&#x27;Kanzlei&#x27;,firma:&#x27;Schwertfeger Rechtsanwälte&#x27;,ort:&#x27;Düsseldorf&#x27;,plz:&#x27;40213&#x27;,str:&#x27;Breite Str. 20&#x27;,kontakt:&#x27;Herr Schwertfeger&#x27;,tel:&#x27;0211 000000&#x27;,mail:&#x27;kanzlei@schwertfeger.de&#x27;,web:&#x27;www.schwertfeger.de&#x27;},
+{tag:&#x27;Fitness&#x27;,firma:&#x27;FitPoint Studio Duisburg GmbH&#x27;,ort:&#x27;Duisburg&#x27;,plz:&#x27;47057&#x27;,str:&#x27;Sternbuschweg 100&#x27;,kontakt:&#x27;Frau Keller&#x27;,tel:&#x27;0203 111111&#x27;,mail:&#x27;kontakt@fitpoint-du.de&#x27;,web:&#x27;www.fitpoint-du.de&#x27;},
+{tag:&#x27;Büro&#x27;,firma:&#x27;Rhein Büroservice AG&#x27;,ort:&#x27;Düsseldorf&#x27;,plz:&#x27;40549&#x27;,str:&#x27;Hansaallee 150&#x27;,kontakt:&#x27;Empfang&#x27;,tel:&#x27;0211 222222&#x27;,mail:&#x27;service@rhein-buero.de&#x27;,web:&#x27;www.rhein-buero.de&#x27;},
+{tag:&#x27;Steuerberater&#x27;,firma:&#x27;Muster Steuerberatung GmbH&#x27;,ort:&#x27;Duisburg&#x27;,plz:&#x27;47051&#x27;,str:&#x27;Landfermannstr. 25&#x27;,kontakt:&#x27;Frau Neumann&#x27;,tel:&#x27;0203 333333&#x27;,mail:&#x27;info@muster-steuer.de&#x27;,web:&#x27;www.muster-steuer.de&#x27;},
+{tag:&#x27;Arztpraxis&#x27;,firma:&#x27;Praxis am Innenhafen&#x27;,ort:&#x27;Duisburg&#x27;,plz:&#x27;47059&#x27;,str:&#x27;Schifferstr. 50&#x27;,kontakt:&#x27;Praxisleitung&#x27;,tel:&#x27;0203 444444&#x27;,mail:&#x27;praxis@innenhafen.de&#x27;,web:&#x27;www.innenhafen.de&#x27;}
+];
+function updateListCount(count){const n=document.querySelector(&#x27;.goal-number&#x27;);if(n)n.textContent=count}
+let pendingDeleteIndex = null;
+function delLd(e,i){e.stopPropagation();pendingDeleteIndex=i;document.getElementById(&#x27;deleteModal&#x27;).classList.add(&#x27;open&#x27;)}
+function cancelDeleteLead(){pendingDeleteIndex=null;document.getElementById(&#x27;deleteModal&#x27;).classList.remove(&#x27;open&#x27;)}
+function confirmDeleteLead(){if(pendingDeleteIndex!==null){leads.splice(pendingDeleteIndex,1);renderLeads()}cancelDeleteLead()}
+function leadMatchesSearch(l){
+ const searchEl=document.getElementById(&#x27;leadSearchInput&#x27;);
+ const groupEl=document.getElementById(&#x27;leadGroupFilter&#x27;);
+ const q=(searchEl?searchEl.value:&#x27;&#x27;).trim().toLowerCase();
+ const group=groupEl?groupEl.value:&#x27;Alle Gruppen&#x27;;
+ const haystack=[l.tag,l.firma,l.ort,l.plz,l.str,l.kontakt,l.tel,l.mail,l.web].join(&#x27; &#x27;).toLowerCase();
+ const textOk=!q || haystack.includes(q);
+ let groupOk=true;
+ if(group===&#x27;Büro &amp; Verwaltung&#x27;)groupOk=[&#x27;büro&#x27;,&#x27;kanzlei&#x27;,&#x27;steuerberater&#x27;].some(x=&gt;(l.tag||&#x27;&#x27;).toLowerCase().includes(x));
+ if(group===&#x27;Praxen &amp; Gesundheit&#x27;)groupOk=[&#x27;praxis&#x27;,&#x27;arztpraxis&#x27;,&#x27;gesundheit&#x27;].some(x=&gt;(l.tag||&#x27;&#x27;).toLowerCase().includes(x));
+ if(group===&#x27;Fitness, Sport &amp; Freizeit&#x27;)groupOk=[&#x27;fitness&#x27;,&#x27;sport&#x27;,&#x27;freizeit&#x27;].some(x=&gt;(l.tag||&#x27;&#x27;).toLowerCase().includes(x));
+ return textOk &amp;&amp; groupOk;
+}
+function renderLeads(){
+ const list=document.getElementById(&#x27;dailySortable&#x27;);
+ const searchEl=document.getElementById(&#x27;leadSearchInput&#x27;);
+ const groupEl=document.getElementById(&#x27;leadGroupFilter&#x27;);
+ const searchActive=!!((searchEl&amp;&amp;searchEl.value.trim()) || (groupEl&amp;&amp;groupEl.value!==&#x27;Alle Gruppen&#x27;));
+ const sortedLeads=[...leads].sort((a,b)=&gt;Number(leadMatchesSearch(b))-Number(leadMatchesSearch(a)));
+ const matchCount=sortedLeads.filter(leadMatchesSearch).length;
+ list.innerHTML=sortedLeads.map(l=&gt;`
+  &lt;div class=&quot;lead ${searchActive ? (leadMatchesSearch(l) ? &#x27;search-match&#x27; : &#x27;search-muted&#x27;) : &#x27;&#x27;}&quot;&gt;
+   &lt;div class=&quot;summary&quot; onclick=&quot;toggleLead(event,this)&quot;&gt;
+    &lt;div class=&quot;mainrow&quot;&gt;
+     &lt;div class=&quot;drag&quot;&gt;☰&lt;/div&gt;
+     &lt;div&gt;
+      &lt;div class=&quot;kicker&quot;&gt;&lt;span class=&quot;badge&quot;&gt;${l.tag || &#x27;Ohne Branche&#x27;}&lt;/span&gt;&lt;span class=&quot;status&quot;&gt;Heute · offen&lt;/span&gt;&lt;span onclick=&quot;delLd(event,${leads.indexOf(l)})&quot; style=&quot;background:#fef2f2;color:#dc2626;border:1px solid #fecaca;border-radius:8px;cursor:pointer;margin-left:6px;padding:3px 6px;font-size:12px;display:inline-flex;align-items:center;font-weight:900;&quot; title=&quot;Lead löschen&quot;&gt;🗑&lt;/span&gt;&lt;/div&gt;
+      &lt;div class=&quot;company&quot;&gt;${l.firma}&lt;/div&gt;
+      &lt;div class=&quot;meta&quot;&gt;${[l.str,[l.plz,l.ort].filter(Boolean).join(&#x27; &#x27;)].filter(Boolean).join(&#x27; · &#x27;)}&lt;/div&gt;
+     &lt;/div&gt;
+     &lt;div class=&quot;toggle&quot;&gt;⌄&lt;/div&gt;
+    &lt;/div&gt;
+    &lt;div class=&quot;actions&quot;&gt;
+     &lt;button class=&quot;btn blue&quot; data-type=&quot;call&quot;&gt;☎ Anrufen&lt;/button&gt;
+     &lt;button class=&quot;btn green&quot; data-type=&quot;interest&quot;&gt;✓ Interessiert&lt;/button&gt;
+     &lt;button class=&quot;btn blue&quot; data-type=&quot;visit&quot;&gt;📅 Besichtigung&lt;/button&gt;
+     &lt;div class=&quot;visit-choice&quot;&gt;
+      &lt;input type=&quot;date&quot; class=&quot;visit-date&quot; lang=&quot;de&quot;&gt;
+      &lt;button type=&quot;button&quot; class=&quot;visit-choice-btn&quot; onclick=&quot;chooseVisitType(event,this,&#x27;Sehr geehrte Damen und Herren&#x27;)&quot;&gt;Sehr geehrte Damen und Herren&lt;/button&gt;
+      &lt;button type=&quot;button&quot; class=&quot;visit-choice-btn&quot; onclick=&quot;chooseVisitType(event,this,&#x27;Ansprechpartner&#x27;)&quot;&gt;Ansprechpartner&lt;/button&gt;
+     &lt;/div&gt;
+     &lt;button class=&quot;btn form&quot; data-type=&quot;form&quot;&gt;✉ Kontaktformular&lt;/button&gt;
+     &lt;div class=&quot;form-choice&quot;&gt;
+      &lt;button type=&quot;button&quot; class=&quot;form-choice-btn&quot; onclick=&quot;chooseFormType(event,this,&#x27;Sehr geehrte Damen und Herren&#x27;)&quot;&gt;Sehr geehrte Damen und Herren&lt;/button&gt;
+      &lt;button type=&quot;button&quot; class=&quot;form-choice-btn&quot; onclick=&quot;chooseFormType(event,this,&#x27;Ansprechpartner&#x27;)&quot;&gt;Ansprechpartner&lt;/button&gt;
+     &lt;/div&gt;
+     &lt;button class=&quot;btn later&quot; data-type=&quot;later&quot;&gt;↷ Später&lt;/button&gt;
+     &lt;input type=&quot;date&quot; class=&quot;datepick&quot; lang=&quot;de&quot;&gt;
+     &lt;button class=&quot;btn red&quot; data-type=&quot;lost&quot;&gt;✕ Verloren&lt;/button&gt;
+    &lt;/div&gt;
+   &lt;/div&gt;
+   &lt;div class=&quot;details&quot;&gt;
+    &lt;div class=&quot;details-inner&quot;&gt;
+     &lt;div class=&quot;grid&quot;&gt;
+      &lt;div class=&quot;box&quot;&gt;&lt;div class=&quot;box-label&quot;&gt;Ansprechpartner&lt;/div&gt;&lt;div class=&quot;box-value&quot;&gt;&lt;div class=&quot;contact-name&quot;&gt;${l.kontakt || &#x27;&#x27;}&lt;/div&gt;&lt;a class=&quot;phone&quot; href=&quot;tel:${(l.tel || &#x27;&#x27;).replaceAll(&#x27; &#x27;,&#x27;&#x27;)}&quot;&gt;${l.tel || &#x27;&#x27;}&lt;/a&gt;&lt;/div&gt;&lt;/div&gt;
+      &lt;div class=&quot;box&quot;&gt;&lt;div class=&quot;box-label&quot;&gt;E-Mail Adresse&lt;/div&gt;&lt;div class=&quot;box-value&quot;&gt;&lt;a href=&quot;mailto:${l.mail || &#x27;&#x27;}&quot;&gt;${l.mail || &#x27;&#x27;}&lt;/a&gt;&lt;/div&gt;&lt;/div&gt;
+      &lt;div class=&quot;box&quot;&gt;&lt;div class=&quot;box-label&quot;&gt;Webseite&lt;/div&gt;&lt;div class=&quot;box-value&quot;&gt;&lt;a href=&quot;#&quot;&gt;${l.web || &#x27;&#x27;}&lt;/a&gt;&lt;/div&gt;&lt;/div&gt;
+     &lt;/div&gt;
+     &lt;div class=&quot;note-row&quot;&gt;&lt;textarea class=&quot;note&quot; placeholder=&quot;Notiz zum Telefonat / nächste Aktion...&quot;&gt;&lt;/textarea&gt;&lt;button class=&quot;save&quot;&gt;Notiz speichern&lt;/button&gt;&lt;/div&gt;
+    &lt;/div&gt;
+   &lt;/div&gt;
+  &lt;/div&gt;`).join(&#x27;&#x27;);
+ updateListCount(searchActive ? matchCount : leads.length);
+}
+function toggleAddForm(){document.getElementById(&#x27;addFormBox&#x27;).classList.toggle(&#x27;open&#x27;)}
+function clearAddForm(){[&#x27;newFirma&#x27;,&#x27;newTag&#x27;,&#x27;newStr&#x27;,&#x27;newPlz&#x27;,&#x27;newOrt&#x27;,&#x27;newKontakt&#x27;,&#x27;newTel&#x27;,&#x27;newMail&#x27;,&#x27;newWeb&#x27;].forEach(id=&gt;document.getElementById(id).value=&#x27;&#x27;)}
+function addManualLead(){
+ const firma=document.getElementById(&#x27;newFirma&#x27;).value.trim();
+ if(!firma)return;
+ leads.unshift({
+  tag:document.getElementById(&#x27;newTag&#x27;).value.trim(),
+  firma:firma,
+  str:document.getElementById(&#x27;newStr&#x27;).value.trim(),
+  plz:document.getElementById(&#x27;newPlz&#x27;).value.trim(),
+  ort:document.getElementById(&#x27;newOrt&#x27;).value.trim(),
+  kontakt:document.getElementById(&#x27;newKontakt&#x27;).value.trim(),
+  tel:document.getElementById(&#x27;newTel&#x27;).value.trim(),
+  mail:document.getElementById(&#x27;newMail&#x27;).value.trim(),
+  web:document.getElementById(&#x27;newWeb&#x27;).value.trim()
+ });
+ clearAddForm();
+ const searchEl=document.getElementById(&#x27;leadSearchInput&#x27;);
+ const groupEl=document.getElementById(&#x27;leadGroupFilter&#x27;);
+ if(searchEl)searchEl.value=&#x27;&#x27;;
+ if(groupEl)groupEl.value=&#x27;Alle Gruppen&#x27;;
+ renderLeads();
+ bindLeadButtons();
+}
+function toggleLead(e,el){if(e.target.closest(&#x27;.btn&#x27;)||e.target.closest(&#x27;.drag&#x27;)||e.target.closest(&#x27;.note&#x27;)||e.target.closest(&#x27;.save&#x27;))return;el.closest(&#x27;.lead&#x27;).classList.toggle(&#x27;open&#x27;)}
+function status(item,t){const s=item.querySelector(&#x27;.status&#x27;);if(s)s.textContent=t}
+function topPlus(){const n=document.querySelector(&#x27;.goal-number&#x27;);n.textContent=parseInt(n.textContent,10)+1}
+function topMinus(){const n=document.querySelector(&#x27;.goal-number&#x27;);n.textContent=Math.max(0,parseInt(n.textContent,10)-1)}
+function activate(btn,cls,text,stat){const item=btn.closest(&#x27;.lead&#x27;);if(btn.dataset.active===&#x27;true&#x27;)return;btn.dataset.active=&#x27;true&#x27;;btn.dataset.old=btn.innerHTML;btn.dataset.cls=cls;btn.classList.add(cls);btn.innerHTML=text;status(item,stat);if((btn.dataset.type===&#x27;call&#x27;||btn.dataset.type===&#x27;lost&#x27;)&amp;&amp;!item.dataset.countedAction){item.dataset.countedAction=btn.dataset.type;topMinus()}}
+function reset(btn){const item=btn.closest(&#x27;.lead&#x27;);if(btn.dataset.active!==&#x27;true&#x27;)return;btn.dataset.active=&#x27;false&#x27;;btn.classList.remove(btn.dataset.cls);btn.innerHTML=btn.dataset.old;status(item,&#x27;Heute · offen&#x27;);if((btn.dataset.type===&#x27;call&#x27;||btn.dataset.type===&#x27;lost&#x27;)&amp;&amp;item.dataset.countedAction===btn.dataset.type){const other=item.querySelector(`.btn[data-active=&quot;true&quot;][data-type=&quot;${btn.dataset.type===&#x27;call&#x27;?&#x27;lost&#x27;:&#x27;call&#x27;}&quot;]`);if(other){item.dataset.countedAction=other.dataset.type}else{delete item.dataset.countedAction;topPlus()}}}
+function later(btn){const inp=btn.parentElement.querySelector(&#x27;.datepick&#x27;);if(!inp)return;inp.onchange=function(){if(!inp.value)return;const d=new Date(inp.value+&#x27;T00:00:00&#x27;).toLocaleDateString(&#x27;de-DE&#x27;,{day:&#x27;2-digit&#x27;,month:&#x27;2-digit&#x27;,year:&#x27;numeric&#x27;});activate(btn,&#x27;active-later&#x27;,&#x27;↷ Später · &#x27;+d,&#x27;Später · &#x27;+d)};if(inp.showPicker)inp.showPicker();else inp.click()}
+function closeFormChoices(){document.querySelectorAll(&#x27;.form-choice.open&#x27;).forEach(x=&gt;x.classList.remove(&#x27;open&#x27;));document.querySelectorAll(&#x27;.actions.form-open&#x27;).forEach(x=&gt;x.classList.remove(&#x27;form-open&#x27;))}
+function closeVisitChoices(){document.querySelectorAll(&#x27;.visit-choice.open&#x27;).forEach(x=&gt;x.classList.remove(&#x27;open&#x27;));document.querySelectorAll(&#x27;.actions.visit-open&#x27;).forEach(x=&gt;x.classList.remove(&#x27;visit-open&#x27;))}
+function openFormChoice(btn){const actions=btn.closest(&#x27;.actions&#x27;);const choice=actions?actions.querySelector(&#x27;.form-choice&#x27;):null;if(!choice)return;closeFormChoices();closeVisitChoices();actions.classList.add(&#x27;form-open&#x27;);choice.classList.add(&#x27;open&#x27;)}
+function openVisitChoice(btn){const actions=btn.closest(&#x27;.actions&#x27;);const choice=actions?actions.querySelector(&#x27;.visit-choice&#x27;):null;if(!choice)return;closeFormChoices();closeVisitChoices();actions.classList.add(&#x27;visit-open&#x27;);choice.classList.add(&#x27;open&#x27;);const d=choice.querySelector(&#x27;.visit-date&#x27;);if(d)d.focus()}
+function chooseFormType(e,choiceBtn,text){e.stopPropagation();const actions=choiceBtn.closest(&#x27;.actions&#x27;);const formBtn=actions?actions.querySelector(&#x27;[data-type=&quot;form&quot;]&#x27;):null;if(!formBtn)return;formBtn.dataset.formChoice=text;activate(formBtn,&#x27;active-form&#x27;,&#x27;✓ &#x27;+text,&#x27;Kontaktformular · &#x27;+text);closeFormChoices()}
+function chooseVisitType(e,choiceBtn,text){e.stopPropagation();const actions=choiceBtn.closest(&#x27;.actions&#x27;);const visitBtn=actions?actions.querySelector(&#x27;[data-type=&quot;visit&quot;]&#x27;):null;const dateInput=actions?actions.querySelector(&#x27;.visit-date&#x27;):null;if(!visitBtn)return;let dateText=&#x27;ohne Datum&#x27;;if(dateInput&amp;&amp;dateInput.value){dateText=new Date(dateInput.value+&#x27;T00:00:00&#x27;).toLocaleDateString(&#x27;de-DE&#x27;,{day:&#x27;2-digit&#x27;,month:&#x27;2-digit&#x27;,year:&#x27;numeric&#x27;})}visitBtn.dataset.visitChoice=text;visitBtn.dataset.visitDate=dateInput?dateInput.value:&#x27;&#x27;;activate(visitBtn,&#x27;active-blue&#x27;,&#x27;📅 &#x27;+dateText+&#x27; · &#x27;+text,&#x27;Besichtigung · &#x27;+dateText+&#x27; · &#x27;+text);closeVisitChoices()}
+function bind(btn,fn){let t=null,h=false;function s(e){e.stopPropagation();h=false;t=setTimeout(()=&gt;{h=true;reset(btn)},700)}function c(){clearTimeout(t)}btn.addEventListener(&#x27;mousedown&#x27;,s);btn.addEventListener(&#x27;touchstart&#x27;,s,{passive:true});btn.addEventListener(&#x27;mouseup&#x27;,c);btn.addEventListener(&#x27;mouseleave&#x27;,c);btn.addEventListener(&#x27;touchend&#x27;,c);btn.addEventListener(&#x27;click&#x27;,e=&gt;{e.stopPropagation();if(h){h=false;return}fn(btn)})}
+function bindLeadButtons(){document.querySelectorAll(&#x27;.btn&#x27;).forEach(b=&gt;{if(b.dataset.bound===&#x27;true&#x27;)return;b.dataset.bound=&#x27;true&#x27;;let t=b.dataset.type;if(t===&#x27;call&#x27;)bind(b,x=&gt;activate(x,&#x27;active-blue&#x27;,&#x27;✓ Angerufen&#x27;,&#x27;Heute · angerufen&#x27;));if(t===&#x27;interest&#x27;)bind(b,x=&gt;activate(x,&#x27;active-green&#x27;,&#x27;✓ Hat Interesse&#x27;,&#x27;Heute · hat Interesse&#x27;));if(t===&#x27;visit&#x27;)bind(b,openVisitChoice);if(t===&#x27;form&#x27;)bind(b,openFormChoice);if(t===&#x27;later&#x27;)bind(b,later);if(t===&#x27;lost&#x27;)bind(b,x=&gt;activate(x,&#x27;active-red&#x27;,&#x27;✕ Gelöscht&#x27;,&#x27;Heute · gelöscht&#x27;))})}
+function setupSearchFilter(){
+ const searchEl=document.getElementById(&#x27;leadSearchInput&#x27;);
+ const groupEl=document.getElementById(&#x27;leadGroupFilter&#x27;);
+ function refresh(){renderLeads();bindLeadButtons()}
+ if(searchEl)searchEl.addEventListener(&#x27;input&#x27;,refresh);
+ if(groupEl)groupEl.addEventListener(&#x27;change&#x27;,refresh);
+}
+document.addEventListener(&#x27;DOMContentLoaded&#x27;,()=&gt;{const searchEl=document.getElementById(&#x27;leadSearchInput&#x27;);const groupEl=document.getElementById(&#x27;leadGroupFilter&#x27;);if(searchEl)searchEl.value=&#x27;&#x27;;if(groupEl)groupEl.value=&#x27;Alle Gruppen&#x27;;renderLeads();bindLeadButtons();setupSearchFilter();const l=document.getElementById(&#x27;dailySortable&#x27;);if(l&amp;&amp;window.Sortable)new Sortable(l,{animation:180,draggable:&#x27;.lead&#x27;,handle:&#x27;.drag&#x27;})});
+&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+"></iframe>
+        </section>
+
+        <section id="besichtigungView" class="view-hidden">
+            <div class="day-head">
+                <div class="day-title">
+                    <h2>Besichtigungstermine</h2>
+                    <div class="day-date">Aus der Tagesliste übernommene Termine</div>
+                </div>
+
+                <div class="day-actions">
+                    <button class="day-btn" onclick="showMainPage()">Zurück zur Datenbank</button>
+                </div>
+            </div>
+
+<iframe title="KG Portal Besichtigungstermine" style="width:100%;height:1250px;border:0;border-radius:22px;display:block;background:#e9eef5;" srcdoc="&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;de&quot;&gt;
+&lt;head&gt;
+&lt;meta charset=&quot;UTF-8&quot;&gt;
+&lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot;&gt;
+&lt;title&gt;Besichtigungstermine Test&lt;/title&gt;
+&lt;script src=&quot;https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js&quot;&gt;&lt;/script&gt;
+&lt;style&gt;
+*{box-sizing:border-box}html,body{margin:0;padding:0}body{background:#e9eef5;font-family:Arial,Helvetica,sans-serif;color:#0f172a;padding:18px}.page{width:min(100%,1180px);margin:0 auto}.view-hidden{display:none!important}.head{display:grid;grid-template-columns:1fr auto;gap:18px;align-items:center;margin-bottom:18px;padding:24px 28px;border-radius:24px;background:linear-gradient(135deg,#183a91,#2563eb);color:#fff;box-shadow:0 16px 34px rgba(24,58,145,.16);position:relative;overflow:hidden}.head:after{content:&quot;&quot;;position:absolute;right:-90px;top:-100px;width:260px;height:260px;border-radius:50%;background:rgba(255,255,255,.09)}.head:before{content:&quot;&quot;;position:absolute;right:70px;bottom:-90px;width:190px;height:190px;border-radius:50%;background:rgba(255,255,255,.08)}.head-text{position:relative;z-index:1}.label{display:inline-flex;margin-bottom:8px;padding:7px 11px;border-radius:999px;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.22);font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:.65px;color:#ffffff}.title{font-size:27px;font-weight:900;letter-spacing:-.35px}.sub{margin-top:6px;font-size:13px;font-weight:700;color:rgba(255,255,255,.78)}.count{position:relative;z-index:1;min-width:112px;height:86px;border-radius:22px;background:#fff;color:#183a91;display:flex;align-items:center;justify-content:center;font-size:42px;font-weight:900;box-shadow:inset 0 0 0 1px rgba(24,58,145,.06)}.card{border:1px solid #dde5ee;background:#fff;border-radius:24px;box-shadow:0 14px 32px rgba(15,23,42,.055);overflow:hidden}.toolbar{display:grid;grid-template-columns:1fr 190px;gap:12px;padding:16px;border-bottom:1px solid #edf2f7;background:#ffffff}.toolbar input,.toolbar select{border:1px solid #d8e1ea;background:#f8fafc;border-radius:16px;padding:13px 15px;font-size:13px;font-weight:800;color:#111827;outline:none}.toolbar input:focus,.toolbar select:focus{border-color:#2563eb;box-shadow:0 0 0 3px rgba(37,99,235,.12)}.list{padding:16px;display:flex;flex-direction:column;gap:12px}.visit{position:relative;border:1px solid #dce6ef;background:linear-gradient(180deg,#ffffff,#fbfcfe);border-radius:22px;box-shadow:0 10px 24px rgba(15,23,42,.045);overflow:hidden;transition:.18s}.visit:hover{border-color:#93c5fd;box-shadow:0 16px 34px rgba(37,99,235,.12);transform:translateY(-1px)}.visit:before{content:&quot;&quot;;position:absolute;left:0;top:0;width:5px;height:100%;background:linear-gradient(180deg,#183a91,#2563eb)}.visit.sortable-ghost{opacity:.35}.visit.sortable-chosen{border-color:#2563eb;box-shadow:0 16px 34px rgba(37,99,235,.18)}.visit-row{display:grid;grid-template-columns:44px 92px 1fr 188px;gap:14px;align-items:center;padding:16px 16px 16px 20px}.drag-handle{width:40px;height:64px;border-radius:16px;background:#f8fafc;border:1px solid #e2e8f0;color:#64748b;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:900;cursor:grab;user-select:none;line-height:1}.drag-handle:active{cursor:grabbing}.datebox{height:74px;border-radius:20px;background:#eff6ff;border:1px solid #bfdbfe;color:#1d4ed8;display:flex;flex-direction:column;align-items:center;justify-content:center}.date-day{font-size:25px;font-weight:900;line-height:1}.date-month{margin-top:3px;font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:.6px}.date-time{margin-top:4px;font-size:12px;font-weight:900;color:#183a91}.kicker{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:7px}.badge,.status{display:inline-flex;align-items:center;border-radius:999px;padding:6px 9px;font-size:11px;font-weight:900}.badge{background:#f1f5f9;color:#334155;border:1px solid #e2e8f0}.status{color:#047857;background:#ecfdf5;border:1px solid #bbf7d0}.company{font-size:18px;font-weight:900;color:#0f172a}.meta{margin-top:7px;font-size:12px;color:#64748b;font-weight:800}.contact{margin-top:8px;font-size:13px;font-weight:900;color:#0f172a}.actions{display:grid;grid-template-columns:44px 72px;grid-template-rows:72px;gap:8px;align-items:center;justify-content:end}.icon-btn{border:1px solid #e2e8f0;border-radius:14px;background:#f8fafc;color:#334155;font-size:18px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center}.icon-btn:hover{border-color:#cbd5e1;background:#f1f5f9}.start-btn{width:72px;height:72px;border:0;border-radius:10px;background:#16a34a;color:#fff;font-size:15px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 10px 22px rgba(22,163,74,.24);letter-spacing:.6px;text-transform:uppercase}.start-btn:hover{background:#15803d;transform:translateY(-1px)}.detail-head{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-bottom:18px}.detail-head-actions{display:flex;gap:10px;align-items:center}.detail-save-check{width:132px;height:46px;border:0;border-radius:14px;background:#16a34a;color:#fff;font-size:13px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 10px 22px rgba(22,163,74,.24)}.detail-save-check:hover{background:#15803d}.back{border:1px solid #bfdbfe;background:#eff6ff;color:#1d4ed8;border-radius:999px;padding:11px 16px;font-size:13px;font-weight:900;cursor:pointer}.detail-card{background:#fff;border:1px solid #dde5ee;border-radius:26px;box-shadow:0 14px 32px rgba(15,23,42,.055);overflow:hidden}.detail-top{padding:24px 28px;background:linear-gradient(135deg,#183a91,#2563eb);color:#fff}.detail-top-grid{display:grid;grid-template-columns:1fr auto;gap:18px;align-items:center}.detail-title{font-size:28px;font-weight:900;letter-spacing:-.4px}.detail-sub{margin-top:7px;font-size:13px;font-weight:700;color:rgba(255,255,255,.78)}.detail-pill{border:1px solid rgba(255,255,255,.28);background:rgba(255,255,255,.14);color:#fff;border-radius:999px;padding:11px 14px;font-size:12px;font-weight:900}.detail-body{padding:18px}.info-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.box{background:#f8fafc;border:1px solid #e2e8f0;border-radius:18px;padding:14px}.box.wide{grid-column:span 2}.box.full{grid-column:1/-1}.box-label{font-size:10px;text-transform:uppercase;font-weight:900;color:#64748b;letter-spacing:.5px}.box-value{margin-top:6px;font-size:14px;font-weight:900;color:#0f172a;line-height:1.35}.box-value a{color:#2563eb;text-decoration:none}.prep-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:12px}.prep{border:1px solid #dbe7f5;background:#fff;border-radius:18px;padding:14px}.prep-title{font-size:13px;font-weight:900;color:#183a91}.prep-text{margin-top:7px;font-size:12px;line-height:1.45;color:#64748b;font-weight:700}.note-row{margin-top:12px;display:grid;grid-template-columns:1fr 180px;gap:12px}.note{min-height:80px;resize:vertical;border:1px solid #dbe3ef;border-radius:18px;padding:13px 14px;font-size:13px;font-weight:700;font-family:Arial;outline:none}.save{border:none;border-radius:18px;background:#183a91;color:#fff;font-size:13px;font-weight:900;cursor:pointer}@media(max-width:900px){.head{grid-template-columns:1fr}.count{width:100%}.visit-row{grid-template-columns:44px 92px 1fr}.actions{grid-column:2/4;grid-template-columns:44px 72px;grid-template-rows:72px}.start-btn{width:72px;height:72px}.info-grid,.prep-grid,.note-row{grid-template-columns:1fr}.box.wide{grid-column:auto}}@media(max-width:640px){body{padding:12px}.toolbar{grid-template-columns:1fr}.visit-row{grid-template-columns:44px 1fr}.datebox{grid-column:2/3;width:92px}.actions{grid-column:1/3;grid-template-columns:44px 72px}.detail-top-grid{grid-template-columns:1fr}}
+&lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;div class=&quot;page&quot;&gt;
+  &lt;section id=&quot;listView&quot;&gt;
+    &lt;div class=&quot;head&quot;&gt;
+      &lt;div class=&quot;head-text&quot;&gt;
+        &lt;div class=&quot;label&quot;&gt;KG Portal&lt;/div&gt;
+        &lt;div class=&quot;title&quot;&gt;Besichtigungstermine&lt;/div&gt;
+        &lt;div class=&quot;sub&quot;&gt;Aus der Tagesliste übernommene Termine mit Firma, Ansprechpartner, Adresse und Kontaktdaten.&lt;/div&gt;
+      &lt;/div&gt;
+      &lt;div class=&quot;count&quot; id=&quot;visitCount&quot;&gt;4&lt;/div&gt;
+    &lt;/div&gt;
+
+    &lt;section class=&quot;card&quot;&gt;
+      &lt;div class=&quot;toolbar&quot;&gt;
+        &lt;input id=&quot;searchInput&quot; type=&quot;text&quot; placeholder=&quot;Firma, Ansprechpartner, Straße, Stadt oder PLZ suchen...&quot;&gt;
+        &lt;select id=&quot;statusFilter&quot;&gt;
+          &lt;option&gt;Alle Termine&lt;/option&gt;
+          &lt;option&gt;Offen&lt;/option&gt;
+          &lt;option&gt;Vorbereitet&lt;/option&gt;
+          &lt;option&gt;Erledigt&lt;/option&gt;
+        &lt;/select&gt;
+      &lt;/div&gt;
+      &lt;div class=&quot;list&quot; id=&quot;visitList&quot;&gt;&lt;/div&gt;
+    &lt;/section&gt;
+  &lt;/section&gt;
+
+  &lt;section id=&quot;detailView&quot; class=&quot;view-hidden&quot;&gt;
+    &lt;div class=&quot;detail-head&quot;&gt;
+      &lt;button class=&quot;back&quot; onclick=&quot;showList()&quot;&gt;← Zurück zu Besichtigungstermine&lt;/button&gt;
+      &lt;div class=&quot;detail-head-actions&quot;&gt;
+        &lt;button class=&quot;detail-save-check&quot; onclick=&quot;saveDetail()&quot;&gt;✓ Speichern&lt;/button&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+
+    &lt;section class=&quot;detail-card&quot;&gt;
+      &lt;div class=&quot;detail-top&quot;&gt;
+        &lt;div class=&quot;detail-top-grid&quot;&gt;
+          &lt;div&gt;
+            &lt;div class=&quot;label&quot;&gt;Besichtigungsseite&lt;/div&gt;
+            &lt;div class=&quot;detail-title&quot; id=&quot;detailFirma&quot;&gt;Firma&lt;/div&gt;
+            &lt;div class=&quot;detail-sub&quot; id=&quot;detailTermin&quot;&gt;Termin&lt;/div&gt;
+          &lt;/div&gt;
+          &lt;div class=&quot;detail-pill&quot; id=&quot;detailStatus&quot;&gt;Offen&lt;/div&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+
+      &lt;div class=&quot;detail-body&quot;&gt;
+        &lt;div class=&quot;info-grid&quot;&gt;
+          &lt;div class=&quot;box wide&quot;&gt;&lt;div class=&quot;box-label&quot;&gt;Firma&lt;/div&gt;&lt;div class=&quot;box-value&quot; id=&quot;firmaBox&quot;&gt;&lt;/div&gt;&lt;/div&gt;
+          &lt;div class=&quot;box&quot;&gt;&lt;div class=&quot;box-label&quot;&gt;Branche&lt;/div&gt;&lt;div class=&quot;box-value&quot; id=&quot;brancheBox&quot;&gt;&lt;/div&gt;&lt;/div&gt;
+          &lt;div class=&quot;box&quot;&gt;&lt;div class=&quot;box-label&quot;&gt;Ansprechpartner&lt;/div&gt;&lt;div class=&quot;box-value&quot; id=&quot;kontaktBox&quot;&gt;&lt;/div&gt;&lt;/div&gt;
+          &lt;div class=&quot;box&quot;&gt;&lt;div class=&quot;box-label&quot;&gt;Telefon&lt;/div&gt;&lt;div class=&quot;box-value&quot; id=&quot;telefonBox&quot;&gt;&lt;/div&gt;&lt;/div&gt;
+          &lt;div class=&quot;box&quot;&gt;&lt;div class=&quot;box-label&quot;&gt;E-Mail&lt;/div&gt;&lt;div class=&quot;box-value&quot; id=&quot;mailBox&quot;&gt;&lt;/div&gt;&lt;/div&gt;
+          &lt;div class=&quot;box wide&quot;&gt;&lt;div class=&quot;box-label&quot;&gt;Objektadresse&lt;/div&gt;&lt;div class=&quot;box-value&quot; id=&quot;adresseBox&quot;&gt;&lt;/div&gt;&lt;/div&gt;
+          &lt;div class=&quot;box&quot;&gt;&lt;div class=&quot;box-label&quot;&gt;Webseite&lt;/div&gt;&lt;div class=&quot;box-value&quot; id=&quot;webBox&quot;&gt;&lt;/div&gt;&lt;/div&gt;
+          &lt;div class=&quot;box full&quot;&gt;&lt;div class=&quot;box-label&quot;&gt;Übernommen aus Tagesliste&lt;/div&gt;&lt;div class=&quot;box-value&quot; id=&quot;sourceBox&quot;&gt;&lt;/div&gt;&lt;/div&gt;
+        &lt;/div&gt;
+
+        &lt;div class=&quot;prep-grid&quot;&gt;
+          &lt;div class=&quot;prep&quot;&gt;&lt;div class=&quot;prep-title&quot;&gt;1. Ankunft&lt;/div&gt;&lt;div class=&quot;prep-text&quot;&gt;Adresse prüfen, Ansprechpartner nennen lassen und Objektbereich bestätigen.&lt;/div&gt;&lt;/div&gt;
+          &lt;div class=&quot;prep&quot;&gt;&lt;div class=&quot;prep-title&quot;&gt;2. Objekt aufnehmen&lt;/div&gt;&lt;div class=&quot;prep-text&quot;&gt;Flächen, Räume, WC, Küche, Bodenarten und besondere Bereiche notieren.&lt;/div&gt;&lt;/div&gt;
+          &lt;div class=&quot;prep&quot;&gt;&lt;div class=&quot;prep-title&quot;&gt;3. Bedarf klären&lt;/div&gt;&lt;div class=&quot;prep-text&quot;&gt;Häufigkeit, gewünschte Zeiten, Startdatum und aktuelle Probleme abfragen.&lt;/div&gt;&lt;/div&gt;
+          &lt;div class=&quot;prep&quot;&gt;&lt;div class=&quot;prep-title&quot;&gt;4. Angebot vorbereiten&lt;/div&gt;&lt;div class=&quot;prep-text&quot;&gt;Nach Besichtigung alle Daten sauber für Angebot und Leistungsverzeichnis übernehmen.&lt;/div&gt;&lt;/div&gt;
+        &lt;/div&gt;
+
+        &lt;div class=&quot;note-row&quot;&gt;
+          &lt;textarea class=&quot;note&quot; placeholder=&quot;Notiz zur Besichtigung / wichtige Punkte...&quot;&gt;&lt;/textarea&gt;
+          &lt;button class=&quot;save&quot;&gt;Notiz speichern&lt;/button&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+    &lt;/section&gt;
+  &lt;/section&gt;
+&lt;/div&gt;
+
+&lt;script&gt;
+const besichtigungen=[
+ {status:&#x27;Offen&#x27;,tag:&#x27;Praxis&#x27;,firma:&#x27;Nordrhein Medizinzentrum GmbH&#x27;,datum:&#x27;2026-04-27&#x27;,zeit:&#x27;10:30&#x27;,kontakt:&#x27;Frau Dr. Hohenberg&#x27;,tel:&#x27;0203 000000&#x27;,mail:&#x27;info@med-nordrhein.de&#x27;,web:&#x27;www.med-nordrhein.de&#x27;,str:&#x27;Königsallee 10&#x27;,plz:&#x27;40212&#x27;,ort:&#x27;Düsseldorf&#x27;,quelle:&#x27;Tagesliste · Besichtigung · 27.04.2026 · Sehr geehrte Damen und Herren&#x27;},
+ {status:&#x27;Vorbereitet&#x27;,tag:&#x27;Kanzlei&#x27;,firma:&#x27;Schwertfeger Rechtsanwälte&#x27;,datum:&#x27;2026-04-28&#x27;,zeit:&#x27;14:00&#x27;,kontakt:&#x27;Herr Schwertfeger&#x27;,tel:&#x27;0211 000000&#x27;,mail:&#x27;kanzlei@schwertfeger.de&#x27;,web:&#x27;www.schwertfeger.de&#x27;,str:&#x27;Breite Str. 20&#x27;,plz:&#x27;40213&#x27;,ort:&#x27;Düsseldorf&#x27;,quelle:&#x27;Tagesliste · Besichtigung · 28.04.2026 · Ansprechpartner&#x27;},
+ {status:&#x27;Offen&#x27;,tag:&#x27;Fitness&#x27;,firma:&#x27;FitPoint Studio Duisburg GmbH&#x27;,datum:&#x27;2026-04-29&#x27;,zeit:&#x27;09:00&#x27;,kontakt:&#x27;Frau Keller&#x27;,tel:&#x27;0203 111111&#x27;,mail:&#x27;kontakt@fitpoint-du.de&#x27;,web:&#x27;www.fitpoint-du.de&#x27;,str:&#x27;Sternbuschweg 100&#x27;,plz:&#x27;47057&#x27;,ort:&#x27;Duisburg&#x27;,quelle:&#x27;Tagesliste · Besichtigung · 29.04.2026 · Ansprechpartner&#x27;},
+ {status:&#x27;Offen&#x27;,tag:&#x27;Büro&#x27;,firma:&#x27;Rhein Büroservice AG&#x27;,datum:&#x27;2026-04-30&#x27;,zeit:&#x27;11:15&#x27;,kontakt:&#x27;Empfang&#x27;,tel:&#x27;0211 222222&#x27;,mail:&#x27;service@rhein-buero.de&#x27;,web:&#x27;www.rhein-buero.de&#x27;,str:&#x27;Hansaallee 150&#x27;,plz:&#x27;40549&#x27;,ort:&#x27;Düsseldorf&#x27;,quelle:&#x27;Tagesliste · Besichtigung · 30.04.2026 · Sehr geehrte Damen und Herren&#x27;}
+];
+function deDate(value){return new Date(value+&#x27;T00:00:00&#x27;).toLocaleDateString(&#x27;de-DE&#x27;,{weekday:&#x27;long&#x27;,day:&#x27;2-digit&#x27;,month:&#x27;long&#x27;,year:&#x27;numeric&#x27;})}
+function shortDay(value){return new Date(value+&#x27;T00:00:00&#x27;).toLocaleDateString(&#x27;de-DE&#x27;,{day:&#x27;2-digit&#x27;})}
+function shortMonth(value){return new Date(value+&#x27;T00:00:00&#x27;).toLocaleDateString(&#x27;de-DE&#x27;,{month:&#x27;short&#x27;}).replace(&#x27;.&#x27;,&#x27;&#x27;)}
+function matches(v){const q=document.getElementById(&#x27;searchInput&#x27;).value.trim().toLowerCase();const f=document.getElementById(&#x27;statusFilter&#x27;).value;const hay=[v.status,v.tag,v.firma,v.datum,v.zeit,v.kontakt,v.tel,v.mail,v.web,v.str,v.plz,v.ort,v.quelle].join(&#x27; &#x27;).toLowerCase();const textOk=!q||hay.includes(q);const statusOk=f===&#x27;Alle Termine&#x27;||v.status===f;return textOk&amp;&amp;statusOk}
+function renderVisits(){const list=document.getElementById(&#x27;visitList&#x27;);const filtered=besichtigungen.filter(matches);document.getElementById(&#x27;visitCount&#x27;).textContent=filtered.length;list.innerHTML=filtered.map((v,i)=&gt;`
+ &lt;div class=&quot;visit&quot;&gt;
+  &lt;div class=&quot;visit-row&quot;&gt;
+   &lt;div class=&quot;drag-handle&quot;&gt;☰&lt;/div&gt;
+   &lt;div class=&quot;datebox&quot;&gt;&lt;div class=&quot;date-day&quot;&gt;${shortDay(v.datum)}&lt;/div&gt;&lt;div class=&quot;date-month&quot;&gt;${shortMonth(v.datum)}&lt;/div&gt;&lt;div class=&quot;date-time&quot;&gt;${v.zeit}&lt;/div&gt;&lt;/div&gt;
+   &lt;div&gt;
+    &lt;div class=&quot;kicker&quot;&gt;&lt;span class=&quot;badge&quot;&gt;${v.tag}&lt;/span&gt;&lt;span class=&quot;status&quot;&gt;${v.status}&lt;/span&gt;&lt;/div&gt;
+    &lt;div class=&quot;company&quot;&gt;${v.firma}&lt;/div&gt;
+    &lt;div class=&quot;meta&quot;&gt;${v.str} · ${v.plz} ${v.ort}&lt;/div&gt;
+    &lt;div class=&quot;contact&quot;&gt;${v.kontakt} · ${v.tel}&lt;/div&gt;
+   &lt;/div&gt;
+   &lt;div class=&quot;actions&quot;&gt;
+    &lt;button class=&quot;icon-btn&quot; title=&quot;Daten prüfen&quot; onclick=&quot;openDetail(${besichtigungen.indexOf(v)})&quot;&gt;✎&lt;/button&gt;
+    &lt;button class=&quot;start-btn&quot; onclick=&quot;startBesichtigung(${besichtigungen.indexOf(v)})&quot;&gt;START&lt;/button&gt;
+   &lt;/div&gt;
+  &lt;/div&gt;
+ &lt;/div&gt;`).join(&#x27;&#x27;)||&#x27;&lt;div class=&quot;visit&quot;&gt;&lt;div class=&quot;visit-row&quot;&gt;&lt;div&gt;&lt;/div&gt;&lt;div&gt;&lt;/div&gt;&lt;div&gt;&lt;div class=&quot;company&quot;&gt;Keine Termine gefunden&lt;/div&gt;&lt;div class=&quot;meta&quot;&gt;Suche oder Filter ändern.&lt;/div&gt;&lt;/div&gt;&lt;div&gt;&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;&#x27;;setupSortable()}
+let currentDetailIndex=null;
+function openDetail(index){currentDetailIndex=index;const v=besichtigungen[index];if(!v)return;document.getElementById(&#x27;detailFirma&#x27;).textContent=v.firma;document.getElementById(&#x27;detailTermin&#x27;).textContent=deDate(v.datum)+&#x27; · &#x27;+v.zeit+&#x27; Uhr&#x27;;document.getElementById(&#x27;detailStatus&#x27;).textContent=v.status;document.getElementById(&#x27;firmaBox&#x27;).textContent=v.firma;document.getElementById(&#x27;brancheBox&#x27;).textContent=v.tag;document.getElementById(&#x27;kontaktBox&#x27;).textContent=v.kontakt;document.getElementById(&#x27;telefonBox&#x27;).innerHTML=&#x27;&lt;a href=&quot;tel:&#x27;+v.tel.replaceAll(&#x27; &#x27;,&#x27;&#x27;)+&#x27;&quot;&gt;&#x27;+v.tel+&#x27;&lt;/a&gt;&#x27;;document.getElementById(&#x27;mailBox&#x27;).innerHTML=&#x27;&lt;a href=&quot;mailto:&#x27;+v.mail+&#x27;&quot;&gt;&#x27;+v.mail+&#x27;&lt;/a&gt;&#x27;;document.getElementById(&#x27;adresseBox&#x27;).textContent=v.str+&#x27;, &#x27;+v.plz+&#x27; &#x27;+v.ort;document.getElementById(&#x27;webBox&#x27;).innerHTML=&#x27;&lt;a href=&quot;#&quot;&gt;&#x27;+v.web+&#x27;&lt;/a&gt;&#x27;;document.getElementById(&#x27;sourceBox&#x27;).textContent=v.quelle;document.getElementById(&#x27;listView&#x27;).classList.add(&#x27;view-hidden&#x27;);document.getElementById(&#x27;detailView&#x27;).classList.remove(&#x27;view-hidden&#x27;)}
+function showList(){document.getElementById(&#x27;detailView&#x27;).classList.add(&#x27;view-hidden&#x27;);document.getElementById(&#x27;listView&#x27;).classList.remove(&#x27;view-hidden&#x27;)}
+function saveDetail(){if(currentDetailIndex===null||!besichtigungen[currentDetailIndex])return;besichtigungen[currentDetailIndex].status=&#x27;Vorbereitet&#x27;;document.getElementById(&#x27;detailStatus&#x27;).textContent=&#x27;Vorbereitet&#x27;;const btn=document.querySelector(&#x27;.detail-save-check&#x27;);if(btn){btn.textContent=&#x27;✓ Gespeichert&#x27;;setTimeout(()=&gt;{btn.textContent=&#x27;✓ Speichern&#x27;},1400)}}
+function markPrepared(index){if(!besichtigungen[index])return;besichtigungen[index].status=&#x27;Vorbereitet&#x27;;renderVisits()}
+function startBesichtigung(index){const v=besichtigungen[index];if(!v)return;const params=new URLSearchParams({kunde:v.firma,ansprechpartner:v.kontakt,adresse:v.str,plz:v.plz,ort:v.ort,datum:new Date(v.datum+&#x27;T00:00:00&#x27;).toLocaleDateString(&#x27;de-DE&#x27;,{day:&#x27;2-digit&#x27;,month:&#x27;2-digit&#x27;,year:&#x27;numeric&#x27;}),uhrzeit:v.zeit,email:v.mail,telefon:v.tel,leistungsart:v.tag});window.location.href=&#x27;besichtigung.html?&#x27;+params.toString()}
+function setupSortable(){const list=document.getElementById(&#x27;visitList&#x27;);if(list&amp;&amp;window.Sortable){if(list.dataset.sortableReady===&#x27;true&#x27;)return;list.dataset.sortableReady=&#x27;true&#x27;;new Sortable(list,{animation:180,draggable:&#x27;.visit&#x27;,handle:&#x27;.drag-handle&#x27;})}}
+document.getElementById(&#x27;searchInput&#x27;).addEventListener(&#x27;input&#x27;,renderVisits);document.getElementById(&#x27;statusFilter&#x27;).addEventListener(&#x27;change&#x27;,renderVisits);renderVisits();
+&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;"></iframe>
+        </section>
+
+
+        <section id="angebotView" class="view-hidden">
+            <div class="day-head">
+                <div class="day-title">
+                    <h2>Angebot Warteliste</h2>
+                    <div class="day-date">Abgeschlossene Besichtigungen als Angebot vorbereiten</div>
+                </div>
+
+                <div class="day-actions">
+                    <button class="day-btn" onclick="showMainPage()">Zurück zur Datenbank</button>
+                </div>
+            </div>
+
+<iframe title="KG Portal Angebot Warteliste" style="width:100%;height:1450px;border:0;border-radius:22px;display:block;background:#e9eef5;" srcdoc="&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;de&quot;&gt;
+&lt;head&gt;
+&lt;meta charset=&quot;UTF-8&quot;&gt;
+&lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot;&gt;
+&lt;title&gt;Angebot Warteliste Test&lt;/title&gt;
+&lt;script src=&quot;https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js&quot;&gt;&lt;/script&gt;
+&lt;style&gt;
+*{box-sizing:border-box}html,body{margin:0;padding:0}body{background:#e9eef5;font-family:Arial,Helvetica,sans-serif;color:#0f172a;padding:18px}.page{width:min(100%,1180px);margin:0 auto}.view-hidden{display:none!important}.head{display:grid;grid-template-columns:1fr auto;gap:18px;align-items:center;margin-bottom:18px;padding:24px 28px;border-radius:24px;background:linear-gradient(135deg,#183a91,#2563eb);color:#fff;box-shadow:0 16px 34px rgba(24,58,145,.16);position:relative;overflow:hidden}.head:after{content:&quot;&quot;;position:absolute;right:-90px;top:-100px;width:260px;height:260px;border-radius:50%;background:rgba(255,255,255,.09)}.head:before{content:&quot;&quot;;position:absolute;right:70px;bottom:-90px;width:190px;height:190px;border-radius:50%;background:rgba(255,255,255,.08)}.head-text{position:relative;z-index:1}.label{display:inline-flex;margin-bottom:8px;padding:7px 11px;border-radius:999px;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.22);font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:.65px;color:#fff}.title{font-size:27px;font-weight:900;letter-spacing:-.35px}.sub{margin-top:6px;font-size:13px;font-weight:700;color:rgba(255,255,255,.78)}.head-stats{position:relative;z-index:1;display:grid;grid-template-columns:repeat(4,104px);gap:10px}.count{height:86px;border-radius:22px;background:#fff;color:#183a91;display:flex;flex-direction:column;align-items:center;justify-content:center;box-shadow:inset 0 0 0 1px rgba(24,58,145,.06)}.count-number{font-size:34px;font-weight:900;line-height:1}.count-label{margin-top:6px;font-size:9px;font-weight:900;text-transform:uppercase;letter-spacing:.35px;color:#2563eb;text-align:center;line-height:1.15}.card{border:1px solid #dde5ee;background:#fff;border-radius:24px;box-shadow:0 14px 32px rgba(15,23,42,.055);overflow:hidden}.toolbar{display:grid;grid-template-columns:1fr 190px;gap:12px;padding:16px;border-bottom:1px solid #edf2f7;background:#fff}.toolbar input,.toolbar select{border:1px solid #d8e1ea;background:#f8fafc;border-radius:16px;padding:13px 15px;font-size:13px;font-weight:800;color:#111827;outline:none}.toolbar input:focus,.toolbar select:focus{border-color:#2563eb;box-shadow:0 0 0 3px rgba(37,99,235,.12)}.list{padding:16px;display:flex;flex-direction:column;gap:12px}.offer{position:relative;border:1px solid #dce6ef;background:linear-gradient(180deg,#fff,#fbfcfe);border-radius:22px;box-shadow:0 10px 24px rgba(15,23,42,.045);overflow:hidden;transition:.18s}.offer:hover{border-color:#93c5fd;box-shadow:0 16px 34px rgba(37,99,235,.12);transform:translateY(-1px)}.offer:before{content:&quot;&quot;;position:absolute;left:0;top:0;width:5px;height:100%;background:linear-gradient(180deg,#183a91,#2563eb)}.offer.sortable-ghost{opacity:.35}.offer.sortable-chosen{border-color:#2563eb;box-shadow:0 16px 34px rgba(37,99,235,.18)}.offer-row{display:grid;grid-template-columns:44px 92px 1fr 560px;gap:14px;align-items:center;padding:16px 16px 16px 20px}.drag-handle{width:40px;height:64px;border-radius:16px;background:#f8fafc;border:1px solid #e2e8f0;color:#64748b;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:900;cursor:grab;user-select:none;line-height:1}.drag-handle:active{cursor:grabbing}.datebox{height:74px;border-radius:20px;background:#eff6ff;border:1px solid #bfdbfe;color:#1d4ed8;display:flex;flex-direction:column;align-items:center;justify-content:center}.date-day{font-size:25px;font-weight:900;line-height:1}.date-month{margin-top:3px;font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:.6px}.date-time{margin-top:4px;font-size:12px;font-weight:900;color:#183a91}.kicker{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:7px}.badge,.status{display:inline-flex;align-items:center;border-radius:999px;padding:6px 9px;font-size:11px;font-weight:900}.badge{background:#f1f5f9;color:#334155;border:1px solid #e2e8f0}.status{color:#b91c1c;background:#fef2f2;border:1px solid #fecaca}.status.ready{color:#047857;background:#ecfdf5;border:1px solid #bbf7d0}.status.sent{color:#b91c1c;background:#fef2f2;border:1px solid #fecaca}.status.confirmed{color:#047857;background:#ecfdf5;border:1px solid #bbf7d0}.status.rejected{color:#b91c1c;background:#fef2f2;border:1px solid #fecaca}.company{font-size:18px;font-weight:900;color:#0f172a}.meta{margin-top:7px;font-size:12px;color:#64748b;font-weight:800}.contact{margin-top:8px;font-size:13px;font-weight:900;color:#0f172a}.price{margin-top:7px;font-size:13px;font-weight:900;color:#183a91}.actions{display:grid;grid-template-columns:44px 104px 104px 104px 104px 44px;grid-template-rows:72px;gap:8px;align-items:center;justify-content:end}.icon-btn{border:1px solid #e2e8f0;border-radius:14px;background:#f8fafc;color:#334155;font-size:18px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center}.icon-btn:hover{border-color:#cbd5e1;background:#f1f5f9}.create-btn{width:104px;height:72px;border:0;border-radius:10px;background:#183a91;color:#fff;font-size:12px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 10px 22px rgba(24,58,145,.22);letter-spacing:.3px;text-transform:uppercase;text-align:center;line-height:1.15}.create-btn.active{background:#183a91;box-shadow:0 10px 22px rgba(24,58,145,.22)}.create-btn:hover{background:#122f78;transform:translateY(-1px)}.create-btn.active:hover{background:#122f78;transform:translateY(-1px)}.send-btn{width:104px;height:72px;border:0;border-radius:10px;background:linear-gradient(135deg,#d97706 0%,#f59e0b 100%);color:#fff;font-size:12px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 10px 22px rgba(217,119,6,.24);letter-spacing:.3px;text-transform:uppercase;text-align:center;line-height:1.15}.send-btn:hover{background:linear-gradient(135deg,#b45309 0%,#d97706 100%);transform:translateY(-1px)}.confirm-btn{width:104px;height:72px;border:0;border-radius:10px;background:#16a34a;color:#fff;font-size:12px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 10px 22px rgba(22,163,74,.24);letter-spacing:.3px;text-transform:uppercase;text-align:center;line-height:1.15}.confirm-btn:hover{background:#15803d;transform:translateY(-1px)}.confirm-btn.active{border:0;background:#16a34a;color:#fff;box-shadow:0 10px 22px rgba(22,163,74,.24)}.confirm-btn.active:hover{background:#15803d;transform:translateY(-1px)}.reject-btn{width:104px;height:72px;border:0;border-radius:10px;background:#dc2626;color:#fff;font-size:12px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 10px 22px rgba(220,38,38,.24);letter-spacing:.3px;text-transform:uppercase;text-align:center;line-height:1.15}.reject-btn:hover{background:#b91c1c;transform:translateY(-1px)}.reject-btn.active{background:#b91c1c;color:#fff;box-shadow:0 10px 22px rgba(185,28,28,.24)}.delete-btn{width:44px;height:72px;border:1px solid #fecaca;border-radius:10px;background:#fef2f2;color:#dc2626;font-size:18px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 10px 22px rgba(220,38,38,.12)}.delete-btn:hover{background:#dc2626;color:#fff;transform:translateY(-1px)}.delete-modal{position:fixed;inset:0;background:rgba(15,23,42,.45);display:none;align-items:center;justify-content:center;z-index:9999;padding:18px}.delete-modal.open{display:flex}.delete-box{width:min(100%,360px);background:#fff;border:1px solid #dbe3ef;border-radius:22px;box-shadow:0 22px 55px rgba(15,23,42,.22);padding:20px}.delete-title{font-size:19px;font-weight:900;color:#0f172a}.delete-text{margin-top:8px;font-size:13px;font-weight:700;color:#64748b;line-height:1.45}.delete-actions{margin-top:18px;display:grid;grid-template-columns:1fr 1fr;gap:10px}.delete-cancel,.delete-ok{height:44px;border:0;border-radius:14px;font-size:13px;font-weight:900;cursor:pointer}.delete-cancel{background:#f1f5f9;color:#475569}.delete-ok{background:#dc2626;color:#fff}.delete-ok:hover{background:#b91c1c}.detail-head{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-bottom:18px}.detail-head-actions{display:flex;gap:10px;align-items:center}.detail-save-check{width:132px;height:46px;border:0;border-radius:14px;background:#16a34a;color:#fff;font-size:13px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 10px 22px rgba(22,163,74,.24)}.detail-save-check:hover{background:#15803d}.back{border:1px solid #bfdbfe;background:#eff6ff;color:#1d4ed8;border-radius:999px;padding:11px 16px;font-size:13px;font-weight:900;cursor:pointer}.detail-card{background:#fff;border:1px solid #dde5ee;border-radius:26px;box-shadow:0 14px 32px rgba(15,23,42,.055);overflow:hidden}.detail-top{padding:24px 28px;background:linear-gradient(135deg,#183a91,#2563eb);color:#fff}.detail-top-grid{display:grid;grid-template-columns:1fr auto;gap:18px;align-items:center}.detail-title{font-size:28px;font-weight:900;letter-spacing:-.4px}.detail-sub{margin-top:7px;font-size:13px;font-weight:700;color:rgba(255,255,255,.78)}.detail-pill{border:1px solid rgba(255,255,255,.28);background:rgba(255,255,255,.14);color:#fff;border-radius:999px;padding:11px 14px;font-size:12px;font-weight:900}.detail-body{padding:18px}.info-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.box{background:#f8fafc;border:1px solid #e2e8f0;border-radius:18px;padding:14px}.box.wide{grid-column:span 2}.box.full{grid-column:1/-1}.box-label{font-size:10px;text-transform:uppercase;font-weight:900;color:#64748b;letter-spacing:.5px}.box-value{margin-top:6px;font-size:14px;font-weight:900;color:#0f172a;line-height:1.35}.box-value a{color:#2563eb;text-decoration:none}.prep-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:12px}.prep{border:1px solid #dbe7f5;background:#fff;border-radius:18px;padding:14px}.prep-title{font-size:13px;font-weight:900;color:#183a91}.prep-text{margin-top:7px;font-size:12px;line-height:1.45;color:#64748b;font-weight:700}.note-row{margin-top:12px;display:grid;grid-template-columns:1fr 180px;gap:12px}.note{min-height:80px;resize:vertical;border:1px solid #dbe3ef;border-radius:18px;padding:13px 14px;font-size:13px;font-weight:700;font-family:Arial;outline:none}.save{border:none;border-radius:18px;background:#183a91;color:#fff;font-size:13px;font-weight:900;cursor:pointer}@media(max-width:980px){.head{grid-template-columns:1fr}.head-stats{grid-template-columns:repeat(4,1fr)}.count{width:100%}.offer-row{grid-template-columns:44px 92px 1fr}.actions{grid-column:2/4;grid-template-columns:44px 104px 104px 104px 104px 44px;grid-template-rows:72px}.info-grid,.prep-grid,.note-row{grid-template-columns:1fr}.box.wide{grid-column:auto}}@media(max-width:640px){body{padding:12px}.head-stats{grid-template-columns:repeat(2,1fr)}.toolbar{grid-template-columns:1fr}.offer-row{grid-template-columns:44px 1fr}.datebox{grid-column:2/3;width:92px}.actions{grid-column:1/3;grid-template-columns:44px 104px 104px 104px 104px 44px}.detail-top-grid{grid-template-columns:1fr}}
+&lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;div class=&quot;page&quot;&gt;
+  &lt;section id=&quot;listView&quot;&gt;
+    &lt;div class=&quot;head&quot;&gt;
+      &lt;div class=&quot;head-text&quot;&gt;
+        &lt;div class=&quot;label&quot;&gt;KG Portal&lt;/div&gt;
+        &lt;div class=&quot;title&quot;&gt;Angebot Warteliste&lt;/div&gt;
+        &lt;div class=&quot;sub&quot;&gt;Abgeschlossene Besichtigungen, die jetzt als Angebot erstellt und später per E-Mail versendet werden.&lt;/div&gt;
+      &lt;/div&gt;
+      &lt;div class=&quot;head-stats&quot;&gt;
+        &lt;div class=&quot;count&quot;&gt;&lt;div class=&quot;count-number&quot; id=&quot;createdCount&quot;&gt;0&lt;/div&gt;&lt;div class=&quot;count-label&quot;&gt;Erstellt&lt;/div&gt;&lt;/div&gt;
+        &lt;div class=&quot;count&quot;&gt;&lt;div class=&quot;count-number&quot; id=&quot;sentCount&quot;&gt;0&lt;/div&gt;&lt;div class=&quot;count-label&quot;&gt;Gesendet&lt;/div&gt;&lt;/div&gt;
+        &lt;div class=&quot;count&quot;&gt;&lt;div class=&quot;count-number&quot; id=&quot;confirmedCount&quot;&gt;0&lt;/div&gt;&lt;div class=&quot;count-label&quot;&gt;Bestätigt&lt;/div&gt;&lt;/div&gt;
+        &lt;div class=&quot;count&quot;&gt;&lt;div class=&quot;count-number&quot; id=&quot;rejectedCount&quot;&gt;0&lt;/div&gt;&lt;div class=&quot;count-label&quot;&gt;Abgelehnt&lt;/div&gt;&lt;/div&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+
+    &lt;section class=&quot;card&quot;&gt;
+      &lt;div class=&quot;toolbar&quot;&gt;
+        &lt;input id=&quot;searchInput&quot; type=&quot;text&quot; placeholder=&quot;Firma, Ansprechpartner, Straße, Stadt oder PLZ suchen...&quot;&gt;
+        &lt;select id=&quot;statusFilter&quot;&gt;
+          &lt;option&gt;Alle Angebote&lt;/option&gt;
+          &lt;option&gt;Wartet&lt;/option&gt;
+          &lt;option&gt;Erstellt&lt;/option&gt;
+          &lt;option&gt;Verschickt&lt;/option&gt;
+          &lt;option&gt;Bestätigt&lt;/option&gt;
+          &lt;option&gt;Abgelehnt&lt;/option&gt;
+        &lt;/select&gt;
+      &lt;/div&gt;
+      &lt;div class=&quot;list&quot; id=&quot;offerList&quot;&gt;&lt;/div&gt;
+    &lt;/section&gt;
+  &lt;/section&gt;
+
+  &lt;section id=&quot;detailView&quot; class=&quot;view-hidden&quot;&gt;
+    &lt;div class=&quot;detail-head&quot;&gt;
+      &lt;button class=&quot;back&quot; onclick=&quot;showList()&quot;&gt;← Zurück zur Angebot Warteliste&lt;/button&gt;
+      &lt;div class=&quot;detail-head-actions&quot;&gt;
+        &lt;button class=&quot;detail-save-check&quot; onclick=&quot;saveDetail()&quot;&gt;✓ Speichern&lt;/button&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+
+    &lt;section class=&quot;detail-card&quot;&gt;
+      &lt;div class=&quot;detail-top&quot;&gt;
+        &lt;div class=&quot;detail-top-grid&quot;&gt;
+          &lt;div&gt;
+            &lt;div class=&quot;label&quot;&gt;Angebotsdaten&lt;/div&gt;
+            &lt;div class=&quot;detail-title&quot; id=&quot;detailFirma&quot;&gt;Firma&lt;/div&gt;
+            &lt;div class=&quot;detail-sub&quot; id=&quot;detailTermin&quot;&gt;Angebot&lt;/div&gt;
+          &lt;/div&gt;
+          &lt;div class=&quot;detail-pill&quot; id=&quot;detailStatus&quot;&gt;Wartet&lt;/div&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+
+      &lt;div class=&quot;detail-body&quot;&gt;
+        &lt;div class=&quot;info-grid&quot;&gt;
+          &lt;div class=&quot;box wide&quot;&gt;&lt;div class=&quot;box-label&quot;&gt;Kunde&lt;/div&gt;&lt;div class=&quot;box-value&quot; id=&quot;firmaBox&quot;&gt;&lt;/div&gt;&lt;/div&gt;
+          &lt;div class=&quot;box&quot;&gt;&lt;div class=&quot;box-label&quot;&gt;Angebot Nr.&lt;/div&gt;&lt;div class=&quot;box-value&quot; id=&quot;nrBox&quot;&gt;&lt;/div&gt;&lt;/div&gt;
+          &lt;div class=&quot;box&quot;&gt;&lt;div class=&quot;box-label&quot;&gt;Ansprechpartner&lt;/div&gt;&lt;div class=&quot;box-value&quot; id=&quot;kontaktBox&quot;&gt;&lt;/div&gt;&lt;/div&gt;
+          &lt;div class=&quot;box&quot;&gt;&lt;div class=&quot;box-label&quot;&gt;Telefon&lt;/div&gt;&lt;div class=&quot;box-value&quot; id=&quot;telefonBox&quot;&gt;&lt;/div&gt;&lt;/div&gt;
+          &lt;div class=&quot;box&quot;&gt;&lt;div class=&quot;box-label&quot;&gt;E-Mail&lt;/div&gt;&lt;div class=&quot;box-value&quot; id=&quot;mailBox&quot;&gt;&lt;/div&gt;&lt;/div&gt;
+          &lt;div class=&quot;box wide&quot;&gt;&lt;div class=&quot;box-label&quot;&gt;Objektadresse&lt;/div&gt;&lt;div class=&quot;box-value&quot; id=&quot;adresseBox&quot;&gt;&lt;/div&gt;&lt;/div&gt;
+          &lt;div class=&quot;box&quot;&gt;&lt;div class=&quot;box-label&quot;&gt;Leistungsart&lt;/div&gt;&lt;div class=&quot;box-value&quot; id=&quot;leistungBox&quot;&gt;&lt;/div&gt;&lt;/div&gt;
+          &lt;div class=&quot;box&quot;&gt;&lt;div class=&quot;box-label&quot;&gt;Ausführungszeitraum&lt;/div&gt;&lt;div class=&quot;box-value&quot; id=&quot;zeitraumBox&quot;&gt;&lt;/div&gt;&lt;/div&gt;
+          &lt;div class=&quot;box&quot;&gt;&lt;div class=&quot;box-label&quot;&gt;Preis&lt;/div&gt;&lt;div class=&quot;box-value&quot; id=&quot;preisBox&quot;&gt;&lt;/div&gt;&lt;/div&gt;
+          &lt;div class=&quot;box full&quot;&gt;&lt;div class=&quot;box-label&quot;&gt;Quelle&lt;/div&gt;&lt;div class=&quot;box-value&quot; id=&quot;sourceBox&quot;&gt;&lt;/div&gt;&lt;/div&gt;
+        &lt;/div&gt;
+
+        &lt;div class=&quot;prep-grid&quot;&gt;
+          &lt;div class=&quot;prep&quot;&gt;&lt;div class=&quot;prep-title&quot;&gt;1. Angebot prüfen&lt;/div&gt;&lt;div class=&quot;prep-text&quot;&gt;Kunde, Objekt, Leistungsart und Preis vor Erstellung kontrollieren.&lt;/div&gt;&lt;/div&gt;
+          &lt;div class=&quot;prep&quot;&gt;&lt;div class=&quot;prep-title&quot;&gt;2. Angebot erstellen&lt;/div&gt;&lt;div class=&quot;prep-text&quot;&gt;Mit den gespeicherten Daten die Angebotvorlage öffnen und Platzhalter füllen.&lt;/div&gt;&lt;/div&gt;
+          &lt;div class=&quot;prep&quot;&gt;&lt;div class=&quot;prep-title&quot;&gt;3. PDF kontrollieren&lt;/div&gt;&lt;div class=&quot;prep-text&quot;&gt;Seiten, Preis, Ansprechpartner und Objektadresse prüfen.&lt;/div&gt;&lt;/div&gt;
+          &lt;div class=&quot;prep&quot;&gt;&lt;div class=&quot;prep-title&quot;&gt;4. Angebot senden&lt;/div&gt;&lt;div class=&quot;prep-text&quot;&gt;Später wird hier Gmail API angebunden und das Angebot direkt versendet.&lt;/div&gt;&lt;/div&gt;
+        &lt;/div&gt;
+
+        &lt;div class=&quot;note-row&quot;&gt;
+          &lt;textarea class=&quot;note&quot; placeholder=&quot;Notiz zum Angebot / Preis / Sonderwunsch...&quot;&gt;&lt;/textarea&gt;
+          &lt;button class=&quot;save&quot;&gt;Notiz speichern&lt;/button&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+    &lt;/section&gt;
+  &lt;/section&gt;
+
+  &lt;div class=&quot;delete-modal&quot; id=&quot;deleteModal&quot;&gt;
+    &lt;div class=&quot;delete-box&quot;&gt;
+      &lt;div class=&quot;delete-title&quot;&gt;Wirklich löschen?&lt;/div&gt;
+      &lt;div class=&quot;delete-text&quot;&gt;Dieses Angebot wird aus der Warteliste entfernt.&lt;/div&gt;
+      &lt;div class=&quot;delete-actions&quot;&gt;
+        &lt;button class=&quot;delete-cancel&quot; onclick=&quot;cancelDeleteAngebot()&quot;&gt;Abbrechen&lt;/button&gt;
+        &lt;button class=&quot;delete-ok&quot; onclick=&quot;confirmDeleteAngebot()&quot;&gt;Löschen&lt;/button&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+
+&lt;script&gt;
+const angebote=[
+ {status:&#x27;Wartet&#x27;,nr:&#x27;AN-2026-001&#x27;,tag:&#x27;Praxisreinigung&#x27;,firma:&#x27;Nordrhein Medizinzentrum GmbH&#x27;,datum:&#x27;2026-04-27&#x27;,zeit:&#x27;10:30&#x27;,kontakt:&#x27;Frau Dr. Hohenberg&#x27;,tel:&#x27;0203 000000&#x27;,mail:&#x27;info@med-nordrhein.de&#x27;,str:&#x27;Königsallee 10&#x27;,plz:&#x27;40212&#x27;,ort:&#x27;Düsseldorf&#x27;,leistung1:&#x27;Unterhaltsreinigung Praxis&#x27;,einheiten1:&#x27;monatlich&#x27;,preis1:&#x27;1.480,00 €&#x27;,zeitraum:&#x27;ab 01.05.2026&#x27;,quelle:&#x27;Besichtigung abgeschlossen · 27.04.2026&#x27;},
+ {status:&#x27;Wartet&#x27;,nr:&#x27;AN-2026-002&#x27;,tag:&#x27;Büroreinigung&#x27;,firma:&#x27;Schwertfeger Rechtsanwälte&#x27;,datum:&#x27;2026-04-28&#x27;,zeit:&#x27;14:00&#x27;,kontakt:&#x27;Herr Schwertfeger&#x27;,tel:&#x27;0211 000000&#x27;,mail:&#x27;kanzlei@schwertfeger.de&#x27;,str:&#x27;Breite Str. 20&#x27;,plz:&#x27;40213&#x27;,ort:&#x27;Düsseldorf&#x27;,leistung1:&#x27;Büroreinigung&#x27;,einheiten1:&#x27;monatlich&#x27;,preis1:&#x27;860,00 €&#x27;,zeitraum:&#x27;ab 01.05.2026&#x27;,quelle:&#x27;Besichtigung abgeschlossen · 28.04.2026&#x27;},
+ {status:&#x27;Wartet&#x27;,nr:&#x27;AN-2026-003&#x27;,tag:&#x27;Fitnessstudio&#x27;,firma:&#x27;FitPoint Studio Duisburg GmbH&#x27;,datum:&#x27;2026-04-29&#x27;,zeit:&#x27;09:00&#x27;,kontakt:&#x27;Frau Keller&#x27;,tel:&#x27;0203 111111&#x27;,mail:&#x27;kontakt@fitpoint-du.de&#x27;,str:&#x27;Sternbuschweg 100&#x27;,plz:&#x27;47057&#x27;,ort:&#x27;Duisburg&#x27;,leistung1:&#x27;Fitnessstudio Reinigung&#x27;,einheiten1:&#x27;monatlich&#x27;,preis1:&#x27;2.250,00 €&#x27;,zeitraum:&#x27;ab 15.05.2026&#x27;,quelle:&#x27;Besichtigung abgeschlossen · 29.04.2026&#x27;}
+];
+angebote.forEach(v=&gt;{v.created=v.status===&#x27;Erstellt&#x27;;v.sent=v.status===&#x27;Verschickt&#x27;;v.confirmed=v.status===&#x27;Bestätigt&#x27;;v.rejected=v.status===&#x27;Abgelehnt&#x27;;v.deleted=false});
+function getOfferStatus(v){if(v.rejected)return &#x27;Abgelehnt&#x27;;if(v.confirmed)return &#x27;Bestätigt&#x27;;if(v.sent)return &#x27;Verschickt&#x27;;if(v.created)return &#x27;Erstellt&#x27;;return &#x27;Wartet&#x27;}
+function deDate(value){return new Date(value+&#x27;T00:00:00&#x27;).toLocaleDateString(&#x27;de-DE&#x27;,{weekday:&#x27;long&#x27;,day:&#x27;2-digit&#x27;,month:&#x27;long&#x27;,year:&#x27;numeric&#x27;})}
+function shortDay(value){return new Date(value+&#x27;T00:00:00&#x27;).toLocaleDateString(&#x27;de-DE&#x27;,{day:&#x27;2-digit&#x27;})}
+function shortMonth(value){return new Date(value+&#x27;T00:00:00&#x27;).toLocaleDateString(&#x27;de-DE&#x27;,{month:&#x27;short&#x27;}).replace(&#x27;.&#x27;,&#x27;&#x27;)}
+function matches(v){const q=document.getElementById(&#x27;searchInput&#x27;).value.trim().toLowerCase();const f=document.getElementById(&#x27;statusFilter&#x27;).value;const hay=[getOfferStatus(v),v.nr,v.tag,v.firma,v.datum,v.zeit,v.kontakt,v.tel,v.mail,v.str,v.plz,v.ort,v.leistung1,v.preis1,v.zeitraum,v.quelle].join(&#x27; &#x27;).toLowerCase();const textOk=!q||hay.includes(q);const statusOk=f===&#x27;Alle Angebote&#x27;||getOfferStatus(v)===f;return textOk&amp;&amp;statusOk}
+function renderOffers(){const list=document.getElementById(&#x27;offerList&#x27;);const activeOffers=angebote.filter(v=&gt;!v.deleted);const filtered=activeOffers.filter(matches);document.getElementById(&#x27;createdCount&#x27;).textContent=activeOffers.filter(v=&gt;v.created).length;document.getElementById(&#x27;sentCount&#x27;).textContent=activeOffers.filter(v=&gt;v.sent).length;document.getElementById(&#x27;confirmedCount&#x27;).textContent=activeOffers.filter(v=&gt;v.confirmed).length;document.getElementById(&#x27;rejectedCount&#x27;).textContent=activeOffers.filter(v=&gt;v.rejected).length;list.innerHTML=filtered.map((v,i)=&gt;`
+ &lt;div class=&quot;offer&quot;&gt;
+  &lt;div class=&quot;offer-row&quot;&gt;
+   &lt;div class=&quot;drag-handle&quot;&gt;☰&lt;/div&gt;
+   &lt;div class=&quot;datebox&quot;&gt;&lt;div class=&quot;date-day&quot;&gt;${shortDay(v.datum)}&lt;/div&gt;&lt;div class=&quot;date-month&quot;&gt;${shortMonth(v.datum)}&lt;/div&gt;&lt;div class=&quot;date-time&quot;&gt;${v.zeit}&lt;/div&gt;&lt;/div&gt;
+   &lt;div&gt;
+    &lt;div class=&quot;kicker&quot;&gt;&lt;span class=&quot;badge&quot;&gt;${v.nr}&lt;/span&gt;&lt;span class=&quot;badge&quot;&gt;${v.tag}&lt;/span&gt;&lt;span class=&quot;status ${getOfferStatus(v)===&#x27;Erstellt&#x27;?&#x27;ready&#x27;:(getOfferStatus(v)===&#x27;Verschickt&#x27;?&#x27;sent&#x27;:(getOfferStatus(v)===&#x27;Bestätigt&#x27;?&#x27;confirmed&#x27;:(getOfferStatus(v)===&#x27;Abgelehnt&#x27;?&#x27;rejected&#x27;:&#x27;&#x27;)))}&quot;&gt;${getOfferStatus(v)}&lt;/span&gt;&lt;/div&gt;
+    &lt;div class=&quot;company&quot;&gt;${v.firma}&lt;/div&gt;
+    &lt;div class=&quot;meta&quot;&gt;${v.str} · ${v.plz} ${v.ort}&lt;/div&gt;
+    &lt;div class=&quot;contact&quot;&gt;${v.kontakt} · ${v.tel}&lt;/div&gt;
+    &lt;div class=&quot;price&quot;&gt;${v.leistung1} · ${v.preis1}&lt;/div&gt;
+   &lt;/div&gt;
+   &lt;div class=&quot;actions&quot;&gt;
+    &lt;button class=&quot;icon-btn&quot; title=&quot;Daten prüfen&quot; onclick=&quot;openDetail(${angebote.indexOf(v)})&quot;&gt;✎&lt;/button&gt;
+    &lt;button class=&quot;create-btn ${v.created?&#x27;active&#x27;:&#x27;&#x27;}&quot; onmousedown=&quot;startCreateHold(${angebote.indexOf(v)},event)&quot; onmouseup=&quot;clearCreateHold()&quot; onmouseleave=&quot;clearCreateHold()&quot; ontouchstart=&quot;startCreateHold(${angebote.indexOf(v)},event)&quot; ontouchend=&quot;clearCreateHold()&quot; onclick=&quot;createAngebot(${angebote.indexOf(v)},event)&quot;&gt;${v.created?&#x27;Erstellt&#x27;:&#x27;Angebot erstellen&#x27;}&lt;/button&gt;
+    &lt;button class=&quot;send-btn&quot; onclick=&quot;sendAngebot(${angebote.indexOf(v)},event)&quot;&gt;${v.sent?&#x27;Verschickt&#x27;:&#x27;Angebot senden&#x27;}&lt;/button&gt;
+    &lt;button class=&quot;confirm-btn ${v.confirmed?&#x27;active&#x27;:&#x27;&#x27;}&quot; onmousedown=&quot;startConfirmHold(${angebote.indexOf(v)},event)&quot; onmouseup=&quot;clearConfirmHold()&quot; onmouseleave=&quot;clearConfirmHold()&quot; ontouchstart=&quot;startConfirmHold(${angebote.indexOf(v)},event)&quot; ontouchend=&quot;clearConfirmHold()&quot; onclick=&quot;confirmAngebot(${angebote.indexOf(v)},event)&quot;&gt;${v.confirmed?&#x27;Bestätigt&#x27;:&#x27;Bestätigen&#x27;}&lt;/button&gt;
+    &lt;button class=&quot;reject-btn ${v.rejected?&#x27;active&#x27;:&#x27;&#x27;}&quot; onmousedown=&quot;startRejectHold(${angebote.indexOf(v)},event)&quot; onmouseup=&quot;clearRejectHold()&quot; onmouseleave=&quot;clearRejectHold()&quot; ontouchstart=&quot;startRejectHold(${angebote.indexOf(v)},event)&quot; ontouchend=&quot;clearRejectHold()&quot; onclick=&quot;rejectAngebot(${angebote.indexOf(v)},event)&quot;&gt;${v.rejected?&#x27;Abgelehnt&#x27;:&#x27;Ablehnen&#x27;}&lt;/button&gt;
+    &lt;button class=&quot;delete-btn&quot; title=&quot;Löschen&quot; onclick=&quot;deleteAngebot(${angebote.indexOf(v)},event)&quot;&gt;🗑&lt;/button&gt;
+   &lt;/div&gt;
+  &lt;/div&gt;
+ &lt;/div&gt;`).join(&#x27;&#x27;)||&#x27;&lt;div class=&quot;offer&quot;&gt;&lt;div class=&quot;offer-row&quot;&gt;&lt;div&gt;&lt;/div&gt;&lt;div&gt;&lt;/div&gt;&lt;div&gt;&lt;div class=&quot;company&quot;&gt;Keine Angebote gefunden&lt;/div&gt;&lt;div class=&quot;meta&quot;&gt;Suche oder Filter ändern.&lt;/div&gt;&lt;/div&gt;&lt;div&gt;&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;&#x27;;setupSortable()}
+let currentDetailIndex=null;
+function openDetail(index){currentDetailIndex=index;const v=angebote[index];if(!v)return;document.getElementById(&#x27;detailFirma&#x27;).textContent=v.firma;document.getElementById(&#x27;detailTermin&#x27;).textContent=v.nr+&#x27; · &#x27;+deDate(v.datum);document.getElementById(&#x27;detailStatus&#x27;).textContent=getOfferStatus(v);document.getElementById(&#x27;firmaBox&#x27;).textContent=v.firma;document.getElementById(&#x27;nrBox&#x27;).textContent=v.nr;document.getElementById(&#x27;kontaktBox&#x27;).textContent=v.kontakt;document.getElementById(&#x27;telefonBox&#x27;).innerHTML=&#x27;&lt;a href=&quot;tel:&#x27;+v.tel.replaceAll(&#x27; &#x27;,&#x27;&#x27;)+&#x27;&quot;&gt;&#x27;+v.tel+&#x27;&lt;/a&gt;&#x27;;document.getElementById(&#x27;mailBox&#x27;).innerHTML=&#x27;&lt;a href=&quot;mailto:&#x27;+v.mail+&#x27;&quot;&gt;&#x27;+v.mail+&#x27;&lt;/a&gt;&#x27;;document.getElementById(&#x27;adresseBox&#x27;).textContent=v.str+&#x27;, &#x27;+v.plz+&#x27; &#x27;+v.ort;document.getElementById(&#x27;leistungBox&#x27;).textContent=v.tag;document.getElementById(&#x27;zeitraumBox&#x27;).textContent=v.zeitraum;document.getElementById(&#x27;preisBox&#x27;).textContent=v.preis1;document.getElementById(&#x27;sourceBox&#x27;).textContent=v.quelle;document.getElementById(&#x27;listView&#x27;).classList.add(&#x27;view-hidden&#x27;);document.getElementById(&#x27;detailView&#x27;).classList.remove(&#x27;view-hidden&#x27;)}
+function showList(){document.getElementById(&#x27;detailView&#x27;).classList.add(&#x27;view-hidden&#x27;);document.getElementById(&#x27;listView&#x27;).classList.remove(&#x27;view-hidden&#x27;);renderOffers()}
+function saveDetail(){if(currentDetailIndex===null||!angebote[currentDetailIndex])return;angebote[currentDetailIndex].created=true;document.getElementById(&#x27;detailStatus&#x27;).textContent=getOfferStatus(angebote[currentDetailIndex]);const btn=document.querySelector(&#x27;.detail-save-check&#x27;);if(btn){btn.textContent=&#x27;✓ Gespeichert&#x27;;setTimeout(()=&gt;{btn.textContent=&#x27;✓ Speichern&#x27;},1400)}}
+function angebotUrl(v){const params=new URLSearchParams({Nr:v.nr.replace(&#x27;AN-&#x27;,&#x27;&#x27;),Datum:new Date().toLocaleDateString(&#x27;de-DE&#x27;,{day:&#x27;2-digit&#x27;,month:&#x27;2-digit&#x27;,year:&#x27;numeric&#x27;}),Kunde:v.firma,Objekt:v.kontakt,Adresse:v.str,Plz:v.plz,Ort:v.ort,Leistungsart:v.tag,&#x27;Leistung 1&#x27;:v.leistung1,&#x27;Einheiten 1&#x27;:v.einheiten1,&#x27;Preis 1&#x27;:v.preis1,&#x27;Ausführungszeitraum&#x27;:v.zeitraum,Email:v.mail,Telefon:v.tel});return &#x27;angebotvorlage.html?&#x27;+params.toString()}
+let createHoldTimer=null;
+let createHoldDone=false;
+function startCreateHold(index,e){createHoldDone=false;clearTimeout(createHoldTimer);createHoldTimer=setTimeout(()=&gt;{createHoldDone=true;resetCreateAngebot(index)},750)}
+function clearCreateHold(){clearTimeout(createHoldTimer)}
+function resetCreateAngebot(index){const v=angebote[index];if(!v||!v.created)return;v.created=false;renderOffers()}
+let confirmHoldTimer=null;
+let confirmHoldDone=false;
+function startConfirmHold(index,e){confirmHoldDone=false;clearTimeout(confirmHoldTimer);confirmHoldTimer=setTimeout(()=&gt;{confirmHoldDone=true;resetConfirmAngebot(index)},750)}
+function clearConfirmHold(){clearTimeout(confirmHoldTimer)}
+function resetConfirmAngebot(index){const v=angebote[index];if(!v||!v.confirmed)return;v.confirmed=false;renderOffers()}
+function createAngebot(index,e){if(createHoldDone){createHoldDone=false;return}const v=angebote[index];if(!v)return;v.created=true;if(e&amp;&amp;e.currentTarget){e.currentTarget.textContent=&#x27;Erstellt&#x27;;e.currentTarget.classList.add(&#x27;active&#x27;)}renderOffers();window.open(angebotUrl(v),&#x27;_blank&#x27;)}
+function sendAngebot(index,e){const v=angebote[index];if(!v)return;v.sent=true;if(e&amp;&amp;e.currentTarget){e.currentTarget.textContent=&#x27;Verschickt&#x27;}renderOffers();window.open(angebotUrl(v),&#x27;_blank&#x27;)}
+function confirmAngebot(index,e){if(confirmHoldDone){confirmHoldDone=false;return}const v=angebote[index];if(!v)return;if(parent&amp;&amp;parent.kgMoveOfferToKunden){parent.kgMoveOfferToKunden(Object.assign({},v))}v.deleted=true;renderOffers()}
+let rejectHoldTimer=null;
+let rejectHoldDone=false;
+function startRejectHold(index,e){rejectHoldDone=false;clearTimeout(rejectHoldTimer);rejectHoldTimer=setTimeout(()=&gt;{rejectHoldDone=true;resetRejectAngebot(index)},750)}
+function clearRejectHold(){clearTimeout(rejectHoldTimer)}
+function resetRejectAngebot(index){const v=angebote[index];if(!v||!v.rejected)return;v.rejected=false;renderOffers()}
+function rejectAngebot(index,e){if(rejectHoldDone){rejectHoldDone=false;return}const v=angebote[index];if(!v)return;v.rejected=true;if(e&amp;&amp;e.currentTarget){e.currentTarget.textContent=&#x27;Abgelehnt&#x27;}renderOffers()}
+let pendingDeleteIndex=null;
+function deleteAngebot(index,e){if(e)e.stopPropagation();const v=angebote[index];if(!v)return;pendingDeleteIndex=index;document.getElementById(&#x27;deleteModal&#x27;).classList.add(&#x27;open&#x27;)}
+function cancelDeleteAngebot(){pendingDeleteIndex=null;document.getElementById(&#x27;deleteModal&#x27;).classList.remove(&#x27;open&#x27;)}
+function confirmDeleteAngebot(){if(pendingDeleteIndex===null)return;const v=angebote[pendingDeleteIndex];if(v)v.deleted=true;pendingDeleteIndex=null;document.getElementById(&#x27;deleteModal&#x27;).classList.remove(&#x27;open&#x27;);renderOffers()}
+function setupSortable(){const list=document.getElementById(&#x27;offerList&#x27;);if(list&amp;&amp;window.Sortable){if(list.dataset.sortableReady===&#x27;true&#x27;)return;list.dataset.sortableReady=&#x27;true&#x27;;new Sortable(list,{animation:180,draggable:&#x27;.offer&#x27;,handle:&#x27;.drag-handle&#x27;})}}
+document.getElementById(&#x27;searchInput&#x27;).addEventListener(&#x27;input&#x27;,renderOffers);document.getElementById(&#x27;statusFilter&#x27;).addEventListener(&#x27;change&#x27;,renderOffers);renderOffers();
+&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;"></iframe>
+        </section>
+
+
+
+        <section id="kundenView" class="view-hidden">
+            <div class="day-head">
+                <div class="day-title">
+                    <h2>Kunden geworden</h2>
+                    <div class="day-date">Bestätigte Angebote als Vertrag vorbereiten</div>
+                </div>
+
+                <div class="day-actions">
+                    <button class="day-btn" onclick="showMainPage()">Zurück zur Datenbank</button>
+                </div>
+            </div>
+
+<iframe id="kundenFrame" title="KG Portal Kunden geworden" style="width:100%;height:1450px;border:0;border-radius:22px;display:block;background:#e9eef5;" onload="kgSendKundenToFrame()" srcdoc="&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;de&quot;&gt;
+&lt;head&gt;
+&lt;meta charset=&quot;UTF-8&quot;&gt;
+&lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot;&gt;
+&lt;title&gt;Kunden geworden Test&lt;/title&gt;
+&lt;script src=&quot;https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js&quot;&gt;&lt;/script&gt;
+&lt;style&gt;
+*{box-sizing:border-box}html,body{margin:0;padding:0}body{background:#e9eef5;font-family:Arial,Helvetica,sans-serif;color:#0f172a;padding:18px}.page{width:min(100%,1180px);margin:0 auto}.view-hidden{display:none!important}.head{display:grid;grid-template-columns:1fr auto;gap:18px;align-items:center;margin-bottom:18px;padding:24px 28px;border-radius:24px;background:linear-gradient(135deg,#15803d,#22c55e);color:#fff;box-shadow:0 16px 34px rgba(21,128,61,.16);position:relative;overflow:hidden}.head:after{content:&quot;&quot;;position:absolute;right:-90px;top:-100px;width:260px;height:260px;border-radius:50%;background:rgba(255,255,255,.09)}.head:before{content:&quot;&quot;;position:absolute;right:70px;bottom:-90px;width:190px;height:190px;border-radius:50%;background:rgba(255,255,255,.08)}.head-text{position:relative;z-index:1}.label{display:inline-flex;margin-bottom:8px;padding:7px 11px;border-radius:999px;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.22);font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:.65px;color:#fff}.title{font-size:27px;font-weight:900;letter-spacing:-.35px}.sub{margin-top:6px;font-size:13px;font-weight:700;color:rgba(255,255,255,.84)}.head-stats{position:relative;z-index:1;display:grid;grid-template-columns:repeat(3,112px);gap:10px}.count{height:86px;border-radius:22px;background:#fff;color:#15803d;display:flex;flex-direction:column;align-items:center;justify-content:center;box-shadow:inset 0 0 0 1px rgba(21,128,61,.06)}.count-number{font-size:34px;font-weight:900;line-height:1}.count-label{margin-top:6px;font-size:9px;font-weight:900;text-transform:uppercase;letter-spacing:.35px;color:#16a34a;text-align:center;line-height:1.15}.card{border:1px solid #dde5ee;background:#fff;border-radius:24px;box-shadow:0 14px 32px rgba(15,23,42,.055);overflow:hidden}.toolbar{display:grid;grid-template-columns:1fr 190px;gap:12px;padding:16px;border-bottom:1px solid #edf2f7;background:#fff}.toolbar input,.toolbar select{border:1px solid #d8e1ea;background:#f8fafc;border-radius:16px;padding:13px 15px;font-size:13px;font-weight:800;color:#111827;outline:none}.toolbar input:focus,.toolbar select:focus{border-color:#16a34a;box-shadow:0 0 0 3px rgba(22,163,74,.12)}.list{padding:16px;display:flex;flex-direction:column;gap:12px}.customer{position:relative;border:1px solid #dce6ef;background:linear-gradient(180deg,#fff,#fbfcfe);border-radius:22px;box-shadow:0 10px 24px rgba(15,23,42,.045);overflow:hidden;transition:.18s}.customer:hover{border-color:#86efac;box-shadow:0 16px 34px rgba(22,163,74,.12);transform:translateY(-1px)}.customer:before{content:&quot;&quot;;position:absolute;left:0;top:0;width:5px;height:100%;background:linear-gradient(180deg,#15803d,#22c55e)}.customer.sortable-ghost{opacity:.35}.customer.sortable-chosen{border-color:#16a34a;box-shadow:0 16px 34px rgba(22,163,74,.18)}.customer-row{display:grid;grid-template-columns:44px 92px 1fr 372px;gap:14px;align-items:center;padding:16px 16px 16px 20px}.drag-handle{width:40px;height:64px;border-radius:16px;background:#f8fafc;border:1px solid #e2e8f0;color:#64748b;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:900;cursor:grab;user-select:none;line-height:1}.drag-handle:active{cursor:grabbing}.datebox{height:74px;border-radius:20px;background:#ecfdf5;border:1px solid #bbf7d0;color:#15803d;display:flex;flex-direction:column;align-items:center;justify-content:center}.date-day{font-size:25px;font-weight:900;line-height:1}.date-month{margin-top:3px;font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:.6px}.date-time{margin-top:4px;font-size:12px;font-weight:900;color:#166534}.kicker{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:7px}.badge,.status{display:inline-flex;align-items:center;border-radius:999px;padding:6px 9px;font-size:11px;font-weight:900}.badge{background:#f1f5f9;color:#334155;border:1px solid #e2e8f0}.status{color:#047857;background:#ecfdf5;border:1px solid #bbf7d0}.status.contract{color:#1d4ed8;background:#eff6ff;border:1px solid #bfdbfe}.status.sent{color:#b45309;background:#fffbeb;border:1px solid #fde68a}.company{font-size:18px;font-weight:900;color:#0f172a}.meta{margin-top:7px;font-size:12px;color:#64748b;font-weight:800}.contact{margin-top:8px;font-size:13px;font-weight:900;color:#0f172a}.price{margin-top:7px;font-size:13px;font-weight:900;color:#15803d}.actions{display:grid;grid-template-columns:44px 140px 140px 44px;grid-template-rows:72px;gap:8px;align-items:center;justify-content:end}.icon-btn{border:1px solid #e2e8f0;border-radius:14px;background:#f8fafc;color:#334155;font-size:18px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center}.icon-btn:hover{border-color:#cbd5e1;background:#f1f5f9}.contract-btn{width:140px;height:72px;border:0;border-radius:10px;background:#183a91;color:#fff;font-size:12px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 10px 22px rgba(24,58,145,.22);letter-spacing:.3px;text-transform:uppercase;text-align:center;line-height:1.15}.contract-btn:hover{background:#122f78;transform:translateY(-1px)}.contract-btn.active{background:#183a91;box-shadow:0 10px 22px rgba(24,58,145,.22)}.send-btn{width:140px;height:72px;border:0;border-radius:10px;background:linear-gradient(135deg,#d97706 0%,#f59e0b 100%);color:#fff;font-size:12px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 10px 22px rgba(217,119,6,.24);letter-spacing:.3px;text-transform:uppercase;text-align:center;line-height:1.15}.send-btn:hover{background:linear-gradient(135deg,#b45309 0%,#d97706 100%);transform:translateY(-1px)}.send-btn.active{background:linear-gradient(135deg,#b45309 0%,#d97706 100%)}.delete-btn{width:44px;height:72px;border:1px solid #fecaca;border-radius:10px;background:#fef2f2;color:#dc2626;font-size:18px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 10px 22px rgba(220,38,38,.12)}.delete-btn:hover{background:#dc2626;color:#fff;transform:translateY(-1px)}.delete-modal{position:fixed;inset:0;background:rgba(15,23,42,.45);display:none;align-items:center;justify-content:center;z-index:9999;padding:18px}.delete-modal.open{display:flex}.delete-box{width:min(100%,360px);background:#fff;border:1px solid #dbe3ef;border-radius:22px;box-shadow:0 22px 55px rgba(15,23,42,.22);padding:20px}.delete-title{font-size:19px;font-weight:900;color:#0f172a}.delete-text{margin-top:8px;font-size:13px;font-weight:700;color:#64748b;line-height:1.45}.delete-actions{margin-top:18px;display:grid;grid-template-columns:1fr 1fr;gap:10px}.delete-cancel,.delete-ok{height:44px;border:0;border-radius:14px;font-size:13px;font-weight:900;cursor:pointer}.delete-cancel{background:#f1f5f9;color:#475569}.delete-ok{background:#dc2626;color:#fff}.delete-ok:hover{background:#b91c1c}.detail-head{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-bottom:18px}.detail-head-actions{display:flex;gap:10px;align-items:center}.detail-save-check{width:132px;height:46px;border:0;border-radius:14px;background:#16a34a;color:#fff;font-size:13px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 10px 22px rgba(22,163,74,.24)}.detail-save-check:hover{background:#15803d}.back{border:1px solid #bbf7d0;background:#ecfdf5;color:#15803d;border-radius:999px;padding:11px 16px;font-size:13px;font-weight:900;cursor:pointer}.detail-card{background:#fff;border:1px solid #dde5ee;border-radius:26px;box-shadow:0 14px 32px rgba(15,23,42,.055);overflow:hidden}.detail-top{padding:24px 28px;background:linear-gradient(135deg,#15803d,#22c55e);color:#fff}.detail-top-grid{display:grid;grid-template-columns:1fr auto;gap:18px;align-items:center}.detail-title{font-size:28px;font-weight:900;letter-spacing:-.4px}.detail-sub{margin-top:7px;font-size:13px;font-weight:700;color:rgba(255,255,255,.78)}.detail-pill{border:1px solid rgba(255,255,255,.28);background:rgba(255,255,255,.14);color:#fff;border-radius:999px;padding:11px 14px;font-size:12px;font-weight:900}.detail-body{padding:18px}.info-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.box{background:#f8fafc;border:1px solid #e2e8f0;border-radius:18px;padding:14px}.box.wide{grid-column:span 2}.box.full{grid-column:1/-1}.box-label{font-size:10px;text-transform:uppercase;font-weight:900;color:#64748b;letter-spacing:.5px}.box-value{margin-top:6px;font-size:14px;font-weight:900;color:#0f172a;line-height:1.35}.box-value a{color:#16a34a;text-decoration:none}.prep-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:12px}.prep{border:1px solid #dbe7f5;background:#fff;border-radius:18px;padding:14px}.prep-title{font-size:13px;font-weight:900;color:#15803d}.prep-text{margin-top:7px;font-size:12px;line-height:1.45;color:#64748b;font-weight:700}.note-row{margin-top:12px;display:grid;grid-template-columns:1fr 180px;gap:12px}.note{min-height:80px;resize:vertical;border:1px solid #dbe3ef;border-radius:18px;padding:13px 14px;font-size:13px;font-weight:700;font-family:Arial;outline:none}.save{border:none;border-radius:18px;background:#15803d;color:#fff;font-size:13px;font-weight:900;cursor:pointer}@media(max-width:980px){.head{grid-template-columns:1fr}.head-stats{grid-template-columns:repeat(3,1fr)}.count{width:100%}.customer-row{grid-template-columns:44px 92px 1fr}.actions{grid-column:2/4;grid-template-columns:44px 140px 140px 44px;grid-template-rows:72px}.info-grid,.prep-grid,.note-row{grid-template-columns:1fr}.box.wide{grid-column:auto}}@media(max-width:640px){body{padding:12px}.head-stats{grid-template-columns:1fr}.toolbar{grid-template-columns:1fr}.customer-row{grid-template-columns:44px 1fr}.datebox{grid-column:2/3;width:92px}.actions{grid-column:1/3;grid-template-columns:44px 1fr 1fr 44px}.contract-btn,.send-btn{width:100%}.detail-top-grid{grid-template-columns:1fr}}
+&lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;div class=&quot;page&quot;&gt;
+  &lt;section id=&quot;listView&quot;&gt;
+    &lt;div class=&quot;head&quot;&gt;
+      &lt;div class=&quot;head-text&quot;&gt;
+        &lt;div class=&quot;label&quot;&gt;KG Portal&lt;/div&gt;
+        &lt;div class=&quot;title&quot;&gt;Kunden geworden&lt;/div&gt;
+        &lt;div class=&quot;sub&quot;&gt;Bestätigte Angebote, die jetzt für Vertragserstellung und Vertragsversand vorbereitet werden.&lt;/div&gt;
+      &lt;/div&gt;
+      &lt;div class=&quot;head-stats&quot;&gt;
+        &lt;div class=&quot;count&quot;&gt;&lt;div class=&quot;count-number&quot; id=&quot;customerCount&quot;&gt;0&lt;/div&gt;&lt;div class=&quot;count-label&quot;&gt;Kunden&lt;/div&gt;&lt;/div&gt;
+        &lt;div class=&quot;count&quot;&gt;&lt;div class=&quot;count-number&quot; id=&quot;contractCount&quot;&gt;0&lt;/div&gt;&lt;div class=&quot;count-label&quot;&gt;Vertrag erstellt&lt;/div&gt;&lt;/div&gt;
+        &lt;div class=&quot;count&quot;&gt;&lt;div class=&quot;count-number&quot; id=&quot;sentCount&quot;&gt;0&lt;/div&gt;&lt;div class=&quot;count-label&quot;&gt;Versendet&lt;/div&gt;&lt;/div&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+
+    &lt;section class=&quot;card&quot;&gt;
+      &lt;div class=&quot;toolbar&quot;&gt;
+        &lt;input id=&quot;searchInput&quot; type=&quot;text&quot; placeholder=&quot;Firma, Ansprechpartner, Straße, Stadt oder PLZ suchen...&quot;&gt;
+        &lt;select id=&quot;statusFilter&quot;&gt;
+          &lt;option&gt;Alle Kunden&lt;/option&gt;
+          &lt;option&gt;Bestätigt&lt;/option&gt;
+          &lt;option&gt;Vertrag erstellt&lt;/option&gt;
+          &lt;option&gt;Versendet&lt;/option&gt;
+        &lt;/select&gt;
+      &lt;/div&gt;
+      &lt;div class=&quot;list&quot; id=&quot;customerList&quot;&gt;&lt;/div&gt;
+    &lt;/section&gt;
+  &lt;/section&gt;
+
+  &lt;section id=&quot;detailView&quot; class=&quot;view-hidden&quot;&gt;
+    &lt;div class=&quot;detail-head&quot;&gt;
+      &lt;button class=&quot;back&quot; onclick=&quot;showList()&quot;&gt;← Zurück zu Kunden geworden&lt;/button&gt;
+      &lt;div class=&quot;detail-head-actions&quot;&gt;
+        &lt;button class=&quot;detail-save-check&quot; onclick=&quot;saveDetail()&quot;&gt;✓ Speichern&lt;/button&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+
+    &lt;section class=&quot;detail-card&quot;&gt;
+      &lt;div class=&quot;detail-top&quot;&gt;
+        &lt;div class=&quot;detail-top-grid&quot;&gt;
+          &lt;div&gt;
+            &lt;div class=&quot;label&quot;&gt;Kundendaten&lt;/div&gt;
+            &lt;div class=&quot;detail-title&quot; id=&quot;detailFirma&quot;&gt;Firma&lt;/div&gt;
+            &lt;div class=&quot;detail-sub&quot; id=&quot;detailTermin&quot;&gt;Vertrag&lt;/div&gt;
+          &lt;/div&gt;
+          &lt;div class=&quot;detail-pill&quot; id=&quot;detailStatus&quot;&gt;Bestätigt&lt;/div&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+
+      &lt;div class=&quot;detail-body&quot;&gt;
+        &lt;div class=&quot;info-grid&quot;&gt;
+          &lt;div class=&quot;box wide&quot;&gt;&lt;div class=&quot;box-label&quot;&gt;Kunde&lt;/div&gt;&lt;div class=&quot;box-value&quot; id=&quot;firmaBox&quot;&gt;&lt;/div&gt;&lt;/div&gt;
+          &lt;div class=&quot;box&quot;&gt;&lt;div class=&quot;box-label&quot;&gt;Vertrag Nr.&lt;/div&gt;&lt;div class=&quot;box-value&quot; id=&quot;nrBox&quot;&gt;&lt;/div&gt;&lt;/div&gt;
+          &lt;div class=&quot;box&quot;&gt;&lt;div class=&quot;box-label&quot;&gt;Ansprechpartner&lt;/div&gt;&lt;div class=&quot;box-value&quot; id=&quot;kontaktBox&quot;&gt;&lt;/div&gt;&lt;/div&gt;
+          &lt;div class=&quot;box&quot;&gt;&lt;div class=&quot;box-label&quot;&gt;Telefon&lt;/div&gt;&lt;div class=&quot;box-value&quot; id=&quot;telefonBox&quot;&gt;&lt;/div&gt;&lt;/div&gt;
+          &lt;div class=&quot;box&quot;&gt;&lt;div class=&quot;box-label&quot;&gt;E-Mail&lt;/div&gt;&lt;div class=&quot;box-value&quot; id=&quot;mailBox&quot;&gt;&lt;/div&gt;&lt;/div&gt;
+          &lt;div class=&quot;box wide&quot;&gt;&lt;div class=&quot;box-label&quot;&gt;Objektadresse&lt;/div&gt;&lt;div class=&quot;box-value&quot; id=&quot;adresseBox&quot;&gt;&lt;/div&gt;&lt;/div&gt;
+          &lt;div class=&quot;box&quot;&gt;&lt;div class=&quot;box-label&quot;&gt;Leistungsart&lt;/div&gt;&lt;div class=&quot;box-value&quot; id=&quot;leistungBox&quot;&gt;&lt;/div&gt;&lt;/div&gt;
+          &lt;div class=&quot;box&quot;&gt;&lt;div class=&quot;box-label&quot;&gt;Start&lt;/div&gt;&lt;div class=&quot;box-value&quot; id=&quot;zeitraumBox&quot;&gt;&lt;/div&gt;&lt;/div&gt;
+          &lt;div class=&quot;box&quot;&gt;&lt;div class=&quot;box-label&quot;&gt;Monatspreis&lt;/div&gt;&lt;div class=&quot;box-value&quot; id=&quot;preisBox&quot;&gt;&lt;/div&gt;&lt;/div&gt;
+          &lt;div class=&quot;box full&quot;&gt;&lt;div class=&quot;box-label&quot;&gt;Quelle&lt;/div&gt;&lt;div class=&quot;box-value&quot; id=&quot;sourceBox&quot;&gt;&lt;/div&gt;&lt;/div&gt;
+        &lt;/div&gt;
+
+        &lt;div class=&quot;prep-grid&quot;&gt;
+          &lt;div class=&quot;prep&quot;&gt;&lt;div class=&quot;prep-title&quot;&gt;1. Kundendaten prüfen&lt;/div&gt;&lt;div class=&quot;prep-text&quot;&gt;Firma, Ansprechpartner, Adresse und Startdatum kontrollieren.&lt;/div&gt;&lt;/div&gt;
+          &lt;div class=&quot;prep&quot;&gt;&lt;div class=&quot;prep-title&quot;&gt;2. Vertrag erstellen&lt;/div&gt;&lt;div class=&quot;prep-text&quot;&gt;Mit bestätigten Angebotsdaten den Vertrag vorbereiten.&lt;/div&gt;&lt;/div&gt;
+          &lt;div class=&quot;prep&quot;&gt;&lt;div class=&quot;prep-title&quot;&gt;3. Vertrag kontrollieren&lt;/div&gt;&lt;div class=&quot;prep-text&quot;&gt;Leistungsart, Preis, Startdatum und Ansprechpartner prüfen.&lt;/div&gt;&lt;/div&gt;
+          &lt;div class=&quot;prep&quot;&gt;&lt;div class=&quot;prep-title&quot;&gt;4. Vertrag versenden&lt;/div&gt;&lt;div class=&quot;prep-text&quot;&gt;Später wird hier Gmail API angebunden und der Vertrag direkt versendet.&lt;/div&gt;&lt;/div&gt;
+        &lt;/div&gt;
+
+        &lt;div class=&quot;note-row&quot;&gt;
+          &lt;textarea class=&quot;note&quot; placeholder=&quot;Notiz zum Vertrag / Startdatum / Sonderwunsch...&quot;&gt;&lt;/textarea&gt;
+          &lt;button class=&quot;save&quot;&gt;Notiz speichern&lt;/button&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+    &lt;/section&gt;
+  &lt;/section&gt;
+
+  &lt;div class=&quot;delete-modal&quot; id=&quot;deleteModal&quot;&gt;
+    &lt;div class=&quot;delete-box&quot;&gt;
+      &lt;div class=&quot;delete-title&quot;&gt;Wirklich löschen?&lt;/div&gt;
+      &lt;div class=&quot;delete-text&quot;&gt;Dieser Kunde wird aus der Liste entfernt.&lt;/div&gt;
+      &lt;div class=&quot;delete-actions&quot;&gt;
+        &lt;button class=&quot;delete-cancel&quot; onclick=&quot;cancelDeleteCustomer()&quot;&gt;Abbrechen&lt;/button&gt;
+        &lt;button class=&quot;delete-ok&quot; onclick=&quot;confirmDeleteCustomer()&quot;&gt;Löschen&lt;/button&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+
+&lt;script&gt;
+const kunden=[];
+function addCustomerFromOffer(data){const v=Object.assign({},data||{});if(!v.nr)v.nr='VT-'+String(kunden.length+1).padStart(3,'0');if(!v.status)v.status='Bestätigt';v.contractCreated=v.status==='Vertrag erstellt'||!!v.contractCreated;v.contractSent=v.status==='Versendet'||!!v.contractSent;v.deleted=!!v.deleted;if(!kunden.some(k=&gt;k.nr===v.nr||k.quelle===v.quelle)){kunden.push(v)}renderCustomers()}
+function setCustomersFromParent(list){kunden.length=0;(list||[]).forEach(x=&gt;{const v=Object.assign({},x||{});if(!v.status)v.status='Bestätigt';v.contractCreated=v.status==='Vertrag erstellt'||!!v.contractCreated;v.contractSent=v.status==='Versendet'||!!v.contractSent;v.deleted=!!v.deleted;kunden.push(v)});renderCustomers()}
+window.addEventListener('message',function(event){const msg=event.data||{};if(msg.type==='kg-add-customer')addCustomerFromOffer(msg.customer);if(msg.type==='kg-set-customers')setCustomersFromParent(msg.kunden)});
+kunden.forEach(v=&gt;{v.contractCreated=v.status==='Vertrag erstellt';v.contractSent=v.status==='Versendet';v.deleted=false});
+function getCustomerStatus(v){if(v.contractSent)return 'Versendet';if(v.contractCreated)return 'Vertrag erstellt';return 'Bestätigt'}
+function deDate(value){return new Date(value+'T00:00:00').toLocaleDateString('de-DE',{weekday:'long',day:'2-digit',month:'long',year:'numeric'})}
+function shortDay(value){return new Date(value+'T00:00:00').toLocaleDateString('de-DE',{day:'2-digit'})}
+function shortMonth(value){return new Date(value+'T00:00:00').toLocaleDateString('de-DE',{month:'short'}).replace('.','')}
+function matches(v){const q=document.getElementById('searchInput').value.trim().toLowerCase();const f=document.getElementById('statusFilter').value;const hay=[getCustomerStatus(v),v.nr,v.tag,v.firma,v.datum,v.zeit,v.kontakt,v.tel,v.mail,v.str,v.plz,v.ort,v.leistung1,v.preis1,v.zeitraum,v.quelle].join(' ').toLowerCase();const textOk=!q||hay.includes(q);const statusOk=f==='Alle Kunden'||getCustomerStatus(v)===f;return textOk&amp;&amp;statusOk}
+function renderCustomers(){const list=document.getElementById('customerList');const activeCustomers=kunden.filter(v=&gt;!v.deleted);const filtered=activeCustomers.filter(matches);document.getElementById('customerCount').textContent=activeCustomers.length;document.getElementById('contractCount').textContent=activeCustomers.filter(v=&gt;v.contractCreated).length;document.getElementById('sentCount').textContent=activeCustomers.filter(v=&gt;v.contractSent).length;list.innerHTML=filtered.map((v,i)=&gt;`
+ &lt;div class=&quot;customer&quot;&gt;
+  &lt;div class=&quot;customer-row&quot;&gt;
+   &lt;div class=&quot;drag-handle&quot;&gt;☰&lt;/div&gt;
+   &lt;div class=&quot;datebox&quot;&gt;&lt;div class=&quot;date-day&quot;&gt;${shortDay(v.datum)}&lt;/div&gt;&lt;div class=&quot;date-month&quot;&gt;${shortMonth(v.datum)}&lt;/div&gt;&lt;div class=&quot;date-time&quot;&gt;${v.zeit}&lt;/div&gt;&lt;/div&gt;
+   &lt;div&gt;
+    &lt;div class=&quot;kicker&quot;&gt;&lt;span class=&quot;badge&quot;&gt;${v.nr}&lt;/span&gt;&lt;span class=&quot;badge&quot;&gt;${v.tag}&lt;/span&gt;&lt;span class=&quot;status ${getCustomerStatus(v)==='Vertrag erstellt'?'contract':(getCustomerStatus(v)==='Versendet'?'sent':'')}&quot;&gt;${getCustomerStatus(v)}&lt;/span&gt;&lt;/div&gt;
+    &lt;div class=&quot;company&quot;&gt;${v.firma}&lt;/div&gt;
+    &lt;div class=&quot;meta&quot;&gt;${v.str} · ${v.plz} ${v.ort}&lt;/div&gt;
+    &lt;div class=&quot;contact&quot;&gt;${v.kontakt} · ${v.tel}&lt;/div&gt;
+    &lt;div class=&quot;price&quot;&gt;${v.leistung1} · ${v.preis1}&lt;/div&gt;
+   &lt;/div&gt;
+   &lt;div class=&quot;actions&quot;&gt;
+    &lt;button class=&quot;icon-btn&quot; title=&quot;Daten prüfen&quot; onclick=&quot;openDetail(${kunden.indexOf(v)})&quot;&gt;✎&lt;/button&gt;
+    &lt;button class=&quot;contract-btn ${v.contractCreated?'active':''}&quot; onmousedown=&quot;startContractHold(${kunden.indexOf(v)},event)&quot; onmouseup=&quot;clearContractHold()&quot; onmouseleave=&quot;clearContractHold()&quot; ontouchstart=&quot;startContractHold(${kunden.indexOf(v)},event)&quot; ontouchend=&quot;clearContractHold()&quot; onclick=&quot;createContract(${kunden.indexOf(v)},event)&quot;&gt;${v.contractCreated?'Vertrag erstellt':'Vertrag erstellen'}&lt;/button&gt;
+    &lt;button class=&quot;send-btn ${v.contractSent?'active':''}&quot; onmousedown=&quot;startSendHold(${kunden.indexOf(v)},event)&quot; onmouseup=&quot;clearSendHold()&quot; onmouseleave=&quot;clearSendHold()&quot; ontouchstart=&quot;startSendHold(${kunden.indexOf(v)},event)&quot; ontouchend=&quot;clearSendHold()&quot; onclick=&quot;sendContract(${kunden.indexOf(v)},event)&quot;&gt;${v.contractSent?'Versendet':'Vertrag senden'}&lt;/button&gt;
+    &lt;button class=&quot;delete-btn&quot; title=&quot;Löschen&quot; onclick=&quot;deleteCustomer(${kunden.indexOf(v)},event)&quot;&gt;🗑&lt;/button&gt;
+   &lt;/div&gt;
+  &lt;/div&gt;
+ &lt;/div&gt;`).join('')||'&lt;div class=&quot;customer&quot;&gt;&lt;div class=&quot;customer-row&quot;&gt;&lt;div&gt;&lt;/div&gt;&lt;div&gt;&lt;/div&gt;&lt;div&gt;&lt;div class=&quot;company&quot;&gt;Keine Kunden gefunden&lt;/div&gt;&lt;div class=&quot;meta&quot;&gt;Suche oder Filter ändern.&lt;/div&gt;&lt;/div&gt;&lt;div&gt;&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;';setupSortable()}
+let currentDetailIndex=null;
+function openDetail(index){currentDetailIndex=index;const v=kunden[index];if(!v)return;document.getElementById('detailFirma').textContent=v.firma;document.getElementById('detailTermin').textContent=v.nr+' · '+deDate(v.datum);document.getElementById('detailStatus').textContent=getCustomerStatus(v);document.getElementById('firmaBox').textContent=v.firma;document.getElementById('nrBox').textContent=v.nr;document.getElementById('kontaktBox').textContent=v.kontakt;document.getElementById('telefonBox').innerHTML='&lt;a href=&quot;tel:'+v.tel.replaceAll(' ','')+'&quot;&gt;'+v.tel+'&lt;/a&gt;';document.getElementById('mailBox').innerHTML='&lt;a href=&quot;mailto:'+v.mail+'&quot;&gt;'+v.mail+'&lt;/a&gt;';document.getElementById('adresseBox').textContent=v.str+', '+v.plz+' '+v.ort;document.getElementById('leistungBox').textContent=v.tag;document.getElementById('zeitraumBox').textContent=v.zeitraum;document.getElementById('preisBox').textContent=v.preis1;document.getElementById('sourceBox').textContent=v.quelle;document.getElementById('listView').classList.add('view-hidden');document.getElementById('detailView').classList.remove('view-hidden')}
+function showList(){document.getElementById('detailView').classList.add('view-hidden');document.getElementById('listView').classList.remove('view-hidden');renderCustomers()}
+function saveDetail(){if(currentDetailIndex===null||!kunden[currentDetailIndex])return;kunden[currentDetailIndex].contractCreated=true;document.getElementById('detailStatus').textContent=getCustomerStatus(kunden[currentDetailIndex]);const btn=document.querySelector('.detail-save-check');if(btn){btn.textContent='✓ Gespeichert';setTimeout(()=&gt;{btn.textContent='✓ Speichern'},1400)}}
+function contractUrl(v){const params=new URLSearchParams({Nr:v.nr.replace('VT-',''),Datum:new Date().toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit',year:'numeric'}),Kunde:v.firma,Objekt:v.kontakt,Adresse:v.str,Plz:v.plz,Ort:v.ort,Leistungsart:v.tag,'Leistung 1':v.leistung1,'Einheiten 1':v.einheiten1,'Preis 1':v.preis1,'Ausführungszeitraum':v.zeitraum,Email:v.mail,Telefon:v.tel});return 'vertragvorlage.html?'+params.toString()}
+let contractHoldTimer=null;
+let contractHoldDone=false;
+function startContractHold(index,e){contractHoldDone=false;clearTimeout(contractHoldTimer);contractHoldTimer=setTimeout(()=&gt;{contractHoldDone=true;resetContract(index)},750)}
+function clearContractHold(){clearTimeout(contractHoldTimer)}
+function resetContract(index){const v=kunden[index];if(!v||!v.contractCreated)return;v.contractCreated=false;renderCustomers()}
+function createContract(index,e){if(contractHoldDone){contractHoldDone=false;return}const v=kunden[index];if(!v)return;v.contractCreated=true;if(e&amp;&amp;e.currentTarget){e.currentTarget.textContent='Vertrag erstellt';e.currentTarget.classList.add('active')}renderCustomers();window.open(contractUrl(v),'_blank')}
+let sendHoldTimer=null;
+let sendHoldDone=false;
+function startSendHold(index,e){sendHoldDone=false;clearTimeout(sendHoldTimer);sendHoldTimer=setTimeout(()=&gt;{sendHoldDone=true;resetSend(index)},750)}
+function clearSendHold(){clearTimeout(sendHoldTimer)}
+function resetSend(index){const v=kunden[index];if(!v||!v.contractSent)return;v.contractSent=false;renderCustomers()}
+function sendContract(index,e){if(sendHoldDone){sendHoldDone=false;return}const v=kunden[index];if(!v)return;v.contractSent=true;if(e&amp;&amp;e.currentTarget){e.currentTarget.textContent='Versendet';e.currentTarget.classList.add('active')}renderCustomers();window.open(contractUrl(v),'_blank')}
+let pendingDeleteIndex=null;
+function deleteCustomer(index,e){if(e)e.stopPropagation();const v=kunden[index];if(!v)return;pendingDeleteIndex=index;document.getElementById('deleteModal').classList.add('open')}
+function cancelDeleteCustomer(){pendingDeleteIndex=null;document.getElementById('deleteModal').classList.remove('open')}
+function confirmDeleteCustomer(){if(pendingDeleteIndex===null)return;const v=kunden[pendingDeleteIndex];if(v)v.deleted=true;pendingDeleteIndex=null;document.getElementById('deleteModal').classList.remove('open');renderCustomers()}
+function setupSortable(){const list=document.getElementById('customerList');if(list&amp;&amp;window.Sortable){if(list.dataset.sortableReady==='true')return;list.dataset.sortableReady='true';new Sortable(list,{animation:180,draggable:'.customer',handle:'.drag-handle'})}}
+document.getElementById('searchInput').addEventListener('input',renderCustomers);document.getElementById('statusFilter').addEventListener('change',renderCustomers);renderCustomers();
+&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+"></iframe>
+        </section>
+
+    </main>
+
 </div>
 
 <script>
-function sendAction(btn, type) {
-    const row = btn.closest('tr');
-    const statusDot = row.querySelector('.status-dot');
-    const oldIcon = btn.innerHTML;
-    
-    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
-    btn.disabled = true;
-    
-    setTimeout(() => {
-        btn.innerHTML = '<i class="fa-solid fa-check"></i>';
-        btn.style.backgroundColor = "#ecfdf5";
-        btn.style.color = "#10b981";
-        btn.style.borderColor = "#10b981";
-        statusDot.classList.add('status-sent');
-        
-        let sentVal = document.getElementById('sent-count');
-        sentVal.innerText = parseInt(sentVal.innerText) + 1;
-        btn.disabled = false;
-    }, 1000);
+function toggleLead(event, element) {
+    // Sürükleme ikonuna veya işlem butonlarına tıklandığında akordeonun açılmasını engeller
+    if (event.target.closest('.action-btn') || event.target.closest('.lead-drag')) {
+        return;
+    }
+    const item = element.closest('.lead-item');
+    item.classList.toggle('open');
 }
 
-document.querySelectorAll('.tag').forEach(tag => {
-    tag.addEventListener('click', function() {
-        this.parentElement.querySelectorAll('.tag').forEach(t => t.classList.remove('active'));
-        this.classList.add('active');
-        
-        const sector = document.querySelector('#sector-tags .active').dataset.filter;
-        const city = document.querySelector('#city-tags .active').dataset.city;
-        
-        const rows = document.querySelectorAll('#dbBody tr');
-        let count = 0;
-        
-        rows.forEach(row => {
-            const sMatch = (sector === 'all' || row.dataset.sector === sector);
-            const cMatch = (city === 'all' || row.dataset.city === city);
-            if(sMatch && cMatch) {
-                row.style.display = "";
-                count++;
-            } else {
-                row.style.display = "none";
-            }
-        });
-        document.getElementById('total-count').innerText = count;
-    });
-});
+function setGermanDate() {
+    const el = document.getElementById('germanDate');
+    const now = new Date();
 
-document.getElementById('dbSearchInput').addEventListener('input', function() {
-    const val = this.value.toLowerCase();
-    document.querySelectorAll('#dbBody tr').forEach(row => {
-        row.style.display = row.innerText.toLowerCase().includes(val) ? "" : "none";
+    if (el) {
+        el.textContent = now.toLocaleDateString('de-DE', {
+            weekday: 'long',
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        });
+    }
+}
+
+function setLiveDateTime() {
+    const now = new Date();
+    const liveDateTime = document.getElementById('liveDateTime');
+    const liveTimeOnly = document.getElementById('liveTimeOnly');
+    const liveDateOnly = document.getElementById('liveDateOnly');
+    const liveMonthName = document.getElementById('liveMonthName');
+    const monthLeadPoolLabel = document.getElementById('monthLeadPoolLabel');
+    const monthCallsLabel = document.getElementById('monthCallsLabel');
+    const monthInterestedLabel = document.getElementById('monthInterestedLabel');
+    const monthVisitsLabel = document.getElementById('monthVisitsLabel');
+
+    const dateText = now.toLocaleDateString('de-DE', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
     });
+
+    const timeText = now.toLocaleTimeString('de-DE', {
+        hour: '2-digit',
+        minute: '2-digit'
+    });
+
+    const monthText = now.toLocaleDateString('de-DE', { month: 'long' });
+    const monthCapitalized = monthText.charAt(0).toUpperCase() + monthText.slice(1);
+
+    if (liveDateTime) liveDateTime.textContent = `${dateText} · ${timeText} Uhr`;
+    if (liveTimeOnly) liveTimeOnly.textContent = timeText;
+    if (liveDateOnly) liveDateOnly.textContent = dateText;
+    if (liveMonthName) liveMonthName.textContent = `Monatsübersicht ${monthCapitalized}`;
+    if (monthLeadPoolLabel) monthLeadPoolLabel.textContent = 'im System gespeichert';
+    if (monthCallsLabel) monthCallsLabel.textContent = `${monthCapitalized} gesamt`;
+    if (monthInterestedLabel) monthInterestedLabel.textContent = `${monthCapitalized} gesamt`;
+    if (monthVisitsLabel) monthVisitsLabel.textContent = `${monthCapitalized} gesamt`;
+}
+
+function updateCategoryNumbers() {
+    document.querySelectorAll('#branchenSortable .category-number').forEach((el, i) => {
+        el.textContent = i + 1;
+    });
+}
+
+function toggleBranchenPanel() {
+    const panel = document.getElementById('branchenSortable');
+    const toggle = document.getElementById('branchenToggle');
+    if (!panel || !toggle) return;
+
+    panel.classList.toggle('view-hidden');
+    toggle.classList.toggle('open', !panel.classList.contains('view-hidden'));
+}
+
+
+window.kgKundenData = window.kgKundenData || [];
+function kgOfferToKunde(v) {
+    const anNr = String(v.nr || 'AN-0000');
+    const vertragNr = anNr.startsWith('AN-') ? anNr.replace('AN-', 'VT-') : 'VT-' + anNr;
+    return {
+        status: 'Bestätigt',
+        nr: vertragNr,
+        tag: v.tag || '',
+        firma: v.firma || '',
+        datum: v.zeitraum && v.zeitraum.match(/\d{2}\.\d{2}\.\d{4}/) ? v.zeitraum.match(/(\d{2})\.(\d{2})\.(\d{4})/).slice(1).reverse().join('-') : new Date().toISOString().slice(0,10),
+        zeit: 'Start',
+        kontakt: v.kontakt || '',
+        tel: v.tel || '',
+        mail: v.mail || '',
+        str: v.str || '',
+        plz: v.plz || '',
+        ort: v.ort || '',
+        leistung1: v.leistung1 || v.tag || '',
+        einheiten1: v.einheiten1 || 'monatlich',
+        preis1: v.preis1 || '',
+        zeitraum: v.zeitraum || '',
+        quelle: 'Angebot bestätigt · ' + (v.nr || '')
+    };
+}
+function kgUpdateKundenWorkflowCount() {
+    const el = document.getElementById('kundenWorkflowCount');
+    if (el) el.textContent = window.kgKundenData.length;
+}
+function kgSendKundenToFrame() {
+    const frame = document.getElementById('kundenFrame');
+    if (frame && frame.contentWindow) {
+        frame.contentWindow.postMessage({type:'kg-set-customers', kunden: window.kgKundenData}, '*');
+    }
+    kgUpdateKundenWorkflowCount();
+}
+function kgMoveOfferToKunden(v) {
+    const kunde = kgOfferToKunde(v || {});
+    if (!window.kgKundenData.some(x => x.nr === kunde.nr || x.quelle === kunde.quelle)) {
+        window.kgKundenData.push(kunde);
+    }
+    kgUpdateKundenWorkflowCount();
+    kgSendKundenToFrame();
+}
+
+function showDamlaPage() {
+    document.getElementById('mainView').classList.add('view-hidden');
+    document.getElementById('damlaView').classList.remove('view-hidden');
+    const besichtigungView = document.getElementById('besichtigungView');
+    if (besichtigungView) besichtigungView.classList.add('view-hidden');
+    const angebotView = document.getElementById('angebotView');
+    if (angebotView) angebotView.classList.add('view-hidden');
+    const kundenView = document.getElementById('kundenView');
+    if (kundenView) kundenView.classList.add('view-hidden');
+    setGermanDate();
+}
+
+function showBesichtigungPage() {
+    document.getElementById('mainView').classList.add('view-hidden');
+    document.getElementById('damlaView').classList.add('view-hidden');
+    const besichtigungView = document.getElementById('besichtigungView');
+    if (besichtigungView) besichtigungView.classList.remove('view-hidden');
+    const angebotView = document.getElementById('angebotView');
+    if (angebotView) angebotView.classList.add('view-hidden');
+    const kundenView = document.getElementById('kundenView');
+    if (kundenView) kundenView.classList.add('view-hidden');
+}
+
+function showAngebotPage() {
+    document.getElementById('mainView').classList.add('view-hidden');
+    document.getElementById('damlaView').classList.add('view-hidden');
+    const besichtigungView = document.getElementById('besichtigungView');
+    if (besichtigungView) besichtigungView.classList.add('view-hidden');
+    const angebotView = document.getElementById('angebotView');
+    if (angebotView) angebotView.classList.remove('view-hidden');
+    const kundenView = document.getElementById('kundenView');
+    if (kundenView) kundenView.classList.add('view-hidden');
+}
+
+function showKundenPage() {
+    document.getElementById('mainView').classList.add('view-hidden');
+    document.getElementById('damlaView').classList.add('view-hidden');
+    const besichtigungView = document.getElementById('besichtigungView');
+    if (besichtigungView) besichtigungView.classList.add('view-hidden');
+    const angebotView = document.getElementById('angebotView');
+    if (angebotView) angebotView.classList.add('view-hidden');
+    const kundenView = document.getElementById('kundenView');
+    if (kundenView) kundenView.classList.remove('view-hidden');
+    kgSendKundenToFrame();
+}
+
+function showMainPage() {
+    document.getElementById('damlaView').classList.add('view-hidden');
+    const besichtigungView = document.getElementById('besichtigungView');
+    if (besichtigungView) besichtigungView.classList.add('view-hidden');
+    const angebotView = document.getElementById('angebotView');
+    if (angebotView) angebotView.classList.add('view-hidden');
+    const kundenView = document.getElementById('kundenView');
+    if (kundenView) kundenView.classList.add('view-hidden');
+    document.getElementById('mainView').classList.remove('view-hidden');
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+    setGermanDate();
+    setLiveDateTime();
+    setInterval(setLiveDateTime, 1000);
+
+    const workflowGrid = document.getElementById('workflowSortable');
+    if (workflowGrid && window.Sortable) {
+        new Sortable(workflowGrid, {
+            animation: 180,
+            draggable: '.workflow-card',
+            ghostClass: 'sortable-ghost',
+            chosenClass: 'sortable-chosen',
+            filter: '.workflow-btn', 
+            preventOnFilter: false
+        });
+    }
+
+    const branches = document.getElementById('branchenSortable');
+    if (branches && window.Sortable) {
+        new Sortable(branches, {
+            animation: 180,
+            draggable: '.main-category',
+            handle: '.drag-handle',
+            ghostClass: 'sortable-ghost',
+            chosenClass: 'sortable-chosen',
+            onEnd: updateCategoryNumbers
+        });
+    }
+
+    const list = document.getElementById('dailySortable');
+    if (list && window.Sortable) {
+        new Sortable(list, {
+            animation: 180,
+            draggable: '.lead-item',
+            handle: '.lead-drag',
+            ghostClass: 'sortable-ghost',
+            chosenClass: 'sortable-chosen'
+        });
+    }
 });
 </script>
+
 {% endblock %}
