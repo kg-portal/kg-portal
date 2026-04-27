@@ -1938,12 +1938,61 @@ def run_db_migration():
     finally:
         conn.close()
 
+
+def sevdesk_gecici_devir_kaydi_ekle():
+    """
+    GEÇİCİ SEVDESK DEVİR KAYDI
+    Ocak ve Şubat 2026 verilerini 1 kere lexware_cache içine ekler.
+    İLERİDE RECHNUNGLAR DİREKT SİSTEME YÜKLENİNCE BU FONKSİYON SİLİNECEK.
+    """
+    conn = get_db_connection()
+    try:
+        conn.executemany('''
+            INSERT OR IGNORE INTO lexware_cache
+            (invoice_id, nr, datum, kunde, brutto, netto, mwst, offen, status_code)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ''', [
+            (
+                'SEVDESK-2026-01',
+                'SV-2026-01',
+                '2026-01-31',
+                'SevDesk Übertrag Januar 2026 - später löschen',
+                20253.04,
+                17019.36,
+                3233.68,
+                0.00,
+                'paid'
+            ),
+            (
+                'SEVDESK-2026-02',
+                'SV-2026-02',
+                '2026-02-28',
+                'SevDesk Übertrag Februar 2026 - später löschen',
+                25790.37,
+                21672.57,
+                4117.80,
+                0.00,
+                'paid'
+            )
+        ])
+        conn.commit()
+        print("✅ Geçici SevDesk Ocak/Şubat devir kayıtları eklendi.")
+    except Exception as e:
+        print(f"❌ Geçici SevDesk devir kaydı eklenemedi: {e}")
+    finally:
+        conn.close()
+
+
 if __name__ == "__main__":
     # 1. Veritabanı yapısını kontrol et ve eksik sütunları tamamla
     init_db()          
-    run_db_migration() 
+    run_db_migration()
+
+    # 2. GEÇİCİ SEVDESK DEVİR KAYDI
+    # İLERİDE RECHNUNGLAR DİREKT YÜKLENECEĞİ İÇİN BU SATIR VE FONKSİYON SİLİNECEK
+    sevdesk_gecici_devir_kaydi_ekle()
     
-    # 2. 🛡️ TEMİZLİK BİTTİ - BU SATIRLAR ARTIK PASİF (YORUMDA)
+    # 3. 🛡️ TEMİZLİK BİTTİ - BU SATIRLAR ARTIK PASİF (YORUMDA)
     # Eğer her şeyi tekrar sıfırlamak istersen başlarındaki '#' işaretlerini kaldırabilirsin.
     # conn = get_db_connection()
     # conn.execute("DELETE FROM gewerbliche_ausgaben")
@@ -1951,8 +2000,8 @@ if __name__ == "__main__":
     # conn.commit(); conn.close()
     # print("🧹 Çöpler temizlendi, veritabanı pırıl pırıl!")
 
-    # 3. Lexware verilerini çek (Zırhlı sistem sayesinde sadece yenileri ekler)
+    # 4. Lexware verilerini çek (Zırhlı sistem sayesinde sadece yenileri ekler)
     init_services()  
 
-    # 4. Uygulamayı başlat
+    # 5. Uygulamayı başlat
     app.run(host="0.0.0.0", port=5000, debug=True)
