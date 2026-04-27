@@ -1,832 +1,1109 @@
 {% extends "base.html" %}
-
 {% block content %}
 
-<!-- =========================
-1. TASARIM VE STİL AYARLARI (CSS)
-========================= -->
-<style>
-    .besichtigung-container { max-width: 1100px; margin: 0 auto; }
-    .header-section { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
-    .termin-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; }
-    .termin-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 20px; transition: 0.3s; cursor: pointer; position: relative; overflow: hidden; }
-    .termin-card:hover { transform: translateY(-5px); border-color: #2563eb; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); }
-    .delete-btn { position: absolute; top: 15px; right: 15px; color: #ef4444; font-size: 18px; z-index: 10; opacity: 0.6; transition: 0.2s; }
-    .delete-btn:hover { opacity: 1; transform: scale(1.1); }
-    .detail-view { display: none; background: #fff; border-radius: 24px; padding: 40px; animation: fadeIn 0.4s ease; }
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-    .form-section { margin-bottom: 35px; border-bottom: 1px solid #f1f5f9; padding-bottom: 25px; }
-    .form-section-title { font-size: 18px; font-weight: 700; color: #1e293b; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }
-    label { display: block; margin-bottom: 8px; font-weight: 600; color: #64748b; font-size: 14px; }
-    select, input { width: 100%; padding: 12px 16px; border-radius: 12px; border: 1.5px solid #e2e8f0; background: #f8fafc; font-size: 15px; transition: 0.2s; }
-    .option-grid { display: flex; flex-wrap: wrap; gap: 10px; }
-    .option-btn { padding: 10px 20px; text-align: center; border: 1.5px solid #e2e8f0; border-radius: 10px; cursor: pointer; font-weight: 600; background: #fff; transition: 0.2s; min-width: 90px; }
-    .option-btn.selected { background: #2563eb; color: #fff; border-color: #2563eb; }
-    .counter-group { display: flex; align-items: center; gap: 5px; background: #f1f5f9; padding: 5px; border-radius: 12px; width: fit-content; border: 1px solid #e2e8f0; }
-    .counter-btn { width: 32px; height: 32px; border-radius: 8px; border: none; background: #fff; color: #1e293b; font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
-    .counter-btn:hover { background: #2563eb; color: #fff; }
-    .counter-input-manual { width: 90px !important; padding: 5px !important; border: none !important; background: transparent !important; text-align: center; font-weight: 800; color: #2563eb; font-size: 16px; }
-    .dynamic-input { display: none; margin-top: 15px; animation: slideDown 0.3s ease; }
-    @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
-    .btn-save { background: #2563eb; color: #fff; padding: 15px 40px; border-radius: 12px; border: none; font-weight: 700; cursor: pointer; width: 100%; }
-</style>
-<!-- =========================
-2. RANDEVU LİSTE GÖRÜNÜMÜ
-========================= -->
-<div class="besichtigung-container">
-    <div id="listView">
-        <div class="header-section">
-            <h1>Besichtigungstermine</h1>
-            <button class="btn-save" style="width: auto;" onclick="showDetail()">+ Neuer Termin</button>
-        </div>
-        <div class="termin-grid">
-            {% for t in termine %}
-            <div class="termin-card">
-                <a href="/besichtigung/delete/{{ t.id }}" class="delete-btn" onclick="return confirm('Sicher löschen?')"><i class="fa-solid fa-trash-can"></i></a>
-                <div onclick="openTermin('{{ t.id }}', '{{ t.firma }}')">
-                    <h3>{{ t.firma or "None" }}</h3>
-                    <p><i class="fa-solid fa-user"></i> {{ t.ansprechpartner or "None" }}</p>
-                    <div style="margin-top: 15px;">{{ t.termin_datum or "None" }} | {{ t.termin_uhrzeit or "None" }}</div>
-                </div>
-            </div>
-            {% endfor %}
-        </div>
-    </div>
-
-<!-- =========================
-3. BRANŞ VE NESNE TÜRÜ SEÇİMİ
-========================= -->
-    <div id="detailView" class="detail-view">
-        <div style="margin-bottom: 30px;">
-            <a href="javascript:void(0)" onclick="hideDetail()" style="text-decoration: none; color: #64748b; font-weight: 600;"><i class="fa-solid fa-arrow-left"></i> Zurück</a>
-            <h2 id="detailTitle" style="margin-top: 15px;">Termin Details</h2>
-        </div>
-
-        <form action="/besichtigung" method="POST">
-            <input type="hidden" name="besichtigung_id" id="form_id">
-            
-            <div class="form-section">
-                <div class="form-section-title"><i class="fa-solid fa-industry icon-blue"></i> Branche / Objektart</div>
-                <select name="art" required>
-                    <option value="">-- Bitte wählen --</option>
-                    <optgroup label="🟦 BÜRO">
-                        <option value="buero">Büro</option>
-                        <option value="verwaltungsbuero">Verwaltungsbüro</option>
-                        <option value="it_firma">IT-Firma</option>
-                        <option value="software_agentur">Software-Firma / Agentur</option>
-                        <option value="versicherung">Versicherung</option>
-                        <option value="immobilienbuero">Immobilienbüro</option>
-                        <option value="steuerberater">Steuerberater</option>
-                        <option value="kanzlei">Rechtsanwalt / Kanzlei</option>
-                        <option value="ingenieurbuero">Ingenieurbüro</option>
-                        <option value="architekturbuero">Architekturbüro</option>
-                        <option value="unternehmensberatung">Unternehmensberatung</option>
-                        <option value="callcenter">Callcenter</option>
-                        <option value="schulungsbuero">Schulungsbüro</option>
-                        <option value="marketingagentur">Marketingagentur</option>
-                        <option value="personalvermittlung">Personalvermittlung</option>
-                    </optgroup>
-                    <optgroup label="🟥 PRAXIS / MEDIZİN">
-                        <option value="arztpraxis">Arztpraxis</option>
-                        <option value="zahnarztpraxis">Zahnarztpraxis</option>
-                        <option value="kieferorthopaedie">Kieferorthopädie</option>
-                        <option value="physiotherapie">Physiotherapie</option>
-                        <option value="ergotherapie">Ergotherapie</option>
-                        <option value="logopaedie">Logopädie</option>
-                        <option value="heilpraktiker">Heilpraktiker</option>
-                        <option value="psychotherapie">Psychotherapie</option>
-                        <option value="mvz">Medizinisches Versorgungszentrum (MVZ)</option>
-                        <option value="podologie">Podologie / medizinische Fußpflege</option>
-                        <option value="kosmetik_med">Kosmetikstudio (medizinisch)</option>
-                        <option value="facharzt">Augenarzt / HNO / Facharzt</option>
-                    </optgroup>
-                    <optgroup label="🟧 LAGER / BETRIEB / UMKLEIDE">
-                        <option value="lagerhalle">Lagerhalle</option>
-                        <option value="logistik">Logistikbetrieb</option>
-                        <option value="versandzentrum">Versandzentrum</option>
-                        <option value="grosshandel">Großhandel</option>
-                        <option value="werkstatt">Werkstatt</option>
-                        <option value="handwerk">Handwerksbetrieb</option>
-                        <option value="produktion_nah">Produktionsnahe Bereiche</option>
-                        <option value="umkleideraeume">Umkleideräume</option>
-                        <option value="sozialraeume">Sozialräume</option>
-                        <option value="fitnessstudio">Fitnessstudio</option>
-                        <option value="sporthalle">Sporthalle</option>
-                        <option value="verein">Verein / Trainingszentrum</option>
-                    </optgroup>
-                    <optgroup label="🟨 GASTRO / KÜCHE">
-                        <option value="restaurant">Restaurant</option>
-                        <option value="cafe">Café</option>
-                        <option value="imbiss">Imbiss</option>
-                        <option value="kantine">Kantine</option>
-                        <option value="grosskueche">Großküche</option>
-                        <option value="baeckerei">Bäckerei</option>
-                        <option value="konditorei">Konditorei</option>
-                        <option value="catering">Cateringbetrieb</option>
-                        <option value="bar_lounge">Bar / Lounge</option>
-                    </optgroup>
-                    <optgroup label="🟫 INDUSTRIE / SPEZIAL">
-                        <option value="industriehalle">Industriehalle</option>
-                        <option value="produktionsbetrieb">Produktionsbetrieb</option>
-                        <option value="maschinenhalle">Maschinenhalle</option>
-                        <option value="metallverarbeitung">Metallverarbeitung</option>
-                        <option value="fett_intensiv">Öl- / Fettintensive Betriebe</option>
-                        <option value="chemie">Chemienahe Betriebe</option>
-                    </optgroup>
-                    <optgroup label="⬛ BAU / EINMALIG">
-                        <option value="bauendreinigung">Bauendreinigung</option>
-                        <option value="grundreinigung">Grundreinigung</option>
-                        <option value="erstbezug">Erstbezug</option>
-                        <option value="renovierung">Renovierung</option>
-                        <option value="sanierung">Sanierung</option>
-                        <option value="umzug">Umzug</option>
-                    </optgroup>
-                </select>
-            </div>
-
-
-<!-- =========================
-4. TEMİZLİK SIKLIĞI VE ALAN
-========================= -->
-<div class="form-section">
-    <div class="form-section-title">
-        <i class="fa-solid fa-calculator icon-orange"></i> Häufigkeit & Fläche
-    </div>
-    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px;">
-        <div>
-            <label>Häufigkeit</label>
-            <div class="option-grid">
-                {% for i in range(1, 8) %}
-                <div class="option-btn" onclick="selectOption(this, 'haeufigkeit', '{{i}}x')">{{i}}x</div>
-                {% endfor %}
-                <div class="option-btn" onclick="selectOption(this, 'haeufigkeit', 'Einmalig')">Einmalig</div>
-                <input type="hidden" name="haeufigkeit" id="haeufigkeit_val">
-            </div>
-        </div>
-        <div>
-            <label>Fläche (m²)</label>
-            <input type="number" name="m2" placeholder="z.B. 250">
-        </div>
-    </div>
-</div>
-
-<!-- =========================
-5. BÜRO KIR YOGUNLUGU BÖLÜMÜ
-========================= -->
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/de.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
 
 <style>
-    /* Slider'ın rayını ve yuvarlağını tam uca dayamak için gereken CSS */
-    #schmutzRange {
-        -webkit-appearance: none;
-        background: transparent !important;
-        padding: 0;
-        margin: 0;
-    }
+/* ... Entegeka y'empewo n'ebisenge ... */
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{background:#edf2f7;font-family:'Inter',sans-serif;color:#0f172a}
+.container{width:100%;max-width:none;margin:0;padding:24px}
+.layout{display:flex;flex-direction:column;gap:22px}
+.card{width:100%;background:#fff;border-radius:24px;padding:24px;box-shadow:0 10px 30px rgba(15,23,42,.06);border:1px solid #e2e8f0}
 
-    /* Chrome, Edge, Safari (WebKit) Yuvarlak Düğme Ayarı */
-    #schmutzRange::-webkit-slider-thumb {
-        -webkit-appearance: none;
-        height: 18px;
-        width: 18px;
-        border-radius: 50%;
-        background: #1a4ab2;
-        cursor: pointer;
-        margin-top: -6px; /* Rayın tam ortasına hizalar */
-        position: relative;
-        z-index: 2;
-    }
+/* HERO SECTION */
+.hero{background:linear-gradient(135deg,#16368b 0%,#2563eb 100%);color:#fff;border:none;padding:24px;display:flex;flex-direction:column;gap:16px}
+.hero-row{display:flex;align-items:stretch;gap:24px}
+.hero-left-content{flex:1;display:flex;flex-direction:column;justify-content:center}
+.hero-left-grid{flex:1;display:grid;grid-template-columns:1fr 1fr;gap:16px}
 
-    /* WebKit Ray Ayarı - Düğmenin sona vurmasını sağlar */
-    #schmutzRange::-webkit-slider-runnable-track {
-        width: 100%;
-        height: 6px;
-        background: #cbd5e1;
-        border-radius: 3px;
-    }
+.hero-header-titles h1{margin:0;font-size:20px;font-weight:800;letter-spacing:0.5px;text-transform:uppercase}
+.hero-header-titles h2{margin:4px 0 0 0;font-size:14px;font-weight:500;opacity:0.9}
 
-    /* Firefox Yuvarlak Düğme Ayarı */
-    #schmutzRange::-moz-range-thumb {
-        height: 18px;
-        width: 18px;
-        border: none;
-        border-radius: 50%;
-        background: #1a4ab2;
-        cursor: pointer;
-    }
+.info-box{background:rgba(255,255,255,.15);border-radius:18px;padding:16px 20px;display:flex;flex-direction:column;justify-content:center}
+.info-label{font-size:10px;text-transform:uppercase;opacity:.8;margin-bottom:4px;font-weight:700;letter-spacing:0.5px}
+.info-value{font-size:15px;font-weight:700;line-height:1.3}
 
-    /* Firefox Ray Ayarı */
-    #schmutzRange::-moz-range-track {
-        width: 100%;
-        height: 6px;
-        background: #cbd5e1;
-        border-radius: 3px;
-    }
+.hero-btn-wrapper{flex:0 0 130px;display:flex;justify-content:center;align-items:center}
+.hero-mini{background:#ffffff22;border:1px solid rgba(255,255,255,.25);border-radius:18px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;width:120px;height:90px;cursor:pointer;transition:all 0.2s}
+.hero-mini:hover{background:rgba(255,255,255,0.25)}
+.hero-mini-plus{width:34px;height:34px;border-radius:10px;border:none;background:#fff;color:#16368b;font-size:20px;font-weight:800;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.hero-mini-title{font-size:11px;font-weight:700;color:#fff;text-transform:uppercase}
+.hero-mini-sub{font-size:9px;color:#ffffffcc;text-align:center;line-height:1}
+
+.section-title{font-size:18px;font-weight:800;line-height:1.1;margin:0 0 24px 0;color:#0f172a;text-align:left;display:flex;align-items:center;flex-wrap:wrap;gap:10px;}
+.total-badge {background:linear-gradient(135deg,#16368b 0%,#2563eb 100%); color:#fff; padding:4px 12px; border-radius:20px; font-size:13px; font-weight:700;}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:22px}
+
+.touch-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:18px}
+.touch-box{background:#f8fafc;border:2px solid #dbe3ef;border-radius:18px;padding:18px;text-align:center;cursor:pointer;user-select:none}
+.touch-count{font-size:28px;font-weight:800;color:#2563eb}
+#elementeBox .touch-box:nth-child(1){border-color:#2563eb}
+#elementeBox .touch-box:nth-child(1) .touch-count{color:#2563eb}
+#elementeBox .touch-box:nth-child(2){border-color:#16a34a}
+#elementeBox .touch-box:nth-child(2) .touch-count{color:#16a34a}
+#elementeBox .touch-box:nth-child(3){border-color:#f59e0b}
+#elementeBox .touch-box:nth-child(3) .touch-count{color:#f59e0b}
+
+.sortable-section{position:relative}
+.drag-handle{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;font-size:12px;color:#64748b;font-weight:700;cursor:grab;user-select:none}
+.drag-handle:active{cursor:grabbing}
+#sortableSections{display:flex;flex-direction:column;gap:22px}
+
+.trash-btn{cursor:pointer;color:#ef4444;font-weight:900;font-size:16px}
+.room-mini-grid{display:flex;align-items:center;gap:10px;flex-wrap:nowrap}
+.room-mini-box{border:2px solid #dbe3ef;border-radius:14px;padding:10px 12px;display:flex;flex-direction:row;align-items:center;justify-content:center;gap:8px;height:58px;cursor:pointer;background:#f8fafc;min-width:0;flex:1}
+.room-mini-plus{width:28px;height:28px;border-radius:8px;border:none;background:#fff;font-size:18px;font-weight:800;display:flex;align-items:center;justify-content:center;flex:0 0 auto}
+.room-mini-label{font-size:13px;font-weight:700;white-space:nowrap}
+.room-mini-box.blue{border-color:#2563eb}.room-mini-box.blue .room-mini-plus,.room-mini-box.blue .room-mini-label{color:#2563eb}
+.room-mini-box.red{border-color:#ef4444}.room-mini-box.red .room-mini-plus,.room-mini-box.red .room-mini-label{color:#ef4444}
+.room-mini-box.green{border-color:#16a34a}.room-mini-box.green .room-mini-plus,.room-mini-box.green .room-mini-label{color:#16a34a}
+.room-mini-box.orange{border-color:#f59e0b}.room-mini-box.orange .room-mini-plus,.room-mini-box.orange .room-mini-label{color:#f59e0b}
+.room-mini-box.cyan{border-color:#0891b2}.room-mini-box.cyan .room-mini-plus,.room-mini-box.cyan .room-mini-label{color:#0891b2}
+.room-mini-box.hero-style{background:linear-gradient(135deg,#16368b 0%,#2563eb 100%); border:none;}.room-mini-box.hero-style .room-mini-plus{color:#16368b; background:#fff;}.room-mini-box.hero-style .room-mini-label{color:#fff;}
+
+.room-choice-row{display:none;gap:8px;flex-wrap:wrap;margin-top:12px}
+.room-choice-btn{padding:8px 10px;border-radius:10px;border:1px solid #cbd5e1;background:#fff;font-size:13px;font-weight:700;cursor:pointer}
+.room-sublist, .area-sublist{margin-top:12px;display:flex;flex-direction:column;gap:8px}
+
+.room-entry{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border:1px solid #dbe3ef;border-radius:12px;background:#fff}
+.measure-trigger{display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:8px;border:1px solid #93c5fd;background:#eff6ff;color:#2563eb;font-size:13px;font-weight:800;cursor:pointer;flex:0 0 auto}
+.measure-trigger.active{background:#2563eb;color:#fff;border-color:#2563eb}
+.measure-target{background:#f8fafc;border-radius:4px}
+.room-entry-name{font-size:14px;font-weight:700;color:#0f172a}
+.room-entry-size{font-size:14px;color:#334155}
+.room-entry-size-edit{display:inline-block;min-width:40px;padding:0 4px;border-bottom:1px solid #94a3b8;text-align:center;outline:none}
+
+.duplicate-btn {background:#22c55e; color:#fff; border:none; border-radius:8px; padding:4px 10px; font-size:11px; font-weight:700; cursor:pointer; transition:all 0.2s;}
+
+.unterhalt-top-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px;margin-bottom:20px;background:#f8fafc;padding:16px;border-radius:14px;border:1px solid #dbe3ef}
+.unterhalt-top-field{display:flex;flex-direction:column;gap:6px}
+.unterhalt-top-field label{font-size:11px;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:.5px}
+.unterhalt-top-field select, .unterhalt-top-field input, .unterhalt-top-field textarea{padding:8px 10px;border-radius:8px;border:1px solid #cbd5e1;background:#fff;font-size:13px;font-weight:500;color:#0f172a;outline:none;cursor:pointer}
+.unterhalt-top-field select:focus, .unterhalt-top-field input:focus, .unterhalt-top-field textarea:focus{border-color:#2563eb;box-shadow:0 0 0 2px rgba(37,99,235,.2)}
+
+.device-toggle-btn{padding:8px 14px;border-radius:8px;border:1px solid #cbd5e1;background:#fff;font-size:13px;font-weight:600;color:#475569;cursor:pointer;transition:all 0.2s; white-space:nowrap;}
+.device-toggle-btn.active{background:#2563eb;color:#fff;border-color:#2563eb}
+
+/* Action Buttons Footer Style */
+.action-footer {
+  display: flex;
+  gap: 16px;
+  margin-top: 32px;
+  padding-bottom: 40px;
+}
+.btn-action {
+  flex: 1;
+  padding: 18px;
+  border-radius: 18px;
+  border: none;
+  font-size: 16px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.2s;
+  color: #fff;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.btn-speichern {
+  background: #16a34a;
+  box-shadow: 0 4px 14px rgba(22, 163, 74, 0.3);
+}
+.btn-speichern:hover {
+  background: #15803d;
+  transform: translateY(-2px);
+}
+.btn-senden {
+  background: #ef4444;
+  box-shadow: 0 4px 14px rgba(239, 68, 68, 0.3);
+}
+.btn-senden:hover {
+  background: #dc2626;
+  transform: translateY(-2px);
+}
+
+/* Flatpickr Custom German Design */
+.flatpickr-calendar.flatpickr-de .flatpickr-day.selected { background: #2563eb; border-color: #2563eb; }
+
+/* Print optimization */
+@media print {
+  .hero-btn-wrapper, .drag-handle, .trash-btn, .hero-mini, .action-footer, .duplicate-btn { display: none !important; }
+  .card { box-shadow: none !important; border: 1px solid #eee !important; }
+  body { background: #fff !important; }
+}
 </style>
 
-<div class="form-section">
-    <div class="form-section-title">
-        <i class="fa-solid fa-virus-slash icon-green"></i> Hygiene & Zustand
-    </div>
-    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px; align-items: center;">
-        <div>
-            <label>Desinfektion</label>
-            <div class="switch-container">
-                <select name="desinfektion">
-                    <option value="nein">Ohne</option>
-                    <option value="ja">Mit</option>
-                </select>
-            </div>
-            <small style="color: #64748b; margin-top: 5px; display: block;">*Empfohlen für medizinische Einrichtungen.</small>
+<div class="container">
+  <div class="layout">
+    <!-- HERO ALANI -->
+    <div class="card hero">
+      <div class="hero-row">
+        <div class="hero-left-content hero-header-titles">
+          <h1>KG Besichtigungs- & Kalkulationssystem</h1>
+          <h2>Reinigungsanalyse & Angebot</h2>
         </div>
-
-        <div style="display: flex; align-items: center; gap: 20px;">
-            <div style="flex: 1;">
-                <label>Schmutzgrad (0-10)</label>
-                <div style="display: flex; align-items: center; gap: 10px;">
-                    <input type="range" name="schmutzgrad" id="schmutzRange" min="0" max="10" value="5" 
-                           style="cursor: pointer; flex: 1; accent-color: #1a4ab2;"
-                           oninput="updateStatusGraph(this.value)">
-                    <output id="schmutzOutput" style="font-weight: 800; color: #1a4ab2; font-size: 18px; min-width: 25px;">5</output>
-                </div>
-            </div>
-            
-            <div id="statusGraph" style="display: flex; align-items: flex-end; gap: 2px; height: 40px; padding: 8px; background: #f8fafc; border-radius: 10px; border: 1px solid #e2e8f0;">
-                </div>
+        <div class="hero-btn-wrapper">
+          <div class="hero-mini" onclick="toggleLeistungen()">
+            <button type="button" class="hero-mini-plus">+</button>
+            <span class="hero-mini-title">Leistung</span>
+          </div>
         </div>
-    </div>
-</div>
+      </div>
 
-<script>
-function updateStatusGraph(val) {
-    const graph = document.getElementById('statusGraph');
-    const output = document.getElementById('schmutzOutput');
-    output.value = val;
-    graph.innerHTML = '';
-    
-    for (let i = 1; i <= 10; i++) {
-        const bar = document.createElement('div');
-        bar.style.height = (i * 10) + '%';
-        bar.style.width = '4px';
-        bar.style.borderRadius = '4px';
-        bar.style.transition = '0.2s';
+      <div class="hero-row">
+        <div class="hero-left-grid">
+          <div class="info-box"><div class="info-label">Kunde</div><div class="info-value">{{Kunde}}</div></div>
+          <div class="info-box"><div class="info-label">Objekt</div><div class="info-value">{{Adresse}}, {{Plz}} {{Ort}}</div></div>
+        </div>
+        <div class="hero-btn-wrapper">
+          <div class="hero-mini" onclick="toggleElemente()">
+            <div class="hero-mini-plus">+</div>
+            <span class="hero-mini-title">Elemente</span>
+            <span class="hero-mini-sub">(AP / PC / Müll)</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="hero-row">
+        <div class="hero-left-grid">
+          <div class="info-box"><div class="info-label">Ansprechpartner</div><div class="info-value">{{Ansprechpartner}}</div></div>
+          <div class="info-box"><div class="info-label">Termin</div><div class="info-value">{{Datum}} – {{Uhrzeit}}</div></div>
+        </div>
+        <div class="hero-btn-wrapper">
+          <div class="hero-mini" onclick="toggleSonstiges()">
+            <div class="hero-mini-plus">+</div>
+            <span class="hero-mini-title">Sonstiges</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SÜRÜKLENEBİLİR ALANLAR -->
+    <div id="sortableSections">
+      
+      <!-- LEISTUNGEN KUTUSU -->
+      <div id="leistungenBox" class="card sortable-section" style="display:none;">
+        <div class="drag-handle"><span>↕ Verschieben</span><span class="trash-btn" onclick="removeSection(this)">🗑</span></div>
+        <div class="section-title">Leistungen</div>
+        <div class="grid-2">
+          <div class="touch-box" onclick="addServiceBox('Unterhaltsreinigung')">Unterhaltsreinigung</div>
+          <div class="touch-box" onclick="addServiceBox('Büroreinigung')">Büroreinigung</div>
+          <div class="touch-box" onclick="addServiceBox('Praxisreinigung')">Praxisreinigung</div>
+          <div class="touch-box" onclick="addServiceBox('Fitnessstudio')">Fitnessstudio</div>
+          <div class="touch-box" onclick="addServiceBox('Lager- & Umkleidebereiche')">Lager- & Umkleidebereiche</div>
+          <div class="touch-box" onclick="addServiceBox('Treppenhaus')">Treppenhaus</div>
+          <div class="touch-box" onclick="addServiceBox('Grundreinigung')">Grundreinigung</div>
+          <div class="touch-box" onclick="addServiceBox('Bauendreinigung')">Bauendreinigung</div>
+          <div class="touch-box" onclick="addServiceBox('Fensterreinigung')">Fensterreinigung</div>
+          <div class="touch-box" onclick="addServiceBox('Jalousienreinigung')">Jalousienreinigung</div>
+        </div>
+      </div>
+
+      <!-- ELEMENTE KUTUSU -->
+      <div id="elementeBox" class="card sortable-section" style="display:none;">
+        <div class="drag-handle"><span>↕ Verschieben</span><span class="trash-btn" onclick="removeSection(this)">🗑</span></div>
+        <div class="section-title">Elemente</div>
+        <div class="touch-grid">
+          <div class="touch-box" onclick="boxClick(event,'a')" onmousedown="startHold('a')" onmouseup="stopHold()" onmouseleave="stopHold()" ontouchstart="startHold('a')" ontouchend="stopHold()">
+            <div style="display:flex;justify-content:space-between;font-size:12px;opacity:.6;margin-bottom:6px;"><span>-</span><span>+</span></div>
+            Arbeitstische
+            <div id="a" class="touch-count">0</div>
+          </div>
+          <div class="touch-box" onclick="boxClick(event,'b')" onmousedown="startHold('b')" onmouseup="stopHold()" onmouseleave="stopHold()" ontouchstart="startHold('b')" ontouchend="stopHold()">
+            <div style="display:flex;justify-content:space-between;font-size:12px;opacity:.6;margin-bottom:6px;"><span>-</span><span>+</span></div>
+            PC / Monitor
+            <div id="b" class="touch-count">0</div>
+          </div>
+          <div class="touch-box" onclick="boxClick(event,'c')" onmousedown="startHold('c')" onmouseup="stopHold()" onmouseleave="stopHold()" ontouchstart="startHold('c')" ontouchend="stopHold()">
+            <div style="display:flex;justify-content:space-between;font-size:12px;opacity:.6;margin-bottom:6px;"><span>-</span><span>+</span></div>
+            Müllbehälter
+            <div id="c" class="touch-count">0</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SONSTIGES KUTUSU (EKSİKSİZ ORİJİNAL SEÇENEKLERLE) -->
+      <div id="sonstigesBox" class="card sortable-section" style="display:none;">
+        <div class="drag-handle"><span>↕ Verschieben</span><span class="trash-btn" onclick="removeSection(this)">🗑</span></div>
+        <div class="section-title">Sonstiges</div>
         
-        if (i <= val) {
-            bar.style.backgroundColor = (val <= 5) ? '#22c55e' : '#ef4444'; 
-        } else {
-            bar.style.backgroundColor = '#e2e8f0';
-        }
-        graph.appendChild(bar);
-    }
-}
-document.addEventListener('DOMContentLoaded', () => updateStatusGraph(5));
-</script>
-
-<!-- =========================
-6. CAM TEMİZLİĞİ AYARLARI
-========================= -->
-
-<style>
-    /* Slider'ın rayını ve yuvarlağını hizalamak için gerekli stil */
-    .sync-slider {
-        -webkit-appearance: none;
-        background: transparent !important;
-    }
-    /* Chrome, Edge, Safari için yuvarlak düğme (thumb) ayarı */
-    .sync-slider::-webkit-slider-thumb {
-        -webkit-appearance: none;
-        height: 16px;
-        width: 16px;
-        border-radius: 50%;
-        background: #1a4ab2;
-        cursor: pointer;
-        margin-top: -5px; /* Rayın ortasına hizalar */
-        position: relative;
-        z-index: 2;
-    }
-    /* Chrome, Edge, Safari için ray (track) ayarı */
-    .sync-slider::-webkit-slider-runnable-track {
-        width: 100%;
-        height: 6px;
-        background: #cbd5e1;
-        border-radius: 3px;
-    }
-    /* Firefox için yuvarlak düğme ayarı */
-    .sync-slider::-moz-range-thumb {
-        height: 16px;
-        width: 16px;
-        border: none;
-        border-radius: 50%;
-        background: #1a4ab2;
-        cursor: pointer;
-    }
-    /* Firefox için ray ayarı */
-    .sync-slider::-moz-range-track {
-        width: 100%;
-        height: 6px;
-        background: #cbd5e1;
-        border-radius: 3px;
-    }
-</style>
-
-<div class="form-section">
-    <div class="form-section-title"><i class="fa-solid fa-window-maximize icon-blue"></i> Fensterreinigung</div>
-    
-    <div style="display: flex; align-items: center; gap: 20px; margin-bottom: 15px;">
-        <label style="margin:0; font-weight:600;">Fensterreinigung erwünscht?</label>
-        <select name="fenster_check" onchange="toggleExtra(this, 'fenster_box')" style="width: auto; min-width: 120px; padding: 8px;">
-            <option value="nein">Nein</option>
-            <option value="ja">Ja</option>
-        </select>
-    </div>
-
-    <div id="fenster_box" class="dynamic-input" style="background: #f8fafc; padding: 15px; border-radius: 12px; border: 1px dashed #cbd5e1;">
-        <div style="display: flex; align-items: center; justify-content: space-between; gap: 15px; flex-wrap: nowrap;">
+        <div style="background:#f8fafc; border:1px solid #dbe3ef; border-radius:14px; padding:16px; display:flex; flex-direction:column; gap:16px;">
+          
+          <!-- SATIR 1: Schreibtische -->
+          <div style="display:flex; align-items:flex-end; gap:12px; width:100%;">
+            <div class="unterhalt-top-field" style="flex:1;">
+              <label>Schreibtische reinigen</label>
+              <select style="width:100%;" onchange="document.getElementById('schreibtischFreq').style.display = (this.value === 'Ja') ? 'flex' : 'none';">
+                <option value="Keine">Keine</option>
+                <option value="Ja">Ja</option>
+              </select>
+            </div>
             
-            <div style="display: flex; align-items: center; gap: 10px; white-space: nowrap;">
-                <label style="margin:0;">Typ & m²:</label>
-                <select name="fenster_typ" style="width: auto; padding: 8px;">
-                    <option value="innen">Nur Innen</option>
-                    <option value="aussen">Nur Außen</option>
-                    <option value="beide">Innen + Außen</option>
-                </select>
-                <div class="counter-group" style="padding: 2px; display: flex; align-items: center;">
-                    <button type="button" class="counter-btn" onclick="stepVal('fen_val', -1, ' m²')">-</button>
-                    <input type="text" id="fen_display" class="counter-input-manual" value="0 m²" style="width:65px; text-align:center; font-weight:800;" onchange="manualEntry(this, 'fen_val', ' m²')">
-                    <button type="button" class="counter-btn" onclick="stepVal('fen_val', 1, ' m²')">+</button>
-                </div>
-                <input type="hidden" name="fenster_m2" id="fen_val" value="0 m²">
+            <div class="unterhalt-top-field" id="schreibtischFreq" style="display:none; flex:1;">
+              <label>Wie häufig</label>
+              <select style="width:100%;">
+                <option value="">Bitte wählen</option>
+                <option>Täglich</option>
+                <option>1x wöchentlich</option>
+                <option>2x wöchentlich</option>
+                <option>3x wöchentlich</option>
+                <option>4x wöchentlich</option>
+                <option>5x wöchentlich</option>
+                <option>14-tägig</option>
+              </select>
+            </div>
+            
+            <!-- Hizayı alt satırlarla aynı tutmak için boş alanlar -->
+            <div style="flex:1;"></div>
+            <div style="flex:2;"></div>
+          </div>
+
+          <!-- SATIR 2: Elektrogeräte -->
+          <div style="display:flex; align-items:flex-end; gap:12px; width:100%; flex-wrap: wrap;">
+            <div class="unterhalt-top-field" style="flex:1; min-width:140px;">
+              <label>Elektrogeräte</label>
+              <select style="width:100%;" onchange="
+                const isMit = this.value === 'Mit';
+                document.getElementById('elektroFreq').style.display = isMit ? 'flex' : 'none';
+                document.getElementById('elektroDevices').style.display = isMit ? 'flex' : 'none';
+                document.getElementById('elektroSpacer1').style.display = isMit ? 'none' : 'block';
+                document.getElementById('elektroSpacer2').style.display = isMit ? 'none' : 'block';
+              ">
+                <option value="Ohne">Ohne</option>
+                <option value="Mit">Mit</option>
+              </select>
+            </div>
+            
+            <div class="unterhalt-top-field" id="elektroFreq" style="display:none; flex:1; min-width:140px;">
+              <label>Wie häufig (Elektro)</label>
+              <select style="width:100%;">
+                <option value="">Bitte wählen</option>
+                <option>Täglich</option>
+                <option>1x wöchentlich</option>
+                <option>2x wöchentlich</option>
+                <option>3x wöchentlich</option>
+                <option>4x wöchentlich</option>
+                <option>5x wöchentlich</option>
+                <option>14-tägig</option>
+              </select>
+            </div>
+            
+            <div class="unterhalt-top-field" id="elektroDevices" style="display:none; flex:2; min-width: 250px;">
+              <label>Welche Geräte (Mehrfachauswahl)</label>
+              <div style="display:flex; gap:6px; width:100%; flex-wrap: wrap;">
+                <button type="button" class="device-toggle-btn" style="flex:1; padding-left:0; padding-right:0;" onclick="this.classList.toggle('active')">PC</button>
+                <button type="button" class="device-toggle-btn" style="flex:1; padding-left:0; padding-right:0;" onclick="this.classList.toggle('active')">Bildschirm</button>
+                <button type="button" class="device-toggle-btn" style="flex:1; padding-left:0; padding-right:0;" onclick="this.classList.toggle('active')">Telefon</button>
+                <button type="button" class="device-toggle-btn" style="flex:1; padding-left:0; padding-right:0;" onclick="this.classList.toggle('active')">Drucker</button>
+              </div>
             </div>
 
-            <div style="display: flex; align-items: center; gap: 10px; white-space: nowrap;">
-                <label style="margin:0;">Häufigkeit:</label>
-                <select name="fenster_frequenz" style="width: auto; padding: 8px;">
-                    <option value="einmalig">Einmalig</option>
-                    <option value="1x_mon">1x Monatlich</option>
-                    <option value="alle_2_mon">Alle 2 Monate</option>
-                    <option value="alle_3_mon">Alle 3 Monate</option>
-                    <option value="alle_4_mon">Alle 4 Monate</option>
-                    <option value="1x_jahr">1x Jährlich</option>
-                    <option value="alle_6_mon">2x Jährlich</option>
-                    
-                </select>
+            <!-- Hizayı üst satırla aynı tutmak için eklenen boş alanlar -->
+            <div id="elektroSpacer1" style="flex:1;"></div>
+            <div id="elektroSpacer2" style="flex:2;"></div>
+          </div>
+
+                    <!-- SATIR 3: Geschirrspüler (Küche) -->
+          <div style="display:flex; align-items:flex-end; gap:12px; width:100%;">
+            <div class="unterhalt-top-field" style="flex:1;">
+              <label>Geschirrspüler (Küche)</label>
+              <select name="Geschirrspueler" form="besichtigungForm" style="width:100%;" onchange="
+                const isOhne = this.value === 'Ohne' || this.value === '';
+                document.getElementById('geschirrFreq').style.display = isOhne ? 'none' : 'flex';
+              ">
+                <option value="">Bitte wählen</option>
+                <option value="Ohne">Ohne</option>
+                <option value="Einräumen">Einräumen</option>
+                <option value="Ausräumen">Ausräumen</option>
+                <option value="Ein- und Ausräumen">Ein- und Ausräumen</option>
+              </select>
             </div>
 
-            <div style="display: flex; align-items: center; gap: 10px; flex: 1; justify-content: flex-end;">
-                <label style="margin:0; white-space: nowrap;"><i class="fa-solid fa-broom" style="color: #1a4ab2;"></i> Schmutz:</label>
-                <input type="range" class="sync-slider" min="0" max="10" value="5" 
-                       style="cursor: pointer; width: 90px; accent-color: #1a4ab2;"
-                       oninput="syncGraph(this)">
-                <output style="font-weight: 800; color: #1a4ab2; font-size: 16px; min-width: 20px;">5</output>
-                <div class="sync-graph" style="display: flex; align-items: flex-end; gap: 1px; height: 30px; padding: 3px; background: #fff; border-radius: 6px; border: 1px solid #e2e8f0; min-width: 50px;">
-                    {% for i in range(1, 11) %}<div style="height: {{i*10}}%; width: 3px; background: #e2e8f0; border-radius: 2px;"></div>{% endfor %}
-                </div>
+            <div class="unterhalt-top-field" id="geschirrFreq" style="display:none; flex:1;">
+              <label>Wie häufig (Geschirr)</label>
+              <select name="GeschirrHaeufigkeit" form="besichtigungForm" style="width:100%;">
+                <option value="">Bitte wählen</option>
+                <option>Täglich</option>
+                <option>1x wöchentlich</option>
+                <option>2x wöchentlich</option>
+                <option>3x wöchentlich</option>
+                <option>4x wöchentlich</option>
+                <option>5x wöchentlich</option>
+                <option>14-tägig</option>
+              </select>
             </div>
+            
+            <div style="flex:1;"></div>
+            <div style="flex:2;"></div>
+          </div>
 
+          <!-- SATIR 4: Stehlampen -->
+          <div style="display:flex; align-items:flex-end; gap:12px; width:100%;">
+            <div class="unterhalt-top-field" style="flex:1;">
+              <label>Stehlampen</label>
+              <select style="width:100%;" onchange="
+                const show = (this.value === 'Ja') ? 'flex' : 'none';
+                document.getElementById('stehlampeCount').style.display = show;
+                document.getElementById('stehlampeFreq').style.display = show;
+              ">
+                <option value="Keine">Keine</option>
+                <option value="Ja">Ja</option>
+              </select>
+            </div>
+            <div class="unterhalt-top-field" id="stehlampeCount" style="display:none; flex:1;">
+              <label>Stückzahl</label>
+              <select style="width:100%;">
+                <option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10</option><option value="11">11</option><option value="12">12</option><option value="13">13</option><option value="14">14</option><option value="15">15</option><option value="16">16</option><option value="17">17</option><option value="18">18</option><option value="19">19</option><option value="20">20</option>
+              </select>
+            </div>
+            <div class="unterhalt-top-field" id="stehlampeFreq" style="display:none; flex:1;">
+              <label>Wie häufig</label>
+              <select style="width:100%;">
+                <option value="">Bitte wählen</option>
+                <option>Täglich</option>
+                <option>1x wöchentlich</option>
+                <option>2x wöchentlich</option>
+                <option>3x wöchentlich</option>
+                <option>4x wöchentlich</option>
+                <option>5x wöchentlich</option>
+                <option>14-tägig</option>
+                <option>1x monatlich</option>
+                <option>alle 2 Monate</option>
+                <option>alle 3 Monate</option>
+                <option>alle 4 Monate</option>
+                <option>1x jährlich</option>
+              </select>
+            </div>
+            <div style="flex:1;"></div>
+            <div style="flex:2;"></div>
+          </div>
+
+          <!-- SATIR 5: Regale -->
+          <div style="display:flex; align-items:flex-end; gap:12px; width:100%;">
+            <div class="unterhalt-top-field" style="flex:1;">
+              <label>Regale</label>
+              <select style="width:100%;" onchange="
+                const show = (this.value === 'Ja') ? 'flex' : 'none';
+                document.getElementById('regaleCount').style.display = show;
+                document.getElementById('regaleFreq').style.display = show;
+              ">
+                <option value="Keine">Keine</option>
+                <option value="Ja">Ja</option>
+              </select>
+            </div>
+            <div class="unterhalt-top-field" id="regaleCount" style="display:none; flex:1;">
+              <label>Stückzahl</label>
+              <select style="width:100%;">
+                 <option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10</option><option value="11">11</option><option value="12">12</option><option value="13">13</option><option value="14">14</option><option value="15">15</option><option value="16">16</option><option value="17">17</option><option value="18">18</option><option value="19">19</option><option value="20">20</option>
+              </select>
+            </div>
+            <div class="unterhalt-top-field" id="regaleFreq" style="display:none; flex:1;">
+              <label>Wie häufig</label>
+              <select style="width:100%;">
+                <option value="">Bitte wählen</option>
+                <option>Täglich</option>
+                <option>1x wöchentlich</option>
+                <option>2x wöchentlich</option>
+                <option>3x wöchentlich</option>
+                <option>4x wöchentlich</option>
+                <option>5x wöchentlich</option>
+                <option>14-tägig</option>
+                <option>1x monatlich</option>
+                <option>alle 2 Monate</option>
+                <option>alle 3 Monate</option>
+                <option>alle 4 Monate</option>
+                <option>1x jährlich</option>
+              </select>
+            </div>
+            <div style="flex:1;"></div>
+            <div style="flex:2;"></div>
+          </div>
+
+          <!-- SATIR 6: Etage -->
+          <div style="display:flex; align-items:flex-end; gap:12px; width:100%;">
+            <div class="unterhalt-top-field" style="flex:1;">
+              <label>Etage</label>
+              <select style="width:100%;">
+                <option value="EG">EG</option>
+                <option value="Keller">Keller</option>
+              </select>
+            </div>
+            <div class="unterhalt-top-field" style="flex:1;">
+              <label>bis inkl.</label>
+              <select style="width:100%;">
+                <option value="Keine">Keine</option>
+                <option value="1. OG">1. OG</option>
+                <option value="2. OG">2. OG</option>
+                <option value="3. OG">3. OG</option>
+                <option value="4. OG">4. OG</option>
+                <option value="5. OG">5. OG</option>
+                <option value="6. OG">6. OG</option>
+                <option value="7. OG">7. OG</option>
+                <option value="8. OG">8. OG</option>
+                <option value="9. OG">9. OG</option>
+              </select>
+            </div>
+            <div style="flex:1;"></div>
+            <div style="flex:2;"></div>
+          </div>
+
+          <!-- SATIR 7: Starttermin (YENİ EKLENDİ) -->
+          <div style="display:flex; align-items:flex-end; gap:12px; width:100%;">
+            <div class="unterhalt-top-field" style="flex:2;">
+              <label>Starttermin <span style="text-transform:none; font-weight:500; opacity:0.7; font-size:10px;">(bei gegenseitiger Einigung)</span></label>
+              <div style="display:flex; align-items:center; gap:10px;">
+                <span style="font-size:13px; font-weight:700; color:#475569;">ab</span>
+                <input type="text" id="startTerminInput" placeholder="TT.MM.JJJJ" style="padding:8px 10px; border-radius:8px; border:1px solid #cbd5e1; background:#fff; font-size:13px; font-weight:500; color:#0f172a; outline:none; cursor:pointer; flex:1; font-family:inherit;">
+              </div>
+            </div>
+            <div style="flex:1;"></div>
+            <div style="flex:1;"></div>
+          </div>
+
+          <!-- SATIR 8: Einsatztage & Uhrzeiten -->
+          <div style="display:flex; flex-direction:column; gap:8px; width:100%; margin-top:4px;">
+            <label style="font-size:11px; font-weight:700; color:#475569; text-transform:uppercase; letter-spacing:.5px;">Einsatztage & Uhrzeiten</label>
+            <div style="display:flex; flex-wrap:wrap; gap:8px;">
+              <!-- Mo-Sa -->
+              <div style="display:flex; align-items:center; gap:6px; background:#fff; padding:4px; border-radius:10px; border:1px solid #cbd5e1;">
+                <button type="button" class="device-toggle-btn" style="min-width:40px; padding:6px 10px; margin:0;" onclick="this.classList.toggle('active'); this.nextElementSibling.style.display = this.classList.contains('active') ? 'flex' : 'none';">Mo</button>
+                <div style="display:none; align-items:center; gap:4px; padding-right:6px;"><span style="font-size:11px; color:#64748b; font-weight:600;">ab</span><input type="time" value="17:00" style="padding:4px 6px; border-radius:6px; border:1px solid #cbd5e1; font-size:13px; outline:none; color:#0f172a;"><span style="font-size:11px; color:#64748b; font-weight:600;">Uhr</span></div>
+              </div>
+              <div style="display:flex; align-items:center; gap:6px; background:#fff; padding:4px; border-radius:10px; border:1px solid #cbd5e1;">
+                <button type="button" class="device-toggle-btn" style="min-width:40px; padding:6px 10px; margin:0;" onclick="this.classList.toggle('active'); this.nextElementSibling.style.display = this.classList.contains('active') ? 'flex' : 'none';">Di</button>
+                <div style="display:none; align-items:center; gap:4px; padding-right:6px;"><span style="font-size:11px; color:#64748b; font-weight:600;">ab</span><input type="time" value="17:00" style="padding:4px 6px; border-radius:6px; border:1px solid #cbd5e1; font-size:13px; outline:none; color:#0f172a;"><span style="font-size:11px; color:#64748b; font-weight:600;">Uhr</span></div>
+              </div>
+              <div style="display:flex; align-items:center; gap:6px; background:#fff; padding:4px; border-radius:10px; border:1px solid #cbd5e1;">
+                <button type="button" class="device-toggle-btn" style="min-width:40px; padding:6px 10px; margin:0;" onclick="this.classList.toggle('active'); this.nextElementSibling.style.display = this.classList.contains('active') ? 'flex' : 'none';">Mi</button>
+                <div style="display:none; align-items:center; gap:4px; padding-right:6px;"><span style="font-size:11px; color:#64748b; font-weight:600;">ab</span><input type="time" value="17:00" style="padding:4px 6px; border-radius:6px; border:1px solid #cbd5e1; font-size:13px; outline:none; color:#0f172a;"><span style="font-size:11px; color:#64748b; font-weight:600;">Uhr</span></div>
+              </div>
+              <div style="display:flex; align-items:center; gap:6px; background:#fff; padding:4px; border-radius:10px; border:1px solid #cbd5e1;">
+                <button type="button" class="device-toggle-btn" style="min-width:40px; padding:6px 10px; margin:0;" onclick="this.classList.toggle('active'); this.nextElementSibling.style.display = this.classList.contains('active') ? 'flex' : 'none';">Do</button>
+                <div style="display:none; align-items:center; gap:4px; padding-right:6px;"><span style="font-size:11px; color:#64748b; font-weight:600;">ab</span><input type="time" value="17:00" style="padding:4px 6px; border-radius:6px; border:1px solid #cbd5e1; font-size:13px; outline:none; color:#0f172a;"><span style="font-size:11px; color:#64748b; font-weight:600;">Uhr</span></div>
+              </div>
+              <div style="display:flex; align-items:center; gap:6px; background:#fff; padding:4px; border-radius:10px; border:1px solid #cbd5e1;">
+                <button type="button" class="device-toggle-btn" style="min-width:40px; padding:6px 10px; margin:0;" onclick="this.classList.toggle('active'); this.nextElementSibling.style.display = this.classList.contains('active') ? 'flex' : 'none';">Fr</button>
+                <div style="display:none; align-items:center; gap:4px; padding-right:6px;"><span style="font-size:11px; color:#64748b; font-weight:600;">ab</span><input type="time" value="17:00" style="padding:4px 6px; border-radius:6px; border:1px solid #cbd5e1; font-size:13px; outline:none; color:#0f172a;"><span style="font-size:11px; color:#64748b; font-weight:600;">Uhr</span></div>
+              </div>
+              <div style="display:flex; align-items:center; gap:6px; background:#fff; padding:4px; border-radius:10px; border:1px solid #cbd5e1;">
+                <button type="button" class="device-toggle-btn" style="min-width:40px; padding:6px 10px; margin:0;" onclick="this.classList.toggle('active'); this.nextElementSibling.style.display = this.classList.contains('active') ? 'flex' : 'none';">Sa</button>
+                <div style="display:none; align-items:center; gap:4px; padding-right:6px;"><span style="font-size:11px; color:#64748b; font-weight:600;">ab</span><input type="time" value="17:00" style="padding:4px 6px; border-radius:6px; border:1px solid #cbd5e1; font-size:13px; outline:none; color:#0f172a;"><span style="font-size:11px; color:#64748b; font-weight:600;">Uhr</span></div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- NOTIZEN SECTION -->
+          <div class="unterhalt-top-field" style="margin-top:8px;">
+            <label>Individuelle Notizen / Sonderwünsche</label>
+            <textarea id="sonstigeNotizen" rows="4" style="width:100%; resize: none; border-radius:12px; padding:12px; font-family:inherit; font-size:14px; border:1px solid #cbd5e1;" placeholder="Hier können Sie zusätzliche Details oder Wünsche eintragen..."></textarea>
+          </div>
         </div>
+      </div>
     </div>
+
+    <!-- ACTION FOOTER BUTTONS -->
+    <form method="POST" action="/besichtigung" id="besichtigungForm">
+  <input type="hidden" name="firma" value="{{Kunde}}">
+  <input type="hidden" name="kunde" value="{{Kunde}}">
+  <input type="hidden" name="ansprechpartner" value="{{Ansprechpartner}}">
+  <input type="hidden" name="strasse" value="{{Adresse}}">
+  <input type="hidden" name="plz" value="{{Plz}}">
+  <input type="hidden" name="ort" value="{{Ort}}">
+  <input type="hidden" name="leistungsart" value="{{Leistungsart}}">
+  <input type="hidden" name="haeufigkeit" value="{{Haeufigkeit}}">
+  <input type="hidden" name="m2" value="{{Flaeche}}">
+  <input type="hidden" name="email" value="{{Email}}">
+  <input type="hidden" name="telefon" value="{{Telefon}}">
+
+  <div class="action-footer">
+    <button type="submit" class="btn-action btn-speichern">Speichern</button>
+    <button type="button" class="btn-action btn-senden" onclick="sendData()">Senden</button>
+  </div>
+</form>
+
+  </div>
 </div>
 
 <script>
-function syncGraph(el) {
-    const val = parseInt(el.value);
-    const output = el.nextElementSibling;
-    const graphBox = el.parentElement.querySelector('.sync-graph');
-    const bars = graphBox.querySelectorAll('div');
-    
-    output.innerText = val;
-    
-    bars.forEach((bar, i) => {
-        if (i < val) {
-            bar.style.backgroundColor = (val <= 5) ? '#22c55e' : '#ef4444';
-        } else {
-            bar.style.backgroundColor = '#e2e8f0';
-        }
-    });
+// Almanca Takvim (Flatpickr)
+window.onload = function() {
+  flatpickr("#startTerminInput", {
+    locale: "de",
+    dateFormat: "d.m.Y",
+    allowInput: true,
+    placeholder: "TT.MM.JJJJ"
+  });
+};
+
+// Kaydetme
+function saveData() {
+  document.getElementById('besichtigungForm').submit();
+}
+// Senden
+function sendData() {
+  const btn = document.querySelector('.btn-senden');
+  btn.textContent = "Wird gesendet...";
+  setTimeout(() => {
+    btn.textContent = "Gesendet! ✓";
+    btn.style.background = "#dc2626";
+    setTimeout(() => {
+      btn.textContent = "Senden";
+    }, 2000);
+  }, 1500);
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-    document.querySelectorAll('.sync-slider').forEach(s => syncGraph(s));
+function toggleLeistungen(){
+  const box = document.getElementById('leistungenBox');
+  if(!box) return;
+  box.style.display = box.style.display === 'none' ? 'block' : 'none';
+}
+
+function toggleElemente(){
+  const box = document.getElementById('elementeBox');
+  if(!box) return;
+  box.style.display = box.style.display === 'none' ? 'block' : 'none';
+}
+
+function toggleSonstiges(){
+  const box = document.getElementById('sonstigesBox');
+  if(!box) return;
+  box.style.display = box.style.display === 'none' ? 'block' : 'none';
+}
+
+function calculateTotalM2(container) {
+  const badge = container.closest('.sortable-section')?.querySelector('.total-m2-badge');
+  if (!badge) return;
+  let t = 0;
+  container.closest('.room-group-wrapper')?.querySelectorAll('.measure-target').forEach(el => {
+    t += parseFloat(el.textContent.replace(',', '.')) || 0;
+  });
+  badge.textContent = `Insgesamt: ${t.toFixed(2).replace('.', ',')} m²`;
+}
+
+function calculateGroupTotalM2(container) {
+  const wrapper = container.closest('.room-group-wrapper');
+  if (!wrapper) return;
+  const badge = wrapper.querySelector('.group-total-badge');
+  if (!badge) return;
+  let t = 0;
+  wrapper.querySelectorAll('.measure-target').forEach(el => {
+    t += parseFloat(el.textContent.replace(',', '.')) || 0;
+  });
+  badge.textContent = `Insgesamt: ${t.toFixed(2).replace('.', ',')} m²`;
+}
+
+function addServiceBox(title){
+  const container = document.getElementById('sortableSections');
+  if(!container) return;
+  const box = document.createElement('div');
+  box.className = 'card sortable-section';
+  
+  let titleHtml = (title === 'Fensterreinigung' || title === 'Jalousienreinigung') 
+    ? `<div class="section-title">${title} Details <span class="total-m2-badge total-badge">Insgesamt: 0,00 m²</span></div>`
+    : `<div class="section-title">${title} Details</div>`;
+
+  let innerContent = `
+    <div class="drag-handle"><span>↕ Verschieben</span><span class="trash-btn" onclick="removeSection(this)">🗑</span></div>
+    ${titleHtml}
+  `;
+  
+  if (title === 'Unterhaltsreinigung' || title === 'Büroreinigung' || title === 'Praxisreinigung' || title === 'Lager- & Umkleidebereiche' || title === 'Fitnessstudio') {
+    const freqOptions = `
+      <option value="">Bitte wählen</option>
+      <option>Keine</option>
+      <option>Täglich</option>
+      <option>1x wöchentlich</option>
+      <option>2x wöchentlich</option>
+      <option>3x wöchentlich</option>
+      <option>4x wöchentlich</option>
+      <option>5x wöchentlich</option>
+      <option>14-tägig</option>
+    `;
+    const getGroupTemplate = (label, colorClass, isChoice, bodenOptions) => {
+      let labelWithBadge = `<div class="room-mini-label" style="display:flex; flex-direction:column; align-items:flex-start; line-height:1.2;"><span>${label}</span><span class="group-total-badge" style="font-size:9px; font-weight:600; opacity:0.8; margin-top:2px;">Insgesamt: 0,00 m²</span></div>`;
+
+      let actionHtml = isChoice 
+        ? `<div class="room-mini-box ${colorClass}" onclick="toggleRoomChoices(this)" style="margin:0; flex:1; min-width:140px; height:58px;"><div class="room-mini-plus">+</div>${labelWithBadge}</div>`
+        : `<div class="room-mini-box ${colorClass}" onclick="addAreaRow(this, '${label}')" style="margin:0; flex:1; min-width:140px; height:58px;"><div class="room-mini-plus">+</div>${labelWithBadge}</div>`;
+      
+      // SERVERRAUM EKLENDİ
+      let choiceRow = isChoice ? '<div class="room-choice-row" style="margin-top:12px;"><button type="button" class="room-choice-btn" onclick="event.stopPropagation(); addRoomEntry(this, \'Büroraum\')">Büroraum</button><button type="button" class="room-choice-btn" onclick="event.stopPropagation(); addRoomEntry(this, \'Besprechungsraum\')">Besprechungsraum</button><button type="button" class="room-choice-btn" onclick="event.stopPropagation(); addRoomEntry(this, \'Serverraum\')">Serverraum</button></div>' : '';
+      
+      return `<div class="room-group-wrapper" style="background:#f8fafc; border:1px solid #dbe3ef; border-radius:14px; padding:16px; margin-bottom:16px;">
+        <div style="display:flex; gap:12px; flex-wrap:wrap; align-items:flex-end;">${actionHtml}<div class="unterhalt-top-field" style="flex:1; min-width:120px;"><label>Boden</label><select>${bodenOptions}</select></div><div class="unterhalt-top-field" style="flex:1; min-width:120px;"><label>Wie häufig</label><select>${freqOptions}</select></div></div>${choiceRow}<div class="room-list-container" style="margin-top:12px; display:flex; flex-direction:column; gap:8px;"></div></div>`;
+    };
+    
+    const bodenBuro = '<option>Vinyl</option><option>Parkett</option><option>Laminat</option><option>PVC</option><option>Stein</option><option>Fliesen</option><option>Teppich</option>';
+    const bodenWc = '<option>Fliesen</option><option>Stein</option>';
+    const bodenKuche = '<option>Fliesen</option><option>PVC</option><option>Vinyl</option><option>Laminat</option><option>Stein</option><option>Parkett</option><option>Teppich</option>';
+    const bodenFlur = '<option>Fliesen</option><option>Stein</option><option>PVC</option><option>Vinyl</option><option>Laminat</option><option>Parkett</option><option>Teppich</option>';
+    const bodenDusche = '<option>Fliesen</option><option>Stein</option>';
+
+    let duscheTemplate = (title === 'Lager- & Umkleidebereiche' || title === 'Fitnessstudio') ? getGroupTemplate('Dusche', 'cyan', false, bodenDusche) : '';
+
+    let fitnessExtra = '';
+    if (title === 'Fitnessstudio') {
+      const spiegelId = 'spiegel_' + Math.random().toString(36).substr(2,9);
+      fitnessExtra = `
+        <div class="room-group-wrapper" style="background:#f8fafc; border:1px solid #dbe3ef; border-radius:14px; padding:16px; margin-top:16px; display:flex; flex-direction:column; gap:16px;">
+          <div style="font-size:15px; font-weight:800; color:#0f172a; border-bottom:1px solid #cbd5e1; padding-bottom:8px;">Spezifische Fitness-Parameter</div>
+          
+          <!-- 1. Trainingsfläche -->
+          <div class="unterhalt-top-field" style="width:100%;">
+            <label>1. Trainingsfläche</label>
+            <div style="display:flex; gap:6px; flex-wrap:wrap;">
+              <button type="button" class="device-toggle-btn" onclick="this.classList.toggle('active')">Gerätebereich</button>
+              <button type="button" class="device-toggle-btn" onclick="this.classList.toggle('active')">Freihantelbereich</button>
+              <button type="button" class="device-toggle-btn" onclick="this.classList.toggle('active')">Kursraum</button>
+              <button type="button" class="device-toggle-btn" onclick="this.classList.toggle('active')">Cardio-Bereich</button>
+            </div>
+          </div>
+
+          <div style="display:flex; align-items:flex-end; gap:12px; width:100%; flex-wrap:wrap;">
+            <!-- 2. Bodenart -->
+            <div class="unterhalt-top-field" style="flex:1; min-width:140px;">
+              <label>2. Bodenart</label>
+              <select style="width:100%;">
+                <option value="">Bitte wählen</option>
+                <option>Gummiboden</option>
+                <option>Vinyl</option>
+                <option>Fliesen</option>
+                <option>Teppich</option>
+                <option>Sportboden</option>
+              </select>
+            </div>
+            <!-- 5. Sauna / Wellness (Yanına ekledim) -->
+            <div class="unterhalt-top-field" style="flex:1; min-width:140px;">
+              <label>5. Sauna / Wellness</label>
+              <select style="width:100%;">
+                <option value="Keine">Keine</option>
+                <option value="Sauna">Sauna</option>
+                <option value="Wellnessbereich">Wellnessbereich</option>
+                <option value="Solarium">Solarium</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- 3. Desinfektion -->
+          <div style="display:flex; align-items:flex-end; gap:12px; width:100%; flex-wrap:wrap;">
+            <div class="unterhalt-top-field" style="flex:1; min-width:120px;">
+              <label>3. Geräte desinfizieren</label>
+              <select style="width:100%;">
+                <option value="Nein">Nein</option>
+                <option value="Ja">Ja</option>
+              </select>
+            </div>
+            <div class="unterhalt-top-field" style="flex:1; min-width:120px;">
+              <label>Matten desinfizieren</label>
+              <select style="width:100%;">
+                <option value="Nein">Nein</option>
+                <option value="Ja">Ja</option>
+              </select>
+            </div>
+            <div class="unterhalt-top-field" style="flex:1; min-width:120px;">
+              <label>Kontaktflächen desinfizieren</label>
+              <select style="width:100%;">
+                <option value="Nein">Nein</option>
+                <option value="Ja">Ja</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- 4. Spiegel -->
+          <div style="display:flex; align-items:flex-end; gap:12px; width:100%; flex-wrap:wrap;">
+            <div class="unterhalt-top-field" style="flex:1; min-width:140px;">
+              <label>4. Spiegel vorhanden</label>
+              <select style="width:100%;" onchange="document.getElementById('${spiegelId}').style.display = (this.value === 'Ja') ? 'flex' : 'none';">
+                <option value="Nein">Nein</option>
+                <option value="Ja">Ja</option>
+              </select>
+            </div>
+            <div class="unterhalt-top-field" id="${spiegelId}" style="display:none; flex:2; min-width:140px;">
+              <label>Wie häufig (Spiegel)</label>
+              <select style="width:100%;">
+                <option value="">Bitte wählen</option>
+                <option>Täglich</option>
+                <option>1x wöchentlich</option>
+                <option>2x wöchentlich</option>
+                <option>3x wöchentlich</option>
+                <option>4x wöchentlich</option>
+                <option>5x wöchentlich</option>
+                <option>14-tägig</option>
+                <option>1x monatlich</option>
+              </select>
+            </div>
+            <div style="flex:1; min-width:120px;"></div>
+          </div>
+
+        </div>`;
+    }
+
+    innerContent += `<div style="margin-top: 16px;">
+      ${getGroupTemplate('Büroräume', 'blue', true, bodenBuro)}
+      ${getGroupTemplate('WC', 'red', false, bodenWc)}
+      ${getGroupTemplate('Küche', 'green', false, bodenKuche)}
+      ${getGroupTemplate('Flur', 'orange', false, bodenFlur)}
+      ${duscheTemplate}
+    </div>${fitnessExtra}`;
+  } else if (title === 'Fensterreinigung') {
+    innerContent += `<div class="room-group-wrapper" style="background:#f8fafc; border:1px solid #dbe3ef; border-radius:14px; padding:16px; margin-bottom:16px;">
+      <div style="display:flex; gap:12px; flex-wrap:wrap; align-items:flex-end;">
+        <div class="room-mini-box hero-style" onclick="addRoomEntry(this, 'Fenster')" style="margin:0; flex:1; min-width:140px; height:58px;"><div class="room-mini-plus">+</div><div class="room-mini-label">Fenster</div></div>
+        <div class="unterhalt-top-field" style="flex:1; min-width:140px;"><label>Wie häufig</label><select><option value="">Bitte wählen</option><option>Einmalig</option><option>1x monatlich</option><option>alle 2 Monate</option><option>alle 3 Monate</option><option>alle 4 Monate</option><option>1x jährlich</option><option>2x jährlich</option></select></div>
+      </div><div class="room-list-container" style="margin-top:12px; display:flex; flex-direction:column; gap:8px;"></div></div>`;
+  } else if (title === 'Jalousienreinigung') {
+    innerContent += `<div class="room-group-wrapper" style="background:#f8fafc; border:1px solid #dbe3ef; border-radius:14px; padding:16px; margin-bottom:16px;">
+      <div style="display:flex; gap:12px; flex-wrap:wrap; align-items:flex-end;">
+        <div class="room-mini-box hero-style" onclick="addRoomEntry(this, 'Jalousien')" style="margin:0; flex:1; min-width:140px; height:58px;"><div class="room-mini-plus">+</div><div class="room-mini-label">Jalousien</div></div>
+        <div class="unterhalt-top-field" style="flex:1; min-width:140px;"><label>Wie häufig</label><select><option value="">Bitte wählen</option><option>Einmalig</option><option>1x monatlich</option><option>alle 2 Monate</option><option>alle 3 Monate</option><option>alle 4 Monate</option><option>1x jährlich</option><option>2x jährlich</option></select></div>
+      </div><div class="room-list-container" style="margin-top:12px; display:flex; flex-direction:column; gap:8px;"></div></div>`;
+  } else if (title === 'Treppenhaus') {
+    const kId = 'k_' + Math.random().toString(36).substr(2,9);
+    const fId = 'f_' + Math.random().toString(36).substr(2,9);
+    innerContent += `<div class="room-group-wrapper" style="background:#f8fafc; border:1px solid #dbe3ef; border-radius:14px; padding:16px; margin-bottom:16px; display:flex; flex-direction:column; gap:16px;">
+      
+      <!-- Etage Selection -->
+      <div style="display:flex; align-items:flex-end; gap:12px; width:100%; flex-wrap:wrap;">
+        <div class="unterhalt-top-field" style="flex:1; min-width:120px;">
+          <label>Etage</label>
+          <select style="width:100%;">
+            <option value="EG">EG</option>
+            <option value="Keller">Keller</option>
+          </select>
+        </div>
+        <div class="unterhalt-top-field" style="flex:1; min-width:120px;">
+          <label>bis inkl.</label>
+          <select style="width:100%;">
+            <option value="Keine">Keine</option>
+            <option value="1. OG">1. OG</option>
+            <option value="2. OG">2. OG</option>
+            <option value="3. OG">3. OG</option>
+            <option value="4. OG">4. OG</option>
+            <option value="5. OG">5. OG</option>
+            <option value="6. OG">6. OG</option>
+            <option value="7. OG">7. OG</option>
+            <option value="8. OG">8. OG</option>
+            <option value="9. OG">9. OG</option>
+          </select>
+        </div>
+        <div class="unterhalt-top-field" style="flex:2; min-width:140px;">
+          <label>Wie häufig</label>
+          <select style="width:100%;">
+            <option value="">Bitte wählen</option>
+            <option>Einmalig</option>
+            <option>Täglich</option>
+            <option>1x wöchentlich</option>
+            <option>2x wöchentlich</option>
+            <option>3x wöchentlich</option>
+            <option>4x wöchentlich</option>
+            <option>5x wöchentlich</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Keller fegen -->
+      <div style="display:flex; align-items:flex-end; gap:12px; width:100%; flex-wrap:wrap;">
+        <div class="unterhalt-top-field" style="flex:1; min-width:140px;">
+          <label>Keller fegen</label>
+          <select style="width:100%;" onchange="document.getElementById('${kId}').style.display = (this.value === 'Ja') ? 'flex' : 'none';">
+            <option value="Keine">Keine</option>
+            <option value="Ja">Ja</option>
+          </select>
+        </div>
+        <div class="unterhalt-top-field" id="${kId}" style="display:none; flex:2; min-width:140px;">
+          <label>Wie häufig (Keller)</label>
+          <select style="width:100%;">
+            <option value="">Bitte wählen</option>
+            <option>Einmalig</option>
+            <option>1x wöchentlich</option>
+            <option>2x wöchentlich</option>
+            <option>3x wöchentlich</option>
+            <option>4x wöchentlich</option>
+            <option>5x wöchentlich</option>
+            <option>1x monatlich</option>
+            <option>alle 2 Monate</option>
+            <option>alle 3 Monate</option>
+          </select>
+        </div>
+        <div style="flex:1; min-width:120px;"></div>
+      </div>
+
+      <!-- Fensterreinigung -->
+      <div style="display:flex; align-items:flex-end; gap:12px; width:100%; flex-wrap:wrap;">
+        <div class="unterhalt-top-field" style="flex:1; min-width:140px;">
+          <label>Fensterreinigung</label>
+          <select style="width:100%;" onchange="document.getElementById('${fId}').style.display = (this.value === 'Ja') ? 'flex' : 'none';">
+            <option value="Keine">Keine</option>
+            <option value="Ja">Ja</option>
+          </select>
+        </div>
+        <div class="unterhalt-top-field" id="${fId}" style="display:none; flex:2; min-width:140px;">
+          <label>Wie häufig (Fenster)</label>
+          <select style="width:100%;">
+            <option value="">Bitte wählen</option>
+            <option>1x monatlich</option>
+            <option>alle 2 Monate</option>
+            <option>alle 3 Monate</option>
+            <option>alle 4 Monate</option>
+            <option>1x jährlich</option>
+            <option>2x jährlich</option>
+          </select>
+        </div>
+        <div style="flex:1; min-width:120px;"></div>
+      </div>
+
+    </div>`;
+  } else if (title === 'Grundreinigung' || title === 'Bauendreinigung') {
+    let bauExtra = '';
+    if (title === 'Bauendreinigung') {
+      bauExtra = `
+        <div style="display:flex; align-items:flex-end; gap:12px; width:100%; flex-wrap:wrap;">
+          <div class="unterhalt-top-field" style="flex:1; min-width:140px;">
+            <label>Bauphase</label>
+            <select style="width:100%;">
+              <option value="">Bitte wählen</option>
+              <option>Baugrobreinigung</option>
+              <option>Baufeinreinigung</option>
+              <option>Bauendreinigung</option>
+            </select>
+          </div>
+          <div class="unterhalt-top-field" style="flex:1; min-width:140px;">
+            <label>Bauschmutz</label>
+            <select style="width:100%;">
+              <option value="">Bitte wählen</option>
+              <option>Leicht</option>
+              <option>Mittel</option>
+              <option>Stark</option>
+              <option>Sehr stark</option>
+            </select>
+          </div>
+        </div>`;
+    }
+
+    innerContent += `<div class="room-group-wrapper" style="background:#f8fafc; border:1px solid #dbe3ef; border-radius:14px; padding:16px; margin-bottom:16px; display:flex; flex-direction:column; gap:16px;">
+      ${bauExtra}
+      <div style="display:flex; align-items:flex-end; gap:12px; width:100%; flex-wrap:wrap;">
+        <div class="unterhalt-top-field" style="flex:1; min-width:140px;">
+          <label>Reinigungsart</label>
+          <select style="width:100%;">
+            <option value="">Bitte wählen</option>
+            <option>Einmalige Grundreinigung</option>
+            <option>Intensivreinigung</option>
+            <option>Vor Einzug</option>
+            <option>Nach Auszug</option>
+            <option>Nach Renovierung</option>
+          </select>
+        </div>
+        <div class="unterhalt-top-field" style="flex:1; min-width:140px;">
+          <label>Verschmutzungsgrad</label>
+          <select style="width:100%;">
+            <option value="">Bitte wählen</option>
+            <option>Leicht</option>
+            <option>Mittel</option>
+            <option>Stark</option>
+            <option>Sehr stark</option>
+          </select>
+        </div>
+      </div>
+      <div style="display:flex; align-items:flex-end; gap:12px; width:100%; flex-wrap:wrap;">
+        <div class="unterhalt-top-field" style="flex:1; min-width:140px;">
+          <label>Möbelzustand</label>
+          <select style="width:100%;">
+            <option value="">Bitte wählen</option>
+            <option>Leerstehend</option>
+            <option>Teilmöbliert</option>
+            <option>Vollmöbliert</option>
+          </select>
+        </div>
+        <div class="unterhalt-top-field" style="flex:1; min-width:140px;">
+          <label>Möbel verrücken</label>
+          <select style="width:100%;">
+            <option value="Nein">Nein</option>
+            <option value="Ja">Ja</option>
+          </select>
+        </div>
+      </div>
+      <div style="display:flex; align-items:flex-end; gap:12px; width:100%; flex-wrap:wrap;">
+        <div class="unterhalt-top-field" style="flex:2; min-width:140px;">
+          <label>Bodenbehandlung</label>
+          <select style="width:100%;">
+            <option value="">Bitte wählen</option>
+            <option>Nur gründlich reinigen</option>
+            <option>Scheuersaugmaschine</option>
+            <option>Einscheibenmaschine</option>
+            <option>Polieren</option>
+            <option>Alte Beschichtung entfernen</option>
+            <option>Neue Einpflege / Beschichtung</option>
+          </select>
+        </div>
+        <div class="unterhalt-top-field" style="flex:1; min-width:140px;">
+          <label>Strom/Wasser vorhanden</label>
+          <select style="width:100%;">
+            <option value="Ja">Ja</option>
+            <option value="Nein">Nein</option>
+          </select>
+        </div>
+      </div>
+      <div class="unterhalt-top-field" style="width:100%;">
+        <label>Material / Maschine</label>
+        <div style="display:flex; gap:6px; flex-wrap:wrap;">
+          <button type="button" class="device-toggle-btn" onclick="this.classList.toggle('active')">Spezialreiniger erforderlich</button>
+          <button type="button" class="device-toggle-btn" onclick="this.classList.toggle('active')">Leiter erforderlich</button>
+          <button type="button" class="device-toggle-btn" onclick="this.classList.toggle('active')">Maschine erforderlich</button>
+        </div>
+      </div>
+    </div>`;
+  } else {
+    innerContent += `<div style="padding:16px; background:#f8fafc; border-radius:12px; border:1px dashed #cbd5e1; text-align:center; color:#64748b; font-size:13px; font-weight:500;">Neue Variablen für <b>${title}</b> werden hier hinzugefügt...</div>`;
+  }
+  box.innerHTML = innerContent;
+  container.appendChild(box);
+  setTimeout(() => box.scrollIntoView({behavior:'smooth', block:'center'}), 100);
+}
+
+function toggleRoomChoices(el){
+  const wrapper = el.closest('.room-group-wrapper');
+  const row = wrapper?.querySelector('.room-choice-row');
+  if(row) row.style.display = row.style.display === 'flex' ? 'none' : 'flex';
+}
+
+function reindexEntries(list, baseLabel) {
+  list.querySelectorAll('[data-base="' + baseLabel + '"]').forEach((e, idx) => {
+    const n = e.querySelector('.room-entry-name');
+    if (n) n.textContent = `${baseLabel} ${idx + 1}`;
+  });
+}
+
+function duplicateEntry(btn) {
+  const entry = btn.closest('.room-entry');
+  const list = entry.parentElement;
+  const label = entry.getAttribute('data-base');
+  const val = entry.querySelector('.measure-target').textContent;
+  const clone = entry.cloneNode(true);
+  clone.querySelector('.measure-target').textContent = val;
+  entry.after(clone);
+  reindexEntries(list, label);
+  if (label === 'Fenster' || label === 'Jalousien') calculateTotalM2(list);
+}
+
+function removeEntryAndReindex(btn, baseLabel) {
+  const list = btn.closest('.room-list-container');
+  btn.closest('.room-entry').remove();
+  if(list) {
+    reindexEntries(list, baseLabel);
+    if (baseLabel === 'Fenster' || baseLabel === 'Jalousien') calculateTotalM2(list);
+    else calculateGroupTotalM2(list);
+  }
+}
+
+function addRoomEntry(btn, baseLabel){
+  const wrapper = btn.closest('.room-group-wrapper');
+  const list = wrapper?.querySelector('.room-list-container');
+  const row = wrapper?.querySelector('.room-choice-row');
+  if(!list) return;
+
+  const count = list.querySelectorAll('[data-base="' + baseLabel + '"]').length + 1;
+  const entry = document.createElement('div');
+  entry.className = 'room-entry';
+  entry.setAttribute('data-base', baseLabel);
+  
+  let duplicateBtnHtml = '';
+  let measureTargetHtml = `<span class="room-entry-size-edit measure-target" contenteditable="true" oninput="calculateGroupTotalM2(this)">...</span>`;
+
+  if (baseLabel === 'Fenster' || baseLabel === 'Jalousien') {
+    duplicateBtnHtml = `<button type="button" class="duplicate-btn" onclick="duplicateEntry(this)">Doppelt</button>`;
+    measureTargetHtml = `<span class="room-entry-size-edit measure-target" contenteditable="true" oninput="calculateTotalM2(this)">...</span>`;
+  }
+  
+  entry.innerHTML = `<div class="room-entry-name">${baseLabel} ${count}</div><div style="display:flex;align-items:center;gap:10px;">${duplicateBtnHtml}<button type="button" class="measure-trigger" onclick="armMeasure(this)">↔</button><div class="room-entry-size">(${measureTargetHtml} m²)</div><span class="trash-btn" onclick="removeEntryAndReindex(this, '${baseLabel}')">🗑</span></div>`;
+  list.appendChild(entry);
+  if(row) row.style.display = 'none';
+  if (baseLabel === 'Fenster' || baseLabel === 'Jalousien') calculateTotalM2(list);
+  else calculateGroupTotalM2(list);
+}
+
+function addAreaRow(el, label){
+  const wrapper = el.closest('.room-group-wrapper');
+  const list = wrapper?.querySelector('.room-list-container');
+  if(!list) return;
+
+  const count = list.querySelectorAll('[data-area="' + label + '"]').length + 1;
+  const entry = document.createElement('div');
+  entry.className = 'room-entry';
+  entry.setAttribute('data-area', label);
+  
+  let extraDetails = '';
+  if(label === 'WC') {
+    const uid1 = 'wc_' + Math.random().toString(36).substr(2,9);
+    const uid2 = 'uri_' + Math.random().toString(36).substr(2,9);
+    const uid3 = 'wb_' + Math.random().toString(36).substr(2,9);
+    const buildMiniBox = (name, id) => {
+      return `<div onclick="boxClick(event, '${id}')" onmousedown="startHold('${id}')" onmouseup="stopHold()" onmouseleave="stopHold()" ontouchstart="startHold('${id}')" ontouchend="stopHold()" style="background:#f1f5f9; padding:0 12px; border-radius:10px; display:flex; align-items:center; justify-content:space-between; cursor:pointer; user-select:none; border:2px solid #cbd5e1; height:44px; flex:1; min-width:115px;">
+        <div style="font-size:24px; font-weight:900; color:#64748b; pointer-events:none; line-height:1; margin-top:-3px;">-</div>
+        <div style="display:flex; align-items:center; gap:6px; pointer-events:none;">
+          <span style="font-weight:700; font-size:13px; color:#334155;">${name}:</span>
+          <span id="${id}" style="font-weight:900; font-size:17px; color:#2563eb; min-width:20px; text-align:center;">0</span>
+        </div>
+        <div style="font-size:22px; font-weight:900; color:#64748b; pointer-events:none; line-height:1; margin-top:-2px;">+</div>
+      </div>`;
+    };
+    extraDetails = `<div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:8px;">${buildMiniBox('WC', uid1)}${buildMiniBox('Urinal', uid2)}${buildMiniBox('WB', uid3)}</div>`;
+  }
+
+  let measureTargetHtml = `<span class="room-entry-size-edit measure-target" contenteditable="true" oninput="calculateGroupTotalM2(this)">...</span>`;
+
+  entry.innerHTML = `<div style="display:flex; flex-direction:column; justify-content:center; gap:4px; flex:1; min-width:0; padding-right:10px;"><div class="room-entry-name">${label} ${count}</div>${extraDetails}</div><div style="display:flex;align-items:center;gap:10px; flex:0 0 auto;"><button type="button" class="measure-trigger" onclick="armMeasure(this)">↔</button><div class="room-entry-size">(${measureTargetHtml} m²)</div><span class="trash-btn" onclick="removeEntry(this)">🗑</span></div>`;
+  list.appendChild(entry);
+  calculateGroupTotalM2(list);
+}
+
+function boxClick(e, id){
+  if(didReset){ didReset = false; return; }
+  const el = document.getElementById(id);
+  if(!el) return;
+  const rect = e.currentTarget.getBoundingClientRect();
+  const val = parseInt(el.textContent, 10) || 0;
+  el.textContent = (e.clientX - rect.left) > (rect.width / 2) ? String(val + 1) : String(Math.max(0, val - 1));
+}
+
+let holdTimer = null; let didReset = false;
+function startHold(id){ didReset = false; holdTimer = setTimeout(() => { const el = document.getElementById(id); if(el) { el.textContent = '0'; didReset = true; } }, 700); }
+function stopHold(){ if(holdTimer){ clearTimeout(holdTimer); holdTimer = null; } }
+
+function removeSection(el){
+  const card = el.closest('.sortable-section');
+  if(!card) return;
+  if(card.id === 'leistungenBox' || card.id === 'elementeBox' || card.id === 'sonstigesBox'){ card.style.display = 'none'; return; }
+  card.remove();
+}
+
+function removeEntry(el){ 
+  const list = el.closest('.room-list-container');
+  el.closest('.room-entry').remove(); 
+  if(list) calculateGroupTotalM2(list);
+}
+
+function armMeasure(btn){
+  document.querySelectorAll('.measure-trigger.active').forEach(el => el.classList.remove('active'));
+  const target = btn.closest('.room-entry')?.querySelector('.measure-target');
+  if(!target) return;
+  btn.classList.add('active');
+  target.focus();
+  const range = document.createRange(); range.selectNodeContents(target);
+  const sel = window.getSelection(); sel.removeAllRanges(); sel.addRange(range);
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+  if(window.Sortable) new Sortable(document.getElementById('sortableSections'), { animation: 180, handle: '.drag-handle', draggable: '.sortable-section' });
 });
-</script>
-
-<!-- =========================
-7. PANJUR TEMİZLİĞİ AYARLARI
-========================= -->
-
-<style>
-    /* Slider'ın rayını ve yuvarlağını tam uca dayamak için gereken CSS */
-    .sync-slider {
-        -webkit-appearance: none;
-        background: transparent !important;
-        padding: 0;
-        margin: 0;
-    }
-
-    /* Chrome, Edge, Safari (WebKit) Yuvarlak Düğme Ayarı */
-    .sync-slider::-webkit-slider-thumb {
-        -webkit-appearance: none;
-        height: 16px;
-        width: 16px;
-        border-radius: 50%;
-        background: #1a4ab2;
-        cursor: pointer;
-        margin-top: -5px; /* Rayın tam ortasına hizalar */
-        position: relative;
-        z-index: 2;
-    }
-
-    /* WebKit Ray Ayarı */
-    .sync-slider::-webkit-slider-runnable-track {
-        width: 100%;
-        height: 6px;
-        background: #cbd5e1;
-        border-radius: 3px;
-    }
-
-    /* Firefox Yuvarlak Düğme Ayarı */
-    .sync-slider::-moz-range-thumb {
-        height: 16px;
-        width: 16px;
-        border: none;
-        border-radius: 50%;
-        background: #1a4ab2;
-        cursor: pointer;
-    }
-
-    /* Firefox Ray Ayarı */
-    .sync-slider::-moz-range-track {
-        width: 100%;
-        height: 6px;
-        background: #cbd5e1;
-        border-radius: 3px;
-    }
-</style>
-
-<div class="form-section">
-    <div class="form-section-title"><i class="fa-solid fa-border-all icon-orange"></i> Jalousienreinigung</div>
-    
-    <div style="display: flex; align-items: center; gap: 20px; margin-bottom: 15px;">
-        <label style="margin:0; font-weight:600;">Jalousienreinigung erwünscht?</label>
-        <select name="jalousien_check" onchange="toggleExtra(this, 'jalousien_box')" style="width: auto; min-width: 120px; padding: 8px;">
-            <option value="nein">Nein</option>
-            <option value="ja">Ja</option>
-        </select>
-    </div>
-
-    <div id="jalousien_box" class="dynamic-input" style="background: #f8fafc; padding: 15px; border-radius: 12px; border: 1px dashed #cbd5e1;">
-        <div style="display: flex; align-items: center; justify-content: space-between; gap: 15px; flex-wrap: nowrap;">
-            
-            <div style="display: flex; align-items: center; gap: 10px; white-space: nowrap;">
-                <label style="margin:0;">Typ & m²:</label>
-                <select name="jalousien_typ" style="width: auto; padding: 8px;">
-                    <option value="innen">Nur Innen</option>
-                    <option value="aussen">Nur Außen</option>
-                    <option value="beide">Innen + Außen</option>
-                </select>
-                <div class="counter-group" style="padding: 2px; display: flex; align-items: center;">
-                    <button type="button" class="counter-btn" onclick="stepVal('jal_val', -1, ' m²')">-</button>
-                    <input type="text" id="jal_display" class="counter-input-manual" value="0 m²" style="width:65px; text-align:center; font-weight:800;" onchange="manualEntry(this, 'jal_val', ' m²')">
-                    <button type="button" class="counter-btn" onclick="stepVal('jal_val', 1, ' m²')">+</button>
-                </div>
-                <input type="hidden" name="jalousien_m2" id="jal_val" value="0 m²">
-            </div>
-
-            <div style="display: flex; align-items: center; gap: 10px; white-space: nowrap;">
-                <label style="margin:0;">Häufigkeit:</label>
-                <select name="jalousien_frequenz" style="width: auto; padding: 8px;">
-                    <option value="einmalig">Einmalig</option>
-                    <option value="1x_mon">1x Monatlich</option>
-                    <option value="alle_3_mon">Alle 3 Monate</option>
-                    <option value="alle_4_mon">Alle 4 Monate</option>
-                    <option value="alle_6_mon">2x Jährlich</option>
-                    <option value="1x_jahr">1x Jährlich</option>
-                </select>
-            </div>
-
-            <div style="display: flex; align-items: center; gap: 10px; flex: 1; justify-content: flex-end;">
-                <label style="margin:0; white-space: nowrap;"><i class="fa-solid fa-broom" style="color: #1a4ab2;"></i> Schmutz:</label>
-                <input type="range" name="schmutzgrad_extra" class="sync-slider" min="0" max="10" value="5" 
-                       style="cursor: pointer; width: 90px; accent-color: #1a4ab2;"
-                       oninput="updateExtraGraph(this)">
-                <output style="font-weight: 800; color: #1a4ab2; font-size: 16px; min-width: 20px;">5</output>
-                <div class="extra-graph-box" style="display: flex; align-items: flex-end; gap: 1px; height: 30px; padding: 3px; background: #fff; border-radius: 6px; border: 1px solid #e2e8f0; min-width: 50px;">
-                    {% for i in range(1, 11) %}<div style="height: {{i*10}}%; width: 3px; background: #e2e8f0; border-radius: 2px;"></div>{% endfor %}
-                </div>
-            </div>
-
-        </div>
-    </div>
-</div>
-
-<script>
-function updateExtraGraph(input) {
-    const val = parseInt(input.value);
-    const output = input.nextElementSibling;
-    const graphBox = input.parentElement.querySelector('.extra-graph-box');
-    const bars = graphBox.querySelectorAll('div');
-    
-    output.innerText = val;
-    
-    bars.forEach((bar, i) => {
-        if (i < val) {
-            bar.style.backgroundColor = (val <= 5) ? '#22c55e' : '#ef4444';
-        } else {
-            bar.style.backgroundColor = '#e2e8f0';
-        }
-    });
-}
-</script>
-<!-- =========================
-10. BİNA VE NESNE DETAYLARI
-========================= -->
-<div class="form-section">
-                <div class="form-section-title">Objektdetails</div>
-                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px;">
-                    <div>
-                        <label><i class="fa-solid fa-building icon-blue"></i> Etage (von - bis)</label>
-                        <div style="display: flex; gap: 5px; align-items: center;">
-                            <select name="etage_von"><option value="0">0</option><option value="EG">EG</option></select>
-                            <span>-</span>
-                            <select name="etage_bis"><option value="0">0</option><option value="EG">EG</option>
-                            {% for i in range(1, 11) %}<option value="{{i}}.OG">{{i}}.OG</option>{% endfor %}</select>
-                        </div>
-                    </div>
-                    <div>
-                        <label><i class="fa-solid fa-stairs icon-purple"></i> Treppenhaus</label>
-                        <select name="treppenhaus" onchange="toggleExtra(this, 'treppe_cnt')"><option value="nein">Nein</option><option value="ja">Ja</option></select>
-                        <div id="treppe_cnt" class="dynamic-input">
-                            <div class="counter-group">
-                                <button type="button" class="counter-btn" onclick="stepVal('t_val', -1, 'x')">-</button>
-                                <input type="text" id="t_display" class="counter-input-manual" value="1x" onchange="manualEntry(this, 't_val', 'x')">
-                                <button type="button" class="counter-btn" onclick="stepVal('t_val', 1, 'x')">+</button>
-                            </div>
-                            <input type="hidden" name="treppe_stufen" id="t_val" value="1x">
-                        </div>
-                    </div>
-                    <div>
-                        <label><i class="fa-solid fa-elevator icon-indigo"></i> Aufzug</label>
-                        <select name="aufzug" onchange="toggleExtra(this, 'aufzug_cnt')"><option value="nein">Nein</option><option value="ja">Ja</option></select>
-                        <div id="aufzug_cnt" class="dynamic-input">
-                            <div class="counter-group">
-                                <button type="button" class="counter-btn" onclick="stepVal('a_val', -1, 'x')">-</button>
-                                <input type="text" id="a_display" class="counter-input-manual" value="1x" onchange="manualEntry(this, 'a_val', 'x')">
-                                <button type="button" class="counter-btn" onclick="stepVal('a_val', 1, 'x')">+</button>
-                            </div>
-                            <input type="hidden" name="aufzug_anzahl" id="a_val" value="1x">
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <button type="submit" class="btn-save">Speichern & Berechnen</button>
-        </form>
-    </div>
-</div>
-
-<!-- =========================
-11. Leistungsverzeichnis
-========================= -->
-<div id="modern_lv_container" style="background: #f8fafc; padding: 40px 20px; font-family: 'Inter', system-ui, -apple-system, sans-serif;">
-    
-    <div style="max-width: 1100px; margin: 0 auto; background: #ffffff; border-radius: 24px; box-shadow: 0 20px 50px rgba(30, 64, 175, 0.05); overflow: hidden; border: 1px solid #e2e8f0;">
-        
-        <div style="background: linear-gradient(135deg, #1e40af 0%, #1e3a8a 100%); padding: 35px 40px; display: flex; justify-content: space-between; align-items: center;">
-            <div>
-                <h1 style="color: #ffffff; margin: 0; font-size: 24px; font-weight: 800; letter-spacing: -0.5px; text-transform: uppercase;">Leistungsverzeichnis</h1>
-                <p style="color: #93c5fd; margin: 5px 0 0 0; font-size: 14px; font-weight: 500;">Professionelle Reinigungsübersicht v2.0</p>
-            </div>
-            <div style="background: rgba(255,255,255,0.1); padding: 10px 20px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.2);">
-                <span style="color: #fff; font-weight: 700; font-size: 13px;">OBJEKT: PREMIUM STATUS</span>
-            </div>
-        </div>
-
-        <div style="display: flex; flex-wrap: wrap; gap: 15px; padding: 30px 40px; background: #fff; border-bottom: 1px solid #f1f5f9;">
-            <div style="display: flex; align-items: center; gap: 8px; background: #eff6ff; padding: 8px 16px; border-radius: 100px; border: 1px solid #bfdbfe;">
-                <div style="width: 10px; height: 10px; background: #3b82f6; border-radius: 50%;"></div>
-                <span style="font-size: 12px; font-weight: 700; color: #1e40af;">BÜRO / PRAXIS</span>
-            </div>
-            <div style="display: flex; align-items: center; gap: 8px; background: #fefce8; padding: 8px 16px; border-radius: 100px; border: 1px solid #fef08a;">
-                <div style="width: 10px; height: 10px; background: #eab308; border-radius: 50%;"></div>
-                <span style="font-size: 12px; font-weight: 700; color: #854d0e;">SANITÄR</span>
-            </div>
-            <div style="display: flex; align-items: center; gap: 8px; background: #f0fdf4; padding: 8px 16px; border-radius: 100px; border: 1px solid #bbf7d0;">
-                <div style="width: 10px; height: 10px; background: #22c55e; border-radius: 50%;"></div>
-                <span style="font-size: 12px; font-weight: 700; color: #166534;">KÜCHE</span>
-            </div>
-            <div style="display: flex; align-items: center; gap: 8px; background: #fef2f2; padding: 8px 16px; border-radius: 100px; border: 1px solid #fecaca;">
-                <div style="width: 10px; height: 10px; background: #ef4444; border-radius: 50%;"></div>
-                <span style="font-size: 12px; font-weight: 700; color: #991b1b;">WC / HYGIENE</span>
-            </div>
-        </div>
-
-        <div style="padding: 20px 40px 40px 40px;">
-            <table style="width: 100%; border-collapse: collapse;">
-                <thead>
-                    <tr style="text-align: left;">
-                        <th style="padding: 20px 15px; color: #64748b; font-size: 12px; font-weight: 700; text-transform: uppercase;">Service & Bereich</th>
-                        <th style="padding: 20px 15px; color: #64748b; font-size: 12px; font-weight: 700; text-transform: uppercase;">Methodik</th>
-                        <th style="padding: 20px 15px; color: #64748b; font-size: 12px; font-weight: 700; text-transform: uppercase;">Spezifikation</th>
-                        <th style="padding: 20px 15px; color: #64748b; font-size: 12px; font-weight: 700; text-transform: uppercase; text-align: right;">Turnus</th>
-                    </tr>
-                </thead>
-                <tbody id="lv_modern_body">
-                    </tbody>
-            </table>
-        </div>
-
-        <div style="background: #f8fafc; padding: 25px 40px; border-top: 1px solid #e2e8f0; display: flex; align-items: center; gap: 15px;">
-            <div style="background: #1e40af; color: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold;">i</div>
-            <p style="margin: 0; font-size: 14px; color: #475569; font-weight: 500;">
-                Alle Reinigungsmittel sind im Preis enthalten. Zertifizierte Hygieneartikel werden nach Bedarf aufgefüllt.
-            </p>
-        </div>
-    </div>
-</div>
-
-<script>
-// Tabloyu dolduran fonksiyon
-function renderModernLV() {
-    const data = [
-        { service: "Arbeitsplatzreinigung", cat: "BÜRO", spec: "IT-Equipment, Monitore & Schreibtische", freq: "Täglich", color: "#3b82f6", bg: "#eff6ff" },
-        { service: "Bodenflächenpflege", cat: "BÜRO", spec: "Saugen & Feuchtwischen (Mikrofaser)", freq: "2x Woche", color: "#3b82f6", bg: "#eff6ff" },
-        { service: "Sanitäranlagen", cat: "SANITÄR", spec: "Armaturen-Politur & Spiegelreinigung", freq: "Täglich", color: "#eab308", bg: "#fefce8" },
-        { service: "Küchen-Service", cat: "KÜCHE", spec: "Frontenreinigung & Kaffeemaschinen-Pflege", freq: "Täglich", color: "#22c55e", bg: "#f0fdf4" },
-        { service: "Tiefen-Desinfektion", cat: "WC", spec: "WC-Becken, Urinale & Kontaktpunkte", freq: "Täglich", color: "#ef4444", bg: "#fef2f2" }
-    ];
-
-    const body = document.getElementById('lv_modern_body');
-    body.innerHTML = data.map(item => `
-        <tr style="border-bottom: 1px solid #f1f5f9; transition: background 0.2s;" onmouseover="this.style.background='#fcfdfe'" onmouseout="this.style.background='transparent'">
-            <td style="padding: 20px 15px;">
-                <div style="font-weight: 700; color: #1e293b; font-size: 15px;">${item.service}</div>
-            </td>
-            <td style="padding: 20px 15px;">
-                <span style="background: ${item.bg}; color: ${item.color}; padding: 5px 12px; border-radius: 6px; font-size: 11px; font-weight: 800; border: 1px solid ${item.color}44;">
-                    ● ${item.cat}
-                </span>
-            </td>
-            <td style="padding: 20px 15px; color: #64748b; font-size: 14px; font-weight: 500;">${item.spec}</td>
-            <td style="padding: 20px 15px; text-align: right;">
-                <span style="background: #f1f5f9; color: #475569; padding: 6px 14px; border-radius: 8px; font-size: 12px; font-weight: 700;">${item.freq}</span>
-            </td>
-        </tr>
-    `).join('');
-}
-
-renderModernLV();
-</script>
-
-<!-- =========================
-12. LEISTUNGSVERZEICHNIS SABIT TANIMLADIKLARIM
-========================= -->
-<script>
-    const masterLeistungen = {{ sabit_hizmetler|safe }}; //
-
-    // "yarrak gibi" kodları profesyonel Almanca'ya çeviren sözlük
-    function formatFreq(val) {
-        const map = {
-            'einmalig': 'Einmalig',
-            '1x_mon': '1x Monatlich',
-            'alle_2_mon': 'Alle 2 Monate',
-            'alle_3_mon': 'Alle 3 Monate',
-            'alle_4_mon': 'Alle 4 Monate',
-            '1x_jahr': '1x Jährlich',
-            'alle_6_mon': '2x Jährlich'
-        };
-        return map[val] || val;
-    }
-
-    function updateLeistungTable() {
-        const bransSelect = document.querySelector('select[name="art"]');
-        const bransKey = bransSelect.value;
-        const bransMetni = bransSelect.options[bransSelect.selectedIndex].text;
-        
-        // GENEL FREKANS (1x, 2x, 3x... butonlarından gelen gerçek değer)
-        const genelFrekans = document.getElementById('haeufigkeit_val').value || '1x';
-        
-        const body = document.getElementById('lv_modern_body');
-        if (!bransKey || !masterLeistungen[bransKey]) return;
-
-        // Başlığı seçilen branşla güncelle
-        const headerBransTag = document.querySelector('#modern_lv_container span[style*="color: #1e40af"]');
-        if (headerBransTag) headerBransTag.innerText = bransMetni.toUpperCase();
-
-        // 1. ANA LİSTE (Büro vb. - Seçilen frekansa göre 1x/2x/3x anlık değişir)
-        let mainHTML = masterLeistungen[bransKey].leistungen.map(item => {
-            let color = "#3b82f6"; let bg = "#eff6ff"; let cat = "BÜRO";
-            const method = item.methodik.toLowerCase(); 
-
-            if (method.includes("wc") || method.includes("sanitär")) {
-                color = "#ef4444"; bg = "#fef2f2"; cat = "WC / HYGIENE";
-            } else if (method.includes("küche")) {
-                color = "#22c55e"; bg = "#f0fdf4"; cat = "KÜCHE";
-            }
-
-            return `
-                <tr style="border-bottom: 1px solid #f1f5f9;">
-                    <td style="padding: 20px 15px;"><div style="font-weight: 700; color: #1e293b;">${item.service}</div></td>
-                    <td style="padding: 20px 15px;"><span style="background:${bg};color:${color};padding:5px 12px;border-radius:6px;font-size:11px;font-weight:800;">● ${cat}</span></td>
-                    <td style="padding: 20px 15px; color:#64748b;">${item.spezifikation}</td>
-                    <td style="padding: 20px 15px; text-align:right;"><span style="background:#f1f5f9;color:#475569;padding:6px 14px;border-radius:8px;font-weight:800;">${genelFrekans}</span></td>
-                </tr>`;
-        }).join('');
-
-        // 2. EXTRAS (Seçildiği an m2 ve frekans bilgisiyle altına biner)
-        let extraHTML = '';
-        
-        const fensterCheck = document.getElementsByName('fenster_check')[0].value;
-        if (fensterCheck === 'ja') {
-            const fenM2 = document.getElementById('fen_val').value; 
-            const fenFreq = formatFreq(document.getElementsByName('fenster_frequenz')[0].value);
-            extraHTML += `
-                <tr style="border-bottom: 1px solid #f1f5f9; background: #f0f9ff;">
-                    <td style="padding: 20px 15px;"><div style="font-weight: 700; color: #0369a1;">Glasreinigung</div></td>
-                    <td style="padding: 20px 15px;"><span style="background:#e0f2fe;color:#0369a1;padding:5px 12px;border-radius:6px;font-size:11px;font-weight:800;">● EXTRAS</span></td>
-                    <td style="padding: 20px 15px; color:#64748b;">Osmose System (${fenM2})</td>
-                    <td style="padding: 20px 15px; text-align:right;"><span style="background:#e0f2fe;color:#0369a1;padding:6px 14px;border-radius:8px;font-weight:800;">${fenFreq}</span></td>
-                </tr>`;
-        }
-
-        const jalousieCheck = document.getElementsByName('jalousien_check')[0].value;
-        if (jalousieCheck === 'ja') {
-            const jalM2 = document.getElementById('jal_val').value; 
-            const jalFreq = formatFreq(document.getElementsByName('jalousien_frequenz')[0].value);
-            extraHTML += `
-                <tr style="border-bottom: 1px solid #f1f5f9; background: #fffbeb;">
-                    <td style="padding: 20px 15px;"><div style="font-weight: 700; color: #92400e;">Jalousienreinigung</div></td>
-                    <td style="padding: 20px 15px;"><span style="background:#fef3c7;color:#92400e;padding:5px 12px;border-radius:6px;font-size:11px;font-weight:800;">● EXTRAS</span></td>
-                    <td style="padding: 20px 15px; color:#64748b;">Außenreinigung (${jalM2})</td>
-                    <td style="padding: 20px 15px; text-align:right;"><span style="background:#fef3c7;color:#92400e;padding:6px 14px;border-radius:8px;font-weight:800;">${jalFreq}</span></td>
-                </tr>`;
-        }
-
-        body.innerHTML = mainHTML + extraHTML;
-    }
-
-    // TÜM ETKİLEŞİMLERİ İZLE (Formda ne değişirse tablo güncellenir)
-    document.querySelector('select[name="art"]').addEventListener('change', updateLeistungTable);
-    document.getElementsByName('fenster_check')[0].addEventListener('change', updateLeistungTable);
-    document.getElementsByName('jalousien_check')[0].addEventListener('change', updateLeistungTable);
-    document.getElementsByName('fenster_frequenz')[0].addEventListener('change', updateLeistungTable);
-    document.getElementsByName('jalousien_frequenz')[0].addEventListener('change', updateLeistungTable);
-
-    window.onload = updateLeistungTable;
-</script>
-
-<!-- =========================
-13. SAYFA FONKSİYONLARI (JAVASCRIPT)
-========================= -->
-<script>
-    function showDetail() { 
-        document.getElementById('listView').style.display = 'none'; 
-        document.getElementById('detailView').style.display = 'block'; 
-    }
-
-    function hideDetail() { 
-        document.getElementById('listView').style.display = 'block'; 
-        document.getElementById('detailView').style.display = 'none'; 
-    }
-
-    function openTermin(id, firma) { 
-        document.getElementById('form_id').value = id; 
-        document.getElementById('detailTitle').innerText = firma; 
-        showDetail(); 
-    }
-
-    function selectOption(el, targetId, value) {
-        const parent = el.parentElement;
-        parent.querySelectorAll('.option-btn').forEach(btn => btn.classList.remove('selected'));
-        el.classList.add('selected');
-        document.getElementById(targetId + '_val').value = value;
-        updateLeistungTable(); // ← EKLENEN TEK SATIR
-    }
-
-    function toggleExtra(select, targetId) {
-        const target = document.getElementById(targetId);
-        target.style.display = (select.value === 'ja' || select.value !== 'nein') ? 'block' : 'none';
-        updateLeistungTable(); // ← EKLENEN TEK SATIR
-    }
-
-    function stepVal(id, delta, unit) {
-        const input = document.getElementById(id);
-        const display = document.getElementById(
-            id.replace('val', 'display').replace('v', 'd').replace('t_', 't_').replace('a_', 'a_')
-        );
-        let current = parseInt(input.value.replace(unit, '').trim()) || 0;
-        let newVal = current + delta;
-        if (newVal < 0) newVal = 0;
-        input.value = newVal + unit;
-        display.value = newVal + unit;
-        updateLeistungTable(); // ← EKLENEN TEK SATIR
-    }
-
-    function manualEntry(el, hiddenId, unit) {
-        let val = parseInt(el.value.replace(unit, '').trim()) || 0;
-        if (val < 0) val = 0;
-        el.value = val + unit;
-        document.getElementById(hiddenId).value = val + unit;
-        updateLeistungTable(); // ← EKLENEN TEK SATIR
-    }
 </script>
 
 {% endblock %}
