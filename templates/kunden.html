@@ -73,7 +73,7 @@
 
     <tbody id="kundenSortable">
       {% for k in kunden %}
-      <tr data-id="{{ k.id }}" style="border-bottom:1px solid #f1f5f9">
+      <tr id="row-{{ k.id }}" data-id="{{ k.id }}" style="border-bottom:1px solid #f1f5f9">
 
         <td class="drag-handle" style="padding:20px;font-weight:800;color:#1e293b; cursor:grab;" title="{{ k.firma }}">
     ☰ {{ k.firma[:14] }}{% if k.firma|length > 14 %}...{% endif %}
@@ -413,6 +413,7 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/de.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
 
 <script>
 /* ================================
@@ -575,10 +576,6 @@ async function livePlzSearch() {
 /* ========================================================
    🌍 Drag & Drop Sort + Save (SortableJS) Kunden kaydirinca kaydedici
    ======================================================== */
-
-<script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
-
-<script>
 
 document.addEventListener("DOMContentLoaded", function () {
 
