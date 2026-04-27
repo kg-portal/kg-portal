@@ -20,7 +20,6 @@ from docx.enum.text import WD_COLOR_INDEX
 import tempfile
 from datetime import datetime
 
-from leistungen import LEISTUNGEN
 from lexware import sync_lexware_to_db, get_cached_rechnungen
 from fints_import import (
     sync_fints_to_db,
@@ -28,6 +27,7 @@ from fints_import import (
     get_fints_all_balances,
     get_fints_balance
 )
+from app2 import register_app2_routes
 app = Flask(__name__)
 app.secret_key = 'kg_reinigung_ozel_anahtar_2026' # Güvenlik anahtarı
 DB_PATH = os.path.join('data', 'kg_portal.db') 
@@ -60,6 +60,7 @@ def auto_login_check():
 
     # 3. Diğer her yer için şifre ekranına yolla
     return redirect(url_for('login'))
+register_app2_routes(app, login_required)
 
 # ... (Buradan aşağısı get_db_connection() diye devam ediyor, aynen kalsın)
 
@@ -1234,163 +1235,12 @@ def update_todo():
     return redirect(url_for("todo_index"))
 
 # =====================================================
-# Bölüm 11- DATENBANK
-# =====================================================
-@app.route("/datenbank")
-def datenbank():
-    return render_template("datenbank.html")
-
-# =====================================================
 # Bölüm 12- KALENDER
 # =====================================================
 @app.route("/kalender")
 def kalender():
     return render_template("kalender.html")
 
-# =====================================================
-# Bölüm 13- ANGEBOT & VERTRAG (STRATEJİK GÜNCELLEME)
-# =====================================================
-
-@app.route("/angebot")
-def angebot_index():
-    conn = get_db_connection()
-    # Yeni dosya ismi "angebot&vertrag.html" olarak güncellendi
-    angebote = conn.execute("SELECT * FROM angebote ORDER BY id DESC").fetchall()
-    conn.close()
-    return render_template("angebot&vertrag.html", angebote=angebote)
-
-@app.route("/angebot/create", methods=["POST"])
-def create_angebot():
-    f = request.form
-    angebot_id = f.get("angebot_id") # Bearbeiten için ID kontrolü
-    
-    # Hizmet listesini (service_ ile başlayanlar) ayıklayıp JSON yapıyoruz
-    leistungen = {k: v for k, v in f.items() if k.startswith('service_')}
-    leistungen_json = json.dumps(leistungen, ensure_ascii=False)
-    
-    conn = get_db_connection()
-    if angebot_id and angebot_id != "":
-        # MEVCUT KAYDI GÜNCELLE (Bearbeiten Modu)
-        conn.execute('''UPDATE angebote SET firma=?, ansprechpartner=?, strasse=?, plz=?, ort=?, 
-                        m2=?, reinigungsart=?, haeufigkeit=?, leistungen_json=? WHERE id=?''',
-                     (f.get("firma"), f.get("ansprechpartner"), f.get("strasse"), f.get("plz"), f.get("ort"),
-                      f.get("m2"), f.get("reinigungsart"), f.get("haeufigkeit_genel"), leistungen_json, angebot_id))
-    else:
-        # YENİ KAYIT EKLE
-        conn.execute('''INSERT INTO angebote (firma, ansprechpartner, strasse, plz, ort, m2, reinigungsart, haeufigkeit, leistungen_json) 
-                        VALUES (?,?,?,?,?,?,?,?,?)''', 
-                     (f.get("firma"), f.get("ansprechpartner"), f.get("strasse"), f.get("plz"), f.get("ort"), 
-                      f.get("m2"), f.get("reinigungsart"), f.get("haeufigkeit_genel"), leistungen_json))
-    
-    conn.commit()
-    conn.close()
-    return redirect(url_for('angebot_index'))
-
-@app.route("/angebot/get/<int:id>")
-def get_angebot(id):
-    # JavaScript'in formu doldurması için veriyi gönderir
-    conn = get_db_connection()
-    a = conn.execute("SELECT * FROM angebote WHERE id = ?", (id,)).fetchone()
-    conn.close()
-    return jsonify(dict(a))
-
-@app.route("/angebot/update_status/<int:id>/<string:status>")
-def update_angebot_status(id, status):
-    conn = get_db_connection()
-    conn.execute("UPDATE angebote SET status = ? WHERE id = ?", (status, id))
-    conn.commit()
-    conn.close()
-    return redirect(url_for('angebot_index'))
-
-# =====================================================
-# Bölüm 14- VERTRAG (SÖZLEŞME) SÜRECİ
-# =====================================================
-
-@app.route("/vertrag/create/<int:id>")
-def vertrag_create_form(id):
-    # Tekliften sözleşme formuna geçiş aşaması
-    conn = get_db_connection()
-    angebot = conn.execute("SELECT * FROM angebote WHERE id = ?", (id,)).fetchone()
-    conn.close()
-    return render_template("vertrag_form.html", a=angebot)
-
-@app.route("/vertrag/submit", methods=["POST"])
-def vertrag_submit():
-    f = request.form
-    conn = get_db_connection()
-    
-    # 1. Firmayı kunden tablosuna kalıcı olarak ekle
-    conn.execute('''INSERT INTO kunden (firma, ort, strasse, plz, ansprechpartner_name, vertrag_beginn, kundennummer, monat) 
-                    VALUES (?,?,?,?,?,?,?,?)''', 
-                 (f.get("firma"), f.get("ort"), f.get("strasse"), f.get("plz"), 
-                  f.get("ansprechpartner"), f.get("v_beginn"), f.get("k_nummer"), f.get("preis")))
-    
-    # 2. Teklifi 'Bestätigt' durumuna çek
-    conn.execute("UPDATE angebote SET status = 'Bestätigt' WHERE id = ?", (f.get("angebot_id"),))
-    
-    conn.commit()
-    conn.close()
-    return redirect(url_for('kunden_list'))
-
-# =====================================================
-# Bölüm 15- BESICHTIGUNGSTERMINE
-# =====================================================
-
-@app.route("/besichtigung", methods=["GET", "POST"])
-def besichtigung_index():
-    conn = get_db_connection()
-    
-    if request.method == "POST":
-        f = request.form
-        besichtigung_id = f.get("besichtigung_id")
-        
-        if besichtigung_id:
-            # GÜNCELLEME (Bearbeiten)
-            conn.execute('''UPDATE besichtigungen SET 
-                            firma=?, ansprechpartner=?, telefon=?, email=?, 
-                            strasse=?, plz=?, ort=?, termin_datum=?, 
-                            termin_uhrzeit=?, notizen=? WHERE id=?''',
-                         (f.get("firma"), f.get("ansprechpartner"), f.get("telefon"), f.get("email"),
-                          f.get("strasse"), f.get("plz"), f.get("ort"), f.get("datum"),
-                          f.get("uhrzeit"), f.get("notizen"), besichtigung_id))
-        else:
-            # YENİ KAYIT
-            conn.execute('''INSERT INTO besichtigungen 
-                            (firma, ansprechpartner, telefon, email, strasse, plz, ort, termin_datum, termin_uhrzeit, notizen) 
-                            VALUES (?,?,?,?,?,?,?,?,?,?)''', 
-                         (f.get("firma"), f.get("ansprechpartner"), f.get("telefon"), f.get("email"),
-                          f.get("strasse"), f.get("plz"), f.get("ort"), f.get("datum"),
-                          f.get("uhrzeit"), f.get("notizen")))
-        
-        conn.commit()
-        conn.close()
-        return redirect(url_for('besichtigung_index'))
-
-    # Listeleme
-    termine = conn.execute("SELECT * FROM besichtigungen ORDER BY termin_datum ASC, termin_uhrzeit ASC").fetchall()
-    conn.close()
-
-    # Sadece burayı değiştiriyoruz:
-    import json
-    return render_template("besichtigung.html", 
-                           termine=termine, 
-                           sabit_hizmetler=json.dumps(LEISTUNGEN))
-
-@app.route("/besichtigung/delete/<int:id>")
-def delete_besichtigung(id):
-    conn = get_db_connection()
-    conn.execute("DELETE FROM besichtigungen WHERE id = ?", (id,))
-    conn.commit()
-    conn.close()
-    return redirect(url_for('besichtigung_index'))
-
-@app.route("/besichtigung/status/<int:id>/<string:status>")
-def update_besichtigung_status(id, status):
-    conn = get_db_connection()
-    conn.execute("UPDATE besichtigungen SET status = ? WHERE id = ?", (status, id))
-    conn.commit()
-    conn.close()
-    return redirect(url_for('besichtigung_index'))
 
 # =====================================================
 # Bölüm 16- STUNDENZETTEL (Dosya Sistemi ve Listeleme)
