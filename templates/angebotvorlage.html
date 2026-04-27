@@ -2,139 +2,899 @@
 {% block content %}
 
 <style>
-    /* Teklif Sayfası Özel Stilleri */
-    .angebot-pdf-view {
-        background: #fff;
-        max-width: 900px;
-        margin: 0 auto;
-        padding: 50px;
-        border: 1px solid #e2e8f0;
-        box-shadow: 0 10px 25px rgba(0,0,0,0.05);
-        color: #1e293b;
-        font-family: Arial, sans-serif;
+* { box-sizing: border-box; }
+
+html {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+}
+
+body {
+    margin: 0;
+    font-family: "Segoe UI", Arial, sans-serif;
+    background: #e5e7eb;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+}
+
+.document {
+    width: 100%;
+}
+
+.page {
+    width: 210mm;
+    height: 297mm;
+    margin: 30px auto;
+    background: #ffffff;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.12);
+    page-break-after: always;
+    break-after: page;
+}
+
+.page:last-child {
+    page-break-after: auto;
+    break-after: auto;
+}
+
+.top-bar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 115px;
+    background: linear-gradient(90deg, #0f2f78 0%, #1d4ed8 55%, #3b82f6 100%);
+}
+
+.top-shine {
+    position: absolute;
+    top: 0;
+    right: -120px;
+    width: 420px;
+    height: 115px;
+    background: linear-gradient(90deg, rgba(255,255,255,0), rgba(255,255,255,0.16), rgba(255,255,255,0.04));
+    transform: skewX(-28deg);
+}
+
+.top-shine.narrow {
+    width: 320px;
+}
+
+.wave-wrap {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 230px;
+    height: 230px;
+    z-index: 10;
+}
+
+.wave-wrap.z5 {
+    z-index: 5;
+}
+
+.content {
+    position: relative;
+    z-index: 3;
+    height: 100%;
+}
+
+.logo-box img {
+    width: 165px;
+    display: block;
+}
+
+.page-number {
+    position: absolute;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 12px;
+    color: #6b7280;
+    z-index: 30;
+}
+
+/* PAGE 1 */
+.page1 .content {
+    padding: 42px 48px;
+}
+
+.page1 .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+.page1 .offer-info {
+    position: absolute;
+    top: 130px;
+    right: 48px;
+    text-align: right;
+    color: #1f2937;
+    font-size: 12px;
+    line-height: 1.6;
+    font-weight: 600;
+}
+
+.page1 .title-block {
+    margin-top: 120px;
+    max-width: 72%;
+}
+
+.page1 .pre-title {
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    color: #1f2937;
+    font-weight: 600;
+    margin-bottom: 16px;
+}
+
+.page1 .title-block h1 {
+    font-size: 42px;
+    line-height: 1;
+    letter-spacing: 6px;
+    color: #dc2626;
+    margin: 0;
+    font-weight: 600;
+}
+
+.page1 .title-line {
+    width: 280px;
+    height: 5px;
+    background: linear-gradient(90deg, #1d4ed8, #60a5fa);
+    border-radius: 20px;
+    margin: 22px 0;
+}
+
+.page1 .details-block {
+    margin-top: 50px;
+}
+
+.page1 .subtitle {
+    font-size: 19px;
+    line-height: 1.45;
+    color: #0b0f19;
+    font-weight: 400;
+    max-width: 640px;
+}
+
+.page1 .info-minimal {
+    margin-top: 20px;
+    width: 100%;
+}
+
+.page1 .highlight-box {
+    width: 100%;
+    height: 130px;
+    margin-bottom: 16px;
+    background: linear-gradient(180deg, #ffffff, #f8fafc);
+    padding: 20px 22px;
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 8px 22px rgba(0,0,0,0.05);
+    position: relative;
+}
+
+.page1 .highlight-box::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 12px;
+    bottom: 12px;
+    width: 3px;
+    border-radius: 10px;
+    background: linear-gradient(180deg, #1d4ed8, #60a5fa);
+}
+
+.page1 .highlight-box > * {
+    position: relative;
+    z-index: 2;
+}
+
+.page1 .line {
+    margin-bottom: 0;
+    padding-left: 22px;
+    position: relative;
+}
+
+.page1 .line span {
+    font-size: 17px;
+    text-transform: uppercase;
+    color: #0b1f5e;
+    font-weight: 600;
+    display: block;
+    margin-bottom: 8px;
+}
+
+.page1 .line p {
+    font-size: 20px;
+    margin: 0;
+    color: #000000;
+    line-height: 1.6;
+    padding-bottom: 4px;
+    font-weight: 400;
+}.page1 .footer {
+    position: absolute;
+    bottom: 40px;
+    left: 50px;
+    font-size: 12px;
+    color: #1e3a8a;
+    font-weight: 500;
+}
+
+/* PAGE 2 */
+.page2 .content {
+    padding: 42px 48px;
+}
+
+.page2 .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+.page2 .main-card {
+    margin-top: 90px;
+    background: #ffffff;
+    border-radius: 18px;
+    padding: 28px 30px;
+    box-shadow: 0 14px 40px rgba(15,47,120,0.08);
+    border: 1px solid #e6edf7;
+}
+
+.page2 .date {
+    text-align: right;
+    margin-bottom: 28px;
+    font-size: 13px;
+    color: #475569;
+}
+
+.page2 .title {
+    font-size: 26px;
+    font-weight: 700;
+    color: #0f2f78;
+    margin-bottom: 18px;
+}
+
+.page2 .text p {
+    margin-bottom: 14px;
+    font-size: 14px;
+    line-height: 1.6;
+    color: #111827;
+}
+
+.page2 .highlight {
+    background: #f1f5ff;
+    border-left: 4px solid #1d4ed8;
+    padding: 14px 16px;
+    border-radius: 10px;
+    margin: 16px 0;
+    font-size: 14px;
+    line-height: 1.6;
+    color: #111827;
+}
+
+.page2 .signature {
+    margin-top: 18px;
+    font-size: 14px;
+    line-height: 1.6;
+    color: #111827;
+}
+
+.page2 .auftrag {
+    margin-top: 30px;
+}
+
+/* PAGE 3 */
+.page3 .content {
+    padding: 42px 48px 60px 48px;
+}
+
+.page3 .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+.page3 .body-wrap {
+    margin-top: -10px;
+    position: relative;
+    z-index: 2;
+    font-size: 13px;
+    color: #111;
+}
+
+.page3 .main-title {
+    font-size: 24px;
+    font-weight: 700;
+    color: #111827;
+    margin: 0 0 10px 0;
+}
+
+.page3 .gray-line {
+    width: 180px;
+    height: 2px;
+    background: #d1d5db;
+    margin-bottom: 18px;
+}
+
+.page3 .leistungs-list {
+    margin-top: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.page3 .leistung-row {
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    padding: 10px 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 20px;
+}
+
+.page3 .leistung-row .right {
+    font-weight: 700;
+    text-align: right;
+    min-width: 190px;
+}
+
+.page3 .info-line {
+    text-align: right;
+    margin-top: 10px;
+}
+
+.page3 .meta-section {
+    margin-top: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 28px;
+}
+
+.page3 .left-meta {
+    flex: 1;
+    font-size: 14px;
+    line-height: 1.65;
+    color: #111827;
+}
+
+.page3 .left-meta .head {
+    font-size: 18px;
+    font-weight: 600;
+    color: #111827;
+    margin-bottom: 14px;
+}
+
+.page3 .left-meta .sub {
+    color: #374151;
+}
+
+.page3 .confirm-note {
+    font-size: 12px;
+    color: #6b7280;
+    margin-bottom: 8px;
+    text-align: left;
+    letter-spacing: 0.2px;
+}
+
+.page3 .signature-box {
+    border: 1px solid #93c5fd;
+    background: #ffffff;
+    box-shadow: 0 8px 22px rgba(0,0,0,0.04);
+    border-radius: 10px;
+    padding: 12px;
+    width: 280px;
+    height: 160px;
+}
+
+.page3 .signature-head {
+    font-size: 22px;
+    font-weight: 700;
+    color: #111827;
+    margin-bottom: 8px;
+    line-height: 1;
+}
+
+.page3 .signature-line {
+    position: relative;
+    width: 100%;
+    height: 75px;
+}
+
+.page3 .signature-line::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 88px;
+    border-top: 1px solid #000;
+}
+
+.page3 .signature-x {
+    position: absolute;
+    left: 0;
+    bottom: -6px;
+    background: #fff;
+    padding-right: 6px;
+}
+
+.page3 .signature-caption {
+    margin-top: 18px;
+    color: #374151;
+}
+
+.page3 .company-box {
+    border: 1px solid #e5e7eb;
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 14px 16px;
+    margin-top: 28px;
+    font-size: 12px;
+    display: flex;
+    gap: 40px;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.04);
+}
+
+.page3 .company-col {
+    flex: 1;
+}
+
+.page3 .company-title {
+    font-weight: 600;
+    color: #111827;
+    margin-bottom: 6px;
+}
+
+.page3 .company-divider {
+    height: 1px;
+    background: #e5e7eb;
+    margin-bottom: 10px;
+}
+
+.page3 .muted {
+    color: #6b7280;
+}
+
+/* PAGE 4 */
+.page4 .content {
+    padding: 42px 48px;
+}
+
+.page4 .title {
+    margin-top: 70px;
+    font-size: 24px;
+    font-weight: 800;
+    color: #0f2f78;
+}
+
+.page4 .title-line {
+    width: 120px;
+    height: 3px;
+    margin-top: 10px;
+    background: linear-gradient(90deg, #1d4ed8, #93c5fd);
+    border-radius: 999px;
+}
+
+.page4 .text {
+    margin-top: 20px;
+    font-size: 14px;
+    line-height: 1.7;
+    color: #1f2937;
+}
+
+.page4 .list-box {
+    margin-top: 20px;
+    padding: 18px 20px;
+    background: #ffffff;
+    border: 1px solid #dbe3f0;
+    border-radius: 14px;
+    box-shadow: 0 6px 18px rgba(15,47,120,0.06);
+    font-size: 14px;
+    line-height: 1.6;
+    color: #1f2937;
+}
+
+.page4 .list-box ul {
+    margin: 10px 0 0 0;
+    padding-left: 18px;
+}
+
+.page4 .list-box li {
+    margin-bottom: 8px;
+}
+
+.page4 .highlight {
+    margin-top: 20px;
+    font-weight: 700;
+    color: #0f2f78;
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+.page4 .cta {
+    margin-top: 18px;
+    color: #1d4ed8;
+    font-weight: 600;
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+.page4 .ref-box {
+    position: relative;
+    z-index: 2;
+    margin-top: 40px;
+    padding: 14px 16px;
+    background: #f8fbff;
+    border: 1px solid #dbe3f0;
+    border-radius: 12px;
+    box-shadow: 0 6px 16px rgba(29,78,216,0.06);
+    font-size: 13px;
+    line-height: 1.6;
+}
+
+/* PRINT */
+@page {
+    size: A4 portrait;
+    margin: 0;
+}
+
+@media print {
+    * {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
     }
 
-    .header-pdf { display: flex; justify-content: space-between; align-items: start; margin-bottom: 40px; }
-    .logo-kg { font-size: 42px; font-weight: 900; color: #1e40af; }
-    .logo-kg span { color: #3b82f6; }
+    html, body {
+        width: 210mm;
+        margin: 0 !important;
+        padding: 0 !important;
+        background: #ffffff !important;
+    }
 
-    .offer-title { font-size: 24px; font-weight: 800; color: #1e40af; margin-bottom: 20px; border-bottom: 2px solid #3b82f6; display: inline-block; }
+    body {
+        display: block !important;
+    }
 
-    .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-bottom: 30px; }
-    .address-box { line-height: 1.6; font-size: 14px; }
+    .document {
+        width: 210mm;
+        margin: 0;
+        padding: 0;
+    }
 
-    .service-table { width: 100%; border-collapse: collapse; margin: 30px 0; }
-    .service-table th { background: #f8fafc; text-align: left; padding: 12px; border-bottom: 2px solid #1e40af; font-size: 13px; }
-    .service-table td { padding: 15px 12px; border-bottom: 1px solid #f1f5f9; font-size: 14px; }
+    .page {
+        width: 210mm !important;
+        height: 297mm !important;
+        margin: 0 !important;
+        box-shadow: none !important;
+        border: none !important;
+        overflow: hidden !important;
+        page-break-after: always !important;
+        break-after: page !important;
+    }
 
-    .price-tag { font-weight: 800; color: #1e40af; text-align: right; }
-    .advantage-list { background: #eff6ff; padding: 20px; border-radius: 15px; margin: 30px 0; }
-    .advantage-item { display: flex; gap: 10px; margin-bottom: 8px; font-size: 13px; font-weight: 600; }
-
-    .footer-pdf { margin-top: 50px; border-top: 1px solid #e2e8f0; padding-top: 20px; font-size: 11px; color: #64748b; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
-    
-    .btn-print { background: #1e40af; color: white; padding: 10px 20px; border-radius: 8px; border: none; cursor: pointer; margin-bottom: 20px; font-weight: bold; }
-    
-    @media print { .no-print { display: none; } .angebot-pdf-view { border: none; box-shadow: none; padding: 0; } }
+    .page:last-child {
+        page-break-after: auto !important;
+        break-after: auto !important;
+    }
+}
 </style>
 
-<button class="btn-print no-print" onclick="window.print()"><i class="fa-solid fa-print"></i> PDF / Drucken</button>
+<div class="document">
+    <!-- PAGE 1 -->
+    <div class="page page1">
+        <div class="top-bar"></div>
+        <div class="top-shine"></div>
 
-<div class="angebot-pdf-view">
-    <div class="header-pdf">
-        <div class="logo-kg">KG <span>Gebäudereinigung</span></div>
-        <div style="text-align: right; font-size: 14px;">
-            <strong>Duisburg, {{ a.datum if a else '19. Januar 2026' }}</strong><br>
-            Angebot Nr: {{ a.angebot_nr if a else 'AN-2238' }}
+        <div class="wave-wrap">
+            <svg viewBox="0 0 260 260" width="100%" height="100%">
+                <polygon points="0,260 260,260 260,0" fill="#e5e7eb"></polygon>
+                <polygon points="30,260 260,260 260,30" fill="#1d4ed8"></polygon>
+            </svg>
+        </div>
+
+        <div class="content">
+            <div class="header">
+                <div class="logo-box">
+                    <img src="{{ url_for('static', filename='KG Yeni Logo.png') }}" alt="KG Logo">
+                </div>
+
+                <div class="offer-info">
+                    Angebot Nr: AN-{{Nr}}<br>
+                    Datum: {{Datum}}
+                </div>
+            </div>
+
+            <div class="title-block">
+                <div class="pre-title">Individuelles</div>
+                <h1>ANGEBOT</h1>
+                <div class="title-line"></div>
+            </div>
+
+            <div class="details-block">
+                <div class="subtitle">
+                    Professionelle Reinigungslösungen<br>
+                    für Ihr Objekt mit Qualität, Struktur und Verlässlichkeit
+                </div>
+
+                <div class="info-minimal">
+                    <div class="highlight-box">
+                        <div class="line">
+                            <span>Kunde</span>
+                            <p>{{Kunde}}<br>{{Objekt}}</p>
+                        </div>
+                    </div>
+
+                    <div class="highlight-box">
+                        <div class="line">
+                            <span>Objekt</span>
+                            <p>{{Adresse}}<br>{{Plz}} {{Ort}}</p>
+                        </div>
+                    </div>
+
+                    <div class="highlight-box">
+                        <div class="line">
+                            <span>Leistungsart</span>
+                            <p>{{Leistungsart}}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="footer">
+                Premium Gebäudereinigung • Qualität • Vertrauen
+            </div>
+
+            <div class="page-number">Seite 1/4</div>
         </div>
     </div>
 
-    <div class="info-grid">
-        <div class="address-box">
-            <label style="color: #64748b; font-size: 11px; font-weight: 800;">KUNDE:</label><br>
-            <strong>{{ a.firma if a else 'Zahnmedizin am Marktplatz' }}</strong><br>
-            {{ a.ansprechpartner if a else 'Herr Rüffer' }}<br>
-            {{ a.strasse if a else 'Kirchstr. 13' }}<br>
-            {{ a.plz if a else '47239' }} {{ a.ort if a else 'Duisburg' }}
+    <!-- PAGE 2 -->
+    <div class="page page2">
+        <div class="top-bar"></div>
+        <div class="top-shine"></div>
+
+        <div class="wave-wrap">
+            <svg viewBox="0 0 260 260" width="100%" height="100%">
+                <polygon points="0,260 260,260 260,0" fill="#e5e7eb"></polygon>
+                <polygon points="30,260 260,260 260,30" fill="#1d4ed8"></polygon>
+            </svg>
         </div>
-        <div class="address-box" style="text-align: right;">
-            <label style="color: #64748b; font-size: 11px; font-weight: 800;">ANBIETER:</label><br>
-            <strong>KG-Gebäudereinigung</strong><br>
-            Fliederstr. 59<br>
-            47055 Duisburg<br>
-            info@kg-reinigung.de
+
+        <div class="content">
+            <div class="header">
+                <div class="logo-box">
+                    <img src="{{ url_for('static', filename='KG Yeni Logo.png') }}" alt="KG Logo">
+                </div>
+            </div>
+
+            <div class="main-card">
+                <div class="date">
+                    {{Datum}}
+                </div>
+
+                <div class="title">Angebot AN-{{Nr}}</div>
+
+                <div class="text">
+                    <p>Sehr geehrte Damen und Herren,</p>
+
+                    <p>vielen Dank für Ihr Interesse an unseren Dienstleistungen und das entgegengebrachte Vertrauen.</p>
+
+                    <div class="highlight">
+                        Gerne unterbreiten wir Ihnen nachfolgend das gewünschte Angebot für die {{Leistungsart}} am Objekt: {{Adresse}}, {{Plz}} {{Ort}}.
+                    </div>
+
+                    <p class="auftrag">
+                        Sollte unser Angebot Ihren Vorstellungen entsprechen, bitten wir Sie, das Feld <br>
+                        <b>„Auftrag erteilen“</b> zu unterzeichnen und uns eine Kopie des Dokuments zukommen zu lassen. Im Anschluss werden wir den entsprechenden Reinigungsvertrag vorbereiten und Ihnen zur finalen Unterzeichnung übermitteln.
+                    </p>
+
+                    <p>
+                        Wir würden uns sehr freuen, Sie künftig als Kunden betreuen zu dürfen und sichern Ihnen bereits jetzt<br>
+                        eine zuverlässige und professionelle Zusammenarbeit zu.
+                    </p>
+
+                    <p>Für Rückfragen stehen wir Ihnen jederzeit gerne zur Verfügung.</p>
+
+                    <p>Mit freundlichen Grüßen</p>
+
+                    <div class="signature">
+                        Damla Kicci<br>
+                        Inhaberin
+                    </div>
+                </div>
+            </div>
+
+            <div class="page-number">Seite 2/4</div>
+        </div>
+    </div>
+
+    <!-- PAGE 3 -->
+    <div class="page page3">
+        <div class="top-bar"></div>
+        <div class="top-shine narrow"></div>
+
+        <div class="wave-wrap">
+            <svg viewBox="0 0 260 260" width="100%" height="100%">
+                <polygon points="0,260 260,260 260,0" fill="#e5e7eb"></polygon>
+                <polygon points="30,260 260,260 260,30" fill="#1d4ed8"></polygon>
+            </svg>
+        </div>
+
+        <div class="content">
+            <div class="header">
+                <div class="logo-box">
+                    <img src="{{ url_for('static', filename='KG Yeni Logo.png') }}" alt="KG Logo">
+                </div>
+            </div>
+
+            <div class="body-wrap">
+                <h3 class="main-title">Angebot AN-{{Nr}}</h3>
+                <div class="gray-line"></div>
+
+                <p>Gerne unterbreiten wir Ihnen das gewünschte Angebot:</p>
+
+                <div class="leistungs-list">
+                    <div class="leistung-row">
+    <div>Leistung 1: {{Leistung_1}}</div>
+    <div class="right">{{Einheiten_1}} &nbsp;&nbsp;&nbsp; {{Preis_1}}</div>
+</div>
+
+<div class="leistung-row">
+    <div>Leistung 2: {{Leistung_2}}</div>
+    <div class="right">{{Einheiten_2}} &nbsp;&nbsp;&nbsp; {{Preis_2}}</div>
+</div>
+
+<div class="leistung-row">
+    <div>Leistung 3: {{Leistung_3}}</div>
+    <div class="right">{{Einheiten_3}} &nbsp;&nbsp;&nbsp; {{Preis_3}}</div>
+</div>
+
+<div class="leistung-row">
+    <div>Leistung 4: {{Leistung_4}}</div>
+    <div class="right">{{Einheiten_4}} &nbsp;&nbsp;&nbsp; {{Preis_4}}</div>
+</div>
+
+                    <div class="info-line">
+                        zzgl. gesetzlicher MwSt.
+                    </div>
+
+                    <hr style="margin:10px 0;">
+
+                    <div><b>Ausführungszeitraum</b> {{Ausführungszeitraum}}</div>
+                    <div><b>Zahlungsbedingungen</b> 7 Tage nach Erhalt bzw. SEPA Lastschrift</div>
+                    <div><b>Gültigkeit des Angebots</b> 1 Woche</div>
+                </div>
+
+                <div class="meta-section">
+                    <div class="left-meta">
+                        <div class="head">Wir freuen uns auf die Zusammenarbeit!</div>
+                        <div class="sub">
+                            {{Datum}}<br>
+                            <span style="font-weight:600; color:#111827;">Damla Kicci</span><br>
+                            Inhaberin
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="confirm-note">Bitte bestätigen Sie das Angebot:</div>
+                        <div class="signature-box">
+                            <div class="signature-head">Auftrag erteilen</div>
+
+                            <div class="signature-line">
+                                <span class="signature-x">x</span>
+                            </div>
+
+                            <div class="signature-caption">
+                                <span style="white-space:nowrap;">Datum, Unterschrift / Stempel Auftraggeber</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="company-box">
+                    <div class="company-col">
+                        <div class="company-title">KG-Gebäudereinigung</div>
+                        <div class="company-divider"></div>
+
+                        Fliederstr. 59<br>
+                        47055 Duisburg<br><br>
+
+                        <span class="muted">Kontakt</span><br>
+                        Tel: 0203 47966822<br>
+                        Mobil: 0163 1947055<br>
+                        E-Mail: info@kg-reinigung.de<br>
+                        Web: www.kg-reinigung.de
+                    </div>
+
+                    <div class="company-col">
+                        <div class="company-title">Unternehmen</div>
+                        <div class="company-divider"></div>
+
+                        Inhaberin: Damla Kicci<br>
+                        USt.-ID: DE325770756<br>
+                        Steuer-Nr: 134/5102/3515<br><br>
+
+                        <span class="muted">Bankverbindung</span><br>
+                        Sparkasse Duisburg<br>
+                        IBAN: DE58 3505 0000 0200 3259 34<br>
+                        BIC: DUISDE33XXX
+                    </div>
+                </div>
+            </div>
+
+            <div class="page-number">Seite 3/4</div>
         </div>
     </div>
 
-    <h2 class="offer-title">Angebot: Professionelle Praxisreinigung</h2>
+    <!-- PAGE 4 -->
+    <div class="page page4">
+        <div class="top-bar"></div>
+        <div class="top-shine"></div>
 
-    <p style="font-size: 14px; line-height: 1.5;">
-        Sehr geehrte Damen und Herren,<br><br>
-        herzlichen Dank für Ihr Interesse. Hiermit überreichen wir Ihnen das gewünschte Angebot für Ihr Objekt in {{ a.ort if a else 'Duisburg' }}.
-    </p>
-
-    <table class="service-table">
-        <thead>
-            <tr>
-                <th>Leistungsbeschreibung</th>
-                <th style="text-align: right;">Turnus</th>
-                <th style="text-align: right;">Betrag (Netto)</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr>
-                <td><strong>Unterhaltsreinigung</strong> (Praxisfläche {{ a.m2 if a else '180' }} m²)</td>
-                <td style="text-align: right;">5x wöchentlich</td>
-                <td class="price-tag">{{ a.preis_monat if a else '1.194,00' }} €</td>
-            </tr>
-            <tr>
-                <td>Glas- und Fensterreinigung (inkl. Rahmen)</td>
-                <td style="text-align: right;">alle 3 Monate</td>
-                <td class="price-tag">inkl.</td>
-            </tr>
-            <tr>
-                <td>Jalousienreinigung</td>
-                <td style="text-align: right;">1x jährlich</td>
-                <td class="price-tag">inkl.</td>
-            </tr>
-        </tbody>
-        <tfoot>
-            <tr>
-                <td colspan="2" style="text-align: right; padding: 15px; font-weight: 800;">Gesamtbetrag mtl. zzgl. MwSt:</td>
-                <td class="price-tag" style="font-size: 18px; border-top: 2px solid #1e40af;">{{ a.preis_monat if a else '1.194,00' }} €</td>
-            </tr>
-        </tfoot>
-    </table>
-
-    <div class="advantage-list">
-        <h4 style="margin: 0 0 10px 0; color: #1e40af;">Ihre Vorteile auf einen Blick:</h4>
-        <div class="advantage-item"><i class="fa-solid fa-check-circle" style="color: #16a34a;"></i> 100% Organisierte Krankheits- und Urlaubsvertretung</div>
-        <div class="advantage-item"><i class="fa-solid fa-check-circle" style="color: #16a34a;"></i> Akribische Qualitätsprüfungen durch Objektleitung</div>
-        <div class="advantage-item"><i class="fa-solid fa-check-circle" style="color: #16a34a;"></i> Fester Ansprechpartner und 24/7 Erreichbarkeit</div>
-    </div>
-
-    <div style="margin-top: 30px; font-size: 14px;">
-        <p><strong>Ausführungszeitraum:</strong> ab {{ a.start_datum if a else '01.02.2026' }}</p>
-        <p><strong>Gültigkeit:</strong> 1 Woche ab Angebotsdatum</p>
-    </div>
-
-    <div class="footer-pdf">
-        <div>
-            <strong>Inhaberin:</strong> Damla Kicci<br>
-            USt.-ID: DE325770756<br>
-            Steuer-Nr.: 134/5102/3515
+        <div class="wave-wrap z5">
+            <svg viewBox="0 0 260 260" width="100%" height="100%">
+                <polygon points="0,260 260,260 260,0" fill="#e5e7eb"></polygon>
+                <polygon points="30,260 260,260 260,30" fill="#1d4ed8"></polygon>
+            </svg>
         </div>
-        <div>
-            <strong>Kontakt:</strong><br>
-            Tel: 0203 47966822<br>
-            Web: www.kg-reinigung.de
-        </div>
-        <div>
-            <strong>Bankverbindung:</strong><br>
-            Sparkasse Duisburg<br>
-            IBAN: DE58 3505 0000 0200 3259 34
+
+        <div class="content">
+            <div class="logo-box">
+                <img src="{{ url_for('static', filename='KG Yeni Logo.png') }}" alt="KG Logo">
+            </div>
+
+            <div class="title">Warum KG Gebäudereinigung?</div>
+            <div class="title-line"></div>
+
+            <div class="text">
+                Ein gepflegtes Objekt ist Ihre Visitenkarte. Es prägt den ersten Eindruck,
+                beeinflusst das Wohlbefinden Ihrer Mitarbeiter und steht für die Qualität Ihres Unternehmens.
+            </div>
+
+            <div class="text">
+                Mit KG Gebäudereinigung entscheiden Sie sich für einen zuverlässigen Partner,
+                der strukturiert arbeitet, Verantwortung übernimmt und dauerhaft gleichbleibende Qualität liefert.
+            </div>
+
+            <div class="list-box">
+                <b>Ihre Vorteile auf einen Blick:</b>
+                <ul>
+                    <li>Konstante und kontrollierte Reinigungsqualität</li>
+                    <li>Zuverlässige Durchführung ohne Ausfälle</li>
+                    <li>Feste Ansprechpartner und klare Kommunikation</li>
+                    <li>Für maximale Kontinuität setzen wir nach Möglichkeit stets dieselbe Reinigungskraft in Ihrem Objekt ein</li>
+                    <li>Flexible Anpassung an Ihre Abläufe</li>
+                    <li>Vertretung bei Krankheit und Urlaub – ohne Mehraufwand</li>
+                    <li>Einsatz moderner und effizienter Reinigungstechnik</li>
+                </ul>
+            </div>
+
+            <div class="text">
+                Unser Ziel ist es, Ihnen den Rücken freizuhalten – damit Sie sich vollständig auf Ihr Kerngeschäft konzentrieren können.
+            </div>
+
+            <div class="highlight">
+                Sauberkeit, auf die Sie sich jeden Tag verlassen können.
+            </div>
+
+            <div class="cta">
+                Gerne überzeugen wir Sie persönlich von unserer Arbeitsweise.
+            </div>
+
+            <div class="ref-box">
+                <b>Referenzen:</b> Malteser Hilfsdienst · Privatbrauerei Bolten
+            </div>
+
+            <div class="page-number">Seite 4/4</div>
         </div>
     </div>
+
 </div>
 
 {% endblock %}
