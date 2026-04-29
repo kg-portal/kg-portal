@@ -1,0 +1,2204 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
+<style>
+:root {
+  --bg-body: #f8fafc;
+  --bg-surface: #ffffff;
+  --bg-sidebar: #f8fbff;
+  --primary-dark: #183a91;
+  --primary-main: #2563eb;
+  --primary-light: #eff6ff;
+  --primary-border: #bfdbfe;
+  --text-main: #0f172a;
+  --text-muted: #64748b;
+  --border-color: #dbe3ef;
+  
+  --color-green: #16a34a;
+  --color-green-light: #ecfdf5;
+  --color-orange: #d97706;
+  --color-orange-light: #fffbeb;
+  --color-red: #dc2626;
+  --color-red-light: #fef2f2;
+  --color-purple: #6d28d9;
+  --color-purple-light: #f5f3ff;
+
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-md: 0 6px 14px rgba(15,23,42,0.03);
+  --shadow-lg: 0 14px 30px rgba(37, 99, 235, 0.07);
+  --radius-md: 14px;
+  --radius-lg: 18px;
+  --radius-xl: 24px;
+}
+
+* { box-sizing: border-box; }
+
+.kg-mail-page {
+  width: 100%;
+  min-height: calc(100vh - 120px);
+  background: var(--bg-body);
+  font-family: 'Inter', Arial, sans-serif;
+  color: var(--text-main);
+}
+/* Custom Scrollbar */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+.mail-app {
+  width: 100%;
+  max-width: none;
+  height: calc(100vh - 120px);
+  min-height: 760px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-xl);
+  box-shadow: 0 18px 50px rgba(15, 23, 42, 0.08);
+  overflow: hidden;
+  display: grid;
+  grid-template-rows: 78px minmax(0, 1fr);
+}
+
+/* TOPBAR */
+.topbar {
+  background: var(--bg-surface);
+  border-bottom: 1px solid var(--border-color);
+  display: grid;
+  grid-template-columns: 280px minmax(0, 1fr) 460px;
+  gap: 24px;
+  align-items: center;
+  padding: 0 28px;
+  z-index: 10;
+}
+.brand { display: flex; align-items: center; gap: 14px; }
+.brand-logo {
+  width: 46px; height: 46px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary-main) 100%);
+  color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 900; font-size: 18px;
+  box-shadow: 0 12px 26px rgba(37,99,235,0.22);
+}
+.brand-title { font-size: 18px; font-weight: 900; color: var(--primary-dark); letter-spacing: -0.3px; line-height: 1.1; }
+.brand-sub { font-size: 12px; font-weight: 700; color: var(--text-muted); margin-top: 4px; }
+
+.search { position: relative; max-width: 600px; }
+.search svg { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: #94a3b8; }
+.search input {
+  width: 100%; height: 48px; border: 1px solid var(--border-color);
+  outline: none; border-radius: 999px;
+  background: #f8fafc; color: var(--text-main);
+  padding: 0 20px 0 46px; font-size: 14px; font-weight: 600;
+  transition: all 0.2s ease;
+  font-family: 'Inter', sans-serif;
+}
+.search input:focus {
+  background: var(--bg-surface);
+  border-color: var(--primary-main);
+  box-shadow: 0 0 0 3px rgba(37,99,235,0.12);
+}
+
+.top-actions { display: flex; justify-content: flex-end; align-items: center; gap: 12px; }
+.account-pill {
+  height: 42px; border-radius: 999px; background: var(--primary-light);
+  border: 1px solid var(--primary-border); color: #1d4ed8;
+  display: flex; align-items: center; gap: 10px; padding: 0 16px;
+  font-size: 12px; font-weight: 800;
+}
+.dot { width: 8px; height: 8px; border-radius: 50%; background: var(--color-green); box-shadow: 0 0 0 4px rgba(22, 163, 74, 0.15); }
+.top-btn {
+  height: 42px; padding: 0 14px; border: 1px solid var(--border-color);
+  border-radius: var(--radius-md); background: #fff; color: var(--text-muted);
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  cursor: pointer; transition: all 0.2s; font-weight: 700; font-family: 'Inter', sans-serif; font-size: 13px;
+}
+.top-btn:hover { background: var(--primary-light); color: var(--primary-main); border-color: var(--primary-border); }
+
+/* MAIN BODY LAYOUT */
+.body {
+  display: grid;
+  grid-template-columns: 260px 440px minmax(0, 1fr);
+  min-height: 0;
+  background: var(--bg-surface);
+}
+
+/* SIDEBAR */
+.sidebar {
+  background: var(--bg-sidebar);
+  border-right: 1px solid var(--border-color);
+  padding: 24px 18px;
+  display: flex; flex-direction: column; min-height: 0;
+  overflow-y: auto;
+}
+.compose {
+  height: 54px; border: none; border-radius: 16px;
+  background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary-main) 100%); 
+  color: #fff;
+  font-size: 15px; font-weight: 800; cursor: pointer;
+  box-shadow: 0 12px 26px rgba(37,99,235,0.22);
+  margin-bottom: 26px; transition: all 0.2s;
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  font-family: 'Inter', sans-serif;
+}
+.compose:hover { transform: translateY(-2px); box-shadow: 0 16px 32px rgba(37,99,235,0.3); }
+
+.nav-title { font-size: 11px; text-transform: uppercase; letter-spacing: 0.8px; color: var(--text-muted); font-weight: 900; margin: 16px 12px 8px; }
+.nav { display: flex; flex-direction: column; gap: 4px; }
+.nav-btn {
+  border: 1px solid transparent; background: transparent; border-radius: var(--radius-md);
+  padding: 11px 12px; display: grid; grid-template-columns: 20px minmax(0, 1fr) auto;
+  gap: 12px; align-items: center; color: var(--text-muted);
+  font-size: 13px; font-weight: 700; cursor: pointer; text-align: left;
+  transition: all 0.2s; font-family: 'Inter', sans-serif;
+}
+.nav-btn svg { stroke-width: 2.5px; }
+.nav-btn:hover { background: #fff; border-color: var(--border-color); color: var(--text-main); }
+.nav-btn.active { background: var(--primary-light); color: var(--primary-dark); border-color: var(--primary-border); font-weight: 800; }
+.nav-count {
+  min-width: 24px; height: 22px; border-radius: 10px; background: #e2e8f0;
+  color: var(--text-muted); font-size: 11px; font-weight: 800;
+  display: flex; align-items: center; justify-content: center; padding: 0 8px;
+}
+.nav-btn.active .nav-count { background: var(--primary-main); color: #fff; }
+
+.routing-card {
+  margin-top: auto; border: 1px solid var(--primary-border);
+  background: linear-gradient(180deg, #ffffff 0%, var(--primary-light) 100%);
+  border-radius: var(--radius-lg); padding: 18px;
+  box-shadow: var(--shadow-sm);
+}
+.routing-card h3 { margin: 0 0 6px; color: var(--primary-dark); font-size: 14px; font-weight: 900; letter-spacing: -0.2px; }
+.routing-card p { margin: 0; color: var(--text-muted); font-size: 12px; font-weight: 600; line-height: 1.5; }
+.alias-badge { margin-top: 12px; display: inline-flex; align-items: center; gap: 6px; background: var(--color-green-light); color: var(--color-green); border: 1px solid #bbf7d0; border-radius: 8px; padding: 6px 10px; font-size: 11px; font-weight: 800; }
+
+/* MESSAGE LIST */
+.list {
+  background: var(--bg-surface); border-right: 1px solid var(--border-color);
+  display: grid; grid-template-rows: auto auto minmax(0, 1fr); min-height: 0;
+}
+.list-head { padding: 24px 24px 16px; border-bottom: 1px solid var(--border-color); background: #fff; }
+.list-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.list-head h1 { margin: 0; font-size: 24px; font-weight: 900; letter-spacing: -0.5px; color: var(--primary-dark); }
+.list-head p { margin: 6px 0 0; color: var(--text-muted); font-size: 13px; font-weight: 600; }
+.sync {
+  border: 1px solid var(--primary-border); background: var(--primary-light); color: var(--primary-main);
+  border-radius: var(--radius-md); padding: 10px 16px; font-size: 13px; font-weight: 800;
+  cursor: pointer; display: flex; align-items: center; gap: 6px; transition: 0.2s;
+  font-family: 'Inter', sans-serif;
+}
+.sync:hover { background: var(--primary-main); color: #fff; }
+
+.sync.is-syncing{
+  background:linear-gradient(135deg,var(--primary-dark),var(--primary-main));
+  color:#fff;
+  box-shadow:0 10px 24px rgba(37,99,235,.28);
+  pointer-events:none;
+}
+
+.sync.is-syncing svg{
+  animation:kgSyncSpin .8s linear infinite;
+}
+
+@keyframes kgSyncSpin{
+  from{transform:rotate(0deg)}
+  to{transform:rotate(360deg)}
+}
+
+.filters { padding: 12px 24px; border-bottom: 1px solid var(--border-color); display: flex; gap: 8px; overflow-x: auto; background: #fff; }
+.filters::-webkit-scrollbar { display: none; }
+.filter {
+  border: 1px solid var(--border-color); background: #f8fafc; color: var(--text-muted);
+  border-radius: 999px; padding: 8px 16px; font-size: 12px; font-weight: 700;
+  cursor: pointer; transition: all 0.2s; white-space: nowrap;
+  font-family: 'Inter', sans-serif;
+}
+.filter:hover { background: #e2e8f0; color: var(--text-main); }
+.filter.active { background: var(--primary-dark); color: #fff; border-color: var(--primary-dark); }
+
+.messages { overflow: auto; padding: 16px; display: flex; flex-direction: column; gap: 10px; background: linear-gradient(180deg, #f8fbff 0%, #f1f5f9 100%); }
+.msg {
+  background: var(--bg-surface); border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg); padding: 18px; cursor: pointer;
+  transition: all 0.2s ease; position: relative;
+  box-shadow: var(--shadow-md);
+}
+.msg:hover { border-color: #93c5fd; transform: translateY(-2px); box-shadow: var(--shadow-lg); }
+.msg.active {
+  border-color: var(--primary-main);
+  box-shadow: 0 0 0 1px var(--primary-main), var(--shadow-md);
+  background: #fbfdff;
+}
+.msg.active::before {
+    content: ""; position: absolute; left: 0; top: 12px; bottom: 12px; width: 4px;
+    background: linear-gradient(180deg, var(--primary-dark), var(--primary-main));
+    border-radius: 0 4px 4px 0;
+}
+.msg.unread .subject { font-weight: 800; color: var(--text-main); }
+.msg.unread .subject::before {
+  content: ''; display: inline-block; width: 8px; height: 8px;
+  background: var(--primary-main); border-radius: 50%; margin-right: 8px; vertical-align: middle;
+}
+.msg-top { display: grid; grid-template-columns: 42px minmax(0, 1fr) auto; gap: 12px; align-items: center; margin-bottom: 14px; }
+.avatar {
+  width: 42px; height: 42px; border-radius: 14px;
+  background: #f1f5f9; border: 1px solid var(--border-color); color: var(--text-muted);
+  display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 800;
+}
+.active .avatar { background: var(--primary-light); border-color: var(--primary-border); color: var(--primary-main); }
+.company { font-size: 15px; font-weight: 800; color: var(--primary-dark); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; letter-spacing: -0.2px; }
+.email { font-size: 12px; color: var(--text-muted); font-weight: 600; margin-top: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.time { font-size: 11px; color: #94a3b8; font-weight: 700; }
+.subject { font-size: 14px; font-weight: 700; color: #1e293b; line-height: 1.4; margin-bottom: 8px; }
+.preview { font-size: 13px; color: var(--text-muted); line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; font-weight: 500;}
+.tags { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 14px; }
+.tag { font-size: 11px; font-weight: 800; border-radius: 8px; padding: 5px 10px; background: #f1f5f9; color: var(--text-muted); display: flex; align-items: center; gap: 4px; border: 1px solid var(--border-color); }
+.tag.blue { background: var(--primary-light); color: var(--primary-main); border-color: var(--primary-border); }
+.tag.green { background: var(--color-green-light); color: var(--color-green); border-color: #bbf7d0; }
+.tag.orange { background: var(--color-orange-light); color: var(--color-orange); border-color: #fde68a; }
+.tag.purple { background: var(--color-purple-light); color: var(--color-purple); border-color: #ddd6fe; }
+.msg-delete {
+  position: absolute; right: 14px; bottom: 14px; width: 34px; height: 34px;
+  border: 1px solid #fecaca; border-radius: 12px; background: var(--color-red-light); color: var(--color-red);
+  display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s;
+}
+.msg-delete:hover { background: var(--color-red); color: #fff; border-color: var(--color-red); }
+.msg-delete svg { width: 16px; height: 16px; }
+
+/* READER */
+.reader { display: grid; grid-template-rows: auto minmax(0, 1fr) auto; min-height: 0; background: var(--bg-surface); }
+.reader-head { padding: 24px 32px 20px; border-bottom: 1px solid var(--border-color); background: var(--bg-surface); }
+.reader-actions { display: flex; justify-content: space-between; align-items: center; gap: 14px; margin-bottom: 24px; }
+.reader-left, .reader-right { display: flex; gap: 10px; flex-wrap: wrap; }
+.rbtn {
+  border: 1px solid var(--border-color); background: #fff; color: var(--text-main);
+  border-radius: var(--radius-md); padding: 11px 16px; font-size: 13px; font-weight: 700;
+  cursor: pointer; display: flex; align-items: center; gap: 8px; transition: all 0.2s;
+  font-family: 'Inter', sans-serif; box-shadow: var(--shadow-sm);
+}
+.rbtn svg { width: 16px; height: 16px; stroke-width: 2.5px; }
+.rbtn:hover { background: #f8fafc; transform: translateY(-1px); box-shadow: var(--shadow-md); border-color: #cbd5e1; }
+.rbtn.primary { background: var(--primary-dark); color: #fff; border-color: var(--primary-dark); }
+.rbtn.primary:hover { background: var(--primary-main); border-color: var(--primary-main); }
+.rbtn.blue { background: var(--primary-light); color: var(--primary-main); border-color: var(--primary-border); box-shadow: none; }
+.rbtn.blue:hover { background: #dbeafe; }
+
+.reader-subject { font-size: 26px; line-height: 1.25; font-weight: 900; letter-spacing: -0.5px; margin: 0 0 24px; color: var(--primary-dark); }
+.reader-meta { display: grid; grid-template-columns: 52px minmax(0, 1fr) auto; gap: 16px; align-items: center; }
+.reader-meta .avatar { width: 52px; height: 52px; border-radius: 16px; font-size: 16px; font-weight: 900; background: var(--primary-light); color: var(--primary-main); border: 1px solid var(--primary-border); display: flex; align-items: center; justify-content: center; }
+.meta-name { font-size: 16px; font-weight: 800; color: var(--text-main); }
+.meta-line { font-size: 13px; font-weight: 600; color: var(--text-muted); margin-top: 4px; display: flex; align-items: center; gap: 6px; }
+.meta-date { font-size: 13px; font-weight: 700; color: var(--text-muted); }
+
+.reader-scroll { overflow: auto; padding: 32px; background: linear-gradient(180deg, #f8fbff 0%, #f1f5f9 100%); }
+.paper {
+  max-width: 880px; margin: 0 auto; border: 1px solid var(--border-color);
+  background: #fff; border-radius: var(--radius-xl); box-shadow: var(--shadow-lg); overflow: hidden;
+}
+.paper-top { background: #f8fafc; border-bottom: 1px solid var(--border-color); padding: 18px 28px; display: flex; justify-content: space-between; align-items: center; }
+.pill { border-radius: 8px; padding: 8px 14px; font-size: 12px; font-weight: 800; background: #e2e8f0; color: var(--text-main); }
+.pill.green { background: var(--color-green-light); color: var(--color-green); border: 1px solid #bbf7d0;}
+.paper-body { padding: 40px; font-size: 15px; line-height: 1.8; color: #334155; font-weight: 500; }
+.paper-body p { margin: 0 0 20px; }
+.paper-body b, .paper-body strong { color: var(--primary-dark); font-weight: 800; }
+.attach-row { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 32px; padding-top: 24px; border-top: 1px dashed var(--border-color); }
+.attach { border: 1px solid var(--border-color); background: #f8fafc; border-radius: var(--radius-md); padding: 14px 18px; font-size: 13px; font-weight: 700; color: var(--primary-dark); display: flex; align-items: center; gap: 8px; cursor: pointer; transition: 0.2s; text-decoration:none; }
+.attach:hover { border-color: var(--primary-main); background: var(--primary-light); box-shadow: var(--shadow-sm); }
+.gmail-attach-strip { margin-top: 30px; padding-top: 18px; border-top: 1px solid #e5e7eb; }
+.gmail-attach-summary { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; color: #202124; font-size: 13px; font-weight: 800; }
+.gmail-attach-summary span { color: #5f6368; font-size: 12px; font-weight: 600; }
+.gmail-attach-grid { display: flex; flex-wrap: wrap; gap: 12px; }
+.gmail-attach-card { width: 178px; height: 132px; border: 1px solid #dadce0; border-radius: 8px; background: #fff; overflow: hidden; cursor: pointer; position: relative; transition: box-shadow 0.18s ease, border-color 0.18s ease, transform 0.18s ease; }
+.gmail-attach-card:hover { box-shadow: 0 3px 10px rgba(60,64,67,0.24); border-color: #c6c9ce; transform: translateY(-1px); }
+.gmail-attach-preview { height: 88px; background: #f8f9fa; border-bottom: 1px solid #e8eaed; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+.gmail-attach-preview iframe { width: 100%; height: 100%; border: 0; pointer-events: none; background: #fff; }
+.gmail-attach-icon { width: 38px; height: 38px; border-radius: 8px; background: #f1f3f4; color: #5f6368; display: flex; align-items: center; justify-content: center; font-size: 22px; }
+.gmail-attach-footer { height: 43px; display: grid; grid-template-columns: 22px minmax(0,1fr) 22px; align-items: center; gap: 7px; padding: 0 8px; background: #fff; }
+.gmail-pdf-badge { width: 20px; height: 20px; border-radius: 4px; background: #d93025; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 7px; font-weight: 900; letter-spacing: -0.2px; }
+.gmail-file-name { color: #3c4043; font-size: 11px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.gmail-open-dot { color: #5f6368; font-size: 16px; line-height: 1; display: flex; align-items: center; justify-content: center; }
+
+.gmail-attach-actions {
+    position: absolute;
+    right: 8px;
+    bottom: 8px;
+    display: none;
+    gap: 6px;
+    z-index: 5;
+}
+
+.gmail-attach-card:hover .gmail-attach-actions {
+    display: flex;
+}
+
+.gmail-attach-action-btn {
+    width: 28px;
+    height: 28px;
+    border: 0;
+    border-radius: 6px;
+    background: rgba(32,33,36,0.88);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+.gmail-excel-preview {
+    width: 100%;
+    height: 100%;
+    background: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.gmail-excel-preview-table {
+    width: 100%;
+    height: 100%;
+    border-collapse: collapse;
+    font-size: 6px;
+    font-family: Arial, Helvetica, sans-serif;
+    color: #111827;
+    background: #fff;
+}
+
+.gmail-excel-preview-table td {
+    border: 1px solid #d1d5db;
+    padding: 1px 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    max-width: 34px;
+}
+
+.gmail-excel-preview-table tr:first-child td {
+    background: #16a34a;
+    color: #fff;
+    font-weight: 900;
+}
+
+.mail-empty-state {
+    min-height: 440px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 40px;
+    color: var(--text-muted);
+}
+
+.mail-empty-card {
+    max-width: 420px;
+    padding: 34px;
+    border: 1px solid var(--border-color);
+    border-radius: 24px;
+    background: linear-gradient(180deg,#ffffff 0%,#f8fbff 100%);
+    box-shadow: 0 18px 44px rgba(15,23,42,0.06);
+}
+
+.mail-empty-icon {
+    width: 58px;
+    height: 58px;
+    margin: 0 auto 16px;
+    border-radius: 18px;
+    background: var(--primary-light);
+    color: var(--primary-main);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mail-empty-title {
+    font-size: 22px;
+    font-weight: 900;
+    color: var(--primary-dark);
+    margin-bottom: 8px;
+}
+
+.mail-empty-desc {
+    font-size: 13px;
+    font-weight: 700;
+    line-height: 1.5;
+}
+
+.reply { border-top: 1px solid var(--border-color); background: var(--bg-surface); padding: 20px 32px; }
+.reply-box { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 12px; align-items: center; border: 1px solid var(--border-color); background: var(--bg-body); border-radius: var(--radius-lg); padding: 10px 10px 10px 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.02); transition: 0.2s; }
+.reply-box:focus-within { border-color: var(--primary-main); box-shadow: 0 0 0 4px rgba(37,99,235,0.1); background: #fff;}
+.reply-box input { border: none; background: transparent; outline: none; font-size: 14px; font-weight: 600; font-family: 'Inter', sans-serif; color: var(--text-main); }
+.send { border: none; background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary-main) 100%); color: #fff; border-radius: var(--radius-md); padding: 12px 20px; font-size: 13px; font-weight: 800; cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 8px; font-family: 'Inter', sans-serif; }
+.send:hover { box-shadow: 0 8px 18px rgba(37,99,235,0.25); transform: translateY(-1px);}
+
+/* GMAIL STYLE VIEWER MODAL - YEPYENI VE HATASIZ */
+.gmail-viewer {
+    position: fixed; inset: 0; background: rgba(32,33,36,0.95); z-index: 999999;
+    display: none; flex-direction: column; font-family: 'Inter', sans-serif;
+}
+.gmail-viewer.open { display: flex; }
+.gv-top {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 16px 24px; color: #fff; background: rgba(0,0,0,0.4);
+}
+.gv-title-area { display: flex; align-items: center; font-size: 16px; font-weight: 600; }
+.gv-actions { display: flex; gap: 8px; }
+.gv-btn {
+    background: transparent; border: none; color: #fff; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    width: 44px; height: 44px; border-radius: 50%; transition: background 0.2s;
+}
+.gv-btn:hover { background: rgba(255,255,255,0.15); }
+.gv-btn svg { width: 22px; height: 22px; stroke: currentColor; stroke-width: 2; fill: none; }
+.gv-content {
+    flex: 1; display: flex; align-items: center; justify-content: center;
+    padding: 24px; overflow: hidden;
+}
+.gv-content iframe {
+    width: 100%; height: 100%; max-width: 1200px; border: none;
+    background: #f1f5f9; border-radius: 8px; box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+}
+.gv-content img {
+    max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 8px;
+}
+
+.excel-viewer-wrap {
+    width: 100%;
+    height: 100%;
+    max-width: 1320px;
+    background: #111827;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr);
+}
+
+.excel-viewer-toolbar {
+    height: 46px;
+    background: #1f2937;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0 14px;
+    border-bottom: 1px solid rgba(255,255,255,0.12);
+    font-size: 13px;
+    font-weight: 800;
+}
+
+.excel-viewer-sheet-name {
+    background: #374151;
+    border: 1px solid rgba(255,255,255,0.14);
+    border-radius: 999px;
+    padding: 6px 12px;
+}
+
+.excel-viewer-body {
+    background: #ffffff;
+    overflow: auto;
+    padding: 0;
+}
+
+.excel-viewer-table {
+    border-collapse: collapse;
+    min-width: 100%;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 13px;
+    color: #111827;
+}
+
+.excel-viewer-table th {
+    position: sticky;
+    top: 0;
+    background: #16a34a;
+    color: #ffffff;
+    border: 1px solid #15803d;
+    padding: 7px 10px;
+    font-weight: 900;
+    text-align: left;
+    white-space: nowrap;
+}
+
+.excel-viewer-table td {
+    border: 1px solid #d1d5db;
+    padding: 6px 10px;
+    white-space: nowrap;
+    background: #ffffff;
+}
+
+.excel-viewer-table tr:nth-child(even) td {
+    background: #f9fafb;
+}
+
+.excel-viewer-loading {
+    color: #ffffff;
+    font-size: 15px;
+    font-weight: 800;
+}
+
+/* COMPOSE MODAL */
+.modal-bg { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.45); backdrop-filter: blur(4px); display: none; align-items: center; justify-content: center; padding: 24px; z-index: 9999; opacity: 0; transition: opacity 0.3s ease; }
+.modal-bg.open { display: flex; opacity: 1; }
+.modal { width: min(100%, 1000px); max-height: 90vh; background: #fff; border-radius: var(--radius-xl); box-shadow: 0 30px 80px rgba(15,23,42,0.28); overflow: hidden; display: grid; grid-template-rows: auto minmax(0, 1fr) auto; transform: scale(0.95); transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1); border: 1px solid var(--primary-border); }
+.modal-bg.open .modal { transform: scale(1); }
+.modal-head { background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary-main) 100%); color: #fff; padding: 24px 32px; display: flex; justify-content: space-between; align-items: flex-start; }
+.modal-head h2 { margin: 0; font-size: 22px; font-weight: 900; letter-spacing: -0.3px; }
+.modal-head p { margin: 6px 0 0; color: rgba(255,255,255,0.85); font-size: 13px; font-weight: 600;}
+.modal-close { border: none; background: rgba(255,255,255,0.15); color: #fff; width: 36px; height: 36px; border-radius: 12px; font-size: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.2s; }
+.modal-close:hover { background: rgba(255,255,255,0.25); }
+.modal-body { padding: 32px; display: grid; grid-template-columns: minmax(0, 1fr) 280px; gap: 32px; overflow: auto; background: var(--bg-body); }
+.form { display: flex; flex-direction: column; gap: 16px; }
+.form label, .templates label { font-size: 12px; font-weight: 800; color: var(--primary-dark); text-transform: uppercase; letter-spacing: 0.5px; }
+.form input, .form select, .form textarea { width: 100%; border: 1px solid var(--border-color); background: #fff; border-radius: var(--radius-md); padding: 14px 16px; font-size: 14px; font-weight: 600; color: var(--text-main); outline: none; font-family: 'Inter', sans-serif; transition: 0.2s; }
+.form input:focus, .form select:focus, .form textarea:focus { border-color: var(--primary-main); box-shadow: 0 0 0 3px rgba(37,99,235,0.15); }
+.from-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.form textarea { min-height: 350px; resize: vertical; line-height: 1.55; font-weight: 400; font-family: Arial, Helvetica, sans-serif; }
+.templates { border: 1px solid var(--border-color); background: #fff; border-radius: var(--radius-lg); padding: 20px; display: flex; flex-direction: column; gap: 12px; box-shadow: var(--shadow-sm); }
+.template { border: 1px solid var(--border-color); background: #f8fafc; color: var(--text-main); border-radius: var(--radius-md); padding: 14px; text-align: left; font-size: 13px; font-weight: 700; cursor: pointer; transition: 0.2s; }
+.template:hover { border-color: var(--primary-border); background: #fff; }
+.template.active { background: var(--primary-light); color: var(--primary-dark); border-color: var(--primary-main); box-shadow: 0 4px 12px rgba(37,99,235,0.08); }
+.note { margin-top: auto; border: 1px dashed var(--primary-border); background: var(--primary-light); color: var(--primary-dark); border-radius: var(--radius-md); padding: 16px; font-size: 12px; line-height: 1.5; font-weight: 600; }
+.modal-actions { padding: 20px 32px; background: #fff; border-top: 1px solid var(--border-color); display: flex; justify-content: flex-end; gap: 12px; }
+.cancel, .modal-send { border: none; border-radius: var(--radius-md); padding: 13px 24px; font-size: 14px; font-weight: 800; cursor: pointer; font-family: 'Inter', sans-serif; transition: 0.2s; display: flex; align-items: center; gap: 8px;}
+.cancel { background: #f1f5f9; color: var(--text-muted); }
+.cancel:hover { background: #e2e8f0; color: var(--text-main); }
+.modal-send { background: var(--color-green); color: #fff; box-shadow: 0 10px 22px rgba(22,163,74,0.16); }
+.modal-send:hover { background: #15803d; transform: translateY(-1px);}
+
+/* TOAST */
+.toast { position: fixed; right: 32px; bottom: 32px; background: var(--text-main); color: #fff; border-radius: var(--radius-md); padding: 16px 24px; font-size: 14px; font-weight: 700; box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.2); transform: translateY(100px); opacity: 0; transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); z-index: 10000; display: flex; align-items: center; gap: 12px; }
+.toast.show { transform: translateY(0); opacity: 1; }
+
+.settings-bg { position: fixed; inset: 0; background: rgba(15,23,42,0.38); backdrop-filter: blur(3px); display: none; align-items: center; justify-content: center; z-index: 99999; }
+.settings-bg.open { display: flex; }
+.settings-panel { width: min(96vw, 980px); max-height: 88vh; background: #fff; border: 1px solid var(--primary-border); border-radius: 20px; box-shadow: 0 24px 70px rgba(15,23,42,0.28); overflow: hidden; display: grid; grid-template-rows: auto minmax(0,1fr) auto; }
+.settings-head { padding: 20px 22px; background: linear-gradient(135deg,var(--primary-dark),var(--primary-main)); color: #fff; display: flex; align-items: center; justify-content: space-between; }
+.settings-head h3 { margin: 0; font-size: 17px; font-weight: 900; }
+.settings-close { border: 0; background: rgba(255,255,255,0.16); color: #fff; width: 34px; height: 34px; border-radius: 10px; cursor: pointer; font-size: 20px; }
+.settings-body { padding: 0; display: grid; grid-template-columns: 220px minmax(0,1fr); min-height: 0; overflow: hidden; }
+.settings-tabs { border-right: 1px solid var(--border-color); background: #f8fbff; padding: 16px; display: grid; align-content: start; gap: 8px; }
+.settings-tab { border: 1px solid transparent; background: transparent; border-radius: 13px; padding: 12px 14px; text-align: left; cursor: pointer; font-size: 13px; font-weight: 800; color: var(--text-muted); }
+.settings-tab.active { background: #fff; border-color: var(--primary-border); color: var(--primary-dark); box-shadow: var(--shadow-sm); }
+.settings-content { padding: 20px 22px; overflow: auto; display: grid; gap: 16px; }
+.settings-section { display: none; }
+.settings-section.active { display: grid; gap: 16px; }
+.settings-label { font-size: 12px; font-weight: 900; color: var(--primary-dark); text-transform: uppercase; letter-spacing: .5px; }
+.theme-options { display: grid; grid-template-columns: repeat(7, minmax(0,1fr)); gap: 10px; }
+.theme-option { border: 1px solid var(--border-color); background: #f8fafc; border-radius: 14px; padding: 10px; cursor: pointer; font-size: 11px; font-weight: 800; color: var(--text-main); display: grid; gap: 8px; justify-items: center; }
+.theme-option:hover, .theme-option.active { border-color: var(--primary-main); background: var(--primary-light); color: var(--primary-dark); }
+.theme-dot { width: 32px; height: 32px; border-radius: 999px; box-shadow: inset 0 0 0 1px rgba(255,255,255,.35); }
+.settings-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.settings-field { display: grid; gap: 7px; }
+.settings-field label { font-size: 12px; font-weight: 900; color: var(--primary-dark); text-transform: uppercase; letter-spacing: .4px; }
+.settings-field input, .settings-field select, .settings-field textarea { width: 100%; border: 1px solid var(--border-color); border-radius: 12px; padding: 11px 12px; font-size: 13px; font-family: Inter, Arial, sans-serif; outline: none; }
+.settings-field textarea { min-height: 160px; resize: vertical; line-height: 1.55; font-family: Arial, Helvetica, sans-serif; }
+.settings-check { display: flex; align-items: center; gap: 10px; font-size: 13px; font-weight: 700; color: var(--text-main); }
+.settings-signature-preview { border: 1px dashed var(--primary-border); border-radius: 14px; background: #f8fbff; padding: 14px; min-height: 90px; font-size: 13px; line-height: 1.55; color: #1f2937; }
+.settings-signature-preview img { max-width: 360px; max-height: 180px; display: block; margin-top: 12px; }
+.settings-upload-row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.settings-upload { border: 1px solid var(--primary-border); background: var(--primary-light); color: var(--primary-dark); border-radius: 12px; padding: 10px 14px; font-size: 13px; font-weight: 800; cursor: pointer; }
+.settings-footer { padding: 14px 22px; border-top: 1px solid var(--border-color); display: flex; justify-content: flex-end; gap: 10px; background: #fff; }
+.compose-tools { margin-top: -4px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.compose-attach-btn { border: 1px solid var(--primary-border); background: var(--primary-light); color: var(--primary-dark); border-radius: 12px; padding: 9px 13px; font-size: 13px; font-weight: 800; cursor: pointer; display: inline-flex; align-items: center; gap: 7px; }
+.compose-drop { border: 1px dashed var(--primary-border); background: #f8fbff; color: var(--text-muted); border-radius: 12px; padding: 10px 12px; font-size: 12px; font-weight: 700; }
+.compose-drop.drag { background: #dbeafe; color: var(--primary-dark); }
+.compose-file-list { display: flex; flex-wrap: wrap; gap: 8px; }
+.compose-file-chip { border: 1px solid var(--border-color); background: #fff; border-radius: 10px; padding: 7px 9px; font-size: 12px; font-weight: 700; color: #334155; display: inline-flex; align-items: center; gap: 6px; }
+.compose-signature-preview { border: 1px dashed var(--border-color); background: #fff; border-radius: 14px; padding: 12px 14px; font-family: Arial, Helvetica, sans-serif; font-size: 13px; line-height: 1.55; color: #1f2937; }
+.compose-signature-preview:empty { display: none; }
+.compose-signature-preview img { max-width: 320px; max-height: 160px; display: block; margin-top: 10px; }
+
+@media(max-width:1300px) { .body { grid-template-columns: 240px 380px minmax(0, 1fr); } .topbar { grid-template-columns: 240px minmax(0, 1fr) auto; } }
+@media(max-width:1050px) { body { padding: 0; } .mail-app { height: 100vh; min-height: 100vh; border-radius: 0; border: none; box-shadow: none; } .reader { display: none; } .body { grid-template-columns: 260px minmax(0, 1fr); } .topbar { grid-template-columns: 240px minmax(0, 1fr); padding: 0 16px; } .top-actions { display: none; } }
+@media(max-width:760px) { .sidebar { display: none; } .body { grid-template-columns: 1fr; } .topbar { grid-template-columns: 1fr; } .brand { display: none; } .modal-body { grid-template-columns: 1fr; } .from-row { grid-template-columns: 1fr; } }
+
+/* SVG Icons Utility */
+svg { width: 18px; height: 18px; stroke: currentColor; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; fill: none; }
+</style>
+<div class="kg-mail-page">
+<div class="mail-app">
+<header class="topbar">
+    <div class="brand">
+        <div class="brand-logo">KG</div>
+        <div>
+            <div class="brand-title" data-i18n="brand_title">KG Portal Mail</div>
+            <div class="brand-sub" data-i18n="brand_sub">Gmail API & CRM Ready</div>
+        </div>
+    </div>
+    <div class="search">
+        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+        <input id="globalSearch" data-i18n-ph="search_ph" placeholder="Postalarda arama yap · Firma, Betreff, E-Mail..." oninput="renderMessages()">
+    </div>
+    <div class="top-actions">
+        <div class="account-pill"><span class="dot"></span> <span data-i18n="api_active">info@kg-reinigung.de API aktiv</span></div>
+        <button class="top-btn" onclick="syncCurrentBox()" title="Senkronize Et">
+            <svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+        </button>
+        <button class="top-btn" onclick="openSettingsModal()" title="Ayarlar">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1Z"/></svg>
+        </button>
+        <button class="top-btn" onclick="toggleLang()" title="Sprache ändern / Dili Değiştir" style="color: var(--primary-main); border-color: var(--primary-border); background: var(--primary-light);">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/><path d="M2 12h20"/></svg>
+            <span id="langBtnText">TR/DE</span>
+        </button>
+    </div>
+</header>
+<main class="body">
+<aside class="sidebar">
+<button class="compose" onclick="openCompose(null,'new')">
+    <svg viewBox="0 0 24 24"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg> <span data-i18n="compose">Schreiben</span>
+</button>
+<div class="nav-title" data-i18n="nav_inbox">Postfach</div>
+<div class="nav">
+    <button class="nav-btn active" onclick="setBox('inbox',this)">
+        <svg viewBox="0 0 24 24"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+        <span data-i18n="inbox">Gelen Kutusu</span><span class="nav-count" id="countInbox">0</span>
+    </button>
+    <button class="nav-btn" onclick="setBox('sent',this)">
+        <svg viewBox="0 0 24 24"><line x1="22" x2="11" y1="2" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+        <span data-i18n="sent">Gesendet</span><span class="nav-count" id="countSent">0</span>
+    </button>
+    <button class="nav-btn" onclick="setBox('draft',this)">
+        <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M16 13H8"/><path d="M16 17H8"/><path d="M10 9H8"/></svg>
+        <span data-i18n="drafts">Taslaklar</span><span class="nav-count" id="countDraft">0</span>
+    </button>
+    <button class="nav-btn" onclick="setBox('star',this)">
+        <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+        <span data-i18n="important">Wichtig</span><span class="nav-count" id="countStar">0</span>
+    </button>
+    <button class="nav-btn" onclick="setBox('spam',this)">
+        <svg viewBox="0 0 24 24"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
+        <span>Junk / Spam</span><span class="nav-count" id="countSpam">0</span>
+    </button>
+</div>
+
+<div class="nav-title" data-i18n="nav_address">Adrese göre ayır</div>
+<div class="nav">
+    <button class="nav-btn" onclick="setAlias('info',this)">
+        <svg viewBox="0 0 24 24"><rect width="16" height="20" x="4" y="2" rx="2" ry="2"/><path d="M9 22v-4h6v4"/><path d="M8 6h.01"/><path d="M16 6h.01"/><path d="M12 6h.01"/><path d="M12 10h.01"/><path d="M12 14h.01"/><path d="M16 10h.01"/><path d="M16 14h.01"/><path d="M8 10h.01"/><path d="M8 14h.01"/></svg>
+       <span>info@</span><span class="nav-count" id="countAliasInfo">0</span>
+    </button>
+    <button class="nav-btn" onclick="setAlias('murat',this)">
+        <svg viewBox="0 0 24 24"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        <span>m.kicci@</span><span class="nav-count" id="countAliasMurat">0</span>
+    </button>
+    <button class="nav-btn" onclick="setAlias('bestellung',this)">
+        <svg viewBox="0 0 24 24"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg>
+        <span>bestellung@</span><span class="nav-count" id="countAliasBestellung">0</span>
+    </button>
+    <button class="nav-btn" onclick="setAlias('rechnung',this)">
+        <svg viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M7 7h10"/><path d="M7 12h10"/><path d="M7 17h10"/></svg>
+        <span>rechnung@</span><span class="nav-count" id="countAliasRechnung">0</span>
+    </button>
+</div>
+
+<div class="nav-title" data-i18n="nav_crm">CRM</div>
+<div class="nav">
+    <button class="nav-btn" onclick="setLabel('angebot',this)">
+        <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M12 18v-6"/><path d="m9 15 3 3 3-3"/></svg>
+        <span data-i18n="crm_offers">Angebote</span><span class="nav-count">8</span>
+    </button>
+    <button class="nav-btn" onclick="setLabel('antwort',this)">
+        <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        <span data-i18n="crm_replies">Antwort erhalten</span><span class="nav-count">2</span>
+    </button>
+</div>
+
+<div class="routing-card">
+    <h3 data-i18n="routing_title">Tek Gmail API Yeterli</h3>
+    <p data-i18n="routing_desc">Bu hesapta ekli gönderici adresleri tek API token ile kullanılabilir. Gelen mailler 'To' adresine göre kategorize edilir.</p>
+    <div class="alias-badge"><svg width="14" height="14" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="M22 4 12 14.01l-3-3"/></svg> m.kicci@kg...</div>
+</div>
+</aside>
+
+<section class="list">
+    <div class="list-head">
+        <div class="list-row">
+            <div>
+                <h1 id="listTitle" data-i18n="inbox">Gelen Kutusu</h1>
+                <p data-i18n="list_sub">Gmail API & Özel CRM Entegrasyonu.</p>
+            </div>
+            <button class="sync" id="syncBtn" onclick="syncCurrentBox()">
+    <svg viewBox="0 0 24 24"><path d="M21 2v6h-6"/><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M3 22v-6h6"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/></svg>
+    Sync
+</button>
+            </button>
+        </div>
+    </div>
+    <div class="filters">
+        <button class="filter active" onclick="setFilter('alle',this)" data-i18n="filter_all">Tümü</button>
+        <button class="filter" onclick="setFilter('ungelesen',this)" data-i18n="filter_unread">Okunmamış</button>
+        <button class="filter" onclick="setFilter('crm',this)" data-i18n="filter_crm">CRM Aktif</button>
+        <button class="filter" onclick="setFilter('anhang',this)" data-i18n="filter_attach">Eklentili</button>
+    </div>
+    <div class="messages" id="messageList"></div>
+</section>
+
+<section class="reader">
+    <div class="reader-head">
+        <div class="reader-actions">
+            <div class="reader-left">
+                <button class="rbtn primary" onclick="openCompose(currentMessage)">
+                    <svg viewBox="0 0 24 24"><polyline points="9 17 4 12 9 7"/><path d="M20 18v-2a4 4 0 0 0-4-4H4"/></svg> <span data-i18n="btn_reply">Antworten</span>
+                </button>
+                <button class="rbtn" onclick="openCompose(currentMessage,'weiterleiten')">
+                    <svg viewBox="0 0 24 24"><polyline points="15 17 20 12 15 7"/><path d="M4 18v-2a4 4 0 0 1 4-4h12"/></svg> <span data-i18n="btn_forward">Weiterleiten</span>
+                </button>
+            </div>
+            <div class="reader-right">
+                <button class="rbtn" onclick="showToast(i18n[currentLang].toast_read)">
+                    <svg viewBox="0 0 24 24" style="color: var(--color-green);"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="M22 4 12 14.01l-3-3"/></svg> <span data-i18n="btn_read">Gelesen</span>
+                </button>
+            </div>
+        </div>
+        <h2 class="reader-subject" id="readerSubject">Betreff</h2>
+        <div class="reader-meta">
+            <div class="avatar" id="readerAvatar">KG</div>
+            <div>
+                <div class="meta-name" id="readerFrom">Absender</div>
+                <div class="meta-line" id="readerEmail">E-Mail</div>
+            </div>
+            <div class="meta-date" id="readerDate">Heute</div>
+        </div>
+    </div>
+    <div class="reader-scroll">
+        <div class="paper">
+            <div class="paper-top">
+                <div class="pill" id="paperLabel">CRM Mail</div>
+                <div class="pill green" id="aliasLabel">An: info@kg-reinigung.de</div>
+            </div>
+            <div class="paper-body" id="readerBody"></div>
+        </div>
+    </div>
+    <div class="reply">
+        <div class="reply-box">
+            <input id="quickReply" data-i18n-ph="quick_reply_ph" placeholder="Kurze Antwort schreiben...">
+            <button class="rbtn" onclick="showToast(i18n[currentLang].toast_draft)" data-i18n="btn_draft">Entwurf</button>
+            <button class="send" onclick="sendQuickReply()">
+                <svg viewBox="0 0 24 24"><line x1="22" x2="11" y1="2" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg> <span data-i18n="btn_send">Senden</span>
+            </button>
+        </div>
+    </div>
+</section>
+</main>
+</div>
+</div>
+
+<!-- GMAIL STYLE VIEWER MODAL -->
+<div class="gmail-viewer" id="gmailViewer" onclick="if(event.target === this) closeGmailViewer()">
+    <div class="gv-top">
+        <div class="gv-title-area">
+            <svg viewBox="0 0 24 24" style="width:20px;height:20px;margin-right:12px;opacity:0.8;stroke:currentColor;stroke-width:2;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M12 18v-6"/><path d="m9 15 3 3 3-3"/></svg>
+            <span id="gvTitle">Doküman</span>
+        </div>
+                <div class="gv-actions">
+            <button class="gv-btn" onclick="printCurrentAttachment()" title="Yazdır">
+                <svg viewBox="0 0 24 24"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+            </button>
+            <a id="gvDownload" href="#" download class="gv-btn" title="İndir">
+                <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            </a>
+            <button class="gv-btn" onclick="closeGmailViewer()" title="Kapat">
+                <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </button>
+        </div>
+    </div>
+    <div class="gv-content" id="gvContent">
+        <!-- Iframe or Img injected via JS -->
+    </div>
+</div>
+
+<!-- COMPOSE MODAL -->
+<div class="modal-bg" id="composeModal" onclick="closeCompose(event)">
+    <div class="modal" onclick="event.stopPropagation()">
+        <div class="modal-head">
+            <div>
+                <h2 data-i18n="modal_title">Yeni Mail Oluştur</h2>
+                <p id="composeHint" data-i18n="modal_sub">Gönderim Google Gmail API kullanılarak arka planda yapılacaktır.</p>
+            </div>
+            <button class="modal-close" onclick="closeCompose()">
+                <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </button>
+        </div>
+        <div class="modal-body">
+            <div class="form">
+                <div class="from-row">
+                    <div>
+                        <label data-i18n="lbl_from">Von (Gönderici Alias)</label>
+                        <select id="composeFrom" onchange="renderComposeSignature()">
+                            <option value="info@kg-reinigung.de">Damla Kicci &lt;info@kg-reinigung.de&gt;</option>
+                            <option value="bestellung@kg-reinigung.de">KG-Gebäudereinigung - Bestellabteilung &lt;bestellung@kg-reinigung.de&gt;</option>
+                            <option value="m.kicci@kg-reinigung.de">Murat Kicci &lt;m.kicci@kg-reinigung.de&gt;</option>
+                            <option value="rechnung@kg-reinigung.de">KG-Gebäudereinigung &lt;rechnung@kg-reinigung.de&gt;</option>
+                        </select>
+                    </div>
+                  </div>
+                <label data-i18n="lbl_to">Empfänger (Alıcı)</label>
+                <input id="composeTo">
+
+                <div class="from-row">
+                    <div>
+                        <label>CC</label>
+                        <input id="composeCc">
+                    </div>
+                    <div>
+                        <label>BCC</label>
+                        <input id="composeBcc">
+                    </div>
+                </div>
+
+                <label data-i18n="lbl_subject">Betreff (Konu)</label>
+                <input id="composeSubject">
+
+                <label data-i18n="lbl_message">Nachricht (İçerik)</label>
+                <textarea id="composeText"></textarea>
+                <div class="compose-tools">
+                    <button type="button" class="compose-attach-btn" onclick="document.getElementById('composeFileInput').click()">📎 Datei anhängen</button>
+                    <input id="composeFileInput" type="file" multiple style="display:none" onchange="handleComposeFiles(this.files)">
+                    <div class="compose-drop" id="composeDropZone">Dateien hierher ziehen oder über das Büro-Symbol hinzufügen</div>
+                </div>
+                <div class="compose-file-list" id="composeFileList"></div>
+                <div class="compose-signature-preview" id="composeSignaturePreview"></div>
+            </div>
+          </div>
+        <div class="modal-actions">
+            <button class="cancel" onclick="closeCompose()" data-i18n="btn_cancel">İptal</button>
+            <button class="modal-send" onclick="sendCompose()">
+                <svg viewBox="0 0 24 24"><line x1="22" x2="11" y1="2" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg> <span data-i18n="btn_send">Gönder</span>
+            </button>
+        </div>
+    </div>
+</div>
+
+<div class="settings-bg" id="settingsModal" onclick="closeSettingsModal(event)">
+    <div class="settings-panel" onclick="event.stopPropagation()">
+        <div class="settings-head">
+            <h3>Gmail Einstellungen</h3>
+            <button class="settings-close" onclick="closeSettingsModal()">×</button>
+        </div>
+        <div class="settings-body">
+            <div class="settings-tabs">
+                <button class="settings-tab active" onclick="setSettingsTab('design',this)">Design</button>
+                <button class="settings-tab" onclick="setSettingsTab('gmail',this)">Gmail</button>
+                <button class="settings-tab" onclick="setSettingsTab('signature',this)">E-Signatur</button>
+                <button class="settings-tab" onclick="setSettingsTab('normal',this)">Normale E-Mail</button>
+                <button class="settings-tab" onclick="setSettingsTab('kontaktformular',this)">Kontaktformular</button>
+            </div>
+            <div class="settings-content">
+                <div class="settings-section active" id="settings-design">
+                    <div class="settings-label">Design-Farbe</div>
+                    <div class="theme-options">
+                        <button class="theme-option" data-theme="blue" onclick="setThemeMode('blue')"><span class="theme-dot" style="background:#2563eb"></span>Blau</button>
+                        <button class="theme-option" data-theme="navy" onclick="setThemeMode('navy')"><span class="theme-dot" style="background:#183a91"></span>Navy</button>
+                        <button class="theme-option" data-theme="soft" onclick="setThemeMode('soft')"><span class="theme-dot" style="background:#60a5fa"></span>Soft Blau</button>
+                        <button class="theme-option" data-theme="green" onclick="setThemeMode('green')"><span class="theme-dot" style="background:#16a34a"></span>Grün</button>
+                        <button class="theme-option" data-theme="purple" onclick="setThemeMode('purple')"><span class="theme-dot" style="background:#6d28d9"></span>Lila</button>
+                        <button class="theme-option" data-theme="orange" onclick="setThemeMode('orange')"><span class="theme-dot" style="background:#d97706"></span>Orange</button>
+                        <button class="theme-option" data-theme="dark" onclick="setThemeMode('dark')"><span class="theme-dot" style="background:#0f172a"></span>Dunkel</button>
+                    </div>
+                </div>
+                <div class="settings-section" id="settings-gmail">
+                    <div class="settings-label">Gmail Grund-Einstellungen</div>
+                    <label class="settings-check"><input type="checkbox" id="setDesktopNotify"> Desktop-Benachrichtigungen aktivieren</label>
+                    <label class="settings-check"><input type="checkbox" id="setConversationView" checked> Konversationsansicht aktivieren</label>
+                    <label class="settings-check"><input type="checkbox" id="setSnippets" checked> Snippets in der Liste anzeigen</label>
+                    <label class="settings-check"><input type="checkbox" id="setAutoRead"> Mail beim Öffnen automatisch als gelesen markieren</label>
+                </div>
+                <div class="settings-section" id="settings-signature">
+                    <div class="settings-label">E-Signatur erstellen</div>
+                    <div class="settings-grid-2">
+                        <div class="settings-field">
+                            <label>E-Mail Adresse</label>
+                            <select id="signatureEmail">
+                                <option value="info@kg-reinigung.de">info@kg-reinigung.de</option>
+                                <option value="m.kicci@kg-reinigung.de">m.kicci@kg-reinigung.de</option>
+                                <option value="bestellung@kg-reinigung.de">bestellung@kg-reinigung.de</option>
+                                <option value="rechnung@kg-reinigung.de">rechnung@kg-reinigung.de</option>
+                            </select>
+                        </div>
+                        <label class="settings-check" style="align-self:end"><input type="checkbox" id="signatureEnabled" checked> Signatur automatisch anhängen</label>
+                    </div>
+                    <div class="settings-field">
+                        <label>Signatur Text</label>
+                        <textarea id="signatureText"></textarea>
+                    </div>
+                    <div class="settings-upload-row">
+                        <button type="button" class="settings-upload" onclick="document.getElementById('signatureImageInput').click()">Bild unter die Signatur einfügen</button>
+                        <input id="signatureImageInput" type="file" accept="image/*" style="display:none" onchange="handleSignatureImage(this.files)">
+                        <button type="button" class="settings-upload" onclick="removeSignatureImage()">Bild entfernen</button>
+                    </div>
+                    <div class="settings-signature-preview" id="signaturePreview"></div>
+                </div>
+                <div class="settings-section" id="settings-normal">
+                    <div class="settings-label">Normale E-Mail</div>
+                    <div class="settings-field"><label>Standard-Betreff</label><input id="normalMailSubject" placeholder="Betreff für normale E-Mails"></div>
+                    <div class="settings-field"><label>Standard-Text</label><textarea id="normalMailText" placeholder="Nur normaler Mailtext. Die E-Signatur wird unten automatisch angehängt."></textarea></div>
+                </div>
+                <div class="settings-section" id="settings-kontaktformular">
+                    <div class="settings-label">Kontaktformular</div>
+                    <div class="settings-field"><label>Kontaktformular Vorlage</label><textarea id="kontaktformularText" placeholder="Kontaktformular-Kalipları burada sonra eklenecek."></textarea></div>
+                </div>
+            </div>
+        </div>
+        <div class="settings-footer">
+            <button class="cancel" onclick="closeSettingsModal()">Abbrechen</button>
+            <button class="modal-send" onclick="saveMailSettings()">Speichern</button>
+        </div>
+    </div>
+</div>
+
+<div class="toast" id="toast">
+    <svg viewBox="0 0 24 24" style="color: var(--color-green);"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="M22 4 12 14.01l-3-3"/></svg>
+    <span id="toastText"></span>
+</div>
+
+<script>
+// JS Error Prevention
+function escapeHtml(unsafe) {
+    return (unsafe || '').toString()
+         .replace(/&/g, "&amp;")
+         .replace(/</g, "&lt;")
+         .replace(/>/g, "&gt;")
+         .replace(/"/g, "&quot;")
+         .replace(/'/g, "&#039;");
+}
+
+// --- i18n (Language Logic) ---
+const i18n = {
+  tr: {
+    brand_title: "KG Portal Mail",
+    brand_sub: "Gmail API & CRM Hazır",
+    search_ph: "Postalarda arama yap · Firma, Konu, E-Posta...",
+    api_active: "info@kg-reinigung.de API aktif",
+    compose: "Yeni Mail",
+    nav_inbox: "Posta Kutusu",
+    inbox: "Gelen Kutusu",
+    sent: "Gönderilenler",
+    drafts: "Taslaklar",
+    important: "Önemli",
+    nav_address: "Adrese Göre Ayır",
+    nav_crm: "CRM",
+    crm_offers: "Teklifler",
+    crm_replies: "Cevaplananlar",
+    routing_title: "Tek Gmail API Yeterli",
+    routing_desc: "Bu hesapta ekli gönderici adresleri tek API token ile kullanılabilir. Gelen mailler 'To' adresine göre kategorize edilir.",
+    list_sub: "Gmail API & Özel CRM Entegrasyonu.",
+    filter_all: "Tümü",
+    filter_unread: "Okunmamış",
+    filter_crm: "CRM Aktif",
+    filter_attach: "Eklentili",
+    btn_reply: "Yanıtla",
+    btn_forward: "İlet",
+    btn_save_crm: "CRM'e Kaydet",
+    btn_read: "Okundu",
+    quick_reply_ph: "Kısa bir cevap yazın...",
+    btn_draft: "Taslak",
+    btn_send: "Gönder",
+    modal_title: "Yeni Mail Oluştur",
+    modal_sub: "Gönderim Google Gmail API kullanılarak arka planda yapılacaktır.",
+    lbl_from: "Kimden (Alias)",
+    lbl_category: "CRM Kategorisi",
+    lbl_to: "Kime",
+    lbl_subject: "Konu",
+    lbl_message: "Mesaj",
+    lbl_templates: "CRM Şablonları",
+    tpl_kontakt: "İlk İletişim / Kontaktaufnahme",
+    tpl_angebot: "Teklif İletimi / Angebot senden",
+    tpl_termin: "Randevu Onayı / Terminbestätigung",
+    tpl_nachfassen: "Takip / Nachfassen",
+    modal_note: "<b>Bilgi:</b> API yapılandırmanız seçilen 'Von' alias'ı üzerinden yetkilendirilmiş SMTP gönderimi sağlar. Gelen yanıtlar doğrudan ilgili klasöre düşer.",
+    btn_cancel: "İptal",
+    empty_title: "Kayıt Bulunamadı",
+    empty_desc: "Filtreleri veya arama metninizi değiştirin.",
+    receiver: "Alıcı: ",
+    attach: "Ek",
+    open: "Aç",
+    toast_downloading: "İndiriliyor...",
+    toast_sync: "Senkronize ediliyor...",
+    toast_settings: "Ayarlar: OAuth, Alias, Etiketler",
+    toast_sync_msg: "Gmail API ile son mailler senkronize ediliyor...",
+    toast_crm_saved: "Mail CRM kaydına işlendi.",
+    toast_read: "Okundu olarak işaretlendi.",
+    toast_draft: "Taslak kaydedildi.",
+    toast_send_api: "Google API tetiklendi. Mail gönderiliyor...",
+    toast_empty_reply: "Lütfen bir cevap yazın!",
+    toast_quick_sent: "Hızlı yanıt CRM & Gmail API üzerinden iletildi."
+  },
+  de: {
+    brand_title: "KG Portal Mail",
+    brand_sub: "Gmail API & CRM Ready",
+    search_ph: "Mails durchsuchen · Firma, Betreff...",
+    api_active: "info@kg-reinigung.de API aktiv",
+    compose: "Schreiben",
+    nav_inbox: "Postfach",
+    inbox: "Posteingang",
+    sent: "Gesendet",
+    drafts: "Entwürfe",
+    important: "Wichtig",
+    nav_address: "Nach Adresse trennen",
+    nav_crm: "CRM",
+    crm_offers: "Angebote",
+    crm_replies: "Antwort erhalten",
+    routing_title: "Nur eine Gmail API nötig",
+    routing_desc: "Senderadressen können mit einem Token verwendet werden. Eingehende Mails werden sortiert.",
+    list_sub: "Gmail API & Custom CRM Integration.",
+    filter_all: "Alle",
+    filter_unread: "Ungelesen",
+    filter_crm: "CRM Aktiv",
+    filter_attach: "Anhang",
+    btn_reply: "Antworten",
+    btn_forward: "Weiterleiten",
+    btn_save_crm: "In CRM speichern",
+    btn_read: "Gelesen",
+    quick_reply_ph: "Kurze Antwort schreiben...",
+    btn_draft: "Entwurf",
+    btn_send: "Senden",
+    modal_title: "Neue Mail verfassen",
+    modal_sub: "Versand erfolgt im Hintergrund via Gmail API.",
+    lbl_from: "Von (Alias)",
+    lbl_category: "CRM Kategorie",
+    lbl_to: "Empfänger",
+    lbl_subject: "Betreff",
+    lbl_message: "Nachricht",
+    lbl_templates: "CRM Vorlagen",
+    tpl_kontakt: "Kontaktaufnahme",
+    tpl_angebot: "Angebot senden",
+    tpl_termin: "Terminbestätigung",
+    tpl_nachfassen: "Nachfassen",
+    modal_note: "<b>Hinweis:</b> API sendet über das ausgewählte Alias. Antworten werden automatisch sortiert.",
+    btn_cancel: "Abbrechen",
+    empty_title: "Keine Mails gefunden",
+    empty_desc: "Bitte ändern Sie die Filter oder Suchkriterien.",
+    receiver: "An: ",
+    attach: "Anhang",
+    open: "Öffnen",
+    toast_downloading: "Wird heruntergeladen...",
+    toast_sync: "Gmail Sync gestartet...",
+    toast_settings: "Einstellungen: OAuth, Aliase, Labels",
+    toast_sync_msg: "Gmail API zieht die neuesten Mails...",
+    toast_crm_saved: "In CRM gespeichert.",
+    toast_read: "Als gelesen markiert.",
+    toast_draft: "Entwurf gespeichert.",
+    toast_send_api: "Demo: Mail wird über Gmail API gesendet.",
+    toast_empty_reply: "Antwortfeld ist leer!",
+    toast_quick_sent: "Schnellantwort gesendet."
+  }
+};
+
+let currentLang = 'de'; // Default
+
+function toggleLang() {
+    currentLang = currentLang === 'tr' ? 'de' : 'tr';
+    applyLang();
+}
+
+function applyLang() {
+    const dict = i18n[currentLang];
+    
+    // Update texts
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+        el.innerHTML = dict[el.getAttribute('data-i18n')];
+    });
+    
+    // Update placeholders
+    document.querySelectorAll('[data-i18n-ph]').forEach(el => {
+        el.setAttribute('placeholder', dict[el.getAttribute('data-i18n-ph')]);
+    });
+
+    // Update list titles depending on box/alias
+    const activeNav = document.querySelector('.nav-btn.active span[data-i18n], .nav-btn.active span:not(.nav-count)');
+    if(activeNav) {
+        if(currentBox) document.getElementById('listTitle').textContent = activeNav.innerText;
+        else if(currentAlias) document.getElementById('listTitle').textContent = activeNav.innerText + (currentLang==='tr'?' Mailleri':' Mails');
+        else if(currentLabel) document.getElementById('listTitle').textContent = 'CRM: ' + activeNav.innerText;
+    }
+
+    renderMessages(); // Re-render to update dynamic translations
+}
+
+// --- Mail Data & App Logic ---
+let messages=[];
+let currentBox='inbox',currentFilter='alle',currentAlias='',currentLabel='',currentMessage=null;
+let gmailNextPageToken='';
+let gmailLoadingMore=false;
+let gmailHasMore=false;
+
+const gmailApiMap = {
+    inbox: '/api/gmail/inbox',
+    sent: '/api/gmail/sent',
+    draft: '/api/gmail/drafts',
+    star: '/api/gmail/starred',
+    spam: '/api/gmail/spam'
+};
+
+function initials(t){return(t||'KG').split(' ').map(x=>x[0]).join('').slice(0,2).toUpperCase()}
+function clearNav(){document.querySelectorAll('.nav-btn').forEach(x=>x.classList.remove('active'))}
+
+function setBox(box,btn){
+    currentBox=box;
+    currentAlias='';
+    currentLabel='';
+    clearNav();
+    btn.classList.add('active');
+    document.getElementById('listTitle').textContent=btn.querySelector('span:not(.nav-count)').innerText;
+    loadGmailBox(box);
+}
+function setAlias(alias,btn){currentAlias=alias;currentBox='';currentLabel='';clearNav();btn.classList.add('active');document.getElementById('listTitle').textContent=btn.querySelector('span:not(.nav-count)').innerText + (currentLang==='tr'?' Mailleri':' Mails');renderMessages()}
+function setLabel(label,btn){currentLabel=label;currentBox='';currentAlias='';clearNav();btn.classList.add('active');document.getElementById('listTitle').textContent='CRM: ' + btn.querySelector('span:not(.nav-count)').innerText;renderMessages()}
+function setFilter(filter,btn){currentFilter=filter;document.querySelectorAll('.filter').forEach(x=>x.classList.remove('active'));btn.classList.add('active');renderMessages()}
+
+function renderMessages(){
+    const dict = i18n[currentLang];
+    const q=(document.getElementById('globalSearch').value||'').toLowerCase();
+    const list=document.getElementById('messageList');
+    list.innerHTML='';
+    let data=messages.filter(m=>{
+        const boxOk=currentBox?m.box===currentBox:true;
+        const aliasOk=currentAlias?m.alias===currentAlias:true;
+        const labelOk=currentLabel?m.label===currentLabel:true;
+        const hasAttach=!!(m.attach||(m.files&&m.files.length)||(m.attachments&&m.attachments.length));
+        const filterOk=currentFilter==='alle'||(currentFilter==='ungelesen'&&m.unread)||(currentFilter==='crm'&&['antwort','angebot'].includes(m.label))||(currentFilter==='anhang'&&hasAttach);
+        const searchOk=[m.company,m.from,m.email,m.to,m.subject,m.preview].join(' ').toLowerCase().includes(q);
+        return boxOk&&aliasOk&&labelOk&&filterOk&&searchOk
+    });
+    
+    if(!data.length){
+        list.innerHTML=`<div class="msg" style="text-align:center; padding: 40px 20px; background: transparent; border: none; box-shadow: none;">
+            <svg style="width:54px;height:54px;color:#cbd5e1;margin-bottom:16px" viewBox="0 0 24 24"><path d="M21.54 15H17l-2.6-3H9.6l-2.6 3H2.46"/><path d="M2.46 15A10 10 0 1 1 21.54 15Z"/></svg>
+            <div class="subject" style="font-size: 16px;">${dict.empty_title}</div>
+            <div class="preview">${dict.empty_desc}</div>
+        </div>`;
+        return;
+    }
+    
+    data.forEach((m,idx)=>{
+        const card=document.createElement('div');
+        card.className='msg' + (currentMessage && String(m.id)===String(currentMessage.id)?' active':'') + (m.unread?' unread':'');
+        const hasAttach=!!(m.attach||(m.files&&m.files.length)||(m.attachments&&m.attachments.length));
+        card.onclick=()=>selectMessage(m.id);
+        const attachIcon = hasAttach ? `<svg viewBox="0 0 24 24" style="width:12px;height:12px;margin-right:4px"><path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg> ${dict.attach}` : `<svg viewBox="0 0 24 24" style="width:12px;height:12px;margin-right:4px"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg> API`;
+        
+        let displayTag = m.tag;
+        if(currentLang === 'tr') {
+            if(m.tag === 'Antwort erhalten') displayTag = 'Cevap Alındı';
+            if(m.tag === 'Angebot') displayTag = 'Teklif';
+            if(m.tag === 'Bestellung') displayTag = 'Sipariş';
+            if(m.tag === 'Rechnung') displayTag = 'Fatura';
+        }
+        
+        card.innerHTML=`
+            <div class="msg-top">
+                <div class="avatar">${initials(m.company)}</div>
+                <div style="min-width:0">
+                    <div class="company">${m.company}</div>
+                    <div class="email">${dict.receiver}${m.to}</div>
+                </div>
+                <div class="time">${m.time}</div>
+            </div>
+            <div class="subject">${m.subject}</div>
+            <div class="preview">${m.preview}</div>
+            <div class="tags">
+                <span class="tag ${m.tagClass}">${displayTag}</span>
+                <span class="tag">${attachIcon}</span>
+            </div>
+            <button class="msg-delete" onclick="deleteGmailMessage(event,'${m.id}')" title="Mail löschen">
+                <svg viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
+            </button>
+        `;
+        list.appendChild(card);
+    });
+}
+
+async function deleteGmailMessage(event,id){
+    event.stopPropagation();
+    if(!confirm('Wirklich löschen?')) return;
+
+    try{
+        const res = await fetch(`/api/gmail/delete/${encodeURIComponent(id)}`, {method:'POST'});
+        const data = await res.json();
+        if(!data.ok){
+            showToast(data.message || 'Löschen fehlgeschlagen.');
+            return;
+        }
+
+        messages = messages.filter(m=>String(m.id)!==String(id) && String(m.gmail_id)!==String(id));
+        if(currentMessage && (String(currentMessage.id)===String(id) || String(currentMessage.gmail_id)===String(id))){
+            currentMessage = messages[0] || null;
+        }
+        renderMessages();
+        if(currentMessage) selectMessage(currentMessage.id, true);
+        showToast('Mail wurde gelöscht.');
+    }catch(e){
+        showToast('Löschen fehlgeschlagen.');
+    }
+}
+
+function normalizeAttachments(msg){
+    const list=[];
+    const seen=new Set();
+
+    function addAttachment(a){
+        if(typeof a==='string') return;
+
+        const filename=a.filename||a.name||'Anhang';
+        const attachmentId=a.attachmentId||a.attachment_id||a.id||'';
+        const mimeType=a.mimeType||a.mime_type||'';
+        const messageId=msg.gmail_id||msg.message_id||msg.id;
+
+        if(!attachmentId) return;
+
+        const key=attachmentId+'|'+filename;
+        if(seen.has(key)) return;
+        seen.add(key);
+
+        const safeAttachmentId=encodeURIComponent(String(attachmentId));
+        const safeFilename=encodeURIComponent(String(filename));
+        const safeMimeType=encodeURIComponent(String(mimeType));
+        const url=a.url||a.downloadUrl||a.download_url||`/api/gmail/attachment/${messageId}/${safeAttachmentId}?filename=${safeFilename}&mimeType=${safeMimeType}`;
+
+        list.push({filename, url, mimeType, attachmentId});
+    }
+
+    if(msg.attachments&&Array.isArray(msg.attachments)&&msg.attachments.length){
+        msg.attachments.forEach(addAttachment);
+    }else if(msg.files&&Array.isArray(msg.files)){
+        msg.files.forEach(addAttachment);
+    }
+
+    return list;
+}
+
+function getAttachmentCardData(el){
+    const card = el.closest('.gmail-attach-card');
+    if(!card) return {url:'', filename:''};
+    return {
+        url: card.dataset.url || '',
+        filename: card.dataset.filename || 'Anhang'
+    };
+}
+
+function openAttachmentFromCard(el,event){
+    const data = getAttachmentCardData(el);
+    openAttachment(data.url, data.filename, event);
+}
+
+function downloadAttachmentFromCard(el){
+    const data = getAttachmentCardData(el);
+    downloadAttachment(data.url, data.filename);
+}
+
+
+function downloadAttachment(url, filename){
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename || 'anhang';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+}
+
+async function renderExcelCardPreviews(){
+    const boxes = document.querySelectorAll('.gmail-excel-preview[data-excel-url]');
+    if(!boxes.length || typeof XLSX === 'undefined') return;
+
+    for(const box of boxes){
+        const url = box.getAttribute('data-excel-url');
+        if(!url || box.dataset.loaded === '1') continue;
+        box.dataset.loaded = '1';
+
+        try{
+            const response = await fetch(url);
+            if(!response.ok) throw new Error('preview failed');
+
+            const buffer = await response.arrayBuffer();
+            const workbook = XLSX.read(buffer, { type:'array' });
+            const sheetName = workbook.SheetNames[0];
+            if(!sheetName) continue;
+
+            const sheet = workbook.Sheets[sheetName];
+            const rows = XLSX.utils.sheet_to_json(sheet, { header:1, raw:false, defval:'' });
+
+            const maxRows = Math.min(rows.length, 5);
+            const maxCols = Math.min(Math.max(...rows.map(r => r.length)), 5);
+
+            let html = '<table class="gmail-excel-preview-table">';
+            for(let r=0; r<maxRows; r++){
+                html += '<tr>';
+                for(let c=0; c<maxCols; c++){
+                    html += `<td>${escapeHtml(String((rows[r] || [])[c] || ''))}</td>`;
+                }
+                html += '</tr>';
+            }
+            html += '</table>';
+
+            box.innerHTML = html;
+        }catch(e){
+            box.innerHTML = '<div class="gmail-attach-icon">XLS</div>';
+        }
+    }
+}
+
+// 🎯 YENİ VE KUSURSUZ GMAIL OKUYUCU MANTIĞI
+function openAttachment(url, filename, event) {
+    if(event) event.stopPropagation();
+    const dict = i18n[currentLang];
+    
+    if (url === '#') {
+        showToast(dict.toast_downloading + " (Demo)");
+        return;
+    }
+
+    const ext = filename.split('.').pop().toLowerCase();
+    const viewableInBrowser = ['pdf', 'jpg', 'jpeg', 'png', 'gif', 'webp', 'txt'];
+    const isExcel = ['xlsx', 'xls', 'csv'].includes(ext);
+
+    document.getElementById('gvTitle').textContent = filename;
+    document.getElementById('gvDownload').href = url;
+    document.getElementById('gvDownload').download = filename;
+
+    const content = document.getElementById('gvContent');
+
+    if (isExcel) {
+        document.getElementById('gmailViewer').classList.add('open');
+        content.innerHTML = `<div class="excel-viewer-loading">Excel wird geladen...</div>`;
+        renderExcelAttachment(url, filename);
+        return;
+    }
+    
+    if (viewableInBrowser.includes(ext)) {
+        if (ext === 'pdf') {
+            content.innerHTML = `<iframe src="${url}#toolbar=0&view=FitH" title="${filename}"></iframe>`;
+        } else {
+            content.innerHTML = `<img src="${url}" alt="${filename}">`;
+        }
+        
+        document.getElementById('gmailViewer').classList.add('open');
+        return;
+    }
+
+    showToast(dict.toast_downloading + ' ' + filename);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+}
+
+function printCurrentAttachment(){
+    const iframe = document.querySelector('#gvContent iframe');
+    if(iframe && iframe.contentWindow){
+        iframe.contentWindow.focus();
+        iframe.contentWindow.print();
+        return;
+    }
+
+    const downloadUrl = document.getElementById('gvDownload')?.href;
+    if(downloadUrl && downloadUrl !== '#'){
+        const printWindow = window.open(downloadUrl, '_blank');
+        if(printWindow){
+            printWindow.onload = function(){
+                printWindow.focus();
+                printWindow.print();
+            };
+        }
+    }
+}
+
+function closeGmailViewer() {
+    document.getElementById('gmailViewer').classList.remove('open');
+    document.getElementById('gvContent').innerHTML = ''; 
+}
+
+async function renderExcelAttachment(url, filename){
+    const content = document.getElementById('gvContent');
+
+    try{
+        if(typeof XLSX === 'undefined'){
+            content.innerHTML = `<div class="excel-viewer-loading">Excel Reader konnte nicht geladen werden.</div>`;
+            return;
+        }
+
+        const response = await fetch(url);
+        if(!response.ok){
+            throw new Error('Excel konnte nicht geöffnet werden.');
+        }
+
+        const buffer = await response.arrayBuffer();
+        const workbook = XLSX.read(buffer, { type: 'array' });
+        const firstSheetName = workbook.SheetNames[0];
+
+        if(!firstSheetName){
+            content.innerHTML = `<div class="excel-viewer-loading">Excel enthält keine Tabelle.</div>`;
+            return;
+        }
+
+        const sheet = workbook.Sheets[firstSheetName];
+        const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, raw: false, defval: '' });
+
+        if(!rows.length){
+            content.innerHTML = `<div class="excel-viewer-loading">Excel ist leer.</div>`;
+            return;
+        }
+
+        const maxRows = Math.min(rows.length, 300);
+        const maxCols = Math.min(Math.max(...rows.map(r => r.length)), 40);
+
+        let table = '<table class="excel-viewer-table">';
+        for(let r = 0; r < maxRows; r++){
+            const row = rows[r] || [];
+            table += '<tr>';
+
+            for(let c = 0; c < maxCols; c++){
+                const value = escapeHtml(String(row[c] ?? ''));
+                if(r === 0){
+                    table += `<th>${value}</th>`;
+                }else{
+                    table += `<td>${value}</td>`;
+                }
+            }
+
+            table += '</tr>';
+        }
+        table += '</table>';
+
+        content.innerHTML = `
+            <div class="excel-viewer-wrap">
+                <div class="excel-viewer-toolbar">
+                    <span>${escapeHtml(filename)}</span>
+                    <span class="excel-viewer-sheet-name">${escapeHtml(firstSheetName)}</span>
+                    <span>${rows.length} Zeilen</span>
+                </div>
+                <div class="excel-viewer-body">${table}</div>
+            </div>
+        `;
+
+    }catch(e){
+        content.innerHTML = `<div class="excel-viewer-loading">Excel konnte nicht angezeigt werden.</div>`;
+        console.log('Excel Viewer Fehler', e);
+    }
+}
+
+function showMailEmptyState(){
+    currentMessage = null;
+
+    document.querySelectorAll('.msg.active').forEach(el=>el.classList.remove('active'));
+
+    document.getElementById('readerSubject').textContent = 'Mail auswählen';
+    document.getElementById('readerFrom').textContent = 'Keine Mail ausgewählt';
+    document.getElementById('readerEmail').innerHTML = '';
+    document.getElementById('readerDate').textContent = '';
+    document.getElementById('readerAvatar').textContent = 'KG';
+    document.getElementById('paperLabel').textContent = 'KG Mail';
+    document.getElementById('paperLabel').className = 'pill';
+    document.getElementById('aliasLabel').textContent = 'Bereit';
+
+    document.getElementById('readerBody').innerHTML = `
+        <div class="mail-empty-state">
+            <div class="mail-empty-card">
+                <div class="mail-empty-icon">
+                    <svg viewBox="0 0 24 24"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+                </div>
+                <div class="mail-empty-title">Mail auswählen</div>
+                <div class="mail-empty-desc">Links aus der Liste eine E-Mail auswählen.<br>Anhänge und Nachricht werden hier angezeigt.</div>
+            </div>
+        </div>
+    `;
+}
+
+function selectMessage(id,silent){
+    const dict = i18n[currentLang];
+    const msg=messages.find(m=>String(m.id)===String(id))||messages.find(m=>String(m.gmail_id)===String(id))||messages[0]||null;
+    if(!msg) return;
+    currentMessage=msg;
+    document.getElementById('readerSubject').textContent=msg.subject;
+    document.getElementById('readerFrom').textContent=msg.from+' · '+msg.company;
+    
+    const iconSVG = '<svg style="width:14px;height:14px;color:#94a3b8" viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>';
+    document.getElementById('readerEmail').innerHTML=`${iconSVG} ${msg.email}`;
+    
+    document.getElementById('readerDate').textContent=msg.time;
+    document.getElementById('readerAvatar').textContent=initials(msg.company);
+    
+    let displayTag = msg.tag;
+    if(currentLang === 'tr') {
+        if(msg.tag === 'Antwort erhalten') displayTag = 'Cevap Alındı';
+        if(msg.tag === 'Angebot') displayTag = 'Teklif';
+        if(msg.tag === 'Bestellung') displayTag = 'Sipariş';
+        if(msg.tag === 'Rechnung') displayTag = 'Fatura';
+    }
+    
+    document.getElementById('paperLabel').textContent=displayTag;
+    document.getElementById('paperLabel').className='pill '+(msg.tagClass==='green'?'green':'');
+    document.getElementById('aliasLabel').textContent=`${dict.receiver}${msg.to}`;
+    
+    let attachHtml='';
+    const attachments=normalizeAttachments(msg);
+    if(attachments.length){
+        const summaryText = currentLang === 'tr' ? 'Gmail tarafından tarandı' : 'von Gmail geprüft';
+        attachHtml='<div class="gmail-attach-strip"><div class="gmail-attach-summary">'+attachments.length+' '+dict.attach+' <span>· '+summaryText+'</span></div><div class="gmail-attach-grid">'+attachments.map(a=>{
+            const filename=a.filename||'Anhang';
+            const safeName=escapeHtml(filename);
+            const lowerName=filename.toLowerCase();
+            const isPdf=lowerName.endsWith('.pdf');
+            const isExcel=lowerName.endsWith('.xlsx')||lowerName.endsWith('.xls');
+                        const preview=isPdf
+                ? `<iframe src="${a.url}#toolbar=0&navpanes=0&scrollbar=0&page=1&view=Fit" title="${safeName}"></iframe>`
+                : (isExcel
+                    ? `<div class="gmail-excel-preview" data-excel-url="${escapeHtml(a.url)}"><div class="gmail-attach-icon">XLS</div></div>`
+                    : `<div class="gmail-attach-icon">📎</div>`);
+
+            const badge=isPdf?'PDF':(isExcel?'XLS':'FILE');
+            const dataUrl = escapeHtml(a.url);
+            const dataName = escapeHtml(filename);
+            
+            return `
+            <div class="gmail-attach-card" data-url="${dataUrl}" data-filename="${dataName}" onclick="openAttachmentFromCard(this,event)" title="${safeName}">
+                <div class="gmail-attach-preview">${preview}</div>
+                <div class="gmail-attach-footer">
+                    <div class="gmail-pdf-badge">${badge}</div>
+                    <div class="gmail-file-name">${safeName}</div>
+                    <div class="gmail-open-dot">⋮</div>
+                </div>
+                <div class="gmail-attach-actions">
+                    <button class="gmail-attach-action-btn" onclick="event.stopPropagation(); downloadAttachmentFromCard(this)" title="Download">↓</button>
+                    <button class="gmail-attach-action-btn" onclick="event.stopPropagation(); openAttachmentFromCard(this,event)" title="Öffnen">↗</button>
+                </div>
+            </div>
+            `;
+
+        }).join('')+'</div></div>';
+    }
+    
+    // Düz Metin (Plain Text) Temizleyici
+    let bodyContent = msg.body || '<p>Kein Inhalt.</p>';
+    if (!bodyContent.match(/<p|<div|<br|<table/i)) {
+        bodyContent = bodyContent.replace(/\r\n|\n/g, '<br>');
+    }
+
+        document.getElementById('readerBody').innerHTML = `<div style="word-wrap: break-word; overflow-wrap: break-word; font-family: inherit; line-height: 1.6;">${bodyContent}</div>` + attachHtml;
+    renderExcelCardPreviews();
+    if(!silent) renderMessages();
+}
+
+function openCompose(msg,mode){
+if(mode==='new'){
+        document.getElementById('composeHint').textContent='Neue Mail verfassen';
+        document.getElementById('composeTo').value='';
+        document.getElementById('composeCc').value='';
+        document.getElementById('composeBcc').value='';
+        document.getElementById('composeSubject').value='';
+        document.getElementById('composeFrom').value='info@kg-reinigung.de';
+        setTemplate('kontakt');
+        composeAttachments=[];
+        renderComposeFiles();
+        renderComposeSignature();
+        document.getElementById('composeModal').classList.add('open');
+        return;
+    }
+
+    msg=msg||currentMessage||messages[0]||null;
+    if(!msg){showToast('Önce bir mail seç.');return;}
+    document.getElementById('composeHint').textContent=msg.company+' - '+msg.email;
+          document.getElementById('composeTo').value=msg.email||'';
+          document.getElementById('composeCc').value='';
+          document.getElementById('composeBcc').value='';
+          document.getElementById('composeSubject').value=mode==='weiterleiten'?'WG: '+msg.subject:'AW: '+msg.subject;
+          document.getElementById('composeFrom').value=msg.to||'info@kg-reinigung.de';
+    setTemplate('kontakt');
+    composeAttachments=[];
+    renderComposeFiles();
+    renderComposeSignature();
+    document.getElementById('composeModal').classList.add('open');
+}
+
+function closeCompose(event){
+    if(event&&event.target!==document.getElementById('composeModal'))return;
+    document.getElementById('composeModal').classList.remove('open');
+}
+
+const KG_MAIL_SIGNATURE =
+'Bei Fragen stehe ich Ihnen gern zur Verfügung.\n\n' +
+'Vielen Dank.\n\n' +
+'Mit freundlichen Grüßen\n\n' +
+'--\n\n' +
+'Damla Kicci\n' +
+'-Inhaberin-\n\n' +
+'KG-Gebäudereinigung\n' +
+'Fliederstr. 59\n' +
+'47055 Duisburg - Wanheimerort\n\n' +
+'0203 / 47 96 68 22\n' +
+'0163 / 194 70 55\n\n' +
+'info@kg-reinigung.de\n' +
+'www.kg-reinigung.de';
+
+let composeAttachments=[];
+
+function cleanComposeText(text){
+    return (text || '').replace(/\r/g,'').replace(/\n{3,}/g,'\n\n').trim();
+}
+
+function getSavedSignature(email){
+    const raw = localStorage.getItem('kgMailSettings');
+    let settings = {};
+    try{ settings = raw ? JSON.parse(raw) : {}; }catch(e){ settings = {}; }
+    const signatures = settings.signatures || {};
+    return signatures[email] || signatures['info@kg-reinigung.de'] || { enabled:true, text:KG_MAIL_SIGNATURE, image:'' };
+}
+
+function signatureToHtml(sig){
+    if(!sig || sig.enabled === false) return '';
+    let html = escapeHtml(sig.text || '').replace(/\n/g,'<br>');
+    if(sig.image) html += '<br><img src="'+sig.image+'" alt="Signatur Bild">';
+    return html;
+}
+
+function renderComposeSignature(){
+    const from = document.getElementById('composeFrom')?.value || 'info@kg-reinigung.de';
+    const box = document.getElementById('composeSignaturePreview');
+    if(!box) return;
+    box.innerHTML = signatureToHtml(getSavedSignature(from));
+}
+
+function handleComposeFiles(files){
+    Array.from(files || []).forEach(file=>composeAttachments.push(file));
+    renderComposeFiles();
+}
+
+function renderComposeFiles(){
+    const list=document.getElementById('composeFileList');
+    if(!list) return;
+    list.innerHTML=composeAttachments.map((f,i)=>`<span class="compose-file-chip">📎 ${escapeHtml(f.name)} <button type="button" onclick="removeComposeFile(${i})" style="border:0;background:transparent;cursor:pointer;color:#dc2626;font-weight:900">×</button></span>`).join('');
+}
+
+function removeComposeFile(index){
+    composeAttachments.splice(index,1);
+    renderComposeFiles();
+}
+
+function initComposeDropZone(){
+    const dz=document.getElementById('composeDropZone');
+    if(!dz) return;
+    dz.addEventListener('dragover',e=>{e.preventDefault();dz.classList.add('drag')});
+    dz.addEventListener('dragleave',()=>dz.classList.remove('drag'));
+    dz.addEventListener('drop',e=>{e.preventDefault();dz.classList.remove('drag');handleComposeFiles(e.dataTransfer.files)});
+}
+
+function setTemplate(type){
+    document.querySelectorAll('.template').forEach(btn=>btn.classList.remove('active'));
+    const buttons=Array.from(document.querySelectorAll('.template'));
+    const map={kontakt:0,angebot:1,termin:2,nachfassen:3};
+    if(buttons[map[type]]) buttons[map[type]].classList.add('active');
+
+    const t=document.getElementById('composeText');
+    if(type==='angebot'){
+        document.getElementById('composeSubject').value='Ihr Angebot für Reinigungsleistungen';
+        t.value='Sehr geehrte Damen und Herren,\n\nanbei erhalten Sie unser Angebot für die angefragten Reinigungsleistungen.';
+    }else if(type==='termin'){
+        document.getElementById('composeSubject').value='Terminbestätigung Besichtigung';
+        t.value='Sehr geehrte Damen und Herren,\n\nhiermit bestätigen wir den vereinbarten Besichtigungstermin.';
+    }else if(type==='nachfassen'){
+        document.getElementById('composeSubject').value='Kurze Rückfrage zu unserem Angebot';
+        t.value='Sehr geehrte Damen und Herren,\n\nich wollte kurz nachfragen, ob Sie unser Angebot bereits prüfen konnten.';
+        }else{
+        t.value='';
+    }
+    t.value = cleanComposeText(t.value);
+    renderComposeSignature();
+}
+
+
+function fileToBase64(file){
+    return new Promise((resolve,reject)=>{
+        const reader = new FileReader();
+        reader.onload = ()=>{
+            const result = String(reader.result || '');
+            resolve({
+                filename: file.name || 'anhang',
+                mimeType: file.type || 'application/octet-stream',
+                data: result.includes(',') ? result.split(',')[1] : result
+            });
+        };
+        reader.onerror = ()=>reject(reader.error);
+        reader.readAsDataURL(file);
+    });
+}
+
+async function sendCompose(){
+    const payload = {
+        from: document.getElementById('composeFrom')?.value || '',
+        to: document.getElementById('composeTo')?.value || '',
+        cc: document.getElementById('composeCc')?.value || '',
+        bcc: document.getElementById('composeBcc')?.value || '',
+        subject: document.getElementById('composeSubject')?.value || '',
+        message: document.getElementById('composeText')?.value || '',
+        signature: document.getElementById('composeSignaturePreview')?.innerHTML || '',
+        attachments: []
+    };
+
+    if(!payload.to.trim()){
+        showToast('Empfänger fehlt.');
+        return;
+    }
+
+    if(!payload.subject.trim()){
+        showToast('Betreff fehlt.');
+        return;
+    }
+
+    try{
+        const sendBtn = document.querySelector('.modal-send');
+        if(sendBtn){
+            sendBtn.disabled = true;
+            sendBtn.style.opacity = '0.65';
+            sendBtn.style.pointerEvents = 'none';
+        }
+
+if(composeAttachments && composeAttachments.length){
+    payload.attachments = await Promise.all(composeAttachments.map(fileToBase64));
+}
+
+        const res = await fetch('/api/gmail/send', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(payload)
+        });
+
+        const data = await res.json();
+
+        if(!data.ok){
+            showToast(data.message || 'Mail konnte nicht gesendet werden.');
+            return;
+        }
+
+        closeCompose();
+        showToast('Mail wurde erfolgreich gesendet.');
+        await loadGmailCounts();
+
+        if(currentBox === 'sent'){
+            await loadGmailBox('sent');
+        }
+
+    }catch(e){
+        console.log('Gmail Send Fehler', e);
+        showToast('Gmail API Sendefehler.');
+    }finally{
+        const sendBtn = document.querySelector('.modal-send');
+        if(sendBtn){
+            sendBtn.disabled = false;
+            sendBtn.style.opacity = '';
+            sendBtn.style.pointerEvents = '';
+        }
+    }
+}
+function sendQuickReply(){
+    const input=document.getElementById('quickReply');
+    if(!input.value.trim()){
+        showToast(i18n[currentLang].toast_empty_reply);
+        return;
+    }
+    input.value='';
+    showToast(i18n[currentLang].toast_quick_sent);
+}
+
+function openSettingsModal(){
+    loadMailSettings();
+    document.getElementById('settingsModal').classList.add('open');
+}
+
+function closeSettingsModal(event){
+    if(event && event.target !== document.getElementById('settingsModal')) return;
+    document.getElementById('settingsModal').classList.remove('open');
+}
+
+function setSettingsTab(tab,btn){
+    document.querySelectorAll('.settings-tab').forEach(x=>x.classList.remove('active'));
+    document.querySelectorAll('.settings-section').forEach(x=>x.classList.remove('active'));
+    if(btn) btn.classList.add('active');
+    const section=document.getElementById('settings-'+tab);
+    if(section) section.classList.add('active');
+}
+
+function setThemeMode(mode){
+    const themes={
+        blue:{dark:'#183a91',main:'#2563eb',light:'#eff6ff',border:'#bfdbfe',body:'#f8fafc',sidebar:'#f8fbff'},
+        navy:{dark:'#0f2f78',main:'#1d4ed8',light:'#eff6ff',border:'#bfdbfe',body:'#f8fafc',sidebar:'#f8fbff'},
+        soft:{dark:'#1e3a8a',main:'#60a5fa',light:'#eff6ff',border:'#bfdbfe',body:'#eef5ff',sidebar:'#f3f8ff'},
+        green:{dark:'#166534',main:'#16a34a',light:'#ecfdf5',border:'#bbf7d0',body:'#f7fdf9',sidebar:'#f3fbf6'},
+        purple:{dark:'#4c1d95',main:'#6d28d9',light:'#f5f3ff',border:'#ddd6fe',body:'#faf8ff',sidebar:'#f7f3ff'},
+        orange:{dark:'#9a3412',main:'#d97706',light:'#fffbeb',border:'#fde68a',body:'#fffaf0',sidebar:'#fff7ed'},
+        dark:{dark:'#020617',main:'#0f172a',light:'#f1f5f9',border:'#cbd5e1',body:'#f8fafc',sidebar:'#f8fbff'}
+    };
+    const t=themes[mode]||themes.blue;
+    document.documentElement.style.setProperty('--primary-dark', t.dark);
+    document.documentElement.style.setProperty('--primary-main', t.main);
+    document.documentElement.style.setProperty('--primary-light', t.light);
+    document.documentElement.style.setProperty('--primary-border', t.border);
+    document.documentElement.style.setProperty('--bg-body', t.body);
+    document.documentElement.style.setProperty('--bg-sidebar', t.sidebar);
+    document.querySelectorAll('.theme-option').forEach(x=>x.classList.toggle('active', x.dataset.theme===mode));
+    const raw=localStorage.getItem('kgMailSettings');
+    let settings={};
+    try{ settings=raw?JSON.parse(raw):{}; }catch(e){ settings={}; }
+    settings.theme=mode;
+    localStorage.setItem('kgMailSettings', JSON.stringify(settings));
+}
+
+function loadMailSettings(){
+    const raw=localStorage.getItem('kgMailSettings');
+    let settings={};
+    try{ settings=raw?JSON.parse(raw):{}; }catch(e){ settings={}; }
+    setThemeMode(settings.theme || 'blue');
+    document.getElementById('setDesktopNotify').checked=!!settings.desktopNotify;
+    document.getElementById('setConversationView').checked=settings.conversationView!==false;
+    document.getElementById('setSnippets').checked=settings.snippets!==false;
+    document.getElementById('setAutoRead').checked=!!settings.autoRead;
+    const email=document.getElementById('signatureEmail').value || 'info@kg-reinigung.de';
+    const sig=(settings.signatures&&settings.signatures[email]) || {enabled:true,text:KG_MAIL_SIGNATURE,image:''};
+    document.getElementById('signatureEnabled').checked=sig.enabled!==false;
+    document.getElementById('signatureText').value=sig.text || KG_MAIL_SIGNATURE;
+    document.getElementById('normalMailSubject').value=settings.normalMailSubject || '';
+    document.getElementById('normalMailText').value=settings.normalMailText || '';
+    document.getElementById('kontaktformularText').value=settings.kontaktformularText || '';
+    renderSignaturePreview();
+}
+
+function saveMailSettings(){
+    const raw=localStorage.getItem('kgMailSettings');
+    let settings={};
+    try{ settings=raw?JSON.parse(raw):{}; }catch(e){ settings={}; }
+    const email=document.getElementById('signatureEmail').value || 'info@kg-reinigung.de';
+    settings.desktopNotify=document.getElementById('setDesktopNotify').checked;
+    settings.conversationView=document.getElementById('setConversationView').checked;
+    settings.snippets=document.getElementById('setSnippets').checked;
+    settings.autoRead=document.getElementById('setAutoRead').checked;
+    settings.normalMailSubject=document.getElementById('normalMailSubject').value || '';
+    settings.normalMailText=document.getElementById('normalMailText').value || '';
+    settings.kontaktformularText=document.getElementById('kontaktformularText').value || '';
+    settings.signatures=settings.signatures || {};
+    const oldSig=settings.signatures[email] || {};
+    settings.signatures[email]={enabled:document.getElementById('signatureEnabled').checked,text:document.getElementById('signatureText').value || '',image:oldSig.image || ''};
+    localStorage.setItem('kgMailSettings', JSON.stringify(settings));
+    renderComposeSignature();
+    closeSettingsModal();
+    showToast('Einstellungen gespeichert.');
+}
+
+function renderSignaturePreview(){
+    const raw=localStorage.getItem('kgMailSettings');
+    let settings={};
+    try{ settings=raw?JSON.parse(raw):{}; }catch(e){ settings={}; }
+    const email=document.getElementById('signatureEmail')?.value || 'info@kg-reinigung.de';
+    const saved=(settings.signatures&&settings.signatures[email]) || {};
+    const sig={ enabled:document.getElementById('signatureEnabled')?.checked, text:document.getElementById('signatureText')?.value || '', image:saved.image || '' };
+    const box=document.getElementById('signaturePreview');
+    if(box) box.innerHTML=signatureToHtml(sig);
+}
+
+function handleSignatureImage(files){
+    const file=(files||[])[0];
+    if(!file) return;
+    const reader=new FileReader();
+    reader.onload=function(){
+        const raw=localStorage.getItem('kgMailSettings');
+        let settings={};
+        try{ settings=raw?JSON.parse(raw):{}; }catch(e){ settings={}; }
+        const email=document.getElementById('signatureEmail').value || 'info@kg-reinigung.de';
+        settings.signatures=settings.signatures || {};
+        settings.signatures[email]=settings.signatures[email] || {enabled:true,text:document.getElementById('signatureText').value || KG_MAIL_SIGNATURE,image:''};
+        settings.signatures[email].image=reader.result;
+        localStorage.setItem('kgMailSettings', JSON.stringify(settings));
+        renderSignaturePreview();
+    };
+    reader.readAsDataURL(file);
+}
+
+function removeSignatureImage(){
+    const raw=localStorage.getItem('kgMailSettings');
+    let settings={};
+    try{ settings=raw?JSON.parse(raw):{}; }catch(e){ settings={}; }
+    const email=document.getElementById('signatureEmail').value || 'info@kg-reinigung.de';
+    if(settings.signatures && settings.signatures[email]) settings.signatures[email].image='';
+    localStorage.setItem('kgMailSettings', JSON.stringify(settings));
+    renderSignaturePreview();
+}
+
+function showToast(text){
+    const toast=document.getElementById('toast');
+    document.getElementById('toastText').textContent = text;
+    toast.classList.add('show');
+    setTimeout(()=>toast.classList.remove('show'),3000);
+}
+
+
+document.addEventListener('input', function(e){
+    if(e.target && (e.target.id === 'signatureText' || e.target.id === 'signatureEnabled')) renderSignaturePreview();
+});
+document.addEventListener('change', function(e){
+    if(e.target && e.target.id === 'signatureEmail') loadMailSettings();
+});
+
+try{
+    initComposeDropZone();
+    loadMailSettings();
+    renderComposeSignature();
+}catch(e){}
+
+async function loadGmailCounts(){
+    try{
+        const res = await fetch('/api/gmail/counts', {cache:'no-store'});
+        const data = await res.json();
+
+        if(data.ok && data.counts){
+            const c = data.counts;
+            const a = data.aliases || {};
+
+            const inbox = document.getElementById('countInbox');
+            const sent = document.getElementById('countSent');
+            const draft = document.getElementById('countDraft');
+            const star = document.getElementById('countStar');
+            const spam = document.getElementById('countSpam');
+
+            const aliasInfo = document.getElementById('countAliasInfo');
+            const aliasMurat = document.getElementById('countAliasMurat');
+            const aliasBestellung = document.getElementById('countAliasBestellung');
+            const aliasRechnung = document.getElementById('countAliasRechnung');
+
+            if(inbox) inbox.textContent = c.inbox ?? 0;
+            if(sent) sent.textContent = c.sent ?? 0;
+            if(draft) draft.textContent = c.draft ?? 0;
+            if(star) star.textContent = c.star ?? 0;
+            if(spam) spam.textContent = c.spam ?? 0;
+
+            if(aliasInfo) aliasInfo.textContent = a.info ?? 0;
+            if(aliasMurat) aliasMurat.textContent = a.murat ?? 0;
+            if(aliasBestellung) aliasBestellung.textContent = a.bestellung ?? 0;
+            if(aliasRechnung) aliasRechnung.textContent = a.rechnung ?? 0;
+        }
+    }catch(e){
+        console.log('Gmail count Fehler', e);
+    }
+}
+
+function getGmailBoxUrl(box){
+    return gmailApiMap[box] || '/api/gmail/inbox';
+}
+
+function getMessageKey(m){
+    return String((m && (m.gmail_id || m.id)) || '');
+}
+
+function mergeGmailMessages(newMessages, prepend=true){
+    if(!Array.isArray(newMessages) || !newMessages.length) return [];
+
+    const oldKeys = new Set(messages.map(getMessageKey));
+    const merged = new Map();
+
+    if(prepend){
+        newMessages.forEach(m=>merged.set(getMessageKey(m), m));
+        messages.forEach(m=>{
+            const key = getMessageKey(m);
+            if(!merged.has(key)) merged.set(key, m);
+        });
+    }else{
+        messages.forEach(m=>merged.set(getMessageKey(m), m));
+        newMessages.forEach(m=>{
+            const key = getMessageKey(m);
+            if(!merged.has(key)) merged.set(key, m);
+        });
+    }
+
+    messages = Array.from(merged.values());
+    return newMessages.filter(m=>!oldKeys.has(getMessageKey(m)));
+}
+
+async function fetchGmailJson(url){
+    const res = await fetch(url, {cache:'no-store'});
+    return await res.json();
+}
+
+function requestMailNotificationPermission(){
+    if(!('Notification' in window)) return;
+    if(Notification.permission === 'default'){
+        Notification.requestPermission().catch(()=>{});
+    }
+}
+
+document.addEventListener('click', requestMailNotificationPermission, {once:true});
+document.addEventListener('keydown', requestMailNotificationPermission, {once:true});
+
+function showBrowserMailNotification(mail){
+    if(!mail || !('Notification' in window)) return;
+    if(Notification.permission !== 'granted') return;
+
+    const title = 'Neue Mail eingegangen';
+    const body = (mail.subject || 'Ohne Betreff') + '\n' + (mail.from || mail.company || '');
+
+    try{
+        new Notification(title, {
+            body: body,
+            icon: '/static/icon-192.png',
+            badge: '/static/icon-192.png',
+            tag: getMessageKey(mail) || 'kg-mail-new'
+        });
+    }catch(e){}
+}
+
+async function loadGmailBox(box,append=false,keepCurrent=false){
+    if(gmailLoadingMore) return;
+
+    const list=document.getElementById('messageList');
+    const previousScrollTop = list ? list.scrollTop : 0;
+    const previousMessageId = currentMessage ? String(currentMessage.id) : '';
+
+    try{
+        gmailLoadingMore=true;
+        if(!append && !keepCurrent){
+            messages=[];
+            currentMessage=null;
+            gmailNextPageToken='';
+            gmailHasMore=false;
+            renderMessages();
+        }
+
+        const baseUrl = getGmailBoxUrl(box);
+        const url = append && gmailNextPageToken ? `${baseUrl}?pageToken=${encodeURIComponent(gmailNextPageToken)}` : baseUrl;
+        const data = await fetchGmailJson(url);
+
+        if(data.ok && Array.isArray(data.messages)){
+            if(append){
+                mergeGmailMessages(data.messages, false);
+            }else if(keepCurrent){
+                mergeGmailMessages(data.messages, true);
+            }else{
+                messages = data.messages;
+            }
+
+            gmailNextPageToken = data.nextPageToken || '';
+            gmailHasMore = !!gmailNextPageToken;
+
+                        if(keepCurrent && previousMessageId){
+                currentMessage = messages.find(m=>String(m.id)===previousMessageId || String(m.gmail_id)===previousMessageId) || currentMessage;
+            }else if(!append){
+                currentMessage = null;
+            }
+
+            renderMessages();
+
+            if(list && keepCurrent && !append){
+                list.scrollTop = previousScrollTop;
+            }
+
+            if(currentMessage){
+                selectMessage(currentMessage.id, true);
+            }else{
+                showMailEmptyState();
+            }
+        }else{
+            if(data && data.message) console.log('Gmail API Fehler:', data.message);
+        }
+    }catch(e){
+        console.log('Gmail API Verbindung Fehler', e);
+    }finally{
+        gmailLoadingMore=false;
+    }
+}
+
+async function loadMoreGmailBox(){
+    if(!gmailHasMore || gmailLoadingMore) return;
+    if(currentAlias || currentLabel) return;
+    await loadGmailBox(currentBox || 'inbox', true, true);
+}
+
+function setupGmailInfiniteScroll(){
+    const list=document.getElementById('messageList');
+    if(!list) return;
+
+    function checkLoadMore(){
+        if(!gmailHasMore || gmailLoadingMore) return;
+        const nearBottom = list.scrollTop + list.clientHeight >= list.scrollHeight - 360;
+        if(nearBottom) loadMoreGmailBox();
+    }
+
+    list.addEventListener('scroll', checkLoadMore);
+    list.addEventListener('wheel', ()=>setTimeout(checkLoadMore, 80), {passive:true});
+    list.addEventListener('touchmove', ()=>setTimeout(checkLoadMore, 120), {passive:true});
+}
+
+async function loadGmailInbox(){
+    await loadGmailBox('inbox');
+}
+
+async function syncCurrentBox(silent=true){
+    if(gmailLoadingMore) return;
+document.getElementById('syncBtn')?.classList.add('is-syncing');
+
+    const box=currentBox || 'inbox';
+    const list=document.getElementById('messageList');
+    const previousScrollTop = list ? list.scrollTop : 0;
+    const previousMessageId = currentMessage ? String(currentMessage.id) : '';
+    const beforeLoaded = messages.length > 0;
+
+    try{
+        gmailLoadingMore=true;
+        const syncUrl = `${getGmailBoxUrl(box)}?refresh=1`;
+        const fallbackUrl = getGmailBoxUrl(box);
+        let data;
+
+        try{
+            data = await fetchGmailJson(syncUrl);
+            if(!data || data.ok !== true) data = await fetchGmailJson(fallbackUrl);
+        }catch(e){
+            data = await fetchGmailJson(fallbackUrl);
+        }
+
+        if(data && data.ok && Array.isArray(data.messages)){
+            const newOnes = mergeGmailMessages(data.messages, true);
+
+                        if(previousMessageId){
+                currentMessage = messages.find(m=>String(m.id)===previousMessageId || String(m.gmail_id)===previousMessageId) || currentMessage;
+            }else{
+                currentMessage = null;
+            }
+
+            renderMessages();
+
+            if(list){
+                list.scrollTop = previousScrollTop;
+            }
+
+            if(currentMessage){
+                selectMessage(currentMessage.id, true);
+            }else{
+                showMailEmptyState();
+            }
+
+            if(beforeLoaded && newOnes.length){
+                showBrowserMailNotification(newOnes[0]);
+            }
+        }
+    }catch(e){
+        console.log('Gmail Sync Fehler', e);
+    }finally{
+        gmailLoadingMore=false;
+document.getElementById('syncBtn')?.classList.remove('is-syncing');
+await loadGmailCounts();
+    }
+}
+
+// Initial Init
+applyLang();
+setupGmailInfiniteScroll();
+loadGmailCounts();
+loadGmailInbox();
+setInterval(()=>syncCurrentBox(true), 30000);
+</script>
+
+{% endblock %}
