@@ -1,22 +1,1051 @@
 {% extends "base.html" %}
 {% block content %}
-<div id="calendar-wrapper" style="height: calc(100vh - 150px); display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;">
-    
-    <div id="landing-ui">
-        <div style="background: #eef2ff; width: 110px; height: 110px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 30px;">
-            <i class="fa-solid fa-calendar-check" style="font-size: 52px; color: #2563eb;"></i>
+
+<style>
+
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+.kg-page{
+    width:100%;
+    max-width:1900px;
+    min-height:calc(100vh - 56px);
+    margin:0 auto;
+    background:#ffffff;
+    border-radius:24px;
+    box-shadow:0 18px 50px rgba(15,23,42,0.08);
+    border:1px solid #dbe3ef;
+    overflow:hidden;
+}
+.kg-hero{
+    background:linear-gradient(135deg,#183a91 0%,#2563eb 100%);
+    color:#ffffff;
+    padding:28px 30px;
+}
+.kg-title-row{
+    display:grid;
+    grid-template-columns:minmax(330px,1fr) minmax(260px,1fr) minmax(360px,1fr);
+    gap:18px;
+    align-items:flex-start;
+    margin-bottom:26px;
+}
+.kg-title h1{
+    margin:0;
+    font-size:28px;
+    line-height:1.1;
+    font-weight:900;
+    letter-spacing:-0.4px;
+}
+.kg-title p{
+    margin:8px 0 0 0;
+    font-size:13px;
+    line-height:1.5;
+    font-weight:600;
+    opacity:.88;
+}
+.live-date-box{
+    margin:0 auto;
+    width:260px;
+    display:grid;
+    grid-template-columns:1fr;
+    align-items:center;
+    justify-items:center;
+    gap:6px;
+    padding:14px 18px;
+    border-radius:22px;
+    background:rgba(255,255,255,0.13);
+    border:1px solid rgba(255,255,255,0.20);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,0.14),0 10px 22px rgba(15,23,42,0.08);
+    backdrop-filter:blur(6px);
+}
+.live-time-pill{font-size:26px;line-height:1;font-weight:900;letter-spacing:-0.6px}
+.live-date-main{font-size:12px;font-weight:800;color:rgba(255,255,255,0.92);text-align:center}
+.live-date-sub{font-size:11px;font-weight:700;color:rgba(255,255,255,0.68);text-align:center}
+.hero-actions{display:flex;gap:10px;justify-content:flex-end;align-items:flex-start;flex-wrap:wrap}
+.hero-btn{
+    border:1px solid rgba(255,255,255,0.28);
+    background:rgba(255,255,255,0.14);
+    color:#ffffff;
+    border-radius:14px;
+    padding:11px 14px;
+    font-size:12px;
+    font-weight:700;
+    cursor:pointer;
+    white-space:nowrap;
+    transition: all 0.2s;
+}
+.hero-btn:hover{background:rgba(255,255,255,0.25);}
+.hero-btn.primary{background:#ffffff;color:#183a91;border-color:#ffffff}
+.hero-btn.primary:hover{background:#f1f5f9;}
+.kg-info-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:18px}
+.kg-info-box{background:#ffffff;border:1px solid rgba(255,255,255,0.85);border-radius:18px;padding:18px 22px}
+.kg-info-label{font-size:11px;text-transform:uppercase;letter-spacing:.7px;font-weight:800;color:#1d4ed8;margin-bottom:7px}
+.kg-info-value{font-size:22px;line-height:1.15;font-weight:900;color:#183a91}
+.kg-info-sub{margin-top:6px;font-size:11px;font-weight:700;color:#2563eb}
+.kg-content{padding:28px 30px 32px;background:linear-gradient(180deg,#f8fbff 0%,#f3f6fb 100%)}
+.calendar-action-grid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:14px;margin:0 0 18px 0}
+.calendar-action-card{
+    position:relative;
+    min-height:118px;
+    border-radius:22px;
+    padding:18px 18px 16px;
+    box-shadow:0 14px 30px rgba(15,23,42,0.08);
+    overflow:hidden;
+    cursor:pointer;
+    transition: transform 0.2s;
+}
+.calendar-action-card:hover{transform:translateY(-3px);}
+.calendar-action-card.dragging { opacity: 0.4; transform: scale(0.95); z-index: 10; }
+.status-blue{background:linear-gradient(135deg,#1e40af 0%,#2563eb 100%)}
+.status-green{background:linear-gradient(135deg,#047857 0%,#22c55e 100%)}
+.status-cyan{background:linear-gradient(135deg,#0369a1 0%,#38bdf8 100%)}
+.status-purple{background:linear-gradient(135deg,#6d28d9 0%,#a855f7 100%)}
+.status-yellow{background:linear-gradient(135deg,#b45309 0%,#f59e0b 100%)}
+.status-red{background:linear-gradient(135deg,#b91c1c 0%,#ef4444 100%)}
+.calendar-action-count{
+    position:absolute;
+    top:15px;
+    right:16px;
+    min-width:42px;
+    height:34px;
+    border-radius:999px;
+    background:rgba(255,255,255,0.22);
+    color:#ffffff;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:16px;
+    font-weight:900;
+}
+.calendar-action-title{margin-top:32px;font-size:17px;line-height:1.15;font-weight:900;color:#ffffff}
+.calendar-action-text{margin-top:9px;font-size:12px;line-height:1.35;font-weight:800;color:rgba(255,255,255,0.9)}
+.calendar-shell{display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:18px;align-items:start}
+.calendar-shell.side-closed{grid-template-columns:minmax(0,1fr) 58px}
+.calendar-shell.side-closed .agenda-body{display:none}
+.calendar-shell.side-closed .agenda-head{
+    min-height:630px;
+    height:100%;
+    padding:14px 8px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    cursor:pointer;
+    background:linear-gradient(135deg,#183a91 0%,#2563eb 100%);
+}
+.calendar-shell.side-closed .agenda-head h2,
+.calendar-shell.side-closed .agenda-head p{display:none}
+.calendar-shell.side-closed .agenda-toggle{
+    position:static;
+    width:42px;
+    min-height:160px;
+    border-radius:999px;
+    background:#ffffff;
+    color:#183a91;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+}
+.calendar-shell.side-closed .agenda-toggle .toggle-icon{background:#eff6ff;color:#1d4ed8}
+.calendar-shell.side-closed .agenda-toggle .toggle-text{
+    display:block;
+    writing-mode:vertical-rl;
+    transform:rotate(180deg);
+    font-size:10px;
+    text-transform:uppercase;
+    letter-spacing:.6px;
+}
+.month-card,.agenda-card-panel{
+    border:1px solid #dbe3ef;
+    background:#ffffff;
+    border-radius:22px;
+    box-shadow:0 12px 26px rgba(15,23,42,0.045);
+    overflow:hidden;
+}
+.month-head{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:22px 24px;border-bottom:1px solid #e5edf7;background:#ffffff}
+.month-head h2{margin:0;font-size:30px;font-weight:800;color:#0f172a;letter-spacing:-.4px}
+.month-head p{margin:6px 0 0 0;font-size:14px;color:#475569;font-weight:700}
+.month-nav{display:flex;gap:8px}
+.nav-btn{
+    width:38px;
+    height:38px;
+    border-radius:14px;
+    background:#ffffff;
+    border:1px solid #dbe7f5;
+    color:#1d4ed8;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:18px;
+    font-weight:900;
+    cursor:pointer;
+    transition:0.2s;
+}
+.nav-btn:hover{background:#eff6ff;}
+.week-grid,.day-grid{display:grid;grid-template-columns:repeat(7,1fr)}
+.week-cell{
+    padding:12px 8px;
+    background:#f8fafc;
+    border-right:1px solid #e5edf7;
+    border-bottom:1px solid #e5edf7;
+    color:#64748b;
+    font-size:11px;
+    font-weight:900;
+    text-align:center;
+    text-transform:uppercase;
+    letter-spacing:.5px;
+}
+.week-cell:last-child{border-right:none}
+.day-cell{
+    min-height:138px;
+    background:#ffffff;
+    border-right:1px solid #edf2f7;
+    border-bottom:1px solid #edf2f7;
+    padding:10px;
+    cursor:pointer;
+    transition:.18s ease;
+}
+.day-cell:nth-child(7n){border-right:none}
+.day-cell:hover{background:#fbfdff}
+.day-cell.muted{background:#f8fafc;color:#94a3b8}
+.day-cell.selected{background:linear-gradient(180deg,#eff6ff 0%,#ffffff 100%);box-shadow:inset 0 0 0 2px #2563eb}
+.day-cell.today-day{background:#ffffff;box-shadow:none;}
+.day-cell.today-day .day-number{background:#2563eb;color:#ffffff;border-color:#2563eb}
+.day-cell.holiday-day{background:linear-gradient(180deg,#fff7f7 0%,#ffffff 100%);box-shadow:inset 0 0 0 1px #fecaca}
+.day-cell.holiday-day .day-number{background:#fef2f2;color:#b91c1c;border-color:#fecaca}
+.day-number{
+    width:28px;
+    height:28px;
+    border-radius:10px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:12px;
+    font-weight:900;
+    color:#334155;
+    background:#f8fafc;
+    border:1px solid #e2e8f0;
+}
+.selected .day-number{background:#2563eb;color:#ffffff;border-color:#2563eb}
+.event-stack{margin-top:9px;display:flex;flex-direction:column;gap:6px}
+.event-pill{
+    border-radius:6px;
+    padding:4px 6px;
+    color:#ffffff;
+    font-size:10px;
+    line-height:1.25;
+    font-weight:800;
+    box-shadow:0 4px 8px rgba(15,23,42,0.1);
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+}
+.event-blue{background:linear-gradient(135deg,#1e40af 0%,#2563eb 100%)}
+.event-green{background:linear-gradient(135deg,#047857 0%,#22c55e 100%)}
+.event-cyan{background:linear-gradient(135deg,#0369a1 0%,#38bdf8 100%)}
+.event-purple{background:linear-gradient(135deg,#6d28d9 0%,#a855f7 100%)}
+.event-yellow{background:linear-gradient(135deg,#b45309 0%,#f59e0b 100%)}
+.event-red{background:linear-gradient(135deg,#b91c1c 0%,#ef4444 100%)}
+
+.agenda-head{position:relative;background:linear-gradient(135deg,#183a91 0%,#2563eb 100%);color:#ffffff;padding:22px 24px}
+.agenda-head h2{margin:0;font-size:22px;font-weight:900}
+.agenda-head p{margin:7px 0 0 0;font-size:13px;font-weight:700;opacity:.85}
+.agenda-toggle{
+    position:absolute;
+    right:16px;
+    top:16px;
+    width:36px;
+    height:36px;
+    border:none;
+    background:rgba(255,255,255,0.16);
+    color:#ffffff;
+    border-radius:12px;
+    font-size:0;
+    font-weight:900;
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+}
+.toggle-icon{width:22px;height:22px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;line-height:1;font-weight:900}
+.toggle-text{display:none}
+.agenda-body{padding:16px;display:flex;flex-direction:column;gap:12px}
+
+.agenda-entry{
+    position:relative;
+    background:#ffffff;
+    border:1px solid #dbe3ef;
+    border-radius:18px;
+    box-shadow:0 10px 24px rgba(15,23,42,0.04);
+    padding:14px 14px 14px 18px;
+    overflow:hidden;
+}
+.agenda-entry::before{
+    content:"";
+    position:absolute;
+    left:0;
+    top:10px;
+    bottom:10px;
+    width:5px;
+    border-radius:0 999px 999px 0;
+    background:linear-gradient(180deg,#1d4ed8,#2563eb);
+}
+.agenda-entry.green::before{background:linear-gradient(180deg,#047857,#22c55e)}
+.agenda-entry.cyan::before{background:linear-gradient(180deg,#0369a1,#38bdf8)}
+.agenda-entry.purple::before{background:linear-gradient(180deg,#6d28d9,#a855f7)}
+.agenda-entry.yellow::before{background:linear-gradient(180deg,#b45309,#f59e0b)}
+.agenda-entry.red::before{background:linear-gradient(180deg,#b91c1c,#ef4444)}
+.agenda-time{
+    display:inline-flex;
+    align-items:center;
+    border-radius:999px;
+    padding:6px 10px;
+    background:#eff6ff;
+    color:#1d4ed8;
+    border:1px solid #bfdbfe;
+    font-size:11px;
+    line-height:1;
+    font-weight:900;
+    margin-bottom:8px;
+}
+.agenda-time.red{background:#fef2f2;color:#b91c1c;border-color:#fecaca;}
+.agenda-title{margin:0;font-size:15px;line-height:1.22;font-weight:900;color:#0f172a;}
+.agenda-sub{margin-top:7px;font-size:12px;line-height:1.35;font-weight:700;color:#64748b;}
+.agenda-actions{
+    margin-top:12px;
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:8px;
+}
+.agenda-btn{
+    border:none;
+    border-radius:11px;
+    padding:9px 10px;
+    font-size:12px;
+    font-weight:900;
+    cursor:pointer;
+}
+.agenda-btn.open{background:#eff6ff;color:#1d4ed8}
+.agenda-btn.done{background:#ecfdf5;color:#047857}
+.agenda-delete{
+    position:absolute;
+    right:12px;
+    top:12px;
+    width:30px;
+    height:30px;
+    border:none;
+    border-radius:10px;
+    background:#fef2f2;
+    color:#dc2626;
+    font-size:16px;
+    font-weight:900;
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+}
+
+.calendar-modal-backdrop{
+    position:fixed;
+    inset:0;
+    background:rgba(15,23,42,.48);
+    z-index:9999;
+    display:none;
+    align-items:center;
+    justify-content:center;
+    padding:24px;
+}
+.calendar-modal-backdrop.open{
+    display:flex;
+}
+.calendar-modal{
+    width:min(100%,520px);
+    background:#ffffff;
+    border-radius:24px;
+    box-shadow:0 30px 80px rgba(15,23,42,.28);
+    overflow:hidden;
+    border:1px solid #dbe7f5;
+}
+.calendar-modal-head{
+    background:linear-gradient(135deg,#183a91,#2563eb);
+    color:#ffffff;
+    padding:22px 24px;
+    display:flex;
+    justify-content:space-between;
+    gap:16px;
+    align-items:flex-start;
+}
+.calendar-modal-head h2{
+    margin:0;
+    font-size:22px;
+    font-weight:900;
+}
+.calendar-modal-head p{
+    margin:7px 0 0 0;
+    font-size:13px;
+    font-weight:700;
+    opacity:.85;
+}
+.calendar-modal-close{
+    border:none;
+    background:rgba(255,255,255,.16);
+    color:#ffffff;
+    width:36px;
+    height:36px;
+    border-radius:12px;
+    font-size:24px;
+    font-weight:900;
+    cursor:pointer;
+}
+.calendar-modal-body{
+    padding:22px 24px;
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+}
+.calendar-modal-body label{
+    font-size:12px;
+    font-weight:900;
+    color:#1d4ed8;
+    text-transform:uppercase;
+    letter-spacing:.5px;
+}
+.calendar-modal-body input,
+.calendar-modal-body select,
+.calendar-modal-body textarea{
+    width:100%;
+    border:1px solid #dbe3ef;
+    background:#f8fafc;
+    border-radius:14px;
+    padding:13px 14px;
+    font-size:14px;
+    font-weight:700;
+    color:#0f172a;
+    outline:none;
+    font-family:Arial,Helvetica,sans-serif;
+}
+.calendar-modal-body textarea{
+    min-height:82px;
+    resize:vertical;
+}
+.calendar-modal-actions{
+    padding:0 24px 24px 24px;
+    display:flex;
+    justify-content:flex-end;
+    gap:10px;
+}
+.calendar-modal-cancel,
+.calendar-modal-submit{
+    border:none;
+    border-radius:14px;
+    padding:13px 18px;
+    font-size:13px;
+    font-weight:900;
+    cursor:pointer;
+}
+.calendar-modal-cancel{
+    background:#f1f5f9;
+    color:#334155;
+}
+.calendar-modal-submit{
+    background:#183a91;
+    color:#ffffff;
+}
+
+.quick-add{
+    margin-top:4px;
+    padding:16px;
+    border-radius:18px;
+    background:#f8fafc;
+    border:1px solid #e2e8f0;
+}
+.quick-add-title{
+    margin:0 0 12px 0;
+    font-size:14px;
+    font-weight:900;
+    color:#183a91;
+}
+.quick-add input,.quick-add select,.quick-add textarea{
+    width:100%;
+    border:1px solid #dbe3ef;
+    background:#ffffff;
+    border-radius:12px;
+    padding:11px 12px;
+    font-size:13px;
+    font-weight:800;
+    color:#0f172a;
+    outline:none;
+    margin-bottom:8px;
+    font-family:Arial,Helvetica,sans-serif;
+}
+.quick-add textarea{height:70px;resize:none}
+.quick-add button{
+    width:100%;
+    border:none;
+    background:#183a91;
+    color:#ffffff;
+    border-radius:14px;
+    padding:13px 16px;
+    font-size:13px;
+    font-weight:900;
+    cursor:pointer;
+    box-shadow:0 10px 22px rgba(24,58,145,0.16);
+}
+
+@media(max-width:1280px){
+    .calendar-action-grid{grid-template-columns:repeat(3,1fr)}
+    .calendar-shell{grid-template-columns:1fr}
+}
+@media(max-width:900px){
+    body{padding:0}
+    .kg-page{border-radius:0;border-left:none;border-right:none}
+    .kg-title-row{grid-template-columns:1fr}
+    .hero-actions{justify-content:flex-start;flex-wrap:wrap}
+    .kg-info-grid{grid-template-columns:1fr 1fr}
+    .calendar-action-grid{grid-template-columns:1fr 1fr}
+}
+@media(max-width:640px){
+    .kg-hero,.kg-content{padding:18px}
+    .kg-info-grid,.calendar-action-grid{grid-template-columns:1fr}
+    .day-cell{min-height:108px;padding:7px}
+    .event-pill{font-size:9.5px;padding:6px}
+}
+</style>
+
+<div class="kg-page">
+
+    <section class="kg-hero">
+        <div class="kg-title-row">
+            <div class="kg-title">
+                <h1>KG PORTAL KALENDER</h1>
+                <p>CRM-Zentrale für Besichtigungen, Rückrufe, Fenster Termine, Feiertage und Tagesliste.</p>
+            </div>
+
+            <div class="live-date-box">
+                <div class="live-time-pill" id="liveTimeOnly">00:00</div>
+                <div class="live-date-main" id="liveDateOnly">Datum</div>
+                <div class="live-date-sub" id="liveMonthName">Monatsübersicht</div>
+            </div>
+
+            <div class="hero-actions">
+                <button class="hero-btn primary" onclick="openCalendarModal()">+ Neuer Termin</button>
+                <button class="hero-btn" onclick="goToday()">Heute</button>
+                <button class="hero-btn">Tagesliste öffnen</button>
+            </div>
         </div>
-        
-        <button onclick="openMuntazam()" 
-           style="background: #2563eb; color: #fff; border:none; padding: 22px 50px; border-radius: 18px; font-size: 22px; font-weight: 800; cursor:pointer; box-shadow: 0 20px 30px -10px rgba(37,99,235,0.5);">
-           Kalender Login
-        </button>
+
+        <div class="kg-info-grid">
+            <div class="kg-info-box"><div class="kg-info-label">Heute Termine</div><div class="kg-info-value" id="todayCount">0</div><div class="kg-info-sub">live Stand</div></div>
+            <div class="kg-info-box"><div class="kg-info-label">Dieser Monat · Besichtigung</div><div class="kg-info-value" id="countBesichtigungMonth">0</div><div class="kg-info-sub" id="visitMonthLabel">Monat gesamt</div></div>
+            <div class="kg-info-box"><div class="kg-info-label">Dieser Monat · Rückrufe</div><div class="kg-info-value" id="countRueckrufMonth">0</div><div class="kg-info-sub">Tagesliste / Später</div></div>
+            <div class="kg-info-box"><div class="kg-info-label">Dieser Monat · Fenster Termine</div><div class="kg-info-value" id="countFensterMonth">0</div><div class="kg-info-sub">Fenster Termine</div></div>
+        </div>
+    </section>
+
+    <main class="kg-content">
+        <section class="calendar-action-grid" id="calendarActionSortable">
+            <div class="calendar-action-card status-blue" data-card-id="alle-termine" draggable="true"><div class="calendar-action-count" id="countAll">0</div><div class="calendar-action-title">Alle Termine</div><div class="calendar-action-text">Gesamte Kalenderübersicht für heute.</div></div>
+            <div class="calendar-action-card status-green" data-card-id="fenster-termine" draggable="true"><div class="calendar-action-count" id="countFensterToday">0</div><div class="calendar-action-title">Fenster Termine</div><div class="calendar-action-text">Fenster- und Glasreinigungs Termine.</div></div>
+            <div class="calendar-action-card status-cyan" data-card-id="tagesliste" draggable="true"><div class="calendar-action-count" id="countTageslisteToday">0</div><div class="calendar-action-title">Tagesliste</div><div class="calendar-action-text">Rückrufe aus Damlas Telefonarbeit.</div></div>
+            <div class="calendar-action-card status-purple" data-card-id="kontaktformular" draggable="true"><div class="calendar-action-count" id="countKontaktToday">0</div><div class="calendar-action-title">Kontaktformular</div><div class="calendar-action-text">Nachfassen nach Formularversand.</div></div>
+            <div class="calendar-action-card status-yellow" data-card-id="spaeter-anrufen" draggable="true"><div class="calendar-action-count" id="countSpaeterToday">0</div><div class="calendar-action-title">Später anrufen</div><div class="calendar-action-text">Wiedervorlage zu späterem Zeitpunkt.</div></div>
+            <div class="calendar-action-card status-red" data-card-id="feiertag" draggable="true"><div class="calendar-action-count" id="countHolidayMonth">0</div><div class="calendar-action-title">Feiertag</div><div class="calendar-action-text">Gesetzliche Feiertage NRW automatisch im Kalender.</div></div>
+        </section>
+
+        <section class="calendar-shell">
+            <div class="month-card">
+                <div class="month-head">
+                    <div>
+                        <h2 id="monthTitle">Monat Jahr</h2>
+                        <p id="monthSub">Monatsübersicht mit NRW Feiertagen</p>
+                    </div>
+                    <div class="month-nav">
+                        <button class="nav-btn" onclick="changeMonth(-1)">‹</button>
+                        <button class="nav-btn" onclick="goToday()">⌂</button>
+                        <button class="nav-btn" onclick="changeMonth(1)">›</button>
+                    </div>
+                </div>
+
+                <div class="week-grid">
+                    <div class="week-cell">Mo</div><div class="week-cell">Di</div><div class="week-cell">Mi</div><div class="week-cell">Do</div><div class="week-cell">Fr</div><div class="week-cell">Sa</div><div class="week-cell">So</div>
+                </div>
+
+                <div class="day-grid" id="dayGrid"></div>
+            </div>
+
+            <aside class="agenda-card-panel">
+                <div class="agenda-head" onclick="openSidePanelFromClosed()">
+                    <button class="agenda-toggle" onclick="toggleSidePanel(event)"><span class="toggle-icon">×</span><span class="toggle-text">Agenda</span></button>
+                    <h2 id="agendaDateTitle">Ausgewählter Tag</h2>
+                    <p id="agendaDateSub">Keine Einträge</p>
+                </div>
+                <div class="agenda-body" id="agendaBody">
+                    <div id="agendaEventList"></div>
+                    
+                    <div class="quick-add">
+                        <div class="quick-add-title">+ Termin schnell eintragen</div>
+                        <input id="eventTitleInput" placeholder="Kunde / Firma" value="" />
+                        <input value="" id="quickDate" readonly />
+                        <input id="eventTimeInput" placeholder="Uhrzeit" value="10:00" />
+                        <select id="eventTypeInput">
+                            <option>Besichtigung</option>
+                            <option>Fenster Termine</option>
+                            <option>Tagesliste Rückruf</option>
+                            <option>Kontaktformular</option>
+                            <option>Später anrufen</option>
+                        </select>
+                        <textarea id="eventNoteInput" placeholder="Notiz"></textarea>
+                        <button onclick="addQuickEvent()">Termin speichern</button>
+                    </div>
+                </div>
+            </aside>
+        </section>
+    </main>
+</div>
+
+<div class="calendar-modal-backdrop" id="calendarModalBackdrop" onclick="closeCalendarModal(event)">
+    <div class="calendar-modal" onclick="event.stopPropagation()">
+        <div class="calendar-modal-head">
+            <div>
+                <h2>Termin eintragen</h2>
+                <p id="modalDateText">Ausgewählter Tag</p>
+            </div>
+            <button class="calendar-modal-close" onclick="closeCalendarModal()">×</button>
+        </div>
+        <div class="calendar-modal-body">
+            <label>Kunde / Firma</label>
+            <input id="modalEventTitle" placeholder="z.B. Muster GmbH" />
+
+            <label>Datum (JJJJ-MM-TT)</label>
+            <input id="modalEventDate" type="date" />
+
+            <label>Uhrzeit</label>
+            <input id="modalEventTime" type="time" value="10:00" />
+
+            <label>Terminart</label>
+            <select id="modalEventType">
+                <option>Besichtigung</option>
+                <option>Fenster Termine</option>
+                <option>Tagesliste Rückruf</option>
+                <option>Kontaktformular</option>
+                <option>Später anrufen</option>
+            </select>
+
+            <label>Notiz</label>
+            <textarea id="modalEventNote" placeholder="Optionale Details..."></textarea>
+        </div>
+        <div class="calendar-modal-actions">
+            <button class="calendar-modal-cancel" onclick="closeCalendarModal()">Abbrechen</button>
+            <button class="calendar-modal-submit" onclick="saveModalCalendarEvent()">Speichern</button>
+        </div>
     </div>
 </div>
 
 <script>
-function openMuntazam() {
-    window.location.href = "https://calendar.google.com/calendar/u/info@kg-reinigung.de/r?rm=minimal";
+const monthNames = ["Januar","Februar","März","April","Mai","Juni","Juli","August","September","Oktober","November","Dezember"];
+const weekdayNames = ["Sonntag","Montag","Dienstag","Mittwoch","Donnerstag","Freitag","Samstag"];
+const today = new Date();
+let viewYear = today.getFullYear();
+let viewMonth = today.getMonth();
+let selectedDateKey = toKey(today);
+let nrwHolidayCache = {};
+
+// Load user events from LocalStorage
+let userEvents = JSON.parse(localStorage.getItem("kg_calendar_events") || "[]");
+
+function pad(n){ return String(n).padStart(2,"0"); }
+function toKey(d){ return d.getFullYear() + "-" + pad(d.getMonth()+1) + "-" + pad(d.getDate()); }
+function formatDateDE(d){ return pad(d.getDate()) + "." + pad(d.getMonth()+1) + "." + d.getFullYear(); }
+function parseKey(key){ const p = key.split("-").map(Number); return new Date(p[0], p[1]-1, p[2]); }
+function addDays(d, days){ 
+    const x = new Date(d); 
+    x.setDate(x.getDate() + days); 
+    return x; 
 }
+
+// Feiertagslogik NRW
+function calculateEasterSunday(year){
+    const a=year%19, b=Math.floor(year/100), c=year%100, d=Math.floor(b/4), e=b%4, f=Math.floor((b+8)/25), g=Math.floor((b-f+1)/3), h=(19*a+b-d-g+15)%30, i=Math.floor(c/4), k=c%4, l=(32+2*e+2*i-h-k)%7, m=Math.floor((a+11*h+22*l)/451), month=Math.floor((h+l-7*m+114)/31)-1, day=((h+l-7*m+114)%31)+1;
+    return new Date(year, month, day);
+}
+function getNRWFeiertage(year){
+    const easter = calculateEasterSunday(year);
+    const holidays = [
+        {date:new Date(year,0,1), name:"Neujahr"},
+        {date:addDays(easter,-2), name:"Karfreitag"},
+        {date:addDays(easter,1), name:"Ostermontag"},
+        {date:new Date(year,4,1), name:"Tag der Arbeit"},
+        {date:addDays(easter,39), name:"Christi Himmelfahrt"},
+        {date:addDays(easter,50), name:"Pfingstmontag"},
+        {date:addDays(easter,60), name:"Fronleichnam"},
+        {date:new Date(year,9,3), name:"Tag der Deutschen Einheit"},
+        {date:new Date(year,10,1), name:"Allerheiligen"},
+        {date:new Date(year,11,25), name:"1. Weihnachtstag"},
+        {date:new Date(year,11,26), name:"2. Weihnachtstag"}
+    ];
+    return holidays.map(h => ({
+        id: 'holiday-' + toKey(h.date),
+        key: toKey(h.date), 
+        date: h.date, 
+        name: h.name, 
+        type: "Feiertag", 
+        time: ""
+    }));
+}
+function prepareNRWFeiertageForYear(year){
+    if(!nrwHolidayCache[year]) {
+        nrwHolidayCache[year] = getNRWFeiertage(year);
+    }
+    return nrwHolidayCache[year];
+}
+function yearlyHolidayAutoUpdate(){
+    const now = new Date();
+    if(now.getMonth() === 11 && now.getDate() === 30){
+        prepareNRWFeiertageForYear(now.getFullYear()+1);
+    }
+}
+function getHolidaysForViewYear(){
+    return prepareNRWFeiertageForYear(viewYear);
+}
+function getAllEventsForDate(key) {
+    const holidays = getHolidaysForViewYear().filter(h => h.key === key);
+    const custom = userEvents.filter(e => e.key === key);
+    return [...holidays, ...custom];
+}
+
+// Styling Helper
+function getEventStyleClass(type) {
+    switch(type) {
+        case "Besichtigung": return "blue";
+        case "Fenster Termine": return "green";
+        case "Tagesliste Rückruf": return "cyan";
+        case "Kontaktformular": return "purple";
+        case "Später anrufen": return "yellow";
+        case "Feiertag": return "red";
+        default: return "blue";
+    }
+}
+
+// Speichern & Löschen
+function saveToStorage() {
+    localStorage.setItem("kg_calendar_events", JSON.stringify(userEvents));
+}
+
+function createEvent(title, dateKey, time, type, note) {
+    if(!title.trim()) return alert("Bitte Kunde / Firma eingeben.");
+    const newEvent = {
+        id: 'evt_' + Date.now(),
+        key: dateKey,
+        name: title,
+        time: time,
+        type: type,
+        note: note || ""
+    };
+    userEvents.push(newEvent);
+    saveToStorage();
+    renderCalendar();
+}
+
+function deleteEvent(id) {
+    userEvents = userEvents.filter(e => e.id !== id);
+    saveToStorage();
+    renderCalendar();
+}
+
+// UI Aktualisieren
+function updateCounters() {
+    let todayKey = toKey(today);
+    
+    // Zähler für heute
+    let allToday = getAllEventsForDate(todayKey);
+    let countFensterT = allToday.filter(e => e.type === "Fenster Termine").length;
+    let countTageslisteT = allToday.filter(e => e.type === "Tagesliste Rückruf").length;
+    let countKontaktT = allToday.filter(e => e.type === "Kontaktformular").length;
+    let countSpaeterT = allToday.filter(e => e.type === "Später anrufen").length;
+    
+    document.getElementById("todayCount").textContent = allToday.length;
+    document.getElementById("countAll").textContent = allToday.length;
+    document.getElementById("countFensterToday").textContent = countFensterT;
+    document.getElementById("countTageslisteToday").textContent = countTageslisteT;
+    document.getElementById("countKontaktToday").textContent = countKontaktT;
+    document.getElementById("countSpaeterToday").textContent = countSpaeterT;
+
+    // Zähler für den Monat
+    let eventsThisMonth = userEvents.filter(e => {
+        let d = parseKey(e.key);
+        return d.getMonth() === viewMonth && d.getFullYear() === viewYear;
+    });
+    let holsThisMonth = getHolidaysForViewYear().filter(h => h.date.getMonth() === viewMonth);
+
+    let countBesichtigungM = eventsThisMonth.filter(e => e.type === "Besichtigung").length;
+    let countRueckrufM = eventsThisMonth.filter(e => e.type === "Tagesliste Rückruf" || e.type === "Später anrufen").length;
+    let countFensterM = eventsThisMonth.filter(e => e.type === "Fenster Termine").length;
+
+    document.getElementById("countBesichtigungMonth").textContent = countBesichtigungM;
+    document.getElementById("countRueckrufMonth").textContent = countRueckrufM;
+    document.getElementById("countFensterMonth").textContent = countFensterM;
+    document.getElementById("countHolidayMonth").textContent = holsThisMonth.length;
+}
+
+function renderCalendar(){
+    yearlyHolidayAutoUpdate();
+    const grid = document.getElementById("dayGrid");
+    grid.innerHTML = "";
+    
+    const first = new Date(viewYear, viewMonth, 1);
+    const firstWeekday = (first.getDay() + 6) % 7; // Start on Monday
+    const start = new Date(viewYear, viewMonth, 1 - firstWeekday);
+    const todayKey = toKey(today);
+
+    document.getElementById("monthTitle").textContent = monthNames[viewMonth] + " " + viewYear;
+    document.getElementById("liveMonthName").textContent = "Monatsübersicht " + monthNames[viewMonth];
+    document.getElementById("visitMonthLabel").textContent = monthNames[viewMonth] + " gesamt";
+
+    for(let i=0; i<42; i++){
+        const d = addDays(start, i);
+        const key = toKey(d);
+        const events = getAllEventsForDate(key);
+        
+        const cell = document.createElement("div");
+        cell.className = "day-cell";
+        if(d.getMonth() !== viewMonth) cell.classList.add("muted");
+        if(key === selectedDateKey) cell.classList.add("selected");
+        if(key === todayKey) cell.classList.add("today-day");
+        if(events.some(e => e.type === "Feiertag")) cell.classList.add("holiday-day");
+        
+        cell.onclick = () => selectDate(key);
+        cell.ondblclick = () => { selectDate(key); openCalendarModal(); };
+        
+        // Sürükle Bırak: Hedef Hücre (Bırakma Alanı)
+        cell.ondragover = (e) => e.preventDefault();
+        cell.ondrop = (e) => {
+            e.preventDefault();
+            const eventId = e.dataTransfer.getData("text/plain");
+            if(eventId) {
+                const eventToMove = userEvents.find(ev => ev.id === eventId);
+                if(eventToMove && eventToMove.key !== key) {
+                    eventToMove.key = key;
+                    saveToStorage();
+                    selectDate(key); // Tarihi seç ve takvimi yenile
+                }
+            }
+        };
+        
+        cell.innerHTML = `<div class="day-number">${d.getDate()}</div><div class="event-stack"></div>`;
+        const stack = cell.querySelector(".event-stack");
+        
+        // Render pills (max 4 per day visually)
+        events.slice(0, 4).forEach(e => {
+            const pill = document.createElement("div");
+            const colorClass = getEventStyleClass(e.type);
+            pill.className = `event-pill event-${colorClass}`;
+            pill.textContent = (e.time ? e.time + ' ' : '') + e.name;
+            
+            // Sürükle Bırak: Sürüklenecek Öğe (Sadece kullanıcı kayıtları)
+            if(e.id && e.id.startsWith("evt_")) {
+                pill.draggable = true;
+                pill.style.cursor = "grab";
+                pill.ondragstart = (dragEvent) => {
+                    dragEvent.dataTransfer.setData("text/plain", e.id);
+                    dragEvent.stopPropagation();
+                };
+            }
+            
+            stack.appendChild(pill);
+        });
+        
+        if(events.length > 4) {
+            const morePill = document.createElement("div");
+            morePill.className = "event-pill";
+            morePill.style.background = "#94a3b8";
+            morePill.textContent = `+${events.length - 4} weitere`;
+            stack.appendChild(morePill);
+        }
+
+        grid.appendChild(cell);
+    }
+    
+    document.getElementById("quickDate").value = formatDateDE(parseKey(selectedDateKey));
+    
+    updateCounters();
+    renderAgenda();
+}
+
+function renderAgenda(){
+    const selected = parseKey(selectedDateKey);
+    const events = getAllEventsForDate(selectedDateKey);
+    
+    document.getElementById("agendaDateTitle").textContent = formatDateDE(selected);
+    document.getElementById("agendaDateSub").textContent = events.length ? `${events.length} Eintrag${events.length > 1 ? 'e' : ''}` : "Keine Einträge";
+    
+    const list = document.getElementById("agendaEventList");
+    list.innerHTML = "";
+    
+    events.sort((a,b) => a.time.localeCompare(b.time)).forEach(e => {
+        const colorClass = getEventStyleClass(e.type);
+        const card = document.createElement("div");
+        card.className = `agenda-entry ${colorClass}`;
+        card.style.marginBottom = "10px";
+        
+        let deleteBtn = e.type !== "Feiertag" ? `<button class="agenda-delete" title="Löschen" onclick="deleteEvent('${e.id}')">×</button>` : '';
+        let timeClass = e.type === "Feiertag" ? "red" : "";
+        
+        card.innerHTML = `
+            ${deleteBtn}
+            <div class="agenda-time ${timeClass}">${e.time || e.type}</div>
+            <h3 class="agenda-title">${e.name}</h3>
+            <div class="agenda-sub">${e.type === "Feiertag" ? "Gesetzlicher Feiertag NRW" : e.note || "Keine weiteren Notizen"}</div>
+        `;
+        list.appendChild(card);
+    });
+}
+
+function selectDate(key){
+    selectedDateKey = key;
+    renderCalendar();
+}
+function changeMonth(delta){
+    viewMonth += delta;
+    if(viewMonth < 0){ viewMonth = 11; viewYear--; }
+    if(viewMonth > 11){ viewMonth = 0; viewYear++; }
+    selectedDateKey = toKey(new Date(viewYear, viewMonth, 1));
+    renderCalendar();
+}
+function goToday(){
+    viewYear = today.getFullYear();
+    viewMonth = today.getMonth();
+    selectedDateKey = toKey(today);
+    renderCalendar();
+}
+function updateLiveDate(){
+    const now = new Date();
+    document.getElementById("liveTimeOnly").textContent = pad(now.getHours()) + ":" + pad(now.getMinutes());
+    document.getElementById("liveDateOnly").textContent = weekdayNames[now.getDay()] + ", " + formatDateDE(now);
+}
+
+// Side Panel
+function toggleSidePanel(event){
+    if(event) event.stopPropagation();
+    const shell = document.querySelector('.calendar-shell');
+    const toggle = document.querySelector('.agenda-toggle');
+    shell.classList.toggle('side-closed');
+    toggle.innerHTML = shell.classList.contains('side-closed') ? 
+        '<span class="toggle-icon">☰</span><span class="toggle-text">Agenda</span>' : 
+        '<span class="toggle-icon">×</span><span class="toggle-text">Agenda</span>';
+}
+function openSidePanelFromClosed(){
+    const shell = document.querySelector('.calendar-shell');
+    const toggle = document.querySelector('.agenda-toggle');
+    if(shell.classList.contains('side-closed')){
+        shell.classList.remove('side-closed');
+        toggle.innerHTML = '<span class="toggle-icon">×</span><span class="toggle-text">Agenda</span>';
+    }
+}
+
+// Modal Logic
+function openCalendarModal(){
+    document.getElementById("modalEventDate").value = selectedDateKey; // YYYY-MM-DD
+    document.getElementById("modalDateText").textContent = formatDateDE(parseKey(selectedDateKey));
+    document.getElementById("calendarModalBackdrop").classList.add("open");
+}
+function closeCalendarModal(event){
+    if(event && event.target !== document.getElementById("calendarModalBackdrop")) return;
+    document.getElementById("calendarModalBackdrop").classList.remove("open");
+    // Reset Modal Fields
+    document.getElementById("modalEventTitle").value = "";
+    document.getElementById("modalEventNote").value = "";
+}
+function saveModalCalendarEvent() {
+    const title = document.getElementById("modalEventTitle").value;
+    const dateKey = document.getElementById("modalEventDate").value;
+    const time = document.getElementById("modalEventTime").value;
+    const type = document.getElementById("modalEventType").value;
+    const note = document.getElementById("modalEventNote").value;
+    
+    if(title && dateKey) {
+        createEvent(title, dateKey, time, type, note);
+        selectDate(dateKey); // Jump to date
+        closeCalendarModal();
+    } else {
+        alert("Bitte füllen Sie mindestens den Namen und das Datum aus.");
+    }
+}
+
+// Quick Add Logic
+function addQuickEvent() {
+    const title = document.getElementById("eventTitleInput").value;
+    const time = document.getElementById("eventTimeInput").value;
+    const type = document.getElementById("eventTypeInput").value;
+    const note = document.getElementById("eventNoteInput").value;
+    
+    if(title) {
+        createEvent(title, selectedDateKey, time, type, note);
+        // Clear inputs
+        document.getElementById("eventTitleInput").value = "";
+        document.getElementById("eventNoteInput").value = "";
+    } else {
+        alert("Bitte Kunde / Firma eingeben.");
+    }
+}
+function focusQuickAdd() {
+    openSidePanelFromClosed();
+    document.getElementById("eventTitleInput").focus();
+}
+
+// Sürükle-Bırak (Drag & Drop) Mantığı
+const sortableContainer = document.getElementById('calendarActionSortable');
+let draggedElement = null;
+
+sortableContainer.addEventListener('dragstart', (e) => {
+    draggedElement = e.target.closest('.calendar-action-card');
+    if(draggedElement) setTimeout(() => draggedElement.classList.add('dragging'), 0);
+});
+
+sortableContainer.addEventListener('dragend', () => {
+    if(draggedElement) {
+        draggedElement.classList.remove('dragging');
+        draggedElement = null;
+        saveCardOrder();
+    }
+});
+
+sortableContainer.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    if(!draggedElement) return;
+    const target = e.target.closest('.calendar-action-card:not(.dragging)');
+    if(target && target !== draggedElement) {
+        const allItems = [...sortableContainer.querySelectorAll('.calendar-action-card')];
+        const draggedIndex = allItems.indexOf(draggedElement);
+        const targetIndex = allItems.indexOf(target);
+        if (draggedIndex < targetIndex) {
+            target.after(draggedElement);
+        } else {
+            target.before(draggedElement);
+        }
+    }
+});
+
+function saveCardOrder() {
+    const order = [...document.querySelectorAll('#calendarActionSortable .calendar-action-card')].map(card => card.getAttribute('data-card-id'));
+    localStorage.setItem('kg_card_order', JSON.stringify(order));
+}
+
+function loadCardOrder() {
+    const order = JSON.parse(localStorage.getItem('kg_card_order'));
+    if(order) {
+        order.forEach(id => {
+            const card = sortableContainer.querySelector(`[data-card-id="${id}"]`);
+            if(card) sortableContainer.appendChild(card);
+        });
+    }
+}
+
+// Init
+loadCardOrder();
+prepareNRWFeiertageForYear(viewYear);
+updateLiveDate();
+renderCalendar();
+setInterval(updateLiveDate, 30000); // Live-Uhrzeit alle 30s aktualisieren
 </script>
+
 {% endblock %}
