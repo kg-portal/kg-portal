@@ -437,8 +437,13 @@
 
             <div class="portal-nav-group-title" id="planungTitle">Planung</div>
 
-            <a class="portal-nav-item {% if request.path == '/kalender' %}active{% endif %}" href="/kalender" data-nav-key="kalender">
+                        <a class="portal-nav-item {% if request.path == '/kalender' %}active{% endif %}" href="/kalender" data-nav-key="kalender">
                 <span class="portal-nav-content"><i class="fa-solid fa-calendar-day icon-orange"></i> Kalender</span>
+                <i class="fa-solid fa-grip-vertical portal-drag-handle"></i>
+            </a>
+
+            <a class="portal-nav-item {% if request.path.startswith('/gmail') %}active{% endif %}" href="/gmail" data-nav-key="gmail">
+                <span class="portal-nav-content"><i class="fa-solid fa-envelope icon-blue"></i> KG-Mail</span>
                 <i class="fa-solid fa-grip-vertical portal-drag-handle"></i>
             </a>
 
@@ -533,9 +538,10 @@ document.addEventListener('DOMContentLoaded', function () {
     const storageKey = 'kgPortalNavOrder';
     localStorage.removeItem(storageKey);
 
-    const fixedOrder = [
+        const fixedOrder = [
         'startseite',
         'kalender',
+        'gmail',
         'todo',
         'datenbank',
         'besichtigung',
