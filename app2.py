@@ -32,9 +32,20 @@ DB_PATH = os.path.join(BASE_DIR, "data", "kg_portal.db")
 # =====================================================
 
 GMAIL_SCOPES = ["https://www.googleapis.com/auth/gmail.modify"]
-GMAIL_DIR = os.path.join(BASE_DIR, "static")
-GMAIL_TOKEN_FILE = os.path.join(GMAIL_DIR, "token.json")
-GMAIL_CREDENTIALS_FILE = os.path.join(GMAIL_DIR, "credentials.json")
+
+STATIC_DIR = os.path.join(BASE_DIR, "static")
+RENDER_SECRET_DIR = "/etc/secrets"
+
+def gmail_file_path(filename):
+    render_path = os.path.join(RENDER_SECRET_DIR, filename)
+    if os.path.exists(render_path):
+        return render_path
+    return os.path.join(STATIC_DIR, filename)
+
+GMAIL_TOKEN_FILE = gmail_file_path("token.json")
+GMAIL_CREDENTIALS_FILE = gmail_file_path("credentials.json")
+GMAIL_DIR = os.path.dirname(GMAIL_CREDENTIALS_FILE)
+
 
 
 def find_gmail_credentials_file():
@@ -69,8 +80,9 @@ def get_gmail_service():
             flow = InstalledAppFlow.from_client_secrets_file(credentials_path, GMAIL_SCOPES)
             creds = flow.run_local_server(port=0)
 
-        with open(GMAIL_TOKEN_FILE, "w", encoding="utf-8") as token:
-            token.write(creds.to_json())
+        if not GMAIL_TOKEN_FILE.startswith("/etc/secrets"):
+            with open(GMAIL_TOKEN_FILE, "w", encoding="utf-8") as token:
+                token.write(creds.to_json())
 
     return build("gmail", "v1", credentials=creds)
 
