@@ -5,3 +5,4 @@ gunicorn
 playwright
 python-docx
 fints
+python-dotenv
