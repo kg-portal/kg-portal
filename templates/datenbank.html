@@ -916,13 +916,74 @@ body {
     color: #dc2626;
 }
 
+.status-board-grid {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 14px;
+    margin: 0 0 18px 0;
+}
+
+.status-board-card {
+    position: relative;
+    min-height: 138px;
+    border-radius: 22px;
+    padding: 18px 18px 16px 18px;
+    box-shadow: 0 14px 30px rgba(15, 23, 42, 0.08);
+    overflow: hidden;
+    cursor: pointer;
+    transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+
+.status-board-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 18px 38px rgba(15, 23, 42, 0.14);
+}
+
+.status-board-count {
+    position: absolute;
+    top: 15px;
+    right: 16px;
+    min-width: 42px;
+    height: 34px;
+    border-radius: 999px;
+    background: rgba(255,255,255,0.22);
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    font-weight: 900;
+}
+
+.status-board-title {
+    margin-top: 32px;
+    font-size: 17px;
+    line-height: 1.15;
+    font-weight: 900;
+    color: #ffffff;
+}
+
+.status-board-text {
+    margin-top: 9px;
+    font-size: 12px;
+    line-height: 1.35;
+    font-weight: 800;
+    color: rgba(255,255,255,0.9);
+}
+
+.status-blue { background: linear-gradient(135deg, #1e40af 0%, #2563eb 100%); }
+.status-green { background: linear-gradient(135deg, #047857 0%, #22c55e 100%); }
+.status-cyan { background: linear-gradient(135deg, #0369a1 0%, #38bdf8 100%); }
+.status-purple { background: linear-gradient(135deg, #6d28d9 0%, #a855f7 100%); }
+.status-yellow { background: linear-gradient(135deg, #b45309 0%, #f59e0b 100%); }
+.status-red { background: linear-gradient(135deg, #b91c1c 0%, #ef4444 100%); }
+
 .workflow-grid {
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 16px;
     margin-bottom: 18px;
 }
-
 .workflow-card {
     border-radius: 22px;
     padding: 18px 18px 16px 18px;
@@ -1144,6 +1205,765 @@ body {
     padding-top: 28px;
 }
 
+.status-list-panel {
+    margin: 0 0 18px 0;
+    border: 1px solid #dbe3ef;
+    background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+    border-radius: 24px;
+    box-shadow: 0 14px 30px rgba(15, 23, 42, 0.06);
+    padding: 18px;
+}
+
+.status-list-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 16px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid #e5edf7;
+}
+
+.status-list-head h2 {
+    margin: 0;
+    font-size: 24px;
+    font-weight: 900;
+    color: #0f172a;
+    letter-spacing: -0.3px;
+}
+
+.status-list-head p {
+    margin: 5px 0 0 0;
+    font-size: 13px;
+    font-weight: 700;
+    color: #64748b;
+}
+
+.status-list-close {
+    border: none;
+    background: #16a34a;
+    color: #ffffff;
+    border-radius: 14px;
+    padding: 12px 16px;
+    font-size: 13px;
+    font-weight: 900;
+    cursor: pointer;
+    box-shadow: 0 10px 22px rgba(22,163,74,0.16);
+}
+
+.status-company-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.status-company-card {
+    position: relative;
+    background: #ffffff;
+    border: 1px solid #dbe3ef;
+    border-radius: 22px;
+    box-shadow: 0 10px 24px rgba(15,23,42,0.04);
+    overflow: hidden;
+}
+
+.status-company-card::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 10px;
+    bottom: 10px;
+    width: 5px;
+    border-radius: 0 999px 999px 0;
+    background: linear-gradient(180deg,#1d4ed8,#2563eb);
+}
+
+.status-company-card.status-row-angerufen::before {
+    background: linear-gradient(180deg,#1e40af,#2563eb);
+}
+
+.status-company-card.status-row-interessiert::before {
+    background: linear-gradient(180deg,#047857,#22c55e);
+}
+
+.status-company-card.status-row-besichtigung::before {
+    background: linear-gradient(180deg,#0369a1,#38bdf8);
+}
+
+.status-company-card.status-row-kontaktformular::before {
+    background: linear-gradient(180deg,#6d28d9,#a855f7);
+}
+
+.status-company-card.status-row-spaeter::before {
+    background: linear-gradient(180deg,#b45309,#f59e0b);
+}
+
+.status-company-card.status-row-verloren::before {
+    background: linear-gradient(180deg,#b91c1c,#ef4444);
+}
+
+.status-company-card.status-row-angerufen .status-company-badge {
+    background: #eff6ff;
+    color: #1d4ed8;
+    border-color: #bfdbfe;
+}
+
+.status-company-card.status-row-interessiert .status-company-badge {
+    background: #ecfdf5;
+    color: #047857;
+    border-color: #bbf7d0;
+}
+
+.status-company-card.status-row-besichtigung .status-company-badge {
+    background: #e0f2fe;
+    color: #0369a1;
+    border-color: #bae6fd;
+}
+
+.status-company-card.status-row-kontaktformular .status-company-badge {
+    background: #f3e8ff;
+    color: #7e22ce;
+    border-color: #e9d5ff;
+}
+
+.status-company-card.status-row-spaeter .status-company-badge {
+    background: #fff7ed;
+    color: #c2410c;
+    border-color: #fed7aa;
+}
+
+.status-company-card.status-row-verloren .status-company-badge {
+    background: #fef2f2;
+    color: #dc2626;
+    border-color: #fecaca;
+}
+
+.status-company-card.status-row-angerufen .status-company-open,
+.status-company-card.status-row-angerufen .status-open-btn {
+    background: #eff6ff;
+    color: #1d4ed8;
+    border-color: #bfdbfe;
+}
+
+.status-company-card.status-row-interessiert .status-company-open,
+.status-company-card.status-row-interessiert .status-open-btn {
+    background: #ecfdf5;
+    color: #047857;
+    border-color: #bbf7d0;
+}
+
+.status-company-card.status-row-besichtigung .status-company-open,
+.status-company-card.status-row-besichtigung .status-open-btn {
+    background: #e0f2fe;
+    color: #0369a1;
+    border-color: #bae6fd;
+}
+
+.status-company-card.status-row-kontaktformular .status-company-open,
+.status-company-card.status-row-kontaktformular .status-open-btn {
+    background: #f3e8ff;
+    color: #7e22ce;
+    border-color: #e9d5ff;
+}
+
+.status-company-card.status-row-spaeter .status-company-open,
+.status-company-card.status-row-spaeter .status-open-btn {
+    background: #fff7ed;
+    color: #c2410c;
+    border-color: #fed7aa;
+}
+
+.status-company-card.status-row-verloren .status-company-open,
+.status-company-card.status-row-verloren .status-open-btn {
+    background: #fef2f2;
+    color: #dc2626;
+    border-color: #fecaca;
+}
+.status-company-summary {
+    display: grid;
+    grid-template-columns: 46px minmax(0,1fr) 40px;
+    gap: 14px;
+    align-items: center;
+    padding: 14px 16px 14px 22px;
+    cursor: pointer;
+}
+
+.status-company-drag {
+    width: 42px;
+    height: 42px;
+    border-radius: 15px;
+    border: 1px solid #dbe3ef;
+    background: #f8fafc;
+    color: #64748b;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 23px;
+    font-weight: 900;
+    cursor: grab;
+    user-select: none;
+}
+
+.status-company-badge {
+    display: inline-flex;
+    align-items: center;
+    width: max-content;
+    max-width: 100%;
+    border-radius: 999px;
+    padding: 6px 10px;
+    background: #eff6ff;
+    color: #1d4ed8;
+    border: 1px solid #bfdbfe;
+    font-size: 11px;
+    line-height: 1;
+    font-weight: 900;
+    margin-bottom: 7px;
+}
+
+.status-company-name {
+    margin: 0;
+    font-size: 18px;
+    line-height: 1.18;
+    font-weight: 900;
+    color: #0f172a;
+    letter-spacing: -0.25px;
+}
+
+.status-company-line {
+    margin-top: 8px;
+    font-size: 13px;
+    line-height: 1.35;
+    font-weight: 800;
+    color: #64748b;
+}
+
+.status-company-open {
+    width: 36px;
+    height: 36px;
+    border-radius: 14px;
+    border: 1px solid #dbe3ef;
+    background: #f8fafc;
+    color: #1d4ed8;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    font-weight: 900;
+    transition: transform 0.18s ease;
+}
+
+.status-company-card.open .status-company-open {
+    transform: rotate(180deg);
+}
+
+.status-company-details {
+    display: none;
+    padding: 0 16px 14px 82px;
+}
+
+.status-company-card.open .status-company-details {
+    display: block;
+}
+
+.status-detail-inner {
+    border-top: 1px dashed #dbe3ef;
+    padding-top: 12px;
+    display: grid;
+    grid-template-columns: repeat(3,minmax(0,1fr));
+    gap: 12px;
+}
+
+.status-detail-box {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    padding: 14px 14px;
+    min-height: 86px;
+}
+
+.status-detail-label {
+    font-size: 10px;
+    line-height: 1;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    font-weight: 900;
+    color: #64748b;
+    margin-bottom: 6px;
+}
+
+.status-detail-value {
+    font-size: 13px;
+    line-height: 1.32;
+    font-weight: 800;
+    color: #0f172a;
+}
+
+.status-detail-link {
+    color: #2563eb;
+    text-decoration: none;
+    font-weight: 900;
+}
+
+.status-edit-input {
+    width: 100%;
+    border: 1px solid #dbe3ef;
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 11px 12px;
+    font-size: 13px;
+    font-weight: 800;
+    color: #0f172a;
+    outline: none;
+    margin-top: 6px;
+}
+
+.status-edit-input:focus {
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37,99,235,0.10);
+}
+
+.status-link-wrap {
+    position: relative;
+    width: 100%;
+}
+
+.status-link-wrap .status-edit-input {
+    padding-right: 44px;
+}
+
+.status-open-btn {
+    position: absolute;
+    right: 8px;
+    top: calc(50% + 3px);
+    transform: translateY(-50%);
+    width: 30px;
+    height: 30px;
+    border: none;
+    border-radius: 10px;
+    background: #eff6ff;
+    color: #2563eb;
+    font-size: 15px;
+    font-weight: 900;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.status-open-btn:hover {
+    background: #2563eb;
+    color: #ffffff;
+}
+.status-save-btn {
+    width: 100%;
+    border: none;
+    background: #16a34a;
+    color: #ffffff;
+    border-radius: 14px;
+    padding: 13px 16px;
+    font-size: 13px;
+    font-weight: 900;
+    cursor: pointer;
+    box-shadow: 0 10px 22px rgba(22,163,74,0.16);
+}
+
+.status-save-btn:hover {
+    background: #15803d;
+}
+
+.status-empty {
+    display: none;
+    border: 1px dashed #bfdbfe;
+    background: #ffffff;
+    border-radius: 22px;
+    padding: 28px;
+    text-align: center;
+    color: #64748b;
+    font-weight: 800;
+}
+
+.status-empty strong {
+    display: block;
+    color: #123a8f;
+    font-size: 19px;
+    margin-bottom: 8px;
+}
+
+@media (max-width: 900px) {
+    .status-detail-inner {
+        grid-template-columns: 1fr;
+    }
+
+    .status-company-details {
+        padding-left: 74px;
+    }
+}
+
+.lead-modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(15,23,42,0.48);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+}
+
+.lead-modal {
+    width: min(100%, 520px);
+    background: #ffffff;
+    border-radius: 24px;
+    box-shadow: 0 30px 80px rgba(15,23,42,0.28);
+    overflow: hidden;
+    border: 1px solid #dbe7f5;
+}
+
+.lead-modal-head {
+    background: linear-gradient(135deg,#183a91,#2563eb);
+    color: #ffffff;
+    padding: 22px 24px;
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    align-items: flex-start;
+}
+
+.lead-modal-head h2 {
+    margin: 0;
+    font-size: 22px;
+    font-weight: 900;
+}
+
+.lead-modal-head p {
+    margin: 7px 0 0 0;
+    font-size: 13px;
+    font-weight: 700;
+    opacity: 0.85;
+}
+
+.lead-modal-close {
+    border: none;
+    background: rgba(255,255,255,0.16);
+    color: #ffffff;
+    width: 36px;
+    height: 36px;
+    border-radius: 12px;
+    font-size: 24px;
+    font-weight: 900;
+    cursor: pointer;
+}
+
+.lead-modal-body {
+    padding: 22px 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.lead-modal-body label {
+    font-size: 12px;
+    font-weight: 900;
+    color: #1d4ed8;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.lead-modal-body input,
+.lead-modal-body select {
+    width: 100%;
+    border: 1px solid #dbe3ef;
+    background: #f8fafc;
+    border-radius: 14px;
+    padding: 13px 14px;
+    font-size: 14px;
+    font-weight: 700;
+    color: #0f172a;
+    outline: none;
+}
+
+.lead-modal-status {
+    margin-top: 8px;
+    font-size: 13px;
+    font-weight: 800;
+    color: #475569;
+    min-height: 20px;
+}
+
+.lead-modal-actions {
+    padding: 0 24px 24px 24px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+.lead-modal-cancel,
+.lead-modal-submit {
+    border: none;
+    border-radius: 14px;
+    padding: 13px 18px;
+    font-size: 13px;
+    font-weight: 900;
+    cursor: pointer;
+}
+
+.lead-modal-cancel {
+    background: #f1f5f9;
+    color: #334155;
+}
+
+.lead-modal-submit {
+    background: #16a34a;
+    color: #ffffff;
+}
+
+
+/* =========================
+   STATUSLISTE IM TAGESLISTE-FORMAT
+========================= */
+.status-company-list .lead{
+    position:relative;
+    border:1px solid #dbe7f5;
+    background:linear-gradient(180deg,#fff,#f9fbff);
+    border-radius:20px;
+    box-shadow:0 10px 24px rgba(15,23,42,.045);
+    overflow:hidden;
+    transition:.18s;
+}
+
+.status-company-list .lead:before{
+    content:"";
+    position:absolute;
+    left:0;
+    top:0;
+    width:5px;
+    height:100%;
+    background:linear-gradient(180deg,#183a91,#2563eb);
+}
+
+.status-company-list .summary{
+    padding:16px 16px 14px 20px;
+    cursor:pointer;
+}
+
+.status-company-list .mainrow{
+    display:grid;
+    grid-template-columns:42px 1fr 38px;
+    gap:14px;
+    align-items:center;
+}
+
+.status-company-list .drag{
+    width:38px;
+    height:58px;
+    border-radius:15px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:22px;
+    line-height:1;
+    font-weight:900;
+    color:#64748b;
+    background:#f8fafc;
+    border:1px solid #e2e8f0;
+    cursor:grab;
+    user-select:none;
+}
+
+.status-company-list .kicker{
+    display:flex;
+    gap:8px;
+    flex-wrap:wrap;
+    margin-bottom:7px;
+}
+
+.status-company-list .badge,
+.status-company-list .status{
+    display:inline-flex;
+    align-items:center;
+    border-radius:999px;
+    padding:6px 9px;
+    font-size:11px;
+    font-weight:900;
+}
+
+.status-company-list .badge{
+    background:#eff6ff;
+    color:#1d4ed8;
+    border:1px solid #bfdbfe;
+}
+
+.status-company-list .status{
+    color:#475569;
+    background:#f1f5f9;
+    border:1px solid #e2e8f0;
+}
+
+.status-company-list .company{
+    font-size:17px;
+    font-weight:900;
+    color:#0f172a;
+}
+
+.status-company-list .meta{
+    margin-top:7px;
+    font-size:12px;
+    color:#64748b;
+    font-weight:800;
+}
+
+.status-company-list .toggle{
+    width:36px;
+    height:36px;
+    border-radius:14px;
+    background:#eff6ff;
+    color:#1d4ed8;
+    border:1px solid #bfdbfe;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:17px;
+    font-weight:900;
+    transition:.2s;
+}
+
+.status-company-list .lead.open .toggle{
+    transform:rotate(180deg);
+    background:#1d4ed8;
+    color:#fff;
+}
+
+.status-company-list .details{
+    display:none;
+    padding:0 16px 16px 76px;
+}
+
+.status-company-list .lead.open .details{
+    display:block;
+}
+
+.status-company-list .details-inner{
+    border-top:1px dashed #dbe7f5;
+    background:#f8fafc;
+    border-radius:16px;
+    padding:14px;
+}
+
+.status-company-list .grid{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:12px;
+}
+
+.status-company-list .box{
+    background:#fff;
+    border:1px solid #e2e8f0;
+    border-radius:14px;
+    padding:12px;
+}
+
+.status-company-list .box-label{
+    font-size:10px;
+    text-transform:uppercase;
+    font-weight:900;
+    color:#64748b;
+}
+
+.status-company-list .lead-edit-input{
+    width:100%;
+    border:1px solid #dbe3ef;
+    background:#fff;
+    border-radius:12px;
+    padding:10px 11px;
+    font-size:13px;
+    font-weight:800;
+    color:#0f172a;
+    outline:none;
+    margin-top:7px;
+}
+
+.status-company-list .lead-edit-input:focus{
+    border-color:#2563eb;
+    box-shadow:0 0 0 3px rgba(37,99,235,.10);
+}
+
+.status-company-list .lead-link-wrap{
+    position:relative;
+    width:100%;
+}
+
+.status-company-list .lead-link-wrap .lead-edit-input{
+    padding-right:44px;
+    color:#2563eb;
+    text-decoration:underline;
+    cursor:text;
+}
+
+.status-company-list .lead-open-btn{
+    position:absolute;
+    right:8px;
+    top:calc(50% + 3px);
+    transform:translateY(-50%);
+    width:30px;
+    height:30px;
+    border:none;
+    border-radius:10px;
+    background:#eff6ff;
+    color:#2563eb;
+    font-size:15px;
+    font-weight:900;
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+}
+
+.status-company-list .lead-open-btn:hover{
+    background:#2563eb;
+    color:#ffffff;
+}
+
+.status-company-list .note-row{
+    margin-top:12px;
+    display:grid;
+    grid-template-columns:1fr 170px;
+    gap:12px;
+}
+
+.status-company-list .note{
+    min-height:46px;
+    resize:vertical;
+    border:1px solid #dbe3ef;
+    border-radius:14px;
+    padding:12px 13px;
+    font-size:13px;
+    font-weight:700;
+    font-family:Arial;
+}
+
+.status-company-list .save{
+    border:none;
+    border-radius:14px;
+    background:#183a91;
+    color:#fff;
+    font-size:13px;
+    font-weight:900;
+    cursor:pointer;
+}
+
+@media (max-width: 900px){
+    .status-company-list .grid{
+        grid-template-columns:1fr;
+    }
+
+    .status-company-list .details{
+        padding-left:16px;
+    }
+
+    .status-company-list .note-row{
+        grid-template-columns:1fr;
+    }
+}
+
 </style>
 
 <div class="db-page">
@@ -1163,7 +1983,7 @@ body {
             </div>
 
             <div class="hero-actions">
-                <button class="hero-btn primary">+ Neuer Lead</button>
+                <button class="hero-btn primary" onclick="openApifyLeadModal()">+ Neuer Lead</button>
                 <button class="hero-btn">Import</button>
                 <button class="hero-btn" onclick="showDamlaPage()">Tagesliste öffnen</button>
             </div>
@@ -1263,6 +2083,61 @@ body {
                     <button type="button" class="workflow-btn" onclick="showKundenPage()">Kundenliste öffnen</button>
                 </div>
             </div>
+
+                                    <div class="status-board-grid">
+                <div class="status-board-card status-blue" onclick="openStatusList('angerufen')">
+                    <div class="status-board-count" id="countAngerufen">0</div>
+                    <div class="status-board-title">Angerufen</div>
+                    <div class="status-board-text">Firmen, bei denen Damla den Anruf bereits erledigt hat.</div>
+                </div>
+
+                <div class="status-board-card status-green" onclick="openStatusList('interessiert')">
+                    <div class="status-board-count" id="countInteressiert">0</div>
+                    <div class="status-board-title">Interessiert</div>
+                    <div class="status-board-text">Leads, die Interesse gezeigt haben und weiterverfolgt werden.</div>
+                </div>
+
+                <div class="status-board-card status-cyan" onclick="openStatusList('besichtigung')">
+                    <div class="status-board-count" id="countBesichtigung">0</div>
+                    <div class="status-board-title">Besichtigung</div>
+                    <div class="status-board-text">Firmen, die für einen Besichtigungstermin vorbereitet werden.</div>
+                </div>
+
+                <div class="status-board-card status-purple" onclick="openStatusList('kontaktformular')">
+                    <div class="status-board-count" id="countKontaktformular">0</div>
+                    <div class="status-board-title">Kontaktformular</div>
+                    <div class="status-board-text">Firmen, bei denen ein Formular oder eine Nachricht gesendet wurde.</div>
+                </div>
+
+                <div class="status-board-card status-yellow" onclick="openStatusList('spaeter')">
+                    <div class="status-board-count" id="countSpaeter">0</div>
+                    <div class="status-board-title">Später anrufen</div>
+                    <div class="status-board-text">Kontakte, die zu einem späteren Zeitpunkt erneut angerufen werden.</div>
+                </div>
+
+                <div class="status-board-card status-red" onclick="openStatusList('verloren')">
+                    <div class="status-board-count" id="countVerloren">0</div>
+                    <div class="status-board-title">Verloren</div>
+                    <div class="status-board-text">Firmen, die aktuell nicht weiter bearbeitet werden.</div>
+                </div>
+            </div>
+
+            <section class="status-list-panel view-hidden" id="statusListPanel">
+                <div class="status-list-head">
+                    <div>
+                        <h2 id="statusListTitle">Angerufen</h2>
+                        <p id="statusListSub">Firmenliste nach Status.</p>
+                    </div>
+                    <button type="button" class="status-list-close" onclick="closeStatusList()">Schließen</button>
+                </div>
+
+                <div class="status-company-list" id="statusCompanyList"></div>
+
+                <div class="status-empty" id="statusEmpty">
+                    <strong>Keine Firmen in dieser Liste.</strong>
+                    Sobald Damla einen Lead markiert, erscheint er hier.
+                </div>
+            </section>
 
             <div class="branchen-toggle-card" id="branchenToggle" onclick="toggleBranchenPanel()">
                 <div class="branchen-toggle-left">
@@ -1382,17 +2257,701 @@ body {
 
 <iframe title="KG Portal Tagesliste" style="width:100%;height:1350px;border:0;border-radius:22px;display:block;background:#e9eef5;" srcdoc="&lt;!DOCTYPE html&gt;
 &lt;html lang=&quot;de&quot;&gt;
+
 &lt;head&gt;
 &lt;meta charset=&quot;UTF-8&quot;&gt;
 &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot;&gt;
 &lt;title&gt;Tagesliste Test&lt;/title&gt;
+
 &lt;script src=&quot;https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js&quot;&gt;&lt;/script&gt;
+
 &lt;style&gt;
-*{box-sizing:border-box}html,body{margin:0;padding:0}body{background:#e9eef5;font-family:Arial,Helvetica,sans-serif;color:#0f172a;padding:18px}.page{width:min(100%,1180px);margin:0 auto}.goal{display:grid;grid-template-columns:1fr auto;gap:22px;align-items:center;margin-bottom:18px;padding:22px 26px;border-radius:24px;background:linear-gradient(135deg,#183a91,#2563eb);color:#fff;box-shadow:0 16px 34px rgba(24,58,145,.16);position:relative;overflow:hidden}.goal:after{content:&quot;&quot;;position:absolute;right:-70px;top:-90px;width:230px;height:230px;border-radius:50%;background:rgba(255,255,255,.12)}.goal-text{position:relative;z-index:1}.goal-label{display:inline-flex;margin-bottom:8px;padding:7px 11px;border-radius:999px;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.22);font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:.65px}.goal-title{font-size:24px;font-weight:900}.goal-sub{margin-top:6px;font-size:13px;font-weight:700;color:rgba(255,255,255,.86)}.goal-number{position:relative;z-index:1;min-width:112px;height:86px;border-radius:22px;background:#fff;color:#183a91;display:flex;align-items:center;justify-content:center;font-size:42px;font-weight:900}.card{border:1px solid #dbe3ef;background:#fff;border-radius:22px;box-shadow:0 12px 26px rgba(15,23,42,.045);overflow:hidden}.search{display:grid;grid-template-columns:1fr 190px;gap:12px;padding:16px;border-bottom:1px solid #edf2f7}.search input,.search select{border:1px solid #dbe3ef;background:#f8fafc;border-radius:14px;padding:13px 15px;font-size:13px;font-weight:700;color:#0f172a;outline:none}.addbar{padding:0 16px 16px 16px;border-bottom:1px solid #edf2f7}.addtoggle{width:100%;border:1px dashed #93c5fd;background:#eff6ff;color:#1d4ed8;border-radius:16px;padding:13px 16px;font-size:13px;font-weight:900;cursor:pointer;text-align:left}.addform{display:none;margin-top:12px;padding:14px;border:1px solid #dbe7f5;background:#f8fbff;border-radius:18px}.addform.open{display:block}.addgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.addgrid input{width:100%;border:1px solid #dbe3ef;background:#fff;border-radius:12px;padding:11px 12px;font-size:12px;font-weight:800;color:#0f172a;outline:none}.addactions{margin-top:12px;display:flex;gap:10px;justify-content:flex-end}.addbtn{border:none;border-radius:12px;padding:11px 15px;font-size:12px;font-weight:900;cursor:pointer}.addsave{background:#183a91;color:#fff}.addclear{background:#f1f5f9;color:#475569}.list{padding:16px}.lead{position:relative;border:1px solid #dbe7f5;background:linear-gradient(180deg,#fff,#f9fbff);border-radius:20px;box-shadow:0 10px 24px rgba(15,23,42,.045);overflow:hidden;transition:.18s}.lead.search-match{border-color:#2563eb;box-shadow:0 14px 30px rgba(37,99,235,.14);transform:translateY(-1px)}.lead.search-muted{opacity:.42;filter:grayscale(.15)}.lead:before{content:&quot;&quot;;position:absolute;left:0;top:0;width:5px;height:100%;background:linear-gradient(180deg,#183a91,#2563eb)}.summary{padding:16px 16px 14px 20px;cursor:pointer}.mainrow{display:grid;grid-template-columns:42px 1fr 38px;gap:14px;align-items:center}.drag{width:38px;height:58px;border-radius:15px;display:flex;align-items:center;justify-content:center;font-size:22px;line-height:1;font-weight:900;color:#64748b;background:#f8fafc;border:1px solid #e2e8f0;cursor:grab;user-select:none}.kicker{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:7px}.badge,.status{display:inline-flex;align-items:center;border-radius:999px;padding:6px 9px;font-size:11px;font-weight:900}.badge{background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe}.status{color:#475569;background:#f1f5f9;border:1px solid #e2e8f0}.company{font-size:17px;font-weight:900;color:#0f172a}.meta{margin-top:7px;font-size:12px;color:#64748b;font-weight:800}.contact-label{font-size:10px;text-transform:uppercase;font-weight:900;color:#64748b}.contact-name{margin-top:5px;font-size:13px;font-weight:900;color:#0f172a}.phone{display:inline-flex;margin-top:6px;font-size:13px;font-weight:900;color:#2563eb;text-decoration:none}.toggle{width:36px;height:36px;border-radius:14px;background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe;display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:900;transition:.2s}.lead.open .toggle{transform:rotate(180deg);background:#1d4ed8;color:#fff}.actions{margin-top:14px;padding-left:56px;display:grid;grid-template-columns:repeat(6,1fr);gap:9px;position:relative}.btn{border:1px solid transparent;border-radius:14px;padding:11px 10px;font-size:12px;font-weight:900;cursor:pointer;min-height:42px;display:flex;align-items:center;justify-content:center;gap:7px}.blue{background:#eff6ff;color:#1d4ed8;border-color:#bfdbfe}.green{background:#ecfdf5;color:#047857;border-color:#bbf7d0}.form{background:#f5f3ff;color:#6d28d9;border-color:#ddd6fe}.later{background:#fffbeb;color:#b45309;border-color:#fde68a}.red{background:#fef2f2;color:#dc2626;border-color:#fecaca}.active-blue{background:#1d4ed8!important;color:#fff!important;border-color:#1d4ed8!important}.active-green{background:#047857!important;color:#fff!important;border-color:#047857!important}.active-form{background:#6d28d9!important;color:#fff!important;border-color:#6d28d9!important}.active-later{background:#b45309!important;color:#fff!important;border-color:#b45309!important}.active-red{background:#b91c1c!important;color:#fff!important;border-color:#b91c1c!important}.datepick{position:absolute;opacity:0;width:1px;height:1px;left:0;bottom:0}.actions.form-open{padding-bottom:62px}.form-choice{display:none;position:absolute;left:56px;right:0;top:51px;z-index:5;grid-template-columns:1fr 1fr;gap:8px;padding:10px;border:1px solid #ddd6fe;background:#ffffff;border-radius:16px;box-shadow:0 12px 26px rgba(15,23,42,.12)}.form-choice.open{display:grid}.form-choice-btn{border:1px solid #ddd6fe;background:#f5f3ff;color:#6d28d9;border-radius:12px;padding:10px 12px;font-size:12px;font-weight:900;cursor:pointer}.form-choice-btn:hover{background:#6d28d9;color:#fff}.actions.visit-open{padding-bottom:62px}.visit-choice{display:none;position:absolute;left:56px;right:0;top:51px;z-index:6;grid-template-columns:220px 1fr 1fr;gap:8px;padding:10px;border:1px solid #bfdbfe;background:#ffffff;border-radius:16px;box-shadow:0 12px 26px rgba(15,23,42,.12)}.visit-choice.open{display:grid}.visit-date{border:1px solid #dbe3ef;background:#f8fafc;border-radius:12px;padding:10px 12px;font-size:12px;font-weight:800;color:#0f172a;outline:none}.visit-choice-btn{border:1px solid #bfdbfe;background:#eff6ff;color:#1d4ed8;border-radius:12px;padding:10px 12px;font-size:12px;font-weight:900;cursor:pointer}.visit-choice-btn:hover{background:#1d4ed8;color:#fff}.details{display:none;padding:0 16px 16px 76px}.lead.open .details{display:block}.details-inner{border-top:1px dashed #dbe7f5;background:#f8fafc;border-radius:16px;padding:14px}.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.box{background:#fff;border:1px solid #e2e8f0;border-radius:14px;padding:12px}.box-label{font-size:10px;text-transform:uppercase;font-weight:900;color:#64748b}.box-value{margin-top:5px;font-size:13px;font-weight:800}.box-value a{color:#2563eb;text-decoration:none}.note-row{margin-top:12px;display:grid;grid-template-columns:1fr 170px;gap:12px}.note{min-height:46px;resize:vertical;border:1px solid #dbe3ef;border-radius:14px;padding:12px 13px;font-size:13px;font-weight:700;font-family:Arial}.save{border:none;border-radius:14px;background:#183a91;color:#fff;font-size:13px;font-weight:900;cursor:pointer}@media(max-width:900px){.mainrow{grid-template-columns:42px 1fr 38px}.contact{grid-column:2/4}.actions{padding-left:56px;grid-template-columns:repeat(2,1fr)}.details{padding-left:20px}.grid,.note-row{grid-template-columns:1fr}}@media(max-width:640px){body{padding:12px}.goal{grid-template-columns:1fr}.goal-number{width:100%}.search{grid-template-columns:1fr}.actions{padding-left:0}}
-.delete-modal{position:fixed;inset:0;background:rgba(15,23,42,.45);display:none;align-items:center;justify-content:center;z-index:9999;padding:18px}.delete-modal.open{display:flex}.delete-box{width:min(100%,360px);background:#fff;border:1px solid #dbe3ef;border-radius:22px;box-shadow:0 22px 55px rgba(15,23,42,.22);padding:20px}.delete-title{font-size:19px;font-weight:900;color:#0f172a}.delete-text{margin-top:8px;font-size:13px;font-weight:700;color:#64748b;line-height:1.45}.delete-actions{margin-top:18px;display:grid;grid-template-columns:1fr 1fr;gap:10px}.delete-cancel,.delete-ok{height:44px;border:0;border-radius:14px;font-size:13px;font-weight:900;cursor:pointer}.delete-cancel{background:#f1f5f9;color:#475569}.delete-ok{background:#dc2626;color:#fff}.delete-ok:hover{background:#b91c1c}
+*{box-sizing:border-box}
+
+html,body{margin:0;padding:0}
+
+body{
+    background:#e9eef5;
+    font-family:Arial,Helvetica,sans-serif;
+    color:#0f172a;
+    padding:18px;
+}
+
+.page{
+    width:min(100%,1180px);
+    margin:0 auto;
+}
+
+.goal{
+    display:grid;
+    grid-template-columns:1fr auto;
+    gap:22px;
+    align-items:center;
+    margin-bottom:18px;
+    padding:22px 26px;
+    border-radius:24px;
+    background:linear-gradient(135deg,#183a91,#2563eb);
+    color:#fff;
+    box-shadow:0 16px 34px rgba(24,58,145,.16);
+    position:relative;
+    overflow:hidden;
+}
+
+.goal:after{
+    content:&quot;&quot;;
+    position:absolute;
+    right:-70px;
+    top:-90px;
+    width:230px;
+    height:230px;
+    border-radius:50%;
+    background:rgba(255,255,255,.12);
+}
+
+.goal-text{position:relative;z-index:1}
+
+.goal-label{
+    display:inline-flex;
+    margin-bottom:8px;
+    padding:7px 11px;
+    border-radius:999px;
+    background:rgba(255,255,255,.15);
+    border:1px solid rgba(255,255,255,.22);
+    font-size:11px;
+    font-weight:900;
+    text-transform:uppercase;
+    letter-spacing:.65px;
+}
+
+.goal-title{
+    font-size:24px;
+    font-weight:900;
+}
+
+.goal-sub{
+    margin-top:6px;
+    font-size:13px;
+    font-weight:700;
+    color:rgba(255,255,255,.86);
+}
+
+.goal-number{
+    position:relative;
+    z-index:1;
+    min-width:112px;
+    height:86px;
+    border-radius:22px;
+    background:#fff;
+    color:#183a91;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:42px;
+    font-weight:900;
+}
+
+.card{
+    border:1px solid #dbe3ef;
+    background:#fff;
+    border-radius:22px;
+    box-shadow:0 12px 26px rgba(15,23,42,.045);
+    overflow:hidden;
+}
+
+.search{
+    display:grid;
+    grid-template-columns:1fr 190px;
+    gap:12px;
+    padding:16px;
+    border-bottom:1px solid #edf2f7;
+}
+
+.search input,
+.search select{
+    border:1px solid #dbe3ef;
+    background:#f8fafc;
+    border-radius:14px;
+    padding:13px 15px;
+    font-size:13px;
+    font-weight:700;
+    color:#0f172a;
+    outline:none;
+}
+
+.addbar{
+    padding:0 16px 16px 16px;
+    border-bottom:1px solid #edf2f7;
+}
+
+.addtoggle{
+    width:100%;
+    border:1px dashed #93c5fd;
+    background:#eff6ff;
+    color:#1d4ed8;
+    border-radius:16px;
+    padding:13px 16px;
+    font-size:13px;
+    font-weight:900;
+    cursor:pointer;
+    text-align:left;
+}
+
+.addform{
+    display:none;
+    margin-top:12px;
+    padding:14px;
+    border:1px solid #dbe7f5;
+    background:#f8fbff;
+    border-radius:18px;
+}
+
+.addform.open{display:block}
+
+.addgrid{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:10px;
+}
+
+.addgrid input{
+    width:100%;
+    border:1px solid #dbe3ef;
+    background:#fff;
+    border-radius:12px;
+    padding:11px 12px;
+    font-size:12px;
+    font-weight:800;
+    color:#0f172a;
+    outline:none;
+}
+
+.addactions{
+    margin-top:12px;
+    display:flex;
+    gap:10px;
+    justify-content:flex-end;
+}
+
+.addbtn{
+    border:none;
+    border-radius:12px;
+    padding:11px 15px;
+    font-size:12px;
+    font-weight:900;
+    cursor:pointer;
+}
+
+.addsave{
+    background:#183a91;
+    color:#fff;
+}
+
+.addclear{
+    background:#f1f5f9;
+    color:#475569;
+}
+
+.list{padding:16px}
+
+.lead{
+    position:relative;
+    border:1px solid #dbe7f5;
+    background:linear-gradient(180deg,#fff,#f9fbff);
+    border-radius:20px;
+    box-shadow:0 10px 24px rgba(15,23,42,.045);
+    overflow:hidden;
+    transition:.18s;
+}
+
+.lead.search-match{
+    border-color:#2563eb;
+    box-shadow:0 14px 30px rgba(37,99,235,.14);
+    transform:translateY(-1px);
+}
+
+.lead.search-muted{
+    opacity:.42;
+    filter:grayscale(.15);
+}
+
+.lead:before{
+    content:&quot;&quot;;
+    position:absolute;
+    left:0;
+    top:0;
+    width:5px;
+    height:100%;
+    background:linear-gradient(180deg,#183a91,#2563eb);
+}
+
+.summary{
+    padding:16px 16px 14px 20px;
+    cursor:pointer;
+}
+
+.mainrow{
+    display:grid;
+    grid-template-columns:42px 1fr 38px;
+    gap:14px;
+    align-items:center;
+}
+
+.drag{
+    width:38px;
+    height:58px;
+    border-radius:15px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:22px;
+    line-height:1;
+    font-weight:900;
+    color:#64748b;
+    background:#f8fafc;
+    border:1px solid #e2e8f0;
+    cursor:grab;
+    user-select:none;
+}
+
+.kicker{
+    display:flex;
+    gap:8px;
+    flex-wrap:wrap;
+    margin-bottom:7px;
+}
+
+.badge,
+.status{
+    display:inline-flex;
+    align-items:center;
+    border-radius:999px;
+    padding:6px 9px;
+    font-size:11px;
+    font-weight:900;
+}
+
+.badge{
+    background:#eff6ff;
+    color:#1d4ed8;
+    border:1px solid #bfdbfe;
+}
+
+.status{
+    color:#475569;
+    background:#f1f5f9;
+    border:1px solid #e2e8f0;
+}
+
+.company{
+    font-size:17px;
+    font-weight:900;
+    color:#0f172a;
+}
+
+.meta{
+    margin-top:7px;
+    font-size:12px;
+    color:#64748b;
+    font-weight:800;
+}
+
+.contact-label{
+    font-size:10px;
+    text-transform:uppercase;
+    font-weight:900;
+    color:#64748b;
+}
+
+.contact-name{
+    margin-top:5px;
+    font-size:13px;
+    font-weight:900;
+    color:#0f172a;
+}
+
+.phone{
+    display:inline-flex;
+    margin-top:6px;
+    font-size:13px;
+    font-weight:900;
+    color:#2563eb;
+    text-decoration:none;
+}
+
+.toggle{
+    width:36px;
+    height:36px;
+    border-radius:14px;
+    background:#eff6ff;
+    color:#1d4ed8;
+    border:1px solid #bfdbfe;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:17px;
+    font-weight:900;
+    transition:.2s;
+}
+
+.lead.open .toggle{
+    transform:rotate(180deg);
+    background:#1d4ed8;
+    color:#fff;
+}
+
+.actions{
+    margin-top:14px;
+    padding-left:56px;
+    display:grid;
+    grid-template-columns:repeat(6,1fr);
+    gap:9px;
+    position:relative;
+}
+
+.btn{
+    border:1px solid transparent;
+    border-radius:14px;
+    padding:11px 10px;
+    font-size:12px;
+    font-weight:900;
+    cursor:pointer;
+    min-height:42px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:7px;
+}
+
+.blue{background:#eff6ff;color:#1d4ed8;border-color:#bfdbfe}
+.green{background:#ecfdf5;color:#047857;border-color:#bbf7d0}
+.form{background:#f5f3ff;color:#6d28d9;border-color:#ddd6fe}
+.later{background:#fffbeb;color:#b45309;border-color:#fde68a}
+.red{background:#fef2f2;color:#dc2626;border-color:#fecaca}
+
+.active-blue{background:#1d4ed8!important;color:#fff!important;border-color:#1d4ed8!important}
+.active-green{background:#047857!important;color:#fff!important;border-color:#047857!important}
+.active-form{background:#6d28d9!important;color:#fff!important;border-color:#6d28d9!important}
+.active-later{background:#b45309!important;color:#fff!important;border-color:#b45309!important}
+.active-red{background:#b91c1c!important;color:#fff!important;border-color:#b91c1c!important}
+
+.datepick{
+    position:absolute;
+    opacity:0;
+    width:1px;
+    height:1px;
+    left:0;
+    bottom:0;
+}
+
+.actions.form-open{padding-bottom:62px}
+
+.form-choice{
+    display:none;
+    position:absolute;
+    left:56px;
+    right:0;
+    top:51px;
+    z-index:5;
+    grid-template-columns:1fr 1fr;
+    gap:8px;
+    padding:10px;
+    border:1px solid #ddd6fe;
+    background:#ffffff;
+    border-radius:16px;
+    box-shadow:0 12px 26px rgba(15,23,42,.12);
+}
+
+.form-choice.open{display:grid}
+
+.form-choice-btn{
+    border:1px solid #ddd6fe;
+    background:#f5f3ff;
+    color:#6d28d9;
+    border-radius:12px;
+    padding:10px 12px;
+    font-size:12px;
+    font-weight:900;
+    cursor:pointer;
+}
+
+.form-choice-btn:hover{
+    background:#6d28d9;
+    color:#fff;
+}
+
+.actions.visit-open{padding-bottom:62px}
+
+.visit-choice{
+    display:none;
+    position:absolute;
+    left:56px;
+    right:0;
+    top:51px;
+    z-index:6;
+    grid-template-columns:220px 1fr 1fr;
+    gap:8px;
+    padding:10px;
+    border:1px solid #bfdbfe;
+    background:#ffffff;
+    border-radius:16px;
+    box-shadow:0 12px 26px rgba(15,23,42,.12);
+}
+
+.visit-choice.open{display:grid}
+
+.visit-date{
+    border:1px solid #dbe3ef;
+    background:#f8fafc;
+    border-radius:12px;
+    padding:10px 12px;
+    font-size:12px;
+    font-weight:800;
+    color:#0f172a;
+    outline:none;
+}
+
+.visit-choice-btn{
+    border:1px solid #bfdbfe;
+    background:#eff6ff;
+    color:#1d4ed8;
+    border-radius:12px;
+    padding:10px 12px;
+    font-size:12px;
+    font-weight:900;
+    cursor:pointer;
+}
+
+.visit-choice-btn:hover{
+    background:#1d4ed8;
+    color:#fff;
+}
+
+.details{
+    display:none;
+    padding:0 16px 16px 76px;
+}
+
+.lead.open .details{display:block}
+
+.details-inner{
+    border-top:1px dashed #dbe7f5;
+    background:#f8fafc;
+    border-radius:16px;
+    padding:14px;
+}
+
+.grid{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:12px;
+}
+
+.box{
+    background:#fff;
+    border:1px solid #e2e8f0;
+    border-radius:14px;
+    padding:12px;
+}
+
+.box-label{
+    font-size:10px;
+    text-transform:uppercase;
+    font-weight:900;
+    color:#64748b;
+}
+
+.box-value{
+    margin-top:5px;
+    font-size:13px;
+    font-weight:800;
+}
+
+.box-value a{
+    color:#2563eb;
+    text-decoration:none;
+}
+
+.lead-edit-input{
+    width:100%;
+    border:1px solid #dbe3ef;
+    background:#fff;
+    border-radius:12px;
+    padding:10px 11px;
+    font-size:13px;
+    font-weight:800;
+    color:#0f172a;
+    outline:none;
+    margin-top:7px;
+}
+
+.lead-edit-input:focus{
+    border-color:#2563eb;
+    box-shadow:0 0 0 3px rgba(37,99,235,.10);
+}
+
+.lead-edit-input[data-field=mail]{
+    color:#2563eb;
+}
+
+.lead-edit-input[data-field=web]{
+    color:#2563eb;
+}
+
+.lead-edit-linklike{
+    color:#2563eb;
+    text-decoration:underline;
+    cursor:pointer;
+}
+.lead-link-wrap{
+ position:relative;
+ width:100%;
+}
+
+.lead-link-wrap .lead-edit-input{
+ padding-right:44px;
+ color:#2563eb;
+ text-decoration:underline;
+ cursor:text;
+}
+.lead-open-btn{
+ position:absolute;
+ right:8px;
+ top:calc(50% + 3px);
+ transform:translateY(-50%);
+ width:30px;
+ height:30px;
+ border:none;
+ border-radius:10px;
+ background:#eff6ff;
+ color:#2563eb;
+ font-size:15px;
+ font-weight:900;
+ cursor:pointer;
+ display:flex;
+ align-items:center;
+ justify-content:center;
+}
+
+.lead-open-btn:hover{
+ background:#2563eb;
+ color:#ffffff;
+}
+
+.note-row{
+    margin-top:12px;
+    display:grid;
+    grid-template-columns:1fr 170px;
+    gap:12px;
+}
+
+.note{
+    min-height:46px;
+    resize:vertical;
+    border:1px solid #dbe3ef;
+    border-radius:14px;
+    padding:12px 13px;
+    font-size:13px;
+    font-weight:700;
+    font-family:Arial;
+}
+
+.save{
+    border:none;
+    border-radius:14px;
+    background:#183a91;
+    color:#fff;
+    font-size:13px;
+    font-weight:900;
+    cursor:pointer;
+}
+
+@media(max-width:900px){
+    .mainrow{grid-template-columns:42px 1fr 38px}
+    .contact{grid-column:2/4}
+    .actions{padding-left:56px;grid-template-columns:repeat(2,1fr)}
+    .details{padding-left:20px}
+    .grid,.note-row{grid-template-columns:1fr}
+}
+
+@media(max-width:640px){
+    body{padding:12px}
+    .goal{grid-template-columns:1fr}
+    .goal-number{width:100%}
+    .search{grid-template-columns:1fr}
+    .actions{padding-left:0}
+}
+
+.delete-modal{
+    position:fixed;
+    inset:0;
+    background:rgba(15,23,42,.45);
+    display:none;
+    align-items:center;
+    justify-content:center;
+    z-index:9999;
+    padding:18px;
+}
+
+.delete-modal.open{display:flex}
+
+.delete-box{
+    width:min(100%,360px);
+    background:#fff;
+    border:1px solid #dbe3ef;
+    border-radius:22px;
+    box-shadow:0 22px 55px rgba(15,23,42,.22);
+    padding:20px;
+}
+
+.delete-title{
+    font-size:19px;
+    font-weight:900;
+    color:#0f172a;
+}
+
+.delete-text{
+    margin-top:8px;
+    font-size:13px;
+    font-weight:700;
+    color:#64748b;
+    line-height:1.45;
+}
+
+.delete-actions{
+    margin-top:18px;
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:10px;
+}
+
+.delete-cancel,
+.delete-ok{
+    height:44px;
+    border:0;
+    border-radius:14px;
+    font-size:13px;
+    font-weight:900;
+    cursor:pointer;
+}
+
+.delete-cancel{
+    background:#f1f5f9;
+    color:#475569;
+}
+
+.delete-ok{
+    background:#dc2626;
+    color:#fff;
+}
+
+.delete-ok:hover{
+    background:#b91c1c;
+}
 &lt;/style&gt;
+
 &lt;/head&gt;
 &lt;body&gt;
+
 &lt;div class=&quot;page&quot;&gt;
   &lt;div class=&quot;goal&quot;&gt;
     &lt;div class=&quot;goal-text&quot;&gt;
@@ -1402,7 +2961,6 @@ body {
     &lt;/div&gt;
     &lt;div class=&quot;goal-number&quot;&gt;30&lt;/div&gt;
   &lt;/div&gt;
-
   &lt;section class=&quot;card&quot;&gt;
     &lt;div class=&quot;search&quot;&gt;
       &lt;input id=&quot;leadSearchInput&quot; type=&quot;text&quot; name=&quot;kgLeadSearchNoMemory&quot; placeholder=&quot;Firma, Branche, Stadt oder PLZ suchen...&quot; autocomplete=&quot;new-password&quot; autocorrect=&quot;off&quot; autocapitalize=&quot;off&quot; spellcheck=&quot;false&quot; readonly onfocus=&quot;this.removeAttribute(&#x27;readonly&#x27;)&quot; value=&quot;&quot;&gt;
@@ -1445,19 +3003,60 @@ body {
   &lt;/div&gt;
 &lt;/div&gt;
 &lt;script&gt;
-const leads=[
-{tag:&#x27;Praxis&#x27;,firma:&#x27;Nordrhein Medizinzentrum GmbH&#x27;,ort:&#x27;Düsseldorf&#x27;,plz:&#x27;40212&#x27;,str:&#x27;Königsallee 10&#x27;,kontakt:&#x27;Frau Dr. Hohenberg&#x27;,tel:&#x27;0203 000000&#x27;,mail:&#x27;info@med-nordrhein.de&#x27;,web:&#x27;www.med-nordrhein.de&#x27;},
-{tag:&#x27;Kanzlei&#x27;,firma:&#x27;Schwertfeger Rechtsanwälte&#x27;,ort:&#x27;Düsseldorf&#x27;,plz:&#x27;40213&#x27;,str:&#x27;Breite Str. 20&#x27;,kontakt:&#x27;Herr Schwertfeger&#x27;,tel:&#x27;0211 000000&#x27;,mail:&#x27;kanzlei@schwertfeger.de&#x27;,web:&#x27;www.schwertfeger.de&#x27;},
-{tag:&#x27;Fitness&#x27;,firma:&#x27;FitPoint Studio Duisburg GmbH&#x27;,ort:&#x27;Duisburg&#x27;,plz:&#x27;47057&#x27;,str:&#x27;Sternbuschweg 100&#x27;,kontakt:&#x27;Frau Keller&#x27;,tel:&#x27;0203 111111&#x27;,mail:&#x27;kontakt@fitpoint-du.de&#x27;,web:&#x27;www.fitpoint-du.de&#x27;},
-{tag:&#x27;Büro&#x27;,firma:&#x27;Rhein Büroservice AG&#x27;,ort:&#x27;Düsseldorf&#x27;,plz:&#x27;40549&#x27;,str:&#x27;Hansaallee 150&#x27;,kontakt:&#x27;Empfang&#x27;,tel:&#x27;0211 222222&#x27;,mail:&#x27;service@rhein-buero.de&#x27;,web:&#x27;www.rhein-buero.de&#x27;},
-{tag:&#x27;Steuerberater&#x27;,firma:&#x27;Muster Steuerberatung GmbH&#x27;,ort:&#x27;Duisburg&#x27;,plz:&#x27;47051&#x27;,str:&#x27;Landfermannstr. 25&#x27;,kontakt:&#x27;Frau Neumann&#x27;,tel:&#x27;0203 333333&#x27;,mail:&#x27;info@muster-steuer.de&#x27;,web:&#x27;www.muster-steuer.de&#x27;},
-{tag:&#x27;Arztpraxis&#x27;,firma:&#x27;Praxis am Innenhafen&#x27;,ort:&#x27;Duisburg&#x27;,plz:&#x27;47059&#x27;,str:&#x27;Schifferstr. 50&#x27;,kontakt:&#x27;Praxisleitung&#x27;,tel:&#x27;0203 444444&#x27;,mail:&#x27;praxis@innenhafen.de&#x27;,web:&#x27;www.innenhafen.de&#x27;}
-];
+const tageslisteDb = {{ tagesliste_leads|default([])|tojson|forceescape }};
+
+const leads = tageslisteDb.map(item => ({
+    id: item.id || 0,
+    source_lead_id: item.source_lead_id || 0,
+    db_status: item.status || 'offen',
+    tag: item.branche || 'Ohne Branche',
+    firma: item.firma || '',
+    ort: item.ort || '',
+    plz: item.plz || '',
+    str: item.strasse || '',
+    kontakt: item.ansprechpartner || '',
+    tel: item.telefon || '',
+    mail: item.email || '',
+    web: item.website || '',
+    notiz: item.notiz || ''
+}));
 function updateListCount(count){const n=document.querySelector(&#x27;.goal-number&#x27;);if(n)n.textContent=count}
 let pendingDeleteIndex = null;
 function delLd(e,i){e.stopPropagation();pendingDeleteIndex=i;document.getElementById(&#x27;deleteModal&#x27;).classList.add(&#x27;open&#x27;)}
 function cancelDeleteLead(){pendingDeleteIndex=null;document.getElementById(&#x27;deleteModal&#x27;).classList.remove(&#x27;open&#x27;)}
-function confirmDeleteLead(){if(pendingDeleteIndex!==null){leads.splice(pendingDeleteIndex,1);renderLeads()}cancelDeleteLead()}
+async function confirmDeleteLead(){
+ if(pendingDeleteIndex!==null){
+  const lead = leads[pendingDeleteIndex];
+
+  try{
+   const response = await fetch('/datenbank/tagesliste-remove',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({
+     id: lead.id || 0,
+     source_lead_id: lead.source_lead_id || 0,
+     status: lead.db_status || 'offen'
+    })
+   });
+
+   const data = await response.json();
+
+   if(!data.ok){
+    alert(data.message || 'Lead konnte nicht gelöscht werden.');
+    return;
+   }
+
+   leads.splice(pendingDeleteIndex,1);
+   renderLeads();
+   bindLeadButtons();
+
+  }catch(err){
+   alert('Löschen Fehler: ' + err);
+  }
+ }
+
+ cancelDeleteLead();
+}
 function leadMatchesSearch(l){
  const searchEl=document.getElementById(&#x27;leadSearchInput&#x27;);
  const groupEl=document.getElementById(&#x27;leadGroupFilter&#x27;);
@@ -1471,6 +3070,7 @@ function leadMatchesSearch(l){
  if(group===&#x27;Fitness, Sport &amp; Freizeit&#x27;)groupOk=[&#x27;fitness&#x27;,&#x27;sport&#x27;,&#x27;freizeit&#x27;].some(x=&gt;(l.tag||&#x27;&#x27;).toLowerCase().includes(x));
  return textOk &amp;&amp; groupOk;
 }
+
 function renderLeads(){
  const list=document.getElementById(&#x27;dailySortable&#x27;);
  const searchEl=document.getElementById(&#x27;leadSearchInput&#x27;);
@@ -1478,8 +3078,14 @@ function renderLeads(){
  const searchActive=!!((searchEl&amp;&amp;searchEl.value.trim()) || (groupEl&amp;&amp;groupEl.value!==&#x27;Alle Gruppen&#x27;));
  const sortedLeads=[...leads].sort((a,b)=&gt;Number(leadMatchesSearch(b))-Number(leadMatchesSearch(a)));
  const matchCount=sortedLeads.filter(leadMatchesSearch).length;
- list.innerHTML=sortedLeads.map(l=&gt;`
-  &lt;div class=&quot;lead ${searchActive ? (leadMatchesSearch(l) ? &#x27;search-match&#x27; : &#x27;search-muted&#x27;) : &#x27;&#x27;}&quot;&gt;
+
+ list.innerHTML=sortedLeads.map(l=&gt;{
+  const mailValue=l.mail || &#x27;&#x27;;
+  const webValue=l.web || &#x27;&#x27;;
+  const webHref=webValue ? (webValue.startsWith(&#x27;http&#x27;) ? webValue : &#x27;https://&#x27; + webValue) : &#x27;#&#x27;;
+
+  return `
+  &lt;div class=&quot;lead ${searchActive ? (leadMatchesSearch(l) ? &#x27;search-match&#x27; : &#x27;search-muted&#x27;) : &#x27;&#x27;}&quot; data-index=&quot;${leads.indexOf(l)}&quot;&gt;
    &lt;div class=&quot;summary&quot; onclick=&quot;toggleLead(event,this)&quot;&gt;
     &lt;div class=&quot;mainrow&quot;&gt;
      &lt;div class=&quot;drag&quot;&gt;☰&lt;/div&gt;
@@ -1490,38 +3096,260 @@ function renderLeads(){
      &lt;/div&gt;
      &lt;div class=&quot;toggle&quot;&gt;⌄&lt;/div&gt;
     &lt;/div&gt;
+
     &lt;div class=&quot;actions&quot;&gt;
-     &lt;button class=&quot;btn blue&quot; data-type=&quot;call&quot;&gt;☎ Anrufen&lt;/button&gt;
-     &lt;button class=&quot;btn green&quot; data-type=&quot;interest&quot;&gt;✓ Interessiert&lt;/button&gt;
-     &lt;button class=&quot;btn blue&quot; data-type=&quot;visit&quot;&gt;📅 Besichtigung&lt;/button&gt;
+     &lt;button class=&quot;btn blue&quot; data-type=&quot;call&quot; onclick=&quot;saveLeadStatus(event,${leads.indexOf(l)},&#x27;angerufen&#x27;,this)&quot;&gt;☎ Anrufen&lt;/button&gt;
+     &lt;button class=&quot;btn green&quot; data-type=&quot;interest&quot; onclick=&quot;saveLeadStatus(event,${leads.indexOf(l)},&#x27;interessiert&#x27;,this)&quot;&gt;✓ Interessiert&lt;/button&gt;
+     &lt;button class=&quot;btn blue&quot; data-type=&quot;visit&quot; onclick=&quot;saveLeadStatus(event,${leads.indexOf(l)},&#x27;besichtigung&#x27;,this)&quot;&gt;📅 Besichtigung&lt;/button&gt;
+
      &lt;div class=&quot;visit-choice&quot;&gt;
       &lt;input type=&quot;date&quot; class=&quot;visit-date&quot; lang=&quot;de&quot;&gt;
       &lt;button type=&quot;button&quot; class=&quot;visit-choice-btn&quot; onclick=&quot;chooseVisitType(event,this,&#x27;Sehr geehrte Damen und Herren&#x27;)&quot;&gt;Sehr geehrte Damen und Herren&lt;/button&gt;
       &lt;button type=&quot;button&quot; class=&quot;visit-choice-btn&quot; onclick=&quot;chooseVisitType(event,this,&#x27;Ansprechpartner&#x27;)&quot;&gt;Ansprechpartner&lt;/button&gt;
      &lt;/div&gt;
-     &lt;button class=&quot;btn form&quot; data-type=&quot;form&quot;&gt;✉ Kontaktformular&lt;/button&gt;
+
+     &lt;button class=&quot;btn form&quot; data-type=&quot;form&quot; onclick=&quot;saveLeadStatus(event,${leads.indexOf(l)},&#x27;kontaktformular&#x27;,this)&quot;&gt;✉ Kontaktformular&lt;/button&gt;
+
      &lt;div class=&quot;form-choice&quot;&gt;
       &lt;button type=&quot;button&quot; class=&quot;form-choice-btn&quot; onclick=&quot;chooseFormType(event,this,&#x27;Sehr geehrte Damen und Herren&#x27;)&quot;&gt;Sehr geehrte Damen und Herren&lt;/button&gt;
       &lt;button type=&quot;button&quot; class=&quot;form-choice-btn&quot; onclick=&quot;chooseFormType(event,this,&#x27;Ansprechpartner&#x27;)&quot;&gt;Ansprechpartner&lt;/button&gt;
      &lt;/div&gt;
-     &lt;button class=&quot;btn later&quot; data-type=&quot;later&quot;&gt;↷ Später&lt;/button&gt;
+
+     &lt;button class=&quot;btn later&quot; data-type=&quot;later&quot; onclick=&quot;saveLeadStatus(event,${leads.indexOf(l)},&#x27;spaeter&#x27;,this)&quot;&gt;↷ Später&lt;/button&gt;
      &lt;input type=&quot;date&quot; class=&quot;datepick&quot; lang=&quot;de&quot;&gt;
-     &lt;button class=&quot;btn red&quot; data-type=&quot;lost&quot;&gt;✕ Verloren&lt;/button&gt;
+     &lt;button class=&quot;btn red&quot; data-type=&quot;lost&quot; onclick=&quot;saveLeadStatus(event,${leads.indexOf(l)},&#x27;verloren&#x27;,this)&quot;&gt;✕ Verloren&lt;/button&gt;
     &lt;/div&gt;
    &lt;/div&gt;
+
    &lt;div class=&quot;details&quot;&gt;
     &lt;div class=&quot;details-inner&quot;&gt;
      &lt;div class=&quot;grid&quot;&gt;
-      &lt;div class=&quot;box&quot;&gt;&lt;div class=&quot;box-label&quot;&gt;Ansprechpartner&lt;/div&gt;&lt;div class=&quot;box-value&quot;&gt;&lt;div class=&quot;contact-name&quot;&gt;${l.kontakt || &#x27;&#x27;}&lt;/div&gt;&lt;a class=&quot;phone&quot; href=&quot;tel:${(l.tel || &#x27;&#x27;).replaceAll(&#x27; &#x27;,&#x27;&#x27;)}&quot;&gt;${l.tel || &#x27;&#x27;}&lt;/a&gt;&lt;/div&gt;&lt;/div&gt;
-      &lt;div class=&quot;box&quot;&gt;&lt;div class=&quot;box-label&quot;&gt;E-Mail Adresse&lt;/div&gt;&lt;div class=&quot;box-value&quot;&gt;&lt;a href=&quot;mailto:${l.mail || &#x27;&#x27;}&quot;&gt;${l.mail || &#x27;&#x27;}&lt;/a&gt;&lt;/div&gt;&lt;/div&gt;
-      &lt;div class=&quot;box&quot;&gt;&lt;div class=&quot;box-label&quot;&gt;Webseite&lt;/div&gt;&lt;div class=&quot;box-value&quot;&gt;&lt;a href=&quot;#&quot;&gt;${l.web || &#x27;&#x27;}&lt;/a&gt;&lt;/div&gt;&lt;/div&gt;
+
+          &lt;div class=&quot;box&quot;&gt;
+       &lt;div class=&quot;box-label&quot;&gt;Ansprechpartner&lt;/div&gt;
+       &lt;input class=&quot;lead-edit-input&quot; data-field=&quot;kontakt&quot; value=&quot;${l.kontakt || &#x27;&#x27;}&quot; onclick=&quot;event.stopPropagation()&quot;&gt;
+       &lt;input class=&quot;lead-edit-input&quot; data-field=&quot;tel&quot; value=&quot;${l.tel || &#x27;&#x27;}&quot; onclick=&quot;event.stopPropagation()&quot;&gt;
+      &lt;/div&gt;
+
+      &lt;div class=&quot;box&quot;&gt;
+       &lt;div class=&quot;box-label&quot;&gt;E-Mail Adresse&lt;/div&gt;
+       &lt;div class=&quot;lead-link-wrap&quot; onclick=&quot;event.stopPropagation()&quot;&gt;
+        &lt;input class=&quot;lead-edit-input&quot; data-field=&quot;mail&quot; value=&quot;${l.mail || &#x27;&#x27;}&quot;&gt;
+        &lt;button type=&quot;button&quot; class=&quot;lead-open-btn&quot; onclick=&quot;openLeadMail(event,this)&quot;&gt;↗&lt;/button&gt;
+       &lt;/div&gt;
+      &lt;/div&gt;
+
+      &lt;div class=&quot;box&quot;&gt;
+       &lt;div class=&quot;box-label&quot;&gt;Webseite&lt;/div&gt;
+       &lt;div class=&quot;lead-link-wrap&quot; onclick=&quot;event.stopPropagation()&quot;&gt;
+        &lt;input class=&quot;lead-edit-input&quot; data-field=&quot;web&quot; value=&quot;${l.web || &#x27;&#x27;}&quot;&gt;
+        &lt;button type=&quot;button&quot; class=&quot;lead-open-btn&quot; onclick=&quot;openLeadWeb(event,this)&quot;&gt;↗&lt;/button&gt;
+       &lt;/div&gt;
+      &lt;/div&gt;
+
      &lt;/div&gt;
-     &lt;div class=&quot;note-row&quot;&gt;&lt;textarea class=&quot;note&quot; placeholder=&quot;Notiz zum Telefonat / nächste Aktion...&quot;&gt;&lt;/textarea&gt;&lt;button class=&quot;save&quot;&gt;Notiz speichern&lt;/button&gt;&lt;/div&gt;
+
+     &lt;div class=&quot;note-row&quot;&gt;
+      &lt;textarea class=&quot;note&quot; placeholder=&quot;Notiz zum Telefonat / nächste Aktion...&quot;&gt;${l.notiz || &#x27;&#x27;}&lt;/textarea&gt;
+      &lt;button class=&quot;save&quot; onclick=&quot;saveLeadNote(event,${leads.indexOf(l)},this)&quot;&gt;Notiz speichern&lt;/button&gt;
+     &lt;/div&gt;
+
     &lt;/div&gt;
    &lt;/div&gt;
-  &lt;/div&gt;`).join(&#x27;&#x27;);
+  &lt;/div&gt;`;
+ }).join(&#x27;&#x27;);
+
  updateListCount(searchActive ? matchCount : leads.length);
 }
+
+async function saveLeadStatus(event,index,statusKey,btn){
+ event.stopPropagation();
+ const lead=leads[index];
+ if(!lead)return;
+
+ const card=btn.closest('.lead');
+ const statusEl=card ? card.querySelector('.status') : null;
+
+ if(btn.dataset.skipNextSave===&#x27;true&#x27;){
+  btn.dataset.skipNextSave=&#x27;false&#x27;;
+
+  lead.db_status=&#x27;offen&#x27;;
+  lead.status=&#x27;offen&#x27;;
+
+  btn.textContent=btn.dataset.originalText || '☎ Anrufen';
+  btn.disabled=false;
+
+  if(statusEl)statusEl.textContent=&#x27;Heute · offen&#x27;;
+
+  try{
+   await fetch('/datenbank/tagesliste-status',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({
+     id:lead.id || 0,
+     status:&#x27;offen&#x27;
+    })
+   });
+
+   if(window.parent && typeof window.parent.updateStatusBoardCounts === 'function'){
+    window.parent.updateStatusBoardCounts();
+   }
+  }catch(err){}
+
+  return;
+ }
+
+ if(!btn.dataset.originalText){
+  btn.dataset.originalText=btn.textContent;
+ }
+
+ let spaeterDatum='';
+
+ if(statusKey==='spaeter'){
+  spaeterDatum=prompt('Rückrufdatum eingeben, z.B. 03.05.2026');
+  if(!spaeterDatum){
+   btn.textContent=btn.dataset.originalText || '↷ Später';
+   btn.disabled=false;
+   return;
+  }
+  lead.spaeter_datum=spaeterDatum;
+ }
+
+ btn.textContent='Speichert...';
+ btn.disabled=true;
+
+ try{
+  const response=await fetch('/datenbank/tagesliste-status',{
+   method:'POST',
+   headers:{'Content-Type':'application/json'},
+   body:JSON.stringify({
+    id:lead.id || 0,
+    status:statusKey,
+    spaeter_datum:spaeterDatum
+   })
+  });
+
+  const data=await response.json();
+
+  if(!data.ok){
+   alert(data.message || 'Status konnte nicht gespeichert werden.');
+   btn.textContent=btn.dataset.originalText || '☎ Anrufen';
+   btn.disabled=false;
+   return;
+  }
+
+  lead.db_status=statusKey;
+  lead.status=statusKey;
+
+  if(statusKey==='angerufen'){
+   btn.textContent='✓ Angerufen';
+   if(statusEl)statusEl.textContent='Heute · angerufen';
+  }else if(statusKey==='interessiert'){
+   btn.textContent='✓ Hat Interesse';
+   if(statusEl)statusEl.textContent='Heute · hat Interesse';
+  }else if(statusKey==='besichtigung'){
+   btn.textContent='▦ Besichtigung';
+   if(statusEl)statusEl.textContent='Heute · Besichtigung';
+  }else if(statusKey==='kontaktformular'){
+   btn.textContent='✉ Kontaktformular';
+   if(statusEl)statusEl.textContent='Heute · Kontaktformular';
+  }else if(statusKey==='spaeter'){
+   btn.textContent='↷ Später';
+   if(statusEl)statusEl.textContent='Rückruf · '+spaeterDatum;
+  }else if(statusKey==='verloren'){
+   btn.textContent='✕ Verloren';
+   if(statusEl)statusEl.textContent='Heute · verloren';
+  }else{
+   btn.textContent='✓ Gespeichert';
+  }
+
+  if(window.parent && typeof window.parent.updateStatusBoardCounts === 'function'){
+   window.parent.updateStatusBoardCounts();
+  }
+
+  btn.disabled=false;
+
+ }catch(err){
+  alert('Status Fehler: '+err);
+  btn.textContent=btn.dataset.originalText || '☎ Anrufen';
+  btn.disabled=false;
+ }
+}
+async function saveLeadNote(event,index,btn){
+ event.stopPropagation();
+
+ const lead=leads[index];
+ if(!lead)return;
+
+ const card=btn.closest('.lead');
+ const textarea=card ? card.querySelector('.note') : null;
+ if(!textarea)return;
+
+ let kontaktValue = lead.kontakt || '';
+ let telValue = lead.tel || '';
+ let mailValue = lead.mail || '';
+ let webValue = lead.web || '';
+
+ if(card){
+  const kontaktInput = card.querySelector('.lead-edit-input[data-field=kontakt]');
+  const telInput = card.querySelector('.lead-edit-input[data-field=tel]');
+  const mailInput = card.querySelector('.lead-edit-input[data-field=mail]');
+  const webInput = card.querySelector('.lead-edit-input[data-field=web]');
+
+  if(kontaktInput)kontaktValue = kontaktInput.value.trim();
+  if(telInput)telValue = telInput.value.trim();
+  if(mailInput)mailValue = mailInput.value.trim();
+  if(webInput)webValue = webInput.value.trim();
+ }
+
+ const notizValue = textarea.value;
+
+ lead.kontakt = kontaktValue;
+ lead.tel = telValue;
+ lead.mail = mailValue;
+ lead.web = webValue;
+ lead.notiz = notizValue;
+
+ btn.textContent='Speichert...';
+ btn.disabled=true;
+
+ try{
+  const response=await fetch('/datenbank/tagesliste-update',{
+   method:'POST',
+   headers:{'Content-Type':'application/json'},
+   body:JSON.stringify({
+    id:lead.id || 0,
+    ansprechpartner:kontaktValue,
+    telefon:telValue,
+    email:mailValue,
+    website:webValue,
+    notiz:notizValue
+   })
+  });
+
+  const data=await response.json();
+
+  if(!data.ok){
+   alert(data.message || 'Kontaktdaten / Notiz konnten nicht gespeichert werden.');
+   btn.textContent='Notiz speichern';
+   btn.disabled=false;
+   return;
+  }
+
+  btn.textContent='✓ Gespeichert';
+
+  setTimeout(()=>{
+   btn.textContent='Notiz speichern';
+   btn.disabled=false;
+  },1200);
+
+ }catch(err){
+  alert('Speichern Fehler: '+err);
+  btn.textContent='Notiz speichern';
+  btn.disabled=false;
+ }
+}
+function toggleAddForm(){document.getElementById(&#x27;addFormBox&#x27;).classList.toggle(&#x27;open&#x27;)}
 function toggleAddForm(){document.getElementById(&#x27;addFormBox&#x27;).classList.toggle(&#x27;open&#x27;)}
 function clearAddForm(){[&#x27;newFirma&#x27;,&#x27;newTag&#x27;,&#x27;newStr&#x27;,&#x27;newPlz&#x27;,&#x27;newOrt&#x27;,&#x27;newKontakt&#x27;,&#x27;newTel&#x27;,&#x27;newMail&#x27;,&#x27;newWeb&#x27;].forEach(id=&gt;document.getElementById(id).value=&#x27;&#x27;)}
 function addManualLead(){
@@ -1550,17 +3378,45 @@ function toggleLead(e,el){if(e.target.closest(&#x27;.btn&#x27;)||e.target.closes
 function status(item,t){const s=item.querySelector(&#x27;.status&#x27;);if(s)s.textContent=t}
 function topPlus(){const n=document.querySelector(&#x27;.goal-number&#x27;);n.textContent=parseInt(n.textContent,10)+1}
 function topMinus(){const n=document.querySelector(&#x27;.goal-number&#x27;);n.textContent=Math.max(0,parseInt(n.textContent,10)-1)}
-function activate(btn,cls,text,stat){const item=btn.closest(&#x27;.lead&#x27;);if(btn.dataset.active===&#x27;true&#x27;)return;btn.dataset.active=&#x27;true&#x27;;btn.dataset.old=btn.innerHTML;btn.dataset.cls=cls;btn.classList.add(cls);btn.innerHTML=text;status(item,stat);if((btn.dataset.type===&#x27;call&#x27;||btn.dataset.type===&#x27;lost&#x27;)&amp;&amp;!item.dataset.countedAction){item.dataset.countedAction=btn.dataset.type;topMinus()}}
+async function activate(btn,cls,text,stat,statusKey){const item=btn.closest(&#x27;.lead&#x27;);if(!item)return;if(btn.dataset.active===&#x27;true&#x27;)return;const leadIndex=parseInt(item.dataset.index||&#x27;-1&#x27;);const lead=leads[leadIndex];if(!lead)return;try{const response=await fetch(&#x27;/datenbank/tagesliste-status&#x27;,{method:&#x27;POST&#x27;,headers:{&#x27;Content-Type&#x27;:&#x27;application/json&#x27;},body:JSON.stringify({id:lead.id||0,status:statusKey})});const data=await response.json();if(!data.ok){alert(data.message||&#x27;Status konnte nicht gespeichert werden.&#x27;);return}lead.db_status=statusKey;btn.dataset.active=&#x27;true&#x27;;btn.dataset.old=btn.innerHTML;btn.dataset.cls=cls;btn.classList.add(cls);btn.innerHTML=text;status(item,stat);if((btn.dataset.type===&#x27;call&#x27;||btn.dataset.type===&#x27;lost&#x27;)&amp;&amp;!item.dataset.countedAction){item.dataset.countedAction=btn.dataset.type;topMinus()}}catch(err){alert(&#x27;Status Fehler: &#x27;+err)}}
 function reset(btn){const item=btn.closest(&#x27;.lead&#x27;);if(btn.dataset.active!==&#x27;true&#x27;)return;btn.dataset.active=&#x27;false&#x27;;btn.classList.remove(btn.dataset.cls);btn.innerHTML=btn.dataset.old;status(item,&#x27;Heute · offen&#x27;);if((btn.dataset.type===&#x27;call&#x27;||btn.dataset.type===&#x27;lost&#x27;)&amp;&amp;item.dataset.countedAction===btn.dataset.type){const other=item.querySelector(`.btn[data-active=&quot;true&quot;][data-type=&quot;${btn.dataset.type===&#x27;call&#x27;?&#x27;lost&#x27;:&#x27;call&#x27;}&quot;]`);if(other){item.dataset.countedAction=other.dataset.type}else{delete item.dataset.countedAction;topPlus()}}}
-function later(btn){const inp=btn.parentElement.querySelector(&#x27;.datepick&#x27;);if(!inp)return;inp.onchange=function(){if(!inp.value)return;const d=new Date(inp.value+&#x27;T00:00:00&#x27;).toLocaleDateString(&#x27;de-DE&#x27;,{day:&#x27;2-digit&#x27;,month:&#x27;2-digit&#x27;,year:&#x27;numeric&#x27;});activate(btn,&#x27;active-later&#x27;,&#x27;↷ Später · &#x27;+d,&#x27;Später · &#x27;+d)};if(inp.showPicker)inp.showPicker();else inp.click()}
+function later(btn){const inp=btn.parentElement.querySelector(&#x27;.datepick&#x27;);if(!inp)return;inp.onchange=function(){if(!inp.value)return;const d=new Date(inp.value+&#x27;T00:00:00&#x27;).toLocaleDateString(&#x27;de-DE&#x27;,{day:&#x27;2-digit&#x27;,month:&#x27;2-digit&#x27;,year:&#x27;numeric&#x27;});activate(btn,&#x27;active-later&#x27;,&#x27;↷ Später · &#x27;+d,&#x27;Später · &#x27;+d,&#x27;spaeter&#x27;)};if(inp.showPicker)inp.showPicker();else inp.click()}
 function closeFormChoices(){document.querySelectorAll(&#x27;.form-choice.open&#x27;).forEach(x=&gt;x.classList.remove(&#x27;open&#x27;));document.querySelectorAll(&#x27;.actions.form-open&#x27;).forEach(x=&gt;x.classList.remove(&#x27;form-open&#x27;))}
 function closeVisitChoices(){document.querySelectorAll(&#x27;.visit-choice.open&#x27;).forEach(x=&gt;x.classList.remove(&#x27;open&#x27;));document.querySelectorAll(&#x27;.actions.visit-open&#x27;).forEach(x=&gt;x.classList.remove(&#x27;visit-open&#x27;))}
 function openFormChoice(btn){const actions=btn.closest(&#x27;.actions&#x27;);const choice=actions?actions.querySelector(&#x27;.form-choice&#x27;):null;if(!choice)return;closeFormChoices();closeVisitChoices();actions.classList.add(&#x27;form-open&#x27;);choice.classList.add(&#x27;open&#x27;)}
 function openVisitChoice(btn){const actions=btn.closest(&#x27;.actions&#x27;);const choice=actions?actions.querySelector(&#x27;.visit-choice&#x27;):null;if(!choice)return;closeFormChoices();closeVisitChoices();actions.classList.add(&#x27;visit-open&#x27;);choice.classList.add(&#x27;open&#x27;);const d=choice.querySelector(&#x27;.visit-date&#x27;);if(d)d.focus()}
-function chooseFormType(e,choiceBtn,text){e.stopPropagation();const actions=choiceBtn.closest(&#x27;.actions&#x27;);const formBtn=actions?actions.querySelector(&#x27;[data-type=&quot;form&quot;]&#x27;):null;if(!formBtn)return;formBtn.dataset.formChoice=text;activate(formBtn,&#x27;active-form&#x27;,&#x27;✓ &#x27;+text,&#x27;Kontaktformular · &#x27;+text);closeFormChoices()}
-function chooseVisitType(e,choiceBtn,text){e.stopPropagation();const actions=choiceBtn.closest(&#x27;.actions&#x27;);const visitBtn=actions?actions.querySelector(&#x27;[data-type=&quot;visit&quot;]&#x27;):null;const dateInput=actions?actions.querySelector(&#x27;.visit-date&#x27;):null;if(!visitBtn)return;let dateText=&#x27;ohne Datum&#x27;;if(dateInput&amp;&amp;dateInput.value){dateText=new Date(dateInput.value+&#x27;T00:00:00&#x27;).toLocaleDateString(&#x27;de-DE&#x27;,{day:&#x27;2-digit&#x27;,month:&#x27;2-digit&#x27;,year:&#x27;numeric&#x27;})}visitBtn.dataset.visitChoice=text;visitBtn.dataset.visitDate=dateInput?dateInput.value:&#x27;&#x27;;activate(visitBtn,&#x27;active-blue&#x27;,&#x27;📅 &#x27;+dateText+&#x27; · &#x27;+text,&#x27;Besichtigung · &#x27;+dateText+&#x27; · &#x27;+text);closeVisitChoices()}
-function bind(btn,fn){let t=null,h=false;function s(e){e.stopPropagation();h=false;t=setTimeout(()=&gt;{h=true;reset(btn)},700)}function c(){clearTimeout(t)}btn.addEventListener(&#x27;mousedown&#x27;,s);btn.addEventListener(&#x27;touchstart&#x27;,s,{passive:true});btn.addEventListener(&#x27;mouseup&#x27;,c);btn.addEventListener(&#x27;mouseleave&#x27;,c);btn.addEventListener(&#x27;touchend&#x27;,c);btn.addEventListener(&#x27;click&#x27;,e=&gt;{e.stopPropagation();if(h){h=false;return}fn(btn)})}
-function bindLeadButtons(){document.querySelectorAll(&#x27;.btn&#x27;).forEach(b=&gt;{if(b.dataset.bound===&#x27;true&#x27;)return;b.dataset.bound=&#x27;true&#x27;;let t=b.dataset.type;if(t===&#x27;call&#x27;)bind(b,x=&gt;activate(x,&#x27;active-blue&#x27;,&#x27;✓ Angerufen&#x27;,&#x27;Heute · angerufen&#x27;));if(t===&#x27;interest&#x27;)bind(b,x=&gt;activate(x,&#x27;active-green&#x27;,&#x27;✓ Hat Interesse&#x27;,&#x27;Heute · hat Interesse&#x27;));if(t===&#x27;visit&#x27;)bind(b,openVisitChoice);if(t===&#x27;form&#x27;)bind(b,openFormChoice);if(t===&#x27;later&#x27;)bind(b,later);if(t===&#x27;lost&#x27;)bind(b,x=&gt;activate(x,&#x27;active-red&#x27;,&#x27;✕ Gelöscht&#x27;,&#x27;Heute · gelöscht&#x27;))})}
+function chooseFormType(e,choiceBtn,text){e.stopPropagation();const actions=choiceBtn.closest(&#x27;.actions&#x27;);const formBtn=actions?actions.querySelector(&#x27;[data-type=&quot;form&quot;]&#x27;):null;if(!formBtn)return;formBtn.dataset.formChoice=text;activate(formBtn,&#x27;active-form&#x27;,&#x27;✓ &#x27;+text,&#x27;Kontaktformular · &#x27;+text,&#x27;kontaktformular&#x27;);closeFormChoices()}
+function chooseVisitType(e,choiceBtn,text){e.stopPropagation();const actions=choiceBtn.closest(&#x27;.actions&#x27;);const visitBtn=actions?actions.querySelector(&#x27;[data-type=&quot;visit&quot;]&#x27;):null;const dateInput=actions?actions.querySelector(&#x27;.visit-date&#x27;):null;if(!visitBtn)return;let dateText=&#x27;ohne Datum&#x27;;if(dateInput&amp;&amp;dateInput.value){dateText=new Date(dateInput.value+&#x27;T00:00:00&#x27;).toLocaleDateString(&#x27;de-DE&#x27;,{day:&#x27;2-digit&#x27;,month:&#x27;2-digit&#x27;,year:&#x27;numeric&#x27;})}visitBtn.dataset.visitChoice=text;visitBtn.dataset.visitDate=dateInput?dateInput.value:&#x27;&#x27;;activate(visitBtn,&#x27;active-blue&#x27;,&#x27;📅 &#x27;+dateText+&#x27; · &#x27;+text,&#x27;Besichtigung · &#x27;+dateText+&#x27; · &#x27;+text,&#x27;besichtigung&#x27;);closeVisitChoices()}
+function bind(btn,fn){let t=null,h=false;function s(e){e.stopPropagation();h=false;t=setTimeout(async ()=&gt;{h=true;btn.dataset.skipNextSave=&#x27;true&#x27;;reset(btn);const item=btn.closest(&#x27;.lead&#x27;);if(item){status(item,&#x27;Heute · offen&#x27;);const leadIndex=parseInt(item.dataset.index||&#x27;-1&#x27;,10);const lead=leads[leadIndex];if(lead){lead.status=&#x27;offen&#x27;;lead.db_status=&#x27;offen&#x27;;try{await fetch(&#x27;/datenbank/tagesliste-status&#x27;,{method:&#x27;POST&#x27;,headers:{&#x27;Content-Type&#x27;:&#x27;application/json&#x27;},body:JSON.stringify({id:lead.id||0,status:&#x27;offen&#x27;})});if(window.parent&amp;&amp;typeof window.parent.updateStatusBoardCounts===&#x27;function&#x27;){window.parent.updateStatusBoardCounts()}}catch(err){}}}},700)}function c(){clearTimeout(t)}btn.addEventListener(&#x27;mousedown&#x27;,s);btn.addEventListener(&#x27;touchstart&#x27;,s,{passive:true});btn.addEventListener(&#x27;mouseup&#x27;,c);btn.addEventListener(&#x27;mouseleave&#x27;,c);btn.addEventListener(&#x27;touchend&#x27;,c);btn.addEventListener(&#x27;click&#x27;,e=&gt;{e.stopPropagation();if(h){h=false;return}fn(btn)})}
+function bindLeadButtons(){document.querySelectorAll(&#x27;.btn&#x27;).forEach(b=&gt;{if(b.dataset.bound===&#x27;true&#x27;)return;b.dataset.bound=&#x27;true&#x27;;let t=b.dataset.type;if(t===&#x27;call&#x27;)bind(b,x=&gt;activate(x,&#x27;active-blue&#x27;,&#x27;✓ Angerufen&#x27;,&#x27;Heute · angerufen&#x27;,&#x27;angerufen&#x27;));if(t===&#x27;interest&#x27;)bind(b,x=&gt;activate(x,&#x27;active-green&#x27;,&#x27;✓ Hat Interesse&#x27;,&#x27;Heute · Hat Interesse&#x27;,&#x27;interessiert&#x27;));if(t===&#x27;visit&#x27;)bind(b,openVisitChoice);if(t===&#x27;form&#x27;)bind(b,openFormChoice);if(t===&#x27;later&#x27;)bind(b,later);if(t===&#x27;lost&#x27;)bind(b,x=&gt;activate(x,&#x27;active-red&#x27;,&#x27;✕ Gelöscht&#x27;,&#x27;Heute · gelöscht&#x27;,&#x27;verloren&#x27;))})}
+function openLeadMail(event,btn){
+ event.stopPropagation();
+
+ const wrap=btn.closest('.lead-link-wrap');
+ if(!wrap)return;
+
+ const input=wrap.querySelector('.lead-edit-input');
+ const mail=input ? input.value.trim() : '';
+
+ if(!mail)return;
+
+ window.location.href='mailto:'+mail;
+}
+
+function openLeadWeb(event,btn){
+ event.stopPropagation();
+
+ const wrap=btn.closest('.lead-link-wrap');
+ if(!wrap)return;
+
+ const input=wrap.querySelector('.lead-edit-input');
+ const web=input ? input.value.trim() : '';
+
+ if(!web)return;
+
+ const href=web.startsWith('http') ? web : 'https://'+web;
+ window.open(href,'_blank');
+}
 function setupSearchFilter(){
  const searchEl=document.getElementById(&#x27;leadSearchInput&#x27;);
  const groupEl=document.getElementById(&#x27;leadGroupFilter&#x27;);
@@ -2207,8 +4063,11 @@ function setDbFullWorkspace(isFull) {
 }
 
 function showDamlaPage() {
+    localStorage.setItem('kg_datenbank_view', 'tagesliste');
+
     setDbFullWorkspace(true);
     document.getElementById('mainView').classList.add('view-hidden');
+    document.getElementById('damlaView').classList.remove('view-hidden');
     document.getElementById('damlaView').classList.remove('view-hidden');
     const besichtigungView = document.getElementById('besichtigungView');
     if (besichtigungView) besichtigungView.classList.add('view-hidden');
@@ -2257,6 +4116,8 @@ function showKundenPage() {
 }
 
 function showMainPage() {
+    localStorage.setItem('kg_datenbank_view', 'main');
+
     setDbFullWorkspace(false);
     document.getElementById('damlaView').classList.add('view-hidden');
     const besichtigungView = document.getElementById('besichtigungView');
@@ -2280,7 +4141,7 @@ document.addEventListener('DOMContentLoaded', function () {
             draggable: '.workflow-card',
             ghostClass: 'sortable-ghost',
             chosenClass: 'sortable-chosen',
-            filter: '.workflow-btn', 
+            filter: '.workflow-btn',
             preventOnFilter: false
         });
     }
@@ -2307,7 +4168,427 @@ document.addEventListener('DOMContentLoaded', function () {
             chosenClass: 'sortable-chosen'
         });
     }
+
+    if (localStorage.getItem('kg_datenbank_view') === 'tagesliste') {
+        showDamlaPage();
+    }
+});
+
+const KG_BRANCH_DETAIL_SLUGS = [
+    "buero-verwaltung",
+    "medizin-gesundheit",
+    "pflege-soziales",
+    "bildung-betreuung",
+    "einzelhandel-verkaufsflaechen",
+    "fitness-sport-freizeit",
+    "industrie-produktion",
+    "lager-logistik-grosshandel",
+    "immobilien-hausverwaltung",
+    "finanzen-versicherung-beratung",
+    "handwerk-technik-service",
+    "sonstige-gewerbe-dienstleister"
+];
+
+function kgBindBrancheDetailOpen(){
+    const cards = document.querySelectorAll("#branchenSortable .branche-block.main-category");
+
+    cards.forEach((card,index) => {
+        card.addEventListener("click", function(e){
+            if(e.target.closest(".drag-handle")){
+                return;
+            }
+
+            const slug = KG_BRANCH_DETAIL_SLUGS[index];
+            if(!slug) return;
+
+            window.location.href = "/branche-detail?branche=" + encodeURIComponent(slug);
+        });
+    });
+}
+
+document.addEventListener("DOMContentLoaded", kgBindBrancheDetailOpen);
+
+const statusTitles = {
+    angerufen: "Angerufen",
+    interessiert: "Interessiert",
+    besichtigung: "Besichtigung",
+    kontaktformular: "Kontaktformular",
+    spaeter: "Später anrufen",
+    verloren: "Verloren"
+};
+
+const statusTexts = {
+    angerufen: "Firmen, bei denen Damla den Anruf bereits erledigt hat.",
+    interessiert: "Leads, die Interesse gezeigt haben und weiterverfolgt werden.",
+    besichtigung: "Firmen, die für einen Besichtigungstermin vorbereitet werden.",
+    kontaktformular: "Firmen, bei denen ein Formular oder eine Nachricht gesendet wurde.",
+    spaeter: "Kontakte, die zu einem späteren Zeitpunkt erneut angerufen werden.",
+    verloren: "Firmen, die aktuell nicht weiter bearbeitet werden."
+};
+
+
+
+function openStatusList(statusKey) {
+    const panel = document.getElementById("statusListPanel");
+    const title = document.getElementById("statusListTitle");
+    const sub = document.getElementById("statusListSub");
+
+    if(!panel || !title || !sub) return;
+
+    title.textContent = statusTitles[statusKey] || "Statusliste";
+    sub.textContent = statusTexts[statusKey] || "Firmenliste nach Status.";
+
+    panel.classList.remove("view-hidden");
+    renderStatusCompanies(statusKey);
+
+    panel.scrollIntoView({
+        behavior: "smooth",
+        block: "start"
+    });
+}
+
+function closeStatusList() {
+    const panel = document.getElementById("statusListPanel");
+    if(panel){
+        panel.classList.add("view-hidden");
+    }
+}
+
+async function renderStatusCompanies(statusKey) {
+    const list = document.getElementById("statusCompanyList");
+    const empty = document.getElementById("statusEmpty");
+
+    if(!list || !empty) return;
+
+    empty.style.display = "none";
+    list.innerHTML = '<div style="padding:20px; text-align:center; font-weight:800; color:#64748b;">Lade Daten...</div>';
+
+    try {
+        const response = await fetch(`/api/datenbank/by-status?status=${encodeURIComponent(statusKey)}`);
+        const leads = await response.json();
+
+        list.innerHTML = "";
+
+        if(!leads || leads.length === 0){
+            empty.style.display = "block";
+            return;
+        }
+
+        empty.style.display = "none";
+
+        leads.forEach((lead) => {
+            const card = document.createElement("article");
+            card.className = "status-company-card lead open";
+
+            const web = lead.website || "";
+            const mail = lead.email || "";
+
+            card.innerHTML = `
+                <div class="summary" onclick="toggleStatusCompany(this)">
+                    <div class="mainrow">
+                        <div class="drag status-company-drag" onclick="event.stopPropagation()">☰</div>
+
+                        <div>
+                            <div class="kicker">
+                                <span class="badge">${lead.branche || 'Ohne Branche'}</span>
+                                <span class="status">${statusKey === 'spaeter' && lead.spaeter_datum ? 'Rückruf · ' + lead.spaeter_datum : 'Heute · ' + (statusTitles[statusKey] || 'offen')}</span>
+                            </div>
+
+                            <div class="company">${lead.firma || ''}</div>
+                            <div class="meta">${[lead.strasse || '', [lead.plz || '', lead.ort || ''].filter(Boolean).join(' ')].filter(Boolean).join(' · ')}</div>
+                        </div>
+
+                        <div class="toggle">⌄</div>
+                    </div>
+                </div>
+
+                <div class="details">
+                    <div class="details-inner">
+                        <div class="grid">
+                            <div class="box">
+                                <div class="box-label">Ansprechpartner</div>
+                                <input class="lead-edit-input status-edit-input" data-field="ansprechpartner" value="${lead.ansprechpartner || ''}" onclick="event.stopPropagation()">
+                                <input class="lead-edit-input status-edit-input" data-field="telefon" value="${lead.telefon || ''}" onclick="event.stopPropagation()">
+                            </div>
+
+                            <div class="box">
+                                <div class="box-label">E-Mail Adresse</div>
+                                <div class="lead-link-wrap" onclick="event.stopPropagation()">
+                                    <input class="lead-edit-input status-edit-input" data-field="email" value="${mail}">
+                                    <button type="button" class="lead-open-btn" onclick="openStatusMail(event, this)">↗</button>
+                                </div>
+                            </div>
+
+                            <div class="box">
+                                <div class="box-label">Webseite</div>
+                                <div class="lead-link-wrap" onclick="event.stopPropagation()">
+                                    <input class="lead-edit-input status-edit-input" data-field="website" value="${web}">
+                                    <button type="button" class="lead-open-btn" onclick="openStatusWeb(event, this)">↗</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="note-row">
+                            <textarea class="note status-note" onclick="event.stopPropagation()" readonly>${lead.notiz || ''}</textarea>
+                            <button type="button" class="save" onclick="saveStatusContact(event, ${lead.id}, this)">Kontaktdaten speichern</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            list.appendChild(card);
+        });
+
+        if(window.Sortable){
+            new Sortable(list, {
+                animation: 150,
+                draggable: ".status-company-card",
+                handle: ".status-company-drag",
+                ghostClass: "sortable-ghost",
+                chosenClass: "sortable-chosen"
+            });
+        }
+
+    } catch (error) {
+        console.error("Fehler beim Laden:", error);
+        list.innerHTML = '<div style="padding:20px; text-align:center; color:red; font-weight:800;">Fehler beim Laden.</div>';
+    }
+}
+
+function toggleStatusCompany(summaryEl) {
+    const card = summaryEl.closest(".status-company-card");
+    if(card){
+        card.classList.toggle("open");
+    }
+}
+
+async function saveStatusContact(event, leadId, btn) {
+    event.stopPropagation();
+
+    const card = btn.closest(".status-company-card");
+    if(!card) return;
+
+    const getValue = (field) => {
+        const input = card.querySelector(`.status-edit-input[data-field="${field}"]`);
+        return input ? input.value.trim() : "";
+    };
+
+    const oldText = btn.textContent;
+    btn.textContent = "Speichert...";
+    btn.disabled = true;
+
+    try {
+        const response = await fetch("/datenbank/tagesliste-contact-update", {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({
+                id: leadId,
+                ansprechpartner: getValue("ansprechpartner"),
+                telefon: getValue("telefon"),
+                email: getValue("email"),
+                website: getValue("website")
+            })
+        });
+
+        const data = await response.json();
+
+        if(!data.ok) {
+            alert(data.message || "Kontaktdaten konnten nicht gespeichert werden.");
+            btn.textContent = oldText;
+            btn.disabled = false;
+            return;
+        }
+
+        btn.textContent = "✓ Gespeichert";
+
+        setTimeout(() => {
+            btn.textContent = oldText;
+            btn.disabled = false;
+        }, 900);
+
+    } catch(err) {
+        alert("Fehler: " + err);
+        btn.textContent = oldText;
+        btn.disabled = false;
+    }
+}
+
+
+function openStatusMail(event, btn) {
+    event.stopPropagation();
+    const wrap = btn.closest(".lead-link-wrap") || btn.closest(".status-link-wrap");
+    const input = wrap ? wrap.querySelector("input") : null;
+    const mail = input ? input.value.trim() : "";
+    if(mail){
+        window.location.href = "mailto:" + mail;
+    }
+}
+
+function openStatusWeb(event, btn) {
+    event.stopPropagation();
+    const wrap = btn.closest(".lead-link-wrap") || btn.closest(".status-link-wrap");
+    const input = wrap ? wrap.querySelector("input") : null;
+    let web = input ? input.value.trim() : "";
+    if(!web) return;
+    if(!web.startsWith("http://") && !web.startsWith("https://")){
+        web = "https://" + web;
+    }
+    window.open(web, "_blank");
+}
+
+async function updateStatusBoardCounts() {    try {
+        const response = await fetch("/api/datenbank/status-counts");
+        const counts = await response.json();
+
+        const countAngerufen = document.getElementById("countAngerufen");
+        const countInteressiert = document.getElementById("countInteressiert");
+        const countBesichtigung = document.getElementById("countBesichtigung");
+        const countKontaktformular = document.getElementById("countKontaktformular");
+        const countSpaeter = document.getElementById("countSpaeter");
+        const countVerloren = document.getElementById("countVerloren");
+
+        if(countAngerufen) countAngerufen.textContent = counts.angerufen || 0;
+        if(countInteressiert) countInteressiert.textContent = counts.interessiert || 0;
+        if(countBesichtigung) countBesichtigung.textContent = counts.besichtigung || 0;
+        if(countKontaktformular) countKontaktformular.textContent = counts.kontaktformular || 0;
+        if(countSpaeter) countSpaeter.textContent = counts.spaeter || 0;
+        if(countVerloren) countVerloren.textContent = counts.verloren || 0;
+
+    } catch (error) {
+        console.error("Status-Zähler Fehler:", error);
+    }
+}
+
+function openApifyLeadModal() {
+    const modal = document.getElementById("apifyLeadModal");
+    if (modal) {
+        modal.style.display = "flex";
+    }
+}
+
+function closeApifyLeadModal() {
+    const modal = document.getElementById("apifyLeadModal");
+    if (modal) {
+        modal.style.display = "none";
+    }
+
+    const status = document.getElementById("apifyLeadStatus");
+    if (status) {
+        status.textContent = "";
+    }
+}
+
+async function startApifyLeadImport() {
+    const brancheRaw = document.getElementById("apifyBranche").value;
+    const suchwort = document.getElementById("apifySuchwort").value.trim();
+    const stadt = document.getElementById("apifyStadt").value.trim();
+    const anzahl = parseInt(document.getElementById("apifyAnzahl").value || "30", 10);
+    const status = document.getElementById("apifyLeadStatus");
+
+    if (!brancheRaw || !suchwort || !stadt) {
+        status.textContent = "Bitte Branche, Suchwort und Stadt ausfüllen.";
+        status.style.color = "#dc2626";
+        return;
+    }
+
+    const parts = brancheRaw.split("|");
+    const brancheId = parts[0];
+    const brancheName = parts[1];
+
+    status.textContent = "Leads werden gezogen... Bitte warten.";
+    status.style.color = "#475569";
+
+    try {
+        const response = await fetch("/api/datenbank/apify-import", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                branche_id: brancheId,
+                branche_name: brancheName,
+                suchwort: suchwort,
+                stadt: stadt,
+                anzahl: anzahl
+            })
+        });
+
+        const data = await response.json();
+
+        if (!data.success) {
+            status.textContent = data.message || "Fehler beim Import.";
+            status.style.color = "#dc2626";
+            return;
+        }
+
+        status.style.color = "#16a34a";
+        status.textContent =
+            "Fertig: " +
+            data.inserted + " gespeichert, " +
+            data.skipped_duplicates + " doppelte übersprungen, " +
+            data.email_found + " E-Mails gefunden.";
+
+        setTimeout(function () {
+            window.location.reload();
+        }, 1800);
+
+    } catch (err) {
+        status.textContent = "Fehler: " + err;
+        status.style.color = "#dc2626";
+    }
+}
+document.addEventListener("DOMContentLoaded", function(){
+ if(window.parent && typeof window.parent.updateStatusBoardCounts === 'function'){
+  window.parent.updateStatusBoardCounts();
+ }
 });
 </script>
+
+<div id="apifyLeadModal" class="lead-modal-backdrop" style="display:none;">
+    <div class="lead-modal">
+        <div class="lead-modal-head">
+            <div>
+                <h2>Neue Leads ziehen</h2>
+                <p>Apify + Mail-Finder direkt in die Datenbank speichern.</p>
+            </div>
+            <button type="button" class="lead-modal-close" onclick="closeApifyLeadModal()">×</button>
+        </div>
+
+        <div class="lead-modal-body">
+            <label>Branche</label>
+            <select id="apifyBranche">
+                <option value="">Bitte wählen</option>
+                <option value="1|Büro & Verwaltung">Büro & Verwaltung</option>
+                <option value="2|Medizin & Gesundheit">Medizin & Gesundheit</option>
+                <option value="3|Pflege & Soziales">Pflege & Soziales</option>
+                <option value="4|Bildung & Betreuung">Bildung & Betreuung</option>
+                <option value="5|Einzelhandel & Verkaufsflächen">Einzelhandel & Verkaufsflächen</option>
+                <option value="6|Fitness, Sport & Freizeit">Fitness, Sport & Freizeit</option>
+                <option value="7|Industrie & Produktion">Industrie & Produktion</option>
+                <option value="8|Lager, Logistik & Großhandel">Lager, Logistik & Großhandel</option>
+                <option value="9|Immobilien & Hausverwaltung">Immobilien & Hausverwaltung</option>
+                <option value="10|Finanzen, Versicherung & Beratung">Finanzen, Versicherung & Beratung</option>
+                <option value="11|IT, Medien & Kommunikation">IT, Medien & Kommunikation</option>
+                <option value="12|Sonstige / Nicht zugeordnet">Sonstige / Nicht zugeordnet</option>
+            </select>
+
+            <label>Suchwort</label>
+            <input id="apifySuchwort" type="text" placeholder="z.B. Steuerberater">
+
+            <label>Stadt</label>
+            <input id="apifyStadt" type="text" placeholder="z.B. Düsseldorf">
+
+            <label>Anzahl</label>
+            <input id="apifyAnzahl" type="number" value="30" min="1" max="100">
+
+            <div id="apifyLeadStatus" class="lead-modal-status"></div>
+        </div>
+
+        <div class="lead-modal-actions">
+            <button type="button" class="lead-modal-cancel" onclick="closeApifyLeadModal()">Abbrechen</button>
+            <button type="button" class="lead-modal-submit" onclick="startApifyLeadImport()">Leads ziehen</button>
+        </div>
+    </div>
+</div>
 
 {% endblock %}
