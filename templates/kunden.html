@@ -9,142 +9,209 @@
 ..........................................................................................................
 -->
 
-<div class="no-print" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:32px">
-  <div>
-    <h1 style="font-size:32px;font-weight:900;color:#16a34a;margin:0;letter-spacing:-1px">
-      Bestandskunden
-    </h1>
-    <p style="color:#2563eb;font-size:15px;margin:6px 0 0 0;font-weight:700">
-      Zentrale Verwaltung der Kundenstamm- und Vertragsdaten
-    </p>
-  </div>
-  <div style="display:flex; gap:12px;">
-    <button onclick="window.print()"
-            style="background:#f1f5f9;color:#475569;border:1px solid #e2e8f0;
-                   padding:12px 20px;border-radius:12px;font-weight:700;cursor:pointer">
-      <i class="fa-solid fa-print"></i> Liste Drucken
-    </button>
-    <button onclick="openNewModal()"
-            style="background:#2563eb;color:#fff;border:none;padding:12px 24px;
-                   border-radius:12px;font-weight:700;cursor:pointer;
-                   box-shadow:0 10px 15px -3px rgba(37,99,235,0.3)">
-      + Neuer Kunde
-    </button>
-  </div>
-</div>
+<div class="kunden-page">
+
+  <section class="kunden-hero no-print">
+    <div class="kunden-hero-row">
+      <div class="kunden-title-block">
+        <h1>Bestandskunden</h1>
+        <p>Zentrale Verwaltung der Kundenstamm- und Vertragsdaten</p>
+      </div>
+
+      <div class="kunden-hero-center">
+        <div class="kunden-live-box">
+          <div class="kunden-live-main">KG PORTAL</div>
+          <div class="kunden-live-sub">Kundenverwaltung</div>
+        </div>
+      </div>
+
+      <div class="kunden-hero-actions">
+        <button onclick="window.print()" class="kunden-hero-btn">
+          <i class="fa-solid fa-print"></i> Liste Drucken
+        </button>
+        <button onclick="openNewModal()" class="kunden-hero-btn primary">
+          + Neuer Kunde
+        </button>
+      </div>
+    </div>
+
+    <div class="kunden-stat-grid">
+      <div class="kunden-stat-box">
+        <div class="kunden-stat-label">Bestandskunden</div>
+        <div class="kunden-stat-value">{{ kunden|length }}</div>
+        <div class="kunden-stat-sub">im System gespeichert</div>
+      </div>
+
+      <div class="kunden-stat-box">
+        <div class="kunden-stat-label">Vertragsdaten</div>
+        <div class="kunden-stat-value">Live</div>
+        <div class="kunden-stat-sub">Beginn · Ende · Laufzeit</div>
+      </div>
+
+      <div class="kunden-stat-box">
+        <div class="kunden-stat-label">Kundenliste</div>
+        <div class="kunden-stat-value">Drag</div>
+        <div class="kunden-stat-sub">Reihenfolge speicherbar</div>
+      </div>
+
+      <div class="kunden-stat-box">
+        <div class="kunden-stat-label">Aktionen</div>
+        <div class="kunden-stat-value">PDF</div>
+        <div class="kunden-stat-sub">Vorschau · Bearbeiten · Löschen</div>
+      </div>
+    </div>
+  </section>
 
 
 <!--
 ..........................................................................................................
 ..........................................................................................................
-.......... ⬜ ANA LİSTE: MÜŞTERİLERİN SIRALANDIĞI TABLO ALANI ............................................
+.......... ⬜ ANA LİSTE: MÜŞTERİLERİN SIRALANDIĞI TEMİZ KART LİSTE ALANI ................................
 ..........................................................................................................
 ..........................................................................................................
 -->
 
-<div id="main_list" class="print-area"
-     style="background:#fff;border:1px solid #e2e8f0;border-radius:20px;
-            overflow-x:auto;box-shadow:0 10px 15px -3px rgba(0,0,0,0.1)">
+<div id="main_list" class="print-area kunden-list-shell">
 
+  <div class="kunden-list-head no-print">
+    <div>
+      <h2>Kundenliste</h2>
+      <p>Alle Kundendaten bleiben erhalten. Die Detaildaten öffnen sich sauber innerhalb der Karte.</p>
+    </div>
+    <div class="kunden-list-hint">☰ ziehen = Reihenfolge ändern</div>
+  </div>
 
-  <table style="width:100%;border-collapse:collapse;table-layout:auto;min-width:1000px;text-align:left">
+  <div id="kundenSortable" class="kunden-card-list">
+    {% for k in kunden %}
+    <div id="row-{{ k.id }}" class="kunden-card" data-id="{{ k.id }}">
 
+      <div class="kunden-card-summary" onclick="toggleKundenCard('{{ k.id }}')">
+        <div class="drag-handle kunden-drag" onclick="event.stopPropagation()" title="Reihenfolge ändern">
+          <span>☰</span>
+        </div>
 
-    <thead style="background:#f8fafc;border-bottom:2px solid #f1f5f9">
-      <tr>
-        <th style="padding:20px;font-weight:900;font-size:13px;color:#000">FIRMA</th>
-        <th style="padding:20px;font-weight:900;font-size:13px;color:#000">STR.</th>
-        <th style="padding:20px;font-weight:900;font-size:13px;color:#000">PLZ</th>
-        <th style="padding:20px;font-weight:900;font-size:13px;color:#000">STADT</th>
-        <th style="padding:20px;font-weight:900;font-size:13px;color:#000">K-NR.</th>
-        <th style="padding:20px;font-weight:900;font-size:13px;color:#000">HÄUFIGK.</th>
+        <div class="kunden-main-info">
+          <div class="kunden-name-line" title="{{ k.firma }}">
+            {{ k.firma }}
+          </div>
+          <div class="kunden-address-line">
+            {{ k.strasse }} · {{ k.plz }} {{ k.ort }}
+          </div>
+          <div class="kunden-mini-tags">
+            <span class="kunden-tag blue">K-Nr. {{ k.kundennummer }}</span>
+            <span class="kunden-tag violet">{{ k.haeufigkeit }}</span>
+            <span class="kunden-tag {% if k.vertragsstatus == 'gekuendigt' %}red{% else %}green{% endif %}">
+              {{ "Gekündigt" if k.vertragsstatus == "gekuendigt" else "Aktuell" }}
+            </span>
+          </div>
+        </div>
 
-        <th style="padding:20px;font-weight:900;font-size:13px;color:#000">BEGINN</th>
-        <th style="padding:20px;font-weight:900;font-size:13px;color:#000">ENDE</th>
-        <th style="padding:20px;font-weight:900;font-size:13px;color:#000">LAUFZ.</th>
-        <th style="padding:20px;font-weight:900;font-size:13px;color:#000">STATUS</th>
+        <div class="kunden-contract-info">
+          <div class="kunden-small-label">Vertrag</div>
+          <div class="kunden-contract-line">{{ k.vertrag_beginn }} bis {{ k.vertrag_ende }}</div>
+          <div class="kunden-contract-status {% if k.vertragslaufzeit == 'unbefristet' %}green{% else %}orange{% endif %}">
+            {{ "Unbefristet" if k.vertragslaufzeit == "unbefristet" else "Befristet" }}
+          </div>
+        </div>
 
-        <th style="padding:20px;font-weight:900;font-size:13px;color:#000">BETRAG</th>
-        <th class="no-print" style="padding:20px;text-align:right;font-weight:900;color:#000">
-          AKTIONEN
-        </th>
-      </tr>
-    </thead>
+        <div class="kunden-price-box">
+          <div class="kunden-small-label">Betrag</div>
+          <div class="kunden-price">
+            {{ "{:,.2f}".format((k.monat|string|replace(",", ".")|float)).replace(",", "X").replace(".", ",").replace("X", ".") }} €
+          </div>
+        </div>
 
-    <tbody id="kundenSortable">
-      {% for k in kunden %}
-      <tr id="row-{{ k.id }}" data-id="{{ k.id }}" style="border-bottom:1px solid #f1f5f9">
+        <div class="kunden-row-actions no-print" onclick="event.stopPropagation()">
+          <button onclick="previewKunde('{{ k.id }}')" title="Vorschau" class="kunden-icon-btn preview">
+            <i class="fa-solid fa-eye"></i>
+          </button>
 
-        <td class="drag-handle" style="padding:20px;font-weight:800;color:#1e293b; cursor:grab;" title="{{ k.firma }}">
-    ☰ {{ k.firma[:14] }}{% if k.firma|length > 14 %}...{% endif %}
-</td>
-        <td style="padding:20px;color:#64748b">{{ k.strasse }}</td>
-        <td style="padding:20px;color:#64748b">{{ k.plz }}</td>
-        <td style="padding:20px;color:#64748b">{{ k.ort }}</td>
+          <button onclick="editKunde('{{ k.id }}')" title="Bearbeiten" class="kunden-icon-btn edit">
+            <i class="fa-solid fa-pen-to-square"></i>
+          </button>
 
-        <td style="padding:20px">
-          <span style="background:#f1f5f9;padding:6px 12px;border-radius:8px;
-                       font-family:monospace;color:#2563eb">
-            {{ k.kundennummer }}
-          </span>
-        </td>
+          <button onclick="if(confirm('Kunde wirklich löschen?')) window.location.href='/kunden/delete/{{ k.id }}'" title="Löschen" class="kunden-icon-btn delete">
+            <i class="fa-solid fa-trash"></i>
+          </button>
+        </div>
 
-        <td style="padding:20px">
-          <span style="color:#6366f1;background:#eef2ff;padding:6px 14px;
-                       border-radius:30px;font-size:12px;font-weight:700">
-            {{ k.haeufigkeit }}
-          </span>
-        </td>
+        <div class="kunden-toggle no-print">⌄</div>
+      </div>
 
-        <!-- BEGINN -->
-        <td style="padding:20px;color:#475569">{{ k.vertrag_beginn }}</td>
+      <div class="kunden-card-details">
+        <div class="kunden-detail-grid">
+          <div class="kunden-detail-box">
+            <div class="kunden-detail-label">Firma</div>
+            <div class="kunden-detail-value">{{ k.firma }}</div>
+          </div>
 
-        <!-- ENDE -->
-        <td style="padding:20px;color:#475569">{{ k.vertrag_ende }}</td>
+          <div class="kunden-detail-box">
+            <div class="kunden-detail-label">Straße</div>
+            <div class="kunden-detail-value">{{ k.strasse }}</div>
+          </div>
 
-        <!-- VERTRAGSLAUFZEIT -->
-        <td style="padding:20px;font-weight:800;
-          color:{% if k.vertragslaufzeit == 'unbefristet' %}#16a34a{% else %}#f97316{% endif %}">
-          {{ "Unbefristet" if k.vertragslaufzeit == "unbefristet" else "Befristet" }}
-        </td>
+          <div class="kunden-detail-box">
+            <div class="kunden-detail-label">PLZ / Stadt</div>
+            <div class="kunden-detail-value">{{ k.plz }} {{ k.ort }}</div>
+          </div>
 
-        <!-- VERTRAGSSTATUS -->
-        <td style="padding:20px;font-weight:800;
-          color:{% if k.vertragsstatus == 'gekuendigt' %}#dc2626{% else %}#16a34a{% endif %}">
-          {{ "Gekündigt" if k.vertragsstatus == "gekuendigt" else "Aktuell" }}
-        </td>
+          <div class="kunden-detail-box">
+            <div class="kunden-detail-label">Ansprechpartner</div>
+            <div class="kunden-detail-value">{{ k.ansprechpartner_name or "" }}</div>
+          </div>
 
-        <td style="padding:20px;font-weight:800;color:#059669">
-          {{ "{:,.2f}".format((k.monat|string|replace(",", ".")|float)).replace(",", "X").replace(".", ",").replace("X", ".") }} €
+          <div class="kunden-detail-box">
+            <div class="kunden-detail-label">Telefon</div>
+            <div class="kunden-detail-value">{{ k.telefon or "" }}</div>
+          </div>
 
-        </td>
+          <div class="kunden-detail-box">
+            <div class="kunden-detail-label">E-Mail</div>
+            <div class="kunden-detail-value">{{ k.email or "" }}</div>
+          </div>
 
- <td class="no-print"
-    style="padding:20px;
-           height:72px;
-           display:flex;
-           align-items:center;
-           justify-content:flex-end;
-           gap:8px">
+          <div class="kunden-detail-box">
+            <div class="kunden-detail-label">Kundennummer</div>
+            <div class="kunden-detail-value">{{ k.kundennummer }}</div>
+          </div>
 
-  <button onclick="previewKunde('{{ k.id }}')" title="Vorschau"
-          style="background:#eef2ff;color:#6366f1;border:none;
-                 width:38px;height:38px;border-radius:10px">
-    <i class="fa-solid fa-eye"></i>
-  </button>
+          <div class="kunden-detail-box">
+            <div class="kunden-detail-label">Häufigkeit</div>
+            <div class="kunden-detail-value">{{ k.haeufigkeit }}</div>
+          </div>
 
-  <button onclick="editKunde('{{ k.id }}')" title="Bearbeiten"
-          style="background:#f0fdf4;color:#16a34a;border:none;
-                 width:38px;height:38px;border-radius:10px">
-    <i class="fa-solid fa-pen-to-square"></i>
-  </button>
+          <div class="kunden-detail-box">
+            <div class="kunden-detail-label">Beginn</div>
+            <div class="kunden-detail-value">{{ k.vertrag_beginn }}</div>
+          </div>
 
-  <button onclick="if(confirm('Kunde wirklich löschen?')) window.location.href='/kunden/delete/{{ k.id }}'"
-          title="Löschen"
-          style="background:#fef2f2;color:#dc2626;border:none;
-                 width:38px;height:38px;border-radius:10px">
-    <i class="fa-solid fa-trash"></i>
-  </button>
+          <div class="kunden-detail-box">
+            <div class="kunden-detail-label">Ende</div>
+            <div class="kunden-detail-value">{{ k.vertrag_ende }}</div>
+          </div>
+
+          <div class="kunden-detail-box">
+            <div class="kunden-detail-label">Laufzeit</div>
+            <div class="kunden-detail-value">
+              {{ "Unbefristet" if k.vertragslaufzeit == "unbefristet" else "Befristet" }}
+            </div>
+          </div>
+
+          <div class="kunden-detail-box">
+            <div class="kunden-detail-label">Status</div>
+            <div class="kunden-detail-value">
+              {{ "Gekündigt" if k.vertragsstatus == "gekuendigt" else "Aktuell" }}
+            </div>
+          </div>
+
+          <div class="kunden-detail-box detail-wide">
+            <div class="kunden-detail-label">Betrag</div>
+            <div class="kunden-detail-value kunden-detail-price">
+              {{ "{:,.2f}".format((k.monat|string|replace(",", ".")|float)).replace(",", "X").replace(".", ",").replace("X", ".") }} €
+            </div>
+          </div>
+        </div>
+      </div>
 
 <!-- ✅ SADECE İLGİLİ DÜZELTME: JS'İN ARADIĞI .t-* VERİLERİ (GİZLİ) -->
 <div style="display:none">
@@ -174,13 +241,12 @@
 </div>
 <!-- ✅ SADECE İLGİLİ DÜZELTME BİTTİ -->
 
-</td>
-</tr>
-{% endfor %}
-</tbody>
-</table>
+    </div>
+    {% endfor %}
+  </div>
 </div>
 
+</div>
 
 
 <!--
@@ -384,21 +450,788 @@
 -->
 
 <style>
+  .kunden-page {
+    width:100%;
+    max-width:1900px;
+    margin:0 auto;
+    background:#ffffff;
+    border-radius:24px;
+    box-shadow:0 18px 50px rgba(15,23,42,0.08);
+    border:1px solid #dbe3ef;
+    overflow:hidden;
+    font-family:Arial, Helvetica, sans-serif;
+    color:#0f172a;
+  }
+
+  .kunden-hero {
+    background:linear-gradient(135deg,#183a91 0%,#2563eb 100%);
+    color:#ffffff;
+    padding:28px 30px;
+  }
+
+  .kunden-hero-row {
+    display:grid;
+    grid-template-columns:minmax(320px,1fr) minmax(240px,340px) minmax(320px,1fr);
+    gap:18px;
+    align-items:start;
+    margin-bottom:24px;
+  }
+
+  .kunden-title-block h1 {
+    margin:0;
+    font-size:30px;
+    line-height:1.1;
+    font-weight:900;
+    letter-spacing:-0.4px;
+  }
+
+  .kunden-title-block p {
+    margin:8px 0 0 0;
+    font-size:13px;
+    line-height:1.5;
+    font-weight:700;
+    opacity:0.88;
+  }
+
+  .kunden-hero-center {
+    display:flex;
+    justify-content:center;
+  }
+
+  .kunden-live-box {
+    width:260px;
+    display:grid;
+    grid-template-columns:1fr;
+    align-items:center;
+    justify-items:center;
+    gap:6px;
+    padding:14px 18px;
+    border-radius:22px;
+    background:rgba(255,255,255,0.13);
+    border:1px solid rgba(255,255,255,0.20);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,0.14), 0 10px 22px rgba(15,23,42,0.08);
+    backdrop-filter:blur(6px);
+  }
+
+  .kunden-live-main {
+    font-size:23px;
+    line-height:1;
+    font-weight:900;
+    letter-spacing:-0.4px;
+  }
+
+  .kunden-live-sub {
+    font-size:12px;
+    font-weight:800;
+    color:rgba(255,255,255,0.78);
+  }
+
+  .kunden-hero-actions {
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+    justify-content:flex-end;
+    align-items:flex-start;
+  }
+
+  .kunden-hero-btn {
+    border:1px solid rgba(255,255,255,0.28);
+    background:rgba(255,255,255,0.14);
+    color:#ffffff;
+    border-radius:14px;
+    padding:12px 16px;
+    font-size:13px;
+    font-weight:800;
+    cursor:pointer;
+    white-space:nowrap;
+    line-height:1.2;
+  }
+
+  .kunden-hero-btn.primary {
+    background:#ffffff;
+    color:#183a91;
+    border-color:#ffffff;
+  }
+
+  .kunden-stat-grid {
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:18px;
+  }
+
+  .kunden-stat-box {
+    background:#ffffff;
+    border:1px solid rgba(255,255,255,0.85);
+    border-radius:18px;
+    padding:18px 22px;
+  }
+
+  .kunden-stat-label {
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:0.7px;
+    font-weight:900;
+    color:#1d4ed8;
+    margin-bottom:7px;
+  }
+
+  .kunden-stat-value {
+    font-size:22px;
+    line-height:1.15;
+    font-weight:900;
+    color:#183a91;
+  }
+
+  .kunden-stat-sub {
+    margin-top:6px;
+    font-size:11px;
+    font-weight:800;
+    color:#2563eb;
+  }
+
+  .kunden-list-shell {
+    background:linear-gradient(180deg,#f8fbff 0%,#f3f6fb 100%);
+    padding:28px 30px 32px 30px;
+  }
+
+  .kunden-list-head {
+    display:flex;
+    align-items:flex-end;
+    justify-content:space-between;
+    gap:18px;
+    margin-bottom:18px;
+    padding-bottom:14px;
+    border-bottom:1px solid #e5edf7;
+  }
+
+  .kunden-list-head h2 {
+    margin:0;
+    font-size:26px;
+    line-height:1.1;
+    font-weight:900;
+    color:#0f172a;
+    letter-spacing:-0.3px;
+  }
+
+  .kunden-list-head p {
+    margin:7px 0 0 0;
+    font-size:13px;
+    line-height:1.45;
+    font-weight:700;
+    color:#64748b;
+  }
+
+  .kunden-list-hint {
+    background:#eff6ff;
+    border:1px solid #bfdbfe;
+    color:#1d4ed8;
+    border-radius:999px;
+    padding:10px 14px;
+    font-size:12px;
+    font-weight:900;
+    white-space:nowrap;
+  }
+
+  .kunden-card-list {
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+  }
+
+  .kunden-card {
+    position:relative;
+    background:#ffffff;
+    border:1px solid #dbe7f5;
+    border-radius:22px;
+    box-shadow:0 10px 24px rgba(15,23,42,0.045);
+    overflow:hidden;
+    transition:0.18s ease;
+  }
+
+  .kunden-card:hover {
+    border-color:#93c5fd;
+    box-shadow:0 14px 30px rgba(37,99,235,0.09);
+  }
+
+  .kunden-card::before {
+    content:"";
+    position:absolute;
+    left:0;
+    top:12px;
+    bottom:12px;
+    width:5px;
+    border-radius:0 999px 999px 0;
+    background:linear-gradient(180deg,#183a91,#2563eb);
+  }
+
+  .kunden-card-summary {
+    display:grid;
+    grid-template-columns:44px minmax(260px,1.4fr) minmax(210px,0.8fr) minmax(120px,0.45fr) 132px 34px;
+    gap:14px;
+    align-items:center;
+    padding:16px 16px 16px 22px;
+    cursor:pointer;
+  }
+
+  .kunden-drag {
+    width:40px;
+    height:44px;
+    border-radius:15px;
+    border:1px solid #dbe3ef;
+    background:#f8fafc;
+    color:#64748b;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:21px;
+    font-weight:900;
+    cursor:grab;
+    user-select:none;
+  }
+
+  .kunden-drag:active {
+    cursor:grabbing;
+  }
+
+  .kunden-main-info {
+    min-width:0;
+  }
+
+  .kunden-name-line {
+    font-size:18px;
+    line-height:1.18;
+    font-weight:900;
+    color:#0f172a;
+    letter-spacing:-0.25px;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+
+  .kunden-address-line {
+    margin-top:7px;
+    font-size:13px;
+    line-height:1.35;
+    font-weight:800;
+    color:#64748b;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+
+  .kunden-mini-tags {
+    display:flex;
+    gap:7px;
+    flex-wrap:wrap;
+    margin-top:9px;
+  }
+
+  .kunden-tag {
+    display:inline-flex;
+    align-items:center;
+    border-radius:999px;
+    padding:6px 9px;
+    font-size:11px;
+    line-height:1;
+    font-weight:900;
+    border:1px solid transparent;
+  }
+
+  .kunden-tag.blue {
+    background:#eff6ff;
+    color:#1d4ed8;
+    border-color:#bfdbfe;
+  }
+
+  .kunden-tag.violet {
+    background:#eef2ff;
+    color:#4f46e5;
+    border-color:#c7d2fe;
+  }
+
+  .kunden-tag.green {
+    background:#ecfdf5;
+    color:#047857;
+    border-color:#bbf7d0;
+  }
+
+  .kunden-tag.red {
+    background:#fef2f2;
+    color:#dc2626;
+    border-color:#fecaca;
+  }
+
+  .kunden-contract-info {
+    min-width:0;
+  }
+
+  .kunden-small-label {
+    font-size:10px;
+    line-height:1;
+    text-transform:uppercase;
+    letter-spacing:0.6px;
+    font-weight:900;
+    color:#64748b;
+    margin-bottom:7px;
+  }
+
+  .kunden-contract-line {
+    font-size:13px;
+    line-height:1.25;
+    font-weight:900;
+    color:#0f172a;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+
+  .kunden-contract-status {
+    margin-top:7px;
+    font-size:12px;
+    font-weight:900;
+  }
+
+  .kunden-contract-status.green { color:#16a34a; }
+  .kunden-contract-status.orange { color:#f97316; }
+
+  .kunden-price-box {
+    min-width:0;
+  }
+
+  .kunden-price {
+    font-size:17px;
+    line-height:1.15;
+    font-weight:900;
+    color:#059669;
+    white-space:nowrap;
+  }
+
+  .kunden-row-actions {
+    display:flex;
+    align-items:center;
+    justify-content:flex-end;
+    gap:8px;
+  }
+
+  .kunden-icon-btn {
+    border:none;
+    width:38px;
+    height:38px;
+    border-radius:12px;
+    cursor:pointer;
+    font-size:14px;
+  }
+
+  .kunden-icon-btn.preview {
+    background:#eef2ff;
+    color:#6366f1;
+  }
+
+  .kunden-icon-btn.edit {
+    background:#f0fdf4;
+    color:#16a34a;
+  }
+
+  .kunden-icon-btn.delete {
+    background:#fef2f2;
+    color:#dc2626;
+  }
+
+  .kunden-toggle {
+    width:34px;
+    height:34px;
+    border-radius:13px;
+    background:#eff6ff;
+    color:#1d4ed8;
+    border:1px solid #bfdbfe;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:17px;
+    font-weight:900;
+    transition:0.18s ease;
+  }
+
+  .kunden-card.open .kunden-toggle {
+    transform:rotate(180deg);
+    background:#1d4ed8;
+    color:#ffffff;
+  }
+
+  .kunden-card-details {
+    display:none;
+    padding:0 16px 16px 82px;
+  }
+
+  .kunden-card.open .kunden-card-details {
+    display:block;
+  }
+
+  .kunden-detail-grid {
+    border-top:1px dashed #dbe7f5;
+    background:#f8fafc;
+    border-radius:16px;
+    padding:14px;
+    display:grid;
+    grid-template-columns:repeat(4,minmax(0,1fr));
+    gap:12px;
+  }
+
+  .kunden-detail-box {
+    background:#ffffff;
+    border:1px solid #e2e8f0;
+    border-radius:14px;
+    padding:13px 14px;
+    min-height:76px;
+  }
+
+  .kunden-detail-box.detail-wide {
+    grid-column:span 2;
+  }
+
+  .kunden-detail-label {
+    font-size:10px;
+    line-height:1;
+    text-transform:uppercase;
+    letter-spacing:0.6px;
+    font-weight:900;
+    color:#64748b;
+    margin-bottom:7px;
+  }
+
+  .kunden-detail-value {
+    font-size:13px;
+    line-height:1.35;
+    font-weight:800;
+    color:#0f172a;
+    word-break:break-word;
+  }
+
+  .kunden-detail-price {
+    color:#059669;
+    font-size:16px;
+    font-weight:900;
+  }
+
   .m-input { width:100%;padding:14px;border:1.5px solid #e2e8f0;border-radius:12px;font-size:14px;outline:none;color:#1e293b;box-sizing:border-box }
   .input-lbl { display:block; margin-bottom:5px; font-weight:600; color:#475569; font-size:13px; }
   .calendar-ico { position:absolute;right:15px;top:15px;color:#64748b;pointer-events:none; }
   .blue-label { display:block;font-size:12px;font-weight:900;color:#2563eb;letter-spacing:1.2px;margin-bottom:15px;border-left:4px solid #2563eb;padding-left:10px }
   .btn-pri { background:#2563eb;color:#fff;border:none;padding:14px 32px;border-radius:12px;font-weight:700;cursor:pointer }
   .btn-sec { background:#f1f5f9;color:#475569;border:none;padding:14px 32px;border-radius:12px;font-weight:700;cursor:pointer }
+
+  @media (max-width: 1280px) {
+    .kunden-hero-row {
+      grid-template-columns:1fr 260px;
+    }
+
+    .kunden-hero-actions {
+      grid-column:1 / -1;
+      justify-content:flex-start;
+    }
+
+    .kunden-card-summary {
+      grid-template-columns:44px minmax(220px,1fr) minmax(190px,0.75fr) minmax(110px,0.45fr) 132px 34px;
+    }
+
+    .kunden-detail-grid {
+      grid-template-columns:repeat(3,minmax(0,1fr));
+    }
+  }
+
+  @media (max-width: 1050px) {
+    .kunden-page {
+      border-radius:18px;
+    }
+
+    .kunden-stat-grid {
+      grid-template-columns:repeat(2,1fr);
+    }
+
+    .kunden-card-summary {
+      grid-template-columns:44px minmax(0,1fr) 132px 34px;
+      align-items:start;
+    }
+
+    .kunden-contract-info,
+    .kunden-price-box {
+      grid-column:2 / 3;
+    }
+
+    .kunden-row-actions {
+      grid-column:3 / 4;
+      grid-row:1 / 3;
+      align-self:center;
+    }
+
+    .kunden-toggle {
+      grid-column:4 / 5;
+      grid-row:1 / 3;
+      align-self:center;
+    }
+
+    .kunden-card-details {
+      padding-left:16px;
+    }
+
+    .kunden-detail-grid {
+      grid-template-columns:repeat(2,minmax(0,1fr));
+    }
+  }
+
+  @media (max-width: 760px) {
+    .kunden-hero,
+    .kunden-list-shell {
+      padding:18px;
+    }
+
+    .kunden-hero-row {
+      grid-template-columns:1fr;
+    }
+
+    .kunden-hero-center {
+      justify-content:flex-start;
+    }
+
+    .kunden-live-box {
+      width:100%;
+    }
+
+    .kunden-stat-grid {
+      grid-template-columns:1fr;
+    }
+
+    .kunden-list-head {
+      align-items:flex-start;
+      flex-direction:column;
+    }
+
+    .kunden-card-summary {
+      grid-template-columns:40px minmax(0,1fr) 34px;
+      gap:12px;
+      padding:14px 14px 14px 20px;
+    }
+
+    .kunden-main-info,
+    .kunden-contract-info,
+    .kunden-price-box {
+      grid-column:2 / 3;
+    }
+
+    .kunden-row-actions {
+      grid-column:2 / 4;
+      grid-row:auto;
+      justify-content:flex-start;
+      margin-top:2px;
+    }
+
+    .kunden-toggle {
+      grid-column:3 / 4;
+      grid-row:1 / 2;
+    }
+
+    .kunden-detail-grid {
+      grid-template-columns:1fr;
+    }
+
+    .kunden-detail-box.detail-wide {
+      grid-column:span 1;
+    }
+  }
   
-  @media print { 
-    body * { visibility: hidden; }
-    #main_list, #main_list * { visibility: visible !important; }
-    #main_list { position: absolute; left: 0; top: 0; width: 100%; border:none; box-shadow:none; }
-    .no-print { display: none !important; }
-    .printing-single #pv, .printing-single #pv * { visibility: visible !important; }
-    .printing-single #pv { position: absolute; left:0; top:0; width:100%; background:white; }
-    .printing-single #main_list { visibility: hidden !important; }
+    @media print { 
+    @page {
+      size: A4 portrait;
+      margin: 12mm;
+    }
+
+    body * {
+      visibility: hidden;
+    }
+
+    #main_list,
+    #main_list * {
+      visibility: visible !important;
+    }
+
+    #main_list {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+      border: none !important;
+      box-shadow: none !important;
+      background: white !important;
+      padding: 0 !important;
+    }
+
+    .kunden-list-shell {
+      background: white !important;
+      padding: 0 !important;
+    }
+
+    .kunden-list-head {
+      display: none !important;
+    }
+
+    .kunden-card-list {
+      display: block !important;
+    }
+
+    .kunden-card {
+      break-inside: avoid;
+      page-break-inside: avoid;
+      box-shadow: none !important;
+      border: 1px solid #dbe3ef !important;
+      border-radius: 10px !important;
+      margin: 0 0 10px 0 !important;
+      overflow: hidden !important;
+    }
+
+    .kunden-card::before {
+      display: none !important;
+    }
+
+    .kunden-card-summary {
+      display: grid !important;
+      grid-template-columns: 34px 1.4fr 0.8fr 0.55fr !important;
+      gap: 10px !important;
+      align-items: center !important;
+      padding: 10px 12px !important;
+      border-bottom: 1px solid #e5e7eb !important;
+      cursor: default !important;
+    }
+
+    .kunden-drag {
+      width: 28px !important;
+      height: 28px !important;
+      border-radius: 8px !important;
+      font-size: 14px !important;
+      background: #f8fafc !important;
+    }
+
+    .kunden-name-line {
+      font-size: 13px !important;
+      font-weight: 900 !important;
+      white-space: normal !important;
+      overflow: visible !important;
+      text-overflow: clip !important;
+    }
+
+    .kunden-address-line {
+      font-size: 10px !important;
+      margin-top: 3px !important;
+      white-space: normal !important;
+      overflow: visible !important;
+      text-overflow: clip !important;
+    }
+
+    .kunden-mini-tags {
+      margin-top: 5px !important;
+      gap: 4px !important;
+    }
+
+    .kunden-tag {
+      font-size: 8px !important;
+      padding: 3px 5px !important;
+    }
+
+    .kunden-contract-line,
+    .kunden-contract-status,
+    .kunden-price {
+      font-size: 10px !important;
+      white-space: normal !important;
+      overflow: visible !important;
+      text-overflow: clip !important;
+    }
+
+    .kunden-small-label {
+      font-size: 8px !important;
+      margin-bottom: 3px !important;
+    }
+
+    .kunden-card-details {
+      display: block !important;
+      padding: 0 !important;
+    }
+
+    .kunden-detail-grid {
+      display: grid !important;
+      grid-template-columns: 1fr 1fr !important;
+      gap: 0 !important;
+      padding: 0 !important;
+      background: white !important;
+      border-top: none !important;
+      border-radius: 0 !important;
+    }
+
+    .kunden-detail-box {
+      display: grid !important;
+      grid-template-columns: 34% 66% !important;
+      align-items: center !important;
+      min-height: auto !important;
+      padding: 6px 9px !important;
+      border: none !important;
+      border-right: 1px solid #e5e7eb !important;
+      border-bottom: 1px solid #e5e7eb !important;
+      border-radius: 0 !important;
+      background: white !important;
+      page-break-inside: avoid !important;
+    }
+
+    .kunden-detail-box:nth-child(2n) {
+      border-right: none !important;
+    }
+
+    .kunden-detail-box.detail-wide {
+      grid-column: span 2 !important;
+    }
+
+    .kunden-detail-label {
+      font-size: 8px !important;
+      line-height: 1.2 !important;
+      margin: 0 !important;
+      color: #64748b !important;
+      font-weight: 900 !important;
+      letter-spacing: 0.4px !important;
+    }
+
+    .kunden-detail-value {
+      font-size: 10px !important;
+      line-height: 1.25 !important;
+      color: #0f172a !important;
+      font-weight: 800 !important;
+      word-break: break-word !important;
+    }
+
+    .kunden-detail-price {
+      font-size: 11px !important;
+      color: #059669 !important;
+      font-weight: 900 !important;
+    }
+
+    .no-print,
+    .kunden-row-actions,
+    .kunden-toggle {
+      display: none !important;
+    }
+
+    .printing-single #pv,
+    .printing-single #pv * {
+      visibility: visible !important;
+    }
+
+    .printing-single #pv {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+      background: white;
+    }
+
+    .printing-single #main_list {
+      visibility: hidden !important;
+    }
   }
 </style>
 
@@ -416,6 +1249,14 @@
 <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
 
 <script>
+/* ================================
+   KUNDEN-KARTE AÇ / KAPAT
+   ================================ */
+function toggleKundenCard(id) {
+  const row = document.getElementById('row-' + id);
+  if (row) row.classList.toggle('open');
+}
+
 /* ================================
    EKSİK SINIF TANIMLARI (EK)
    DOKUNMADAN ÇALIŞMASI İÇİN
@@ -587,7 +1428,7 @@ document.addEventListener("DOMContentLoaded", function () {
             handle: ".drag-handle",
 
             onEnd: async function () {
-                const ids = Array.from(kundenBody.querySelectorAll("tr[data-id]"))
+                const ids = Array.from(kundenBody.querySelectorAll("[data-id]"))
                     .map(row => parseInt(row.dataset.id))
                     .filter(id => !isNaN(id));
 
