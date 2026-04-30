@@ -3,6 +3,289 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 
+<style>
+.kg-stz-page {
+    padding: 0;
+}
+
+.kg-stz-hero {
+    background: linear-gradient(135deg, #183a91 0%, #2563eb 100%);
+    color: #ffffff;
+    border-radius: 20px;
+    padding: 28px 30px;
+    margin-bottom: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 22px;
+    box-shadow: 0 18px 40px rgba(24, 58, 145, 0.18);
+    overflow: hidden;
+}
+
+.kg-stz-hero-left {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+}
+
+.kg-stz-hero-icon {
+    width: 62px;
+    height: 62px;
+    border-radius: 20px;
+    border: 2px solid rgba(255,255,255,0.42);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 26px;
+    background: rgba(255,255,255,0.10);
+}
+
+.kg-stz-hero h2 {
+    font-size: 32px;
+    line-height: 1.05;
+    font-weight: 900;
+    color: #ffffff;
+    margin: 0;
+    letter-spacing: -0.6px;
+}
+
+.kg-stz-hero p {
+    color: rgba(255,255,255,0.88);
+    font-size: 14px;
+    margin: 8px 0 0 0;
+    font-weight: 700;
+}
+
+.kg-stz-card {
+    background: #ffffff;
+    border: 1px solid #dbe3ef;
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 14px 32px rgba(15,23,42,0.07);
+}
+
+.kg-stz-card-head {
+    padding: 20px 24px;
+    border-bottom: 1px solid #e2e8f0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    color: #183a91;
+    font-weight: 900;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+}
+
+.kg-stz-table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+}
+
+.kg-stz-table thead {
+    background: #f8fafc;
+    border-bottom: 1px solid #dbe3ef;
+}
+
+.kg-stz-table th {
+    padding: 16px 22px;
+    font-weight: 900;
+    font-size: 12px;
+    color: #475569;
+    text-transform: uppercase;
+}
+
+.kg-stz-row {
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.kg-stz-row:last-child {
+    border-bottom: none;
+}
+
+.kg-stz-worker-cell {
+    padding: 22px;
+}
+
+.kg-stz-worker-wrap {
+    display: grid;
+    grid-template-columns: 52px minmax(0, 1fr);
+    gap: 16px;
+    align-items: center;
+}
+
+.kg-stz-avatar {
+    width: 46px;
+    height: 46px;
+    border-radius: 16px;
+    background: #eff6ff;
+    color: #2563eb;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 900;
+    font-size: 14px;
+}
+
+.kg-stz-name {
+    font-size: 16px;
+    font-weight: 900;
+    color: #0f172a;
+    margin-bottom: 4px;
+}
+
+.kg-stz-link-row {
+    margin-top: 8px;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.kg-stz-link-input {
+    flex: 1;
+    min-width: 0;
+    padding: 11px 12px;
+    border: 1px solid #dbe3ef;
+    border-radius: 10px;
+    font-size: 12px;
+    background: #f8fafc;
+    color: #0f172a;
+}
+
+.kg-stz-copy-btn {
+    padding: 11px 14px;
+    background: #ffffff;
+    color: #2563eb;
+    border: 1px solid #bfdbfe;
+    border-radius: 10px;
+    font-size: 12px;
+    font-weight: 900;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.kg-stz-action-cell {
+    padding: 22px;
+    text-align: right;
+}
+
+.kg-stz-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+.kg-stz-open-btn {
+    background: #2563eb;
+    color: #ffffff;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 12px;
+    font-weight: 900;
+    cursor: pointer;
+}
+
+.kg-stz-delete-btn {
+    background: #fef2f2;
+    color: #dc2626;
+    border: none;
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    cursor: pointer;
+}
+
+@media (max-width: 900px) {
+    .kg-stz-hero {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .kg-stz-worker-wrap {
+        grid-template-columns: 1fr;
+    }
+
+    .kg-stz-link-row {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .kg-stz-actions {
+        flex-direction: column;
+    }
+}
+
+.kg-stz-preview {
+    display: none;
+    margin-top: 26px;
+    background: #ffffff;
+    border: 1px solid #dbe3ef;
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 14px 32px rgba(15,23,42,0.07);
+}
+
+.kg-stz-preview-head {
+    background: linear-gradient(135deg, #183a91 0%, #2563eb 100%);
+    color: #ffffff;
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+}
+
+.kg-stz-preview-title {
+    font-size: 16px;
+    font-weight: 900;
+}
+
+.kg-stz-preview-sub {
+    font-size: 12px;
+    font-weight: 700;
+    opacity: 0.85;
+    margin-top: 3px;
+}
+
+.kg-stz-preview-actions {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.kg-stz-preview-btn {
+    height: 38px;
+    padding: 0 14px;
+    border-radius: 10px;
+    border: 1px solid rgba(255,255,255,0.28);
+    background: rgba(255,255,255,0.14);
+    color: #ffffff;
+    font-size: 12px;
+    font-weight: 900;
+    cursor: pointer;
+}
+
+.kg-stz-preview-close {
+    height: 38px;
+    width: 38px;
+    border-radius: 10px;
+    border: none;
+    background: rgba(255,255,255,0.16);
+    color: #ffffff;
+    font-size: 20px;
+    font-weight: 900;
+    cursor: pointer;
+}
+
+.kg-stz-preview-frame {
+    width: 100%;
+    height: 760px;
+    border: none;
+    background: #f8fafc;
+    display: block;
+}
+</style>
 
 <!--
 ..........................................................................................................
@@ -13,67 +296,105 @@
 -->
 
 
-<div style="padding: 20px;">
-    <h2 style="font-size: 32px; font-weight: 900; color: #16a34a; margin-bottom: 25px; letter-spacing: -1px;">
-        Mitarbeiterliste (Stundenzettel)
-    </h2>
+<div class="kg-stz-page">
+    <div class="kg-stz-hero">
+        <div class="kg-stz-hero-left">
+            <div class="kg-stz-hero-icon">
+                <i class="fa-solid fa-clock-rotate-left"></i>
+            </div>
+            <div>
+                <h2>Stundenzettel Liste</h2>
+                <p>Alle Stundenzettel-Links Ihrer Mitarbeiter</p>
+            </div>
+        </div>
+    </div>
 
-    <div style="background:#fff; border:1px solid #e2e8f0; border-radius:20px; overflow:hidden; box-shadow:0 10px 15px -3px rgba(0,0,0,0.05);">
-        <table style="width:100%; border-collapse:collapse; text-align:left">
-            <thead style="background:#f8fafc; border-bottom:2px solid #f1f5f9">
+    <div class="kg-stz-card">
+        <div class="kg-stz-card-head">
+            <div>
+                <i class="fa-solid fa-file-lines"></i> Stundenzettel Links
+            </div>
+            <div>Aktionen</div>
+        </div>
+
+        <table class="kg-stz-table">
+            <thead>
                 <tr>
-                    <th style="padding:20px; font-weight:700; font-size:12px; color:#475569; text-transform:uppercase;">Mitarbeiter</th>
-                    <th style="padding:20px; text-align:right; font-weight:700; font-size:12px; color:#475569; text-transform:uppercase;">Aktionen</th>
+                    <th>Mitarbeiter</th>
+                    <th>Link</th>
+                    <th style="text-align:right;">Aktionen</th>
                 </tr>
             </thead>
             <tbody>
                 {% for m in mitarbeiter_liste %}
-                <tr style="border-bottom:1px solid #f1f5f9;">
-                    <td style="padding:20px; font-weight:800; color:#1e293b; font-size: 16px;">
-                        {{ m.vorname }} {{ m.nachname }}
-                        <br>
+                <tr class="kg-stz-row">
+                    <td class="kg-stz-worker-cell">
+                        <div class="kg-stz-worker-wrap">
+                            <div class="kg-stz-avatar">
+                                {{ m.vorname[0] }}{{ m.nachname[0] }}
+                            </div>
+                            <div>
+                                <div class="kg-stz-name">{{ m.vorname }} {{ m.nachname }}</div>
+                                <div style="font-size:12px; color:#64748b; font-weight:700;">ID: {{ m.access_code }}</div>
+                            </div>
+                        </div>
+                    </td>
 
-                        <!-- ❌ SİLİNEN -->
-                        <!--
-                        <small style="color:#64748b; font-weight:400; font-size:11px; background:#f1f5f9; padding:2px 6px; border-radius:4px; display:inline-block; margin-top:5px;">
-                            Link: {{ request.host_url.rstrip('/') }}/stundenzettel/worker/{{ m.access_code }}
-                        </small>
-                        -->
-
-                        <!-- ✅ EKLENEN -->
-                        <div style="margin-top:6px; display:flex; gap:6px; align-items:center;">
+                    <td style="padding:22px;">
+                        <div class="kg-stz-link-row">
                             <input
                                 type="text"
                                 readonly
                                 value="{{ request.host_url.rstrip('/') }}/stundenzettel/worker/{{ m.access_code }}"
-                                style="flex:1; padding:8px 10px; border:1px solid #dbe2ea; border-radius:8px; font-size:12px; background:#f8fafc;">
+                                class="kg-stz-link-input">
                             <button
                                 onclick="
                                     navigator.clipboard.writeText('{{ request.host_url.rstrip('/') }}/stundenzettel/worker/{{ m.access_code }}');
                                     this.innerText='KOPIERT!';
                                     setTimeout(() => this.innerText='KOPIEREN', 1500);
                                 "
-                                style="padding:8px 12px; background:#16a34a; color:white; border:none; border-radius:8px; font-size:12px; cursor:pointer;">
-                                KOPIEREN
+                                class="kg-stz-copy-btn">
+                                <i class="fa-regular fa-copy"></i> KOPIEREN
                             </button>
                         </div>
-
                     </td>
-                    <td style="padding:20px; text-align:right; display:flex; justify-content:flex-end; gap:10px;">
-                        <button 
-                            onclick="window.location.href='{{ request.host_url.rstrip('/') }}/stundenzettel/worker/{{ m.access_code }}'"
-                            style="background:#2563eb; color:#fff; border:none; padding:10px 25px; border-radius:12px; font-weight:700; cursor:pointer; transition: 0.2s;">
-                            Öffnen
-                        </button>
-                        <button onclick="if(confirm('Mitarbeiter archivieren?')) window.location.href='/mitarbeiter/delete/{{ m.id }}'" 
-                                style="background:#fef2f2; color:#dc2626; border:none; width:45px; height:45px; border-radius:12px; cursor:pointer; transition: 0.2s;">
-                            <i class="fa-solid fa-trash-can"></i>
-                        </button>
+
+                    <td class="kg-stz-action-cell">
+                        <div class="kg-stz-actions">
+                            <button 
+                                onclick="openStundenzettelPreview('{{ request.host_url.rstrip('/') }}/stundenzettel/worker/{{ m.access_code }}', '{{ m.vorname }} {{ m.nachname }}')"
+                                class="kg-stz-open-btn">
+                                <i class="fa-solid fa-arrow-up-right-from-square"></i> Öffnen
+                            </button>
+
+                            <button onclick="if(confirm('Mitarbeiter archivieren?')) window.location.href='/mitarbeiter/delete/{{ m.id }}'" 
+                                    class="kg-stz-delete-btn">
+                                <i class="fa-solid fa-trash-can"></i>
+                            </button>
+                        </div>
                     </td>
                 </tr>
-                {% endfor %}
+              {% endfor %}
             </tbody>
         </table>
+    </div>
+
+    <div id="stzPreviewBox" class="kg-stz-preview">
+        <div class="kg-stz-preview-head">
+            <div>
+                <div id="stzPreviewTitle" class="kg-stz-preview-title">Stundenzettel Vorschau</div>
+                <div class="kg-stz-preview-sub">Admin-Ansicht innerhalb des CRM-Portals</div>
+            </div>
+
+            <div class="kg-stz-preview-actions">
+                <button type="button" class="kg-stz-preview-btn" onclick="openStundenzettelPreviewNewWindow()">
+                    <i class="fa-solid fa-arrow-up-right-from-square"></i> Neues Fenster
+                </button>
+                <button type="button" class="kg-stz-preview-close" onclick="closeStundenzettelPreview()">×</button>
+            </div>
+        </div>
+
+        <iframe id="stzPreviewFrame" class="kg-stz-preview-frame"></iframe>
     </div>
 </div>
 
@@ -465,5 +786,50 @@ document.getElementById('confirmReminderBtn').addEventListener('click', function
 ..........................................................................................................
 ..........................................................................................................
 -->
+
+<script>
+let currentStundenzettelPreviewUrl = "";
+
+function openStundenzettelPreview(url, name) {
+    currentStundenzettelPreviewUrl = url;
+
+    const box = document.getElementById("stzPreviewBox");
+    const frame = document.getElementById("stzPreviewFrame");
+    const title = document.getElementById("stzPreviewTitle");
+
+    if (title) {
+        title.innerText = "Stundenzettel: " + name;
+    }
+
+    if (frame) {
+        frame.src = url;
+    }
+
+    if (box) {
+        box.style.display = "block";
+        box.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+}
+
+function closeStundenzettelPreview() {
+    const box = document.getElementById("stzPreviewBox");
+    const frame = document.getElementById("stzPreviewFrame");
+
+    if (frame) {
+        frame.src = "";
+    }
+
+    if (box) {
+        box.style.display = "none";
+    }
+
+    currentStundenzettelPreviewUrl = "";
+}
+
+function openStundenzettelPreviewNewWindow() {
+    if (!currentStundenzettelPreviewUrl) return;
+    window.open(currentStundenzettelPreviewUrl, "_blank");
+}
+</script>
 
 {% endblock %}
