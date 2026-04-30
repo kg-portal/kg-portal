@@ -391,34 +391,382 @@
             overflow:visible;
         }
 
+        /* =====================================================
+           TABLET / MOBILE - ÜSTTE YATAY PORTAL MENÜ
+           Menü kaybolmaz, sadece kompakt üst bar olur
+           ===================================================== */
         @media (max-width:1024px) {
             .portal-sidebar {
-                position:relative;
-                left:auto;
-                top:auto;
-                width:100%;
-                height:auto;
-                border-right:none;
-                border-bottom:1px solid var(--kg-border);
-                padding:15px;
-                z-index:10;
+                position:sticky !important;
+                top:0 !important;
+                left:auto !important;
+                width:100% !important;
+                height:auto !important;
+                max-height:none !important;
+                border-right:none !important;
+                border-bottom:1px solid var(--kg-border) !important;
+                padding:10px !important;
+                z-index:9999 !important;
+                overflow:visible !important;
+                background:#ffffff !important;
             }
 
             .portal-sidebar-title {
-                margin-bottom:20px;
+                min-height:54px !important;
+                height:54px !important;
+                margin:0 0 10px 0 !important;
+                padding:10px 14px !important;
+                border-radius:16px !important;
+            }
+
+            .portal-title-main {
+                font-size:20px !important;
+                line-height:1 !important;
+            }
+
+            .portal-title-sub {
+                font-size:8px !important;
+                margin-top:5px !important;
+                padding:4px 10px !important;
+                letter-spacing:2px !important;
+            }
+
+            .portal-sidebar-title::after {
+                display:none !important;
+            }
+
+            .portal-nav-list {
+                display:flex !important;
+                flex-direction:row !important;
+                gap:8px !important;
+                overflow-x:auto !important;
+                overflow-y:hidden !important;
+                width:100% !important;
+                padding:0 2px 4px 2px !important;
+                scroll-snap-type:x proximity !important;
+                -webkit-overflow-scrolling:touch !important;
+            }
+
+            .portal-nav-list::-webkit-scrollbar {
+                height:4px !important;
+            }
+
+            .portal-nav-list::-webkit-scrollbar-thumb {
+                background:#cbd5e1 !important;
+                border-radius:999px !important;
+            }
+
+            .portal-nav-group-title {
+                display:none !important;
+            }
+
+            .portal-nav-item,
+            .portal-nav-item[data-nav-key="startseite"],
+            .portal-nav-item[data-nav-key="todo"],
+            .portal-nav-item[data-nav-key="vertrag"],
+            .portal-nav-item[data-nav-key="kunden"],
+            .portal-nav-item[data-nav-key="vertretung"] {
+                flex:0 0 auto !important;
+                min-width:132px !important;
+                height:46px !important;
+                margin:0 !important;
+                padding:10px 12px !important;
+                border-radius:13px !important;
+                font-size:13px !important;
+                scroll-snap-align:start !important;
+            }
+
+            .portal-nav-content {
+                gap:9px !important;
+                white-space:nowrap !important;
+            }
+
+            .portal-nav-item i {
+                font-size:15px !important;
+                width:18px !important;
+            }
+
+            .portal-drag-handle {
+                display:none !important;
             }
 
             .portal-main {
-                width:100%;
-                margin-left:0;
-                min-height:auto;
-                padding:15px;
+                width:100% !important;
+                margin-left:0 !important;
+                min-height:auto !important;
+                padding:10px !important;
             }
 
             .portal-card {
-                min-height:auto;
-                border-radius:20px;
-                padding:20px;
+                width:100% !important;
+                min-height:calc(100vh - 150px) !important;
+                border-radius:18px !important;
+                padding:10px !important;
+                overflow:hidden !important;
+            }
+        }
+
+        @media (max-width:760px) {
+            .portal-sidebar {
+                padding:8px !important;
+            }
+
+            .portal-sidebar-title {
+                height:48px !important;
+                min-height:48px !important;
+                margin-bottom:8px !important;
+            }
+
+            .portal-title-main {
+                font-size:18px !important;
+            }
+
+            .portal-nav-item,
+            .portal-nav-item[data-nav-key="startseite"],
+            .portal-nav-item[data-nav-key="todo"],
+            .portal-nav-item[data-nav-key="vertrag"],
+            .portal-nav-item[data-nav-key="kunden"],
+            .portal-nav-item[data-nav-key="vertretung"] {
+                min-width:118px !important;
+                height:42px !important;
+                padding:9px 10px !important;
+                font-size:12px !important;
+            }
+
+            .portal-nav-item i {
+                font-size:14px !important;
+                width:16px !important;
+            }
+
+            .portal-main {
+                padding:6px !important;
+            }
+
+            .portal-card {
+                min-height:calc(100vh - 120px) !important;
+                border-radius:14px !important;
+                padding:6px !important;
+            }
+        }
+
+        /* =====================================================
+           TABLET YAN EKRAN - ÜSTTE YATAY PORTAL MENÜ
+           Tablet yatayda da sol menüye dönmesin
+           ===================================================== */
+        @media (hover:none) and (pointer:coarse) and (min-width:761px) and (max-width:1366px) {
+            .portal-sidebar {
+                position:sticky !important;
+                top:0 !important;
+                left:auto !important;
+                width:100% !important;
+                height:auto !important;
+                max-height:none !important;
+                border-right:none !important;
+                border-bottom:1px solid var(--kg-border) !important;
+                padding:10px !important;
+                z-index:9999 !important;
+                overflow:visible !important;
+                background:#ffffff !important;
+            }
+
+            .portal-sidebar-title {
+                min-height:54px !important;
+                height:54px !important;
+                margin:0 0 10px 0 !important;
+                padding:10px 14px !important;
+                border-radius:16px !important;
+            }
+
+            .portal-title-main {
+                font-size:20px !important;
+                line-height:1 !important;
+            }
+
+            .portal-title-sub {
+                font-size:8px !important;
+                margin-top:5px !important;
+                padding:4px 10px !important;
+                letter-spacing:2px !important;
+            }
+
+            .portal-sidebar-title::after {
+                display:none !important;
+            }
+
+            .portal-nav-list {
+                display:flex !important;
+                flex-direction:row !important;
+                gap:8px !important;
+                overflow-x:auto !important;
+                overflow-y:hidden !important;
+                width:100% !important;
+                padding:0 2px 4px 2px !important;
+                scroll-snap-type:x proximity !important;
+                -webkit-overflow-scrolling:touch !important;
+            }
+
+            .portal-nav-list::-webkit-scrollbar {
+                height:4px !important;
+            }
+
+            .portal-nav-list::-webkit-scrollbar-thumb {
+                background:#cbd5e1 !important;
+                border-radius:999px !important;
+            }
+
+            .portal-nav-group-title {
+                display:none !important;
+            }
+
+            .portal-nav-item,
+            .portal-nav-item[data-nav-key="startseite"],
+            .portal-nav-item[data-nav-key="todo"],
+            .portal-nav-item[data-nav-key="vertrag"],
+            .portal-nav-item[data-nav-key="kunden"],
+            .portal-nav-item[data-nav-key="vertretung"] {
+                flex:0 0 auto !important;
+                min-width:132px !important;
+                height:46px !important;
+                margin:0 !important;
+                padding:10px 12px !important;
+                border-radius:13px !important;
+                font-size:13px !important;
+                scroll-snap-align:start !important;
+            }
+
+            .portal-nav-content {
+                gap:9px !important;
+                white-space:nowrap !important;
+            }
+
+            .portal-nav-item i {
+                font-size:15px !important;
+                width:18px !important;
+            }
+
+            .portal-drag-handle {
+                display:none !important;
+            }
+
+            .portal-main {
+                width:100% !important;
+                margin-left:0 !important;
+                min-height:auto !important;
+                padding:10px !important;
+            }
+
+            .portal-card {
+                width:100% !important;
+                min-height:calc(100vh - 150px) !important;
+                border-radius:18px !important;
+                padding:10px !important;
+                overflow:hidden !important;
+            }
+        }
+
+        /* =====================================================
+           TABLET YAN EKRAN - STEUERZENTRALE ÜST ALAN DÜZELTME
+           Hava durumu sağa taşmasın
+           ===================================================== */
+        @media (hover:none) and (pointer:coarse) and (min-width:761px) and (max-width:1366px) and (orientation:landscape) {
+            .portal-card {
+                overflow:hidden !important;
+            }
+
+            .portal-card > * {
+                max-width:100% !important;
+            }
+
+            .portal-card .kg-hero,
+            .portal-card .dashboard-hero,
+            .portal-card .dashboard-header,
+            .portal-card .steuerzentrale-header,
+            .portal-card .kg-dashboard-header,
+            .portal-card .top-header,
+            .portal-card .page-header,
+            .portal-card .hero-header {
+                width:100% !important;
+                max-width:100% !important;
+                display:grid !important;
+                grid-template-columns:minmax(0, 1fr) minmax(190px, 260px) !important;
+                align-items:stretch !important;
+                gap:10px !important;
+                overflow:hidden !important;
+            }
+
+            .portal-card .kg-hero > *,
+            .portal-card .dashboard-hero > *,
+            .portal-card .dashboard-header > *,
+            .portal-card .steuerzentrale-header > *,
+            .portal-card .kg-dashboard-header > *,
+            .portal-card .top-header > *,
+            .portal-card .page-header > *,
+            .portal-card .hero-header > * {
+                min-width:0 !important;
+                max-width:100% !important;
+            }
+
+            .portal-card .weather,
+            .portal-card .weather-box,
+            .portal-card .weather-card,
+            .portal-card .weather-widget,
+            .portal-card .wetter,
+            .portal-card .wetter-box,
+            .portal-card .wetter-card,
+            .portal-card .wetter-widget {
+                width:100% !important;
+                max-width:260px !important;
+                min-width:0 !important;
+                margin-left:0 !important;
+                overflow:hidden !important;
+            }
+        }
+
+            .portal-card > * {
+                max-width:100% !important;
+            }
+
+            .portal-card .kg-hero,
+            .portal-card .dashboard-hero,
+            .portal-card .dashboard-header,
+            .portal-card .steuerzentrale-header,
+            .portal-card .kg-dashboard-header,
+            .portal-card .top-header,
+            .portal-card .page-header,
+            .portal-card .hero-header {
+                width:100% !important;
+                max-width:100% !important;
+                display:flex !important;
+                align-items:stretch !important;
+                justify-content:space-between !important;
+                gap:12px !important;
+                overflow:hidden !important;
+            }
+
+            .portal-card .kg-hero > *,
+            .portal-card .dashboard-hero > *,
+            .portal-card .dashboard-header > *,
+            .portal-card .steuerzentrale-header > *,
+            .portal-card .kg-dashboard-header > *,
+            .portal-card .top-header > *,
+            .portal-card .page-header > *,
+            .portal-card .hero-header > * {
+                min-width:0 !important;
+            }
+
+            .portal-card .weather,
+            .portal-card .weather-box,
+            .portal-card .weather-card,
+            .portal-card .weather-widget,
+            .portal-card .wetter,
+            .portal-card .wetter-box,
+            .portal-card .wetter-card,
+            .portal-card .wetter-widget {
+                flex:0 1 260px !important;
+                max-width:260px !important;
+                min-width:210px !important;
+                margin-left:auto !important;
+                overflow:hidden !important;
             }
         }
     </style>
