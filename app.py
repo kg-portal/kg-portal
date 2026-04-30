@@ -28,13 +28,29 @@ from fints_import import (
     get_fints_balance
 )
 from app2 import register_app2_routes
+
+try:
+    from dotenv import load_dotenv
+    load_dotenv(os.path.join(os.path.dirname(os.path.abspath(__file__)), "tokenlar.env"))
+except Exception:
+    pass
+
 app = Flask(__name__)
-app.secret_key = 'kg_reinigung_ozel_anahtar_2026' # Güvenlik anahtarı
+
+# GÜVENLİK ANAHTARI - ŞİFRE DEĞİŞİNCE ESKİ OTURUMLARI DÜŞÜRMEK İÇİN
+app.secret_key = os.getenv("KG_PORTAL_SECRET_KEY")
+
+if not app.secret_key:
+    raise RuntimeError("KG_PORTAL_SECRET_KEY eksik. tokenlar.env veya Render Secret içine ekle.")
+
 DB_PATH = os.path.join('data', 'kg_portal.db') 
 
-# GİRİŞ BİLGİLERİN (Eşinle kullanacağın şifre)
-USER_ID = "admin"
-USER_PASS = "Secret8391." 
+# GİRİŞ BİLGİLERİ - ŞİFRE ARTIK tokenlar.env / Render Secret İÇİNDE
+USER_ID = os.getenv("KG_PORTAL_USER", "admin")
+USER_PASS = os.getenv("KG_PORTAL_PASSWORD")
+
+if not USER_PASS:
+    raise RuntimeError("KG_PORTAL_PASSWORD eksik. tokenlar.env veya Render Secret içine ekle.") 
 
 # BEKÇİ FONKSİYONU (Giriş kontrolü yapar)
 def login_required(f):
