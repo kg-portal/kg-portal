@@ -613,9 +613,372 @@
 .compose-signature-preview:empty { display: none; }
 .compose-signature-preview img { max-width: 320px; max-height: 160px; display: block; margin-top: 10px; }
 
-@media(max-width:1300px) { .body { grid-template-columns: 240px 380px minmax(0, 1fr); } .topbar { grid-template-columns: 240px minmax(0, 1fr) auto; } }
-@media(max-width:1050px) { body { padding: 0; } .mail-app { height: 100vh; min-height: 100vh; border-radius: 0; border: none; box-shadow: none; } .reader { display: none; } .body { grid-template-columns: 260px minmax(0, 1fr); } .topbar { grid-template-columns: 240px minmax(0, 1fr); padding: 0 16px; } .top-actions { display: none; } }
-@media(max-width:760px) { .sidebar { display: none; } .body { grid-template-columns: 1fr; } .topbar { grid-template-columns: 1fr; } .brand { display: none; } .modal-body { grid-template-columns: 1fr; } .from-row { grid-template-columns: 1fr; } }
+/* =====================================================
+   RESPONSIVE - PC SABIT, LAPTOP/TABLET AYRI
+   ===================================================== */
+
+/* Büyük PC: mevcut premium görünüm korunur */
+@media (min-width: 1501px) {
+  .mail-app {
+    height: calc(100vh - 120px);
+    min-height: 760px;
+  }
+
+  .body {
+    grid-template-columns: 260px 440px minmax(0, 1fr);
+  }
+
+  .topbar {
+    grid-template-columns: 280px minmax(0, 1fr) 460px;
+  }
+}
+
+/* Laptop 1366-1500: sadece sıkıştırma, tasarım bozulmaz */
+@media (max-width: 1500px) {
+  .mail-app {
+    height: calc(100vh - 90px);
+    min-height: 680px;
+    border-radius: 20px;
+  }
+
+  .topbar {
+    grid-template-columns: 210px minmax(260px, 1fr) 300px;
+    gap: 14px;
+    padding: 0 18px;
+  }
+
+  .brand-logo {
+    width: 40px;
+    height: 40px;
+    border-radius: 14px;
+    font-size: 16px;
+  }
+
+  .brand-title {
+    font-size: 16px;
+  }
+
+  .brand-sub {
+    font-size: 11px;
+  }
+
+  .account-pill {
+    max-width: 210px;
+    padding: 0 12px;
+    overflow: hidden;
+  }
+
+  .account-pill span:last-child {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .body {
+    grid-template-columns: 220px 360px minmax(0, 1fr);
+  }
+
+  .sidebar {
+    padding: 18px 14px;
+  }
+
+  .compose {
+    height: 44px;
+    margin-bottom: 18px;
+  }
+
+  .nav-btn {
+    padding: 9px 10px;
+    font-size: 12px;
+    gap: 9px;
+  }
+
+  .list-head {
+    padding: 18px 18px 12px;
+  }
+
+  .list-head h1 {
+    font-size: 21px;
+  }
+
+  .filters {
+    padding: 10px 18px;
+  }
+
+  .messages {
+    padding: 12px;
+  }
+
+  .msg {
+    padding: 14px;
+  }
+
+  .reader-head {
+    padding: 18px 24px 16px;
+  }
+
+  .reader-subject {
+    font-size: 23px;
+    margin-bottom: 18px;
+  }
+
+  .reader-scroll {
+    padding: 24px;
+  }
+
+  .paper-body {
+    padding: 30px;
+  }
+}
+
+/* Küçük laptop / yatay tablet: reader kalır ama daha dar çalışır */
+@media (max-width: 1200px) {
+  .topbar {
+    grid-template-columns: 190px minmax(220px, 1fr) auto;
+    gap: 10px;
+  }
+
+  .top-actions {
+    gap: 8px;
+  }
+
+  .account-pill {
+    display: none;
+  }
+
+  .body {
+    grid-template-columns: 200px 330px minmax(0, 1fr);
+  }
+
+  .sidebar {
+    padding: 16px 12px;
+  }
+
+  .nav-title {
+    margin-left: 8px;
+  }
+
+  .nav-btn {
+    grid-template-columns: 18px minmax(0, 1fr) auto;
+    font-size: 12px;
+  }
+
+  .reader-actions {
+    margin-bottom: 16px;
+  }
+
+  .rbtn {
+    padding: 10px 12px;
+    font-size: 12px;
+  }
+}
+
+/* Tablet: sol posta kutusu + liste görünür, mail okuyucu seçimden sonra açılır */
+@media (max-width: 1050px) {
+  .kg-mail-page {
+    min-height: 100vh;
+  }
+
+  .mail-app {
+    height: calc(100vh - 24px);
+    min-height: 0;
+    border-radius: 18px;
+  }
+
+  .topbar {
+    grid-template-columns: 180px minmax(0, 1fr);
+    padding: 0 14px;
+    gap: 12px;
+  }
+
+  .top-actions {
+    display: none;
+  }
+
+  .body {
+    grid-template-columns: 210px minmax(0, 1fr);
+  }
+
+  .reader {
+    position: absolute;
+    inset: 78px 0 0 210px;
+    background: #fff;
+    z-index: 30;
+    display: none;
+    border-left: 1px solid var(--border-color);
+  }
+
+  .reader.has-mail,
+  .reader.active {
+    display: grid;
+  }
+
+  .reader-head {
+    padding: 16px 18px 14px;
+  }
+
+  .reader-subject {
+    font-size: 21px;
+  }
+
+  .reader-scroll {
+    padding: 18px;
+  }
+
+  .paper {
+    max-width: 100%;
+  }
+
+  .paper-body {
+    padding: 24px;
+  }
+
+  .reply {
+    padding: 14px 18px;
+  }
+}
+
+/* Dikey tablet / büyük telefon: Gmail gibi tek kolon */
+@media (max-width: 760px) {
+  .mail-app {
+    height: 100vh;
+    min-height: 100vh;
+    border-radius: 0;
+    border: none;
+    box-shadow: none;
+  }
+
+  .topbar {
+    grid-template-columns: 1fr;
+    height: 72px;
+    padding: 0 12px;
+  }
+
+  .brand {
+    display: none;
+  }
+
+  .search input {
+    height: 44px;
+  }
+
+  .body {
+    grid-template-columns: 1fr;
+  }
+
+  .sidebar {
+    display: none;
+  }
+
+  .list {
+    grid-template-rows: auto auto minmax(0, 1fr);
+  }
+
+  .list-head {
+    padding: 16px 16px 12px;
+  }
+
+  .list-head h1 {
+    font-size: 21px;
+  }
+
+  .filters {
+    padding: 10px 14px;
+  }
+
+  .messages {
+    padding: 12px;
+  }
+
+  .msg {
+    border-radius: 16px;
+    padding: 14px;
+  }
+
+  .reader {
+    position: absolute;
+    inset: 72px 0 0 0;
+    z-index: 50;
+    display: none;
+    background: #fff;
+  }
+
+  .reader.has-mail,
+  .reader.active {
+    display: grid;
+  }
+
+  .reader-head {
+    padding: 14px;
+  }
+
+  .reader-actions {
+    gap: 8px;
+    margin-bottom: 14px;
+  }
+
+  .reader-left,
+  .reader-right {
+    gap: 8px;
+  }
+
+  .rbtn {
+    padding: 9px 11px;
+    font-size: 12px;
+  }
+
+  .reader-subject {
+    font-size: 20px;
+    margin-bottom: 14px;
+  }
+
+  .reader-meta {
+    grid-template-columns: 44px minmax(0, 1fr);
+  }
+
+  .reader-meta .avatar {
+    width: 44px;
+    height: 44px;
+  }
+
+  .meta-date {
+    display: none;
+  }
+
+  .reader-scroll {
+    padding: 14px;
+  }
+
+  .paper {
+    border-radius: 18px;
+  }
+
+  .paper-body {
+    padding: 20px;
+    font-size: 14px;
+  }
+
+  .reply {
+    padding: 12px;
+  }
+
+  .reply-box {
+    grid-template-columns: minmax(0, 1fr) auto;
+    padding-left: 14px;
+  }
+
+  .reply-box .send {
+    padding: 11px 14px;
+  }
+
+  .modal-body {
+    grid-template-columns: 1fr;
+  }
+
+  .from-row {
+    grid-template-columns: 1fr;
+  }
+}
 
 /* SVG Icons Utility */
 svg { width: 18px; height: 18px; stroke: currentColor; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; fill: none; }
@@ -1516,6 +1879,13 @@ function selectMessage(id,silent){
     const msg=messages.find(m=>String(m.id)===String(id))||messages.find(m=>String(m.gmail_id)===String(id))||messages[0]||null;
     if(!msg) return;
     currentMessage=msg;
+
+    localStorage.setItem('kgMailLastId', getMessageKey(msg));
+    localStorage.setItem('kgMailLastBox', currentBox || 'inbox');
+    localStorage.setItem('kgMailLastMessage', JSON.stringify(msg));
+
+    document.querySelector('.reader')?.classList.add('has-mail');
+
     document.getElementById('readerSubject').textContent=msg.subject;
     document.getElementById('readerFrom').textContent=msg.from+' · '+msg.company;
     
@@ -1952,6 +2322,27 @@ try{
 }catch(e){}
 
 async function loadGmailCounts(){
+    const countCacheKey = 'kgMailCountsCache';
+
+    try{
+        const cached = JSON.parse(localStorage.getItem(countCacheKey) || 'null');
+        if(cached && cached.counts){
+            const c = cached.counts;
+            const a = cached.aliases || {};
+
+            if(document.getElementById('countInbox')) document.getElementById('countInbox').textContent = c.inbox ?? 0;
+            if(document.getElementById('countSent')) document.getElementById('countSent').textContent = c.sent ?? 0;
+            if(document.getElementById('countDraft')) document.getElementById('countDraft').textContent = c.draft ?? 0;
+            if(document.getElementById('countStar')) document.getElementById('countStar').textContent = c.star ?? 0;
+            if(document.getElementById('countSpam')) document.getElementById('countSpam').textContent = c.spam ?? 0;
+
+            if(document.getElementById('countAliasInfo')) document.getElementById('countAliasInfo').textContent = a.info ?? 0;
+            if(document.getElementById('countAliasMurat')) document.getElementById('countAliasMurat').textContent = a.murat ?? 0;
+            if(document.getElementById('countAliasBestellung')) document.getElementById('countAliasBestellung').textContent = a.bestellung ?? 0;
+            if(document.getElementById('countAliasRechnung')) document.getElementById('countAliasRechnung').textContent = a.rechnung ?? 0;
+        }
+    }catch(e){}
+
     try{
         const res = await fetch('/api/gmail/counts', {cache:'no-store'});
         const data = await res.json();
@@ -1981,6 +2372,12 @@ async function loadGmailCounts(){
             if(aliasMurat) aliasMurat.textContent = a.murat ?? 0;
             if(aliasBestellung) aliasBestellung.textContent = a.bestellung ?? 0;
             if(aliasRechnung) aliasRechnung.textContent = a.rechnung ?? 0;
+
+            localStorage.setItem(countCacheKey, JSON.stringify({
+                counts: c,
+                aliases: a,
+                savedAt: Date.now()
+            }));
         }
     }catch(e){
         console.log('Gmail count Fehler', e);
@@ -2090,16 +2487,42 @@ async function loadGmailBox(box,append=false,keepCurrent=false){
                 currentMessage = null;
             }
 
-            renderMessages();
+                        renderMessages();
 
-            if(list && keepCurrent && !append){
-                list.scrollTop = previousScrollTop;
-            }
+            if(!append && !keepCurrent){
+    const savedBox = localStorage.getItem('kgMailLastBox') || 'inbox';
+    const savedId = localStorage.getItem('kgMailLastId') || '';
 
-            if(currentMessage){
-                selectMessage(currentMessage.id, true);
-            }else{
-                showMailEmptyState();
+    if(savedBox === box && savedId){
+        currentMessage = messages.find(m=>String(m.id)===savedId || String(m.gmail_id)===savedId) || null;
+
+        if(!currentMessage){
+            try{
+                const savedMsg = JSON.parse(localStorage.getItem('kgMailLastMessage') || 'null');
+                if(savedMsg && String(getMessageKey(savedMsg)) === String(savedId)){
+                    currentMessage = savedMsg;
+                }
+            }catch(e){}
+        }
+    }
+}
+
+if(list && keepCurrent && !append){
+    list.scrollTop = previousScrollTop;
+}
+
+if(currentMessage){
+    selectMessage(currentMessage.id || currentMessage.gmail_id, true);
+}else{
+    showMailEmptyState();
+}
+            if(list && !append && !keepCurrent){
+                const savedBox = localStorage.getItem('kgMailLastBox') || 'inbox';
+                const savedScroll = Number(localStorage.getItem('kgMailScrollTop') || 0);
+
+                if(savedBox === box){
+                    setTimeout(()=>{ list.scrollTop = savedScroll; }, 80);
+                }
             }
         }else{
             if(data && data.message) console.log('Gmail API Fehler:', data.message);
@@ -2127,7 +2550,10 @@ function setupGmailInfiniteScroll(){
         if(nearBottom) loadMoreGmailBox();
     }
 
-    list.addEventListener('scroll', checkLoadMore);
+    list.addEventListener('scroll', ()=>{
+        localStorage.setItem('kgMailScrollTop', list.scrollTop);
+        checkLoadMore();
+    }, {passive:true});
     list.addEventListener('wheel', ()=>setTimeout(checkLoadMore, 80), {passive:true});
     list.addEventListener('touchmove', ()=>setTimeout(checkLoadMore, 120), {passive:true});
 }
