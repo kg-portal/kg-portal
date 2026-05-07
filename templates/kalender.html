@@ -716,6 +716,123 @@ html, body { margin: 0; padding: 0; }
         border-radius: 12px !important;
     }
 }
+
+{% if kalender_mini %}
+html,
+body{
+    margin:0 !important;
+    padding:0 !important;
+    width:100vw !important;
+    height:100vh !important;
+    overflow:hidden !important;
+    background:#ffffff !important;
+}
+
+.portal-sidebar,
+.portal-logo,
+.portal-menu,
+.sidebar,
+.side-menu,
+nav{
+    display:none !important;
+    width:0 !important;
+    min-width:0 !important;
+    max-width:0 !important;
+}
+
+.portal-layout,
+.portal-content,
+.portal-card,
+.main-content,
+.page-content,
+.content{
+    display:block !important;
+    margin:0 !important;
+    margin-left:0 !important;
+    padding:0 !important;
+    left:0 !important;
+    width:100vw !important;
+    max-width:100vw !important;
+    min-width:0 !important;
+    height:100vh !important;
+    overflow:hidden !important;
+}
+
+.kg-page{
+    position:fixed !important;
+    inset:0 !important;
+    margin:0 !important;
+    padding:0 !important;
+    width:100vw !important;
+    max-width:100vw !important;
+    height:100vh !important;
+    min-height:100vh !important;
+    border-radius:0 !important;
+    border:none !important;
+    box-shadow:none !important;
+    overflow:auto !important;
+}
+
+.kg-hero,
+section.kg-hero,
+.kg-title-row,
+.index-live-box,
+.hero-actions{
+    display:none !important;
+}
+
+.kg-content{
+    margin:0 !important;
+    padding:10px !important;
+    width:100% !important;
+    max-width:none !important;
+    min-height:100vh !important;
+}
+
+.kg-info-grid,
+.calendar-action-grid{
+    display:none !important;
+}
+
+.calendar-shell{
+    display:grid !important;
+    grid-template-columns:minmax(0,1fr) 300px !important;
+    gap:10px !important;
+    align-items:start !important;
+    width:100% !important;
+    max-width:none !important;
+}
+
+.month-card,
+.agenda-card-panel{
+    border-radius:14px !important;
+}
+
+.month-head{
+    padding:14px 16px !important;
+}
+
+.month-head h2{
+    font-size:24px !important;
+}
+
+.day-cell{
+    min-height:92px !important;
+    padding:7px !important;
+}
+
+.week-cell{
+    padding:8px 6px !important;
+}
+
+.agenda-head{
+    padding:14px 16px !important;
+}
+
+.agenda-body{
+    padding:12px !important;
+}
+{% endif %}
 </style>
 
 <div class="kg-page">
@@ -742,50 +859,50 @@ html, body { margin: 0; padding: 0; }
     </section>
 
     <main class="kg-content">
-        <div class="kg-info-grid" id="infoBoxSortable">
-            <div class="kg-info-box info-orange" data-info-id="info-besichtigung" draggable="true">
+                <div class="kg-info-grid" id="infoBoxSortable">
+            <div class="kg-info-box info-orange" data-info-id="info-besichtigung" draggable="true" onclick="setCalendarFilter('besichtigung')">
                 <div class="kg-info-label">Dieser Monat<br>Besichtigungstermine</div>
                 <div class="kg-info-value" id="countBesichtigungMonth">0</div>
                 <div class="kg-info-sub" id="visitMonthLabel">Monat gesamt</div>
             </div>
-            <div class="kg-info-box info-blue" data-info-id="info-rueckruf" draggable="true">
+            <div class="kg-info-box info-blue" data-info-id="info-rueckruf" draggable="true" onclick="setCalendarFilter('rueckruf')">
                 <div class="kg-info-label">Dieser Monat<br>Rückruftermine</div>
                 <div class="kg-info-value" id="countRueckrufMonth">0</div>
                 <div class="kg-info-sub">Tagesliste / Später</div>
             </div>
-            <div class="kg-info-box info-green" data-info-id="info-fenster" draggable="true">
+            <div class="kg-info-box info-green" data-info-id="info-fenster" draggable="true" onclick="setCalendarFilter('fenster')">
                 <div class="kg-info-label">Dieser Monat<br>Fenstertermine</div>
                 <div class="kg-info-value" id="countFensterMonth">0</div>
                 <div class="kg-info-sub">Fenstertermine</div>
             </div>
         </div>
 
-        <section class="calendar-action-grid" id="calendarActionSortable">
-            <div class="calendar-action-card status-blue" data-card-id="alle-termine" draggable="true">
+                <section class="calendar-action-grid" id="calendarActionSortable">
+            <div class="calendar-action-card status-blue" data-card-id="alle-termine" draggable="true" onclick="setCalendarFilter('all')">
                 <div class="calendar-action-title">Kalender</div>
                 <div class="calendar-action-text">Kalenderübersicht</div>
             </div>
-            <div class="calendar-action-card status-cyan" data-card-id="tagesliste" draggable="true">
+            <div class="calendar-action-card status-cyan" data-card-id="tagesliste" draggable="true" onclick="setCalendarFilter('tagesliste')">
                 <div class="calendar-action-count" id="countTageslisteToday">0</div>
                 <div class="calendar-action-title">Telefonakquise Tagesliste</div>
                 <div class="calendar-action-text">Anrufe</div>
             </div>
-            <div class="calendar-action-card status-purple" data-card-id="kontaktformular" draggable="true">
+            <div class="calendar-action-card status-purple" data-card-id="kontaktformular" draggable="true" onclick="setCalendarFilter('kontaktformular')">
                 <div class="calendar-action-count" id="countKontaktToday">0</div>
                 <div class="calendar-action-title">Kontaktformular</div>
                 <div class="calendar-action-text">Formularversand</div>
             </div>
-            <div class="calendar-action-card status-pink" data-card-id="spaeter-anrufen" draggable="true">
+            <div class="calendar-action-card status-pink" data-card-id="spaeter-anrufen" draggable="true" onclick="setCalendarFilter('spaeter-anrufen')">
                 <div class="calendar-action-count" id="countSpaeterToday">0</div>
                 <div class="calendar-action-title">Später anrufen</div>
                 <div class="calendar-action-text">Wiedervorlage</div>
             </div>
-            <div class="calendar-action-card status-red" data-card-id="feiertag" draggable="true">
+            <div class="calendar-action-card status-red" data-card-id="feiertag" draggable="true" onclick="setCalendarFilter('feiertag')">
                 <div class="calendar-action-count" id="countHolidayMonth">0</div>
                 <div class="calendar-action-title">Feiertag</div>
                 <div class="calendar-action-text">Gesetzliche Feiertage NRW</div>
             </div>
-            <div class="calendar-action-card status-lightpink" data-card-id="bayram-kutlama" draggable="true">
+            <div class="calendar-action-card status-lightpink" data-card-id="bayram-kutlama" draggable="true" onclick="setCalendarFilter('bayram-kutlama')">
                 <div class="calendar-action-count" id="countBayramToday">0</div>
                 <div class="calendar-action-title">Bayram / Kutlama</div>
                 <div class="calendar-action-text">Besondere Anlässe</div>
@@ -922,9 +1039,18 @@ html, body { margin: 0; padding: 0; }
 const monthNames = ["Januar","Februar","März","April","Mai","Juni","Juli","August","September","Oktober","November","Dezember"];
 const weekdayNames = ["Sonntag","Montag","Dienstag","Mittwoch","Donnerstag","Freitag","Samstag"];
 const today = new Date();
-let viewYear = today.getFullYear();
-let viewMonth = today.getMonth();
-let selectedDateKey = toKey(today);
+
+const savedCalendarViewState = (() => {
+    try {
+        return JSON.parse(localStorage.getItem("kg_calendar_view_state") || "{}");
+    } catch(e) {
+        return {};
+    }
+})();
+
+let viewYear = savedCalendarViewState.viewYear || today.getFullYear();
+let viewMonth = Number.isInteger(savedCalendarViewState.viewMonth) ? savedCalendarViewState.viewMonth : today.getMonth();
+let selectedDateKey = savedCalendarViewState.selectedDateKey || toKey(today);
 let nrwHolidayCache = {};
 
 let userEvents = JSON.parse(localStorage.getItem("kg_calendar_events") || "[]");
@@ -982,12 +1108,122 @@ function yearlyHolidayAutoUpdate(){
 function getHolidaysForViewYear(){
     return prepareNRWFeiertageForYear(viewYear);
 }
+let hiddenCalendarFilters = new Set((() => {
+    try {
+        return JSON.parse(localStorage.getItem("kg_calendar_hidden_filters") || "[]");
+    } catch(e) {
+        return [];
+    }
+})());
+
+function saveHiddenCalendarFilters(){
+    localStorage.setItem("kg_calendar_hidden_filters", JSON.stringify(Array.from(hiddenCalendarFilters)));
+}
+
+function saveCalendarViewState(){
+    localStorage.setItem("kg_calendar_view_state", JSON.stringify({
+        viewYear: viewYear,
+        viewMonth: viewMonth,
+        selectedDateKey: selectedDateKey
+    }));
+}
+
 function getAllEventsForDate(key) {
     const holidays = getHolidaysForViewYear().filter(h => h.key === key);
     const custom = userEvents.filter(e => e.key === key);
     return [...holidays, ...custom];
 }
 
+function getCalendarFilterKeyByEvent(e){
+    if(e.type === "Besichtigung") return "besichtigung";
+    if(e.type === "Fenstertermine" || e.type === "Fenster Termine") return "fenster";
+    if(e.type === "Telefonakquise Tagesliste" || e.type === "Tagesliste Rückruf") return "tagesliste";
+    if(e.type === "Kontaktformular") return "kontaktformular";
+    if(e.type === "Später anrufen") return "spaeter-anrufen";
+    if(e.type === "Feiertag") return "feiertag";
+    if(e.type === "Bayram / Kutlama") return "bayram-kutlama";
+    return "allgemein";
+}
+
+function calendarFilterMatch(e){
+    const eventFilterKey = getCalendarFilterKeyByEvent(e);
+
+    if(hiddenCalendarFilters.has(eventFilterKey)){
+        return false;
+    }
+
+    if(hiddenCalendarFilters.has("rueckruf") && (eventFilterKey === "tagesliste" || eventFilterKey === "spaeter-anrufen")){
+        return false;
+    }
+
+    return true;
+}
+
+function getVisibleEventsForDate(key){
+    return getAllEventsForDate(key).filter(calendarFilterMatch);
+}
+
+function getFilterKeyFromCard(card){
+    const cardId = card.getAttribute("data-card-id");
+    const infoId = card.getAttribute("data-info-id");
+
+    if(cardId){
+        if(cardId === "alle-termine") return "all";
+        return cardId;
+    }
+
+    if(infoId){
+        return infoId.replace("info-", "");
+    }
+
+    return "";
+}
+
+function updateCalendarFilterCards(){
+    document.querySelectorAll(".calendar-action-card, .kg-info-box").forEach(card => {
+        const key = getFilterKeyFromCard(card);
+
+        card.style.boxShadow = "0 4px 20px rgba(15, 23, 42, 0.05)";
+        card.style.transform = "";
+        card.style.opacity = "1";
+
+        if(key && key !== "all" && hiddenCalendarFilters.has(key)){
+            card.style.opacity = "0.35";
+            card.style.boxShadow = "0 0 0 3px rgba(220,38,38,0.18), 0 4px 20px rgba(15,23,42,0.05)";
+        }
+    });
+
+    const kalenderCard = document.querySelector('.calendar-action-card[data-card-id="alle-termine"]');
+    if(kalenderCard && hiddenCalendarFilters.size === 0){
+        kalenderCard.style.boxShadow = "0 0 0 3px rgba(37,99,235,0.22), 0 8px 25px rgba(15,23,42,0.08)";
+    }
+}
+
+function setCalendarFilter(filterKey){
+    const key = filterKey || "all";
+
+    if(key === "all"){
+        hiddenCalendarFilters.clear();
+    }else{
+        if(hiddenCalendarFilters.has(key)){
+            hiddenCalendarFilters.delete(key);
+        }else{
+            hiddenCalendarFilters.add(key);
+        }
+    }
+
+    saveHiddenCalendarFilters();
+        renderCalendar();
+
+    if(type === "Besichtigung" && window.parent && window.parent !== window){
+        window.parent.postMessage({
+            type: "kg-besichtigung-termin-saved",
+            datum: dateKey,
+            uhrzeit: time,
+            firma: title
+        }, "*");
+    }
+}
 function getEventStyleClass(type) {
     switch(type) {
         case "Kalender": return "blue";
@@ -1019,12 +1255,78 @@ function createEvent(title, dateKey, time, type, note) {
         type: type,
         note: note || ""
     };
+
     userEvents.push(newEvent);
     saveToStorage();
-    renderCalendar();
+
+    const eventFilterKey = getCalendarFilterKeyByEvent(newEvent);
+    const allFilterKeys = [
+        "allgemein",
+        "besichtigung",
+        "fenster",
+        "tagesliste",
+        "kontaktformular",
+        "spaeter-anrufen",
+        "feiertag",
+        "bayram-kutlama"
+    ];
+
+    if(eventFilterKey && eventFilterKey !== "allgemein"){
+        hiddenCalendarFilters = new Set(allFilterKeys.filter(k => k !== eventFilterKey));
+        saveHiddenCalendarFilters();
+    }else{
+        hiddenCalendarFilters.clear();
+        saveHiddenCalendarFilters();
+    }
+
+        renderCalendar();
+
+        if(type === "Besichtigung"){
+        kgAskBesichtigungMail(title, dateKey, time);
+    }
+
+    if(type === "Später anrufen" && window.parent && window.parent !== window){
+        const p = new URLSearchParams(window.location.search);
+
+        window.parent.postMessage({
+            type: "kg-spaeter-saved",
+            firma: title || "",
+            datum: dateKey || "",
+            uhrzeit: time || "",
+            tagesliste_id: p.get("tagesliste_id") || ""
+        }, "*");
+    }
+}
+    function kgAskBesichtigungMail(title, dateKey, time){
+    const ok = confirm("Termin wurde gespeichert.\n\nMöchten Sie jetzt die Terminbestätigung per E-Mail vorbereiten?");
+
+    if(!ok) return;
+
+    const p = new URLSearchParams();
+    p.set("firma", title || "");
+    p.set("datum", kgDatumDE(dateKey || ""));
+    p.set("uhrzeit", time || "");
+
+    if(window.parent && window.parent !== window){
+        window.parent.postMessage({
+            type: "kg-besichtigung-open-mail",
+            firma: title || "",
+            datum: kgDatumDE(dateKey || ""),
+            uhrzeit: time || ""
+        }, "*");
+    }else{
+        window.open("/datenbank/mail-mini?" + p.toString(), "_blank");
+    }
+}
+
+function kgDatumDE(dateKey){
+    const parts = String(dateKey || "").split("-");
+    if(parts.length === 3) return parts[2] + "." + parts[1] + "." + parts[0];
+    return dateKey || "";
 }
 
 function deleteEvent(id) {
+
     userEvents = userEvents.filter(e => e.id !== id);
     saveToStorage();
     renderCalendar();
@@ -1036,7 +1338,7 @@ function updateCounters() {
     let allToday = getAllEventsForDate(todayKey);
     let countTageslisteT = allToday.filter(e => e.type === "Telefonakquise Tagesliste" || e.type === "Tagesliste Rückruf").length;
     let countKontaktT = allToday.filter(e => e.type === "Kontaktformular").length;
-    let countSpaeterT = allToday.filter(e => e.type === "Später anrufen").length;
+    let countSpaeterT = userEvents.filter(e => e.type === "Später anrufen").length;
     let countBayramT = allToday.filter(e => e.type === "Bayram / Kutlama").length;
     
     document.getElementById("countTageslisteToday").textContent = countTageslisteT;
@@ -1082,7 +1384,7 @@ document.getElementById("visitMonthLabel").textContent = monthNames[viewMonth] +
     for(let i=0; i<42; i++){
         const d = addDays(start, i);
         const key = toKey(d);
-        const events = getAllEventsForDate(key);
+        const events = getVisibleEventsForDate(key);
         
         const cell = document.createElement("div");
         cell.className = "day-cell";
@@ -1156,13 +1458,15 @@ document.getElementById("visitMonthLabel").textContent = monthNames[viewMonth] +
     
     document.getElementById("quickDate").value = formatDateDE(parseKey(selectedDateKey));
     
-    updateCounters();
+        updateCounters();
     renderAgenda();
+    updateCalendarFilterCards();
+    saveCalendarViewState();
 }
 
 function renderAgenda(){
     const selected = parseKey(selectedDateKey);
-    const events = getAllEventsForDate(selectedDateKey);
+    const events = getVisibleEventsForDate(selectedDateKey);
     
     document.getElementById("agendaDateTitle").textContent = formatDateDE(selected);
     document.getElementById("agendaDateSub").textContent = events.length ? `${events.length} Eintrag${events.length > 1 ? 'e' : ''}` : "Keine Einträge";
@@ -1270,10 +1574,17 @@ function saveModalCalendarEvent() {
 }
 
 function addQuickEvent() {
+    const p = new URLSearchParams(window.location.search);
+    const source = p.get("source") || "";
+
     const title = document.getElementById("eventTitleInput").value;
     const time = document.getElementById("eventTimeInput").value;
-    const type = document.getElementById("eventTypeInput").value;
+    let type = document.getElementById("eventTypeInput").value;
     const note = document.getElementById("eventNoteInput").value;
+
+    if(source === "spaeter"){
+        type = "Später anrufen";
+    }
     
     if(title) {
         createEvent(title, selectedDateKey, time, type, note);
@@ -1368,9 +1679,24 @@ function closeAlert(event) {
     document.getElementById("alertModal").classList.remove("open");
 }
 
+function applyMiniKalenderPrefill(){
+ const p=new URLSearchParams(window.location.search);
+ const source=p.get('source')||'';
+ const firma=p.get('firma')||'';
+
+ if(source==='besichtigung' || source==='spaeter'){
+  const titleInput=document.getElementById('eventTitleInput');
+  const typeInput=document.getElementById('eventTypeInput');
+
+  if(titleInput)titleInput.value=firma;
+  if(typeInput)typeInput.value=(source==='spaeter'?'Später anrufen':'Besichtigung');
+ }
+}
+
 prepareNRWFeiertageForYear(viewYear);
 updateLiveDate();
 renderCalendar();
+applyMiniKalenderPrefill();
 setInterval(updateLiveDate, 30000);
 </script>
 
