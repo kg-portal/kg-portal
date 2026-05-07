@@ -334,6 +334,13 @@ def reset_current_tagesliste(cursor):
         else:
             backup_written += backup_processed_row(cursor, tagesliste_id, status)
 
+            if source_lead_id > 0:
+                cursor.execute("""
+                    UPDATE leads
+                    SET status = 'Bearbeitet'
+                    WHERE id = ?
+                """, (source_lead_id,))
+
             cursor.execute("""
                 DELETE FROM tagesliste_leads
                 WHERE id = ?
@@ -369,7 +376,7 @@ def select_real_branch_leads(cursor, limit_count):
     rows = cursor.execute("""
         SELECT *
         FROM leads
-        WHERE (status IS NULL OR status = '' OR status != 'Tagesliste')
+        WHERE (status IS NULL OR status = '' OR status = 'Neu')
           AND COALESCE(firma, '') != ''
           AND COALESCE(firma, '') NOT LIKE 'KG TEST%'
           AND COALESCE(quelle, '') != 'KG Test Cycle'
