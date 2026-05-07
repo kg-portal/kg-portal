@@ -22,9 +22,9 @@ from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 
-
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DB_PATH = os.path.join(BASE_DIR, "data", "kg_portal.db")
+
 
 # =====================================================
 # KG-MAIL GMAIL API HILFSFUNKTIONEN
@@ -720,6 +720,40 @@ def ensure_tagesliste_table():
         )
     """)
 
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS tagesliste_status_history (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            tagesliste_id INTEGER NOT NULL,
+            status TEXT NOT NULL,
+            datum TEXT DEFAULT (date('now','localtime')),
+            erstellt_am TEXT DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE(tagesliste_id, status, datum)
+        )
+    """)
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS tagesliste_status_backup (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            tagesliste_id INTEGER NOT NULL,
+            source_lead_id INTEGER,
+            firma TEXT,
+            branche TEXT,
+            ansprechpartner TEXT,
+            strasse TEXT,
+            plz TEXT,
+            ort TEXT,
+            telefon TEXT,
+            email TEXT,
+            website TEXT,
+            quelle TEXT,
+            status TEXT NOT NULL,
+            notiz TEXT,
+            spaeter_datum TEXT,
+            erstellt_am TEXT,
+            backup_am TEXT DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE(tagesliste_id, status)
+        )
+    """)
+
     try:
         cursor.execute("ALTER TABLE tagesliste_leads ADD COLUMN source_lead_id INTEGER")
     except Exception:
@@ -734,12 +768,32 @@ def ensure_tagesliste_table():
         cursor.execute("ALTER TABLE tagesliste_leads ADD COLUMN spaeter_datum TEXT")
     except Exception:
         pass
+    try:
+        cursor.execute("ALTER TABLE tagesliste_leads ADD COLUMN sort_order INTEGER DEFAULT 0")
+    except Exception:
+        pass
 
     conn.commit()
     conn.close()
 
 
 def register_app2_routes(app, login_required):
+
+    @app.route("/datenbank/kalender-mini")
+    @login_required
+    def app2_datenbank_kalender_mini():
+        return render_template(
+            "kalender.html",
+            kalender_mini=True,
+            kalender_source=request.args.get("source", ""),
+            tagesliste_id=request.args.get("tagesliste_id", ""),
+            firma=request.args.get("firma", ""),
+            ansprechpartner=request.args.get("ansprechpartner", ""),
+            telefon=request.args.get("telefon", ""),
+            email=request.args.get("email", ""),
+            adresse=request.args.get("adresse", ""),
+            ort=request.args.get("ort", "")
+        )
 
 # =====================================================
 # APP2 - KG-MAIL API - COUNTS
@@ -884,6 +938,22 @@ def register_app2_routes(app, login_required):
     def app2_gmail():
         return render_template("gmail.html")
 
+    @app.route("/datenbank/mail-mini")
+    @login_required
+    def app2_gmail_mini():
+        return render_template(
+            "gmail_mini.html",
+            empfaenger=request.args.get("empfaenger", ""),
+            firma=request.args.get("firma", ""),
+            ansprechpartner=request.args.get("ansprechpartner", ""),
+            datum=request.args.get("datum", ""),
+            uhrzeit=request.args.get("uhrzeit", ""),
+            adresse=request.args.get("adresse", ""),
+            ort=request.args.get("ort", ""),
+            telefon=request.args.get("telefon", "")
+        )
+
+
 
 # =====================================================
 # APP2 - KG-MAIL API - INBOX
@@ -987,8 +1057,27 @@ def register_app2_routes(app, login_required):
             if bcc_email:
                 msg["Bcc"] = bcc_email
 
-            msg.set_content(message_text)
+            msg.set_content(message_text or " ")
             msg.add_alternative(body_html, subtype="html")
+
+            if "cid:kg-logo" in body_html:
+                try:
+                    logo_path = os.path.join(STATIC_DIR, "KG Yeni Logo.png")
+
+                    if os.path.exists(logo_path):
+                        with open(logo_path, "rb") as logo_file:
+                            logo_bytes = logo_file.read()
+
+                        html_part = msg.get_payload()[-1]
+                        html_part.add_related(
+                            logo_bytes,
+                            maintype="image",
+                            subtype="png",
+                            cid="<kg-logo>",
+                            filename="KG Yeni Logo.png"
+                        )
+                except Exception as logo_error:
+                    print("GMAIL INLINE LOGO FEHLER:", str(logo_error))
     
             for att in attachments:
                 try:
@@ -1276,20 +1365,71 @@ def register_app2_routes(app, login_required):
 
         conn = sqlite3.connect(DB_PATH)
         conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
 
-        tagesliste_leads = conn.execute("""
+        tagesliste_leads = cursor.execute("""
             SELECT *
             FROM tagesliste_leads
-            ORDER BY id ASC
+            ORDER BY CASE WHEN sort_order IS NULL OR sort_order = 0 THEN id ELSE sort_order END ASC, id ASC
         """).fetchall()
 
         tagesliste_leads = [dict(row) for row in tagesliste_leads]
+
+        try:
+            total_leads_count = cursor.execute("""
+                SELECT COUNT(*)
+                FROM leads
+            """).fetchone()[0]
+        except Exception:
+            total_leads_count = 0
+
+        stats_row = cursor.execute("""
+            SELECT
+                COUNT(*) AS total_leads,
+
+                SUM(CASE WHEN status IS NULL OR status = 'offen' THEN 1 ELSE 0 END) AS tagesliste_total,
+
+                SUM(CASE WHEN status = 'angerufen' THEN 1 ELSE 0 END) AS today_angerufen,
+                SUM(CASE WHEN status = 'interessiert' THEN 1 ELSE 0 END) AS today_interessiert,
+                SUM(CASE WHEN status = 'besichtigung' THEN 1 ELSE 0 END) AS today_besichtigung
+            FROM tagesliste_leads
+        """).fetchone()
+
+        month_row = cursor.execute("""
+            SELECT
+                SUM(CASE WHEN status = 'angerufen' THEN 1 ELSE 0 END) AS month_angerufen,
+                SUM(CASE WHEN status = 'interessiert' THEN 1 ELSE 0 END) AS month_interessiert,
+                SUM(CASE WHEN status = 'besichtigung' THEN 1 ELSE 0 END) AS month_besichtigung,
+                SUM(CASE WHEN status = 'spaeter' THEN 1 ELSE 0 END) AS month_spaeter
+            FROM tagesliste_status_history
+            WHERE strftime('%Y-%m', datum) = strftime('%Y-%m', 'now', 'localtime')
+        """).fetchone()
+
+        month_label = cursor.execute("""
+            SELECT strftime('%m.%Y', 'now', 'localtime')
+        """).fetchone()[0]
+
+        datenbank_stats = {
+            "total_leads": int(total_leads_count or 0),
+            "tagesliste_total": int(stats_row["tagesliste_total"] or 0),
+
+            "month_angerufen": int(month_row["month_angerufen"] or 0),
+            "month_interessiert": int(month_row["month_interessiert"] or 0),
+            "month_besichtigung": int(month_row["month_besichtigung"] or 0),
+            "month_spaeter": int(month_row["month_spaeter"] or 0),
+            "today_angerufen": int(stats_row["today_angerufen"] or 0),
+            "today_interessiert": int(stats_row["today_interessiert"] or 0),
+            "today_besichtigung": int(stats_row["today_besichtigung"] or 0),
+
+            "month_label": month_label or ""
+        }
 
         conn.close()
 
         return render_template(
             "datenbank.html",
-            tagesliste_leads=tagesliste_leads
+            tagesliste_leads=tagesliste_leads,
+            datenbank_stats=datenbank_stats
         )
 
 # =====================================================
@@ -1299,40 +1439,38 @@ def register_app2_routes(app, login_required):
     @app.route("/api/datenbank/apify-import", methods=["POST"])
     @login_required
     def app2_apify_import():
-        data = request.get_json() or {}
-
-        branche_id = str(data.get("branche_id", "")).strip()
-        branche_name = str(data.get("branche_name", "")).strip()
-        suchwort = str(data.get("suchwort", "")).strip()
-        stadt = str(data.get("stadt", "")).strip()
-
         try:
-            anzahl = int(data.get("anzahl", 30))
-        except:
-            anzahl = 30
+            data = request.get_json(silent=True) or {}
 
-        if not branche_id or not branche_name or not suchwort or not stadt:
+            branche_id = str(data.get("branche_id", "")).strip()
+            branche_name = str(data.get("branche_name", "")).strip()
+            suchwort = str(data.get("suchwort", "")).strip()
+            stadt = str(data.get("stadt", "")).strip()
+            plz = str(data.get("plz", "")).strip()
+
+            if not branche_id or not branche_name or not suchwort or not stadt:
+                return jsonify({
+                    "success": False,
+                    "message": "Branche, Suchwort und Stadt sind Pflichtfelder."
+                }), 400
+
+            result = run_apify_import(
+                db_path=DB_PATH,
+                branche_id=branche_id,
+                branche_name=branche_name,
+                suchwort=suchwort,
+                stadt=stadt,
+                max_results=20,
+                plz=plz
+            )
+
+            return jsonify(result)
+
+        except Exception as e:
             return jsonify({
                 "success": False,
-                "message": "Branche, Suchwort und Stadt sind Pflichtfelder."
-            }), 400
-
-        if anzahl < 1:
-            anzahl = 30
-
-        if anzahl > 100:
-            anzahl = 100
-
-        result = run_apify_import(
-            db_path=DB_PATH,
-            branche_id=branche_id,
-            branche_name=branche_name,
-            suchwort=suchwort,
-            stadt=stadt,
-            max_results=anzahl
-        )
-
-        return jsonify(result)
+                "message": "Import Fehler: " + str(e)
+            }), 500
 
 
 # =====================================================
@@ -1365,13 +1503,21 @@ def register_app2_routes(app, login_required):
         conn = sqlite3.connect(DB_PATH)
         conn.row_factory = sqlite3.Row
 
+        try:
+            conn.execute("ALTER TABLE leads ADD COLUMN sort_order INTEGER DEFAULT 0")
+            conn.commit()
+        except Exception:
+            pass
+
         if branche_id:
             leads = conn.execute("""
                 SELECT *
                 FROM leads
                 WHERE branche_id = ?
                 AND (status IS NULL OR status != 'Tagesliste')
-                ORDER BY 
+                ORDER BY
+                    CASE WHEN sort_order IS NULL OR sort_order = 0 THEN 1 ELSE 0 END,
+                    sort_order ASC,
                     CASE WHEN plz IS NULL OR plz = '' THEN 1 ELSE 0 END,
                     plz ASC,
                     firma ASC
@@ -1381,7 +1527,9 @@ def register_app2_routes(app, login_required):
                 SELECT *
                 FROM leads
                 WHERE status IS NULL OR status != 'Tagesliste'
-                ORDER BY 
+                ORDER BY
+                    CASE WHEN sort_order IS NULL OR sort_order = 0 THEN 1 ELSE 0 END,
+                    sort_order ASC,
                     CASE WHEN plz IS NULL OR plz = '' THEN 1 ELSE 0 END,
                     plz ASC,
                     firma ASC
@@ -1396,6 +1544,156 @@ def register_app2_routes(app, login_required):
             branche=branche,
             branche_id=branche_id
         )
+
+# =====================================================
+# APP2 - BRANCHEN DETAIL SORTIERUNG SPEICHERN
+# =====================================================
+
+    @app.route("/api/branche-detail/save-order", methods=["POST"])
+    @login_required
+    def app2_branche_detail_save_order():
+        data = request.get_json(silent=True) or {}
+        ids = data.get("ids") or []
+
+        if not isinstance(ids, list):
+            return jsonify({
+                "ok": False,
+                "message": "Ungültige Reihenfolge."
+            }), 400
+
+        conn = sqlite3.connect(DB_PATH)
+        cursor = conn.cursor()
+
+        try:
+            cursor.execute("ALTER TABLE leads ADD COLUMN sort_order INTEGER DEFAULT 0")
+        except Exception:
+            pass
+
+        for index, lead_id in enumerate(ids, start=1):
+            try:
+                cursor.execute("""
+                    UPDATE leads
+                    SET sort_order = ?
+                    WHERE id = ?
+                """, (index, int(lead_id)))
+            except Exception:
+                pass
+
+        conn.commit()
+        conn.close()
+
+        return jsonify({
+            "ok": True,
+            "message": "Reihenfolge gespeichert."
+        })
+
+
+# =====================================================
+# APP2 - BRANCHEN DETAIL MANUELLE FIRMA HINZUFÜGEN
+# =====================================================
+
+    @app.route("/api/branche-detail/manual-add", methods=["POST"])
+    @login_required
+    def app2_branche_detail_manual_add():
+        data = request.get_json(silent=True) or {}
+
+        branche_id = str(data.get("branche_id") or "").strip()
+        firma = str(data.get("firma") or "").strip()
+        strasse = str(data.get("strasse") or "").strip()
+        plz = str(data.get("plz") or "").strip()
+        stadt = str(data.get("stadt") or "").strip()
+        telefon = str(data.get("telefon") or "").strip()
+        email = str(data.get("email") or "").strip()
+        website = str(data.get("website") or "").strip()
+
+        if not firma:
+            return jsonify({
+                "ok": False,
+                "message": "Firma fehlt."
+            }), 400
+
+        conn = sqlite3.connect(DB_PATH)
+        cursor = conn.cursor()
+
+        try:
+            cursor.execute("ALTER TABLE leads ADD COLUMN sort_order INTEGER DEFAULT 0")
+        except Exception:
+            pass
+
+        cursor.execute("""
+            INSERT INTO leads
+            (
+                branche_id,
+                firma,
+                strasse,
+                plz,
+                stadt,
+                telefon,
+                email,
+                website,
+                quelle,
+                status,
+                sort_order
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """, (
+            branche_id,
+            firma,
+            strasse,
+            plz,
+            stadt,
+            telefon,
+            email,
+            website,
+            "Manuell",
+            "Neu",
+            0
+        ))
+
+        conn.commit()
+        conn.close()
+
+        return jsonify({
+            "ok": True,
+            "message": "Firma wurde gespeichert."
+        })
+
+
+# =====================================================
+# APP2 - BRANCHEN DETAIL FIRMA LÖSCHEN
+# =====================================================
+
+    @app.route("/api/branche-detail/delete-lead", methods=["POST"])
+    @login_required
+    def app2_branche_detail_delete_lead():
+        data = request.get_json(silent=True) or {}
+
+        try:
+            lead_id = int(data.get("lead_id") or 0)
+        except:
+            lead_id = 0
+
+        if lead_id <= 0:
+            return jsonify({
+                "ok": False,
+                "message": "Lead-ID fehlt."
+            }), 400
+
+        conn = sqlite3.connect(DB_PATH)
+        cursor = conn.cursor()
+
+        cursor.execute("""
+            DELETE FROM leads
+            WHERE id = ?
+        """, (lead_id,))
+
+        conn.commit()
+        conn.close()
+
+        return jsonify({
+            "ok": True,
+            "message": "Firma wurde gelöscht."
+        })
 
 # =====================================================
 # APP2 - YENİ BÖLÜM - TAGESLISTE KAYIT ROUTE
@@ -1417,6 +1715,7 @@ def register_app2_routes(app, login_required):
         telefon = data.get("telefon", "").strip()
         email = data.get("email", "").strip()
         website = data.get("website", "").strip()
+        google_maps_url = data.get("google_maps_url", "").strip()
        
         quelle = data.get("quelle", "Branchenliste").strip()
 
@@ -1434,7 +1733,24 @@ def register_app2_routes(app, login_required):
         company_key = f"{firma}|{telefon}|{email}".lower()
 
         conn = sqlite3.connect(DB_PATH)
+        conn.row_factory = sqlite3.Row
         cursor = conn.cursor()
+
+        try:
+            cursor.execute("ALTER TABLE tagesliste_leads ADD COLUMN google_maps_url TEXT")
+        except Exception:
+            pass
+
+        if not google_maps_url and source_lead_id > 0:
+            try:
+                row = cursor.execute(
+                    "SELECT google_maps_url FROM leads WHERE id = ?",
+                    (source_lead_id,)
+                ).fetchone()
+                if row:
+                    google_maps_url = row["google_maps_url"] or ""
+            except Exception:
+                google_maps_url = ""
 
         cursor.execute("""
             INSERT OR IGNORE INTO tagesliste_leads
@@ -1449,11 +1765,12 @@ def register_app2_routes(app, login_required):
                 telefon,
                 email,
                 website,
+                google_maps_url,
                 quelle,
                 status,
                 company_key
             )
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """, (
             source_lead_id,
             firma,
@@ -1465,14 +1782,16 @@ def register_app2_routes(app, login_required):
             telefon,
             email,
             website,
+            google_maps_url,
             quelle,
             "offen",
             company_key
         ))
 
         inserted = cursor.rowcount
+        new_id = cursor.lastrowid if inserted == 1 else 0
 
-        if inserted == 1 and source_lead_id > 0:
+        if source_lead_id > 0:
             cursor.execute("""
                 UPDATE leads
                 SET status = 'Tagesliste'
@@ -1492,6 +1811,7 @@ def register_app2_routes(app, login_required):
         return jsonify({
             "ok": True,
             "duplicate": False,
+            "id": new_id,
             "message": "Firma wurde zur Tagesliste hinzugefügt."
         })
 
@@ -1630,6 +1950,20 @@ def register_app2_routes(app, login_required):
             source_lead_id = 0
 
         status = str(data.get("status") or "offen").strip().lower()
+        statuses_raw = data.get("statuses") or []
+        erlaubte_backup_status = ["angerufen", "interessiert", "besichtigung", "kontaktformular", "spaeter", "verloren"]
+
+        if not isinstance(statuses_raw, list):
+            statuses_raw = []
+
+        backup_statuses = []
+        for s in statuses_raw:
+            s = str(s or "").strip().lower()
+            if s in erlaubte_backup_status and s not in backup_statuses:
+                backup_statuses.append(s)
+
+        if not backup_statuses and status in erlaubte_backup_status:
+            backup_statuses = [status]
 
         if tagesliste_id <= 0:
             return jsonify({
@@ -1639,6 +1973,49 @@ def register_app2_routes(app, login_required):
 
         conn = sqlite3.connect(DB_PATH)
         cursor = conn.cursor()
+
+        for backup_status in backup_statuses:
+            cursor.execute("""
+                INSERT OR REPLACE INTO tagesliste_status_backup (
+                    tagesliste_id,
+                    source_lead_id,
+                    firma,
+                    branche,
+                    ansprechpartner,
+                    strasse,
+                    plz,
+                    ort,
+                    telefon,
+                    email,
+                    website,
+                    quelle,
+                    status,
+                    notiz,
+                    spaeter_datum,
+                    erstellt_am,
+                    backup_am
+                )
+                SELECT
+                    id,
+                    source_lead_id,
+                    firma,
+                    branche,
+                    ansprechpartner,
+                    strasse,
+                    plz,
+                    ort,
+                    telefon,
+                    email,
+                    website,
+                    quelle,
+                    ?,
+                    notiz,
+                    spaeter_datum,
+                    erstellt_am,
+                    CURRENT_TIMESTAMP
+                FROM tagesliste_leads
+                WHERE id = ?
+            """, (backup_status, tagesliste_id))
 
         cursor.execute("""
             DELETE FROM tagesliste_leads
@@ -1699,9 +2076,8 @@ def register_app2_routes(app, login_required):
         return jsonify({
             "ok": True,
             "message": "Notiz wurde gespeichert."
-        })
-
-
+        })    
+    
 # =====================================================
 # APP2 - TAGESLISTE STATUS SPEICHERN
 # =====================================================
@@ -1763,6 +2139,62 @@ def register_app2_routes(app, login_required):
                 WHERE id = ?
             """, (status, tagesliste_id))
 
+        if status == "offen":
+            cursor.execute("""
+                DELETE FROM tagesliste_status_history
+                WHERE tagesliste_id = ?
+                AND datum = date('now','localtime')
+            """, (tagesliste_id,))
+        elif status in ["angerufen", "interessiert", "besichtigung", "kontaktformular", "spaeter", "verloren"]:
+            cursor.execute("""
+                INSERT OR IGNORE INTO tagesliste_status_history
+                    (tagesliste_id, status, datum)
+                VALUES
+                    (?, ?, date('now','localtime'))
+            """, (tagesliste_id, status))
+
+            cursor.execute("""
+                INSERT OR REPLACE INTO tagesliste_status_backup (
+                    tagesliste_id,
+                    source_lead_id,
+                    firma,
+                    branche,
+                    ansprechpartner,
+                    strasse,
+                    plz,
+                    ort,
+                    telefon,
+                    email,
+                    website,
+                    quelle,
+                    status,
+                    notiz,
+                    spaeter_datum,
+                    erstellt_am,
+                    backup_am
+                )
+                SELECT
+                    id,
+                    source_lead_id,
+                    firma,
+                    branche,
+                    ansprechpartner,
+                    strasse,
+                    plz,
+                    ort,
+                    telefon,
+                    email,
+                    website,
+                    quelle,
+                    ?,
+                    notiz,
+                    spaeter_datum,
+                    erstellt_am,
+                    CURRENT_TIMESTAMP
+                FROM tagesliste_leads
+                WHERE id = ?
+            """, (status, tagesliste_id))
+
         conn.commit()
         conn.close()
 
@@ -1800,7 +2232,7 @@ def register_app2_routes(app, login_required):
 
         rows = conn.execute("""
             SELECT
-                id,
+                tagesliste_id AS id,
                 source_lead_id,
                 firma,
                 branche,
@@ -1816,9 +2248,9 @@ def register_app2_routes(app, login_required):
                 notiz,
                 spaeter_datum,
                 erstellt_am
-            FROM tagesliste_leads
+            FROM tagesliste_status_backup
             WHERE status = ?
-            ORDER BY id DESC
+            ORDER BY backup_am DESC, tagesliste_id DESC
         """, (status,)).fetchall()
 
         result = [dict(row) for row in rows]
@@ -1842,7 +2274,7 @@ def register_app2_routes(app, login_required):
 
         rows = conn.execute("""
             SELECT status, COUNT(*) AS count
-            FROM tagesliste_leads
+            FROM tagesliste_status_backup
             WHERE status IN (
                 'angerufen',
                 'interessiert',
@@ -1854,7 +2286,28 @@ def register_app2_routes(app, login_required):
             GROUP BY status
         """).fetchall()
 
+        tagesliste_total = conn.execute("""
+            SELECT COUNT(*) AS count
+            FROM tagesliste_leads
+            WHERE status IS NULL OR status = 'offen'
+        """).fetchone()["count"]
+
+        month_row = conn.execute("""
+            SELECT
+                SUM(CASE WHEN status = 'angerufen' THEN 1 ELSE 0 END) AS month_angerufen,
+                SUM(CASE WHEN status = 'interessiert' THEN 1 ELSE 0 END) AS month_interessiert,
+                SUM(CASE WHEN status = 'besichtigung' THEN 1 ELSE 0 END) AS month_besichtigung,
+                SUM(CASE WHEN status = 'spaeter' THEN 1 ELSE 0 END) AS month_spaeter
+            FROM tagesliste_status_history
+            WHERE strftime('%Y-%m', datum) = strftime('%Y-%m', 'now', 'localtime')
+        """).fetchone()
+
         counts = {
+            "tagesliste": int(tagesliste_total or 0),
+            "month_angerufen": int(month_row["month_angerufen"] or 0),
+            "month_interessiert": int(month_row["month_interessiert"] or 0),
+            "month_besichtigung": int(month_row["month_besichtigung"] or 0),
+            "month_spaeter": int(month_row["month_spaeter"] or 0),
             "angerufen": 0,
             "interessiert": 0,
             "besichtigung": 0,
