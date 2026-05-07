@@ -1,0 +1,1281 @@
+{% extends "base.html" %}
+{% block content %}
+
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
+<style>
+
+*{
+    box-sizing:border-box;
+}
+
+html,body{
+    margin:0;
+    padding:0;
+}
+
+body{
+    background:#f8fafc;
+    font-family:Arial,Helvetica,sans-serif;
+    color:#0f172a;
+}
+
+.page-shell{
+    width:100%;
+    max-width:1900px;
+    min-height:calc(100vh - 56px);
+    margin:0 auto;
+    background:#ffffff;
+    border-radius:24px;
+    box-shadow:0 18px 50px rgba(15,23,42,.08);
+    border:1px solid #dbe3ef;
+    overflow:hidden;
+}
+
+.view-hidden{
+    display:none!important;
+}
+
+/* =========================
+   ANA DATENBANK ÜST ALAN
+========================= */
+.hero{
+    background:linear-gradient(135deg,#183a91 0%,#2563eb 100%);
+    color:#ffffff;
+    padding:28px 30px 30px 30px;
+}
+
+.hero-top{
+    display:grid;
+    grid-template-columns:minmax(0,1fr) auto;
+    gap:18px;
+    align-items:start;
+    margin-bottom:24px;
+}
+
+.kicker{
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    padding:8px 12px;
+    border-radius:999px;
+    background:rgba(255,255,255,.14);
+    border:1px solid rgba(255,255,255,.22);
+    font-size:12px;
+    font-weight:900;
+    letter-spacing:.4px;
+    text-transform:uppercase;
+    margin-bottom:12px;
+}
+
+.hero-title h1{
+    margin:0;
+    font-size:32px;
+    line-height:1.08;
+    font-weight:900;
+    letter-spacing:-.55px;
+}
+
+.hero-title p{
+    margin:9px 0 0 0;
+    font-size:13px;
+    line-height:1.5;
+    font-weight:700;
+    color:rgba(255,255,255,.86);
+}
+
+.hero-actions{
+    display:flex;
+    justify-content:flex-end;
+    gap:10px;
+    flex-wrap:wrap;
+}
+
+.hero-btn{
+    border:1px solid rgba(255,255,255,.28);
+    background:rgba(255,255,255,.14);
+    color:#ffffff;
+    border-radius:14px;
+    padding:11px 14px;
+    font-size:12px;
+    font-weight:800;
+    cursor:pointer;
+    white-space:nowrap;
+    line-height:1.2;
+}
+
+.hero-btn.primary{
+    background:#ffffff;
+    color:#183a91;
+    border-color:#ffffff;
+}
+
+.hero-btn.green{
+    background:#15803d;
+    color:#ffffff;
+    border-color:#15803d;
+}
+
+.stats-grid{
+    display:grid;
+    grid-template-columns:repeat(4,minmax(0,1fr));
+    gap:18px;
+}
+
+.stat-box{
+    background:#ffffff;
+    border:1px solid rgba(255,255,255,.85);
+    border-radius:18px;
+    padding:18px 22px;
+}
+
+.stat-label{
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:.7px;
+    font-weight:900;
+    color:#1d4ed8;
+    margin-bottom:7px;
+}
+
+.stat-value{
+    font-size:24px;
+    line-height:1.15;
+    font-weight:900;
+    color:#183a91;
+}
+
+.stat-sub{
+    margin-top:6px;
+    font-size:11px;
+    font-weight:800;
+    color:#2563eb;
+}
+
+.content{
+    padding:28px 30px 32px 30px;
+    background:linear-gradient(180deg,#f8fbff 0%,#f3f6fb 100%);
+}
+
+.section-head{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:16px;
+    margin-bottom:18px;
+}
+
+.section-head h2{
+    margin:0;
+    font-size:26px;
+    font-weight:900;
+    color:#0f172a;
+    letter-spacing:-.35px;
+}
+
+.section-head p{
+    margin:6px 0 0 0;
+    font-size:13px;
+    color:#64748b;
+    font-weight:700;
+}
+
+.branchen-grid{
+    display:grid;
+    grid-template-columns:repeat(6,minmax(150px,1fr));
+    gap:16px;
+}
+
+.branche-card{
+    position:relative;
+    min-height:230px;
+    padding:18px 18px 16px 18px;
+    border-radius:22px;
+    border:1px solid #d8e4f4;
+    background:linear-gradient(180deg,rgba(255,255,255,.98) 0%,rgba(246,250,255,.98) 100%);
+    box-shadow:0 16px 40px rgba(37,99,235,.06),0 4px 12px rgba(15,23,42,.03);
+    display:flex;
+    flex-direction:column;
+    gap:14px;
+    cursor:pointer;
+    transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease;
+    overflow:hidden;
+}
+
+.branche-card:before{
+    content:"";
+    position:absolute;
+    left:0;
+    top:0;
+    width:100%;
+    height:4px;
+    background:linear-gradient(90deg,#1e40af 0%,#2563eb 55%,#60a5fa 100%);
+}
+
+.branche-card:hover{
+    transform:translateY(-4px);
+    border-color:#9cc2f5;
+    box-shadow:0 22px 46px rgba(37,99,235,.10),0 8px 18px rgba(15,23,42,.05);
+}
+
+.card-top{
+    display:flex;
+    align-items:flex-start;
+    justify-content:space-between;
+    gap:12px;
+}
+
+.category-number{
+    width:28px;
+    height:28px;
+    border-radius:10px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:12px;
+    font-weight:900;
+    color:#1d4ed8;
+    background:#eff6ff;
+    border:1px solid #bfdbfe;
+    flex:0 0 auto;
+}
+
+.open-pill{
+    border-radius:999px;
+    background:#ffffff;
+    border:1px solid #dbe7f5;
+    color:#1d4ed8;
+    padding:7px 9px;
+    font-size:11px;
+    font-weight:900;
+    white-space:nowrap;
+}
+
+.branche-head{
+    margin:0;
+    font-size:15px;
+    line-height:1.22;
+    font-weight:900;
+    color:#123a8f;
+    letter-spacing:-.2px;
+    min-height:38px;
+}
+
+.branche-text{
+    font-size:11.5px;
+    line-height:1.42;
+    color:#475569;
+    font-weight:600;
+    flex:1;
+}
+
+.branche-count{
+    margin-top:auto;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    min-height:42px;
+    text-align:center;
+    padding:9px 10px;
+    border-radius:14px;
+    background:linear-gradient(180deg,#eff6ff 0%,#e8f1ff 100%);
+    border:1px solid #bfd7ff;
+    color:#1243a6;
+    font-size:11px;
+    font-weight:900;
+    line-height:1.28;
+}
+
+/* =========================
+   BRANCHE DETAIL - MAVİ HERO YOK
+========================= */
+.detail-content{
+    padding:24px 30px 32px 30px;
+    background:linear-gradient(180deg,#f8fbff 0%,#f3f6fb 100%);
+    min-height:100vh;
+}
+
+.detail-topline{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:14px;
+    margin-bottom:16px;
+}
+
+.detail-title-wrap{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    min-width:0;
+}
+
+.back-btn{
+    width:42px;
+    height:42px;
+    border-radius:14px;
+    border:1px solid #bbf7d0;
+    background:#16a34a;
+    color:#ffffff;
+    font-size:18px;
+    font-weight:900;
+    cursor:pointer;
+    box-shadow:0 12px 24px rgba(22,163,74,.16);
+}
+
+.detail-title-text h1{
+    margin:0;
+    font-size:25px;
+    line-height:1.12;
+    font-weight:900;
+    color:#0f172a;
+    letter-spacing:-.35px;
+}
+
+.detail-title-text p{
+    margin:5px 0 0 0;
+    font-size:13px;
+    font-weight:700;
+    color:#64748b;
+}
+
+.add-company-btn{
+    border:none;
+    background:#16a34a;
+    color:#ffffff;
+    border-radius:16px;
+    padding:13px 18px;
+    font-size:13px;
+    font-weight:900;
+    cursor:pointer;
+    box-shadow:0 14px 30px rgba(22,163,74,.18);
+    white-space:nowrap;
+}
+
+.daily-add-btn{
+    width:148px;
+    min-height:46px;
+    border:none;
+    border-radius:16px;
+    background:#16a34a;
+    color:#ffffff;
+    font-size:12px;
+    line-height:1.18;
+    font-weight:900;
+    cursor:pointer;
+    box-shadow:0 12px 24px rgba(22,163,74,.16);
+    padding:9px 12px;
+    justify-self:end;
+    transition:transform .16s ease,box-shadow .16s ease,background .16s ease;
+}
+
+.daily-add-btn:hover{
+    transform:translateY(-1px);
+    box-shadow:0 16px 30px rgba(22,163,74,.22);
+}
+
+.daily-add-btn.added{
+    background:#047857;
+    cursor:default;
+}
+
+.detail-filter-card{
+    background:#ffffff;
+    border:1px solid #dbe3ef;
+    border-radius:22px;
+    box-shadow:0 12px 26px rgba(15,23,42,.045);
+    padding:18px;
+    margin-bottom:16px;
+}
+
+.detail-filter-row{
+    display:grid;
+    grid-template-columns:minmax(0,1fr) 210px;
+    gap:12px;
+}
+
+.detail-filter-row input,
+.detail-filter-row select{
+    width:100%;
+    border:1px solid #dbe3ef;
+    background:#f8fafc;
+    border-radius:18px;
+    padding:16px 18px;
+    font-size:14px;
+    font-weight:800;
+    color:#0f172a;
+    outline:none;
+}
+
+.detail-filter-row input::placeholder{
+    color:#64748b;
+}
+
+.company-list{
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+}
+
+.company-card{
+    position:relative;
+    background:#ffffff;
+    border:1px solid #dbe3ef;
+    border-radius:22px;
+    box-shadow:0 10px 24px rgba(15,23,42,.04);
+    overflow:hidden;
+    transition:border-color .16s ease,box-shadow .16s ease,transform .16s ease;
+}
+
+.company-card:before{
+    content:"";
+    position:absolute;
+    left:0;
+    top:10px;
+    bottom:10px;
+    width:5px;
+    border-radius:0 999px 999px 0;
+    background:linear-gradient(180deg,#1d4ed8,#2563eb);
+}
+
+.company-card:hover{
+    border-color:#93c5fd;
+    box-shadow:0 16px 34px rgba(37,99,235,.10);
+    transform:translateY(-1px);
+}
+
+.company-card.sortable-ghost{
+    opacity:.35;
+}
+
+.company-card.sortable-chosen{
+    border-color:#2563eb;
+    box-shadow:0 18px 38px rgba(37,99,235,.16);
+}
+
+.company-summary{
+    display:grid;
+    grid-template-columns:50px minmax(0,1fr) 150px 42px 40px;
+    gap:14px;
+    align-items:center;
+    padding:14px 16px 14px 22px;
+    cursor:pointer;
+}
+
+.company-delete-btn{
+    width:42px;
+    height:42px;
+    border:1px solid #fecaca;
+    border-radius:14px;
+    background:#fef2f2;
+    color:#dc2626;
+    font-size:16px;
+    font-weight:900;
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+}
+
+.company-delete-btn:hover{
+    background:#dc2626;
+    color:#ffffff;
+}
+
+.drag-handle{
+    width:46px;
+    height:46px;
+    border-radius:16px;
+    border:1px solid #dbe3ef;
+    background:#f8fafc;
+    color:#64748b;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:25px;
+    line-height:1;
+    font-weight:900;
+    cursor:grab;
+    user-select:none;
+}
+
+.drag-handle:active{
+    cursor:grabbing;
+}
+
+.company-branch-badge{
+    display:inline-flex;
+    align-items:center;
+    width:max-content;
+    max-width:100%;
+    border-radius:999px;
+    padding:6px 10px;
+    background:#eff6ff;
+    color:#1d4ed8;
+    border:1px solid #bfdbfe;
+    font-size:11px;
+    line-height:1;
+    font-weight:900;
+    margin-bottom:7px;
+}
+
+.company-main{
+    min-width:0;
+}
+
+.company-name{
+    margin:0;
+    font-size:18px;
+    line-height:1.18;
+    font-weight:900;
+    color:#0f172a;
+    letter-spacing:-.25px;
+}
+
+.company-line{
+    margin-top:8px;
+    font-size:13px;
+    line-height:1.35;
+    font-weight:800;
+    color:#64748b;
+}
+
+.company-contact{
+    margin-top:7px;
+    display:flex;
+    gap:8px;
+    flex-wrap:wrap;
+    font-size:13px;
+    line-height:1.35;
+    font-weight:900;
+    color:#0f172a;
+}
+
+.company-contact a{
+    color:#0f172a;
+    text-decoration:none;
+}
+
+.company-mail{
+    margin-top:4px;
+    font-size:12px;
+    line-height:1.25;
+    font-weight:900;
+    color:#2563eb;
+    text-decoration:none;
+    display:inline-block;
+}
+
+.detail-link{
+    color:#2563eb;
+    text-decoration:none;
+    font-weight:900;
+}
+
+.company-open-icon{
+    width:36px;
+    height:36px;
+    border-radius:14px;
+    border:1px solid #dbe3ef;
+    background:#f8fafc;
+    color:#1d4ed8;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:18px;
+    font-weight:900;
+    transition:transform .18s ease;
+}
+
+.company-card.open .company-open-icon{
+    transform:rotate(180deg);
+}
+
+.company-details{
+    display:none;
+    padding:0 16px 14px 86px;
+}
+
+.company-card.open .company-details{
+    display:block;
+}
+
+.detail-inner{
+    border-top:1px dashed #dbe3ef;
+    padding-top:12px;
+    display:grid;
+    grid-template-columns:repeat(3,minmax(0,1fr));
+    gap:12px;
+}
+
+.detail-box{
+    background:#f8fafc;
+    border:1px solid #e2e8f0;
+    border-radius:14px;
+    padding:14px 14px;
+    min-height:86px;
+}
+
+.detail-label{
+    font-size:10px;
+    line-height:1;
+    text-transform:uppercase;
+    letter-spacing:.6px;
+    font-weight:900;
+    color:#64748b;
+    margin-bottom:6px;
+}
+
+.detail-value{
+    font-size:13px;
+    line-height:1.32;
+    font-weight:800;
+    color:#0f172a;
+}
+
+.detail-edit-input{
+    width:100%;
+    border:1px solid #dbe3ef;
+    background:#ffffff;
+    border-radius:12px;
+    padding:11px 12px;
+    font-size:13px;
+    font-weight:800;
+    color:#0f172a;
+    outline:none;
+    margin-top:6px;
+}
+
+.detail-edit-input:focus{
+    border-color:#2563eb;
+    box-shadow:0 0 0 3px rgba(37,99,235,.10);
+}
+.empty-state{
+    display:none;
+    border:1px dashed #bfdbfe;
+    background:#ffffff;
+    border-radius:22px;
+    padding:34px;
+    text-align:center;
+    color:#64748b;
+    font-weight:800;
+}
+
+.empty-state strong{
+    display:block;
+    color:#123a8f;
+    font-size:20px;
+    margin-bottom:8px;
+}
+
+@media(max-width:1280px){
+    .branchen-grid{
+        grid-template-columns:repeat(4,minmax(180px,1fr));
+    }
+
+    .detail-inner{
+        grid-template-columns:repeat(3,minmax(0,1fr));
+    }
+}
+
+@media(max-width:900px){
+    .branchen-grid{
+        grid-template-columns:repeat(2,minmax(220px,1fr));
+    }
+
+    .company-summary{
+        grid-template-columns:48px minmax(0,1fr) 148px 38px;
+        gap:12px;
+    }
+
+    .company-details{
+        padding-left:72px;
+    }
+
+    .detail-inner{
+        grid-template-columns:1fr 1fr;
+    }
+}
+
+@media(max-width:800px){
+    .page-shell{
+        border-radius:0;
+        border-left:none;
+        border-right:none;
+    }
+
+    .hero-top,
+    .detail-topline{
+        grid-template-columns:1fr;
+        display:flex;
+        flex-direction:column;
+        align-items:flex-start;
+    }
+
+    .hero-actions{
+        justify-content:flex-start;
+    }
+
+    .stats-grid,
+    .detail-filter-row,
+    .branchen-grid{
+        grid-template-columns:1fr;
+    }
+
+    .company-summary{
+        grid-template-columns:42px minmax(0,1fr) 34px;
+    }
+
+    .daily-add-btn{
+        grid-column:2 / 4;
+        width:100%;
+        justify-self:stretch;
+    }
+
+    
+
+    .company-details{
+        padding:0 14px 16px 74px;
+    }
+
+    .detail-inner{
+        grid-template-columns:1fr;
+    }
+}
+
+.maps-open-btn {
+    margin-top: 10px;
+    width: 100%;
+    border: 1px solid #bfdbfe;
+    background: linear-gradient(135deg, #eff6ff 0%, #ffffff 100%);
+    color: #1d4ed8;
+    border-radius: 12px;
+    padding: 9px 11px;
+    font-size: 12px;
+    font-weight: 900;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    box-shadow: 0 8px 18px rgba(37,99,235,0.08);
+}
+
+.maps-open-btn:hover {
+    background: #dbeafe;
+    border-color: #93c5fd;
+}
+
+.maps-logo {
+    width: 22px;
+    height: 22px;
+    border-radius: 999px;
+    background: #ffffff;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 15px;
+    box-shadow: 0 4px 10px rgba(15,23,42,0.08);
+}
+
+</style>
+</head>
+<body>
+
+<div class="page-shell">
+    <section id="mainView">
+        <main class="content">
+            <div class="section-head">
+    <div style="display:flex; align-items:center; gap:12px;">
+        <button class="back-btn" type="button" onclick="window.location.href='/datenbank'">←</button>
+        <div>
+            <h2>Branchen-Auswahl</h2>
+            <p>Ein Klick auf eine Box öffnet die Firmenliste der jeweiligen Branche.</p>
+        </div>
+    </div>
+</div>
+
+            <section class="branchen-grid" id="branchenGrid"></section>
+        </main>
+    </section>
+
+    <section id="detailView" class="view-hidden">
+        <main class="detail-content">
+            <div class="detail-topline">
+                <div class="detail-title-wrap">
+                    <button class="back-btn" onclick="showMainView()">←</button>
+                    <div class="detail-title-text">
+                        <h1 id="detailTitle">Büro & Verwaltung</h1>
+                        <p id="detailSub">Eigene Firmenliste dieser Branchengruppe</p>
+                    </div>
+                </div>
+                <button class="add-company-btn" type="button" onclick="manualCompanyAdd()">+ Firma hinzufügen</button>
+            </div>
+
+            <section class="detail-filter-card">
+                <div class="detail-filter-row" style="grid-template-columns: 1fr;">
+                    <input type="text" id="searchInput" placeholder="Firma, Ansprechpartner, Straße, Stadt oder PLZ suchen..." oninput="filterCompanies()">
+                </div>
+            </section>
+
+            <section class="company-list" id="companyList"></section>
+
+            <div class="empty-state" id="emptyState">
+                <strong>Keine passenden Firmen gefunden.</strong>
+                Suche oder Filter ändern.
+            </div>
+        </main>
+    </section>
+</div>
+
+<div id="manualCompanyModal" style="display:none;position:fixed;inset:0;background:rgba(15,23,42,.45);z-index:9999;align-items:center;justify-content:center;">
+    <div style="width:520px;max-width:calc(100% - 30px);background:#fff;border-radius:22px;padding:22px;box-shadow:0 24px 70px rgba(15,23,42,.25);">
+        <h2 style="margin:0 0 14px 0;font-size:22px;font-weight:900;color:#0f172a;">Firma hinzufügen</h2>
+
+        <input id="manualFirma" placeholder="Firma" style="width:100%;margin-bottom:10px;padding:13px;border-radius:12px;border:1px solid #dbe3ef;font-weight:800;">
+        <input id="manualStrasse" placeholder="Straße" style="width:100%;margin-bottom:10px;padding:13px;border-radius:12px;border:1px solid #dbe3ef;font-weight:800;">
+        <input id="manualPlz" placeholder="PLZ" style="width:100%;margin-bottom:10px;padding:13px;border-radius:12px;border:1px solid #dbe3ef;font-weight:800;">
+        <input id="manualOrt" placeholder="Ort" style="width:100%;margin-bottom:10px;padding:13px;border-radius:12px;border:1px solid #dbe3ef;font-weight:800;">
+        <input id="manualTelefon" placeholder="Telefon" style="width:100%;margin-bottom:10px;padding:13px;border-radius:12px;border:1px solid #dbe3ef;font-weight:800;">
+        <input id="manualEmail" placeholder="E-Mail" style="width:100%;margin-bottom:10px;padding:13px;border-radius:12px;border:1px solid #dbe3ef;font-weight:800;">
+        <input id="manualWebsite" placeholder="Webseite" style="width:100%;margin-bottom:16px;padding:13px;border-radius:12px;border:1px solid #dbe3ef;font-weight:800;">
+
+        <div style="display:flex;justify-content:flex-end;gap:10px;">
+            <button type="button" onclick="closeManualCompanyModal()" style="border:none;background:#f1f5f9;color:#475569;border-radius:12px;padding:12px 16px;font-weight:900;cursor:pointer;">Abbrechen</button>
+            <button type="button" onclick="saveManualCompany()" style="border:none;background:#16a34a;color:#fff;border-radius:12px;padding:12px 16px;font-weight:900;cursor:pointer;">Speichern</button>
+        </div>
+    </div>
+</div>
+
+<div id="companyDeleteModal" style="display:none;position:fixed;inset:0;background:rgba(15,23,42,.45);z-index:9999;align-items:center;justify-content:center;padding:18px;">
+    <div style="width:min(100%,360px);background:#fff;border:1px solid #dbe3ef;border-radius:22px;box-shadow:0 22px 55px rgba(15,23,42,.22);padding:20px;">
+        <div style="font-size:19px;font-weight:900;color:#0f172a;">Wirklich löschen?</div>
+        <div style="margin-top:8px;font-size:13px;font-weight:700;color:#64748b;line-height:1.45;">
+            Diese Firma wird aus der Branchenliste entfernt.
+        </div>
+        <div style="margin-top:18px;display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+            <button type="button" onclick="cancelCompanyDelete()" style="height:44px;border:0;border-radius:14px;font-size:13px;font-weight:900;cursor:pointer;background:#f1f5f9;color:#475569;">Abbrechen</button>
+            <button type="button" onclick="confirmCompanyDelete()" style="height:44px;border:0;border-radius:14px;font-size:13px;font-weight:900;cursor:pointer;background:#dc2626;color:#fff;">Löschen</button>
+        </div>
+    </div>
+</div>
+
+<script>
+const branchen = [
+    {nr:1,slug:"buero-verwaltung",title:"Büro & Verwaltung",text:"Bürogebäude, Verwaltungsbüro, Kanzlei, Rechtsanwalt, Steuerberater, Wirtschaftsprüfer, Notar, Immobilienbüro, Unternehmensberatung, Architekturbüro, Ingenieurbüro, Callcenter, Coworking Space, Versicherungsbüro, Verwaltungsstandort",count:"Büro- und Verwaltungsflächen"},
+    {nr:2,slug:"medizin-gesundheit",title:"Medizin & Gesundheit",text:"Arztpraxis, Zahnarztpraxis, Facharztpraxis, Gemeinschaftspraxis, Medizinisches Versorgungszentrum, Physiotherapie, Ergotherapie, Logopädie, Psychotherapie, Radiologie, Labor, Dialysezentrum, Apotheke, Sanitätshaus, Heilpraktikerpraxis",count:"Praxis- und Gesundheitsflächen"},
+    {nr:3,slug:"pflege-soziales",title:"Pflege & Soziales",text:"Pflegedienst, Tagespflege, Seniorenbetreuung, Pflegeheim, Seniorenheim, Betreutes Wohnen, Sozialstation, Wohngruppe, Behindertenhilfe, Jugendhilfe, Familienhilfe, Beratungsstelle, Hilfsorganisation, Caritas, Diakonie, AWO",count:"Pflege- und Sozialflächen"},
+    {nr:4,slug:"bildung-betreuung",title:"Bildung & Betreuung",text:"Kindergarten, Kita, Kindertagespflege, Schule, Privatschule, Nachhilfeinstitut, Sprachschule, Musikschule, Fahrschule, Berufsschule, Weiterbildungsträger, Schulungszentrum, Akademie, Seminarraum Anbieter, Hochschule / Universität Bereich",count:"Bildungs- und Betreuungsflächen"},
+    {nr:5,slug:"einzelhandel-verkaufsflaechen",title:"Einzelhandel & Verkaufsflächen",text:"Drogerie, Modegeschäft, Schuhgeschäft, Möbelhaus, Elektronikgeschäft, Optiker, Hörgeräteakustiker, Blumenladen, Buchhandlung, Juwelier, Sanitätshaus Verkaufsfläche, Telekommunikationsshop, Handyshop, Matratzenstudio, Küchenstudio, Showroom, Verkaufsfläche allgemein",count:"Kunden- und Verkaufsflächen"},
+    {nr:6,slug:"fitness-sport-freizeit",title:"Fitness, Sport & Freizeit",text:"Fitnessstudio, EMS Studio, Yoga Studio, Pilates Studio, Tanzschule, Kampfsportschule, Sportverein Gebäude, Tennisclub, Sporthalle, Schwimmschule, Freizeitcenter, Bowlingcenter, Indoor-Spielplatz, Kletterhalle, Reha-Sport Zentrum",count:"Sport- und Freizeitflächen"},
+    {nr:7,slug:"industrie-produktion",title:"Industrie & Produktion",text:"Produktionshalle, Maschinenbau, Metallverarbeitung, Kunststoffverarbeitung, Elektrotechnik Produktion, Verpackungsproduktion, Druckerei, Textilproduktion, Möbelproduktion, Montagebetrieb, Fertigungsbetrieb, Werkhalle, Industrieunternehmen, Produktionsstandort, Technischer Betrieb",count:"Produktions- und Industrieflächen"},
+    {nr:8,slug:"lager-logistik-grosshandel",title:"Lager, Logistik & Großhandel",text:"Lagerhalle, Versandlager, Logistikzentrum, Spedition, Paketdienst Standort, Großhandel, Baustoffhandel, Technikgroßhandel, Elektrogroßhandel, Sanitärgroßhandel, Werkzeughandel, Import / Export Betrieb, Umschlaglager, Warenlager, Fulfillment Standort",count:"Lager- und Logistikflächen"},
+    {nr:9,slug:"immobilien-hausverwaltung",title:"Immobilien & Hausverwaltung",text:"Hausverwaltung, WEG-Verwaltung, Mietverwaltung, Immobilienverwaltung, Wohnungsbaugesellschaft, Bauträger, Projektentwickler, Immobilienmakler, Gewerbeobjekt Verwaltung, Bürokomplex Verwaltung, Ärztehaus Verwaltung, Wohnanlage, Tiefgarage, Gemeinschaftsflächen, Objektverwaltung",count:"Objekt- und Verwaltungsflächen"},
+    {nr:10,slug:"finanzen-versicherung-beratung",title:"Finanzen, Versicherung & Beratung",text:"Bankfiliale, Versicherung, Versicherungsmakler, Finanzberatung, Kreditvermittlung, Vermögensberatung, Buchhaltung, Lohnbüro, Unternehmensberatung, Personalberatung, Coaching Büro, Maklerbüro, Beratungsagentur",count:"Finanz- und Beratungsflächen"},
+    {nr:11,slug:"handwerk-technik-service",title:"Handwerk, Technik & Service",text:"Elektrobetrieb, SHK Betrieb, Malerbetrieb, Dachdecker, Schreinerei, Tischlerei, Kfz Werkstatt, Autowerkstatt, Reifenservice, Gebäudetechnik, Sicherheitstechnik, IT Service, Reparaturbetrieb, Wartungsbetrieb, Servicebüro",count:"Werkstatt- und Serviceflächen"},
+    {nr:12,slug:"sonstige-gewerbe-dienstleister",title:"Sonstige Gewerbe & Dienstleister",text:"Agentur, Fotostudio, Kosmetikstudio, Friseur, Kanzleiähnlicher Dienstleister, Verein, Verband, Büroähnliche Dienstleister, nicht eindeutig zugeordnete Firmen, gemischte Gewerbeflächen, sonstige gewerbliche Objekte",count:"Sonstige gewerbliche Flächen"}
+];
+
+let currentBranch = null;
+let sortableCompanyList = null;
+let currentCompanies = [];
+let tageslisteEntries = JSON.parse(localStorage.getItem("kg_tagesliste_leads") || "[]");
+
+function renderBranchen(){
+    const grid = document.getElementById("branchenGrid");
+    grid.innerHTML = "";
+
+    branchen.forEach(b => {
+        const card = document.createElement("article");
+        card.className = "branche-card";
+        card.onclick = () => openBranch(b.slug);
+        card.innerHTML = `
+            <div class="card-top">
+                <div class="category-number">${b.nr}</div>
+                <div class="open-pill">Öffnen →</div>
+            </div>
+            <div class="branche-head">${b.title}</div>
+            <div class="branche-text">${b.text}</div>
+            <div class="branche-count">${b.count}</div>
+        `;
+        grid.appendChild(card);
+    });
+}
+
+const dbCompanies = {{ leads|default([])|tojson }};
+
+function getCompanySamples(branch){
+    return dbCompanies.map(item => ({
+        source_lead_id: item.id || 0,
+        firma: item.firma || "",
+        ansprechpartner: item.ansprechpartner || "",
+        strasse: item.strasse || "",
+        plz: item.plz || "",
+        ort: item.stadt || "",
+        telefon: item.telefon || "",
+        email: item.email || "",
+        website: item.website || "",
+        google_maps_url: item.google_maps_url || "",
+        status: item.status || "Neu",
+        statusText: item.status || "Neu",
+        quelle: item.quelle || "Apify"
+    }));
+}
+function openBranch(slug){
+    const currentUrlBranch = new URLSearchParams(window.location.search).get("branche") || "";
+
+    if(currentUrlBranch !== slug){
+        window.location.href = "/branche-detail?branche=" + encodeURIComponent(slug);
+        return;
+    }
+
+    const branch = branchen.find(b => b.slug === slug);
+    if(!branch) return;
+
+    currentBranch = branch;
+
+    document.getElementById("mainView").classList.add("view-hidden");
+    document.getElementById("detailView").classList.remove("view-hidden");
+    document.getElementById("detailTitle").textContent = branch.title;
+    document.getElementById("detailSub").textContent = branch.count + " · Firmen können hier sortiert und aufgeklappt werden.";
+
+    document.getElementById("searchInput").value = "";
+
+    renderCompanyList(branch);
+    activateSortableCompanies();
+    window.scrollTo({top:0,behavior:"smooth"});
+}
+
+function manualCompanyAdd(){
+    document.getElementById("manualCompanyModal").style.display = "flex";
+    document.getElementById("manualFirma").focus();
+}
+
+function closeManualCompanyModal(){
+    document.getElementById("manualCompanyModal").style.display = "none";
+}
+
+async function saveManualCompany(){
+    const firma = document.getElementById("manualFirma").value.trim();
+
+    if(!firma){
+        alert("Firma fehlt.");
+        return;
+    }
+
+    try{
+        const response = await fetch("/api/branche-detail/manual-add", {
+            method:"POST",
+            headers:{
+                "Content-Type":"application/json"
+            },
+            body:JSON.stringify({
+                branche_id:"{{ branche_id }}",
+                firma:firma,
+                strasse:document.getElementById("manualStrasse").value.trim(),
+                plz:document.getElementById("manualPlz").value.trim(),
+                stadt:document.getElementById("manualOrt").value.trim(),
+                telefon:document.getElementById("manualTelefon").value.trim(),
+                email:document.getElementById("manualEmail").value.trim(),
+                website:document.getElementById("manualWebsite").value.trim()
+            })
+        });
+
+        const data = await response.json();
+
+        if(!data.ok){
+            alert(data.message || "Firma konnte nicht gespeichert werden.");
+            return;
+        }
+
+        location.reload();
+
+    }catch(err){
+        alert("Speichern Fehler: " + err);
+    }
+}
+
+function showMainView(){
+    document.getElementById("detailView").classList.add("view-hidden");
+    document.getElementById("mainView").classList.remove("view-hidden");
+    window.scrollTo({top:0,behavior:"smooth"});
+}
+function renderCompanyList(branch){
+    const list = document.getElementById("companyList");
+    const companies = getCompanySamples(branch);
+    currentCompanies = companies;
+    list.innerHTML = "";
+
+    if (companies.length === 0) {
+        document.getElementById("emptyState").style.display = "block";
+        return;
+    }
+
+    companies.forEach((company,index) => {
+
+                const searchText = `${company.firma} ${company.ansprechpartner} ${company.strasse} ${company.plz} ${company.ort} ${company.telefon} ${company.email} ${company.website}`.toLowerCase();
+        const companyKey = `${company.firma}|${company.telefon}`;
+        const alreadyAdded = tageslisteEntries.some(item => item.key === companyKey);
+        const card = document.createElement("article");
+        card.className = "company-card";
+        card.dataset.id = company.source_lead_id;
+        card.dataset.search = searchText;
+        card.innerHTML = `
+            <div class="company-summary" onclick="toggleCompany(this)">
+                <div class="drag-handle" onclick="event.stopPropagation()">≡</div>
+                <div class="company-main">
+                    <div class="company-branch-badge">${currentBranch.title}</div>
+                    <h3 class="company-name">${company.firma}</h3>
+                    <div class="company-line">${company.strasse} · ${company.plz} ${company.ort}</div>
+                </div>
+                <button type="button" class="daily-add-btn ${alreadyAdded ? "added" : ""}" onclick="addToTagesliste(event, ${index}, this)">${alreadyAdded ? "✓ Hinzugefügt" : "Zur Tagesliste hinzufügen"}</button>
+<button type="button" class="company-delete-btn" onclick="openCompanyDeleteModal(event, ${index})">🗑</button>
+<div class="company-open-icon">⌄</div>
+
+            </div>
+            <div class="company-details">
+                <div class="detail-inner">
+                                        <div class="detail-box">
+                        <div class="detail-label">Ansprechpartner</div>
+                        <input class="detail-edit-input" data-field="ansprechpartner" value="${company.ansprechpartner || ''}" onclick="event.stopPropagation()">
+                        <input class="detail-edit-input" data-field="telefon" value="${company.telefon || ''}" onclick="event.stopPropagation()">
+                    </div>
+                    <div class="detail-box">
+                        <div class="detail-label">E-Mail Adresse</div>
+                        <input class="detail-edit-input" data-field="email" value="${company.email || ''}" onclick="event.stopPropagation()">
+                    </div>
+                                        <div class="detail-box">
+                        <div class="detail-label">Webseite</div>
+                        <input class="detail-edit-input" data-field="website" value="${company.website || ''}" onclick="event.stopPropagation()">
+
+                        ${company.google_maps_url ? `
+                        <button type="button"
+                                class="maps-open-btn"
+                                onclick="event.stopPropagation(); window.open('${company.google_maps_url}', '_blank', 'noopener,noreferrer');"
+                                title="Google Maps öffnen">
+                            <span class="maps-logo">📍</span>
+                            Google Maps öffnen
+                        </button>
+                        ` : ''}
+                    </div>
+                </div>
+            </div>
+        `;
+        list.appendChild(card);
+    });
+
+    document.getElementById("emptyState").style.display = "none";
+}
+
+async function addToTagesliste(event,index,btn){
+    event.stopPropagation();
+
+        const company = currentCompanies[index];
+    if(!company || !currentBranch) return;
+
+    const card = btn.closest(".company-card");
+    if(card){
+        const getValue = (field) => {
+            const input = card.querySelector(`.detail-edit-input[data-field="${field}"]`);
+            return input ? input.value.trim() : "";
+        };
+
+        company.ansprechpartner = getValue("ansprechpartner");
+        company.telefon = getValue("telefon");
+        company.email = getValue("email");
+        company.website = getValue("website");
+    }
+
+    btn.disabled = true;
+    btn.textContent = "Speichern...";
+
+    try {
+        const response = await fetch("/datenbank/tagesliste-add", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                source_lead_id: company.source_lead_id,
+                firma: company.firma || "",
+                branche: currentBranch.title || "",
+                ansprechpartner: company.ansprechpartner || "",
+                strasse: company.strasse || "",
+                plz: company.plz || "",
+                ort: company.ort || "",
+                telefon: company.telefon || "",
+                email: company.email || "",
+                website: company.website || "",
+                google_maps_url: company.google_maps_url || "",
+                quelle: company.quelle || "Branchenliste"
+            })
+        });
+
+        const data = await response.json();
+
+        if(!data.ok){
+            btn.disabled = false;
+            btn.textContent = "Fehler";
+            alert(data.message || "Firma konnte nicht gespeichert werden.");
+            return;
+        }
+
+                btn.classList.add("added");
+
+                if(data.duplicate){
+            btn.textContent = "✓ Bereits drin";
+        }else{
+            btn.textContent = "✓ Hinzugefügt";
+        }
+
+                btn.disabled = true;
+
+        const removeCard = btn.closest(".company-card");
+        if(removeCard){
+            removeCard.remove();
+        }
+
+        currentCompanies = currentCompanies.filter(item => item.source_lead_id !== company.source_lead_id);
+
+        if(document.querySelectorAll(".company-card").length === 0){
+            document.getElementById("emptyState").style.display = "block";
+        }
+
+    } catch(err) {
+        btn.disabled = false;
+        btn.textContent = "Fehler";
+        alert("Tagesliste Fehler: " + err);
+    }
+}
+
+let pendingCompanyDeleteIndex = null;
+
+function openCompanyDeleteModal(event,index){
+    event.stopPropagation();
+    pendingCompanyDeleteIndex = index;
+    document.getElementById("companyDeleteModal").style.display = "flex";
+}
+
+function cancelCompanyDelete(){
+    pendingCompanyDeleteIndex = null;
+    document.getElementById("companyDeleteModal").style.display = "none";
+}
+
+async function confirmCompanyDelete(){
+    if(pendingCompanyDeleteIndex === null) return;
+
+    const company = currentCompanies[pendingCompanyDeleteIndex];
+    if(!company || !company.source_lead_id){
+        cancelCompanyDelete();
+        return;
+    }
+
+    try{
+        const response = await fetch("/api/branche-detail/delete-lead", {
+            method:"POST",
+            headers:{
+                "Content-Type":"application/json"
+            },
+            body:JSON.stringify({
+                lead_id:company.source_lead_id
+            })
+        });
+
+        const data = await response.json();
+
+        if(!data.ok){
+            alert(data.message || "Firma konnte nicht gelöscht werden.");
+            return;
+        }
+
+        location.reload();
+
+    }catch(err){
+        alert("Löschen Fehler: " + err);
+    }
+}
+
+function toggleCompany(summaryEl){
+    const card = summaryEl.closest(".company-card");
+    card.classList.toggle("open");
+}
+function activateSortableCompanies(){
+    const list = document.getElementById("companyList");
+    if(sortableCompanyList){
+        sortableCompanyList.destroy();
+    }
+
+    sortableCompanyList = new Sortable(list, {
+        animation:150,
+        handle:".drag-handle",
+        ghostClass:"sortable-ghost",
+        chosenClass:"sortable-chosen",
+        onEnd:function(){
+            renumberCompanies();
+            saveCompanyOrder();
+        }
+    });
+}
+
+
+function renumberCompanies(){
+    document.querySelectorAll(".company-card").forEach((card,index) => {
+        const numberEl = card.querySelector(".company-number-main");
+        if(numberEl){
+            numberEl.textContent = String(index + 1).padStart(2,"0");
+        }
+    });
+}
+
+async function saveCompanyOrder(){
+    const ids = Array.from(document.querySelectorAll(".company-card"))
+        .map(card => card.dataset.id)
+        .filter(id => id && id !== "0");
+
+    try{
+        await fetch("/api/branche-detail/save-order", {
+            method:"POST",
+            headers:{
+                "Content-Type":"application/json"
+            },
+            body:JSON.stringify({
+                ids:ids
+            })
+        });
+    }catch(err){
+        console.error("Sortierung konnte nicht gespeichert werden:", err);
+    }
+}
+
+function filterCompanies(){
+    const searchValue = document.getElementById("searchInput").value.toLowerCase().trim();
+    const cards = document.querySelectorAll(".company-card");
+    let visibleCount = 0;
+
+    cards.forEach(card => {
+        const text = card.dataset.search || "";
+        const matchSearch = !searchValue || text.includes(searchValue);
+
+        if(matchSearch){
+            card.style.display = "block";
+            visibleCount++;
+        }else{
+            card.style.display = "none";
+        }
+    });
+
+    document.getElementById("emptyState").style.display = visibleCount === 0 ? "block" : "none";
+}
+
+renderBranchen();
+
+const urlParams = new URLSearchParams(window.location.search);
+const urlBranch = urlParams.get("branche");
+
+if(urlBranch){
+    setTimeout(() => {
+        openBranch(urlBranch);
+    }, 0);
+}
+</script>
+
+{% endblock %}

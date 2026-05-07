@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KG Mail Mini</title>
+
+<style>
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;width:100%;min-height:100%;font-family:Arial,Helvetica,sans-serif;background:#f8fafc;color:#0f172a;}
+.mini-mail-page{width:100%;min-height:100vh;background:linear-gradient(180deg,#f8fbff 0%,#eef4ff 100%);padding:18px;}
+.mini-mail-box{width:100%;max-width:760px;margin:0 auto;background:#ffffff;border:1px solid #dbe7f5;border-radius:22px;box-shadow:0 24px 70px rgba(15,23,42,0.16);overflow:hidden;}
+.mini-mail-head{background:linear-gradient(135deg,#183a91 0%,#2563eb 100%);color:#ffffff;padding:20px 24px;display:flex;align-items:flex-start;justify-content:space-between;gap:14px;}
+.mini-mail-title h2{margin:0;font-size:22px;line-height:1.15;font-weight:900;}
+.mini-mail-title p{margin:6px 0 0 0;font-size:13px;line-height:1.35;font-weight:700;opacity:.85;}
+.close-btn{width:36px;height:36px;border:none;border-radius:12px;background:rgba(255,255,255,.16);color:#ffffff;font-size:24px;font-weight:900;cursor:pointer;}
+.mini-mail-body{padding:22px 24px;display:grid;gap:13px;}
+.field{display:grid;gap:7px;}
+.field label{font-size:11px;line-height:1;text-transform:uppercase;letter-spacing:.55px;font-weight:900;color:#1d4ed8;}
+.field input,.field select{width:100%;border:1px solid #dbe3ef;background:#f8fafc;border-radius:14px;padding:13px 14px;font-size:14px;font-weight:700;color:#0f172a;outline:none;font-family:Arial,Helvetica,sans-serif;}
+.rich-editor{width:100%;min-height:430px;border:1px solid #dbe3ef;background:#ffffff;border-radius:14px;padding:18px 18px;font-size:14px;font-weight:400;color:#111827;outline:none;font-family:Arial,Helvetica,sans-serif;line-height:1.6;overflow:auto;}
+.rich-editor:empty:before{content:"Nachricht";color:#94a3b8;font-weight:700;}
+.rich-editor p{margin:0 0 16px 0;}
+.rich-editor strong{font-weight:800;}
+.rich-editor .kg-blue-link{color:#2563eb;text-decoration:underline;}
+.rich-editor .kg-signature-logo{display:block !important;margin:14px auto 0 0 !important;padding:0 !important;width:170px;max-width:100%;height:auto;text-align:left !important;float:none !important;}
+.two-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.status-line{min-height:20px;font-size:13px;line-height:1.35;font-weight:800;color:#64748b;}
+.status-line.ok{color:#047857;}
+.status-line.err{color:#dc2626;}
+.mini-mail-actions{padding:0 24px 24px 24px;display:flex;justify-content:flex-end;gap:10px;flex-wrap:wrap;}
+.btn{border:none;border-radius:14px;padding:13px 18px;font-size:13px;font-weight:900;cursor:pointer;}
+.btn.cancel{background:#f1f5f9;color:#334155;}
+.btn.send{background:#16a34a;color:#ffffff;box-shadow:0 10px 22px rgba(22,163,74,.16);}
+.btn.send:disabled{opacity:.6;cursor:not-allowed;}
+.info-card{border:1px solid #bfdbfe;background:#eff6ff;color:#183a91;border-radius:16px;padding:12px 14px;font-size:12px;line-height:1.45;font-weight:800;}
+.sender-preview{border:1px solid #dbe3ef;background:#ffffff;border-radius:14px;padding:12px 14px;font-size:13px;font-weight:800;color:#0f172a;}
+.sender-preview span{color:#64748b;font-weight:700;}
+.template-hidden-select{display:none !important;}
+.template-choice-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.template-box{border:1px solid #dbe3ef;background:linear-gradient(180deg,#ffffff 0%,#f8fbff 100%);border-radius:16px;padding:13px;display:grid;gap:10px;}
+.template-title{font-size:21px;line-height:1.18;font-weight:900;color:#183a91;text-align:center;letter-spacing:.3px;}
+.template-title.besichtigung-title{color:#16a34a;}
+.template-title.kontaktdaten-title{color:#7e22ce;}
+.template-options{display:grid;grid-template-columns:1fr;gap:8px;}
+.template-btn{border:1px solid #bfdbfe;background:#eff6ff;color:#1d4ed8;border-radius:12px;padding:11px 10px;font-size:12px;line-height:1.2;font-weight:900;cursor:pointer;font-family:Arial,Helvetica,sans-serif;text-align:center;}
+.template-btn:hover{background:#dbeafe;}
+.template-btn.active{background:linear-gradient(135deg,#183a91 0%,#2563eb 100%);border-color:#2563eb;color:#ffffff;box-shadow:0 10px 20px rgba(37,99,235,.16);}
+@media(max-width:700px){.mini-mail-page{padding:10px;}.two-grid{grid-template-columns:1fr;}.template-choice-grid{grid-template-columns:1fr;}.mini-mail-head,.mini-mail-body,.mini-mail-actions{padding-left:16px;padding-right:16px;}}
+</style>
+</head>
+<body>
+<div class="mini-mail-page">
+    <div class="mini-mail-box">
+        <div class="mini-mail-head">
+            <div class="mini-mail-title"><h2>Terminbestätigung vorbereiten</h2><p>Mini-Mailfenster für Besichtigungstermine</p></div>
+            <button class="close-btn" type="button" onclick="closeMiniMail()">×</button>
+        </div>
+        <div class="mini-mail-body">
+            <div class="info-card">Dieser Bereich ist nur zum Vorbereiten und Senden der Terminbestätigung gedacht.</div>
+            <div class="two-grid">
+                <div class="field"><label>Absender</label><select id="mailFrom"><option value="info@kg-reinigung.de">Damla Kicci &lt;info@kg-reinigung.de&gt;</option><option value="m.kicci@kg-reinigung.de">Murat Kicci &lt;m.kicci@kg-reinigung.de&gt;</option><option value="rechnung@kg-reinigung.de">KG Rechnung &lt;rechnung@kg-reinigung.de&gt;</option><option value="bestellung@kg-reinigung.de">KG Bestellung &lt;bestellung@kg-reinigung.de&gt;</option></select></div>
+                <div class="field"><label>Empfänger</label><input id="mailTo" type="email" value="{{ empfaenger|default('') }}" placeholder="kunde@email.de" list="mailToHistory"><datalist id="mailToHistory"></datalist></div>
+            </div>
+            <div class="sender-preview">Anzeige im Postfach: <strong>Damla Kicci</strong> <span>&lt;info@kg-reinigung.de&gt;</span></div>
+            <div class="field">
+                <label>Mailvorlage / Anrede</label>
+                <select id="mailTemplate" onchange="buildDefaultMail()" class="template-hidden-select">
+                    <option value="" selected>Bitte auswählen</option>
+                    <option value="person-herr">Besichtigung · Mit Ansprechpartner / Herr</option>
+                    <option value="person-frau">Besichtigung · Mit Ansprechpartner / Frau</option>
+                    <option value="firma">Besichtigung · Allgemeine Anrede</option>
+                    <option value="kontakt-person-herr">Kontaktdaten · Mit Ansprechpartner / Herr</option>
+                    <option value="kontakt-person-frau">Kontaktdaten · Mit Ansprechpartner / Frau</option>
+                    <option value="kontakt-firma">Kontaktdaten · Allgemeine Anrede</option>
+                </select>
+                <div class="template-choice-grid">
+                    <div class="template-box">
+                        <div class="template-title besichtigung-title">BESICHTIGUNGSTERMIN</div>
+                        <div class="template-options">
+                            <button type="button" class="template-btn" data-template="person-herr" onclick="selectMailTemplate('person-herr',this)">Mit Ansprechpartner / Herr</button>
+                            <button type="button" class="template-btn" data-template="person-frau" onclick="selectMailTemplate('person-frau',this)">Mit Ansprechpartner / Frau</button>
+                            <button type="button" class="template-btn" data-template="firma" onclick="selectMailTemplate('firma',this)">Allgemeine Anrede</button>
+                        </div>
+                    </div>
+                    <div class="template-box">
+                        <div class="template-title kontaktdaten-title">KONTAKTDATEN</div>
+                        <div class="template-options">
+                            <button type="button" class="template-btn" data-template="kontakt-person-herr" onclick="selectMailTemplate('kontakt-person-herr',this)">Mit Ansprechpartner / Herr</button>
+                            <button type="button" class="template-btn" data-template="kontakt-person-frau" onclick="selectMailTemplate('kontakt-person-frau',this)">Mit Ansprechpartner / Frau</button>
+                            <button type="button" class="template-btn" data-template="kontakt-firma" onclick="selectMailTemplate('kontakt-firma',this)">Allgemeine Anrede</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="field"><label>Betreff</label><input id="mailSubject" type="text" placeholder="Betreff"></div>
+            <div class="field"><label>Nachricht</label><div id="mailMessage" class="rich-editor" contenteditable="true"></div></div>
+            <div id="mailStatus" class="status-line"></div>
+        </div>
+        <div class="mini-mail-actions"><button class="btn cancel" type="button" onclick="closeMiniMail()">Abbrechen</button><button class="btn send" id="sendBtn" type="button" onclick="sendMiniMail()">E-Mail senden + drucken</button></div>
+    </div>
+</div>
+<script>
+const miniData={empfaenger:"{{ empfaenger|default('') }}",firma:"{{ firma|default('') }}",ansprechpartner:"{{ ansprechpartner|default('') }}",datum:"{{ datum|default('') }}",uhrzeit:"{{ uhrzeit|default('') }}",adresse:"{{ adresse|default('') }}",ort:"{{ ort|default('') }}",telefon:"{{ telefon|default('') }}",modus:new URLSearchParams(window.location.search).get('modus')||''};
+function safeText(value){let text=String(value||'').trim();if(text.includes('{{')||text.includes('}}'))return '';return text;}
+function escapeHtml(value){return String(value||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;');}
+function getPreviewLogoSrc(){if(window.location.protocol==='file:'){return '../static/KG Yeni Logo.png';}return window.location.origin+'/static/KG%20Yeni%20Logo.png';}
+function getMailLogoSrc(){return 'cid:kg-logo';}
+function getMailToHistory(){try{return JSON.parse(localStorage.getItem('kgMiniMailToHistory')||'[]');}catch(err){return [];}}
+function saveMailToHistory(email){const cleanEmail=String(email||'').trim();if(!cleanEmail||cleanEmail.includes('{{')||cleanEmail.includes('}}'))return;let history=getMailToHistory().filter(item=>item.toLowerCase()!==cleanEmail.toLowerCase());history.unshift(cleanEmail);history=history.slice(0,12);localStorage.setItem('kgMiniMailToHistory',JSON.stringify(history));loadMailToHistory();}
+function loadMailToHistory(){const list=document.getElementById('mailToHistory');if(!list)return;const history=getMailToHistory();list.innerHTML=history.map(email=>'<option value="'+escapeHtml(email)+'"></option>').join('');}
+function clearMailFields(){document.getElementById('mailSubject').value='';document.getElementById('mailMessage').innerHTML='';setStatus('','');}
+function refreshTemplateButtons(){const select=document.getElementById('mailTemplate');const value=select?select.value:'';document.querySelectorAll('.template-btn').forEach(btn=>{btn.classList.toggle('active',btn.dataset.template===value);});}
+function selectMailTemplate(value,btn){const select=document.getElementById('mailTemplate');if(select)select.value=value;refreshTemplateButtons();buildDefaultMail();}
+function buildDefaultMail(){const template=document.getElementById('mailTemplate').value;if(!template){clearMailFields();refreshTemplateButtons();return;}refreshTemplateButtons();
+const firma=escapeHtml(safeText(miniData.firma)||'[Firma]');const ansprechpartner=escapeHtml(safeText(miniData.ansprechpartner)||'[Ansprechpartner]');const datum=escapeHtml(safeText(miniData.datum)||'[Datum]');const uhrzeit=escapeHtml(safeText(miniData.uhrzeit)||'[Uhrzeit]');const adresse=escapeHtml(safeText(miniData.adresse)||'[Straße / Hausnummer]');const ort=escapeHtml(safeText(miniData.ort)||'[PLZ Stadt]');const telefon=escapeHtml(safeText(miniData.telefon));const previewLogoSrc=getPreviewLogoSrc();const mailLogoSrc=getMailLogoSrc();
+document.getElementById('mailSubject').value='Terminbestätigung - '+firma;let anrede='Sehr geehrte Damen und Herren,';if(template==='person-herr'){anrede='Sehr geehrter '+ansprechpartner+',';}if(template==='person-frau'){anrede='Sehr geehrte '+ansprechpartner+',';}let telefonZeile='';if(telefon){telefonZeile='<br><strong>Tel.: '+telefon+'</strong>';}
+if(template==='kontakt-person-herr'||template==='kontakt-person-frau'||template==='kontakt-firma'){
+document.getElementById('mailSubject').value='Kontaktdaten - KG-Gebäudereinigung';const rawAp=safeText(miniData.ansprechpartner);const apText=escapeHtml(rawAp||'[Ansprechpartner]');let kontaktAnrede='Sehr geehrte Damen und Herren,';if(template==='kontakt-person-herr'){kontaktAnrede='Sehr geehrter '+apText+',';}if(template==='kontakt-person-frau'){kontaktAnrede='Sehr geehrte '+apText+',';}
+const kontaktHtml=`
+<p>${kontaktAnrede}</p>
+<p>vielen Dank für das freundliche Telefongespräch.</p>
+<p>Wie besprochen, übersende ich Ihnen gerne unsere Kontaktdaten sowie eine kurze Übersicht zu unserem Unternehmen.</p>
+<p><strong>Objekt</strong><br><strong>${firma}</strong><br><strong>${adresse}, ${ort}</strong></p>
+<p>Als erfahrenes Reinigungsunternehmen im Ruhrgebiet stehen wir für zuverlässige und qualitativ hochwertige Reinigungsdienstleistungen im gewerblichen Bereich.</p>
+<p>Gerne bieten wir Ihnen einen unverbindlichen Besichtigungstermin an. Im Anschluss erstellen wir ein individuell auf Ihre Anforderungen abgestimmtes Angebot.</p>
+<p>Ich freue mich auf Ihre Rückmeldung und stehe Ihnen bei Fragen jederzeit gerne zur Verfügung.</p>
+<p>Mit freundlichen Grüßen</p>
+<p>Damla Kicci<br>-Inhaberin-</p>
+<p>KG-Gebäudereinigung<br>Fliederstr. 59<br>47055 Duisburg - Wanheimerort</p>
+<p>Tel.: 0203 / 47 96 68 22<br>Mobil: 0163 / 194 70 55</p>
+<p><a class="kg-blue-link" href="mailto:info@kg-reinigung.de">info@kg-reinigung.de</a><br><a class="kg-blue-link" href="https://www.kg-reinigung.de" target="_blank">www.kg-reinigung.de</a></p>
+<img class="kg-signature-logo" src="${mailLogoSrc}" data-preview-src="${previewLogoSrc}" width="125" style="display:block;margin:14px 0 0 0;padding:0;width:125px;max-width:125px;height:auto;border:0;outline:none;text-decoration:none;" alt="KG-Gebäudereinigung Logo">`;
+document.getElementById('mailMessage').innerHTML=kontaktHtml;const kontaktPreviewLogo=document.querySelector('#mailMessage .kg-signature-logo');if(kontaktPreviewLogo){kontaktPreviewLogo.setAttribute('src',kontaktPreviewLogo.getAttribute('data-preview-src')||'');}setStatus('Kontaktdaten-Mail vorbereitet. Flyer werden beim Senden automatisch angehängt.','ok');return;}
+const mailHtml=`
+<p>${anrede}</p>
+<p>vielen Dank für Ihr Interesse an den Dienstleistungen der KG-Gebäudereinigung.</p>
+<p>Gerne bestätigen wir Ihnen den vereinbarten Besichtigungstermin:</p>
+<p><strong>- ${datum} um ${uhrzeit} Uhr</strong></p>
+<p style="margin:0 0 22px 0;"><strong>${firma}<br>${adresse}<br>${ort}</strong>${telefonZeile}</p>
+<p>Wir freuen uns darauf, Ihr Objekt persönlich kennenzulernen und die passenden Reinigungsanforderungen vor Ort mit Ihnen zu besprechen.</p>
+<p>Ich wünsche Ihnen einen angenehmen Tag.</p>
+<p>Bei Fragen oder kurzfristigen Änderungen stehen wir Ihnen selbstverständlich gerne zur Verfügung.</p>
+<p>Vielen Dank.</p>
+<p>Mit freundlichen Grüßen</p>
+<p>--<br>Damla Kicci<br>-Inhaberin-</p>
+<p>KG-Gebäudereinigung<br>Fliederstr. 59<br>47055 Duisburg - Wanheimerort</p>
+<p>0203 / 47 96 68 22<br>0163 / 194 70 55</p>
+<p><a class="kg-blue-link" href="mailto:info@kg-reinigung.de">info@kg-reinigung.de</a><br><a class="kg-blue-link" href="https://www.kg-reinigung.de" target="_blank">www.kg-reinigung.de</a></p>
+<img class="kg-signature-logo" src="${mailLogoSrc}" data-preview-src="${previewLogoSrc}" width="125" style="display:block;margin:14px 0 0 0;padding:0;width:125px;max-width:125px;height:auto;border:0;outline:none;text-decoration:none;" alt="KG-Gebäudereinigung Logo">`;
+document.getElementById('mailMessage').innerHTML=mailHtml;const previewLogo=document.querySelector('#mailMessage .kg-signature-logo');if(previewLogo){previewLogo.setAttribute('src',previewLogo.getAttribute('data-preview-src')||'');}setStatus('','');}
+function setStatus(text,type){const el=document.getElementById('mailStatus');el.textContent=text||'';el.className='status-line'+(type?' '+type:'');}
+function closeMiniMail(){if(window.parent&&window.parent!==window){window.parent.postMessage({type:'kg-mail-mini-close'},'*');}else{window.close();}}
+function printMiniMail(){const subject=document.getElementById('mailSubject').value||'Terminbestätigung';const to=document.getElementById('mailTo').value||'';const fromText=document.getElementById('mailFrom').selectedOptions[0]?document.getElementById('mailFrom').selectedOptions[0].textContent:'Damla Kicci <info@kg-reinigung.de>';const messageBox=document.getElementById('mailMessage');let messageHtml=messageBox.innerHTML||'';const messageText=messageBox.innerText||'';const previewSrc=getPreviewLogoSrc();messageHtml=messageHtml.replace(/src="cid:kg-logo"/g,'src="'+previewSrc+'"');messageHtml=messageHtml.replace(/data-preview-src="[^"]*"/g,'');if(!messageText.trim()){setStatus('Nachricht fehlt. Bitte zuerst eine Mailvorlage auswählen.','err');return;}const printWindow=window.open('','_blank','width=900,height=1100');if(!printWindow){setStatus('Druckfenster konnte nicht geöffnet werden.','err');return;}printWindow.document.open();printWindow.document.write(`<!DOCTYPE html><html lang="de"><head><meta charset="UTF-8"><title>${escapeHtml(subject)}</title><style>@page{size:A4;margin:14mm 16mm 14mm 16mm;}*{box-sizing:border-box;}body{margin:0;background:#f8fafc;color:#111827;font-family:Arial,Helvetica,sans-serif;font-size:10.8pt;line-height:1.62;}.print-page{width:100%;max-width:185mm;min-height:257mm;margin:24px auto;padding:6mm 18mm 18mm 18mm;background:#ffffff;}.print-head{border-bottom:1px solid #dbe3ef;padding-bottom:11px;margin-bottom:18px;}.print-title{margin:0 0 8px 0;font-size:14pt;line-height:1.25;font-weight:800;color:#183a91;}.print-meta{display:grid;gap:4px;font-size:9.6pt;line-height:1.35;color:#475569;}.print-meta strong{color:#111827;}.print-body{width:100%;}.print-body p{margin:0 0 13px 0;}.print-body p[style]{margin-bottom:22px !important;}.print-body strong{font-weight:800;}.print-body a{color:#2563eb;text-decoration:none;}.print-body img,.print-body .kg-signature-logo{display:block !important;margin:13px auto 0 0 !important;padding:0 !important;width:125px;max-width:100%;height:auto;text-align:left !important;float:none !important;}.print-actions{position:fixed;right:18px;top:18px;display:flex;gap:8px;}.print-actions button{border:none;border-radius:10px;padding:10px 14px;font-size:13px;font-weight:800;cursor:pointer;}.print-btn{background:#183a91;color:#ffffff;}.close-btn-print{background:#f1f5f9;color:#334155;}@media print{body{background:#ffffff;}.print-actions{display:none;}.print-page{max-width:none;min-height:auto;margin:0;padding:0;}}</style></head><body><div class="print-actions"><button class="close-btn-print" onclick="window.close()">Schließen</button><button class="print-btn" onclick="window.print()">Drucken</button></div><div class="print-page"><div class="print-head"><h1 class="print-title">${escapeHtml(subject)}</h1><div class="print-meta"><div><strong>Von:</strong> ${escapeHtml(fromText)}</div><div><strong>An:</strong> ${escapeHtml(to||'[Empfänger]')}</div></div></div><div class="print-body">${messageHtml}</div></div></body></html>`);printWindow.document.close();printWindow.focus();}
+function blobToBase64(blob){return new Promise((resolve,reject)=>{const reader=new FileReader();reader.onloadend=function(){const result=String(reader.result||'');resolve(result.includes(',')?result.split(',')[1]:result);};reader.onerror=reject;reader.readAsDataURL(blob);});}
+async function loadStaticAttachment(url,filename,mimeType){const res=await fetch(url);if(!res.ok){throw new Error(filename+' konnte nicht aus static geladen werden.');}const blob=await res.blob();const data=await blobToBase64(blob);return{filename:filename,mimeType:mimeType,data:data};}
+async function getKontaktformularAttachments(){const selectedTemplate=document.getElementById('mailTemplate')?document.getElementById('mailTemplate').value:'';if(miniData.modus!=='kontaktformular'&&selectedTemplate!=='kontakt-person-herr'&&selectedTemplate!=='kontakt-person-frau'&&selectedTemplate!=='kontakt-firma'){return [];}return[await loadStaticAttachment('/static/KG%20Flyer%201.jpg','KG Flyer 1.jpg','image/jpeg'),await loadStaticAttachment('/static/KG%20Flyer%202.jpg','KG Flyer 2.jpg','image/jpeg')];}
+async function sendMiniMail(){const messageBox=document.getElementById('mailMessage');let messageHtml=messageBox.innerHTML||'';messageHtml=messageHtml.replace(/src="[^"]*KG%20Yeni%20Logo\.png"/g,'src="cid:kg-logo"');messageHtml=messageHtml.replace(/src="[^"]*KG Yeni Logo\.png"/g,'src="cid:kg-logo"');const messageText=messageBox.innerText||'';let automaticAttachments=[];try{automaticAttachments=await getKontaktformularAttachments();}catch(fileErr){console.log(fileErr);setStatus('Flyer-Anhang konnte nicht geladen werden. Prüfe static/KG Flyer 1.jpg und static/KG Flyer 2.jpg.','err');return;}const payload={from:document.getElementById('mailFrom').value||'info@kg-reinigung.de',to:document.getElementById('mailTo').value||'',subject:document.getElementById('mailSubject').value||'',message:'​',signature:messageHtml,attachments:automaticAttachments};if(!payload.to.trim()||payload.to.includes('{{')||payload.to.includes('}}')){setStatus('Empfänger fehlt.','err');return;}if(!payload.subject.trim()){setStatus('Betreff fehlt.','err');return;}if(!messageText.trim()){setStatus('Nachricht fehlt.','err');return;}const btn=document.getElementById('sendBtn');btn.disabled=true;setStatus('E-Mail wird gesendet...','');try{const res=await fetch('/api/gmail/send',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});const data=await res.json();if(!data.ok){setStatus(data.message||'E-Mail konnte nicht gesendet werden.','err');return;}saveMailToHistory(payload.to);setStatus('E-Mail wurde erfolgreich gesendet. Druckfenster wird geöffnet...','ok');printMiniMail();if(window.parent&&window.parent!==window){window.parent.postMessage({type:'kg-mail-mini-sent',to:payload.to,subject:payload.subject},'*');}}catch(err){console.log(err);setStatus('Gmail API Sendefehler.','err');}finally{btn.disabled=false;}}
+loadMailToHistory();clearMailFields();
+if(miniData.modus==='kontaktformular'){
+const templateSelect=document.getElementById('mailTemplate');const titleEl=document.querySelector('.mini-mail-title h2');const subEl=document.querySelector('.mini-mail-title p');const infoEl=document.querySelector('.info-card');if(titleEl)titleEl.textContent='Kontaktdaten vorbereiten';if(subEl)subEl.textContent='Mini-Mailfenster für Kontaktformular / Unternehmensprofil';if(infoEl)infoEl.textContent='Dieser Bereich ist zum Vorbereiten und Senden der Kontaktdaten-Mail gedacht. Die Flyer werden beim Senden automatisch angehängt.';if(templateSelect){const ap=safeText(miniData.ansprechpartner).toLowerCase();if(ap.startsWith('frau ')){templateSelect.value='kontakt-person-frau';}else if(ap.startsWith('herr ')){templateSelect.value='kontakt-person-herr';}else if(ap){templateSelect.value='kontakt-person-herr';}else{templateSelect.value='kontakt-firma';}buildDefaultMail();refreshTemplateButtons();}}
+else{refreshTemplateButtons();}
+</script>
+</body>
+</html>
