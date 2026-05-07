@@ -25,24 +25,30 @@ import sys
 import json
 import sqlite3
 import time
+import re
+import requests
 from datetime import date, datetime
+
+try:
+    from dotenv import load_dotenv
+except Exception:
+    load_dotenv = None
 
 try:
     sys.stdout.reconfigure(encoding="utf-8")
     sys.stderr.reconfigure(encoding="utf-8")
 except Exception:
     pass
+
 from playwright.sync_api import sync_playwright
 
 from lead_importer import (
-    get_leads_from_google,
     scrape_fast,
     normalize_text,
     normalize_url,
     get_item_unique_key,
     google_usage_today,
 )
-
 
 # ============================================================
 # AYARLAR
@@ -72,6 +78,138 @@ WAIT_SECONDS_BETWEEN_JOBS = 2
 # Mail arama açık mı?
 ENABLE_EMAIL_SCRAPE = True
 
+
+# ============================================================
+# ENV LADEN
+# Lokal tokenlar.env / Render Environment
+# ============================================================
+
+if load_dotenv:
+    try:
+        load_dotenv(os.path.join(BASE_DIR, "tokenlar.env"))
+    except Exception:
+        pass
+
+
+# ============================================================
+# GOOGLE PLACES TEXT SEARCH
+# get_leads_from_google artik bu dosyanin icinde.
+# lead_importer.py icinden beklemiyoruz.
+# ============================================================
+
+def parse_google_address(formatted_address):
+    text = normalize_text(formatted_address)
+    strasse = ""
+    plz = ""
+    stadt = ""
+
+    if not text:
+        return strasse, plz, stadt
+
+    parts = [p.strip() for p in text.split(",") if p.strip()]
+
+    if parts:
+        strasse = parts[0]
+
+    for part in parts[1:]:
+        match = re.search(r"\b(\d{5})\b\s+(.+)", part)
+        if match:
+            plz = match.group(1).strip()
+            stadt = match.group(2).strip()
+            break
+
+    if not plz:
+        match = re.search(r"\b(\d{5})\b\s+([A-Za-zÄÖÜäöüß\-\s]+)", text)
+        if match:
+            plz = match.group(1).strip()
+            stadt = match.group(2).strip()
+
+    stadt = stadt.replace("Germany", "").replace("Deutschland", "").strip(" ,")
+
+    return strasse, plz, stadt
+
+
+def get_leads_from_google(suchwort="", stadt="", max_results=20, plz=""):
+    """
+    Google Places Text Search.
+    Pro Aufruf = 1 Google Text Search Request.
+    """
+
+    api_key = os.getenv("GMAPS_KEY", "").strip()
+    if not api_key:
+        raise RuntimeError("GMAPS_KEY fehlt. Render Environment içinde GMAPS_KEY yok.")
+
+    suchwort = normalize_text(suchwort)
+    stadt = normalize_text(stadt)
+    plz = normalize_text(plz)
+
+    query_parts = [suchwort, plz, stadt]
+    text_query = " ".join([p for p in query_parts if p]).strip()
+
+    if not text_query:
+        return []
+
+    url = "https://places.googleapis.com/v1/places:searchText"
+
+    headers = {
+        "Content-Type": "application/json",
+        "X-Goog-Api-Key": api_key,
+        "X-Goog-FieldMask": (
+            "places.id,"
+            "places.displayName,"
+            "places.formattedAddress,"
+            "places.nationalPhoneNumber,"
+            "places.websiteUri,"
+            "places.googleMapsUri,"
+            "places.rating,"
+            "places.userRatingCount"
+        )
+    }
+
+    payload = {
+        "textQuery": text_query,
+        "languageCode": "de",
+        "regionCode": "DE",
+        "pageSize": int(max_results or 20)
+    }
+
+    response = requests.post(url, headers=headers, json=payload, timeout=30)
+
+    if response.status_code >= 400:
+        raise RuntimeError(
+            f"Google Places Fehler {response.status_code}: {response.text[:700]}"
+        )
+
+    data = response.json()
+    places = data.get("places", []) or []
+
+    leads = []
+
+    for place in places:
+        display_name = place.get("displayName", {}) or {}
+        firma = normalize_text(display_name.get("text", "") or "")
+
+        formatted_address = normalize_text(place.get("formattedAddress", "") or "")
+        strasse, found_plz, found_stadt = parse_google_address(formatted_address)
+
+        if not firma:
+            continue
+
+        leads.append({
+            "firma": firma,
+            "strasse": strasse,
+            "plz": found_plz,
+            "stadt": found_stadt or stadt,
+            "telefon": normalize_text(place.get("nationalPhoneNumber", "") or ""),
+            "email": "",
+            "website": normalize_url(place.get("websiteUri", "") or ""),
+            "google_place_id": normalize_text(place.get("id", "") or ""),
+            "google_maps_url": normalize_text(place.get("googleMapsUri", "") or ""),
+            "rating": normalize_text(place.get("rating", "") or ""),
+            "user_rating_count": normalize_text(place.get("userRatingCount", "") or ""),
+        })
+
+    return leads
 
 # ============================================================
 # ARAMA KUYRUĞU
