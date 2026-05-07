@@ -57,6 +57,461 @@ html {
 .list-group-item:hover {
     transform: none !important;
 }
+
+/* =====================================================
+   DATENBANK İLE AYNI PARLAK MAVİ ÜST ŞABLON
+   Buchhaltung sayfası için site bütünlüğü
+   ===================================================== */
+.buchhaltung-shell {
+    width:100%;
+    max-width:1900px;
+    min-height:calc(100vh - 56px);
+    margin:0 auto;
+    background:#ffffff;
+    border-radius:24px;
+    box-shadow:0 18px 50px rgba(15,23,42,0.08);
+    border:1px solid #dbe3ef;
+    overflow:hidden;
+}
+
+.buchhaltung-hero {
+    background:linear-gradient(135deg,#183a91 0%,#2563eb 100%);
+    color:#ffffff;
+    padding:28px 30px 28px 30px;
+    position:relative;
+    overflow:hidden;
+}
+
+.buchhaltung-hero::before {
+    content:"";
+    position:absolute;
+    inset:-80px -120px auto auto;
+    width:360px;
+    height:220px;
+    background:radial-gradient(circle, rgba(255,255,255,0.24) 0%, rgba(255,255,255,0.08) 42%, rgba(255,255,255,0) 70%);
+    pointer-events:none;
+}
+
+.buchhaltung-title-row {
+    position:relative;
+    z-index:1;
+    display:grid;
+    grid-template-columns:minmax(330px,1fr) minmax(260px,0.7fr);
+    gap:18px;
+    align-items:flex-start;
+    margin-bottom:26px;
+}
+
+.buchhaltung-title h1 {
+    margin:0;
+    font-size:28px;
+    line-height:1.1;
+    font-weight:900;
+    letter-spacing:-0.4px;
+    color:#ffffff;
+}
+
+.buchhaltung-title p {
+    margin:8px 0 0 0;
+    font-size:13px;
+    line-height:1.5;
+    font-weight:600;
+    opacity:0.88;
+}
+
+.live-date-box {
+    justify-self:end;
+    margin-top:0;
+    width:260px;
+    display:grid;
+    grid-template-columns:1fr;
+    align-items:center;
+    justify-items:center;
+    gap:6px;
+    padding:14px 18px;
+    border-radius:22px;
+    background:rgba(255,255,255,0.13);
+    border:1px solid rgba(255,255,255,0.20);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,0.14),0 10px 22px rgba(15,23,42,0.08);
+    backdrop-filter:blur(6px);
+}
+
+.live-time-pill {
+    width:auto;
+    height:auto;
+    border-radius:0;
+    background:transparent;
+    color:#ffffff;
+    display:block;
+    font-size:26px;
+    line-height:1;
+    font-weight:900;
+    letter-spacing:-0.6px;
+}
+
+.live-date-main {
+    font-size:12px;
+    font-weight:800;
+    color:rgba(255,255,255,0.92);
+    line-height:1.2;
+    text-align:center;
+}
+
+.live-date-sub {
+    font-size:11px;
+    font-weight:700;
+    color:rgba(255,255,255,0.68);
+    line-height:1.15;
+    text-align:center;
+}
+
+.buchhaltung-stats-wrapper {
+    position:relative;
+    z-index:1;
+}
+
+.buchhaltung-hero .card {
+    background:#ffffff !important;
+    border:1px solid rgba(255,255,255,0.85) !important;
+    border-radius:18px !important;
+    box-shadow:none !important;
+    padding:18px 22px !important;
+}
+
+.buchhaltung-hero .text-uppercase {
+    font-size:11px !important;
+    text-transform:uppercase !important;
+    letter-spacing:0.7px !important;
+    font-weight:800 !important;
+    color:#1d4ed8 !important;
+    opacity:1 !important;
+    margin-bottom:7px !important;
+}
+
+.buchhaltung-hero .h4,
+.buchhaltung-hero .h2 {
+    font-size:22px !important;
+    line-height:1.15 !important;
+    font-weight:900 !important;
+    color:#183a91 !important;
+    margin-bottom:0 !important;
+}
+
+.buchhaltung-hero .text-success,
+.buchhaltung-hero .text-danger,
+.buchhaltung-hero .text-info,
+.buchhaltung-hero .text-primary,
+.buchhaltung-hero .text-dark {
+    color:#183a91 !important;
+}
+
+.buchhaltung-body {
+    padding:28px 30px 32px 30px;
+    background:linear-gradient(180deg,#f8fbff 0%,#f3f6fb 100%);
+}
+
+.buchhaltung-body .nav-tabs {
+    background:#ffffff;
+    border-radius:18px 18px 0 0;
+    border:1px solid #dbe3ef;
+    border-bottom:2px solid #dee2e6 !important;
+    overflow:hidden;
+}
+
+.buchhaltung-body .tab-content {
+    border-color:#dbe3ef !important;
+    border-radius:0 0 22px 22px;
+}
+
+/* =====================================================
+   SADECE TABLET DİK KONUM - BUCHHALTUNG İÇERİK SIĞDIRMA
+   Base.html, PC ve laptop görünümüne dokunmaz
+   ===================================================== */
+@media (hover:none) and (pointer:coarse) and (min-width:761px) and (max-width:1024px) and (orientation:portrait) {
+    .container-fluid {
+        margin-top:12px !important;
+        padding-left:6px !important;
+        padding-right:6px !important;
+        max-width:100% !important;
+        overflow-x:hidden !important;
+    }
+
+    .buchhaltung-shell {
+        border-radius:18px !important;
+    }
+
+    .buchhaltung-hero {
+        padding:22px 18px !important;
+    }
+
+    .buchhaltung-title-row {
+        grid-template-columns:1fr !important;
+        gap:14px !important;
+        margin-bottom:18px !important;
+    }
+
+    .buchhaltung-title h1 {
+        font-size:28px !important;
+        line-height:1.12 !important;
+    }
+
+    .live-date-box {
+        justify-self:stretch !important;
+        width:100% !important;
+    }
+
+    .buchhaltung-body {
+        padding:14px !important;
+    }
+
+    .d-flex.justify-content-between.align-items-center.mb-4 {
+        margin-bottom:18px !important;
+    }
+
+    h2.text-primary.font-weight-bold {
+        font-size:30px !important;
+        line-height:1.15 !important;
+    }
+
+    #default-stats .col-md-3,
+    #bank-stats-wrapper .col-md-3,
+    #rate-stats .col-md-6 {
+        padding-left:6px !important;
+        padding-right:6px !important;
+        margin-bottom:10px !important;
+    }
+
+    #default-stats .card,
+    #bank-stats-wrapper .card,
+    #rate-stats .card {
+        padding:12px !important;
+        min-height:96px !important;
+    }
+
+    #default-stats .text-uppercase,
+    #bank-stats-wrapper .text-uppercase,
+    #rate-stats .text-uppercase {
+        font-size:13px !important;
+        line-height:1.25 !important;
+        word-break:break-word !important;
+    }
+
+    #default-stats .h4,
+    #bank-stats-wrapper .h4,
+    #rate-stats .h2 {
+        font-size:24px !important;
+        line-height:1.15 !important;
+        word-break:break-word !important;
+    }
+
+    .nav-tabs {
+        display:flex !important;
+        flex-wrap:wrap !important;
+        gap:8px !important;
+        border-bottom:none !important;
+    }
+
+    .nav-tabs .nav-item {
+        margin:0 !important;
+        flex:0 0 auto !important;
+    }
+
+    .nav-tabs .nav-link {
+        padding:10px 12px !important;
+        font-size:14px !important;
+        border-radius:8px !important;
+        white-space:normal !important;
+    }
+
+    .nav-tabs .ml-auto {
+        width:100% !important;
+        margin-left:0 !important;
+        justify-content:center !important;
+        gap:12px !important;
+        padding:8px 0 !important;
+    }
+
+    .custom-nav-btn {
+        height:50px !important;
+        min-width:116px !important;
+        padding:8px 18px !important;
+        border-radius:12px !important;
+    }
+
+    .custom-nav-btn img {
+        height:34px !important;
+    }
+
+    .tab-content {
+        padding:14px !important;
+        overflow-x:hidden !important;
+    }
+
+    .tab-content .row {
+        margin-left:-6px !important;
+        margin-right:-6px !important;
+    }
+
+    .tab-content [class*="col-md-"] {
+        padding-left:6px !important;
+        padding-right:6px !important;
+    }
+
+    .list-group-item {
+        padding:12px !important;
+        margin-bottom:10px !important;
+    }
+
+    .list-group-item h6 {
+        font-size:14px !important;
+        line-height:1.25 !important;
+    }
+
+    .table-responsive {
+        width:100% !important;
+        max-width:100% !important;
+        overflow-x:auto !important;
+        -webkit-overflow-scrolling:touch !important;
+    }
+
+    .table {
+        font-size:13px !important;
+    }
+
+    .table th,
+    .table td {
+        padding:8px 5px !important;
+        word-break:break-word !important;
+        overflow-wrap:anywhere !important;
+        vertical-align:middle !important;
+    }
+
+    #rechnungen table th:nth-child(3),
+    #rechnungen table td:nth-child(3) {
+        width:22% !important;
+        max-width:22% !important;
+        font-size:12px !important;
+        line-height:1.25 !important;
+    }
+
+    #rechnungen table th:nth-child(4),
+    #rechnungen table td:nth-child(4),
+    #rechnungen table th:nth-child(5),
+    #rechnungen table td:nth-child(5),
+    #rechnungen table th:nth-child(6),
+    #rechnungen table td:nth-child(6),
+    #rechnungen table th:nth-child(7),
+    #rechnungen table td:nth-child(7) {
+        width:11% !important;
+        max-width:11% !important;
+        font-size:12px !important;
+        line-height:1.2 !important;
+    }
+
+    #rechnungen table th:nth-child(8),
+    #rechnungen table td:nth-child(8) {
+        width:9% !important;
+        max-width:9% !important;
+        min-width:62px !important;
+        font-size:11px !important;
+        line-height:1.15 !important;
+        padding-left:3px !important;
+        padding-right:3px !important;
+        white-space:normal !important;
+    }
+
+    #rechnungen table td.status-paid,
+    #rechnungen table td.status-open {
+        font-size:11px !important;
+        padding:6px 3px !important;
+    }
+}
+
+/* =====================================================
+   SADECE TABLET DİK KONUM - SOL AY LİSTESİ AÇ/KAPAT
+   Buchhaltung içinde yer kazanır, PC/laptop etkilenmez
+   ===================================================== */
+@media (hover:none) and (pointer:coarse) and (min-width:761px) and (max-width:1024px) and (orientation:portrait) {
+    #rechnungen .col-md-3,
+    #gewerbliche .col-md-3,
+    #private .col-md-3 {
+        flex:0 0 100% !important;
+        max-width:100% !important;
+        width:100% !important;
+        margin-bottom:10px !important;
+    }
+
+    #rechnungen .col-md-9,
+    #gewerbliche .col-md-9,
+    #private .col-md-9 {
+        flex:0 0 100% !important;
+        max-width:100% !important;
+        width:100% !important;
+        border-left:none !important;
+    }
+
+    #rechnungen .col-md-3 > h5,
+    #gewerbliche .col-md-3 > h5,
+    #private .col-md-3 > h5 {
+        position:relative !important;
+        margin-bottom:8px !important;
+        padding:12px 42px 12px 14px !important;
+        border-radius:12px !important;
+        background:#eff6ff !important;
+        border:1px solid #bfdbfe !important;
+        cursor:pointer !important;
+        user-select:none !important;
+    }
+
+    #rechnungen .col-md-3 > h5::after,
+    #gewerbliche .col-md-3 > h5::after,
+    #private .col-md-3 > h5::after {
+        content:"▼" !important;
+        position:absolute !important;
+        right:14px !important;
+        top:50% !important;
+        transform:translateY(-50%) !important;
+        font-size:13px !important;
+        color:#2563eb !important;
+    }
+
+    #rechnungen .col-md-3.month-list-closed > h5::after,
+    #gewerbliche .col-md-3.month-list-closed > h5::after,
+    #private .col-md-3.month-list-closed > h5::after {
+        content:"▶" !important;
+    }
+
+    #rechnungen .col-md-3.month-list-closed .list-group,
+    #gewerbliche .col-md-3.month-list-closed .list-group,
+    #private .col-md-3.month-list-closed .list-group {
+        display:none !important;
+    }
+
+    #rechnungen .col-md-3:not(.month-list-closed) .list-group,
+    #gewerbliche .col-md-3:not(.month-list-closed) .list-group,
+    #private .col-md-3:not(.month-list-closed) .list-group {
+        display:grid !important;
+        grid-template-columns:repeat(3, minmax(0, 1fr)) !important;
+        gap:8px !important;
+        margin-bottom:10px !important;
+    }
+
+    #rechnungen .col-md-3 .list-group-item,
+    #gewerbliche .col-md-3 .list-group-item,
+    #private .col-md-3 .list-group-item {
+        margin:0 !important;
+        padding:10px 8px !important;
+        min-height:48px !important;
+        border-radius:10px !important;
+    }
+
+    #rechnungen .col-md-3 .list-group-item h6,
+    #gewerbliche .col-md-3 .list-group-item h6,
+    #private .col-md-3 .list-group-item h6 {
+        font-size:12px !important;
+        line-height:1.2 !important;
+    }
+}
 </style>
 
 <!--
@@ -68,13 +523,24 @@ html {
 -->
 
 <div class="container-fluid mt-4">
+<div class="buchhaltung-shell">
 
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 class="text-primary font-weight-bold">📊 Buchhaltung</h2>
-        <span class="badge badge-secondary p-2">Stand: 29.01.2026</span>
-    </div>
+    <section class="buchhaltung-hero">
+        <div class="buchhaltung-title-row">
+            <div class="buchhaltung-title">
+                <h1>📊 BUCHHALTUNG</h1>
+                <p>Finanzübersicht für Rechnungen, Bank, Ratenzahlungen und Ausgaben.</p>
+            </div>
 
-    <div class="row mb-4" id="stats-parent-row">
+            <div class="live-date-box">
+                <div class="live-time-pill" id="liveTimeOnly">00:00</div>
+                <div class="live-date-main" id="liveDateOnly">Montag, 1. Januar 2026</div>
+                <div class="live-date-sub" id="liveMonthName">Monatsübersicht Januar</div>
+            </div>
+        </div>
+
+        <div class="buchhaltung-stats-wrapper">
+            <div class="row mb-0" id="stats-parent-row">
         <div id="bank-stats-wrapper" class="row col-12 p-0 m-0 d-none">
             <div class="col-md-3">
                 <div class="card shadow-sm border-0 p-3" style="border-left: 6px solid #007bff;">
@@ -143,7 +609,11 @@ html {
                 </div>
             </div>
         </div>
-    </div>
+            </div>
+        </div>
+    </section>
+
+<div class="buchhaltung-body">
 
 <!--
 ..........................................................................................................
@@ -169,7 +639,7 @@ html {
         <a class="nav-link" data-toggle="tab" href="#private" style="font-weight:700; padding: 15px 20px;">Private Ausgaben</a>
     </li>
 
-    <li class="nav-item ml-auto d-flex align-items-center" style="gap: 20px; padding: 10px 25px;">
+    <li class="nav-item ml-auto d-flex align-items-center" style="gap: 14px; padding: 8px 18px;">
         
         <button onclick="sparkasseSync()" 
             class="custom-nav-btn sparkasse-new" 
@@ -187,22 +657,22 @@ html {
 </ul>
 
 <style>
-/* DEVASA BOYUTLAR */
+/* Sparkasse ve Lexware kompakt boyut */
 .custom-nav-btn {
     border: none;
-    border-radius: 16px;
-    padding: 15px 45px; /* Genişlik iyice artırıldı */
+    border-radius: 13px;
+    padding: 9px 24px;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
     transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    height: 90px; /* Yükseklik 2 katına çıkarıldı */
-    min-width: 180px;
+    height: 62px;
+    min-width: 132px;
 }
 
 .custom-nav-btn img {
-    height: 60px; /* Logo ve içindeki yazılar artık kabak gibi okunur */
+    height: 42px;
     width: auto;
     object-fit: contain;
 }
@@ -249,6 +719,38 @@ function lexwareMasasiniAc() {
         `width=${width},height=${height},top=${top},left=${left},menubar=no,toolbar=no,location=no,status=no,resizable=yes`
     );
 }
+
+function updateBuchhaltungLiveClock() {
+    const now = new Date();
+    const timeEl = document.getElementById('liveTimeOnly');
+    const dateEl = document.getElementById('liveDateOnly');
+    const monthEl = document.getElementById('liveMonthName');
+
+    if (!timeEl || !dateEl || !monthEl) return;
+
+    const timeText = now.toLocaleTimeString('de-DE', {
+        hour: '2-digit',
+        minute: '2-digit'
+    });
+
+    const dateText = now.toLocaleDateString('de-DE', {
+        weekday: 'long',
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric'
+    });
+
+    const monthText = now.toLocaleDateString('de-DE', {
+        month: 'long'
+    });
+
+    timeEl.textContent = timeText;
+    dateEl.textContent = dateText;
+    monthEl.textContent = 'Monatsübersicht ' + monthText;
+}
+
+updateBuchhaltungLiveClock();
+setInterval(updateBuchhaltungLiveClock, 30000);
 </script>
 
 <!--
@@ -477,7 +979,7 @@ function lexwareMasasiniAc() {
             <div class="col-md-9 border-left">
                 <div class="d-flex justify-content-between align-items-center mb-4">
                     <h5 class="text-dark font-weight-bold mb-0 text-uppercase">Gewerbliche Ausgaben - {{ selected_month_name if selected_month_name else 'Januar' }} 2026</h5>
-                    <button class="btn btn-success shadow-sm" style="border-radius:10px; font-weight:700; padding: 8px 15px;">+ Ausgabe Hinzufügen</button>
+                    <button class="btn shadow-sm" style="background:#007bff; color:#ffffff; border:none; border-radius:10px; font-weight:700; padding: 8px 15px;">+ Ausgabe Hinzufügen</button>
                 </div>
                 <div class="table-responsive shadow-sm">
                     <table class="table table-hover table-bordered text-center small">
@@ -532,7 +1034,7 @@ function lexwareMasasiniAc() {
             <div class="col-md-9 border-left">
                 <div class="d-flex justify-content-between align-items-center mb-4">
                     <h5 class="text-dark font-weight-bold mb-0 text-uppercase">Private Ausgaben - {{ selected_month_name if selected_month_name else 'Januar' }} 2026</h5>
-                    <button class="btn btn-danger shadow-sm" style="background-color: #e83e8c; border: none; border-radius:10px; font-weight:700; padding: 8px 15px;">+ Ausgabe Hinzufügen</button>
+                    <button class="btn shadow-sm" style="background:#007bff; color:#ffffff; border:none; border-radius:10px; font-weight:700; padding: 8px 15px;">+ Ausgabe Hinzufügen</button>
                 </div>
                 <div class="table-responsive shadow-sm">
                     <table class="table table-hover table-bordered text-center small">
@@ -976,4 +1478,28 @@ document.addEventListener("DOMContentLoaded", function () {
 
 });
 </script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const isTabletPortrait = window.matchMedia('(hover:none) and (pointer:coarse) and (min-width:761px) and (max-width:1024px) and (orientation:portrait)').matches;
+    if (!isTabletPortrait) return;
+
+    ['#rechnungen', '#gewerbliche', '#private'].forEach(function (selector) {
+        const box = document.querySelector(selector + ' .col-md-3');
+        if (!box) return;
+
+        box.classList.add('month-list-closed');
+
+        const title = box.querySelector('h5');
+        if (!title) return;
+
+        title.addEventListener('click', function () {
+            box.classList.toggle('month-list-closed');
+        });
+    });
+});
+</script>
+</div>
+</div>
+</div>
 {% endblock %}
