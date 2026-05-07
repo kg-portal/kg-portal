@@ -47,9 +47,7 @@ from lead_importer import (
     normalize_text,
     normalize_url,
     get_item_unique_key,
-    google_usage_today,
 )
-
 # ============================================================
 # AYARLAR
 # ============================================================
@@ -821,7 +819,7 @@ def run_daily_pool():
     print(f"Yarim kalan job yeniden acildi: {reset_jobs}")
     print(f"Bugunku pool Google istek: {pool_usage_today()} / {DAILY_GOOGLE_REQUEST_LIMIT}")
     print(f"Bu ay pool Google istek: {pool_usage_month()} / {MONTHLY_GOOGLE_REQUEST_LIMIT}")
-    print(f"lead_importer gunluk sayac: {google_usage_today()}")
+    print("lead_importer gunluk sayac: deaktiviert")
 
     available_today = remaining_daily_pool_requests()
     available_month = remaining_monthly_pool_requests()
