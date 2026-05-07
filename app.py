@@ -13,6 +13,8 @@ import sqlite3
 import json
 import os
 import secrets
+import traceback
+import threading
 
 from docx import Document
 from docx.shared import RGBColor
@@ -69,6 +71,10 @@ def auto_login_check():
     # 1. Login, statik dosyalar veya zaten giriş yapmış olanlar geçer
     if request.endpoint in ['login', 'static'] or 'logged_in' in session:
         return
+    # INTERNAL CRON ENDPOINT - Render Cron buraya token ile gelir
+    if request.path.startswith('/internal/'):
+        return
+
     
     # 2. İŞÇİ LİNKLERİ İÇİN ŞİFRE SORMADAN GEÇİŞ İZNİ
     if request.path.startswith('/stundenzettel/worker/') or request.path.startswith('/api/stundenzettel/'):
@@ -77,6 +83,118 @@ def auto_login_check():
     # 3. Diğer her yer için şifre ekranına yolla
     return redirect(url_for('login'))
 register_app2_routes(app, login_required)
+# =====================================================
+# INTERNAL NIGHTLY CRM JOB
+# Render Cron burayı çağırır.
+# 1) Google Lead Pool çalışır
+# 2) Hazır havuzdan 30 firma Tagesliste'ye alınır
+# =====================================================
+
+NIGHTLY_JOB_RUNNING = False
+NIGHTLY_JOB_LAST_RESULT = {}
+
+def run_nightly_crm_job_background():
+    global NIGHTLY_JOB_RUNNING, NIGHTLY_JOB_LAST_RESULT
+
+    result = {
+        "ok": False,
+        "google_pool": None,
+        "tagesliste_cycle": None,
+        "error": "",
+        "traceback": ""
+    }
+
+    try:
+        print("============================================================")
+        print("NIGHTLY CRM JOB START")
+        print("============================================================")
+
+        # 1) Google motoru: 12'li Branche havuzunu doldurur
+        from google_lead_pool import run_daily_pool
+        run_daily_pool()
+        result["google_pool"] = "done"
+
+        # 2) Tagesliste motoru: hazır havuzdan 30 firma seçer
+        from nightly_tagesliste_cycle import run_cycle
+        run_cycle()
+        result["tagesliste_cycle"] = "done"
+
+        result["ok"] = True
+
+        print("============================================================")
+        print("NIGHTLY CRM JOB FERTIG")
+        print("============================================================")
+
+    except Exception as e:
+        result["ok"] = False
+        result["error"] = str(e)
+        result["traceback"] = traceback.format_exc()
+
+        print("============================================================")
+        print("NIGHTLY CRM JOB FEHLER")
+        print(result["error"])
+        print(result["traceback"])
+        print("============================================================")
+
+    finally:
+        NIGHTLY_JOB_LAST_RESULT = result
+        NIGHTLY_JOB_RUNNING = False
+
+
+@app.route("/internal/nightly-crm-job", methods=["GET", "POST"])
+def internal_nightly_crm_job():
+    global NIGHTLY_JOB_RUNNING
+
+    expected_token = os.getenv("KG_INTERNAL_CRON_TOKEN", "").strip()
+    given_token = (
+        request.headers.get("X-KG-CRON-TOKEN", "").strip()
+        or request.args.get("token", "").strip()
+    )
+
+    if not expected_token or given_token != expected_token:
+        return jsonify({
+            "ok": False,
+            "message": "Unauthorized"
+        }), 403
+
+    if NIGHTLY_JOB_RUNNING:
+        return jsonify({
+            "ok": True,
+            "running": True,
+            "message": "Nightly job läuft bereits."
+        })
+
+    NIGHTLY_JOB_RUNNING = True
+
+    t = threading.Thread(target=run_nightly_crm_job_background, daemon=True)
+    t.start()
+
+    return jsonify({
+        "ok": True,
+        "started": True,
+        "message": "Google Lead Pool + Tagesliste Cycle gestartet."
+    })
+
+
+@app.route("/internal/nightly-crm-job/status", methods=["GET"])
+def internal_nightly_crm_job_status():
+    expected_token = os.getenv("KG_INTERNAL_CRON_TOKEN", "").strip()
+    given_token = (
+        request.headers.get("X-KG-CRON-TOKEN", "").strip()
+        or request.args.get("token", "").strip()
+    )
+
+    if not expected_token or given_token != expected_token:
+        return jsonify({
+            "ok": False,
+            "message": "Unauthorized"
+        }), 403
+
+    return jsonify({
+        "ok": True,
+        "running": NIGHTLY_JOB_RUNNING,
+        "last_result": NIGHTLY_JOB_LAST_RESULT
+    })
 
 # ... (Buradan aşağısı get_db_connection() diye devam ediyor, aynen kalsın)
 
