@@ -90,6 +90,188 @@ body{background:#edf2f7;font-family:'Inter',sans-serif;color:#0f172a}
 .device-toggle-btn{padding:8px 14px;border-radius:8px;border:1px solid #cbd5e1;background:#fff;font-size:13px;font-weight:600;color:#475569;cursor:pointer;transition:all 0.2s; white-space:nowrap;}
 .device-toggle-btn.active{background:#2563eb;color:#fff;border-color:#2563eb}
 
+/* =========================
+   BESICHTIGUNG TERMIN SLIDER
+========================= */
+.besichtigung-picker {
+  width: 100%;
+  border-radius: 18px;
+  border: 1px solid #dbe3ef;
+  background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+  box-shadow: 0 10px 26px rgba(15,23,42,.055);
+  overflow: hidden;
+}
+
+.besichtigung-picker-bar {
+  height: 58px;
+  padding: 0 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  cursor: pointer;
+  background: linear-gradient(135deg, #ffffff 0%, #eff6ff 100%);
+}
+
+.besichtigung-picker-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.besichtigung-picker-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 13px;
+  background: linear-gradient(135deg, #16368b 0%, #2563eb 100%);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 17px;
+  font-weight: 900;
+  flex: 0 0 auto;
+}
+
+.besichtigung-picker-main {
+  font-size: 14px;
+  font-weight: 900;
+  color: #0f172a;
+  line-height: 1.15;
+}
+
+.besichtigung-picker-sub {
+  margin-top: 3px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #64748b;
+  line-height: 1.2;
+}
+
+.besichtigung-picker-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 0 0 auto;
+}
+
+.besichtigung-picker-count {
+  min-width: 30px;
+  height: 26px;
+  border-radius: 999px;
+  background: #2563eb;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 9px;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.besichtigung-picker-toggle {
+  border: 1px solid #bfdbfe;
+  background: #ffffff;
+  color: #1d4ed8;
+  border-radius: 999px;
+  padding: 8px 12px;
+  font-size: 12px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.besichtigung-picker-body {
+  display: none;
+  padding: 14px 18px 18px 18px;
+  border-top: 1px solid #e2e8f0;
+  background: #ffffff;
+}
+
+.besichtigung-picker.open .besichtigung-picker-body {
+  display: block;
+}
+
+.besichtigung-termin-list {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+
+.besichtigung-termin-card {
+  min-width: 330px;
+  max-width: 330px;
+  border: 1px solid #dbe3ef;
+  border-radius: 16px;
+  background: #f8fafc;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.besichtigung-termin-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: flex-start;
+}
+
+.besichtigung-termin-firma {
+  font-size: 14px;
+  font-weight: 900;
+  color: #0f172a;
+  line-height: 1.25;
+}
+
+.besichtigung-termin-badge {
+  border-radius: 999px;
+  background: #e0f2fe;
+  color: #0369a1;
+  border: 1px solid #bae6fd;
+  padding: 5px 8px;
+  font-size: 10px;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.besichtigung-termin-line {
+  font-size: 12px;
+  line-height: 1.4;
+  font-weight: 700;
+  color: #475569;
+}
+
+.besichtigung-start-btn {
+  margin-top: 2px;
+  width: 100%;
+  border: none;
+  border-radius: 13px;
+  background: linear-gradient(135deg, #16368b 0%, #2563eb 100%);
+  color: #ffffff;
+  padding: 11px 14px;
+  font-size: 12px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.besichtigung-start-btn:hover {
+  filter: brightness(.96);
+}
+
+.besichtigung-empty {
+  width: 100%;
+  border: 1px dashed #bfdbfe;
+  border-radius: 16px;
+  padding: 18px;
+  color: #64748b;
+  font-size: 13px;
+  font-weight: 800;
+  text-align: center;
+  background: #f8fafc;
+}
+
 /* Action Buttons Footer Style */
 .action-footer {
   display: flex;
@@ -143,7 +325,32 @@ body{background:#edf2f7;font-family:'Inter',sans-serif;color:#0f172a}
 
 <div class="container">
   <div class="layout">
-    <!-- HERO ALANI -->
+
+    <!-- BESICHTIGUNG TERMINE SLIDER -->
+    <div class="besichtigung-picker" id="besichtigungPicker">
+      <div class="besichtigung-picker-bar" onclick="toggleBesichtigungPicker()">
+        <div class="besichtigung-picker-title">
+          <div class="besichtigung-picker-icon">📅</div>
+          <div>
+            <div class="besichtigung-picker-main">Besichtigungstermine</div>
+            <div class="besichtigung-picker-sub">Datenbank içindeki Besichtigung listesi · Firma seç ve Start bas</div>
+          </div>
+        </div>
+
+        <div class="besichtigung-picker-right">
+          <div class="besichtigung-picker-count" id="besichtigungPickerCount">0</div>
+          <button type="button" class="besichtigung-picker-toggle" onclick="event.stopPropagation(); toggleBesichtigungPicker();">Öffnen</button>
+        </div>
+      </div>
+
+      <div class="besichtigung-picker-body" id="besichtigungPickerBody">
+        <div class="besichtigung-termin-list" id="besichtigungTerminList">
+          <div class="besichtigung-empty">Besichtigungstermine werden geladen...</div>
+        </div>
+      </div>
+    </div>
+
+        <!-- HERO ALANI -->
     <div class="card hero">
       <div class="hero-row">
         <div class="hero-left-content hero-header-titles">
@@ -160,8 +367,8 @@ body{background:#edf2f7;font-family:'Inter',sans-serif;color:#0f172a}
 
       <div class="hero-row">
         <div class="hero-left-grid">
-          <div class="info-box"><div class="info-label">Kunde</div><div class="info-value">{{Kunde}}</div></div>
-          <div class="info-box"><div class="info-label">Objekt</div><div class="info-value">{{Adresse}}, {{Plz}} {{Ort}}</div></div>
+          <div class="info-box"><div class="info-label">Kunde</div><div class="info-value" id="besichtigungKundeText">{{Kunde}}</div></div>
+<div class="info-box"><div class="info-label">Objekt</div><div class="info-value" id="besichtigungObjektText">{{Adresse}}, {{Plz}} {{Ort}}</div></div>
         </div>
         <div class="hero-btn-wrapper">
           <div class="hero-mini" onclick="toggleElemente()">
@@ -174,8 +381,8 @@ body{background:#edf2f7;font-family:'Inter',sans-serif;color:#0f172a}
 
       <div class="hero-row">
         <div class="hero-left-grid">
-          <div class="info-box"><div class="info-label">Ansprechpartner</div><div class="info-value">{{Ansprechpartner}}</div></div>
-          <div class="info-box"><div class="info-label">Termin</div><div class="info-value">{{Datum}} – {{Uhrzeit}}</div></div>
+          <div class="info-box"><div class="info-label">Ansprechpartner</div><div class="info-value" id="besichtigungAnsprechpartnerText">{{Ansprechpartner}}</div></div>
+<div class="info-box"><div class="info-label">Termin</div><div class="info-value" id="besichtigungTerminText">{{Datum}} – {{Uhrzeit}}</div></div>
         </div>
         <div class="hero-btn-wrapper">
           <div class="hero-mini" onclick="toggleSonstiges()">
@@ -511,21 +718,21 @@ body{background:#edf2f7;font-family:'Inter',sans-serif;color:#0f172a}
 
     <!-- ACTION FOOTER BUTTONS -->
     <form method="POST" action="/besichtigung" id="besichtigungForm">
-  <input type="hidden" name="firma" value="{{Kunde}}">
-  <input type="hidden" name="kunde" value="{{Kunde}}">
-  <input type="hidden" name="ansprechpartner" value="{{Ansprechpartner}}">
-  <input type="hidden" name="strasse" value="{{Adresse}}">
-  <input type="hidden" name="plz" value="{{Plz}}">
-  <input type="hidden" name="ort" value="{{Ort}}">
-  <input type="hidden" name="leistungsart" value="{{Leistungsart}}">
-  <input type="hidden" name="haeufigkeit" value="{{Haeufigkeit}}">
-  <input type="hidden" name="m2" value="{{Flaeche}}">
-  <input type="hidden" name="email" value="{{Email}}">
-  <input type="hidden" name="telefon" value="{{Telefon}}">
+    <input type="hidden" id="besichtigungFirmaInput" name="firma" value="{{Kunde}}">
+  <input type="hidden" id="besichtigungKundeInput" name="kunde" value="{{Kunde}}">
+  <input type="hidden" id="besichtigungAnsprechpartnerInput" name="ansprechpartner" value="{{Ansprechpartner}}">
+  <input type="hidden" id="besichtigungStrasseInput" name="strasse" value="{{Adresse}}">
+  <input type="hidden" id="besichtigungPlzInput" name="plz" value="{{Plz}}">
+  <input type="hidden" id="besichtigungOrtInput" name="ort" value="{{Ort}}">
+  <input type="hidden" id="besichtigungLeistungsartInput" name="leistungsart" value="{{Leistungsart}}">
+  <input type="hidden" id="besichtigungHaeufigkeitInput" name="haeufigkeit" value="{{Haeufigkeit}}">
+  <input type="hidden" id="besichtigungM2Input" name="m2" value="{{Flaeche}}">
+  <input type="hidden" id="besichtigungEmailInput" name="email" value="{{Email}}">
+  <input type="hidden" id="besichtigungTelefonInput" name="telefon" value="{{Telefon}}">
 
   <div class="action-footer">
-    <button type="submit" class="btn-action btn-speichern">Speichern</button>
-    <button type="button" class="btn-action btn-senden" onclick="sendData()">Senden</button>
+        <button type="button" class="btn-action btn-speichern" onclick="finishBesichtigung('speichern')">Speichern</button>
+    <button type="button" class="btn-action btn-senden" onclick="finishBesichtigung('senden')">Senden</button>
   </div>
 </form>
 
@@ -533,33 +740,247 @@ body{background:#edf2f7;font-family:'Inter',sans-serif;color:#0f172a}
 </div>
 
 <script>
-// Almanca Takvim (Flatpickr)
-window.onload = function() {
-  flatpickr("#startTerminInput", {
-    locale: "de",
-    dateFormat: "d.m.Y",
-    allowInput: true,
-    placeholder: "TT.MM.JJJJ"
+// Almanca Takvim (Flatpickr) + Besichtigung Terminliste
+let besichtigungTermine = [];
+let aktiveBesichtigung = null;
+
+document.addEventListener("DOMContentLoaded", function() {
+  if (document.getElementById("startTerminInput")) {
+    flatpickr("#startTerminInput", {
+      locale: "de",
+      dateFormat: "d.m.Y",
+      allowInput: true,
+      placeholder: "TT.MM.JJJJ"
+    });
+  }
+
+  loadBesichtigungTermine();
+});
+
+function toggleBesichtigungPicker() {
+  const box = document.getElementById("besichtigungPicker");
+  if (!box) return;
+  box.classList.toggle("open");
+}
+
+async function loadBesichtigungTermine() {
+  const list = document.getElementById("besichtigungTerminList");
+  const count = document.getElementById("besichtigungPickerCount");
+
+  if (!list) return;
+
+  list.innerHTML = '<div class="besichtigung-empty">Besichtigungstermine werden geladen...</div>';
+
+  try {
+    const response = await fetch("/api/datenbank/by-status?status=besichtigung", {
+      cache: "no-store"
+    });
+
+    const data = await response.json();
+
+    besichtigungTermine = Array.isArray(data) ? data.map(normalizeBesichtigungLead) : [];
+
+    if (count) count.textContent = besichtigungTermine.length;
+
+    renderBesichtigungTermine();
+
+  } catch (err) {
+    list.innerHTML = '<div class="besichtigung-empty">Besichtigungstermine konnten nicht geladen werden.</div>';
+    if (count) count.textContent = "0";
+  }
+}
+
+function normalizeBesichtigungLead(item) {
+  item = item || {};
+
+  return {
+    id: item.id || 0,
+    firma: item.firma || item.kunde || "",
+    ansprechpartner: item.ansprechpartner || item.kontakt || "",
+    strasse: item.strasse || item.adresse || item.str || "",
+    plz: item.plz || "",
+    ort: item.ort || item.stadt || "",
+    telefon: item.telefon || item.tel || "",
+    email: item.email || item.mail || "",
+    website: item.website || item.web || "",
+    leistungsart: item.leistungsart || item.branche || item.tag || "",
+    haeufigkeit: item.haeufigkeit || "",
+    m2: item.m2 || "",
+    notiz: item.notiz || "",
+    quelle: item.quelle || "",
+    status: item.status || "besichtigung"
+  };
+}
+
+function renderBesichtigungTermine() {
+  const list = document.getElementById("besichtigungTerminList");
+  if (!list) return;
+
+  if (!besichtigungTermine.length) {
+    list.innerHTML = '<div class="besichtigung-empty">Keine Besichtigungstermine gefunden.</div>';
+    return;
+  }
+
+  list.innerHTML = "";
+
+  besichtigungTermine.forEach((lead, index) => {
+    const adresse = buildAdresse(lead);
+    const kontakt = lead.ansprechpartner || "Kein Ansprechpartner";
+    const telefon = lead.telefon || "Keine Telefonnummer";
+    const email = lead.email || "Keine E-Mail";
+
+    const card = document.createElement("div");
+    card.className = "besichtigung-termin-card";
+    card.innerHTML = `
+      <div class="besichtigung-termin-top">
+        <div class="besichtigung-termin-firma">${escapeHtml(lead.firma || "Ohne Firma")}</div>
+        <div class="besichtigung-termin-badge">Besichtigung</div>
+      </div>
+      <div class="besichtigung-termin-line">📍 ${escapeHtml(adresse || "Keine Adresse")}</div>
+      <div class="besichtigung-termin-line">👤 ${escapeHtml(kontakt)}</div>
+      <div class="besichtigung-termin-line">☎ ${escapeHtml(telefon)}</div>
+      <div class="besichtigung-termin-line">✉ ${escapeHtml(email)}</div>
+      <button type="button" class="besichtigung-start-btn" onclick="startBesichtigung(${index})">Start</button>
+    `;
+
+    list.appendChild(card);
   });
-};
-
-// Kaydetme
-function saveData() {
-  document.getElementById('besichtigungForm').submit();
 }
-// Senden
-function sendData() {
-  const btn = document.querySelector('.btn-senden');
-  btn.textContent = "Wird gesendet...";
-  setTimeout(() => {
-    btn.textContent = "Gesendet! ✓";
-    btn.style.background = "#dc2626";
+
+function startBesichtigung(index) {
+  const lead = besichtigungTermine[index];
+  if (!lead) return;
+
+  aktiveBesichtigung = lead;
+  fillBesichtigungHeader(lead);
+  fillBesichtigungHiddenInputs(lead);
+
+  const picker = document.getElementById("besichtigungPicker");
+  if (picker) picker.classList.remove("open");
+
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+function fillBesichtigungHeader(lead) {
+  setText("besichtigungKundeText", lead.firma || "");
+  setText("besichtigungObjektText", buildAdresse(lead));
+  setText("besichtigungAnsprechpartnerText", lead.ansprechpartner || "");
+  setText("besichtigungTerminText", "Besichtigung gestartet");
+}
+
+function fillBesichtigungHiddenInputs(lead) {
+  setValue("besichtigungFirmaInput", lead.firma || "");
+  setValue("besichtigungKundeInput", lead.firma || "");
+  setValue("besichtigungAnsprechpartnerInput", lead.ansprechpartner || "");
+  setValue("besichtigungStrasseInput", lead.strasse || "");
+  setValue("besichtigungPlzInput", lead.plz || "");
+  setValue("besichtigungOrtInput", lead.ort || "");
+  setValue("besichtigungTelefonInput", lead.telefon || "");
+  setValue("besichtigungEmailInput", lead.email || "");
+  setValue("besichtigungLeistungsartInput", lead.leistungsart || "");
+  setValue("besichtigungHaeufigkeitInput", lead.haeufigkeit || "");
+  setValue("besichtigungM2Input", lead.m2 || "");
+}
+
+function finishBesichtigung(mode) {
+  const btn = mode === "senden"
+    ? document.querySelector(".btn-senden")
+    : document.querySelector(".btn-speichern");
+
+  if (btn) {
+    const oldText = btn.textContent;
+    btn.textContent = mode === "senden" ? "Wird gesendet..." : "Wird gespeichert...";
+    btn.disabled = true;
+
     setTimeout(() => {
-      btn.textContent = "Senden";
-    }, 2000);
-  }, 1500);
+      btn.textContent = mode === "senden" ? "Gesendet ✓" : "Gespeichert ✓";
+
+      setTimeout(() => {
+        btn.textContent = oldText;
+        btn.disabled = false;
+        resetBesichtigungMaske();
+      }, 900);
+    }, 700);
+  } else {
+    resetBesichtigungMaske();
+  }
 }
 
+function resetBesichtigungMaske() {
+  aktiveBesichtigung = null;
+
+  setText("besichtigungKundeText", "");
+  setText("besichtigungObjektText", ",");
+  setText("besichtigungAnsprechpartnerText", "");
+  setText("besichtigungTerminText", "—");
+
+  [
+    "besichtigungFirmaInput",
+    "besichtigungKundeInput",
+    "besichtigungAnsprechpartnerInput",
+    "besichtigungStrasseInput",
+    "besichtigungPlzInput",
+    "besichtigungOrtInput",
+    "besichtigungLeistungsartInput",
+    "besichtigungHaeufigkeitInput",
+    "besichtigungM2Input",
+    "besichtigungEmailInput",
+    "besichtigungTelefonInput"
+  ].forEach(id => setValue(id, ""));
+
+  ["a", "b", "c"].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = "0";
+  });
+
+  const notes = document.getElementById("sonstigeNotizen");
+  if (notes) notes.value = "";
+
+  const startTermin = document.getElementById("startTerminInput");
+  if (startTermin) startTermin.value = "";
+
+  document.querySelectorAll("#sortableSections > .card.sortable-section").forEach(box => {
+    if (box.id === "leistungenBox" || box.id === "elementeBox" || box.id === "sonstigesBox") {
+      box.style.display = "none";
+    } else {
+      box.remove();
+    }
+  });
+
+  loadBesichtigungTermine();
+}
+
+function saveData() {
+  finishBesichtigung("speichern");
+}
+
+function sendData() {
+  finishBesichtigung("senden");
+}
+
+function buildAdresse(lead) {
+  const plzOrt = [lead.plz, lead.ort].filter(Boolean).join(" ");
+  return [lead.strasse, plzOrt].filter(Boolean).join(", ");
+}
+
+function setText(id, value) {
+  const el = document.getElementById(id);
+  if (el) el.textContent = value || "";
+}
+
+function setValue(id, value) {
+  const el = document.getElementById(id);
+  if (el) el.value = value || "";
+}
+
+function escapeHtml(value) {
+  return String(value || "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
 function toggleLeistungen(){
   const box = document.getElementById('leistungenBox');
   if(!box) return;
