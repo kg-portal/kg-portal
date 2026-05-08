@@ -61,7 +61,7 @@ POOL_DB_PATH = os.path.join(DATA_DIR, "kg_portal.db")
 POOL_USAGE_FILE = os.path.join(DATA_DIR, "google_pool_usage.json")
 
 # Günlük maksimum Google Text Search isteği
-DAILY_GOOGLE_REQUEST_LIMIT = 30
+DAILY_GOOGLE_REQUEST_LIMIT = 5
 
 # Aylık güvenli limit. 1000 hak varsa 900 güvenli kalır.
 MONTHLY_GOOGLE_REQUEST_LIMIT = 900
