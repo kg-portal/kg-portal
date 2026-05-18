@@ -70,6 +70,15 @@ MONTHLY_GOOGLE_REQUEST_LIMIT = 900
 # 30 istek ≈ teorik 600 firma.
 GOOGLE_RESULTS_PER_REQUEST = 20
 
+# Duisburg'u tek "Duisburg" aramasıyla bırakma.
+# Google her aramada en fazla ilk 20 sonucu verdiği için PLZ bazlı job üretilecek.
+DUISBURG_PLZ_LIST = [
+    "47051", "47053", "47055", "47057", "47058", "47059",
+    "47119", "47137", "47138", "47139", "47166", "47167", "47169",
+    "47178", "47179", "47198", "47199",
+    "47226", "47228", "47229", "47239", "47249", "47259", "47269", "47279",
+]
+
 # Her iş arasında küçük bekleme. Çok agresif çalışmasın.
 WAIT_SECONDS_BETWEEN_JOBS = 2
 
@@ -482,12 +491,22 @@ def reset_stuck_running_jobs():
     conn = get_conn()
     cursor = conn.cursor()
 
+    # laeuft: önceki run yarıda kaldıysa tekrar aç.
+    # fehler: Google/Render kısa süreli hata verdiyse ertesi gün tekrar dene.
+    # fertig olan joblara DOKUNMUYORUZ; yoksa aynı aramalar tekrar tekrar döner.
     cursor.execute("""
         UPDATE google_pool_jobs
         SET status = 'offen',
             started_at = NULL,
-            last_error = 'Vorheriger Lauf wurde abgebrochen. Job neu geöffnet.'
+            last_error = 'Vorheriger Lauf/Fehler wurde automatisch neu geöffnet.'
         WHERE status = 'laeuft'
+           OR (
+                status = 'fehler'
+                AND (
+                    finished_at IS NULL
+                    OR date(finished_at) < date('now', 'localtime')
+                )
+           )
     """)
 
     reset_count = cursor.rowcount
@@ -503,7 +522,23 @@ def seed_jobs_from_plan():
 
     inserted = 0
 
+    expanded_jobs = []
+
     for job in SEARCH_PLAN:
+        # 1) Eski genel arama kalsın:
+        # Örn: "Rechtsanwalt Duisburg"
+        expanded_jobs.append(dict(job))
+
+        # 2) Yeni PLZ bazlı aramalar:
+        # Örn: "Rechtsanwalt 47055 Duisburg"
+        # Aynı firma tekrar gelirse pool_lead_exists zaten yakalayıp geçiyor.
+        if normalize_text(job.get("stadt", "")).lower() == "duisburg":
+            for plz in DUISBURG_PLZ_LIST:
+                plz_job = dict(job)
+                plz_job["plz"] = plz
+                expanded_jobs.append(plz_job)
+
+    for job in expanded_jobs:
         job_data = {
             "branche_id": normalize_text(job.get("branche_id", "")),
             "branche_name": normalize_text(job.get("branche_name", "")),
