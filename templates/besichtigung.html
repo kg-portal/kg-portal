@@ -718,7 +718,8 @@ body{background:#edf2f7;font-family:'Inter',sans-serif;color:#0f172a}
 
     <!-- ACTION FOOTER BUTTONS -->
     <form method="POST" action="/besichtigung" id="besichtigungForm">
-    <input type="hidden" id="besichtigungFirmaInput" name="firma" value="{{Kunde}}">
+    <input type="hidden" id="besichtigungTageslisteIdInput" name="tagesliste_id" value="">
+<input type="hidden" id="besichtigungFirmaInput" name="firma" value="{{Kunde}}">
   <input type="hidden" id="besichtigungKundeInput" name="kunde" value="{{Kunde}}">
   <input type="hidden" id="besichtigungAnsprechpartnerInput" name="ansprechpartner" value="{{Ansprechpartner}}">
   <input type="hidden" id="besichtigungStrasseInput" name="strasse" value="{{Adresse}}">
@@ -808,6 +809,10 @@ function normalizeBesichtigungLead(item) {
     m2: item.m2 || "",
     notiz: item.notiz || "",
     quelle: item.quelle || "",
+    besichtigung_data_json: item.besichtigung_data_json || "",
+    angebot_vars_json: item.angebot_vars_json || "",
+    angebot_nr: item.angebot_nr || "",
+    angebot_datum: item.angebot_datum || "",
     status: item.status || "besichtigung"
   };
 }
@@ -854,6 +859,7 @@ function startBesichtigung(index) {
   aktiveBesichtigung = lead;
   fillBesichtigungHeader(lead);
   fillBesichtigungHiddenInputs(lead);
+  kgRestoreSavedBesichtigungData(lead);
 
   const picker = document.getElementById("besichtigungPicker");
   if (picker) picker.classList.remove("open");
@@ -869,6 +875,7 @@ function fillBesichtigungHeader(lead) {
 }
 
 function fillBesichtigungHiddenInputs(lead) {
+  setValue("besichtigungTageslisteIdInput", lead.id || "");
   setValue("besichtigungFirmaInput", lead.firma || "");
   setValue("besichtigungKundeInput", lead.firma || "");
   setValue("besichtigungAnsprechpartnerInput", lead.ansprechpartner || "");
@@ -882,30 +889,615 @@ function fillBesichtigungHiddenInputs(lead) {
   setValue("besichtigungM2Input", lead.m2 || "");
 }
 
-function finishBesichtigung(mode) {
-  const btn = mode === "senden"
-    ? document.querySelector(".btn-senden")
-    : document.querySelector(".btn-speichern");
+function kgBesValue(id) {
+  const el = document.getElementById(id);
+  return el ? String(el.value || "").trim() : "";
+}
+
+function kgBesText(id) {
+  const el = document.getElementById(id);
+  return el ? String(el.textContent || "").trim() : "";
+}
+
+function kgBesClean(value) {
+  return String(value || "")
+    .replace(/\s+/g, " ")
+    .replace("Details", "")
+    .replace(/Insgesamt:.*/i, "")
+    .trim();
+}
+
+function kgBesVisible(el) {
+  if (!el) return false;
+  return !!(el.offsetWidth || el.offsetHeight || el.getClientRects().length);
+}
+
+function kgBesSectionTitle(section) {
+  const titleEl = section ? section.querySelector(".section-title") : null;
+  return kgBesClean(titleEl ? titleEl.textContent : "");
+}
+
+function kgBesFieldData(boxId) {
+  const box = document.getElementById(boxId);
+  if (!box || !kgBesVisible(box)) return [];
+
+  const result = [];
+
+  box.querySelectorAll(".unterhalt-top-field").forEach(field => {
+    const label = kgBesClean(field.querySelector("label")?.textContent || "");
+    const values = [];
+
+    field.querySelectorAll("select").forEach(sel => {
+      const val = kgBesClean(sel.value || "");
+      if (val && val !== "Bitte wählen") values.push(val);
+    });
+
+    field.querySelectorAll("input").forEach(inp => {
+      if (inp.type === "checkbox" && !inp.checked) return;
+      const val = kgBesClean(inp.value || "");
+      if (val) values.push(val);
+    });
+
+    field.querySelectorAll("textarea").forEach(txt => {
+      const val = kgBesClean(txt.value || "");
+      if (val) values.push(val);
+    });
+
+    const active = Array.from(field.querySelectorAll(".device-toggle-btn.active"))
+      .map(btn => kgBesClean(btn.textContent))
+      .filter(Boolean);
+
+    if (label || values.length || active.length) {
+      result.push({
+        label: label,
+        values: values,
+        active: active
+      });
+    }
+  });
+
+  return result;
+}
+
+function buildBesichtigungData() {
+  const leistungen = [];
+
+  document.querySelectorAll("#sortableSections .sortable-section").forEach(section => {
+    if (!kgBesVisible(section)) return;
+
+    const title = kgBesSectionTitle(section);
+
+    if (
+      title &&
+      title !== "Elemente" &&
+      title !== "Sonstiges" &&
+      !leistungen.includes(title)
+    ) {
+      leistungen.push(title);
+    }
+  });
+
+  const raeume = [];
+
+  document.querySelectorAll("#sortableSections .room-entry").forEach(row => {
+    if (!kgBesVisible(row)) return;
+
+    const name = kgBesClean(row.querySelector(".room-entry-name")?.textContent || "");
+    const m2 = kgBesClean(row.querySelector(".measure-target")?.textContent || "");
+    const typ = kgBesClean(row.dataset.area || row.dataset.base || name.replace(/\s+\d+$/, ""));
+    const section = kgBesSectionTitle(row.closest(".sortable-section"));
+
+    let haeufigkeit = "";
+    const wrapper = row.closest(".room-group-wrapper");
+
+    if (wrapper) {
+      wrapper.querySelectorAll(".unterhalt-top-field").forEach(field => {
+        const label = kgBesClean(field.querySelector("label")?.textContent || "").toLowerCase();
+        const select = field.querySelector("select");
+
+        if (select && label.includes("häufig")) {
+          haeufigkeit = kgBesClean(select.value || "");
+        }
+      });
+    }
+
+    if (name || typ || m2) {
+      raeume.push({
+        section: section,
+        typ: typ,
+        name: name,
+        m2: m2,
+        haeufigkeit: haeufigkeit
+      });
+    }
+  });
+
+    const einsatzzeiten = [];
+
+  const sonstigesBox = document.getElementById("sonstigesBox");
+  if (sonstigesBox && kgBesVisible(sonstigesBox)) {
+    const einsatzLabel = Array.from(sonstigesBox.querySelectorAll("label"))
+      .find(label => kgBesClean(label.textContent).toLowerCase().includes("einsatztage"));
+
+    const einsatzBlock = einsatzLabel ? einsatzLabel.parentElement : null;
+
+    if (einsatzBlock) {
+      einsatzBlock.querySelectorAll(".device-toggle-btn.active").forEach(btn => {
+        const tag = kgBesClean(btn.textContent || "");
+        const timeBox = btn.nextElementSibling;
+        const timeInput = timeBox ? timeBox.querySelector("input[type='time']") : null;
+        const uhrzeit = timeInput ? kgBesClean(timeInput.value || "") : "";
+
+        if (tag) {
+          einsatzzeiten.push({
+            tag: tag,
+            uhrzeit: uhrzeit
+          });
+        }
+      });
+    }
+  }
+
+  return {
+    kunde: {
+      firma: kgBesValue("besichtigungFirmaInput") || kgBesValue("besichtigungKundeInput"),
+      ansprechpartner: kgBesValue("besichtigungAnsprechpartnerInput"),
+      strasse: kgBesValue("besichtigungStrasseInput"),
+      plz: kgBesValue("besichtigungPlzInput"),
+      ort: kgBesValue("besichtigungOrtInput"),
+      telefon: kgBesValue("besichtigungTelefonInput"),
+      email: kgBesValue("besichtigungEmailInput")
+    },
+
+    leistungen: leistungen,
+
+    raeume: raeume,
+
+    elemente: {
+      arbeitstische: kgBesText("a") || "0",
+      pc_monitor: kgBesText("b") || "0",
+      muellbehaelter: kgBesText("c") || "0"
+    },
+
+    sonstiges: kgBesFieldData("sonstigesBox"),
+
+    einsatzzeiten: einsatzzeiten,
+
+    notiz: kgBesValue("sonstigeNotizen"),
+
+    gespeichert_am: new Date().toISOString()
+  };
+}
+
+async function finishBesichtigung(mode) {
+  if (mode === "senden") {
+    const tageslisteId = kgBesValue("besichtigungTageslisteIdInput");
+
+    if (!tageslisteId || tageslisteId === "0") {
+      alert("Önce Besichtigung listesinden bir firma seçip Start bas.");
+      return;
+    }
+
+        const btn = document.querySelector(".btn-senden");
+    const oldText = btn ? btn.textContent : "";
+
+    if (btn) {
+      btn.textContent = "Wird gesendet...";
+      btn.disabled = true;
+    }
+
+    try {
+      const response = await fetch("/datenbank/angebot-senden", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          id: Number(tageslisteId),
+          besichtigung_data_json: buildBesichtigungData()
+        })
+      });
+
+      const data = await response.json();
+
+      if (!data.ok) {
+        throw new Error(data.message || "Angebot konnte nicht erstellt werden.");
+      }
+
+      const b = data.berechnung || {};
+
+      alert(
+        "Angebot wurde erstellt ✓\n\n" +
+        "Angebot Nr: AN-" + (data.angebot_nr || "") + "\n" +
+        "Wurde in die Angebot Warteliste verschoben."
+      );
+
+      if (btn) {
+        btn.textContent = "Gesendet ✓";
+        btn.disabled = true;
+      }
+
+      window.location.href = "/besichtigung";
+      return;
+
+    } catch (err) {
+      alert("Angebot Senden Fehler: " + err.message);
+
+      if (btn) {
+        btn.textContent = oldText;
+        btn.disabled = false;
+      }
+    }
+
+    return;
+  }
+  const btn = document.querySelector(".btn-speichern");
+  const tageslisteId = kgBesValue("besichtigungTageslisteIdInput");
+
+  if (!tageslisteId || tageslisteId === "0") {
+    alert("Önce Besichtigung listesinden bir firma seçip Start bas.");
+    return;
+  }
+
+  const oldText = btn ? btn.textContent : "";
 
   if (btn) {
-    const oldText = btn.textContent;
-    btn.textContent = mode === "senden" ? "Wird gesendet..." : "Wird gespeichert...";
+    btn.textContent = "Wird gespeichert...";
     btn.disabled = true;
+  }
 
-    setTimeout(() => {
-      btn.textContent = mode === "senden" ? "Gesendet ✓" : "Gespeichert ✓";
+  try {
+    const response = await fetch("/datenbank/tagesliste-status", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        id: Number(tageslisteId),
+        status: "besichtigung",
+        besichtigung_data_json: buildBesichtigungData()
+      })
+    });
 
+    const data = await response.json();
+
+    if (!data.ok) {
+      throw new Error(data.message || "Besichtigung konnte nicht gespeichert werden.");
+    }
+
+        const previewResponse = await fetch("/datenbank/angebot-preview", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        id: Number(tageslisteId),
+        besichtigung_data_json: buildBesichtigungData()
+      })
+    });
+
+    const previewData = await previewResponse.json();
+    const b = previewData.berechnung || {};
+
+        const detailLines = Array.isArray(b.details)
+      ? b.details.map(d => {
+          return "- " +
+            (d.bereich || "") +
+            ": " +
+            (d.m2 || 0) + " m² | " +
+            (d.frequenz || 0) + "x/Woche | " +
+            (d.monat_stunden || 0) + " Std./Monat";
+        }).join("\n")
+      : "";
+
+    alert(
+      "Gespeichert ✓\n\n" +
+      "DETAILS:\n" +
+      (detailLines || "Keine Details berechnet.") +
+      "\n\n" +
+      "Monatliche Stunden: " + (b.monat_stunden || 0) + "\n" +
+      "Stundensatz: " + (b.stundensatz || 0) + " €\n" +
+      "Netto: " + (b.preis_1 || "0,00 €")
+    );
+
+    if (btn) {
+      btn.textContent = "Gespeichert ✓";
       setTimeout(() => {
         btn.textContent = oldText;
         btn.disabled = false;
-        resetBesichtigungMaske();
-      }, 900);
-    }, 700);
-  } else {
-    resetBesichtigungMaske();
+      }, 1200);
+    }
+
+  } catch (err) {
+    alert("Speichern Fehler: " + err.message);
+
+    if (btn) {
+      btn.textContent = oldText;
+      btn.disabled = false;
+    }
   }
 }
 
+function kgRestoreParseJson(raw) {
+  if (!raw) return {};
+  if (typeof raw === "object") return raw;
+
+  try {
+    return JSON.parse(raw);
+  } catch (e) {
+    return {};
+  }
+}
+
+function kgRestoreClean(value) {
+  return String(value || "")
+    .replace(/\s+/g, " ")
+    .replace(" Details", "")
+    .trim();
+}
+
+function kgRestoreServiceTitle(value) {
+  const text = kgRestoreClean(value);
+
+  if (!text) return "";
+  if (text.toLowerCase() === "leistungen") return "";
+  if (text.toLowerCase() === "elemente") return "";
+  if (text.toLowerCase() === "sonstiges") return "";
+
+  return text;
+}
+
+function kgRestoreSetSelectValue(select, value) {
+  if (!select || !value) return;
+
+  const target = kgRestoreClean(value).toLowerCase();
+
+  Array.from(select.options || []).forEach(opt => {
+    const optText = kgRestoreClean(opt.textContent || opt.value).toLowerCase();
+    const optValue = kgRestoreClean(opt.value).toLowerCase();
+
+    if (optText === target || optValue === target) {
+      select.value = opt.value;
+    }
+  });
+}
+
+function kgRestoreFindRoomWrapper(keys) {
+  const wrappers = Array.from(document.querySelectorAll(".room-group-wrapper"));
+
+  return wrappers.find(wrapper => {
+    const text = kgRestoreClean(wrapper.textContent).toLowerCase();
+    return keys.some(k => text.includes(k));
+  });
+}
+
+function kgRestoreSetGroupFrequency(wrapper, freq) {
+  if (!wrapper || !freq) return;
+
+  wrapper.querySelectorAll(".unterhalt-top-field").forEach(field => {
+    const label = kgRestoreClean(field.querySelector("label")?.textContent || "").toLowerCase();
+    const select = field.querySelector("select");
+
+    if (select && label.includes("häufig")) {
+      kgRestoreSetSelectValue(select, freq);
+    }
+  });
+}
+
+function kgRestoreCreateRoomEntry(wrapper, row) {
+  if (!wrapper || !row) return;
+
+  const typ = kgRestoreClean(row.typ || "").toLowerCase();
+  const name = kgRestoreClean(row.name || "");
+  const m2 = kgRestoreClean(row.m2 || "");
+  const freq = kgRestoreClean(row.haeufigkeit || "");
+
+  let createdEntry = null;
+  if (typ.includes("büro") || typ.includes("buero") || typ.includes("serverraum") || name.toLowerCase().includes("büro") || name.toLowerCase().includes("büroraum") || name.toLowerCase().includes("besprechungsraum") || name.toLowerCase().includes("serverraum")) {
+    let baseLabel = name.replace(/\s+\d+$/g, "").trim();
+
+    if (!baseLabel) {
+      baseLabel = "Büroraum";
+    }
+
+    const btn = wrapper.querySelector(".room-choice-btn") || wrapper.querySelector(".room-mini-box");
+
+    if (btn) {
+      addRoomEntry(btn, baseLabel);
+      createdEntry = wrapper.querySelector(".room-list-container .room-entry:last-child");
+    }
+  } else {
+    let areaLabel = "";
+
+    if (typ.includes("wc") || name.toLowerCase().includes("wc")) {
+      areaLabel = "WC";
+    } else if (typ.includes("küche") || typ.includes("kueche") || name.toLowerCase().includes("küche")) {
+      areaLabel = "Küche";
+    } else if (typ.includes("flur") || name.toLowerCase().includes("flur")) {
+      areaLabel = "Flur";
+    }
+
+    const btn = wrapper.querySelector(".room-mini-box");
+
+    if (btn && areaLabel) {
+      addAreaRow(btn, areaLabel);
+      createdEntry = wrapper.querySelector(".room-list-container .room-entry:last-child");
+    }
+  }
+
+  if (createdEntry) {
+    const target = createdEntry.querySelector(".measure-target");
+    if (target && m2) {
+      target.textContent = m2;
+      calculateGroupTotalM2(target);
+    }
+  }
+
+  kgRestoreSetGroupFrequency(wrapper, freq);
+}
+
+
+function kgRestoreSonstigesFields(savedRows) {
+  const box = document.getElementById("sonstigesBox");
+  if (!box) return;
+
+  const rows = Array.isArray(savedRows) ? savedRows : [];
+  if (!rows.length) return;
+
+  box.style.display = "block";
+
+  const fields = Array.from(box.querySelectorAll(".unterhalt-top-field"));
+
+  rows.forEach((item, index) => {
+    if (!item || typeof item !== "object") return;
+
+    const field = fields[index];
+    if (!field) return;
+
+    const values = Array.isArray(item.values) ? item.values : [];
+    const active = Array.isArray(item.active) ? item.active : [];
+
+    const select = field.querySelector("select");
+    if (select && values.length) {
+      kgRestoreSetSelectValue(select, values[0]);
+      select.dispatchEvent(new Event("change", { bubbles: true }));
+    }
+
+    field.querySelectorAll(".device-toggle-btn").forEach(btn => {
+      const text = kgRestoreClean(btn.textContent);
+      if (active.includes(text)) {
+        btn.classList.add("active");
+      }
+    });
+  });
+}
+
+function kgRestoreEinsatzzeiten(rows) {
+  const box = document.getElementById("sonstigesBox");
+  if (!box) return;
+
+  rows = Array.isArray(rows) ? rows : [];
+  if (!rows.length) return;
+
+  box.style.display = "block";
+
+  const einsatzLabel = Array.from(box.querySelectorAll("label"))
+    .find(label => kgRestoreClean(label.textContent).toLowerCase().includes("einsatztage"));
+
+  const einsatzBlock = einsatzLabel ? einsatzLabel.parentElement : null;
+  if (!einsatzBlock) return;
+
+  einsatzBlock.querySelectorAll(".device-toggle-btn").forEach(btn => {
+    const tag = kgRestoreClean(btn.textContent || "");
+    const saved = rows.find(r => kgRestoreClean(r && r.tag) === tag);
+
+    if (!saved) {
+      btn.classList.remove("active");
+
+      const closedBox = btn.nextElementSibling;
+      if (closedBox) closedBox.style.display = "none";
+
+      return;
+    }
+
+    btn.classList.add("active");
+
+    const timeBox = btn.nextElementSibling;
+    if (timeBox) {
+      timeBox.style.display = "flex";
+
+      const timeInput = timeBox.querySelector("input[type='time']");
+      if (timeInput && saved.uhrzeit) {
+        timeInput.value = kgRestoreClean(saved.uhrzeit);
+      }
+    }
+  });
+}
+function kgRestoreSavedBesichtigungData(lead) {
+  const data = kgRestoreParseJson(lead && lead.besichtigung_data_json);
+
+  if (!data || typeof data !== "object" || Object.keys(data).length === 0) {
+    return;
+  }
+
+  document.querySelectorAll("#sortableSections > .card.sortable-section").forEach(box => {
+    if (box.id === "leistungenBox" || box.id === "elementeBox" || box.id === "sonstigesBox") {
+      box.style.display = "none";
+    } else {
+      box.remove();
+    }
+  });
+
+  const leistungen = Array.isArray(data.leistungen)
+    ? data.leistungen.map(kgRestoreServiceTitle).filter(Boolean)
+    : [];
+
+  if (leistungen.length) {
+    const leistungenBox = document.getElementById("leistungenBox");
+    if (leistungenBox) leistungenBox.style.display = "block";
+
+    leistungen.forEach(title => {
+      addServiceBox(title);
+    });
+  }
+
+  const elemente = data.elemente || {};
+  if (elemente && typeof elemente === "object") {
+    const elementeBox = document.getElementById("elementeBox");
+    if (elementeBox) elementeBox.style.display = "block";
+
+    setText("a", elemente.arbeitstische || "0");
+    setText("b", elemente.pc_monitor || "0");
+    setText("c", elemente.muellbehaelter || "0");
+  }
+
+    const sonstigesBox = document.getElementById("sonstigesBox");
+  const sonstiges = Array.isArray(data.sonstiges) ? data.sonstiges : [];
+  const einsatzzeiten = Array.isArray(data.einsatzzeiten) ? data.einsatzzeiten : [];
+
+  if (sonstiges.length || einsatzzeiten.length || data.notiz) {
+    if (sonstigesBox) sonstigesBox.style.display = "block";
+  }
+
+  kgRestoreSonstigesFields(sonstiges);
+  kgRestoreEinsatzzeiten(einsatzzeiten);
+
+  if (data.notiz) {
+    setValue("sonstigeNotizen", data.notiz || "");
+  }
+
+  sonstiges.forEach(item => {
+    const label = kgRestoreClean(item.label || "").toLowerCase();
+    const values = Array.isArray(item.values) ? item.values : [];
+
+    if ((label.includes("start") || label.includes("beginn")) && values.length) {
+      setValue("startTerminInput", values[0] || "");
+    }
+  });
+
+  setTimeout(() => {
+    const raeume = Array.isArray(data.raeume) ? data.raeume : [];
+
+    const bueroWrapper = kgRestoreFindRoomWrapper(["büro", "buro", "buero", "büroräume"]);
+    const wcWrapper = kgRestoreFindRoomWrapper(["wc", "sanitär", "sanitaer"]);
+    const kuecheWrapper = kgRestoreFindRoomWrapper(["küche", "kueche"]);
+    const flurWrapper = kgRestoreFindRoomWrapper(["flur"]);
+
+    raeume.forEach(row => {
+      const text = kgRestoreClean((row.typ || "") + " " + (row.name || "")).toLowerCase();
+
+      if (text.includes("büro") || text.includes("buero") || text.includes("büroraum") || text.includes("besprechungsraum") ||        text.includes("serverraum")) {
+        kgRestoreCreateRoomEntry(bueroWrapper, row);
+      } else if (text.includes("wc")) {
+        kgRestoreCreateRoomEntry(wcWrapper, row);
+      } else if (text.includes("küche") || text.includes("kueche")) {
+        kgRestoreCreateRoomEntry(kuecheWrapper, row);
+      } else if (text.includes("flur")) {
+        kgRestoreCreateRoomEntry(flurWrapper, row);
+      }
+    });
+  }, 250);
+}
 function resetBesichtigungMaske() {
   aktiveBesichtigung = null;
 
@@ -914,7 +1506,8 @@ function resetBesichtigungMaske() {
   setText("besichtigungAnsprechpartnerText", "");
   setText("besichtigungTerminText", "—");
 
-  [
+    [
+    "besichtigungTageslisteIdInput",
     "besichtigungFirmaInput",
     "besichtigungKundeInput",
     "besichtigungAnsprechpartnerInput",
