@@ -1400,8 +1400,8 @@ def register_app2_routes(app, login_required):
                 for job in pdf_jobs:
                     page.goto(
                         job["url"],
-                        wait_until="networkidle",
-                        timeout=45000
+                        wait_until="domcontentloaded",
+                        timeout=20000
                     )
                     page.emulate_media(media="print")
 
