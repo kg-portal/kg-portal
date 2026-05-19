@@ -1,7 +1,19 @@
+{% set kg_print = request.args.get("print") == "1" %}
+{% if not kg_print %}
 {% extends "base.html" %}
+{% endif %}
 {% block content %}
 
+{% if kg_print %}
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<title>Angebot AN-{{Nr}}</title>
+{% endif %}
+
 <style>
+
 * { box-sizing: border-box; }
 
 html {
@@ -548,42 +560,54 @@ body {
     * {
         -webkit-print-color-adjust: exact !important;
         print-color-adjust: exact !important;
+        box-shadow: none !important;
     }
 
-    html, body {
-        width: 210mm;
+    html,
+    body {
         margin: 0 !important;
         padding: 0 !important;
+        width: 210mm !important;
         background: #ffffff !important;
-    }
-
-    body {
-        display: block !important;
+        overflow: visible !important;
     }
 
     .document {
-        width: 210mm;
-        margin: 0;
-        padding: 0;
+        width: 210mm !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        background: #ffffff !important;
+        display: block !important;
     }
 
     .page {
         width: 210mm !important;
-        height: 297mm !important;
+        height: 296.8mm !important;
+        min-height: 296.8mm !important;
+        max-height: 296.8mm !important;
         margin: 0 !important;
-        box-shadow: none !important;
+        padding: 0 !important;
         border: none !important;
         overflow: hidden !important;
-        page-break-after: always !important;
-        break-after: page !important;
-    }
-
-    .page:last-child {
         page-break-after: auto !important;
         break-after: auto !important;
+        page-break-before: auto !important;
+        break-before: auto !important;
+    }
+
+    .page:not(:first-child) {
+        page-break-before: always !important;
+        break-before: page !important;
     }
 }
+
+
 </style>
+
+{% if kg_print %}
+</head>
+<body>
+{% endif %}
 
 <div class="document">
     <!-- PAGE 1 -->
@@ -626,7 +650,7 @@ body {
                     <div class="highlight-box">
                         <div class="line">
                             <span>Kunde</span>
-                            <p>{{Kunde}}<br>{{Objekt}}</p>
+                            <p>{{Kunde|safe}}<br>{{Objekt}}</p>
                         </div>
                     </div>
 
@@ -740,26 +764,25 @@ body {
                 <p>Gerne unterbreiten wir Ihnen das gewünschte Angebot:</p>
 
                 <div class="leistungs-list">
-                    <div class="leistung-row">
-    <div>Leistung 1: {{Leistung_1}}</div>
-    <div class="right">{{Einheiten_1}} &nbsp;&nbsp;&nbsp; {{Preis_1}}</div>
+                <div class="leistung-row">
+    <div>Leistung 1: {{Leistung_1 or "-"}}</div>
+    <div class="right">{{Einheiten_1 or "-"}} &nbsp;&nbsp;&nbsp; {{Preis_1 or "-"}}</div>
 </div>
 
 <div class="leistung-row">
-    <div>Leistung 2: {{Leistung_2}}</div>
-    <div class="right">{{Einheiten_2}} &nbsp;&nbsp;&nbsp; {{Preis_2}}</div>
+    <div>Leistung 2: {{Leistung_2 or "-"}}</div>
+    <div class="right">{{Einheiten_2 or "-"}} &nbsp;&nbsp;&nbsp; {{Preis_2 or "-"}}</div>
 </div>
 
 <div class="leistung-row">
-    <div>Leistung 3: {{Leistung_3}}</div>
-    <div class="right">{{Einheiten_3}} &nbsp;&nbsp;&nbsp; {{Preis_3}}</div>
+    <div>Leistung 3: {{Leistung_3 or "-"}}</div>
+    <div class="right">{{Einheiten_3 or "-"}} &nbsp;&nbsp;&nbsp; {{Preis_3 or "-"}}</div>
 </div>
 
 <div class="leistung-row">
-    <div>Leistung 4: {{Leistung_4}}</div>
-    <div class="right">{{Einheiten_4}} &nbsp;&nbsp;&nbsp; {{Preis_4}}</div>
+    <div>Leistung 4: {{Leistung_4 or "-"}}</div>
+    <div class="right">{{Einheiten_4 or "-"}} &nbsp;&nbsp;&nbsp; {{Preis_4 or "-"}}</div>
 </div>
-
                     <div class="info-line">
                         zzgl. gesetzlicher MwSt.
                     </div>
@@ -896,5 +919,22 @@ body {
     </div>
 
 </div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const params = new URLSearchParams(window.location.search);
+
+    if (params.get("print") === "1") {
+        setTimeout(function () {
+            window.print();
+        }, 600);
+    }
+});
+</script>
+
+{% if kg_print %}
+</body>
+</html>
+{% endif %}
 
 {% endblock %}
