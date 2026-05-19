@@ -38,15 +38,19 @@ html,body{margin:0;padding:0;width:100%;min-height:100%;font-family:Arial,Helvet
 .sender-preview span{color:#64748b;font-weight:700;}
 .template-hidden-select{display:none !important;}
 .template-choice-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.angebot-choice-grid{display:none;grid-template-columns:1fr;gap:12px;}
+body.angebot-mail-mode .template-choice-grid{display:none;}
+body.angebot-mail-mode .angebot-choice-grid{display:grid;}
 .template-box{border:1px solid #dbe3ef;background:linear-gradient(180deg,#ffffff 0%,#f8fbff 100%);border-radius:16px;padding:13px;display:grid;gap:10px;}
 .template-title{font-size:21px;line-height:1.18;font-weight:900;color:#183a91;text-align:center;letter-spacing:.3px;}
 .template-title.besichtigung-title{color:#16a34a;}
 .template-title.kontaktdaten-title{color:#7e22ce;}
+.template-title.angebot-title{color:#1d4ed8;}
 .template-options{display:grid;grid-template-columns:1fr;gap:8px;}
 .template-btn{border:1px solid #bfdbfe;background:#eff6ff;color:#1d4ed8;border-radius:12px;padding:11px 10px;font-size:12px;line-height:1.2;font-weight:900;cursor:pointer;font-family:Arial,Helvetica,sans-serif;text-align:center;}
 .template-btn:hover{background:#dbeafe;}
 .template-btn.active{background:linear-gradient(135deg,#183a91 0%,#2563eb 100%);border-color:#2563eb;color:#ffffff;box-shadow:0 10px 20px rgba(37,99,235,.16);}
-@media(max-width:700px){.mini-mail-page{padding:10px;}.two-grid{grid-template-columns:1fr;}.template-choice-grid{grid-template-columns:1fr;}.mini-mail-head,.mini-mail-body,.mini-mail-actions{padding-left:16px;padding-right:16px;}}
+@media(max-width:700px){.mini-mail-page{padding:10px;}.two-grid{grid-template-columns:1fr;}.template-choice-grid,.angebot-choice-grid{grid-template-columns:1fr;}.mini-mail-head,.mini-mail-body,.mini-mail-actions{padding-left:16px;padding-right:16px;}}
 </style>
 </head>
 <body>
@@ -58,11 +62,12 @@ html,body{margin:0;padding:0;width:100%;min-height:100%;font-family:Arial,Helvet
         </div>
         <div class="mini-mail-body">
             <div class="info-card">Dieser Bereich ist nur zum Vorbereiten und Senden der Terminbestätigung gedacht.</div>
+            <div id="angebotAttachmentPreview" class="info-card" style="display:none;"></div>
             <div class="two-grid">
-                <div class="field"><label>Absender</label><select id="mailFrom"><option value="info@kg-reinigung.de">Damla Kicci &lt;info@kg-reinigung.de&gt;</option><option value="m.kicci@kg-reinigung.de">Murat Kicci &lt;m.kicci@kg-reinigung.de&gt;</option><option value="rechnung@kg-reinigung.de">KG Rechnung &lt;rechnung@kg-reinigung.de&gt;</option><option value="bestellung@kg-reinigung.de">KG Bestellung &lt;bestellung@kg-reinigung.de&gt;</option></select></div>
+                <div class="field"><label>Absender</label><select id="mailFrom"><option value="info@kg-reinigung.de">KG-Gebäudereinigung &lt;info@kg-reinigung.de&gt;</option><option value="m.kicci@kg-reinigung.de">Murat Kicci &lt;m.kicci@kg-reinigung.de&gt;</option><option value="rechnung@kg-reinigung.de">KG Rechnung &lt;rechnung@kg-reinigung.de&gt;</option><option value="bestellung@kg-reinigung.de">KG Bestellung &lt;bestellung@kg-reinigung.de&gt;</option></select></div>
                 <div class="field"><label>Empfänger</label><input id="mailTo" type="email" value="{{ empfaenger|default('') }}" placeholder="kunde@email.de" list="mailToHistory"><datalist id="mailToHistory"></datalist></div>
             </div>
-            <div class="sender-preview">Anzeige im Postfach: <strong>Damla Kicci</strong> <span>&lt;info@kg-reinigung.de&gt;</span></div>
+            <div class="sender-preview">Anzeige im Postfach: <strong>KG-Gebäudereinigung</strong> <span>&lt;info@kg-reinigung.de&gt;</span></div>
             <div class="field">
                 <label>Mailvorlage / Anrede</label>
                 <select id="mailTemplate" onchange="buildDefaultMail()" class="template-hidden-select">
@@ -73,6 +78,9 @@ html,body{margin:0;padding:0;width:100%;min-height:100%;font-family:Arial,Helvet
                     <option value="kontakt-person-herr">Kontaktdaten · Mit Ansprechpartner / Herr</option>
                     <option value="kontakt-person-frau">Kontaktdaten · Mit Ansprechpartner / Frau</option>
                     <option value="kontakt-firma">Kontaktdaten · Allgemeine Anrede</option>
+<option value="angebot-person-herr">Angebot · Mit Ansprechpartner / Herr</option>
+<option value="angebot-person-frau">Angebot · Mit Ansprechpartner / Frau</option>
+<option value="angebot-firma">Angebot · Allgemeine Anrede</option>
                 </select>
                 <div class="template-choice-grid">
                     <div class="template-box">
@@ -90,6 +98,17 @@ html,body{margin:0;padding:0;width:100%;min-height:100%;font-family:Arial,Helvet
                             <button type="button" class="template-btn" data-template="kontakt-person-frau" onclick="selectMailTemplate('kontakt-person-frau',this)">Mit Ansprechpartner / Frau</button>
                             <button type="button" class="template-btn" data-template="kontakt-firma" onclick="selectMailTemplate('kontakt-firma',this)">Allgemeine Anrede</button>
                         </div>
+                                        </div>
+                </div>
+
+                <div class="angebot-choice-grid">
+                    <div class="template-box">
+                        <div class="template-title angebot-title">ANGEBOT</div>
+                        <div class="template-options">
+                            <button type="button" class="template-btn" data-template="angebot-person-herr" onclick="selectMailTemplate('angebot-person-herr',this)">Mit Ansprechpartner / Herr</button>
+                            <button type="button" class="template-btn" data-template="angebot-person-frau" onclick="selectMailTemplate('angebot-person-frau',this)">Mit Ansprechpartner / Frau</button>
+                            <button type="button" class="template-btn" data-template="angebot-firma" onclick="selectMailTemplate('angebot-firma',this)">Allgemeine Anrede</button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -101,7 +120,32 @@ html,body{margin:0;padding:0;width:100%;min-height:100%;font-family:Arial,Helvet
     </div>
 </div>
 <script>
-const miniData={empfaenger:"{{ empfaenger|default('') }}",firma:"{{ firma|default('') }}",ansprechpartner:"{{ ansprechpartner|default('') }}",datum:"{{ datum|default('') }}",uhrzeit:"{{ uhrzeit|default('') }}",adresse:"{{ adresse|default('') }}",ort:"{{ ort|default('') }}",telefon:"{{ telefon|default('') }}",modus:new URLSearchParams(window.location.search).get('modus')||''};
+const miniData={
+    empfaenger:"{{ empfaenger|default('') }}",
+    firma:"{{ firma|default('') }}",
+    ansprechpartner:"{{ ansprechpartner|default('') }}",
+    datum:"{{ datum|default('') }}",
+    uhrzeit:"{{ uhrzeit|default('') }}",
+    adresse:"{{ adresse|default('') }}",
+    ort:"{{ ort|default('') }}",
+    telefon:"{{ telefon|default('') }}",
+
+    modus:"{{ modus|default('') }}",
+    angebotId:"{{ angebot_id|default('') }}",
+    angebotNr:"{{ angebot_nr|default('') }}",
+    angebotDatum:"{{ angebot_datum|default('') }}",
+    angebotNetto:"{{ angebot_netto|default('') }}",
+    leistungsart:"{{ leistungsart|default('') }}"
+};
+
+function closeMiniMail(){
+    if(window.parent && window.parent !== window){
+        window.parent.postMessage({type:'kg-mail-mini-close'}, '*');
+        return;
+    }
+
+    window.close();
+}
 function safeText(value){let text=String(value||'').trim();if(text.includes('{{')||text.includes('}}'))return '';return text;}
 function escapeHtml(value){return String(value||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;');}
 function getPreviewLogoSrc(){if(window.location.protocol==='file:'){return '../static/KG Yeni Logo.png';}return window.location.origin+'/static/KG%20Yeni%20Logo.png';}
@@ -115,6 +159,57 @@ function selectMailTemplate(value,btn){const select=document.getElementById('mai
 function buildDefaultMail(){const template=document.getElementById('mailTemplate').value;if(!template){clearMailFields();refreshTemplateButtons();return;}refreshTemplateButtons();
 const firma=escapeHtml(safeText(miniData.firma)||'[Firma]');const ansprechpartner=escapeHtml(safeText(miniData.ansprechpartner)||'[Ansprechpartner]');const datum=escapeHtml(safeText(miniData.datum)||'[Datum]');const uhrzeit=escapeHtml(safeText(miniData.uhrzeit)||'[Uhrzeit]');const adresse=escapeHtml(safeText(miniData.adresse)||'[Straße / Hausnummer]');const ort=escapeHtml(safeText(miniData.ort)||'[PLZ Stadt]');const telefon=escapeHtml(safeText(miniData.telefon));const previewLogoSrc=getPreviewLogoSrc();const mailLogoSrc=getMailLogoSrc();
 document.getElementById('mailSubject').value='Terminbestätigung - '+firma;let anrede='Sehr geehrte Damen und Herren,';if(template==='person-herr'){anrede='Sehr geehrter '+ansprechpartner+',';}if(template==='person-frau'){anrede='Sehr geehrte '+ansprechpartner+',';}let telefonZeile='';if(telefon){telefonZeile='<br><strong>Tel.: '+telefon+'</strong>';}
+
+if(template==='angebot-person-herr'||template==='angebot-person-frau'||template==='angebot-firma'){
+const rawAp=safeText(miniData.ansprechpartner);
+const apText=escapeHtml(rawAp||'[Ansprechpartner]');
+let angebotAnrede='Sehr geehrte Damen und Herren,';
+
+if(template==='angebot-person-herr'){angebotAnrede='Sehr geehrter '+apText+',';}
+if(template==='angebot-person-frau'){angebotAnrede='Sehr geehrte '+apText+',';}
+
+const angebotNr=escapeHtml(safeText(miniData.angebotNr)||'[Angebotsnummer]');
+const angebotDatum=escapeHtml(safeText(miniData.angebotDatum)||'[Datum]');
+const angebotNetto=escapeHtml(safeText(miniData.angebotNetto)||'');
+const leistungsart=escapeHtml(safeText(miniData.leistungsart)||'Reinigungsdienstleistung');
+
+document.getElementById('mailSubject').value='Ihr Angebot '+angebotNr+' - '+firma;
+
+let nettoLine=angebotNetto?'<br><strong>Netto: '+angebotNetto+'</strong>':'';
+
+const angebotHtml=`
+<p>${angebotAnrede}</p>
+
+<p>vielen Dank für das angenehme Gespräch im Rahmen des Besichtigungstermins.</p>
+
+<p>Wie besprochen, erhalten Sie anbei unser detailliertes Angebot sowie das dazugehörige Leistungsverzeichnis für die professionelle Reinigung Ihrer Büroräumlichkeiten.</p>
+
+<p>Wir haben den Leistungsumfang und die Einsatzplanung sorgfältig auf Ihre Anforderungen abgestimmt, um eine gleichbleibend hohe, zuverlässige und diskrete Ausführung zu gewährleisten.</p>
+
+<p>Sollte Ihnen das Angebot zusagen, können Sie uns die unterzeichnete Bestätigung auf Seite 3 gerne per E-Mail zurücksenden.</p>
+
+<p>Über Ihre Rückmeldung innerhalb der nächsten 7 Tage würden wir uns sehr freuen.</p>
+
+<p>Wir freuen uns auf eine erfolgreiche und langfristige Zusammenarbeit.</p>
+
+<p>Mit freundlichen Grüßen</p>
+<p>--<br>Damla Kicci<br>-Inhaberin-</p>
+<p>KG-Gebäudereinigung<br>Fliederstr. 59<br>47055 Duisburg - Wanheimerort</p>
+<p>0203 / 47 96 68 22<br>0163 / 194 70 55</p>
+<p><a class="kg-blue-link" href="mailto:info@kg-reinigung.de">info@kg-reinigung.de</a><br><a class="kg-blue-link" href="https://www.kg-reinigung.de" target="_blank">www.kg-reinigung.de</a></p>
+<img class="kg-signature-logo" src="${mailLogoSrc}" data-preview-src="${previewLogoSrc}" width="125" style="display:block;margin:14px 0 0 0;padding:0;width:125px;max-width:125px;height:auto;border:0;outline:none;text-decoration:none;" alt="KG-Gebäudereinigung Logo">`;
+
+document.getElementById('mailMessage').innerHTML=angebotHtml;
+
+const angebotPreviewLogo=document.querySelector('#mailMessage .kg-signature-logo');
+if(angebotPreviewLogo){
+    angebotPreviewLogo.setAttribute('src',angebotPreviewLogo.getAttribute('data-preview-src')||'');
+}
+
+setStatus('Angebot-Mail vorbereitet.','ok');
+return;
+}
+
 if(template==='kontakt-person-herr'||template==='kontakt-person-frau'||template==='kontakt-firma'){
 document.getElementById('mailSubject').value='Kontaktdaten - KG-Gebäudereinigung';const rawAp=safeText(miniData.ansprechpartner);const apText=escapeHtml(rawAp||'[Ansprechpartner]');let kontaktAnrede='Sehr geehrte Damen und Herren,';if(template==='kontakt-person-herr'){kontaktAnrede='Sehr geehrter '+apText+',';}if(template==='kontakt-person-frau'){kontaktAnrede='Sehr geehrte '+apText+',';}
 const kontaktHtml=`
@@ -150,14 +245,161 @@ const mailHtml=`
 <img class="kg-signature-logo" src="${mailLogoSrc}" data-preview-src="${previewLogoSrc}" width="125" style="display:block;margin:14px 0 0 0;padding:0;width:125px;max-width:125px;height:auto;border:0;outline:none;text-decoration:none;" alt="KG-Gebäudereinigung Logo">`;
 document.getElementById('mailMessage').innerHTML=mailHtml;const previewLogo=document.querySelector('#mailMessage .kg-signature-logo');if(previewLogo){previewLogo.setAttribute('src',previewLogo.getAttribute('data-preview-src')||'');}setStatus('','');}
 function setStatus(text,type){const el=document.getElementById('mailStatus');el.textContent=text||'';el.className='status-line'+(type?' '+type:'');}
-function closeMiniMail(){if(window.parent&&window.parent!==window){window.parent.postMessage({type:'kg-mail-mini-close'},'*');}else{window.close();}}
-function printMiniMail(){const subject=document.getElementById('mailSubject').value||'Terminbestätigung';const to=document.getElementById('mailTo').value||'';const fromText=document.getElementById('mailFrom').selectedOptions[0]?document.getElementById('mailFrom').selectedOptions[0].textContent:'Damla Kicci <info@kg-reinigung.de>';const messageBox=document.getElementById('mailMessage');let messageHtml=messageBox.innerHTML||'';const messageText=messageBox.innerText||'';const previewSrc=getPreviewLogoSrc();messageHtml=messageHtml.replace(/src="cid:kg-logo"/g,'src="'+previewSrc+'"');messageHtml=messageHtml.replace(/data-preview-src="[^"]*"/g,'');if(!messageText.trim()){setStatus('Nachricht fehlt. Bitte zuerst eine Mailvorlage auswählen.','err');return;}const printWindow=window.open('','_blank','width=900,height=1100');if(!printWindow){setStatus('Druckfenster konnte nicht geöffnet werden.','err');return;}printWindow.document.open();printWindow.document.write(`<!DOCTYPE html><html lang="de"><head><meta charset="UTF-8"><title>${escapeHtml(subject)}</title><style>@page{size:A4;margin:14mm 16mm 14mm 16mm;}*{box-sizing:border-box;}body{margin:0;background:#f8fafc;color:#111827;font-family:Arial,Helvetica,sans-serif;font-size:10.8pt;line-height:1.62;}.print-page{width:100%;max-width:185mm;min-height:257mm;margin:24px auto;padding:6mm 18mm 18mm 18mm;background:#ffffff;}.print-head{border-bottom:1px solid #dbe3ef;padding-bottom:11px;margin-bottom:18px;}.print-title{margin:0 0 8px 0;font-size:14pt;line-height:1.25;font-weight:800;color:#183a91;}.print-meta{display:grid;gap:4px;font-size:9.6pt;line-height:1.35;color:#475569;}.print-meta strong{color:#111827;}.print-body{width:100%;}.print-body p{margin:0 0 13px 0;}.print-body p[style]{margin-bottom:22px !important;}.print-body strong{font-weight:800;}.print-body a{color:#2563eb;text-decoration:none;}.print-body img,.print-body .kg-signature-logo{display:block !important;margin:13px auto 0 0 !important;padding:0 !important;width:125px;max-width:100%;height:auto;text-align:left !important;float:none !important;}.print-actions{position:fixed;right:18px;top:18px;display:flex;gap:8px;}.print-actions button{border:none;border-radius:10px;padding:10px 14px;font-size:13px;font-weight:800;cursor:pointer;}.print-btn{background:#183a91;color:#ffffff;}.close-btn-print{background:#f1f5f9;color:#334155;}@media print{body{background:#ffffff;}.print-actions{display:none;}.print-page{max-width:none;min-height:auto;margin:0;padding:0;}}</style></head><body><div class="print-actions"><button class="close-btn-print" onclick="window.close()">Schließen</button><button class="print-btn" onclick="window.print()">Drucken</button></div><div class="print-page"><div class="print-head"><h1 class="print-title">${escapeHtml(subject)}</h1><div class="print-meta"><div><strong>Von:</strong> ${escapeHtml(fromText)}</div><div><strong>An:</strong> ${escapeHtml(to||'[Empfänger]')}</div></div></div><div class="print-body">${messageHtml}</div></div></body></html>`);printWindow.document.close();printWindow.focus();}
+function closeMiniMail(){
+    if(window.parent && window.parent !== window){
+        try{
+            if(typeof window.parent.closeAngebotMailInterface === 'function'){
+                window.parent.closeAngebotMailInterface();
+                return;
+            }
+        }catch(e){}
+
+        window.parent.postMessage({type:'kg-mail-mini-close'}, '*');
+        return;
+    }
+
+    window.close();
+}
+function printMiniMail(existingWindow){const subject=document.getElementById('mailSubject').value||'Terminbestätigung';const to=document.getElementById('mailTo').value||'';const fromText=document.getElementById('mailFrom').selectedOptions[0]?document.getElementById('mailFrom').selectedOptions[0].textContent:'Damla Kicci <info@kg-reinigung.de>';const messageBox=document.getElementById('mailMessage');let messageHtml=messageBox.innerHTML||'';const messageText=messageBox.innerText||'';const previewSrc=getPreviewLogoSrc();messageHtml=messageHtml.replace(/src="cid:kg-logo"/g,'src="'+previewSrc+'"');messageHtml=messageHtml.replace(/data-preview-src="[^"]*"/g,'');if(!messageText.trim()){setStatus('Nachricht fehlt. Bitte zuerst eine Mailvorlage auswählen.','err');return;}const printWindow=existingWindow||window.open('','_blank','width=900,height=1100');if(!printWindow){setStatus('Druckfenster konnte nicht geöffnet werden.','err');return;}printWindow.document.open();printWindow.document.write(`<!DOCTYPE html><html lang="de"><head><meta charset="UTF-8"><title>${escapeHtml(subject)}</title><style>@page{size:A4;margin:14mm 16mm 14mm 16mm;}*{box-sizing:border-box;}body{margin:0;background:#f8fafc;color:#111827;font-family:Arial,Helvetica,sans-serif;font-size:10.8pt;line-height:1.62;}.print-page{width:100%;max-width:185mm;min-height:257mm;margin:24px auto;padding:6mm 18mm 18mm 18mm;background:#ffffff;}.print-head{border-bottom:1px solid #dbe3ef;padding-bottom:11px;margin-bottom:18px;}.print-title{margin:0 0 8px 0;font-size:14pt;line-height:1.25;font-weight:800;color:#183a91;}.print-meta{display:grid;gap:4px;font-size:9.6pt;line-height:1.35;color:#475569;}.print-meta strong{color:#111827;}.print-body{width:100%;}.print-body p{margin:0 0 13px 0;}.print-body p[style]{margin-bottom:22px !important;}.print-body strong{font-weight:800;}.print-body a{color:#2563eb;text-decoration:none;}.print-body img,.print-body .kg-signature-logo{display:block !important;margin:13px auto 0 0 !important;padding:0 !important;width:125px;max-width:100%;height:auto;text-align:left !important;float:none !important;}.print-actions{position:fixed;right:18px;top:18px;display:flex;gap:8px;}.print-actions button{border:none;border-radius:10px;padding:10px 14px;font-size:13px;font-weight:800;cursor:pointer;}.print-btn{background:#183a91;color:#ffffff;}.close-btn-print{background:#f1f5f9;color:#334155;}@media print{body{background:#ffffff;}.print-actions{display:none;}.print-page{max-width:none;min-height:auto;margin:0;padding:0;}}</style></head><body><div class="print-actions"><button class="close-btn-print" onclick="window.close()">Schließen</button><button class="print-btn" onclick="window.print()">Drucken</button></div><div class="print-page"><div class="print-head"><h1 class="print-title">${escapeHtml(subject)}</h1><div class="print-meta"><div><strong>Von:</strong> ${escapeHtml(fromText)}</div><div><strong>An:</strong> ${escapeHtml(to||'[Empfänger]')}</div></div></div><div class="print-body">${messageHtml}</div></div></body></html>`);printWindow.document.close();printWindow.focus();}
 function blobToBase64(blob){return new Promise((resolve,reject)=>{const reader=new FileReader();reader.onloadend=function(){const result=String(reader.result||'');resolve(result.includes(',')?result.split(',')[1]:result);};reader.onerror=reject;reader.readAsDataURL(blob);});}
 async function loadStaticAttachment(url,filename,mimeType){const res=await fetch(url);if(!res.ok){throw new Error(filename+' konnte nicht aus static geladen werden.');}const blob=await res.blob();const data=await blobToBase64(blob);return{filename:filename,mimeType:mimeType,data:data};}
 async function getKontaktformularAttachments(){const selectedTemplate=document.getElementById('mailTemplate')?document.getElementById('mailTemplate').value:'';if(miniData.modus!=='kontaktformular'&&selectedTemplate!=='kontakt-person-herr'&&selectedTemplate!=='kontakt-person-frau'&&selectedTemplate!=='kontakt-firma'){return [];}return[await loadStaticAttachment('/static/KG%20Flyer%201.jpg','KG Flyer 1.jpg','image/jpeg'),await loadStaticAttachment('/static/KG%20Flyer%202.jpg','KG Flyer 2.jpg','image/jpeg')];}
-async function sendMiniMail(){const messageBox=document.getElementById('mailMessage');let messageHtml=messageBox.innerHTML||'';messageHtml=messageHtml.replace(/src="[^"]*KG%20Yeni%20Logo\.png"/g,'src="cid:kg-logo"');messageHtml=messageHtml.replace(/src="[^"]*KG Yeni Logo\.png"/g,'src="cid:kg-logo"');const messageText=messageBox.innerText||'';let automaticAttachments=[];try{automaticAttachments=await getKontaktformularAttachments();}catch(fileErr){console.log(fileErr);setStatus('Flyer-Anhang konnte nicht geladen werden. Prüfe static/KG Flyer 1.jpg und static/KG Flyer 2.jpg.','err');return;}const payload={from:document.getElementById('mailFrom').value||'info@kg-reinigung.de',to:document.getElementById('mailTo').value||'',subject:document.getElementById('mailSubject').value||'',message:'​',signature:messageHtml,attachments:automaticAttachments};if(!payload.to.trim()||payload.to.includes('{{')||payload.to.includes('}}')){setStatus('Empfänger fehlt.','err');return;}if(!payload.subject.trim()){setStatus('Betreff fehlt.','err');return;}if(!messageText.trim()){setStatus('Nachricht fehlt.','err');return;}const btn=document.getElementById('sendBtn');btn.disabled=true;setStatus('E-Mail wird gesendet...','');try{const res=await fetch('/api/gmail/send',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});const data=await res.json();if(!data.ok){setStatus(data.message||'E-Mail konnte nicht gesendet werden.','err');return;}saveMailToHistory(payload.to);setStatus('E-Mail wurde erfolgreich gesendet. Druckfenster wird geöffnet...','ok');printMiniMail();if(window.parent&&window.parent!==window){window.parent.postMessage({type:'kg-mail-mini-sent',to:payload.to,subject:payload.subject},'*');}}catch(err){console.log(err);setStatus('Gmail API Sendefehler.','err');}finally{btn.disabled=false;}}
+async function getAngebotPdfAttachments(){
+    const selectedTemplate = document.getElementById('mailTemplate')
+        ? document.getElementById('mailTemplate').value
+        : '';
+
+    const isAngebot =
+        miniData.modus === 'angebot' ||
+        selectedTemplate === 'angebot-person-herr' ||
+        selectedTemplate === 'angebot-person-frau' ||
+        selectedTemplate === 'angebot-firma';
+
+    if(!isAngebot){
+        return [];
+    }
+
+    const angebotId = safeText(miniData.angebotId);
+
+    if(!angebotId){
+        throw new Error('Angebot-ID fehlt. PDF-Anhänge konnten nicht erstellt werden.');
+    }
+
+    setStatus('Angebot und Leistungsverzeichnis werden als PDF erstellt...', '');
+
+    const res = await fetch('/api/datenbank/angebot-mail-attachments?angebot_id=' + encodeURIComponent(angebotId));
+    const data = await res.json();
+
+    if(!res.ok || !data.ok){
+        throw new Error(data.message || 'PDF-Anhänge konnten nicht erstellt werden.');
+    }
+
+    return data.attachments || [];
+}
+
+let angebotPdfAttachmentsCache = [];
+let angebotPdfObjectUrls = [];
+
+function clearAngebotPdfObjectUrls(){
+    angebotPdfObjectUrls.forEach(function(url){
+        try{ URL.revokeObjectURL(url); }catch(e){}
+    });
+    angebotPdfObjectUrls = [];
+}
+
+function openAngebotPdfAttachment(index){
+    const att = angebotPdfAttachmentsCache[index];
+
+    if(!att || !att.data){
+        alert("PDF-Anhang nicht gefunden.");
+        return;
+    }
+
+    const byteCharacters = atob(att.data);
+    const byteNumbers = new Array(byteCharacters.length);
+
+    for(let i = 0; i < byteCharacters.length; i++){
+        byteNumbers[i] = byteCharacters.charCodeAt(i);
+    }
+
+    const byteArray = new Uint8Array(byteNumbers);
+    const blob = new Blob([byteArray], {type: att.mimeType || "application/pdf"});
+    const url = URL.createObjectURL(blob);
+
+    angebotPdfObjectUrls.push(url);
+    window.open(url, "_blank");
+}
+
+function renderAngebotAttachmentPreview(attachments){
+    const box = document.getElementById("angebotAttachmentPreview");
+
+    if(!box){
+        return;
+    }
+
+    if(!attachments || !attachments.length){
+        box.style.display = "none";
+        box.innerHTML = "";
+        return;
+    }
+
+    box.style.display = "block";
+    box.innerHTML = `
+        <div style="font-weight:900;color:#183a91;margin-bottom:8px;">PDF-Anhänge vorbereitet</div>
+        <div style="display:grid;gap:8px;">
+            ${attachments.map(function(att, index){
+                return `
+                    <button type="button" onclick="openAngebotPdfAttachment(${index})" style="width:100%;border:1px solid #bfdbfe;background:#ffffff;color:#1d4ed8;border-radius:12px;padding:10px 12px;font-size:12px;font-weight:900;cursor:pointer;text-align:left;">
+                        📎 ${escapeHtml(att.filename || "PDF öffnen")}
+                    </button>
+                `;
+            }).join("")}
+        </div>
+    `;
+}
+
+async function preloadAngebotPdfAttachments(){
+    if(miniData.modus !== 'angebot'){
+        return;
+    }
+
+    const box = document.getElementById("angebotAttachmentPreview");
+
+    if(box){
+        box.style.display = "block";
+        box.innerHTML = '<div style="font-weight:900;color:#183a91;">PDF-Anhänge werden erstellt...</div>';
+    }
+
+    try{
+        angebotPdfAttachmentsCache = await getAngebotPdfAttachments();
+        renderAngebotAttachmentPreview(angebotPdfAttachmentsCache);
+        setStatus('PDF-Anhänge vorbereitet. Bitte prüfen und dann senden.','ok');
+    }catch(err){
+        console.log(err);
+        if(box){
+            box.style.display = "block";
+            box.innerHTML = '<div style="font-weight:900;color:#dc2626;">'+escapeHtml(err.message || 'PDF-Anhänge konnten nicht erstellt werden.')+'</div>';
+        }
+        setStatus(err.message || 'PDF-Anhänge konnten nicht erstellt werden.','err');
+    }
+}
+async function sendMiniMail(){const kgPrintWindow=window.open('','_blank','width=900,height=1100');const messageBox=document.getElementById('mailMessage');let messageHtml=messageBox.innerHTML||'';messageHtml=messageHtml.replace(/src="[^"]*KG%20Yeni%20Logo\.png"/g,'src="cid:kg-logo"');messageHtml=messageHtml.replace(/src="[^"]*KG Yeni Logo\.png"/g,'src="cid:kg-logo"');const messageText=messageBox.innerText||'';let automaticAttachments=[];try{
+const kontaktAttachments=await getKontaktformularAttachments();
+const angebotAttachments=await getAngebotPdfAttachments();
+automaticAttachments=[...kontaktAttachments,...angebotAttachments];
+}catch(fileErr){
+console.log(fileErr);
+setStatus(fileErr.message||'Anhänge konnten nicht geladen werden.','err');
+return;
+}
+const payload={from:document.getElementById('mailFrom').value||'info@kg-reinigung.de',to:document.getElementById('mailTo').value||'',subject:document.getElementById('mailSubject').value||'',message:'​',signature:messageHtml,attachments:automaticAttachments};if(!payload.to.trim()||payload.to.includes('{{')||payload.to.includes('}}')){setStatus('Empfänger fehlt.','err');return;}if(!payload.subject.trim()){setStatus('Betreff fehlt.','err');return;}if(!messageText.trim()){setStatus('Nachricht fehlt.','err');return;}const btn=document.getElementById('sendBtn');btn.disabled=true;setStatus('E-Mail wird gesendet...','');try{const res=await fetch('/api/gmail/send',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});const data=await res.json();if(!data.ok){setStatus(data.message||'E-Mail konnte nicht gesendet werden.','err');return;}saveMailToHistory(payload.to);setStatus('E-Mail wurde erfolgreich gesendet. Druckfenster wird geöffnet...','ok');printMiniMail(kgPrintWindow);closeMiniMail();}catch(err){console.log(err);setStatus('Gmail API Sendefehler.','err');}finally{btn.disabled=false;}}
 loadMailToHistory();clearMailFields();
-if(miniData.modus==='kontaktformular'){
+
+if(miniData.modus==='angebot'){
+document.body.classList.add('angebot-mail-mode');
+const templateSelect=document.getElementById('mailTemplate');const titleEl=document.querySelector('.mini-mail-title h2');const subEl=document.querySelector('.mini-mail-title p');const infoEl=document.querySelector('.info-card');const sendBtn=document.getElementById('sendBtn');if(titleEl)titleEl.textContent='Angebot per E-Mail senden';if(subEl)subEl.textContent='Mini-Mailfenster für vorbereitete Angebote';if(infoEl)infoEl.textContent='Dieser Bereich ist nur zum Vorbereiten und Senden der Angebot-Mail gedacht.';if(sendBtn)sendBtn.textContent='Angebot per E-Mail senden + drucken';
+if(templateSelect){const ap=safeText(miniData.ansprechpartner).toLowerCase();if(ap.startsWith('frau ')){templateSelect.value='angebot-person-frau';}else if(ap.startsWith('herr ')){templateSelect.value='angebot-person-herr';}else if(ap){templateSelect.value='angebot-person-herr';}else{templateSelect.value='angebot-firma';}buildDefaultMail();refreshTemplateButtons();preloadAngebotPdfAttachments();}}
+else if(miniData.modus==='kontaktformular'){
 const templateSelect=document.getElementById('mailTemplate');const titleEl=document.querySelector('.mini-mail-title h2');const subEl=document.querySelector('.mini-mail-title p');const infoEl=document.querySelector('.info-card');if(titleEl)titleEl.textContent='Kontaktdaten vorbereiten';if(subEl)subEl.textContent='Mini-Mailfenster für Kontaktformular / Unternehmensprofil';if(infoEl)infoEl.textContent='Dieser Bereich ist zum Vorbereiten und Senden der Kontaktdaten-Mail gedacht. Die Flyer werden beim Senden automatisch angehängt.';if(templateSelect){const ap=safeText(miniData.ansprechpartner).toLowerCase();if(ap.startsWith('frau ')){templateSelect.value='kontakt-person-frau';}else if(ap.startsWith('herr ')){templateSelect.value='kontakt-person-herr';}else if(ap){templateSelect.value='kontakt-person-herr';}else{templateSelect.value='kontakt-firma';}buildDefaultMail();refreshTemplateButtons();}}
 else{refreshTemplateButtons();}
 </script>
