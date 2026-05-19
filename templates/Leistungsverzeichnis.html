@@ -17,27 +17,25 @@ body {
     background: #e9eef5;
     font-family: 'Inter', Arial, sans-serif;
     color: #0f172a;
-    padding: 34px 0;
+    padding: 0;
 }
-
 .lv-page {
     width: min(100%, 1180px);
     margin: 0 auto;
     background: #ffffff;
-    border-radius: 24px;
+    border-radius: 0;
     box-shadow: 0 18px 50px rgba(15, 23, 42, 0.12);
     border: 1px solid #dbe3ef;
-    overflow: hidden;
+    overflow: visible;
 }
-
 .lv-hero {
     background: linear-gradient(135deg, #183a91 0%, #2563eb 100%);
     color: #ffffff;
-    padding: 34px 38px 32px 38px;
+    padding: 24px 38px 24px 38px;
+    border-radius: 0;
 }
-
 .lv-title {
-    margin: 0 0 24px 0;
+    margin: 0 0 16px 0;
     font-size: 28px;
     line-height: 1.1;
     font-weight: 900;
@@ -194,11 +192,13 @@ body {
 .lv-section.kueche-section .lv-section-title { background: #ecfdf5; color: #15803d; }
 .lv-section.wc-section .lv-section-title { background: #fff1f2; color: #dc2626; }
 .lv-section.flur-section .lv-section-title { background: #fff7ed; color: #d97706; }
+.lv-section.zusatz-section .lv-section-title { background: #f5f3ff; color: #7c3aed; }
 
 .dot.blue { background: #2563eb; }
 .dot.green { background: #16a34a; }
 .dot.red { background: #ef4444; }
 .dot.orange { background: #f59e0b; }
+.dot.purple { background: #8b5cf6; }
 
 .lv-table {
     width: 100%;
@@ -261,43 +261,287 @@ body {
         margin: 0;
     }
 
+    html,
     body {
-        background: #ffffff;
-        padding: 0;
-        -webkit-print-color-adjust: exact;
-        print-color-adjust: exact;
+        width: 210mm !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        background: #ffffff !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+
+    .portal-sidebar,
+    .sidebar,
+    .kg-sidebar,
+    .kg-hero,
+    nav,
+    header,
+    button,
+    .btn,
+    .fullscreen-btn,
+    .print-float-btn,
+    .floating-btn,
+    .no-print {
+        display: none !important;
+    }
+
+    .portal-main,
+    .main-content,
+    .content,
+    .content-wrapper,
+    .page-content,
+    .portal-content,
+    .container,
+    .layout,
+    main {
+        margin: 0 !important;
+        padding: 0 !important;
+        width: 210mm !important;
+        max-width: 210mm !important;
+        min-width: 210mm !important;
+        display: block !important;
+        background: #ffffff !important;
+        transform: none !important;
+        left: 0 !important;
+        right: auto !important;
+        box-sizing: border-box !important;
     }
 
     .lv-page {
-        width: 210mm;
-        min-height: 297mm;
-        border-radius: 0;
-        box-shadow: none;
-        border: none;
+        width: 210mm !important;
+        max-width: 210mm !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        border: none !important;
+        border-radius: 0 !important;
+        box-shadow: none !important;
+        background: #ffffff !important;
+        overflow: visible !important;
     }
 
     .lv-hero {
-        padding: 24mm 16mm 12mm 16mm;
+        width: 100% !important;
+        max-width: 210mm !important;
+        height: 76mm !important;
+        margin: 0 !important;
+        padding: 10mm 17mm 12mm 17mm !important;
+        border-radius: 0 !important;
+        background: linear-gradient(135deg, #173a9e, #2563eb) !important;
+        box-sizing: border-box !important;
+        display: block !important;
+    }
+
+    .lv-title {
+        font-size: 30px !important;
+        line-height: 1.1 !important;
+        margin: 0 0 15px 0 !important;
+        color: #ffffff !important;
+        font-weight: 900 !important;
+    }
+
+    .lv-info-grid {
+        display: grid !important;
+        grid-template-columns: repeat(4, 1fr) !important;
+        gap: 10px !important;
+        margin: 0 !important;
+    }
+
+    .lv-info-box {
+        min-height: 32mm !important;
+        padding: 10px 11px !important;
+        border-radius: 9px !important;
+        background: rgba(255,255,255,0.15) !important;
+        border: 1px solid rgba(255,255,255,0.20) !important;
+        box-sizing: border-box !important;
+    }
+
+    .lv-info-label {
+        font-size: 9px !important;
+        line-height: 1.1 !important;
+        margin-bottom: 5px !important;
+        color: rgba(255,255,255,0.85) !important;
+        letter-spacing: 0.9px !important;
+        font-weight: 900 !important;
+    }
+
+    .lv-info-value {
+        font-size: 12px !important;
+        line-height: 1.35 !important;
+        color: #ffffff !important;
+        font-weight: 900 !important;
     }
 
     .lv-content {
-        padding: 12mm 16mm 16mm 16mm;
+        margin: 0 !important;
+        padding: 18mm 17mm 0 17mm !important;
+        background: #ffffff !important;
+        box-sizing: border-box !important;
     }
 
-    .standard-grid {
-        gap: 8px;
+    .lv-intro {
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
+    .lv-intro h2 {
+        font-size: 24px !important;
+        line-height: 1.2 !important;
+        margin: 0 0 8px 0 !important;
+        color: #0f172a !important;
+        font-weight: 900 !important;
+    }
+
+    .lv-intro p {
+        font-size: 11px !important;
+        line-height: 1.45 !important;
+        margin: 0 !important;
+        color: #334155 !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+    }
+
+        .standard-grid {
+        display: grid !important;
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        column-gap: 8mm !important;
+        row-gap: 6mm !important;
+        width: 100% !important;
+        margin: 15mm auto 0 auto !important;
+        padding: 0 !important;
+        break-inside: avoid !important;
+        page-break-inside: avoid !important;
+    }
+
+    .standard-card {
+        min-height: 68mm !important;
+        border-radius: 10px !important;
+        box-shadow: none !important;
+        overflow: hidden !important;
+        background: #ffffff !important;
+        border: 1px solid #dbe3ef !important;
+        display: flex !important;
+        flex-direction: column !important;
+        break-inside: avoid !important;
+        page-break-inside: avoid !important;
+    }
+
+    .standard-head {
+        min-height: 22mm !important;
+        padding: 10px 13px !important;
+        box-sizing: border-box !important;
+    }
+
+    .standard-head h3 {
+        font-size: 20px !important;
+        line-height: 1.1 !important;
+        margin: 0 0 4px 0 !important;
+        color: #ffffff !important;
+        font-weight: 900 !important;
+    }
+
+    .standard-head span {
+        font-size: 10px !important;
+        line-height: 1.25 !important;
+        color: rgba(255,255,255,0.95) !important;
+        font-weight: 700 !important;
+    }
+
+    .standard-body {
+        flex: 1 1 auto !important;
+        padding: 12px 15px 13px 15px !important;
+        min-height: 46mm !important;
+        box-sizing: border-box !important;
+    }
+
+    .standard-body ul {
+        margin: 0 !important;
+        padding-left: 16px !important;
     }
 
     .standard-body li {
-        font-size: 10.5px;
+        font-size: 12px !important;
+        line-height: 1.42 !important;
+        margin-bottom: 5px !important;
+        color: #0f172a !important;
+    }
+
+            .lv-detail-title {
+        break-before: page !important;
+        page-break-before: always !important;
+        margin: 0 0 9px 0 !important;
+        padding: 12mm 0 0 0 !important;
+        font-size: 22px !important;
+        line-height: 1.2 !important;
+        font-weight: 900 !important;
+        color: #0f172a !important;
+        background: #ffffff !important;
+        box-sizing: border-box !important;
+    }
+
+            .lv-section {
+        margin: 0 0 8px 0 !important;
+        border-radius: 8px !important;
+        border: 1px solid #dbe3ef !important;
+        overflow: hidden !important;
+        background: #ffffff !important;
+        break-inside: avoid !important;
+        page-break-inside: avoid !important;
+    }
+
+    .lv-section-title {
+        padding: 7px 10px !important;
+        font-size: 12.5px !important;
+        line-height: 1.2 !important;
+        font-weight: 900 !important;
+    }
+
+    .dot {
+        width: 10px !important;
+        height: 10px !important;
+        border-radius: 3px !important;
+    }
+
+    .lv-table {
+        width: 100% !important;
+        border-collapse: collapse !important;
+    }
+
+    .lv-table th {
+        font-size: 8.2px !important;
+        padding: 4px 10px !important;
+        line-height: 1.15 !important;
     }
 
     .lv-table td {
-        font-size: 11.5px;
-        padding: 8px 12px;
+        font-size: 9.5px !important;
+        line-height: 1.25 !important;
+        padding: 4.5px 10px !important;
+    }
+
+    .freq {
+        font-size: 9.5px !important;
+        white-space: nowrap !important;
+        text-align: right !important;
+    }
+
+    .lv-table tr,
+    .lv-table td,
+    .lv-table th {
+        break-inside: avoid !important;
+        page-break-inside: avoid !important;
+    }
+
+            .note-box {
+        margin: 8px 0 0 0 !important;
+        border-radius: 8px !important;
+        padding: 8px 10px !important;
+        font-size: 9px !important;
+        line-height: 1.3 !important;
+        break-inside: avoid !important;
+        page-break-inside: avoid !important;
     }
 }
-
 @media (max-width: 900px) {
     body { padding: 0; }
     .lv-page { border-radius: 0; }
@@ -333,8 +577,8 @@ body {
             </div>
 
             <div class="lv-info-box">
-                <div class="lv-info-label">Wie häufig</div>
-                <div class="lv-info-value multi-line">{{Haeufigkeit}}</div>
+                <div class="lv-info-label">Häufigkeit</div>
+                <div class="lv-info-value multi-line">{{Haeufigkeit|safe}}</div>
             </div>
         </div>
     </section>
@@ -343,9 +587,9 @@ body {
         <div class="lv-intro">
             <h2>Büroreinigung – Standardleistungen</h2>
             <p>
-                Dieses Leistungsverzeichnis ist Anlage zum Angebot und beschreibt die regelmäßig auszuführenden Reinigungsarbeiten
-                für Büro-, Küchen-, Sanitär- und Verkehrsflächen.
-            </p>
+    Dieses Leistungsverzeichnis ist Anlage zum Angebot und beschreibt die regelmäßig auszuführenden Reinigungsarbeiten<br>
+    für Büro-, Küchen-, Sanitär- und Verkehrsflächen.
+</p>
         </div>
 
         <section class="standard-grid">
@@ -413,6 +657,8 @@ body {
             </div>
         </section>
 
+        <div class="lv-detail-title">Detailliertes Leistungsverzeichnis</div>
+
         <section class="lv-section buro-section">
             <div class="lv-section-title"><span class="dot blue"></span>Büro, Arbeitsplätze & allgemeine Flächen</div>
             <table class="lv-table">
@@ -428,8 +674,8 @@ body {
                         <td class="freq">{{Freq_Schreibtische}}</td>
                     </tr>
                     <tr>
-                        <td>PC, Bildschirme, Telefone und Drucker trocken/nebel-feucht entstauben</td>
-                        <td class="freq">{{Freq_Elektro}}</td>
+                       <td>{{Text_Elektro|default('PC, Bildschirme, Telefone und Drucker trocken/nebel-feucht entstauben')}}</td>
+                       <td class="freq">{{Freq_Elektro}}</td>
                     </tr>
                     <tr>
                         <td>Papierkörbe leeren</td>
@@ -462,12 +708,12 @@ body {
                         <td class="freq">{{Freq_Kueche_Flaechen}}</td>
                     </tr>
                     <tr>
-                        <td>Geschirrspüler einräumen / ausräumen, sofern in der Besichtigung ausgewählt</td>
+                        <td>{{Text_Spuelmaschine|default('Geschirrspüler einräumen / ausräumen, sofern in der Besichtigung ausgewählt')}}</td>
                         <td class="freq">{{Freq_Spuelmaschine}}</td>
                     </tr>
                     <tr>
                         <td>Küchengeräte von außen feucht abwischen, soweit vereinbart</td>
-                        <td class="freq">{{Freq_Kuechengeraete}}</td>
+                        <td class="freq">{{Freq_Spuelmaschine}}</td>
                     </tr>
                     <tr>
                         <td>Mülleimer leeren und bestücken</td>
@@ -541,6 +787,28 @@ body {
             </table>
         </section>
 
+        {% if Zusatzleistungen %}
+        <section class="lv-section zusatz-section">
+            <div class="lv-section-title"><span class="dot purple"></span>Zusatzleistungen / Sonstiges</div>
+            <table class="lv-table">
+                <thead>
+                    <tr>
+                        <th>Zusatzleistung</th>
+                        <th>Häufigkeit / Angabe</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in Zusatzleistungen %}
+                    <tr>
+                        <td>{{ item.text }}</td>
+                        <td class="freq">{{ item.freq }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </section>
+        {% endif %}
+
         <div class="note-box">
             <b>Hinweis:</b> Dieses Leistungsverzeichnis beschreibt die vereinbarten Standardleistungen der Büroreinigung.
             Objektbezogene Zusatzleistungen werden nur nach vorheriger Vereinbarung ausgeführt und separat im Angebot aufgeführt.
@@ -551,4 +819,70 @@ body {
 
 </div>
 
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const params = new URLSearchParams(window.location.search);
+    const lvNr = "{{Nr|default('')}}".trim();
+
+    if (lvNr) {
+        document.title = "Leistungsverzeichnis " + lvNr;
+    } else {
+        document.title = "Leistungsverzeichnis";
+    }
+
+    if (params.get("print") === "1") {
+        const lvPage = document.querySelector(".lv-page");
+
+        if (lvPage) {
+            document.body.classList.add("lv-pdf-clean");
+
+            if (lvPage.parentElement !== document.body) {
+                document.body.insertBefore(lvPage, document.body.firstChild);
+            }
+
+            const fixStyle = document.createElement("style");
+            fixStyle.innerHTML = `
+                html, body {
+                    margin: 0 !important;
+                    padding: 0 !important;
+                    width: 210mm !important;
+                    min-width: 210mm !important;
+                    background: #ffffff !important;
+                    overflow-x: hidden !important;
+                }
+
+                body.lv-pdf-clean > *:not(.lv-page):not(script):not(style):not(link) {
+                    display: none !important;
+                }
+
+                body.lv-pdf-clean .lv-page {
+                    width: 210mm !important;
+                    max-width: 210mm !important;
+                    min-width: 210mm !important;
+                    margin: 0 !important;
+                    padding: 0 !important;
+                    border: none !important;
+                    border-radius: 0 !important;
+                    box-shadow: none !important;
+                    overflow: visible !important;
+                    background: #ffffff !important;
+                }
+
+                body.lv-pdf-clean .lv-hero {
+                    width: 210mm !important;
+                    max-width: 210mm !important;
+                    margin: 0 !important;
+                    border-radius: 0 !important;
+                    box-sizing: border-box !important;
+                }
+            `;
+            document.head.appendChild(fixStyle);
+        }
+
+        setTimeout(function () {
+            window.print();
+        }, 600);
+    }
+});
+</script>
 {% endblock %}
