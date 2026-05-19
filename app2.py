@@ -768,13 +768,357 @@ def ensure_tagesliste_table():
         cursor.execute("ALTER TABLE tagesliste_leads ADD COLUMN spaeter_datum TEXT")
     except Exception:
         pass
+
     try:
         cursor.execute("ALTER TABLE tagesliste_leads ADD COLUMN sort_order INTEGER DEFAULT 0")
     except Exception:
         pass
 
+    # BESICHTIGUNG -> ANGEBOT veri kaydı
+    try:
+        cursor.execute("ALTER TABLE tagesliste_leads ADD COLUMN besichtigung_data_json TEXT")
+    except Exception:
+        pass
+
+    # 4 sayfalık Angebot şablonuna basılacak hazır değişkenler
+    try:
+        cursor.execute("ALTER TABLE tagesliste_leads ADD COLUMN angebot_vars_json TEXT")
+    except Exception:
+        pass
+
+    # Angebot numarası ve değiştirilebilir teklif tarihi
+    try:
+        cursor.execute("ALTER TABLE tagesliste_leads ADD COLUMN angebot_nr TEXT")
+    except Exception:
+        pass
+
+    try:
+        cursor.execute("ALTER TABLE tagesliste_leads ADD COLUMN angebot_datum TEXT")
+    except Exception:
+        pass
+
+    # Hesaplama sonucu
+    try:
+        cursor.execute("ALTER TABLE tagesliste_leads ADD COLUMN angebot_netto REAL DEFAULT 0")
+    except Exception:
+        pass
+
+    try:
+        cursor.execute("ALTER TABLE tagesliste_leads ADD COLUMN angebot_mwst REAL DEFAULT 0")
+    except Exception:
+        pass
+
+    try:
+        cursor.execute("ALTER TABLE tagesliste_leads ADD COLUMN angebot_brutto REAL DEFAULT 0")
+    except Exception:
+        pass
+
     conn.commit()
     conn.close()
+
+
+# =====================================================
+# APP2 - ANGEBOT HESAPLAMA HILFSFUNKTIONEN
+# Bu bölüm şimdilik SADECE hazırlık.
+# Henüz Speichern/Senden akışına bağlanmadı.
+# =====================================================
+
+ANGEBOT_LEISTUNGSWERTE = {
+    "buero": 170,     # Büro: 170 m² / saat
+    "wc": 55,         # WC: 55 m² / saat
+    "kueche": 110,    # Küche: 110 m² / saat
+    "flur": 250       # Flur: 250 m² / saat
+}
+
+ANGEBOT_MONATSFAKTOR = 4.33
+ANGEBOT_STUNDENSATZ = 35.0
+
+
+
+def angebot_parse_number(value):
+    text = str(value or "").strip().replace(",", ".")
+    match = re.search(r"(\d+(?:\.\d+)?)", text)
+    if not match:
+        return 0.0
+    try:
+        return float(match.group(1))
+    except Exception:
+        return 0.0
+
+
+def angebot_parse_weekly_frequency(value):
+    """
+    Örnek:
+    '1x wöchentlich' -> 1
+    '3x pro Woche'   -> 3
+    '5'              -> 5
+    boş              -> 0
+    """
+    text = str(value or "").strip().lower()
+    match = re.search(r"(\d+)", text)
+    if not match:
+        return 0
+    try:
+        return int(match.group(1))
+    except Exception:
+        return 0
+
+
+def angebot_area_key(value):
+    text = str(value or "").strip().lower()
+
+    if (
+        "büro" in text
+        or "buero" in text
+        or "büroraum" in text
+        or "büroraum" in text
+        or "besprechungsraum" in text
+        or "serverraum" in text
+        or "arbeitsplatz" in text
+    ):
+        return "buero"
+
+    if "wc" in text or "sanitär" in text or "sanitaer" in text:
+        return "wc"
+
+    if "küche" in text or "kueche" in text:
+        return "kueche"
+
+    if "flur" in text or "gang" in text:
+        return "flur"
+
+    return ""
+
+
+def angebot_format_euro(value):
+    try:
+        value = float(value or 0)
+    except Exception:
+        value = 0.0
+
+    return f"{value:,.2f} €".replace(",", "X").replace(".", ",").replace("X", ".")
+
+
+def angebot_build_leistungsart_text(leistungen):
+    clean = []
+
+    for item in leistungen or []:
+        text = str(item or "").strip()
+        text = text.replace(" Details", "").strip()
+
+        if text.lower() == "leistungen":
+            continue
+
+        if text and text not in clean:
+            clean.append(text)
+
+    if not clean:
+        return ""
+
+    if len(clean) == 1:
+        return clean[0]
+
+    if len(clean) == 2:
+        return clean[0] + " und " + clean[1]
+
+    return ", ".join(clean[:-1]) + " und " + clean[-1]
+
+
+def angebot_calculate_from_besichtigung(besichtigung_data):
+    """
+    4 sayfalık Angebot için temel m² hesaplama motoru.
+    Şimdilik sadece Büro / WC / Küche / Flur hesaplar.
+    Extras sonraki adımda eklenecek.
+    """
+    if not isinstance(besichtigung_data, dict):
+        besichtigung_data = {}
+
+    raeume = besichtigung_data.get("raeume") or []
+    if not isinstance(raeume, list):
+        raeume = []
+
+    details = []
+    total_monat_stunden = 0.0
+
+    for row in raeume:
+        if not isinstance(row, dict):
+            continue
+
+        typ_text = " ".join([
+            str(row.get("typ") or ""),
+            str(row.get("name") or "")
+        ])
+
+        area_key = angebot_area_key(typ_text)
+
+        if not area_key:
+            area_key = angebot_area_key(str(row.get("section") or ""))
+
+        if area_key not in ANGEBOT_LEISTUNGSWERTE:
+            continue
+
+        m2 = angebot_parse_number(row.get("m2"))
+        frequenz = angebot_parse_weekly_frequency(row.get("haeufigkeit"))
+
+        if m2 <= 0 or frequenz <= 0:
+            continue
+
+        leistungswert = ANGEBOT_LEISTUNGSWERTE[area_key]
+
+        stunden_pro_einsatz = m2 / leistungswert
+        monat_stunden = stunden_pro_einsatz * frequenz * ANGEBOT_MONATSFAKTOR
+
+        total_monat_stunden += monat_stunden
+
+        details.append({
+            "bereich": area_key,
+            "m2": round(m2, 2),
+            "frequenz": frequenz,
+            "leistungswert": leistungswert,
+            "stunden_pro_einsatz": round(stunden_pro_einsatz, 2),
+            "monat_stunden": round(monat_stunden, 2)
+        })
+
+    netto = total_monat_stunden * ANGEBOT_STUNDENSATZ
+    mwst = netto * 0.19
+    brutto = netto + mwst
+
+    leistungsart_text = angebot_build_leistungsart_text(
+        besichtigung_data.get("leistungen") or []
+    )
+
+    if not leistungsart_text:
+        leistungsart_text = "Unterhaltsreinigung"
+
+    return {
+        "details": details,
+        "monat_stunden": round(total_monat_stunden, 2),
+        "stundensatz": ANGEBOT_STUNDENSATZ,
+        "netto": round(netto, 2),
+        "mwst": round(mwst, 2),
+        "brutto": round(brutto, 2),
+        "leistung_1": leistungsart_text,
+        "einheiten_1": "monatlich",
+        "preis_1": angebot_format_euro(netto)
+    }
+
+
+def angebot_today_de():
+    from datetime import datetime
+    return datetime.now().strftime("%d.%m.%Y")
+
+
+def angebot_next_number(cursor):
+    rows = cursor.execute("""
+        SELECT angebot_nr
+        FROM tagesliste_leads
+        WHERE angebot_nr IS NOT NULL
+        AND angebot_nr != ''
+    """).fetchall()
+
+    # Yeni Angebot-Nummer sistemi:
+    # İlk yeni numara AN-2259 olacak.
+    # Eski AN-1001 / AN-1002 / AN-1003 gibi numaralar dikkate alınır ama 2259 altındaysa etkilemez.
+    max_nr = 2258
+
+    for row in rows:
+        raw = str(row[0] or "")
+        match = re.search(r"(\d+)", raw)
+
+        if match:
+            try:
+                nummer = int(match.group(1))
+                if nummer > max_nr:
+                    max_nr = nummer
+            except Exception:
+                pass
+
+    return str(max_nr + 1)
+
+
+def angebot_extract_ausfuehrungszeitraum(besichtigung_data):
+    if not isinstance(besichtigung_data, dict):
+        return ""
+
+    # Şimdilik Starttermin varsa onu yakalamaya çalışır.
+    # Bulamazsa boş bırakır; sonra istersen formatı netleştiririz.
+    sonstiges = besichtigung_data.get("sonstiges") or []
+
+    if isinstance(sonstiges, list):
+        for item in sonstiges:
+            if not isinstance(item, dict):
+                continue
+
+            label = str(item.get("label") or "").lower()
+            values = item.get("values") or []
+
+            if "start" in label or "beginn" in label:
+                if values:
+                    return str(values[0] or "").strip()
+
+    return ""
+
+
+def angebot_build_template_vars(besichtigung_data, berechnung, nr, datum):
+    if not isinstance(besichtigung_data, dict):
+        besichtigung_data = {}
+
+    if not isinstance(berechnung, dict):
+        berechnung = {}
+
+    kunde = besichtigung_data.get("kunde") or {}
+    if not isinstance(kunde, dict):
+        kunde = {}
+
+    firma = str(kunde.get("firma") or "").strip()
+    ansprechpartner = str(kunde.get("ansprechpartner") or "").strip()
+    adresse = str(kunde.get("strasse") or "").strip()
+    plz = str(kunde.get("plz") or "").strip()
+    ort = str(kunde.get("ort") or "").strip()
+
+    leistungsart = angebot_build_leistungsart_text(
+        besichtigung_data.get("leistungen") or []
+    )
+
+    if not leistungsart:
+        leistungsart = berechnung.get("leistung_1") or "Unterhaltsreinigung"
+
+    ausfuehrungszeitraum = angebot_extract_ausfuehrungszeitraum(besichtigung_data)
+
+    kunde_text = firma
+    if ansprechpartner:
+        kunde_text = firma + "<br>" + ansprechpartner
+
+    return {
+        "Nr": str(nr or "").strip(),
+        "Datum": str(datum or "").strip(),
+
+        "Kunde": kunde_text,
+        "Ansprechpartner": ansprechpartner,
+        "Objekt": "",
+        "Adresse": adresse,
+        "Plz": plz,
+        "Ort": ort,
+        "Leistungsart": leistungsart,
+
+        "Leistung_1": berechnung.get("leistung_1") or leistungsart,
+        "Einheiten_1": berechnung.get("einheiten_1") or "monatlich pauschal",
+        "Preis_1": berechnung.get("preis_1") or "0,00 €",
+
+        "Leistung_2": "",
+        "Einheiten_2": "",
+        "Preis_2": "",
+
+        "Leistung_3": "",
+        "Einheiten_3": "",
+        "Preis_3": "",
+
+        "Leistung_4": "",
+        "Einheiten_4": "",
+        "Preis_4": "",
+
+        "Ausführungszeitraum": ausfuehrungszeitraum
+    }
 
 
 def register_app2_routes(app, login_required):
@@ -950,8 +1294,148 @@ def register_app2_routes(app, login_required):
             uhrzeit=request.args.get("uhrzeit", ""),
             adresse=request.args.get("adresse", ""),
             ort=request.args.get("ort", ""),
-            telefon=request.args.get("telefon", "")
+            telefon=request.args.get("telefon", ""),
+
+            modus=request.args.get("modus", ""),
+            angebot_id=request.args.get("angebot_id", ""),
+            angebot_nr=request.args.get("angebot_nr", ""),
+            angebot_datum=request.args.get("angebot_datum", ""),
+            angebot_netto=request.args.get("angebot_netto", ""),
+            leistungsart=request.args.get("leistungsart", "")
         )
+
+# =====================================================
+# APP2 - ANGEBOT + LEISTUNGSVERZEICHNIS PDF ANHÄNGE
+# Mail Mini için iki PDF üretir:
+# 1) Angebot PDF
+# 2) Leistungsverzeichnis PDF
+# =====================================================
+
+    @app.route("/api/datenbank/angebot-mail-attachments")
+    @login_required
+    def app2_angebot_mail_attachments():
+        angebot_id = request.args.get("angebot_id", "").strip()
+
+        if not angebot_id:
+            return jsonify({
+                "ok": False,
+                "message": "angebot_id fehlt."
+            }), 400
+
+        try:
+            angebot_id_int = int(angebot_id)
+        except Exception:
+            angebot_id_int = 0
+
+        if angebot_id_int <= 0:
+            return jsonify({
+                "ok": False,
+                "message": "Ungültige Angebot-ID."
+            }), 400
+
+        try:
+            from playwright.sync_api import sync_playwright
+
+            conn = sqlite3.connect(DB_PATH)
+            conn.row_factory = sqlite3.Row
+
+            row = conn.execute("""
+                SELECT angebot_nr
+                FROM tagesliste_leads
+                WHERE id = ?
+            """, (angebot_id_int,)).fetchone()
+
+            conn.close()
+
+            angebot_nr = ""
+            if row:
+                angebot_nr = str(row["angebot_nr"] or "").strip()
+
+            angebot_nr = re.sub(r"(?i)^AN-", "", angebot_nr).strip()
+
+            if not angebot_nr:
+                angebot_nr = str(angebot_id_int)
+
+            base_url = request.host_url.rstrip("/")
+
+            session_cookie_name = app.config.get("SESSION_COOKIE_NAME", "session")
+            session_cookie_value = request.cookies.get(session_cookie_name, "")
+
+            pdf_jobs = [
+                {
+                    "filename": f"Angebot_AN-{angebot_nr}.pdf",
+                    "url": f"{base_url}/angebotvorlage?angebot_id={angebot_id_int}&print=1"
+                },
+                {
+                    "filename": f"Leistungsverzeichnis_AN-{angebot_nr}.pdf",
+                    "url": f"{base_url}/leistungsverzeichnis?angebot_id={angebot_id_int}&print=1"
+                }
+            ]
+
+            attachments = []
+
+            with sync_playwright() as p:
+                browser = p.chromium.launch(
+                    headless=True,
+                    args=["--no-sandbox"]
+                )
+
+                context = browser.new_context(
+                    viewport={
+                        "width": 1240,
+                        "height": 1754
+                    },
+                    device_scale_factor=1
+                )
+
+                if session_cookie_value:
+                    context.add_cookies([{
+                        "name": session_cookie_name,
+                        "value": session_cookie_value,
+                        "url": base_url
+                    }])
+
+                page = context.new_page()
+
+                for job in pdf_jobs:
+                    page.goto(
+                        job["url"],
+                        wait_until="networkidle",
+                        timeout=45000
+                    )
+                    page.emulate_media(media="print")
+
+                    pdf_bytes = page.pdf(
+                        format="A4",
+                        print_background=True,
+                        prefer_css_page_size=True,
+                        scale=1,
+                        margin={
+                            "top": "0mm",
+                            "right": "0mm",
+                            "bottom": "0mm",
+                            "left": "0mm"
+                        }
+                    )
+
+                    attachments.append({
+                        "filename": job["filename"],
+                        "mimeType": "application/pdf",
+                        "data": base64.b64encode(pdf_bytes).decode("utf-8")
+                    })
+
+                browser.close()
+
+            return jsonify({
+                "ok": True,
+                "attachments": attachments
+            })
+
+        except Exception as e:
+            return jsonify({
+                "ok": False,
+                "message": "PDF-Anhänge konnten nicht erstellt werden: " + str(e)
+            }), 500
 
 
 
@@ -1047,7 +1531,7 @@ def register_app2_routes(app, login_required):
             """
 
             msg = EmailMessage()
-            msg["From"] = f"Damla Kicci <{from_email}>"
+            msg["From"] = f"KG-Gebäudereinigung <{from_email}>"
             msg["To"] = to_email
             msg["Subject"] = subject
 
@@ -2097,11 +2581,19 @@ def register_app2_routes(app, login_required):
         status = str(data.get("status") or "offen").strip().lower()
         spaeter_datum = str(data.get("spaeter_datum") or "").strip()
 
+        besichtigung_data_json = data.get("besichtigung_data_json", "")
+
+        if isinstance(besichtigung_data_json, (dict, list)):
+            besichtigung_data_json = json.dumps(besichtigung_data_json, ensure_ascii=False)
+        else:
+            besichtigung_data_json = str(besichtigung_data_json or "").strip()
+
         erlaubte_status = [
             "offen",
             "angerufen",
             "interessiert",
             "besichtigung",
+            "angebot",
             "kontaktformular",
             "spaeter",
             "verloren"
@@ -2127,17 +2619,36 @@ def register_app2_routes(app, login_required):
                 UPDATE tagesliste_leads
                 SET
                     status = ?,
-                    spaeter_datum = ?
+                    spaeter_datum = ?,
+                    besichtigung_data_json = COALESCE(NULLIF(?, ''), besichtigung_data_json)
                 WHERE id = ?
-            """, (status, spaeter_datum, tagesliste_id))
+            """, (status, spaeter_datum, besichtigung_data_json, tagesliste_id))
+
+        elif status == "besichtigung":
+            cursor.execute("""
+                UPDATE tagesliste_leads
+                SET
+                    status = ?,
+                    spaeter_datum = NULL,
+                    besichtigung_data_json = COALESCE(NULLIF(?, ''), besichtigung_data_json),
+                    angebot_vars_json = NULL,
+                    angebot_nr = NULL,
+                    angebot_datum = NULL,
+                    angebot_netto = NULL,
+                    angebot_mwst = NULL,
+                    angebot_brutto = NULL
+                WHERE id = ?
+            """, (status, besichtigung_data_json, tagesliste_id))
+
         else:
             cursor.execute("""
                 UPDATE tagesliste_leads
                 SET
                     status = ?,
-                    spaeter_datum = NULL
+                    spaeter_datum = NULL,
+                    besichtigung_data_json = COALESCE(NULLIF(?, ''), besichtigung_data_json)
                 WHERE id = ?
-            """, (status, tagesliste_id))
+            """, (status, besichtigung_data_json, tagesliste_id))
 
         if status == "offen":
             cursor.execute("""
@@ -2145,7 +2656,7 @@ def register_app2_routes(app, login_required):
                 WHERE tagesliste_id = ?
                 AND datum = date('now','localtime')
             """, (tagesliste_id,))
-        elif status in ["angerufen", "interessiert", "besichtigung", "kontaktformular", "spaeter", "verloren"]:
+        elif status in ["angerufen", "interessiert", "besichtigung", "angebot", "kontaktformular", "spaeter", "verloren"]:
             cursor.execute("""
                 INSERT OR IGNORE INTO tagesliste_status_history
                     (tagesliste_id, status, datum)
@@ -2205,6 +2716,244 @@ def register_app2_routes(app, login_required):
 
 
 # =====================================================
+# APP2 - ANGEBOT PREVIEW / HESAPLAMA TEST
+# Bu route henüz firmayı taşımaz, Warteliste'ye kayıt açmaz.
+# Sadece mevcut Besichtigung verisinden Netto hesaplar.
+# =====================================================
+
+    @app.route("/datenbank/angebot-preview", methods=["POST"])
+    @login_required
+    def app2_angebot_preview():
+        ensure_tagesliste_table()
+
+        data = request.get_json(silent=True) or {}
+
+        try:
+            tagesliste_id = int(data.get("id") or 0)
+        except Exception:
+            tagesliste_id = 0
+
+        besichtigung_data = data.get("besichtigung_data_json") or {}
+
+        if isinstance(besichtigung_data, str):
+            try:
+                besichtigung_data = json.loads(besichtigung_data)
+            except Exception:
+                besichtigung_data = {}
+
+        if not isinstance(besichtigung_data, dict):
+            besichtigung_data = {}
+
+        # Eğer frontend veri göndermediyse, DB'deki son Speichern kaydını oku.
+        if not besichtigung_data and tagesliste_id > 0:
+            conn = sqlite3.connect(DB_PATH)
+            conn.row_factory = sqlite3.Row
+            row = conn.execute("""
+                SELECT besichtigung_data_json
+                FROM tagesliste_leads
+                WHERE id = ?
+            """, (tagesliste_id,)).fetchone()
+            conn.close()
+
+            if row and row["besichtigung_data_json"]:
+                try:
+                    besichtigung_data = json.loads(row["besichtigung_data_json"])
+                except Exception:
+                    besichtigung_data = {}
+
+        berechnung = angebot_calculate_from_besichtigung(besichtigung_data)
+
+        return jsonify({
+            "ok": True,
+            "message": "Angebot Preview berechnet.",
+            "tagesliste_id": tagesliste_id,
+            "berechnung": berechnung
+        })
+
+
+# =====================================================
+# APP2 - ANGEBOT SENDEN / WARTELISTEYE AKTAR
+# Bu route çağrılınca Besichtigung kaydı Angebot durumuna geçer.
+# Frontend butonu sonraki adımda bağlanacak.
+# =====================================================
+
+    @app.route("/datenbank/angebot-senden", methods=["POST"])
+    @login_required
+    def app2_angebot_senden():
+        ensure_tagesliste_table()
+
+        data = request.get_json(silent=True) or {}
+
+        try:
+            tagesliste_id = int(data.get("id") or 0)
+        except Exception:
+            tagesliste_id = 0
+
+        if tagesliste_id <= 0:
+            return jsonify({
+                "ok": False,
+                "message": "Tagesliste-ID fehlt."
+            }), 400
+
+        besichtigung_data = data.get("besichtigung_data_json") or {}
+
+        if isinstance(besichtigung_data, str):
+            try:
+                besichtigung_data = json.loads(besichtigung_data)
+            except Exception:
+                besichtigung_data = {}
+
+        if not isinstance(besichtigung_data, dict):
+            besichtigung_data = {}
+
+        conn = sqlite3.connect(DB_PATH)
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
+
+        row = cursor.execute("""
+            SELECT *
+            FROM tagesliste_leads
+            WHERE id = ?
+        """, (tagesliste_id,)).fetchone()
+
+        if not row:
+            backup_row = cursor.execute("""
+                SELECT *
+                FROM tagesliste_status_backup
+                WHERE tagesliste_id = ?
+                AND status = 'besichtigung'
+                ORDER BY backup_am DESC
+                LIMIT 1
+            """, (tagesliste_id,)).fetchone()
+
+            if not backup_row:
+                conn.close()
+                return jsonify({
+                    "ok": False,
+                    "message": "Firma wurde nicht gefunden."
+                }), 404
+
+            cursor.execute("""
+                INSERT OR IGNORE INTO tagesliste_leads (
+                    id,
+                    source_lead_id,
+                    firma,
+                    branche,
+                    ansprechpartner,
+                    strasse,
+                    plz,
+                    ort,
+                    telefon,
+                    email,
+                    website,
+                    quelle,
+                    status,
+                    notiz,
+                    spaeter_datum,
+                    company_key,
+                    erstellt_am
+                )
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'besichtigung', ?, NULL, ?, COALESCE(?, CURRENT_TIMESTAMP))
+            """, (
+                int(backup_row["tagesliste_id"] or tagesliste_id),
+                backup_row["source_lead_id"],
+                backup_row["firma"],
+                backup_row["branche"],
+                backup_row["ansprechpartner"],
+                backup_row["strasse"],
+                backup_row["plz"],
+                backup_row["ort"],
+                backup_row["telefon"],
+                backup_row["email"],
+                backup_row["website"],
+                backup_row["quelle"],
+                backup_row["notiz"],
+                f"{backup_row['firma']}|{backup_row['telefon']}|{backup_row['email']}".lower(),
+                backup_row["erstellt_am"]
+            ))
+
+            row = cursor.execute("""
+                SELECT *
+                FROM tagesliste_leads
+                WHERE id = ?
+            """, (tagesliste_id,)).fetchone()
+
+            if not row:
+                conn.close()
+                return jsonify({
+                    "ok": False,
+                    "message": "Firma konnte nicht wiederhergestellt werden."
+                }), 500
+
+        if not besichtigung_data:
+            try:
+                besichtigung_data = json.loads(row["besichtigung_data_json"] or "{}")
+            except Exception:
+                besichtigung_data = {}
+
+        berechnung = angebot_calculate_from_besichtigung(besichtigung_data)
+
+        angebot_nr = str(row["angebot_nr"] or "").strip()
+        if not angebot_nr:
+            angebot_nr = angebot_next_number(cursor)
+
+        angebot_datum = str(row["angebot_datum"] or "").strip()
+        if not angebot_datum:
+            angebot_datum = angebot_today_de()
+
+        angebot_vars = angebot_build_template_vars(
+            besichtigung_data=besichtigung_data,
+            berechnung=berechnung,
+            nr=angebot_nr,
+            datum=angebot_datum
+        )
+
+        cursor.execute("""
+            UPDATE tagesliste_leads
+            SET
+                status = 'angebot',
+                spaeter_datum = NULL,
+                besichtigung_data_json = ?,
+                angebot_vars_json = ?,
+                angebot_nr = ?,
+                angebot_datum = ?,
+                angebot_netto = ?,
+                angebot_mwst = ?,
+                angebot_brutto = ?
+            WHERE id = ?
+        """, (
+            json.dumps(besichtigung_data, ensure_ascii=False),
+            json.dumps(angebot_vars, ensure_ascii=False),
+            angebot_nr,
+            angebot_datum,
+            float(berechnung.get("netto") or 0),
+            float(berechnung.get("mwst") or 0),
+            float(berechnung.get("brutto") or 0),
+            tagesliste_id
+        ))
+
+        cursor.execute("""
+            INSERT OR IGNORE INTO tagesliste_status_history
+                (tagesliste_id, status, datum)
+            VALUES
+                (?, 'angebot', date('now','localtime'))
+        """, (tagesliste_id,))
+
+        conn.commit()
+        conn.close()
+
+        return jsonify({
+            "ok": True,
+            "message": "Angebot wurde erstellt.",
+            "tagesliste_id": tagesliste_id,
+            "angebot_nr": angebot_nr,
+            "angebot_datum": angebot_datum,
+            "berechnung": berechnung,
+            "angebot_vars": angebot_vars
+        })
+
+
+# =====================================================
 # APP2 - TAGESLISTE STATUSA GÖRE FİRMA LİSTESİ
 # =====================================================
 
@@ -2219,6 +2968,7 @@ def register_app2_routes(app, login_required):
             "angerufen",
             "interessiert",
             "besichtigung",
+            "angebot",
             "kontaktformular",
             "spaeter",
             "verloren"
@@ -2230,28 +2980,126 @@ def register_app2_routes(app, login_required):
         conn = sqlite3.connect(DB_PATH)
         conn.row_factory = sqlite3.Row
 
-        rows = conn.execute("""
-            SELECT
-                tagesliste_id AS id,
-                source_lead_id,
-                firma,
-                branche,
-                ansprechpartner,
-                strasse,
-                plz,
-                ort,
-                telefon,
-                email,
-                website,
-                quelle,
-                status,
-                notiz,
-                spaeter_datum,
-                erstellt_am
-            FROM tagesliste_status_backup
-            WHERE status = ?
-            ORDER BY backup_am DESC, tagesliste_id DESC
-        """, (status,)).fetchall()
+        if status == "angebot":
+            rows = conn.execute("""
+                SELECT
+                    id,
+                    source_lead_id,
+                    firma,
+                    branche,
+                    ansprechpartner,
+                    strasse,
+                    plz,
+                    ort,
+                    telefon,
+                    email,
+                    website,
+                    quelle,
+                    status,
+                    notiz,
+                    spaeter_datum,
+                    erstellt_am,
+                    besichtigung_data_json,
+                    angebot_vars_json,
+                    angebot_nr,
+                    angebot_datum,
+                    angebot_netto,
+                    angebot_mwst,
+                    angebot_brutto
+                FROM tagesliste_leads
+                WHERE status = 'angebot'
+                ORDER BY id DESC
+            """).fetchall()
+
+        elif status == "besichtigung":
+            rows = conn.execute("""
+                SELECT
+                    id,
+                    source_lead_id,
+                    firma,
+                    branche,
+                    ansprechpartner,
+                    strasse,
+                    plz,
+                    ort,
+                    telefon,
+                    email,
+                    website,
+                    quelle,
+                    status,
+                    notiz,
+                    spaeter_datum,
+                    erstellt_am,
+                    besichtigung_data_json,
+                    angebot_vars_json,
+                    angebot_nr,
+                    angebot_datum,
+                    angebot_netto,
+                    angebot_mwst,
+                    angebot_brutto
+                FROM tagesliste_leads
+                WHERE status = 'besichtigung'
+
+                UNION ALL
+
+                SELECT
+                    b.tagesliste_id AS id,
+                    b.source_lead_id,
+                    b.firma,
+                    b.branche,
+                    b.ansprechpartner,
+                    b.strasse,
+                    b.plz,
+                    b.ort,
+                    b.telefon,
+                    b.email,
+                    b.website,
+                    b.quelle,
+                    b.status,
+                    b.notiz,
+                    b.spaeter_datum,
+                    b.erstellt_am,
+                    NULL AS besichtigung_data_json,
+                    NULL AS angebot_vars_json,
+                    NULL AS angebot_nr,
+                    NULL AS angebot_datum,
+                    0 AS angebot_netto,
+                    0 AS angebot_mwst,
+                    0 AS angebot_brutto
+                FROM tagesliste_status_backup b
+                WHERE b.status = 'besichtigung'
+                AND NOT EXISTS (
+                    SELECT 1
+                    FROM tagesliste_leads t
+                    WHERE t.id = b.tagesliste_id
+                )
+
+                ORDER BY id DESC
+            """).fetchall()
+
+        else:
+            rows = conn.execute("""
+                SELECT
+                    tagesliste_id AS id,
+                    source_lead_id,
+                    firma,
+                    branche,
+                    ansprechpartner,
+                    strasse,
+                    plz,
+                    ort,
+                    telefon,
+                    email,
+                    website,
+                    quelle,
+                    status,
+                    notiz,
+                    spaeter_datum,
+                    erstellt_am
+                FROM tagesliste_status_backup
+                WHERE status = ?
+                ORDER BY backup_am DESC, tagesliste_id DESC
+            """, (status,)).fetchall()
 
         result = [dict(row) for row in rows]
 
@@ -2292,6 +3140,12 @@ def register_app2_routes(app, login_required):
             WHERE status IS NULL OR status = 'offen'
         """).fetchone()["count"]
 
+        angebot_total = conn.execute("""
+            SELECT COUNT(*) AS count
+            FROM tagesliste_leads
+            WHERE status = 'angebot'
+        """).fetchone()["count"]
+
         month_row = conn.execute("""
             SELECT
                 SUM(CASE WHEN status = 'angerufen' THEN 1 ELSE 0 END) AS month_angerufen,
@@ -2311,6 +3165,7 @@ def register_app2_routes(app, login_required):
             "angerufen": 0,
             "interessiert": 0,
             "besichtigung": 0,
+            "angebot": int(angebot_total or 0),
             "kontaktformular": 0,
             "spaeter": 0,
             "verloren": 0
@@ -2353,6 +3208,33 @@ def register_app2_routes(app, login_required):
     @app.route("/angebotvorlage.html")
     @login_required
     def app2_angebotvorlage():
+        angebot_id = request.args.get("angebot_id", "").strip()
+
+        if angebot_id:
+            try:
+                conn = sqlite3.connect(DB_PATH)
+                conn.row_factory = sqlite3.Row
+
+                row = conn.execute("""
+                    SELECT angebot_vars_json
+                    FROM tagesliste_leads
+                    WHERE id = ?
+                    AND angebot_vars_json IS NOT NULL
+                    AND angebot_vars_json != ''
+                """, (angebot_id,)).fetchone()
+
+                conn.close()
+
+                if row and row["angebot_vars_json"]:
+                    angebot_vars = json.loads(row["angebot_vars_json"])
+
+                    return render_template(
+                        "angebotvorlage.html",
+                        **angebot_vars
+                    )
+            except Exception as e:
+                print("ANGEBOTVORLAGE DB FEHLER:", str(e))
+
         return render_template(
             "angebotvorlage.html",
             Kunde=request.args.get("Kunde", ""),
@@ -2362,26 +3244,613 @@ def register_app2_routes(app, login_required):
             Ort=request.args.get("Ort", ""),
             Leistungsart=request.args.get("Leistungsart", ""),
             Nr=request.args.get("Nr", ""),
-            Datum=request.args.get("Datum", "")
+            Datum=request.args.get("Datum", ""),
+            Leistung_1=request.args.get("Leistung_1", ""),
+            Einheiten_1=request.args.get("Einheiten_1", ""),
+            Preis_1=request.args.get("Preis_1", ""),
+            Leistung_2=request.args.get("Leistung_2", ""),
+            Einheiten_2=request.args.get("Einheiten_2", ""),
+            Preis_2=request.args.get("Preis_2", ""),
+            Leistung_3=request.args.get("Leistung_3", ""),
+            Einheiten_3=request.args.get("Einheiten_3", ""),
+            Preis_3=request.args.get("Preis_3", ""),
+            Leistung_4=request.args.get("Leistung_4", ""),
+            Einheiten_4=request.args.get("Einheiten_4", ""),
+            Preis_4=request.args.get("Preis_4", ""),
+            Ausführungszeitraum=request.args.get("Ausführungszeitraum", "")
         )
 
 
 # =====================================================
 # APP2 - BÖLÜM 4 - LEISTUNGSVERZEICHNIS
+# Angebot'a dokunmaz. Sadece Angebot ID ile kaydedilmiş
+# besichtigung_data_json içinden LV değişkenlerini hazırlar.
 # =====================================================
+
+    def lv_clean(value):
+        return str(value or "").replace("Details", "").strip()
+
+    def lv_join_de(items):
+        items = [lv_clean(x) for x in items if lv_clean(x)]
+        if not items:
+            return ""
+        if len(items) == 1:
+            return items[0]
+        if len(items) == 2:
+            return items[0] + " und " + items[1]
+        return ", ".join(items[:-1]) + " und " + items[-1]
+
+    def lv_short_freq(value):
+        text = lv_clean(value)
+
+        if not text or text == "-":
+            return "-"
+
+        replacements = {
+            "Täglich": "tägl.",
+            "täglich": "tägl.",
+            "1x wöchentlich": "1x wöch.",
+            "2x wöchentlich": "2x wöch.",
+            "3x wöchentlich": "3x wöch.",
+            "4x wöchentlich": "4x wöch.",
+            "5x wöchentlich": "5x wöch.",
+            "14-tägig": "14-tägl.",
+            "1x monatlich": "1x monatl.",
+            "monatlich": "monatl.",
+            "1x jährlich": "1x jährl.",
+            "jährlich": "jährl."
+        }
+
+        for old, new in replacements.items():
+            text = text.replace(old, new)
+
+        return text
+
+    def lv_parse_json(raw):
+        if isinstance(raw, dict):
+            return raw
+        try:
+            return json.loads(raw or "{}")
+        except Exception:
+            return {}
+
+    def lv_area_freq(besichtigung_data, area_keys):
+        raeume = besichtigung_data.get("raeume") or []
+        if not isinstance(raeume, list):
+            return "-"
+
+        freqs = []
+
+        for row in raeume:
+            text = (
+                lv_clean(row.get("typ", "")) + " " +
+                lv_clean(row.get("name", ""))
+            ).lower()
+
+            if any(k in text for k in area_keys):
+                freq = lv_clean(row.get("haeufigkeit", ""))
+                if freq and freq.lower() not in ["bitte wählen", "bitte waehlen"]:
+                    if freq not in freqs:
+                        freqs.append(freq)
+
+        return lv_short_freq(freqs[0]) if freqs else "-"
+
+    def lv_find_sonstiges_value(besichtigung_data, label_key):
+        rows = besichtigung_data.get("sonstiges") or []
+        if not isinstance(rows, list):
+            return ""
+
+        label_key = label_key.lower()
+
+        for row in rows:
+            label = lv_clean(row.get("label", "")).lower()
+            values = row.get("values") or []
+
+            if label_key in label and values:
+                return lv_clean(values[0])
+
+        return ""
+
+    def lv_find_sonstiges_next_freq(besichtigung_data, start_label_key, fallback="-"):
+        rows = besichtigung_data.get("sonstiges") or []
+        if not isinstance(rows, list):
+            return fallback
+
+        start_label_key = start_label_key.lower()
+
+        for i, row in enumerate(rows):
+            label = lv_clean(row.get("label", "")).lower()
+            values = row.get("values") or []
+            first_value = lv_clean(values[0]) if values else ""
+
+            if start_label_key in label:
+                if first_value.lower() in ["", "keine", "ohne", "bitte wählen", "bitte waehlen"]:
+                    return "-"
+
+                for next_row in rows[i + 1:i + 4]:
+                    next_label = lv_clean(next_row.get("label", "")).lower()
+                    next_values = next_row.get("values") or []
+
+                    if "häufig" in next_label or "haeufig" in next_label:
+                        if next_values:
+                            val = lv_clean(next_values[0])
+                            if val and val.lower() not in ["bitte wählen", "bitte waehlen"]:
+                                return lv_short_freq(val)
+
+                return fallback
+
+        return fallback
+
+    def lv_sonstiges_values(row):
+        if not isinstance(row, dict):
+            return []
+
+        values = row.get("values") or []
+        active = row.get("active") or []
+
+        if not isinstance(values, list):
+            values = [values]
+
+        if not isinstance(active, list):
+            active = [active]
+
+        result = []
+
+        for item in values + active:
+            text = lv_clean(item)
+            lower = text.lower()
+
+            if not text:
+                continue
+
+            if lower in ["bitte wählen", "bitte waehlen", "ohne", "keine", "mit", "ja", "nein"]:
+                continue
+
+            if text not in result:
+                result.append(text)
+
+        return result
+
+    def lv_find_sonstiges_row(besichtigung_data, label_keys):
+        rows = besichtigung_data.get("sonstiges") or []
+
+        if not isinstance(rows, list):
+            return None
+
+        keys = [str(k or "").lower() for k in label_keys]
+
+        for row in rows:
+            if not isinstance(row, dict):
+                continue
+
+            label = lv_clean(row.get("label", "")).lower()
+
+            if any(k in label for k in keys):
+                return row
+
+        return None
+
+    def lv_build_elektro_text(besichtigung_data):
+        row = lv_find_sonstiges_row(
+            besichtigung_data,
+            ["welche geräte", "welche geraete", "mehrfachauswahl"]
+        )
+
+        selected = lv_sonstiges_values(row)
+
+        mapping = {
+            "pc": "PC",
+            "bildschirm": "Bildschirm",
+            "bildschirme": "Bildschirm",
+            "telefon": "Telefon",
+            "telefone": "Telefon",
+            "drucker": "Drucker"
+        }
+
+        geraete = []
+
+        for item in selected:
+            key = item.lower().strip()
+            text = mapping.get(key, item)
+
+            if text not in geraete:
+                geraete.append(text)
+
+        if geraete:
+            return lv_join_de(geraete) + " trocken/nebel-feucht entstauben"
+
+        return "PC, Bildschirme, Telefone und Drucker trocken/nebel-feucht entstauben"
+
+    def lv_build_spuelmaschine_text(besichtigung_data):
+        row = lv_find_sonstiges_row(
+            besichtigung_data,
+            ["geschirrspüler", "geschirrspueler", "geschirr"]
+        )
+
+        values = lv_sonstiges_values(row)
+
+        if not values:
+            return "Geschirrspüler einräumen / ausräumen, sofern in der Besichtigung ausgewählt"
+
+        action = values[0].lower()
+
+        if "ein" in action and "aus" in action:
+            return "Geschirrspüler einräumen und ausräumen"
+
+        if "ein" in action:
+            return "Geschirrspüler einräumen"
+
+        if "aus" in action:
+            return "Geschirrspüler ausräumen"
+
+        return "Geschirrspüler " + values[0].lower()
+
+    def lv_find_sonstiges_raw_value(besichtigung_data, label_key):
+        rows = besichtigung_data.get("sonstiges") or []
+        if not isinstance(rows, list):
+            return ""
+
+        label_key = str(label_key or "").lower()
+
+        for row in rows:
+            if not isinstance(row, dict):
+                continue
+
+            label = lv_clean(row.get("label", "")).lower()
+            values = row.get("values") or []
+
+            if label_key in label and values:
+                return lv_clean(values[0])
+
+        return ""
+
+    def lv_find_sonstiges_next_value(besichtigung_data, start_label_key, next_label_keys, fallback=""):
+        rows = besichtigung_data.get("sonstiges") or []
+        if not isinstance(rows, list):
+            return fallback
+
+        start_label_key = str(start_label_key or "").lower()
+
+        if isinstance(next_label_keys, str):
+            next_label_keys = [next_label_keys]
+
+        next_label_keys = [str(k or "").lower() for k in next_label_keys]
+
+        for i, row in enumerate(rows):
+            if not isinstance(row, dict):
+                continue
+
+            label = lv_clean(row.get("label", "")).lower()
+            values = row.get("values") or []
+            first_value = lv_clean(values[0]) if values else ""
+
+            if start_label_key in label:
+                if first_value.lower() in ["", "keine", "ohne", "nein", "bitte wählen", "bitte waehlen"]:
+                    return ""
+
+                for next_row in rows[i + 1:i + 5]:
+                    if not isinstance(next_row, dict):
+                        continue
+
+                    next_label = lv_clean(next_row.get("label", "")).lower()
+                    next_values = next_row.get("values") or []
+
+                    if any(k in next_label for k in next_label_keys):
+                        if next_values:
+                            val = lv_clean(next_values[0])
+                            if val and val.lower() not in ["bitte wählen", "bitte waehlen", "keine", "ohne"]:
+                                return val
+
+                return fallback
+
+        return fallback
+
+    def lv_is_active_choice(value):
+        text = lv_clean(value).lower()
+        return text not in ["", "keine", "ohne", "nein", "bitte wählen", "bitte waehlen"]
+
+    def lv_add_zusatz(items, text, freq):
+        text = lv_clean(text)
+        freq = lv_clean(freq) or "-"
+
+        if not text:
+            return
+
+        for item in items:
+            if item.get("text") == text:
+                return
+
+        items.append({
+            "text": text,
+            "freq": freq
+        })
+
+    def lv_build_einsatz_text(besichtigung_data):
+        result = []
+
+        root_values = (
+            besichtigung_data.get("einsatztage")
+            or besichtigung_data.get("einsatzzeiten")
+            or []
+        )
+
+        if isinstance(root_values, list):
+            for item in root_values:
+                if isinstance(item, dict):
+                    tag = lv_clean(
+                        item.get("tag")
+                        or item.get("day")
+                        or item.get("wochentag")
+                        or item.get("label")
+                    )
+                    zeit = lv_clean(
+                        item.get("uhrzeit")
+                        or item.get("time")
+                        or item.get("zeit")
+                        or item.get("ab")
+                    )
+
+                    if tag:
+                        if zeit:
+                            result.append(tag + " ab " + zeit + " Uhr")
+                        else:
+                            result.append(tag)
+                else:
+                    text = lv_clean(item)
+                    if text:
+                        result.append(text)
+
+        if result:
+            return ", ".join(dict.fromkeys(result))
+
+        row = lv_find_sonstiges_row(
+            besichtigung_data,
+            ["einsatztage", "uhrzeiten"]
+        )
+
+        if isinstance(row, dict):
+            values = row.get("values") or []
+            active = row.get("active") or []
+
+            combined = []
+            for item in values + active:
+                text = lv_clean(item)
+                if text and text.lower() not in ["bitte wählen", "bitte waehlen"]:
+                    combined.append(text)
+
+            if combined:
+                return ", ".join(dict.fromkeys(combined))
+
+        return ""
+
+    def lv_build_zusatzleistungen(besichtigung_data):
+        items = []
+
+        stehlampen = lv_find_sonstiges_raw_value(besichtigung_data, "stehlampen")
+        if lv_is_active_choice(stehlampen):
+            stueck = lv_find_sonstiges_next_value(
+                besichtigung_data,
+                "stehlampen",
+                ["stückzahl", "stueckzahl"]
+            )
+            freq = lv_find_sonstiges_next_freq(besichtigung_data, "stehlampen", "-")
+
+            angabe = []
+            if stueck:
+                angabe.append(stueck + " Stück")
+            if freq and freq != "-":
+                angabe.append(freq)
+
+            lv_add_zusatz(
+                items,
+                "Stehlampen reinigen / entstauben",
+                " · ".join(angabe) if angabe else "-"
+            )
+
+        regale = lv_find_sonstiges_raw_value(besichtigung_data, "regale")
+        if lv_is_active_choice(regale):
+            stueck = lv_find_sonstiges_next_value(
+                besichtigung_data,
+                "regale",
+                ["stückzahl", "stueckzahl"]
+            )
+            freq = lv_find_sonstiges_next_freq(besichtigung_data, "regale", "-")
+
+            angabe = []
+            if stueck:
+                angabe.append(stueck + " Stück")
+            if freq and freq != "-":
+                angabe.append(freq)
+
+            lv_add_zusatz(
+                items,
+                "Regale reinigen / entstauben",
+                " · ".join(angabe) if angabe else "-"
+            )
+
+        etage = lv_find_sonstiges_raw_value(besichtigung_data, "etage")
+        bis_inkl = lv_find_sonstiges_next_value(
+            besichtigung_data,
+            "etage",
+            ["bis inkl", "bis"]
+        )
+
+        if lv_is_active_choice(etage):
+            if bis_inkl:
+                etage_text = etage + " bis inkl. " + bis_inkl
+            else:
+                etage_text = etage
+
+            lv_add_zusatz(items, "Etage / Reinigungsbereich", etage_text)
+
+        starttermin = lv_find_sonstiges_raw_value(besichtigung_data, "starttermin")
+        if lv_is_active_choice(starttermin):
+            lv_add_zusatz(items, "Starttermin", starttermin)
+
+        einsatz_text = lv_build_einsatz_text(besichtigung_data)
+        if einsatz_text:
+            lv_add_zusatz(items, "Einsatztage & Uhrzeiten", einsatz_text)
+
+        notiz = (
+            lv_find_sonstiges_raw_value(besichtigung_data, "notizen")
+            or lv_find_sonstiges_raw_value(besichtigung_data, "sonderwünsche")
+            or lv_find_sonstiges_raw_value(besichtigung_data, "sonderwuensche")
+        )
+
+        if lv_is_active_choice(notiz):
+            notiz_lower = notiz.lower()
+            if "hier können sie" not in notiz_lower and "hier koennen sie" not in notiz_lower:
+                lv_add_zusatz(items, "Individuelle Notizen / Sonderwünsche", notiz)
+
+        return items
+
+    def lv_build_vars_from_besichtigung(row):
+        besichtigung_data = lv_parse_json(row["besichtigung_data_json"] if row else "{}")
+
+        kunde = besichtigung_data.get("kunde") or {}
+        leistungen = [
+            lv_clean(x)
+            for x in (besichtigung_data.get("leistungen") or [])
+            if lv_clean(x).lower() not in ["leistungen", "elemente", "sonstiges"]
+        ]
+
+        firma = lv_clean(kunde.get("firma")) or lv_clean(row["firma"] if row else "")
+        adresse = lv_clean(kunde.get("strasse")) or lv_clean(row["strasse"] if row else "")
+        plz = lv_clean(kunde.get("plz")) or lv_clean(row["plz"] if row else "")
+        ort = lv_clean(kunde.get("ort")) or lv_clean(row["ort"] if row else "")
+
+        leistungsart = lv_join_de(leistungen)
+        if not leistungsart:
+            leistungsart = lv_clean(row["branche"] if row else "")
+
+        freq_buero = lv_area_freq(besichtigung_data, ["büro", "buero", "büroraum", "besprechungsraum"])
+        freq_wc = lv_area_freq(besichtigung_data, ["wc", "sanitär", "sanitaer"])
+        freq_kueche = lv_area_freq(besichtigung_data, ["küche", "kueche"])
+        freq_flur = lv_area_freq(besichtigung_data, ["flur"])
+
+        top_freq_parts = []
+        if freq_buero != "-":
+            top_freq_parts.append("Büro: " + freq_buero)
+        if freq_wc != "-":
+            top_freq_parts.append("WC: " + freq_wc)
+        if freq_kueche != "-":
+            top_freq_parts.append("Küche: " + freq_kueche)
+        if freq_flur != "-":
+            top_freq_parts.append("Flur: " + freq_flur)
+
+        freq_schreibtische = lv_find_sonstiges_next_freq(besichtigung_data, "schreibtische", "-")
+        freq_elektro = lv_find_sonstiges_next_freq(besichtigung_data, "elektro", "-")
+        freq_spuelmaschine = lv_find_sonstiges_next_freq(besichtigung_data, "geschirr", "-")
+
+        text_elektro = lv_build_elektro_text(besichtigung_data)
+        text_spuelmaschine = lv_build_spuelmaschine_text(besichtigung_data)
+        zusatzleistungen = lv_build_zusatzleistungen(besichtigung_data)
+
+        angebot_nr = lv_clean(row["angebot_nr"] if row and "angebot_nr" in row.keys() else "")
+        angebot_nr = re.sub(r"(?i)^AN-", "", angebot_nr).strip()
+
+        return {
+            "Nr": angebot_nr,
+            "Kunde": firma,
+            "Objekt": "",
+            "Adresse": adresse,
+            "Plz": plz,
+            "Ort": ort,
+            "Leistungsart": leistungsart,
+            "Haeufigkeit": "<br>".join(top_freq_parts) if top_freq_parts else "-",
+            "Zusatzleistungen": zusatzleistungen,
+
+            "Freq_Schreibtische": freq_schreibtische,
+            "Freq_Elektro": freq_elektro,
+            "Text_Elektro": text_elektro,
+            "Freq_Muell": freq_buero,
+            "Freq_Tueren": freq_buero,
+            "Freq_Boden_Teppich": freq_buero,
+
+            "Freq_Kueche_Flaechen": freq_kueche,
+            "Freq_Spuelmaschine": freq_spuelmaschine,
+            "Text_Spuelmaschine": text_spuelmaschine,
+            "Freq_Kuechengeraete": freq_kueche,
+            "Freq_Kueche_Muell": freq_kueche,
+            "Freq_Boden_Kueche": freq_kueche,
+
+            "Freq_WC": freq_wc,
+            "Freq_Waschbecken": freq_wc,
+            "Freq_Auffuellen": freq_wc,
+            "Freq_Sanitaer_Muell": freq_wc,
+            "Freq_Boden_Sanitaer": freq_wc,
+
+            "Freq_Flur_Kontakt": freq_flur,
+            "Freq_Flur_Sicht": freq_flur,
+            "Freq_Flur_Boden": freq_flur,
+        }
 
     @app.route("/leistungsverzeichnis")
     @app.route("/Leistungsverzeichnis.html")
     @app.route("/leistungsverzeichnis.html")
     @login_required
     def app2_leistungsverzeichnis():
+        angebot_id = request.args.get("angebot_id", "").strip()
+
+        if angebot_id:
+            try:
+                angebot_id_int = int(angebot_id)
+            except Exception:
+                angebot_id_int = 0
+
+            if angebot_id_int > 0:
+                conn = sqlite3.connect(DB_PATH)
+                conn.row_factory = sqlite3.Row
+                row = conn.execute("""
+                    SELECT
+                        id,
+                        firma,
+                        branche,
+                        strasse,
+                        plz,
+                        ort,
+                        angebot_nr,
+                        besichtigung_data_json
+                    FROM tagesliste_leads
+                    WHERE id = ?
+                """, (angebot_id_int,)).fetchone()
+                conn.close()
+
+                if row:
+                    lv_vars = lv_build_vars_from_besichtigung(row)
+                    return render_template("Leistungsverzeichnis.html", **lv_vars)
+
         return render_template(
             "Leistungsverzeichnis.html",
+            Nr=request.args.get("Nr", ""),
             Kunde=request.args.get("Kunde", ""),
             Objekt=request.args.get("Objekt", ""),
             Adresse=request.args.get("Adresse", ""),
             Plz=request.args.get("Plz", ""),
             Ort=request.args.get("Ort", ""),
             Leistungsart=request.args.get("Leistungsart", ""),
-            Datum=request.args.get("Datum", "")
+            Haeufigkeit=request.args.get("Haeufigkeit", "-"),
+            Zusatzleistungen=[],
+
+            Freq_Schreibtische="-",
+            Freq_Elektro="-",
+            Freq_Muell="-",
+            Freq_Tueren="-",
+            Freq_Boden_Teppich="-",
+
+            Freq_Kueche_Flaechen="-",
+            Freq_Spuelmaschine="-",
+            Freq_Kuechengeraete="-",
+            Freq_Kueche_Muell="-",
+            Freq_Boden_Kueche="-",
+
+            Freq_WC="-",
+            Freq_Waschbecken="-",
+            Freq_Auffuellen="-",
+            Freq_Sanitaer_Muell="-",
+            Freq_Boden_Sanitaer="-",
+
+            Freq_Flur_Kontakt="-",
+            Freq_Flur_Sicht="-",
+            Freq_Flur_Boden="-"
         )
