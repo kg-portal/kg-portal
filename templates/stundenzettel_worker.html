@@ -97,15 +97,27 @@
             }
 
             #monthSidebar {
-                display: flex !important;
-                flex-direction: column !important;
-                max-height: 250px !important;
-                overflow-y: auto !important;
-            }
+    display: flex !important;
+    flex-direction: row !important;
+    gap: 8px !important;
+    max-height: none !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    padding: 10px 12px !important;
+    white-space: nowrap !important;
+    -webkit-overflow-scrolling: touch !important;
+}
 
-            #monthSidebar button {
-                width: 100% !important;
-            }
+#monthSidebar button {
+    flex: 0 0 auto !important;
+    width: auto !important;
+    min-width: 115px !important;
+    border-bottom: none !important;
+    border-radius: 999px !important;
+    padding: 12px 14px !important;
+    text-align: center !important;
+    white-space: nowrap !important;
+}
 
             #sheetBody {
                 display: flex !important;
@@ -554,6 +566,15 @@ const monthList = [
     { month: 3, year: 2027, label: 'März 2027' }
 ];
 
+const heute = new Date();
+const aktuellerMonatIndex = monthList.findIndex(item =>
+    item.month === heute.getMonth() + 1 &&
+    item.year === heute.getFullYear()
+);
+
+if (aktuellerMonatIndex !== -1) {
+    selectedMonthIndex = aktuellerMonatIndex;
+}
 function getDaysInMonth(month, year) {
     return new Date(year, month, 0).getDate();
 }
@@ -870,7 +891,7 @@ function updateCalculations() {
         const outT = row.querySelector('.out-time').value;
         const status = row.querySelector('.loc-select').value;
 
-        if (inT && outT && inT.length >= 5 && outT.length >= 5) {
+        if (inT && outT && inT.includes(':') && outT.includes(':')) {
             const [sH, sM] = inT.split(':').map(Number);
             const [eH, eM] = outT.split(':').map(Number);
 
