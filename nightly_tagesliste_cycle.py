@@ -31,7 +31,7 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = os.path.join(BASE_DIR, "data")
 DB_PATH = os.path.join(DATA_DIR, "kg_portal.db")
 
-TARGET_COUNT = 30
+TARGET_COUNT = 50
 
 PROCESSED_STATUSES = [
     "angerufen",
@@ -175,40 +175,102 @@ def to_int(v):
 def quality_score(row):
     score = 0
 
-    if norm(row.get("telefon")):
+    firma = norm(row.get("firma")).lower()
+    telefon = norm(row.get("telefon"))
+    email = norm(row.get("email"))
+    website = norm(row.get("website"))
+    maps = norm(row.get("google_maps_url"))
+
+    if telefon:
+        score += 50
+
+    if website:
         score += 40
 
-    if norm(row.get("email")):
+    if email:
         score += 35
 
-    if norm(row.get("website")):
-        score += 25
-
-    if norm(row.get("google_maps_url")):
+    if maps:
         score += 10
 
     rating = to_float(row.get("rating"))
     reviews = to_int(row.get("user_rating_count"))
 
     if rating >= 4.5:
-        score += 20
+        score += 25
     elif rating >= 4.0:
-        score += 14
+        score += 18
     elif rating >= 3.5:
-        score += 6
+        score += 8
 
-    if reviews > 0:
-        score += min(25, reviews // 5)
+    if reviews >= 100:
+        score += 25
+    elif reviews >= 50:
+        score += 18
+    elif reviews >= 20:
+        score += 12
+    elif reviews >= 5:
+        score += 6
 
     branche_id = norm(row.get("branche_id"))
 
     if branche_id in ["1", "2", "9", "10", "11"]:
-        score += 10
+        score += 15
 
     if norm(row.get("plz")):
         score += 5
 
+    bad_words = [
+        "paketstation", "packstation", "paketshop", "locker",
+        "dhl", "ups", "gls", "dpd", "hermes",
+        "briefkasten", "geldautomat", "atm", "parkplatz",
+        "haltestelle", "tankstelle"
+    ]
+
+    if any(x in firma for x in bad_words):
+        score -= 500
+
     return score
+
+
+def is_duesseldorf_lead(row):
+    stadt = norm(row.get("stadt") or row.get("ort")).lower()
+    plz = norm(row.get("plz"))
+
+    if "düsseldorf" in stadt or "duesseldorf" in stadt:
+        return True
+
+    if plz.startswith("40"):
+        return True
+
+    return False
+
+
+def is_quality_lead(row):
+    firma = norm(row.get("firma"))
+    telefon = norm(row.get("telefon"))
+    website = norm(row.get("website"))
+    rating = to_float(row.get("rating"))
+
+    if not firma:
+        return False
+
+    if not is_duesseldorf_lead(row):
+        return False
+
+    if not telefon:
+        return False
+
+    if not website:
+        return False
+
+    if rating > 0 and rating < 3.5:
+        return False
+
+    if quality_score(row) < 90:
+        return False
+
+    return True
 
 
 def cleanup_old_fake_test_data(cursor):
@@ -392,7 +454,12 @@ def select_real_branch_leads(cursor, limit_count):
 
     real_rows = [dict(r) for r in rows]
 
-    real_rows.sort(
+    quality_rows = [
+        r for r in real_rows
+        if is_quality_lead(r)
+    ]
+
+    quality_rows.sort(
         key=lambda r: (
             -quality_score(r),
             norm(r.get("branche_id")),
@@ -401,7 +468,7 @@ def select_real_branch_leads(cursor, limit_count):
         )
     )
 
-    return real_rows[:int(limit_count)]
+    return quality_rows[:int(limit_count)]
 
 
 def add_real_leads_to_tagesliste(cursor, target_count):
@@ -506,7 +573,7 @@ def run_cycle():
     print(reset_result)
 
     add_result = add_real_leads_to_tagesliste(cursor, TARGET_COUNT)
-    print("2) Branche listesinden gerçek firma Tagesliste'ye alındı")
+    print("2) Düsseldorf kaliteli firma Tagesliste'ye alındı")
     print(add_result)
 
     conn.commit()
