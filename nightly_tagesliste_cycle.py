@@ -378,6 +378,9 @@ def reset_current_tagesliste(cursor):
         except Exception:
             source_lead_id = 0
 
+        if status == "angebot":
+            continue
+
         if status in ["", "offen"]:
             if source_lead_id > 0:
                 cursor.execute("""
