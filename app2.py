@@ -1929,13 +1929,20 @@ def register_app2_routes(app, login_required):
             branche_id = str(data.get("branche_id", "")).strip()
             branche_name = str(data.get("branche_name", "")).strip()
             suchwort = str(data.get("suchwort", "")).strip()
-            stadt = str(data.get("stadt", "")).strip()
+
+            # Manuel import da artık Düsseldorf kilitli.
+            stadt = "Düsseldorf"
+
             plz = str(data.get("plz", "")).strip()
 
-            if not branche_id or not branche_name or not suchwort or not stadt:
+            # Eski / yanlış PLZ gelirse temizle.
+            if plz and not plz.startswith("40"):
+                plz = ""
+
+            if not branche_id or not branche_name or not suchwort:
                 return jsonify({
                     "success": False,
-                    "message": "Branche, Suchwort und Stadt sind Pflichtfelder."
+                    "message": "Branche und Suchwort sind Pflichtfelder."
                 }), 400
 
             result = run_apify_import(
