@@ -70,13 +70,20 @@ MONTHLY_GOOGLE_REQUEST_LIMIT = 900
 # 30 istek ≈ teorik 600 firma.
 GOOGLE_RESULTS_PER_REQUEST = 20
 
-# Duisburg'u tek "Duisburg" aramasıyla bırakma.
+# Hedef şehir kilidi:
+# Bundan sonra Google Lead Pool Duisburg değil Düsseldorf arayacak.
+FORCE_CITY = "Düsseldorf"
+
+# Düsseldorf'u tek "Düsseldorf" aramasıyla bırakma.
 # Google her aramada en fazla ilk 20 sonucu verdiği için PLZ bazlı job üretilecek.
-DUISBURG_PLZ_LIST = [
-    "47051", "47053", "47055", "47057", "47058", "47059",
-    "47119", "47137", "47138", "47139", "47166", "47167", "47169",
-    "47178", "47179", "47198", "47199",
-    "47226", "47228", "47229", "47239", "47249", "47259", "47269", "47279",
+DUESSELDORF_PLZ_LIST = [
+    "40210", "40211", "40212", "40213", "40215", "40217", "40219",
+    "40221", "40223", "40225", "40227", "40229", "40231", "40233",
+    "40235", "40237", "40239",
+    "40468", "40470", "40472", "40474", "40476", "40477", "40479", "40489",
+    "40545", "40547", "40549",
+    "40589", "40591", "40593", "40595", "40597", "40599",
+    "40625", "40627", "40629",
 ]
 
 # Her iş arasında küçük bekleme. Çok agresif çalışmasın.
@@ -136,10 +143,55 @@ def parse_google_address(formatted_address):
     return strasse, plz, stadt
 
 
+def is_duesseldorf_google_lead(lead):
+    stadt = normalize_text(lead.get("stadt", "")).lower()
+    plz = normalize_text(lead.get("plz", ""))
+
+    if "düsseldorf" in stadt or "duesseldorf" in stadt:
+        return True
+
+    if plz.startswith("40"):
+        return True
+
+    return False
+
+
+def is_pool_quality_lead(lead):
+    firma = normalize_text(lead.get("firma", ""))
+    telefon = normalize_text(lead.get("telefon", ""))
+    website = normalize_url(lead.get("website", ""))
+
+    if not firma:
+        return False
+
+    if not is_duesseldorf_google_lead(lead):
+        return False
+
+    # Kalite filtresi: Telefon + Website zorunlu.
+    # Website yoksa Mail-Finder zaten düzgün çalışamaz.
+    if not telefon:
+        return False
+
+    if not website:
+        return False
+
+    try:
+        rating = float(str(lead.get("rating", "") or "0").replace(",", "."))
+    except Exception:
+        rating = 0.0
+
+    # Çok düşük puanlı yerleri alma.
+    if rating > 0 and rating < 3.5:
+        return False
+
+    return True
+
+
 def get_leads_from_google(suchwort="", stadt="", max_results=20, plz=""):
     """
     Google Places Text Search.
     Pro Aufruf = 1 Google Text Search Request.
+    Düsseldorf kilitli arama.
     """
 
     api_key = os.getenv("GMAPS_KEY", "").strip()
@@ -147,10 +199,18 @@ def get_leads_from_google(suchwort="", stadt="", max_results=20, plz=""):
         raise RuntimeError("GMAPS_KEY fehlt. Render Environment içinde GMAPS_KEY yok.")
 
     suchwort = normalize_text(suchwort)
-    stadt = normalize_text(stadt)
+
+    # Şehir artık dışarıdan gelen değere bırakılmıyor.
+    stadt = FORCE_CITY
+
     plz = normalize_text(plz)
 
-    query_parts = [suchwort, plz, stadt]
+    # Eski Duisburg job'larından 470xx PLZ gelirse kullanma.
+    # Sadece Düsseldorf / 40xxx PLZ kabul.
+    if plz and not plz.startswith("40"):
+        plz = ""
+
+    query_parts = [suchwort, plz, stadt, "Deutschland"]
     text_query = " ".join([p for p in query_parts if p]).strip()
 
     if not text_query:
@@ -202,7 +262,7 @@ def get_leads_from_google(suchwort="", stadt="", max_results=20, plz=""):
         if not firma:
             continue
 
-        leads.append({
+        lead = {
             "firma": firma,
             "strasse": strasse,
             "plz": found_plz,
@@ -214,7 +274,12 @@ def get_leads_from_google(suchwort="", stadt="", max_results=20, plz=""):
             "google_maps_url": normalize_text(place.get("googleMapsUri", "") or ""),
             "rating": normalize_text(place.get("rating", "") or ""),
             "user_rating_count": normalize_text(place.get("userRatingCount", "") or ""),
-        })
+        }
+
+        if not is_pool_quality_lead(lead):
+            continue
+
+        leads.append(lead)
 
     return leads
 
@@ -525,27 +590,33 @@ def seed_jobs_from_plan():
     expanded_jobs = []
 
     for job in SEARCH_PLAN:
-        # 1) Eski genel arama kalsın:
-        # Örn: "Rechtsanwalt Duisburg"
-        expanded_jobs.append(dict(job))
+        # 1) Genel Düsseldorf araması:
+        # Örn: "Rechtsanwalt Düsseldorf"
+        base_job = dict(job)
+        base_job["stadt"] = FORCE_CITY
+        base_job["plz"] = ""
+        expanded_jobs.append(base_job)
 
-        # 2) Yeni PLZ bazlı aramalar:
-        # Örn: "Rechtsanwalt 47055 Duisburg"
+        # 2) Düsseldorf PLZ bazlı aramalar:
+        # Örn: "Rechtsanwalt 40210 Düsseldorf"
         # Aynı firma tekrar gelirse pool_lead_exists zaten yakalayıp geçiyor.
-        if normalize_text(job.get("stadt", "")).lower() == "duisburg":
-            for plz in DUISBURG_PLZ_LIST:
-                plz_job = dict(job)
-                plz_job["plz"] = plz
-                expanded_jobs.append(plz_job)
+        for plz in DUESSELDORF_PLZ_LIST:
+            plz_job = dict(base_job)
+            plz_job["plz"] = plz
+            expanded_jobs.append(plz_job)
 
     for job in expanded_jobs:
         job_data = {
             "branche_id": normalize_text(job.get("branche_id", "")),
             "branche_name": normalize_text(job.get("branche_name", "")),
             "suchwort": normalize_text(job.get("suchwort", "")),
-            "stadt": normalize_text(job.get("stadt", "")),
+            "stadt": FORCE_CITY,
             "plz": normalize_text(job.get("plz", "")),
         }
+
+        if job_data["plz"] and not job_data["plz"].startswith("40"):
+            job_data["plz"] = ""
+
         job_key = build_job_key(job_data)
         query_text = build_query_text(job_data)
 
@@ -768,16 +839,22 @@ def run_one_job(job, browser_context=None):
     if not can_run_google_request():
         raise RuntimeError("Google Tages-/Monatslimit erreicht.")
 
+    # Eski açık Duisburg job'ları DB'de kalmış olsa bile burada Düsseldorf'a çevriliyor.
+    job = dict(job)
+    job["stadt"] = FORCE_CITY
+
+    if normalize_text(job.get("plz", "")) and not normalize_text(job.get("plz", "")).startswith("40"):
+        job["plz"] = ""
+
     query_text = build_query_text(job)
     print(f"\n🔎 Google Suche: {query_text}")
 
     leads = get_leads_from_google(
         suchwort=job.get("suchwort", ""),
-        stadt=job.get("stadt", ""),
+        stadt=FORCE_CITY,
         max_results=GOOGLE_RESULTS_PER_REQUEST,
         plz=job.get("plz", ""),
     )
-
     # get_leads_from_google macht intern genau 1 Google Text Search request.
     add_pool_usage(1)
 
