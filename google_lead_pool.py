@@ -175,14 +175,7 @@ def is_pool_quality_lead(lead):
     if not website:
         return False
 
-    try:
-        rating = float(str(lead.get("rating", "") or "0").replace(",", "."))
-    except Exception:
-        rating = 0.0
-
-    # Çok düşük puanlı yerleri alma.
-    if rating > 0 and rating < 3.5:
-        return False
+     # Bewertung / Google yıldız puanı bilinçli olarak dikkate alınmıyor.
 
     return True
 
