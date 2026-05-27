@@ -244,10 +244,9 @@ def is_quality_lead(row):
     if not telefon:
         return False
 
-    if not website:
-        return False
-
-    if quality_score(row) < 90:
+    # 50'ye tamamlamak için website şart değil.
+    # Telefon varsa yeterli; website varsa zaten quality_score yükselir.
+    if quality_score(row) < 50:
         return False
 
     return True
@@ -425,6 +424,51 @@ def select_real_branch_leads(cursor, limit_count):
           AND COALESCE(firma, '') != ''
           AND COALESCE(firma, '') NOT LIKE 'KG TEST%'
           AND COALESCE(quelle, '') != 'KG Test Cycle'
+
+          -- Sadece KG için alakalı hedef gruplar
+          AND (
+              COALESCE(branche_id, '') IN ('1', '9', '10', '11')
+              OR lower(COALESCE(suchwort, '')) IN (
+                  'rechtsanwalt',
+                  'steuerberater',
+                  'notar',
+                  'immobilienbüro',
+                  'versicherungsbüro',
+                  'hausverwaltung',
+                  'weg verwaltung',
+                  'immobilienverwaltung',
+                  'wohnungsbaugesellschaft',
+                  'immobilienmakler',
+                  'versicherungsmakler',
+                  'finanzberatung',
+                  'buchhaltungsbüro',
+                  'lohnbüro',
+                  'unternehmensberatung',
+                  'elektrobetrieb',
+                  'shk betrieb',
+                  'malerbetrieb',
+                  'gebäudetechnik'
+              )
+          )
+
+          -- Alakasızları kesin at
+          AND lower(COALESCE(suchwort, '')) NOT IN (
+              'ergotherapie',
+              'apotheke',
+              'yoga studio',
+              'tanzschule',
+              'kampfsportschule',
+              'fitnessstudio',
+              'kosmetikstudio',
+              'friseur',
+              'fotostudio',
+              'verein',
+              'kita',
+              'kindergarten',
+              'fahrschule',
+              'nachhilfe'
+          )
+          AND COALESCE(branche_id, '') IN ('1', '9', '10')
 
           AND NOT EXISTS (
               SELECT 1
