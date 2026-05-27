@@ -193,24 +193,8 @@ def quality_score(row):
     if maps:
         score += 10
 
-    rating = to_float(row.get("rating"))
-    reviews = to_int(row.get("user_rating_count"))
-
-    if rating >= 4.5:
-        score += 25
-    elif rating >= 4.0:
-        score += 18
-    elif rating >= 3.5:
-        score += 8
-
-    if reviews >= 100:
-        score += 25
-    elif reviews >= 50:
-        score += 18
-    elif reviews >= 20:
-        score += 12
-    elif reviews >= 5:
-        score += 6
+    # Bewertung / Google yıldız puanı bilinçli olarak dikkate alınmıyor.
+    # Bizim için önemli olan: Düsseldorf + telefon + website + daha önce işlenmemiş olması.
 
     branche_id = norm(row.get("branche_id"))
 
@@ -250,7 +234,6 @@ def is_quality_lead(row):
     firma = norm(row.get("firma"))
     telefon = norm(row.get("telefon"))
     website = norm(row.get("website"))
-    rating = to_float(row.get("rating"))
 
     if not firma:
         return False
@@ -262,9 +245,6 @@ def is_quality_lead(row):
         return False
 
     if not website:
-        return False
-
-    if rating > 0 and rating < 3.5:
         return False
 
     if quality_score(row) < 90:
