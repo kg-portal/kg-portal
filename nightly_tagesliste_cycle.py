@@ -425,6 +425,21 @@ def select_real_branch_leads(cursor, limit_count):
           AND COALESCE(firma, '') != ''
           AND COALESCE(firma, '') NOT LIKE 'KG TEST%'
           AND COALESCE(quelle, '') != 'KG Test Cycle'
+
+          AND NOT EXISTS (
+              SELECT 1
+              FROM tagesliste_status_backup b
+              WHERE b.source_lead_id = leads.id
+                AND b.status IN (
+                    'angerufen',
+                    'interessiert',
+                    'besichtigung',
+                    'kontaktformular',
+                    'spaeter',
+                    'verloren'
+                )
+          )
+
         ORDER BY
             CASE WHEN branche_id IS NULL OR branche_id = '' THEN 1 ELSE 0 END,
             branche_id ASC,
