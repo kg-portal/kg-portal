@@ -1854,6 +1854,7 @@ def register_app2_routes(app, login_required):
         tagesliste_leads = cursor.execute("""
             SELECT *
             FROM tagesliste_leads
+            WHERE status IS NULL OR status = '' OR status = 'offen'
             ORDER BY CASE WHEN sort_order IS NULL OR sort_order = 0 THEN id ELSE sort_order END ASC, id ASC
         """).fetchall()
 
