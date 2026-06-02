@@ -31,7 +31,9 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = os.path.join(BASE_DIR, "data")
 DB_PATH = os.path.join(DATA_DIR, "kg_portal.db")
 
-TARGET_COUNT = 50
+# ACIL 1 SEFERLIK: 100 firma Tagesliste'ye alınacak.
+# İş bitince istersen tekrar 50 yap.
+TARGET_COUNT = 100
 
 PROCESSED_STATUSES = [
     "angerufen",
@@ -417,58 +419,38 @@ def get_max_sort_order(cursor):
 
 
 def select_real_branch_leads(cursor, limit_count):
-    rows = cursor.execute("""
+    target_terms = [
+        "rechtsanwalt",
+        "steuerberater",
+        "notar",
+        "it-dienstleister",
+        "softwareunternehmen",
+        "edv dienstleister",
+        "it-beratung",
+        "computer service",
+        "büroservice",
+        "hausverwaltung",
+        "immobilienverwaltung",
+        "immobilienbüro",
+        "immobilienmakler",
+        "buchhaltungsbüro",
+        "lohnbüro",
+        "unternehmensberatung",
+        "versicherungsbüro",
+        "versicherungsmakler",
+        "finanzberatung",
+    ]
+
+    placeholders = ",".join(["?"] * len(target_terms))
+
+    rows = cursor.execute(f"""
         SELECT *
         FROM leads
         WHERE (status IS NULL OR status = '' OR status = 'Neu')
           AND COALESCE(firma, '') != ''
           AND COALESCE(firma, '') NOT LIKE 'KG TEST%'
           AND COALESCE(quelle, '') != 'KG Test Cycle'
-
-          -- Sadece KG için alakalı hedef gruplar
-          AND (
-              COALESCE(branche_id, '') IN ('1', '9', '10', '11')
-              OR lower(COALESCE(suchwort, '')) IN (
-                  'rechtsanwalt',
-                  'steuerberater',
-                  'notar',
-                  'immobilienbüro',
-                  'versicherungsbüro',
-                  'hausverwaltung',
-                  'weg verwaltung',
-                  'immobilienverwaltung',
-                  'wohnungsbaugesellschaft',
-                  'immobilienmakler',
-                  'versicherungsmakler',
-                  'finanzberatung',
-                  'buchhaltungsbüro',
-                  'lohnbüro',
-                  'unternehmensberatung',
-                  'elektrobetrieb',
-                  'shk betrieb',
-                  'malerbetrieb',
-                  'gebäudetechnik'
-              )
-          )
-
-          -- Alakasızları kesin at
-          AND lower(COALESCE(suchwort, '')) NOT IN (
-              'ergotherapie',
-              'apotheke',
-              'yoga studio',
-              'tanzschule',
-              'kampfsportschule',
-              'fitnessstudio',
-              'kosmetikstudio',
-              'friseur',
-              'fotostudio',
-              'verein',
-              'kita',
-              'kindergarten',
-              'fahrschule',
-              'nachhilfe'
-          )
-          AND COALESCE(branche_id, '') IN ('1', '9', '10')
+          AND lower(COALESCE(suchwort, '')) IN ({placeholders})
 
           AND NOT EXISTS (
               SELECT 1
@@ -485,14 +467,10 @@ def select_real_branch_leads(cursor, limit_count):
           )
 
         ORDER BY
-            CASE WHEN branche_id IS NULL OR branche_id = '' THEN 1 ELSE 0 END,
-            branche_id ASC,
-            CASE WHEN sort_order IS NULL OR sort_order = 0 THEN 1 ELSE 0 END,
-            sort_order ASC,
             CASE WHEN plz IS NULL OR plz = '' THEN 1 ELSE 0 END,
             plz ASC,
             firma ASC
-    """).fetchall()
+    """, target_terms).fetchall()
 
     real_rows = [dict(r) for r in rows]
 
@@ -501,16 +479,62 @@ def select_real_branch_leads(cursor, limit_count):
         if is_quality_lead(r)
     ]
 
-    quality_rows.sort(
-        key=lambda r: (
-            -quality_score(r),
-            norm(r.get("branche_id")),
-            norm(r.get("plz")),
-            norm(r.get("firma")).lower()
-        )
-    )
+    def bucket_name(row):
+        sw = norm(row.get("suchwort")).lower()
 
-    return quality_rows[:int(limit_count)]
+        if sw in ["it-dienstleister", "softwareunternehmen", "edv dienstleister", "it-beratung", "computer service"]:
+            return "it"
+
+        if sw in ["rechtsanwalt", "steuerberater", "notar"]:
+            return "kanzlei"
+
+        if sw in ["büroservice", "buchhaltungsbüro", "lohnbüro", "unternehmensberatung", "versicherungsbüro", "versicherungsmakler", "finanzberatung"]:
+            return "buero"
+
+        if sw in ["hausverwaltung", "immobilienverwaltung", "immobilienbüro", "immobilienmakler"]:
+            return "verwaltung"
+
+        return "sonstiges"
+
+    buckets = {
+        "kanzlei": [],
+        "it": [],
+        "buero": [],
+        "verwaltung": [],
+        "sonstiges": [],
+    }
+
+    for row in quality_rows:
+        buckets.setdefault(bucket_name(row), []).append(row)
+
+    for key in buckets:
+        buckets[key].sort(
+            key=lambda r: (
+                -quality_score(r),
+                norm(r.get("plz")),
+                norm(r.get("firma")).lower()
+            )
+        )
+
+    # Karışık dağıtım: Kanzlei -> IT -> Büro -> Verwaltung şeklinde döndürür.
+    mixed = []
+    order = ["kanzlei", "it", "buero", "verwaltung", "sonstiges"]
+
+    while len(mixed) < int(limit_count):
+        added_any = False
+
+        for key in order:
+            if buckets.get(key):
+                mixed.append(buckets[key].pop(0))
+                added_any = True
+
+                if len(mixed) >= int(limit_count):
+                    break
+
+        if not added_any:
+            break
+
+    return mixed[:int(limit_count)]
 
 
 def add_real_leads_to_tagesliste(cursor, target_count):
