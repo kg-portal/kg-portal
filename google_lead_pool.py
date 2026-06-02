@@ -61,7 +61,9 @@ POOL_DB_PATH = os.path.join(DATA_DIR, "kg_portal.db")
 POOL_USAGE_FILE = os.path.join(DATA_DIR, "google_pool_usage.json")
 
 # Günlük maksimum Google Text Search isteği
-DAILY_GOOGLE_REQUEST_LIMIT = 30
+# ACIL 1 SEFERLIK: 100 firma için bugün daha fazla Google isteğine izin ver.
+# İş bitince tekrar 30 yap.
+DAILY_GOOGLE_REQUEST_LIMIT = 80
 
 # Aylık güvenli limit. 1000 hak varsa 900 güvenli kalır.
 MONTHLY_GOOGLE_REQUEST_LIMIT = 900
@@ -91,6 +93,28 @@ WAIT_SECONDS_BETWEEN_JOBS = 2
 
 # Mail arama açık mı?
 ENABLE_EMAIL_SCRAPE = False
+
+# ACIL 1 SEFERLIK MOD:
+# Sadece IT / Büro / Kanzlei / Verwaltung hedefli jobları çalıştırır.
+# İş bitince False yap.
+URGENT_ONE_SHOT_MODE = True
+
+URGENT_TARGET_SUCHWORTS = [
+    "Rechtsanwalt",
+    "Steuerberater",
+    "Notar",
+    "IT-Dienstleister",
+    "Softwareunternehmen",
+    "EDV Dienstleister",
+    "IT-Beratung",
+    "Computer Service",
+    "Büroservice",
+    "Hausverwaltung",
+    "Immobilienverwaltung",
+    "Buchhaltungsbüro",
+    "Lohnbüro",
+    "Unternehmensberatung",
+]
 
 
 # ============================================================
@@ -290,6 +314,14 @@ SEARCH_PLAN = [
     {"branche_id": "1", "branche_name": "Büro & Verwaltung", "suchwort": "Notar", "stadt": "Duisburg", "plz": ""},
     {"branche_id": "1", "branche_name": "Büro & Verwaltung", "suchwort": "Immobilienbüro", "stadt": "Duisburg", "plz": ""},
     {"branche_id": "1", "branche_name": "Büro & Verwaltung", "suchwort": "Versicherungsbüro", "stadt": "Duisburg", "plz": ""},
+    
+    # ACIL 1 SEFERLIK - IT / Büro / Kanzlei karışık hedef
+           {"branche_id": "1", "branche_name": "Büro & Verwaltung", "suchwort": "IT-Dienstleister", "stadt": "Duisburg", "plz": ""},
+           {"branche_id": "1", "branche_name": "Büro & Verwaltung", "suchwort": "Softwareunternehmen", "stadt": "Duisburg", "plz": ""},
+           {"branche_id": "1", "branche_name": "Büro & Verwaltung", "suchwort": "EDV Dienstleister", "stadt": "Duisburg", "plz": ""},
+           {"branche_id": "1", "branche_name": "Büro & Verwaltung", "suchwort": "IT-Beratung", "stadt": "Duisburg", "plz": ""},
+           {"branche_id": "1", "branche_name": "Büro & Verwaltung", "suchwort": "Computer Service", "stadt": "Duisburg", "plz": ""},
+           {"branche_id": "1", "branche_name": "Büro & Verwaltung", "suchwort": "Büroservice", "stadt": "Duisburg", "plz": ""},
 
     # 2 - Medizin & Gesundheit
     {"branche_id": "2", "branche_name": "Medizin & Gesundheit", "suchwort": "Arztpraxis", "stadt": "Duisburg", "plz": ""},
@@ -637,15 +669,52 @@ def seed_jobs_from_plan():
 
 def get_next_open_jobs(limit):
     conn = get_conn()
-    rows = conn.execute("""
-        SELECT *
-        FROM google_pool_jobs
-        WHERE status = 'offen'
-        ORDER BY id ASC
-        LIMIT ?
-    """, (int(limit),)).fetchall()
+
+    if URGENT_ONE_SHOT_MODE:
+        target_terms = [str(x).lower() for x in URGENT_TARGET_SUCHWORTS]
+        placeholders = ",".join(["?"] * len(target_terms))
+
+        rows = conn.execute(f"""
+            SELECT *
+            FROM google_pool_jobs
+            WHERE status = 'offen'
+              AND lower(COALESCE(suchwort, '')) IN ({placeholders})
+            ORDER BY
+                CASE WHEN COALESCE(plz, '') = '' THEN 0 ELSE 1 END,
+                plz ASC,
+                CASE lower(COALESCE(suchwort, ''))
+                    WHEN 'rechtsanwalt' THEN 1
+                    WHEN 'steuerberater' THEN 2
+                    WHEN 'notar' THEN 3
+                    WHEN 'it-dienstleister' THEN 4
+                    WHEN 'softwareunternehmen' THEN 5
+                    WHEN 'edv dienstleister' THEN 6
+                    WHEN 'it-beratung' THEN 7
+                    WHEN 'computer service' THEN 8
+                    WHEN 'büroservice' THEN 9
+                    WHEN 'hausverwaltung' THEN 10
+                    WHEN 'immobilienverwaltung' THEN 11
+                    WHEN 'buchhaltungsbüro' THEN 12
+                    WHEN 'lohnbüro' THEN 13
+                    WHEN 'unternehmensberatung' THEN 14
+                    ELSE 99
+                END,
+                id ASC
+            LIMIT ?
+        """, target_terms + [int(limit)]).fetchall()
+
+    else:
+        rows = conn.execute("""
+            SELECT *
+            FROM google_pool_jobs
+            WHERE status = 'offen'
+            ORDER BY id ASC
+            LIMIT ?
+        """, (int(limit),)).fetchall()
+
     conn.close()
     return [dict(row) for row in rows]
+
 
 
 def mark_job_started(job_id):
