@@ -166,15 +166,17 @@ def internal_nightly_crm_job():
 
     NIGHTLY_JOB_RUNNING = True
 
-    t = threading.Thread(target=run_nightly_crm_job_background, daemon=True)
-    t.start()
+    # Render Cron için arka plana atma.
+    # Request içinde bitene kadar çalışsın; yoksa gece job başladı görünüp yarıda kalabilir.
+    run_nightly_crm_job_background()
 
     return jsonify({
         "ok": True,
-        "started": True,
-        "message": "Google Lead Pool + Tagesliste Cycle gestartet."
+        "started": False,
+        "running": NIGHTLY_JOB_RUNNING,
+        "last_result": NIGHTLY_JOB_LAST_RESULT,
+        "message": "Google Lead Pool + Tagesliste Cycle fertig."
     })
-
 
 @app.route("/internal/nightly-crm-job/status", methods=["GET"])
 def internal_nightly_crm_job_status():
