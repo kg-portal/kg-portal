@@ -61,9 +61,7 @@ POOL_DB_PATH = os.path.join(DATA_DIR, "kg_portal.db")
 POOL_USAGE_FILE = os.path.join(DATA_DIR, "google_pool_usage.json")
 
 # Günlük maksimum Google Text Search isteği
-# ACIL 1 SEFERLIK: 100 firma için bugün daha fazla Google isteğine izin ver.
-# İş bitince tekrar 30 yap.
-DAILY_GOOGLE_REQUEST_LIMIT = 80
+DAILY_GOOGLE_REQUEST_LIMIT = 30
 
 # Aylık güvenli limit. 1000 hak varsa 900 güvenli kalır.
 MONTHLY_GOOGLE_REQUEST_LIMIT = 900
@@ -95,10 +93,8 @@ WAIT_SECONDS_BETWEEN_JOBS = 2
 ENABLE_EMAIL_SCRAPE = False
 
 # ACIL 1 SEFERLIK MOD:
-# Sadece IT / Büro / Kanzlei / Verwaltung hedefli jobları çalıştırır.
-# İş bitince False yap.
-URGENT_ONE_SHOT_MODE = True
-
+# Normal günlük aramada kapalı kalacak.
+URGENT_ONE_SHOT_MODE = False
 URGENT_TARGET_SUCHWORTS = [
     "Rechtsanwalt",
     "Steuerberater",
