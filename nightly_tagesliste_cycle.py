@@ -31,9 +31,8 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = os.path.join(BASE_DIR, "data")
 DB_PATH = os.path.join(DATA_DIR, "kg_portal.db")
 
-# ACIL 1 SEFERLIK: 100 firma Tagesliste'ye alınacak.
-# İş bitince istersen tekrar 50 yap.
-TARGET_COUNT = 100
+# Normal günlük Tagesliste sayısı
+TARGET_COUNT = 50
 
 PROCESSED_STATUSES = [
     "angerufen",
