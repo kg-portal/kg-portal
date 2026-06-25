@@ -7192,7 +7192,14 @@ async function startApifyLeadImport() {
     const suchwort = document.getElementById("apifySuchwort").value.trim();
     const stadt = document.getElementById("apifyStadt").value.trim();
     const plz = document.getElementById("apifyPlz").value.trim();
+    const googleRequestsRaw = document.getElementById("apifyGoogleRequests").value.trim();
     const status = document.getElementById("apifyLeadStatus");
+
+    const progressBox = document.getElementById("apifyProgressBox");
+    const progressBar = document.getElementById("apifyProgressBar");
+    const progressText = document.getElementById("apifyProgressText");
+
+    let googleRequests = parseInt(googleRequestsRaw || "1", 10);
 
     if (!brancheRaw || !suchwort || !stadt) {
         status.textContent = "Bitte Branche, Suchwort und Stadt ausfüllen.";
@@ -7200,11 +7207,31 @@ async function startApifyLeadImport() {
         return;
     }
 
+    if (isNaN(googleRequests) || googleRequests < 1 || googleRequests > 30) {
+        status.textContent = "Google-Anfragen bitte zwischen 1 und 30 eingeben.";
+        status.style.color = "#dc2626";
+        return;
+    }
+
     const parts = brancheRaw.split("|");
     const brancheId = parts[0];
     const brancheName = parts[1];
+    const expectedCompanies = googleRequests * 20;
 
-    status.textContent = "Leads werden gezogen... Bitte warten.";
+    progressBox.style.display = "block";
+    progressBar.style.width = "0%";
+    progressText.textContent = "0%";
+
+    let fakeProgress = 0;
+    const progressTimer = setInterval(function () {
+        if (fakeProgress < 90) {
+            fakeProgress += 3;
+            progressBar.style.width = fakeProgress + "%";
+            progressText.textContent = fakeProgress + "%";
+        }
+    }, 700);
+
+    status.textContent = "Leads werden gezogen... " + googleRequests + " Google-Anfragen ≈ ca. " + expectedCompanies + " Firmen.";
     status.style.color = "#475569";
 
     try {
@@ -7218,30 +7245,40 @@ async function startApifyLeadImport() {
                 branche_name: brancheName,
                 suchwort: suchwort,
                 stadt: stadt,
-                plz: plz
+                plz: plz,
+                google_requests: googleRequests
             })
         });
 
         const data = await response.json();
 
+        clearInterval(progressTimer);
+
         if (!data.success) {
+            progressBar.style.width = "100%";
+            progressText.textContent = "Fehler";
             status.textContent = data.message || "Fehler beim Import.";
             status.style.color = "#dc2626";
             return;
         }
 
+        progressBar.style.width = "100%";
+        progressText.textContent = "100%";
+
         status.style.color = "#16a34a";
         status.textContent =
             "Fertig: " +
             data.inserted + " gespeichert, " +
-            data.skipped_duplicates + " doppelte übersprungen, " +
-            data.email_found + " E-Mails gefunden.";
+            data.skipped_duplicates + " doppelte übersprungen.";
 
         setTimeout(function () {
             window.location.reload();
         }, 1800);
 
     } catch (err) {
+        clearInterval(progressTimer);
+        progressBar.style.width = "100%";
+        progressText.textContent = "Fehler";
         status.textContent = "Fehler: " + err;
         status.style.color = "#dc2626";
     }
@@ -7454,15 +7491,27 @@ async function kgAngebotZurueckBesichtigung(id) {
             </select>
 
             <label>Suchwort</label>
-            <input id="apifySuchwort" type="text" placeholder="z.B. Steuerberater">
+<input id="apifySuchwort" type="text" placeholder="z.B. Steuerberater">
 
-            <label>Stadt</label>
-                               <input id="apifyStadt" type="text" value="Düsseldorf" placeholder="Düsseldorf" readonly>
+<label>Stadt</label>
+<input id="apifyStadt" type="text" value="" placeholder="z.B. Moers">
 
-            <label>PLZ</label>
-<input id="apifyPlz" type="text" placeholder="z.B. 40210">
+<label>PLZ</label>
+<input id="apifyPlz" type="text" placeholder="z.B. 47441">
 
-            <div id="apifyLeadStatus" class="lead-modal-status"></div>
+<label>Google-Anfragen</label>
+<input id="apifyGoogleRequests" type="number" min="1" max="30" value="1" placeholder="1 = ca. 20 Firmen, 30 = ca. 600 Firmen">
+
+<div id="apifyProgressBox" style="display:none; margin-top:12px;">
+    <div style="font-size:12px; font-weight:900; color:#1d4ed8; margin-bottom:6px;">
+        Fortschritt: <span id="apifyProgressText">0%</span>
+    </div>
+    <div style="width:100%; height:12px; background:#e5e7eb; border-radius:999px; overflow:hidden;">
+        <div id="apifyProgressBar" style="width:0%; height:100%; background:#16a34a; border-radius:999px; transition:width 0.25s ease;"></div>
+    </div>
+</div>
+
+<div id="apifyLeadStatus" class="lead-modal-status"></div>
         </div>
 
         <div class="lead-modal-actions">
