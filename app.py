@@ -30,6 +30,7 @@ from fints_import import (
     get_fints_balance
 )
 from app2 import register_app2_routes
+from whatsapp_connector_routes import register_whatsapp_connector_routes
 
 try:
     from dotenv import load_dotenv
@@ -74,7 +75,8 @@ def auto_login_check():
     # INTERNAL CRON ENDPOINT - Render Cron buraya token ile gelir
     if request.path.startswith('/internal/'):
         return
-
+    if request.path.startswith('/api/whatsapp-connector/'):
+        return
     
     # 2. İŞÇİ LİNKLERİ İÇİN ŞİFRE SORMADAN GEÇİŞ İZNİ
     if request.path.startswith('/stundenzettel/worker/') or request.path.startswith('/api/stundenzettel/'):
@@ -83,6 +85,7 @@ def auto_login_check():
     # 3. Diğer her yer için şifre ekranına yolla
     return redirect(url_for('login'))
 register_app2_routes(app, login_required)
+register_whatsapp_connector_routes(app, login_required)
 # =====================================================
 # INTERNAL NIGHTLY CRM JOB
 # Render Cron burayı çağırır.
@@ -109,12 +112,13 @@ def run_nightly_crm_job_background():
         print("NIGHTLY CRM JOB START")
         print("============================================================")
 
-        # 1) Google motoru: 12'li Branche havuzunu doldurur
-        from google_lead_pool import run_daily_pool
-        run_daily_pool()
-        result["google_pool"] = "done"
+        # 1) Google motoru kapalı.
+        # Bundan sonra otomatik Google araması yapmaz.
+        print("Google Lead Pool deaktiviert - nur manueller Lead Import aktiv.")
+        result["google_pool"] = "deaktiviert"
 
-        # 2) Tagesliste motoru: hazır havuzdan 30 firma seçer
+        # 2) Tagesliste motoru istersen çalışmaya devam eder.
+        # Bu sadece mevcut lead havuzundan Tagesliste hazırlar.
         from nightly_tagesliste_cycle import run_cycle
         run_cycle()
         result["tagesliste_cycle"] = "done"
@@ -586,7 +590,7 @@ def init_db():
 
     try:
         conn.execute("""
-            CREATE UNIQUE INDEX IF NOT EXISTS idx_leads_website
+            CREATE INDEX IF NOT EXISTS idx_leads_website
             ON leads(website)
             WHERE website IS NOT NULL AND website != ''
         """)
