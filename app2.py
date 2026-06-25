@@ -1931,15 +1931,34 @@ def register_app2_routes(app, login_required):
             branche_name = str(data.get("branche_name", "")).strip()
             suchwort = str(data.get("suchwort", "")).strip()
 
-            # Manuel import da artık Düsseldorf kilitli.
-            stadt = "Düsseldorf"
+            # Manuel import: ekrandan hangi şehir girildiyse onu kullan.
+            # Örn: Moers, Duisburg, Düsseldorf, Ratingen...
+            stadt = str(data.get("stadt", "")).strip()
 
             plz = str(data.get("plz", "")).strip()
 
-            # Eski / yanlış PLZ gelirse temizle.
-            if plz and not plz.startswith("40"):
+            # PLZ şehirden bağımsız olsun. Sadece 5 haneli değilse temizle.
+            if plz and not re.fullmatch(r"\d{5}", plz):
                 plz = ""
 
+            try:
+                google_requests = int(data.get("google_requests", 1) or 1)
+            except Exception:
+                google_requests = 1
+
+            if google_requests < 1 or google_requests > 30:
+                return jsonify({
+                    "success": False,
+                    "message": "Google-Anfragen bitte zwischen 1 und 30 eingeben."
+                }), 400
+
+            max_results = google_requests * 20
+
+            if not stadt:
+                return jsonify({
+                    "success": False,
+                    "message": "Stadt ist Pflichtfeld."
+                }), 400
             if not branche_id or not branche_name or not suchwort:
                 return jsonify({
                     "success": False,
@@ -1952,9 +1971,15 @@ def register_app2_routes(app, login_required):
                 branche_name=branche_name,
                 suchwort=suchwort,
                 stadt=stadt,
-                max_results=20,
+                max_results=max_results,
                 plz=plz
             )
+
+            if isinstance(result, dict):
+                result["google_requests"] = google_requests
+                result["requested_company_target"] = max_results
+                result["email_found"] = 0
+                result["email_missing"] = 0
 
             return jsonify(result)
 
