@@ -30,7 +30,7 @@ from fints_import import (
     get_fints_balance
 )
 from app2 import register_app2_routes
-from whatsapp_connector_routes import register_whatsapp_connector_routes
+# from whatsapp_connector_routes import register_whatsapp_connector_routes
 
 try:
     from dotenv import load_dotenv
@@ -85,7 +85,7 @@ def auto_login_check():
     # 3. Diğer her yer için şifre ekranına yolla
     return redirect(url_for('login'))
 register_app2_routes(app, login_required)
-register_whatsapp_connector_routes(app, login_required)
+# register_whatsapp_connector_routes(app, login_required)
 # =====================================================
 # INTERNAL NIGHTLY CRM JOB
 # Render Cron burayı çağırır.
