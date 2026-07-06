@@ -1345,8 +1345,6 @@ def register_app2_routes(app, login_required):
                 WHERE id = ?
             """, (angebot_id_int,)).fetchone()
 
-            conn.close()
-
             angebot_nr = ""
             if row:
                 angebot_nr = str(row["angebot_nr"] or "").strip()
@@ -1354,7 +1352,15 @@ def register_app2_routes(app, login_required):
             angebot_nr = re.sub(r"(?i)^AN-", "", angebot_nr).strip()
 
             if not angebot_nr:
-                angebot_nr = str(angebot_id_int)
+                angebot_nr = angebot_next_number(conn.cursor())
+                conn.execute("""
+                    UPDATE tagesliste_leads
+                    SET angebot_nr = ?
+                    WHERE id = ?
+                """, (angebot_nr, angebot_id_int))
+                conn.commit()
+
+            conn.close()
 
             base_url = request.host_url.rstrip("/")
 
