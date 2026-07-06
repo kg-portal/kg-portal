@@ -6566,7 +6566,7 @@ async function renderStatusCompanies(statusKey) {
                         Angebot Warteliste
                     </div>
                     <div style="font-size:22px; font-weight:950; color:#0f2f78; margin-top:4px;">
-                        AN-${kgAwEscape(lead.angebot_nr || lead.id || "-")}
+                        AN-${kgAwEscape(lead.angebot_nr || "-")}
                     </div>
                     <div style="font-size:13px; font-weight:800; color:#334155; margin-top:4px;">
                         ${kgAwEscape(lead.firma || "-")}
@@ -7376,7 +7376,7 @@ async function openAngebotMailInterface(btn, angebotId) {
             p.set("adresse", lead.strasse || "");
             p.set("ort", [lead.plz || "", lead.ort || ""].filter(Boolean).join(" "));
             p.set("telefon", lead.telefon || "");
-            p.set("angebot_nr", lead.angebot_nr ? ("AN-" + String(lead.angebot_nr).replace(/^AN-/i, "")) : ("AN-" + (lead.id || "")));
+            p.set("angebot_nr", lead.angebot_nr ? ("AN-" + String(lead.angebot_nr).replace(/^AN-/i, "")) : "");
             p.set("angebot_datum", lead.angebot_datum || "");
             p.set("angebot_netto", Number(lead.angebot_netto || 0).toLocaleString("de-DE", {minimumFractionDigits: 2, maximumFractionDigits: 2}) + " €");
 
