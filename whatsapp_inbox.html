@@ -1,0 +1,269 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="wa-card">
+
+    <div class="wa-header">
+        <div>
+            <h1 class="wa-title">
+                WhatsApp Inbox
+            </h1>
+
+            <p class="wa-subtitle">
+                Gelen WhatsApp mesajları burada görünür.
+            </p>
+        </div>
+
+        <button class="wa-refresh-btn" onclick="loadWhatsAppMessages()">
+            Yenile
+        </button>
+    </div>
+
+    <div class="wa-grid">
+
+        <div class="wa-box">
+            <h2 class="wa-box-title">
+                Gelen Mesajlar
+            </h2>
+
+            <div id="waInboxList" class="wa-list">
+                Yükleniyor...
+            </div>
+        </div>
+
+        <div class="wa-box">
+            <h2 class="wa-box-title">
+                Giden / Bekleyen Mesajlar
+            </h2>
+
+            <div id="waOutboxList" class="wa-list">
+                Yükleniyor...
+            </div>
+        </div>
+
+    </div>
+
+</div>
+
+<style>
+.wa-card {
+    background: #ffffff;
+    border: 1px solid #dbe3ef;
+    border-radius: 22px;
+    padding: 28px;
+    box-shadow: 0 14px 32px rgba(15, 23, 42, 0.07);
+}
+
+.wa-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.wa-title {
+    margin: 0 0 8px 0;
+    color: #183a91;
+    font-size: 32px;
+    font-weight: 900;
+}
+
+.wa-subtitle {
+    margin: 0;
+    color: #64748b;
+    font-weight: 700;
+}
+
+.wa-refresh-btn {
+    background: #16a34a;
+    color: white;
+    border: none;
+    border-radius: 12px;
+    padding: 12px 18px;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.wa-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px;
+}
+
+.wa-box {
+    border: 1px solid #e2e8f0;
+    border-radius: 18px;
+    padding: 18px;
+    background: #f8fafc;
+    min-height: 400px;
+}
+
+.wa-box-title {
+    margin: 0 0 16px 0;
+    color: #183a91;
+    font-size: 22px;
+    font-weight: 900;
+}
+
+.wa-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.wa-item {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    padding: 14px;
+}
+
+.wa-name {
+    font-weight: 900;
+    color: #0f172a;
+    margin-bottom: 6px;
+}
+
+.wa-meta {
+    font-size: 12px;
+    color: #64748b;
+    margin-bottom: 8px;
+}
+
+.wa-body {
+    white-space: pre-wrap;
+    color: #1e293b;
+    font-size: 14px;
+    line-height: 1.45;
+}
+
+.wa-status {
+    display: inline-block;
+    margin-top: 10px;
+    padding: 5px 9px;
+    border-radius: 999px;
+    background: #eef2ff;
+    color: #1d4ed8;
+    font-size: 12px;
+    font-weight: 800;
+}
+
+@media (max-width: 900px) {
+    .wa-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .wa-header {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+}
+</style>
+
+<script>
+async function loadWhatsAppMessages() {
+    const inboxBox = document.getElementById("waInboxList");
+    const outboxBox = document.getElementById("waOutboxList");
+
+    inboxBox.innerText = "Yükleniyor...";
+    outboxBox.innerText = "Yükleniyor...";
+
+    try {
+        const res = await fetch("/api/whatsapp-connector/messages");
+        const data = await res.json();
+
+        if (!data.ok) {
+            inboxBox.innerText = "HATA";
+            outboxBox.innerText = "HATA";
+            return;
+        }
+
+        renderInbox(data.inbox || []);
+        renderOutbox(data.outbox || []);
+
+    } catch (err) {
+        inboxBox.innerText = "HATA: " + err.message;
+        outboxBox.innerText = "HATA: " + err.message;
+    }
+}
+
+function renderInbox(items) {
+    const box = document.getElementById("waInboxList");
+
+    if (!items.length) {
+        box.innerText = "Henüz gelen mesaj yok.";
+        return;
+    }
+
+    box.innerHTML = items.map(function (item) {
+        return `
+            <div class="wa-item">
+                <div class="wa-name">
+                    ${escapeHtml(item.name || item.phone || "Bilinmeyen")}
+                </div>
+
+                <div class="wa-meta">
+                    ${escapeHtml(item.created_at || "")}
+                    · ${escapeHtml(item.phone || "")}
+                </div>
+
+                <div class="wa-body">
+                    ${escapeHtml(item.body || "")}
+                </div>
+
+                <span class="wa-status">
+                    ${escapeHtml(item.status || "neu")}
+                </span>
+            </div>
+        `;
+    }).join("");
+}
+
+function renderOutbox(items) {
+    const box = document.getElementById("waOutboxList");
+
+    if (!items.length) {
+        box.innerText = "Henüz giden/bekleyen mesaj yok.";
+        return;
+    }
+
+    box.innerHTML = items.map(function (item) {
+        return `
+            <div class="wa-item">
+                <div class="wa-name">
+                    ${escapeHtml(item.phone || "Bilinmeyen")}
+                </div>
+
+                <div class="wa-meta">
+                    ${escapeHtml(item.created_at || "")}
+                    · ${escapeHtml(item.source || "")}
+                </div>
+
+                <div class="wa-body">
+                    ${escapeHtml(item.text || "")}
+                </div>
+
+                <span class="wa-status">
+                    ${escapeHtml(item.status || "")}
+                </span>
+            </div>
+        `;
+    }).join("");
+}
+
+function escapeHtml(value) {
+    return String(value || "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+}
+
+document.addEventListener("DOMContentLoaded", function () {
+    loadWhatsAppMessages();
+});
+</script>
+
+{% endblock %}

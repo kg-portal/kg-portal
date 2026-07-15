@@ -1,0 +1,390 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<style>
+    .kg-ai-page {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 25px;
+    }
+
+    .kg-ai-card {
+        background: #ffffff;
+        border-radius: 18px;
+        padding: 25px;
+        box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+        border: 1px solid #e5e7eb;
+    }
+
+    .kg-ai-title {
+        font-size: 28px;
+        font-weight: 800;
+        margin-bottom: 8px;
+        color: #111827;
+    }
+
+    .kg-ai-subtitle {
+        font-size: 14px;
+        color: #6b7280;
+        margin-bottom: 20px;
+    }
+
+    .kg-ai-textarea {
+        width: 100%;
+        min-height: 150px;
+        border-radius: 14px;
+        border: 1px solid #d1d5db;
+        padding: 15px;
+        font-size: 15px;
+        outline: none;
+        resize: vertical;
+        box-sizing: border-box;
+    }
+
+    .kg-ai-textarea:focus {
+        border-color: #2563eb;
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+    }
+
+    .kg-ai-buttons {
+        display: flex;
+        gap: 10px;
+        margin-top: 14px;
+        flex-wrap: wrap;
+    }
+
+    .kg-ai-btn {
+        border: none;
+        border-radius: 12px;
+        padding: 11px 18px;
+        font-weight: 700;
+        cursor: pointer;
+        font-size: 14px;
+    }
+
+    .kg-ai-btn-primary {
+        background: #2563eb;
+        color: #ffffff;
+    }
+
+    .kg-ai-btn-secondary {
+        background: #f3f4f6;
+        color: #111827;
+        border: 1px solid #e5e7eb;
+    }
+
+    .kg-ai-output {
+        margin-top: 22px;
+        background: #0f172a;
+        color: #e5e7eb;
+        border-radius: 16px;
+        padding: 18px;
+        white-space: pre-wrap;
+        min-height: 180px;
+        font-family: Consolas, monospace;
+        font-size: 14px;
+        line-height: 1.55;
+    }
+
+    .kg-ai-warning {
+        margin-top: 12px;
+        padding: 12px 14px;
+        background: #fff7ed;
+        color: #9a3412;
+        border: 1px solid #fed7aa;
+        border-radius: 12px;
+        font-size: 13px;
+        font-weight: 700;
+    }
+</style>
+
+<div class="kg-ai-page">
+    <div class="kg-ai-card">
+        <div class="kg-ai-title">KG AI</div>
+        <div class="kg-ai-subtitle">
+            KG Portal yapay zeka asistanı. Stundenzettel okuyabilir, rapor çıkarabilir ve onaylı toplu WhatsApp duyurusu hazırlayabilir.
+        </div>
+
+        <textarea
+            id="kgAiInput"
+            class="kg-ai-textarea"
+            placeholder="Örn: Temmuz 2026 işçilerin saatlerini çıkar&#10;Örn: Bütün işçilere WhatsApp mesajı gönder: Merhaba..."
+        ></textarea>
+
+        <div class="kg-ai-buttons">
+            <button type="button" class="kg-ai-btn kg-ai-btn-primary" onclick="sendKgAiChat()">
+                Gönder
+            </button>
+
+            <button type="button" class="kg-ai-btn kg-ai-btn-secondary" onclick="testOpenAI()">
+                OpenAI Test
+            </button>
+
+            <button type="button" class="kg-ai-btn kg-ai-btn-secondary" onclick="clearKgAi()">
+                Temizle
+            </button>
+        </div>
+
+        <div class="kg-ai-warning">
+            Toplu WhatsApp mesajı direkt gönderilmez. Önce önizleme gelir, sadece EVET yazarsan gönderim kuyruğuna eklenir.
+        </div>
+
+        <div id="kgAiOutput" class="kg-ai-output">Hazır.</div>
+    </div>
+</div>
+
+<script>
+let pendingBulkWhatsappMessage = null;
+
+function setKgAiOutput(text) {
+    const output = document.getElementById("kgAiOutput");
+    output.textContent = text || "";
+}
+
+function clearKgAi() {
+    pendingBulkWhatsappMessage = null;
+    document.getElementById("kgAiInput").value = "";
+    setKgAiOutput("Hazır.");
+}
+
+function buildKgAiPayload(msg) {
+    const text = (msg || "").trim();
+    const lower = text.toLowerCase();
+
+    const normalized = lower
+        .replaceAll("ı", "i")
+        .replaceAll("ğ", "g")
+        .replaceAll("ü", "u")
+        .replaceAll("ş", "s")
+        .replaceAll("ö", "o")
+        .replaceAll("ç", "c");
+
+    // =====================================================
+    // 1) TOPLU WHATSAPP MESAJI ONAYI
+    // Sadece bekleyen toplu mesaj varsa EVET gönderir.
+    // =====================================================
+    if (pendingBulkWhatsappMessage && normalized === "evet") {
+        const messageToSend = pendingBulkWhatsappMessage;
+        pendingBulkWhatsappMessage = null;
+
+        return {
+            action: "bulk_whatsapp_send",
+            message: messageToSend,
+            confirmation: "EVET"
+        };
+    }
+
+    // Hayır / iptal yazılırsa bekleyen toplu mesajı iptal et
+    if (pendingBulkWhatsappMessage && (
+        normalized === "hayir" ||
+        normalized === "nein" ||
+        normalized === "iptal" ||
+        normalized === "cancel"
+    )) {
+        pendingBulkWhatsappMessage = null;
+
+        return {
+            action: "chat",
+            message: "Toplu WhatsApp mesajı iptal edildi. Kullanıcı sadece iptal bilgisi istiyor, yeni işlem yapma."
+        };
+    }
+
+    // =====================================================
+    // 2) TOPLU WHATSAPP DUYURU ALGILAMA
+    // Türkçe karakter / karışık yazım / sondan komut hepsini yakalar.
+    // Örnek:
+    // "Bütün işçilere WhatsApp mesajı gönder: Merhaba..."
+    // "Merhaba... bunu w app tan bütün işçilere gönder"
+    // "Merhaba... bunu w app tan bütün iscilere gönder"
+    // =====================================================
+
+    const mentionsWorkers =
+        normalized.includes("butun iscilere") ||
+        normalized.includes("tum iscilere") ||
+        normalized.includes("herkese") ||
+        normalized.includes("butun calisanlara") ||
+        normalized.includes("tum calisanlara") ||
+        normalized.includes("iscilere") ||
+        normalized.includes("calisanlara");
+
+    const mentionsWhatsapp =
+        normalized.includes("whatsapp") ||
+        normalized.includes("w app") ||
+        normalized.includes("wapp") ||
+        normalized.includes("wp") ||
+        normalized.includes("wa ");
+
+    const mentionsSend =
+        normalized.includes("gonder") ||
+        normalized.includes("yolla") ||
+        normalized.includes("yaz") ||
+        normalized.includes("duyuru") ||
+        normalized.includes("mesaj");
+
+    const wantsBulkWhatsapp = mentionsWorkers && mentionsSend && mentionsWhatsapp;
+
+    if (wantsBulkWhatsapp) {
+        pendingBulkWhatsappMessage = text;
+
+        return {
+            action: "bulk_whatsapp_preview",
+            message: text
+        };
+    }
+
+    // =====================================================
+    // 3) STUNDENZETTEL / SAAT / URLAUB ALGILAMA
+    // =====================================================
+    let year = 2026;
+    let month = null;
+
+    const yearMatch = normalized.match(/20\d{2}/);
+    if (yearMatch) {
+        year = parseInt(yearMatch[0], 10);
+    }
+
+    const monthMap = {
+        "januar": 1, "ocak": 1,
+        "februar": 2, "subat": 2,
+        "marz": 3, "mart": 3,
+        "april": 4, "nisan": 4,
+        "mai": 5, "mayis": 5,
+        "juni": 6, "haziran": 6,
+        "juli": 7, "temmuz": 7,
+        "august": 8, "agustos": 8,
+        "september": 9, "eylul": 9,
+        "oktober": 10, "ekim": 10,
+        "november": 11, "kasim": 11,
+        "dezember": 12, "aralik": 12
+    };
+
+    for (const key in monthMap) {
+        if (normalized.includes(key)) {
+            month = monthMap[key];
+            break;
+        }
+    }
+
+    const wantsStundenzettel =
+        normalized.includes("stundenzettel") ||
+        normalized.includes("stunden") ||
+        normalized.includes("saat") ||
+        normalized.includes("urlaub") ||
+        normalized.includes("izin");
+
+    if (wantsStundenzettel && month) {
+        return {
+            action: "stundenzettel_summary",
+            month: month,
+            year: year
+        };
+    }
+
+    // =====================================================
+    // 4) NORMAL AI CHAT
+    // =====================================================
+    return {
+        action: "chat",
+        message: text
+    };
+}
+
+async function sendKgAiChat() {
+    const input = document.getElementById("kgAiInput");
+    const msg = input.value.trim();
+
+    if (!msg) {
+        setKgAiOutput("Mesaj boş olamaz.");
+        return;
+    }
+
+    setKgAiOutput("İşleniyor...");
+
+    try {
+        const payload = buildKgAiPayload(msg);
+
+        const res = await fetch("/api/ai", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(payload)
+        });
+
+        const data = await res.json();
+
+        if (data.action === "bulk_whatsapp_preview" && data.ok) {
+            pendingBulkWhatsappMessage = msg;
+            input.value = "";
+            input.placeholder = "Göndermek için sadece EVET yaz. İptal için HAYIR yaz.";
+        }
+
+        if (!data.ok) {
+            setKgAiOutput("HATA:\n" + (data.error || data.answer || "Bilinmeyen hata"));
+            return;
+        }
+
+        let outputText = "";
+
+        if (data.model) {
+            outputText += "Model: " + data.model + "\n\n";
+        }
+
+        outputText += data.answer || "";
+
+        setKgAiOutput(outputText);
+
+        if (payload.action === "bulk_whatsapp_send") {
+            input.value = "";
+        }
+
+    } catch (err) {
+        setKgAiOutput("Bağlantı hatası:\n" + err);
+    }
+}
+
+async function testOpenAI() {
+    setKgAiOutput("OpenAI test ediliyor...");
+
+    try {
+        const res = await fetch("/api/ai", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                action: "test"
+            })
+        });
+
+        const data = await res.json();
+
+        if (!data.ok) {
+            setKgAiOutput("HATA:\n" + (data.error || "Test başarısız"));
+            return;
+        }
+
+        let outputText = "";
+
+        if (data.model) {
+            outputText += "Model: " + data.model + "\n\n";
+        }
+
+        outputText += data.answer || "";
+
+        setKgAiOutput(outputText);
+
+    } catch (err) {
+        setKgAiOutput("Bağlantı hatası:\n" + err);
+    }
+}
+
+document.getElementById("kgAiInput").addEventListener("keydown", function(e) {
+    if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
+        sendKgAiChat();
+    }
+});
+</script>
+
+{% endblock %}
