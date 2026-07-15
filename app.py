@@ -30,7 +30,10 @@ from fints_import import (
     get_fints_balance
 )
 from app2 import register_app2_routes
-# from whatsapp_connector_routes import register_whatsapp_connector_routes
+from whatsapp_connector_routes import register_whatsapp_connector_routes
+from kg_ai_routes import register_kg_ai_routes
+from kg_todo_routes import register_kg_todo_routes
+
 
 try:
     from dotenv import load_dotenv
@@ -85,7 +88,7 @@ def auto_login_check():
     # 3. Diğer her yer için şifre ekranına yolla
     return redirect(url_for('login'))
 register_app2_routes(app, login_required)
-# register_whatsapp_connector_routes(app, login_required)
+register_whatsapp_connector_routes(app, login_required)
 # =====================================================
 # INTERNAL NIGHTLY CRM JOB
 # Render Cron burayı çağırır.
@@ -215,16 +218,89 @@ def get_db_connection():
 VERTRAG_HTML_PATH = os.path.join("templates", "Mitarbeiter Vertrag Vorlage.html")
 BEFREIUNG_HTML_PATH = os.path.join("templates", "Befreiungsantrag-fuer-Arbeitnehmer-im-Gewerbe.html")
 
+# =====================================================
+# WHATSAPP İŞÇİ NUMARA LİSTESİ
+# =====================================================
+
+WORKER_WHATSAPP_FILE = os.path.join("data", "worker_whatsapp_numbers.txt")
+
+
+def normalize_phone_for_whatsapp(value):
+    phone = str(value or "").strip()
+
+    phone = phone.replace(" ", "")
+    phone = phone.replace("+", "")
+    phone = phone.replace("-", "")
+    phone = phone.replace("/", "")
+    phone = phone.replace("(", "")
+    phone = phone.replace(")", "")
+
+    if phone.startswith("00"):
+        phone = phone[2:]
+
+    if phone.startswith("0"):
+        phone = "49" + phone[1:]
+
+    return "".join(ch for ch in phone if ch.isdigit())
+
+def save_worker_whatsapp_number(phone):
+    phone = normalize_phone_for_whatsapp(phone)
+
+    if not phone:
+        return
+
+    os.makedirs("data", exist_ok=True)
+
+    existing = set()
+
+    if os.path.exists(WORKER_WHATSAPP_FILE):
+        with open(WORKER_WHATSAPP_FILE, "r", encoding="utf-8") as f:
+            existing = set(line.strip() for line in f if line.strip())
+
+    if phone not in existing:
+        with open(WORKER_WHATSAPP_FILE, "a+", encoding="utf-8") as f:
+            f.seek(0)
+            content = f.read()
+
+            if content and not content.endswith("\n"):
+                f.write("\n")
+
+            f.write(phone + "\n")
+
+
+def sync_all_worker_whatsapp_numbers():
+    conn = get_db_connection()
+
+    rows = conn.execute("""
+        SELECT telefon
+        FROM mitarbeiter
+        WHERE telefon IS NOT NULL
+        AND telefon != ''
+    """).fetchall()
+
+    conn.close()
+
+    for row in rows:
+        save_worker_whatsapp_number(row["telefon"])
+
+register_kg_ai_routes(app, login_required, get_db_connection, normalize_phone_for_whatsapp)
+
+
 def temiz(v):
     if v is None:
         return ""
+
     s = str(v).strip()
+
     return "" if s.lower() == "none" else s
+
 
 def tarih(v):
     v = temiz(v)
+
     if not v:
         return ""
+
     try:
         return datetime.strptime(v, "%Y-%m-%d").strftime("%d.%m.%Y")
     except:
@@ -768,6 +844,8 @@ def run_db_migration():
 
 run_db_migration()
 
+register_kg_todo_routes(app, login_required, get_db_connection)
+
 
 # =====================================================
 # Bölüm 4-GİRİŞ VE ÇIKIŞ İŞLEMLERİ (BURAYA GELDİ)
@@ -787,6 +865,37 @@ def login():
 def logout():
     session.pop('logged_in', None)
     return redirect(url_for('login'))
+
+
+# =====================================================
+# WHATSAPP INBOX SAYFASI
+# =====================================================
+
+@app.route("/whatsapp-inbox")
+@login_required
+def whatsapp_inbox_page():
+    return render_template("whatsapp_inbox.html")
+
+# =====================================================
+# WHATSAPP İŞÇİ NUMARALARI SENKRON
+# =====================================================
+
+@app.route("/api/whatsapp/sync-workers")
+@login_required
+def whatsapp_sync_workers():
+    try:
+        sync_all_worker_whatsapp_numbers()
+
+        return jsonify({
+            "ok": True,
+            "message": "Mitarbeiter telefon numaraları WhatsApp listesine yazıldı."
+        })
+
+    except Exception as e:
+        return jsonify({
+            "ok": False,
+            "error": str(e)
+        }), 500
 
 # =====================================================
 # Bölüm 5- ANA SAYFA
@@ -1218,6 +1327,8 @@ def mitarbeiter():
                 access_code
             ))
 
+        save_worker_whatsapp_number(form_data.get("telefon"))
+
         conn.commit()
         conn.close()
         return redirect(url_for("mitarbeiter"))
@@ -1331,103 +1442,100 @@ def hard_delete_mitarbeiter(id):
     conn.close()
     return redirect(url_for("mitarbeiter"))
 
-# =====================================================
-# Bölüm 10- TO-DO LISTE (Haftalık Timeline Sistemi)
-# =====================================================
-@app.route("/todo")
-def todo_index():
-    import datetime
-    conn = get_db_connection()
-    
-    # Deadline sütunu yoksa veritabanına ekle
-    try:
-        conn.execute("ALTER TABLE todos ADD COLUMN deadline TEXT")
-        conn.commit()
-    except:
-        pass
-
-    todos = conn.execute("SELECT * FROM todos ORDER BY deadline ASC").fetchall()
-    conn.close()
-
-    # Görevleri KW (Takvim Haftası) bazında gruplama mantığı
-    grouped_todos = {}
-    now = datetime.datetime.now()
-    now_date = now.strftime('%Y-%m-%d')
-
-    for todo in todos:
-        if todo['deadline']:
-            dt = datetime.datetime.strptime(todo['deadline'], '%Y-%m-%d')
-            kw = dt.isocalendar()[1] # Hafta numarasını al (KW)
-            key = f"KW {kw} ({dt.strftime('%d.%m.%Y')})"
-        else:
-            key = "Ungeplant"
-        
-        if key not in grouped_todos:
-            grouped_todos[key] = []
-        grouped_todos[key].append(todo)
-
-    return render_template("todo.html", 
-                           grouped_todos=grouped_todos, 
-                           total_count=len(todos),
-                           now_date=now_date)
-
-@app.route("/todo/add", methods=["POST"])
-def add_todo():
-    task = request.form.get("task")
-    deadline = request.form.get("deadline") # Tarih verisini alıyoruz
-    if task:
-        conn = get_db_connection()
-        conn.execute("INSERT INTO todos (task, deadline) VALUES (?, ?)", (task, deadline))
-        conn.commit()
-        conn.close()
-    return redirect(url_for("todo_index"))
-
-@app.route("/todo/toggle/<int:id>")
-def toggle_todo(id):
-    conn = get_db_connection()
-    conn.execute("UPDATE todos SET done = 1 - done WHERE id = ?", (id,))
-    conn.commit()
-    conn.close()
-    return redirect(url_for("todo_index"))
-
-@app.route("/todo/delete/<int:id>")
-def delete_todo(id):
-    conn = get_db_connection()
-    conn.execute("DELETE FROM todos WHERE id = ?", (id,))
-    conn.commit()
-    conn.close()
-    return redirect(url_for("todo_index"))
-
-# --- DÜZENLEME İÇİN VERİ GETİRME ---
-@app.route("/todo/get/<int:id>")
-def get_todo(id):
-    conn = get_db_connection()
-    todo = conn.execute("SELECT * FROM todos WHERE id = ?", (id,)).fetchone()
-    conn.close()
-    if todo:
-        return jsonify(dict(todo))
-    return jsonify({"error": "Not found"}), 404
-
-# --- DÜZENLENEN VERİYİ KAYDETME ---
-@app.route("/todo/update", methods=["POST"])
-def update_todo():
-    todo_id = request.form.get("id")
-    task = request.form.get("task")
-    deadline = request.form.get("deadline")
-    
-    conn = get_db_connection()
-    conn.execute("UPDATE todos SET task = ?, deadline = ? WHERE id = ?", (task, deadline, todo_id))
-    conn.commit()
-    conn.close()
-    return redirect(url_for("todo_index"))
 
 # =====================================================
 # Bölüm 12- KALENDER
 # =====================================================
+def ensure_kalender_table():
+    conn = get_db_connection()
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS kalender_events (
+            id TEXT PRIMARY KEY,
+            datum TEXT NOT NULL,
+            uhrzeit TEXT DEFAULT '',
+            name TEXT NOT NULL,
+            typ TEXT DEFAULT 'Allgemein',
+            notiz TEXT DEFAULT ''
+        )
+    """)
+    conn.commit()
+    conn.close()
+
+
+ensure_kalender_table()
+
+
 @app.route("/kalender")
 def kalender():
     return render_template("kalender.html")
 
+
+@app.route("/api/kalender/events", methods=["GET"])
+def kalender_events_get():
+    conn = get_db_connection()
+    rows = conn.execute("""
+        SELECT id, datum, uhrzeit, name, typ, notiz
+        FROM kalender_events
+        ORDER BY datum, uhrzeit
+    """).fetchall()
+    conn.close()
+
+    return jsonify([
+        {
+            "id": row["id"],
+            "key": row["datum"],
+            "time": row["uhrzeit"] or "",
+            "name": row["name"],
+            "type": row["typ"] or "Allgemein",
+            "note": row["notiz"] or ""
+        }
+        for row in rows
+    ])
+
+
+@app.route("/api/kalender/events", methods=["POST"])
+def kalender_events_save():
+    data = request.get_json(silent=True) or {}
+
+    event_id = str(data.get("id") or "").strip()
+    datum = str(data.get("key") or "").strip()
+    name = str(data.get("name") or "").strip()
+    uhrzeit = str(data.get("time") or "").strip()
+    typ = str(data.get("type") or "Allgemein").strip()
+    notiz = str(data.get("note") or "").strip()
+
+    if not event_id or not datum or not name:
+        return jsonify({"success": False}), 400
+
+    conn = get_db_connection()
+    conn.execute("""
+        INSERT INTO kalender_events
+        (id, datum, uhrzeit, name, typ, notiz)
+        VALUES (?, ?, ?, ?, ?, ?)
+        ON CONFLICT(id) DO UPDATE SET
+            datum = excluded.datum,
+            uhrzeit = excluded.uhrzeit,
+            name = excluded.name,
+            typ = excluded.typ,
+            notiz = excluded.notiz
+    """, (event_id, datum, uhrzeit, name, typ, notiz))
+    conn.commit()
+    conn.close()
+
+    return jsonify({"success": True})
+
+
+@app.route("/api/kalender/events/<event_id>", methods=["DELETE"])
+def kalender_events_delete(event_id):
+    conn = get_db_connection()
+    conn.execute(
+        "DELETE FROM kalender_events WHERE id = ?",
+        (event_id,)
+    )
+    conn.commit()
+    conn.close()
+
+    return jsonify({"success": True})
 
 # =====================================================
 # Bölüm 16- STUNDENZETTEL (Dosya Sistemi ve Listeleme)
