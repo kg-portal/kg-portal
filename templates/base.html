@@ -800,6 +800,16 @@
                 <i class="fa-solid fa-grip-vertical portal-drag-handle"></i>
             </a>
 
+           <a class="portal-nav-item {% if request.path.startswith('/kg-ai') %}active{% endif %}" href="/kg-ai" data-nav-key="kg-ai">
+               <span class="portal-nav-content"><i class="fa-solid fa-robot icon-purple"></i> KG AI</span>
+               <i class="fa-solid fa-grip-vertical portal-drag-handle"></i>
+           </a>
+
+           <a class="portal-nav-item {% if request.path.startswith('/whatsapp-inbox') %}active{% endif %}" href="/whatsapp-inbox" data-nav-key="whatsapp-inbox">
+               <span class="portal-nav-content"><i class="fa-solid fa-comments icon-green"></i> WhatsApp Inbox</span>
+               <i class="fa-solid fa-grip-vertical portal-drag-handle"></i>
+           </a>
+
             <div class="portal-nav-group-title" id="kundengewinnungTitle">Kundengewinnung</div>
 
             <a class="portal-nav-item {% if request.path.startswith('/datenbank') %}active{% endif %}" href="/datenbank" data-nav-key="datenbank">
@@ -886,11 +896,13 @@ document.addEventListener('DOMContentLoaded', function () {
     const storageKey = 'kgPortalNavOrder';
     localStorage.removeItem(storageKey);
 
-        const fixedOrder = [
+    const fixedOrder = [
         'startseite',
         'kalender',
         'gmail',
         'todo',
+        'kg-ai',
+        'whatsapp-inbox',
         'datenbank',
         'besichtigung',
         'angebot',
