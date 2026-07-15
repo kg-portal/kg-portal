@@ -1053,7 +1053,59 @@ let viewMonth = Number.isInteger(savedCalendarViewState.viewMonth) ? savedCalend
 let selectedDateKey = savedCalendarViewState.selectedDateKey || toKey(today);
 let nrwHolidayCache = {};
 
-let userEvents = JSON.parse(localStorage.getItem("kg_calendar_events") || "[]");
+let userEvents = [];
+
+async function loadCalendarEvents() {
+    const localEvents = JSON.parse(
+        localStorage.getItem("kg_calendar_events") || "[]"
+    );
+
+    try {
+        const response = await fetch("/api/kalender/events");
+        const databaseEvents = await response.json();
+
+        const eventMap = new Map();
+
+        databaseEvents.forEach(event => eventMap.set(event.id, event));
+        localEvents.forEach(event => {
+            if (!eventMap.has(event.id)) {
+                eventMap.set(event.id, event);
+            }
+        });
+
+        userEvents = Array.from(eventMap.values());
+
+        const databaseIds = new Set(
+            databaseEvents.map(event => event.id)
+        );
+
+        const missingEvents = localEvents.filter(
+            event => !databaseIds.has(event.id)
+        );
+
+        await Promise.all(
+            missingEvents.map(event =>
+                fetch("/api/kalender/events", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify(event)
+                })
+            )
+        );
+
+        localStorage.setItem(
+            "kg_calendar_events",
+            JSON.stringify(userEvents)
+        );
+
+    } catch (error) {
+        userEvents = localEvents;
+        console.error("Kalender konnte nicht geladen werden:", error);
+    }
+}
+
 
 function pad(n){ return String(n).padStart(2,"0"); }
 function toKey(d){ return d.getFullYear() + "-" + pad(d.getMonth()+1) + "-" + pad(d.getDate()); }
@@ -1242,7 +1294,22 @@ function getEventStyleClass(type) {
 }
 
 function saveToStorage() {
-    localStorage.setItem("kg_calendar_events", JSON.stringify(userEvents));
+    localStorage.setItem(
+        "kg_calendar_events",
+        JSON.stringify(userEvents)
+    );
+
+    userEvents.forEach(event => {
+        fetch("/api/kalender/events", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(event)
+        }).catch(error => {
+            console.error("Kalender konnte nicht gespeichert werden:", error);
+        });
+    });
 }
 
 function createEvent(title, dateKey, time, type, note) {
@@ -1325,11 +1392,24 @@ function kgDatumDE(dateKey){
     return dateKey || "";
 }
 
-function deleteEvent(id) {
+async function deleteEvent(id) {
+    try {
+        await fetch("/api/kalender/events/" + encodeURIComponent(id), {
+            method: "DELETE"
+        });
 
-    userEvents = userEvents.filter(e => e.id !== id);
-    saveToStorage();
-    renderCalendar();
+        userEvents = userEvents.filter(e => e.id !== id);
+
+        localStorage.setItem(
+            "kg_calendar_events",
+            JSON.stringify(userEvents)
+        );
+
+        renderCalendar();
+
+    } catch (error) {
+        customAlert("Der Kalendereintrag konnte nicht gelöscht werden.");
+    }
 }
 
 function updateCounters() {
@@ -1693,10 +1773,15 @@ function applyMiniKalenderPrefill(){
  }
 }
 
-prepareNRWFeiertageForYear(viewYear);
-updateLiveDate();
-renderCalendar();
-applyMiniKalenderPrefill();
+async function startKalender() {
+    prepareNRWFeiertageForYear(viewYear);
+    updateLiveDate();
+    await loadCalendarEvents();
+    renderCalendar();
+    applyMiniKalenderPrefill();
+}
+
+startKalender();
 setInterval(updateLiveDate, 30000);
 </script>
 
