@@ -19,6 +19,7 @@ load_dotenv("tokenlar.env")
 
 GMAPS_KEY = os.getenv("GMAPS_KEY", "").strip()
 GOOGLE_TEXT_SEARCH_URL = "https://places.googleapis.com/v1/places:searchText"
+GOOGLE_GEOCODING_URL = "https://maps.googleapis.com/maps/api/geocode/json"
 
 GOOGLE_DAILY_LIMIT = int(os.getenv("GOOGLE_DAILY_LIMIT", "900"))
 GOOGLE_PAGE_SIZE = 20
@@ -658,8 +659,54 @@ def company_name_looks_bad(name):
     n = normalize_text(name).lower()
     return any(x in n for x in BAD_LEAD_NAME_CONTAINS)
 
+def get_search_center_coordinates(stadt="", plz=""):
+    center_text = f"{plz} {stadt}, Deutschland".strip() if plz else f"{stadt}, Deutschland".strip()
 
-def call_google_text_search(text_query):
+    if not GMAPS_KEY or not center_text:
+        return None, None
+
+    try:
+        response = requests.get(
+            GOOGLE_GEOCODING_URL,
+            params={
+                "address": center_text,
+                "key": GMAPS_KEY,
+                "language": "de",
+                "region": "de"
+            },
+            timeout=30
+        )
+
+        data = response.json()
+
+        if response.status_code != 200:
+            return None, None
+
+        results = data.get("results") or []
+
+        if not results:
+            return None, None
+
+        location = (
+            results[0]
+            .get("geometry", {})
+            .get("location", {})
+        )
+
+        latitude = location.get("lat")
+        longitude = location.get("lng")
+
+        if latitude is None or longitude is None:
+            return None, None
+
+        return float(latitude), float(longitude)
+
+    except Exception:
+        return None, None
+
+
+def call_google_text_search(text_query, latitude=None, longitude=None, radius_km=10):
+
     if not GMAPS_KEY:
         return {}, False, "GMAPS_KEY fehlt"
 
@@ -672,6 +719,17 @@ def call_google_text_search(text_query):
         "regionCode": "DE",
         "pageSize": GOOGLE_PAGE_SIZE,
     }
+
+    if latitude is not None and longitude is not None:
+        payload["locationBias"] = {
+            "circle": {
+                "center": {
+                    "latitude": latitude,
+                    "longitude": longitude
+                },
+                "radius": float(radius_km) * 1000
+            }
+        }
 
     headers = {
         "Content-Type": "application/json",
@@ -770,18 +828,26 @@ def get_item_unique_key(lead):
     return f"name:{firma}"
 
 
-def get_leads_from_google(suchwort, stadt, max_results=20, plz=""):
-    if plz:
-        text_query = f"{suchwort} {plz} {stadt}".strip()
-    else:
-        text_query = f"{suchwort} {stadt}".strip()
+def get_leads_from_google(suchwort, stadt, max_results=20, plz="", radius_km=10):
+    center = f"{plz} {stadt}".strip() if plz else stadt
+    text_query = f"{suchwort} {center}".strip()
+
+    latitude, longitude = get_search_center_coordinates(
+        stadt=stadt,
+        plz=plz
+    )
 
     requested = 20
 
     rows = []
     seen = set()
 
-    data, ok, error = call_google_text_search(text_query)
+    data, ok, error = call_google_text_search(
+        text_query,
+        latitude=latitude,
+        longitude=longitude,
+        radius_km=radius_km
+    )
 
     if not ok:
         return rows
@@ -891,7 +957,7 @@ def insert_lead(conn, lead):
 # Manuel kullanimda HER ÇALIŞTIRMA = 1 Google isteği.
 # ============================================================
 
-def run_apify_import(db_path, branche_id, branche_name, suchwort, stadt, max_results=20, plz=""):
+def run_apify_import(db_path, branche_id, branche_name, suchwort, stadt, max_results=20, plz="", radius_km=10):
     result = {
         "success": True,
         "message": "",
@@ -912,7 +978,13 @@ def run_apify_import(db_path, branche_id, branche_name, suchwort, stadt, max_res
         result["message"] = "GMAPS_KEY fehlt. tokenlar.env içine GMAPS_KEY ekle."
         return result
 
-    leads = get_leads_from_google(suchwort, stadt, 20, plz=plz)
+    leads = get_leads_from_google(
+        suchwort,
+        stadt,
+        20,
+        plz=plz,
+        radius_km=radius_km
+    )
 
     for lead in leads:
         lead["branche_id"] = branche_id
