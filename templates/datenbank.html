@@ -3233,11 +3233,11 @@ body{
     position:fixed;
     inset:0;
     z-index:99999;
-    background:rgba(15,23,42,.55);
+    background:#ffffff;
     display:none;
-    align-items:center;
-    justify-content:center;
-    padding:18px;
+    align-items:stretch;
+    justify-content:stretch;
+    padding:0;
 }
 
 .spaeter-kalender-backdrop.open{
@@ -3245,15 +3245,15 @@ body{
 }
 
 .spaeter-kalender-box{
-    width:min(100%,1120px);
-    height:min(92vh,820px);
+    width:100vw;
+    height:100vh;
     background:#ffffff;
-    border:1px solid #dbe3ef;
-    border-radius:24px;
-    box-shadow:0 28px 70px rgba(15,23,42,.30);
+    border:0;
+    border-radius:0;
+    box-shadow:none;
     overflow:hidden;
     display:grid;
-    grid-template-rows:auto 1fr;
+    grid-template-rows:58px minmax(0,1fr);
 }
 
 .spaeter-kalender-head{
@@ -3645,6 +3645,244 @@ body{
     box-shadow:0 4px 10px rgba(15,23,42,0.08);
 }
 
+
+/* =====================================================
+   TAGESLISTE YENİ MOTİVASYON KARTI
+===================================================== */
+
+.kg-contact-dashboard{
+    margin-top:14px;
+    display:grid;
+    grid-template-columns:1fr 1fr 1.35fr;
+    gap:12px;
+}
+
+.kg-contact-panel{
+    position:relative;
+    min-height:145px;
+    padding:16px;
+    border:1px solid #dbe7f5;
+    border-radius:18px;
+    background:linear-gradient(180deg,#ffffff 0%,#f8fbff 100%);
+    box-shadow:0 10px 24px rgba(15,23,42,.045);
+    overflow:hidden;
+}
+
+.kg-contact-panel::before{
+    content:&quot;&quot;;
+    position:absolute;
+    left:0;
+    top:0;
+    bottom:0;
+    width:4px;
+    border-radius:18px 0 0 18px;
+    background:#2563eb;
+}
+
+.kg-contact-panel.phone::before{
+    background:#16a34a;
+}
+
+.kg-contact-panel.online::before{
+    background:#7c3aed;
+}
+
+.kg-contact-head{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    margin-bottom:14px;
+}
+
+.kg-contact-panel.phone{
+    display:block !important;
+}
+
+.kg-contact-panel.phone .kg-contact-head{
+    display:flex !important;
+    align-items:center !important;
+    gap:10px !important;
+    margin-bottom:14px !important;
+}
+
+.kg-contact-panel.phone .kg-contact-input{
+    display:block !important;
+    width:100% !important;
+    margin:0 !important;
+}
+
+.kg-contact-icon{
+    width:38px;
+    height:38px;
+    border-radius:13px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    flex:0 0 auto;
+    background:#eff6ff;
+    color:#1d4ed8;
+    font-size:18px;
+    font-weight:900;
+}
+
+.kg-contact-panel.phone .kg-contact-icon{
+    background:#ecfdf5;
+    color:#047857;
+}
+
+.kg-contact-panel.online .kg-contact-icon{
+    background:#f5f3ff;
+    color:#7c3aed;
+}
+
+.kg-contact-title{
+    font-size:11px;
+    line-height:1;
+    text-transform:uppercase;
+    letter-spacing:.7px;
+    font-weight:900;
+    color:#64748b;
+}
+
+.kg-contact-input{
+    width:100%;
+    height:44px;
+    border:1px solid #dbe3ef;
+    border-radius:12px;
+    background:#ffffff;
+    padding:0 13px;
+    color:#0f172a;
+    font-size:13px;
+    font-weight:800;
+    outline:none;
+}
+
+.kg-contact-input:focus{
+    border-color:#2563eb;
+    box-shadow:0 0 0 3px rgba(37,99,235,.10);
+}
+
+.kg-contact-link{
+    position:relative;
+    width:100%;
+}
+
+.kg-contact-link .kg-contact-input{
+    padding-right:46px;
+}
+
+.kg-contact-open{
+    position:absolute;
+    right:7px;
+    top:50%;
+    transform:translateY(-50%);
+    width:32px;
+    height:32px;
+    border:0;
+    border-radius:10px;
+    background:#eff6ff;
+    color:#1d4ed8;
+    font-size:15px;
+    font-weight:900;
+    cursor:pointer;
+}
+
+.kg-contact-open:hover{
+    background:#2563eb;
+    color:#ffffff;
+}
+
+.kg-web-stack{
+    display:flex;
+    flex-direction:column;
+    gap:9px;
+}
+
+.kg-maps-button{
+    width:100%;
+    min-height:42px;
+    border:1px solid #bfdbfe;
+    border-radius:12px;
+    background:#eff6ff;
+    color:#1d4ed8;
+    font-size:12px;
+    font-weight:900;
+    cursor:pointer;
+}
+
+.kg-note-dashboard{
+    margin-top:12px;
+    display:grid;
+    grid-template-columns:56px minmax(0,1fr) 180px;
+    gap:12px;
+    align-items:center;
+    padding:14px;
+    border:1px solid #fde68a;
+    border-radius:18px;
+    background:linear-gradient(135deg,#fffdf5 0%,#ffffff 70%);
+    box-shadow:0 10px 22px rgba(180,83,9,.06);
+}
+
+.kg-note-icon{
+    width:48px;
+    height:48px;
+    border-radius:15px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:#fef3c7;
+    color:#b45309;
+    font-size:22px;
+}
+
+.kg-note-area{
+    width:100%;
+    min-height:54px;
+    resize:vertical;
+    border:0;
+    outline:none;
+    background:transparent;
+    color:#0f172a;
+    font-size:13px;
+    font-weight:700;
+    padding:8px 4px;
+}
+
+.kg-note-area::placeholder{
+    color:#94a3b8;
+}
+
+.kg-note-save{
+    min-height:48px;
+    border:0;
+    border-radius:13px;
+    background:linear-gradient(135deg,#1e40af 0%,#2563eb 100%);
+    color:#ffffff;
+    font-size:13px;
+    font-weight:900;
+    cursor:pointer;
+    box-shadow:0 10px 20px rgba(37,99,235,.18);
+}
+
+.kg-note-save:hover{
+    transform:translateY(-1px);
+    box-shadow:0 13px 26px rgba(37,99,235,.24);
+}
+
+@media(max-width:900px){
+    .kg-contact-dashboard{
+        grid-template-columns:1fr;
+    }
+
+    .kg-note-dashboard{
+        grid-template-columns:48px minmax(0,1fr);
+    }
+
+    .kg-note-save{
+        grid-column:1 / -1;
+    }
+}
+
 &lt;/style&gt;
 
 &lt;/head&gt;
@@ -3908,49 +4146,103 @@ function renderLeads(){
 
    &lt;div class=&quot;details&quot;&gt;
     &lt;div class=&quot;details-inner&quot;&gt;
-     &lt;div class=&quot;grid&quot;&gt;
 
-          &lt;div class=&quot;box&quot;&gt;
-       &lt;div class=&quot;box-label&quot;&gt;Ansprechpartner&lt;/div&gt;
-       &lt;input class=&quot;lead-edit-input&quot; data-field=&quot;kontakt&quot; value=&quot;${l.kontakt || &#x27;&#x27;}&quot; onclick=&quot;event.stopPropagation()&quot;&gt;
-       &lt;input class=&quot;lead-edit-input&quot; data-field=&quot;tel&quot; value=&quot;${l.tel || &#x27;&#x27;}&quot; onclick=&quot;event.stopPropagation()&quot;&gt;
-      &lt;/div&gt;
+     &lt;div class=&quot;kg-contact-dashboard&quot;&gt;
 
-      &lt;div class=&quot;box&quot;&gt;
-       &lt;div class=&quot;box-label&quot;&gt;E-Mail Adresse&lt;/div&gt;
-       &lt;div class=&quot;lead-link-wrap&quot; onclick=&quot;event.stopPropagation()&quot;&gt;
-        &lt;input class=&quot;lead-edit-input&quot; data-field=&quot;mail&quot; value=&quot;${l.mail || &#x27;&#x27;}&quot;&gt;
-        &lt;button type=&quot;button&quot; class=&quot;lead-open-btn&quot; onclick=&quot;openLeadMail(event,this)&quot;&gt;↗&lt;/button&gt;
-       &lt;/div&gt;
-      &lt;/div&gt;
-
-            &lt;div class=&quot;box&quot;&gt;
-       &lt;div class=&quot;box-label&quot;&gt;Webseite&lt;/div&gt;
-       &lt;div class=&quot;lead-link-wrap&quot; onclick=&quot;event.stopPropagation()&quot;&gt;
-        &lt;input class=&quot;lead-edit-input&quot; data-field=&quot;web&quot; value=&quot;${l.web || &#x27;&#x27;}&quot;&gt;
-        &lt;button type=&quot;button&quot; class=&quot;lead-open-btn&quot; onclick=&quot;openLeadWeb(event,this)&quot;&gt;↗&lt;/button&gt;
+      &lt;div class=&quot;kg-contact-panel person&quot;&gt;
+       &lt;div class=&quot;kg-contact-head&quot;&gt;
+        &lt;div class=&quot;kg-contact-icon&quot;&gt;♙&lt;/div&gt;
+        &lt;div class=&quot;kg-contact-title&quot;&gt;Kontaktperson&lt;/div&gt;
        &lt;/div&gt;
 
-       ${mapsValue ? `
-       &lt;button type=&quot;button&quot;
-               class=&quot;maps-open-btn&quot;
-               onclick=&quot;openLeadMaps(event,this)&quot;
-               title=&quot;Google Maps öffnen&quot;&gt;
-        &lt;span class=&quot;maps-logo&quot;&gt;📍&lt;/span&gt;
-        Google Maps öffnen
-       &lt;/button&gt;
-       ` : &#x27;&#x27;}
+       &lt;input
+        class=&quot;lead-edit-input kg-contact-input&quot;
+        data-field=&quot;kontakt&quot;
+        value=&quot;${l.kontakt || &#x27;&#x27;}&quot;
+        placeholder=&quot;Ansprechpartner eintragen&quot;
+        onclick=&quot;event.stopPropagation()&quot;&gt;
+      &lt;/div&gt;
+
+      &lt;div class=&quot;kg-contact-panel phone&quot;&gt;
+       &lt;div class=&quot;kg-contact-head&quot;&gt;
+        &lt;div class=&quot;kg-contact-icon&quot;&gt;☎&lt;/div&gt;
+        &lt;div class=&quot;kg-contact-title&quot;&gt;Telefon&lt;/div&gt;
+       &lt;/div&gt;
+
+       &lt;input
+        class=&quot;lead-edit-input kg-contact-input&quot;
+        data-field=&quot;tel&quot;
+        value=&quot;${l.tel || &#x27;&#x27;}&quot;
+        placeholder=&quot;Telefonnummer eintragen&quot;
+        onclick=&quot;event.stopPropagation()&quot;&gt;
+      &lt;/div&gt;
+
+      &lt;div class=&quot;kg-contact-panel online&quot;&gt;
+       &lt;div class=&quot;kg-contact-head&quot;&gt;
+        &lt;div class=&quot;kg-contact-icon&quot;&gt;◎&lt;/div&gt;
+        &lt;div class=&quot;kg-contact-title&quot;&gt;E-Mail &amp; Webseite&lt;/div&gt;
+       &lt;/div&gt;
+
+       &lt;div class=&quot;kg-web-stack&quot;&gt;
+
+        &lt;div class=&quot;kg-contact-link&quot; onclick=&quot;event.stopPropagation()&quot;&gt;
+         &lt;input
+          class=&quot;lead-edit-input kg-contact-input&quot;
+          data-field=&quot;mail&quot;
+          value=&quot;${l.mail || &#x27;&#x27;}&quot;
+          placeholder=&quot;E-Mail-Adresse&quot;&gt;
+
+         &lt;button
+          type=&quot;button&quot;
+          class=&quot;kg-contact-open&quot;
+          onclick=&quot;openLeadMail(event,this)&quot;&gt;↗&lt;/button&gt;
+        &lt;/div&gt;
+
+        &lt;div class=&quot;kg-contact-link&quot; onclick=&quot;event.stopPropagation()&quot;&gt;
+         &lt;input
+          class=&quot;lead-edit-input kg-contact-input&quot;
+          data-field=&quot;web&quot;
+          value=&quot;${l.web || &#x27;&#x27;}&quot;
+          placeholder=&quot;Webseite&quot;&gt;
+
+         &lt;button
+          type=&quot;button&quot;
+          class=&quot;kg-contact-open&quot;
+          onclick=&quot;openLeadWeb(event,this)&quot;&gt;↗&lt;/button&gt;
+        &lt;/div&gt;
+
+        ${mapsValue ? `
+        &lt;button
+         type=&quot;button&quot;
+         class=&quot;maps-open-btn kg-maps-button&quot;
+         onclick=&quot;openLeadMaps(event,this)&quot;
+         title=&quot;Google Maps öffnen&quot;&gt;
+         📍 Google Maps öffnen
+        &lt;/button&gt;
+        ` : &#x27;&#x27;}
+
+       &lt;/div&gt;
       &lt;/div&gt;
 
      &lt;/div&gt;
 
-     &lt;div class=&quot;note-row&quot;&gt;
-      &lt;textarea class=&quot;note&quot; placeholder=&quot;Notiz zum Telefonat / nächste Aktion...&quot;&gt;${l.notiz || &#x27;&#x27;}&lt;/textarea&gt;
-      &lt;button class=&quot;save&quot; onclick=&quot;saveLeadNote(event,${leads.indexOf(l)},this)&quot;&gt;Notiz speichern&lt;/button&gt;
+     &lt;div class=&quot;kg-note-dashboard&quot;&gt;
+      &lt;div class=&quot;kg-note-icon&quot;&gt;▤&lt;/div&gt;
+
+      &lt;textarea
+       class=&quot;note kg-note-area&quot;
+       placeholder=&quot;Notiz zum Telefonat / nächste Aktion...&quot;&gt;${l.notiz || &#x27;&#x27;}&lt;/textarea&gt;
+
+      &lt;button
+       class=&quot;save kg-note-save&quot;
+       onclick=&quot;saveLeadNote(event,${leads.indexOf(l)},this)&quot;&gt;
+       Notiz speichern
+      &lt;/button&gt;
      &lt;/div&gt;
 
     &lt;/div&gt;
    &lt;/div&gt;
+
   &lt;/div&gt;`;
  }).join(&#x27;&#x27;);
 
@@ -4407,7 +4699,7 @@ function openSpaeterKalender(btn){
   modal=document.createElement(&#x27;div&#x27;);
   modal.id=&#x27;spaeterKalenderBackdrop&#x27;;
   modal.className=&#x27;spaeter-kalender-backdrop&#x27;;
-  modal.innerHTML=&#x27;&lt;div class=&quot;spaeter-kalender-box&quot;&gt;&lt;div class=&quot;spaeter-kalender-head&quot;&gt;&lt;span&gt;KG Kalender · Schnellansicht&lt;/span&gt;&lt;button type=&quot;button&quot; class=&quot;spaeter-kalender-close&quot; onclick=&quot;closeSpaeterKalender()&quot;&gt;×&lt;/button&gt;&lt;/div&gt;&lt;iframe class=&quot;spaeter-kalender-frame&quot; src=&quot;/datenbank/kalender-mini&quot;&gt;&lt;/iframe&gt;&lt;/div&gt;&#x27;;
+  modal.innerHTML=&#x27;&lt;div class=&quot;spaeter-kalender-box&quot;&gt;&lt;div class=&quot;spaeter-kalender-head&quot;&gt;&lt;span&gt;KG Kalender · Schnellansicht&lt;/span&gt;&lt;button type=&quot;button&quot; class=&quot;spaeter-kalender-close&quot; onclick=&quot;closeSpaeterKalender()&quot;&gt;×&lt;/button&gt;&lt;/div&gt;&lt;iframe class=&quot;spaeter-kalender-frame&quot; src=&quot;/datenbank/kalender-mini?embed=1&quot;&gt;&lt;/iframe&gt;&lt;/div&gt;&#x27;;
   document.body.appendChild(modal);
  }
 
@@ -4428,11 +4720,16 @@ function later(btn){
 
  if(!lead)return;
 
+ const kontaktperson=(lead.kontakt||'').trim();
+ const firmenname=(lead.firma||'').trim();
+ const kalenderTitel=kontaktperson||firmenname;
+
  const p=new URLSearchParams();
  p.set('source','spaeter');
  p.set('tagesliste_id',lead.id||0);
- p.set('firma',lead.firma||'');
- p.set('ansprechpartner',lead.kontakt||'');
+ p.set('firma',kalenderTitel);
+ p.set('unternehmen',firmenname);
+ p.set('ansprechpartner',kontaktperson);
  p.set('telefon',lead.tel||'');
  p.set('email',lead.mail||'');
  p.set('adresse',lead.str||'');
@@ -4443,7 +4740,8 @@ function later(btn){
  const frame=modal?modal.querySelector('.spaeter-kalender-frame'):null;
 
  if(title)title.textContent='KG Kalender · Später anrufen';
- if(frame)frame.setAttribute('src','/datenbank/kalender-mini?'+p.toString());
+ p.set('embed','1');
+ frame.setAttribute('src','/datenbank/kalender-mini?'+p.toString());
 
  if(modal)modal.classList.add('open');
 }
@@ -4795,19 +5093,124 @@ function openLeadMaps(event,btn){
 function setupSearchFilter(){
  const searchEl=document.getElementById(&#x27;leadSearchInput&#x27;);
  const groupEl=document.getElementById(&#x27;leadGroupFilter&#x27;);
- function refresh(){renderLeads();bindLeadButtons()}
- if(searchEl)searchEl.addEventListener(&#x27;input&#x27;,refresh);
- if(groupEl)groupEl.addEventListener(&#x27;change&#x27;,refresh);
-}
-function saveTageslisteOrder(){try{localStorage.setItem(&#x27;kg_tagesliste_order&#x27;,JSON.stringify(leads.map(x=&gt;x.id).filter(Boolean).map(String)))}catch(err){console.warn(&#x27;Reihenfolge lokal speichern Fehler&#x27;,err)}}
-function loadTageslisteOrder(){try{const saved=JSON.parse(localStorage.getItem(&#x27;kg_tagesliste_order&#x27;)||&#x27;[]&#x27;);if(!saved.length)return;const pos=new Map(saved.map((id,i)=&gt;[String(id),i]));const old=new Map(leads.map((x,i)=&gt;[x,i]));leads.sort((a,b)=&gt;{const ai=pos.has(String(a.id))?pos.get(String(a.id)):999999;const bi=pos.has(String(b.id))?pos.get(String(b.id)):999999;if(ai!==bi)return ai-bi;return old.get(a)-old.get(b)})}catch(err){console.warn(&#x27;Reihenfolge lokal laden Fehler&#x27;,err)}}
 
-document.addEventListener(&#x27;DOMContentLoaded&#x27;,()=&gt;{const searchEl=document.getElementById(&#x27;leadSearchInput&#x27;);const groupEl=document.getElementById(&#x27;leadGroupFilter&#x27;);if(searchEl)searchEl.value=&#x27;&#x27;;if(groupEl)groupEl.value=&#x27;Alle Gruppen&#x27;;loadTageslisteOrder();renderLeads();bindLeadButtons();setupSearchFilter();const l=document.getElementById(&#x27;dailySortable&#x27;);if(l&amp;&amp;window.Sortable)new Sortable(l,{animation:180,draggable:&#x27;.lead&#x27;,handle:&#x27;.drag&#x27;,onEnd:function(){const moved=[...l.querySelectorAll(&#x27;.lead&#x27;)].map(card=&gt;leads[parseInt(card.dataset.index||&#x27;-1&#x27;,10)]).filter(Boolean);leads.splice(0,leads.length,...moved);saveTageslisteOrder();renderLeads();bindLeadButtons();}})});
+ function refresh(){
+  renderLeads();
+  bindLeadButtons();
+ }
+
+ if(searchEl){
+  searchEl.addEventListener(&#x27;input&#x27;,refresh);
+ }
+
+ if(groupEl){
+  groupEl.addEventListener(&#x27;change&#x27;,refresh);
+ }
+}
+
+function saveTageslisteOrder(){
+ try{
+  localStorage.setItem(
+   &#x27;kg_tagesliste_order&#x27;,
+   JSON.stringify(
+    leads
+     .map(x=&gt;x.id)
+     .filter(Boolean)
+     .map(String)
+   )
+  );
+ }catch(err){
+  console.warn(&#x27;Reihenfolge lokal speichern Fehler&#x27;,err);
+ }
+}
+
+function loadTageslisteOrder(){
+ try{
+  const saved=JSON.parse(
+   localStorage.getItem(&#x27;kg_tagesliste_order&#x27;)||&#x27;[]&#x27;
+  );
+
+  if(!saved.length){
+   return;
+  }
+
+  const pos=new Map(
+   saved.map((id,i)=&gt;[String(id),i])
+  );
+
+  const old=new Map(
+   leads.map((x,i)=&gt;[x,i])
+  );
+
+  leads.sort((a,b)=&gt;{
+   const aSaved=pos.has(String(a.id));
+   const bSaved=pos.has(String(b.id));
+
+   if(!aSaved&amp;&amp;bSaved){
+    return -1;
+   }
+
+   if(aSaved&amp;&amp;!bSaved){
+    return 1;
+   }
+
+   if(aSaved&amp;&amp;bSaved){
+    return pos.get(String(a.id))-pos.get(String(b.id));
+   }
+
+   return old.get(a)-old.get(b);
+  });
+ }catch(err){
+  console.warn(&#x27;Reihenfolge lokal laden Fehler&#x27;,err);
+ }
+}
+
+document.addEventListener(&#x27;DOMContentLoaded&#x27;,()=&gt;{
+ const searchEl=document.getElementById(&#x27;leadSearchInput&#x27;);
+ const groupEl=document.getElementById(&#x27;leadGroupFilter&#x27;);
+
+ if(searchEl){
+  searchEl.value=&#x27;&#x27;;
+ }
+
+ if(groupEl){
+  groupEl.value=&#x27;Alle Gruppen&#x27;;
+ }
+
+ loadTageslisteOrder();
+ renderLeads();
+ bindLeadButtons();
+ setupSearchFilter();
+
+ const l=document.getElementById(&#x27;dailySortable&#x27;);
+
+ if(l&amp;&amp;window.Sortable){
+  new Sortable(l,{
+   animation:180,
+   draggable:&#x27;.lead&#x27;,
+   handle:&#x27;.drag&#x27;,
+   onEnd:function(){
+    const moved=[
+     ...l.querySelectorAll(&#x27;.lead&#x27;)
+    ]
+    .map(card=&gt;leads[parseInt(card.dataset.index||&#x27;-1&#x27;,10)])
+    .filter(Boolean);
+
+    leads.splice(0,leads.length,...moved);
+    saveTageslisteOrder();
+    renderLeads();
+    bindLeadButtons();
+   }
+  });
+ }
+});
+
 &lt;/script&gt;
 &lt;/body&gt;
 &lt;/html&gt;
 "></iframe>
         </section>
+
         <section id="besichtigungView" class="view-hidden">
             <div class="day-head">
                 <div class="day-title">
@@ -6677,9 +7080,30 @@ async function renderStatusCompanies(statusKey) {
 
                         <div>
                             <div class="kicker">
-                                <span class="badge">${kgAwEscape(badgeText)}</span>
-                                <span class="status">${statusKey === 'spaeter' && lead.spaeter_datum ? 'Rückruf · ' + kgAwEscape(lead.spaeter_datum) : 'Heute · ' + kgAwEscape(statusTitles[statusKey] || 'offen')}</span>
-                            </div>
+    <span class="badge">${kgAwEscape(badgeText)}</span>
+    <span class="status">${statusKey === 'spaeter' && lead.spaeter_datum ? 'Rückruf · ' + kgAwEscape(lead.spaeter_datum) : 'Heute · ' + kgAwEscape(statusTitles[statusKey] || 'offen')}</span>
+
+    ${statusKey === 'besichtigung' ? `
+        <button
+            type="button"
+            onclick="deleteBesichtigung(event, ${Number(lead.id) || 0}, this)"
+            style="
+                margin-left:8px;
+                width:30px;
+                height:30px;
+                border:1px solid #fecaca;
+                border-radius:9px;
+                background:#fef2f2;
+                color:#dc2626;
+                font-size:14px;
+                font-weight:900;
+                cursor:pointer;
+            "
+            title="Besichtigung löschen"
+        >🗑</button>
+    ` : ''}
+</div>
+
 
                             <div class="company">${kgAwEscape(lead.firma || '')}</div>
                             <div class="meta">${kgAwEscape(metaText)}</div>
@@ -6718,6 +7142,71 @@ function toggleStatusCompany(summaryEl) {
     const card = summaryEl.closest(".status-company-card");
     if(card){
         card.classList.toggle("open");
+    }
+}
+
+async function deleteBesichtigung(event, leadId, btn){
+    event.stopPropagation();
+
+    if(!leadId){
+        alert("Besichtigung-ID fehlt.");
+        return;
+    }
+
+    const firmaCard = btn.closest(".status-company-card");
+    const firmaEl = firmaCard ? firmaCard.querySelector(".company") : null;
+    const firma = firmaEl ? firmaEl.textContent.trim() : "diese Firma";
+
+    const bestaetigt = confirm(
+        firma + " wirklich aus Besichtigung löschen?"
+    );
+
+    if(!bestaetigt){
+        return;
+    }
+
+    btn.disabled = true;
+
+    try{
+        const response = await fetch("/api/datenbank/besichtigung-delete", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                id: leadId
+            })
+        });
+
+        const data = await response.json();
+
+        if(!data.ok){
+            alert(data.message || "Besichtigung konnte nicht gelöscht werden.");
+            btn.disabled = false;
+            return;
+        }
+
+        if(firmaCard){
+            firmaCard.remove();
+        }
+
+        const list = document.getElementById("statusCompanyList");
+
+        if(list && !list.querySelector(".status-company-card")){
+            const empty = document.getElementById("statusEmpty");
+
+            if(empty){
+                empty.style.display = "block";
+            }
+        }
+
+        if(typeof refreshStatusCounts === "function"){
+            refreshStatusCounts();
+        }
+
+    }catch(err){
+        alert("Löschen Fehler: " + err);
+        btn.disabled = false;
     }
 }
 
@@ -7190,19 +7679,33 @@ function closeApifyLeadModal() {
 async function startApifyLeadImport() {
     const brancheRaw = document.getElementById("apifyBranche").value;
     const suchwort = document.getElementById("apifySuchwort").value.trim();
-    const stadt = document.getElementById("apifyStadt").value.trim();
-    const plz = document.getElementById("apifyPlz").value.trim();
-    const googleRequestsRaw = document.getElementById("apifyGoogleRequests").value.trim();
+           const stadt = document.getElementById("apifyStadt").value.trim();
+           const plz = document.getElementById("apifyPlz").value.trim();
+           const radiusKmRaw = document.getElementById("apifyRadiusKm").value.trim();
+           const googleRequestsRaw = document.getElementById("apifyGoogleRequests").value.trim();
     const status = document.getElementById("apifyLeadStatus");
 
     const progressBox = document.getElementById("apifyProgressBox");
     const progressBar = document.getElementById("apifyProgressBar");
     const progressText = document.getElementById("apifyProgressText");
 
-    let googleRequests = parseInt(googleRequestsRaw || "1", 10);
+         let radiusKm = parseInt(radiusKmRaw || "10", 10);
+         let googleRequests = parseInt(googleRequestsRaw || "1", 10);
 
     if (!brancheRaw || !suchwort || !stadt) {
         status.textContent = "Bitte Branche, Suchwort und Stadt ausfüllen.";
+        status.style.color = "#dc2626";
+        return;
+    }
+
+        if (plz && !/^\d{5}$/.test(plz)) {
+        status.textContent = "PLZ muss genau 5 Ziffern haben.";
+        status.style.color = "#dc2626";
+        return;
+    }
+
+    if (isNaN(radiusKm) || radiusKm < 1 || radiusKm > 50) {
+        status.textContent = "Umkreis bitte zwischen 1 und 50 km eingeben.";
         status.style.color = "#dc2626";
         return;
     }
@@ -7246,6 +7749,7 @@ async function startApifyLeadImport() {
                 suchwort: suchwort,
                 stadt: stadt,
                 plz: plz,
+                radius_km: radiusKm,
                 google_requests: googleRequests
             })
         });
@@ -7490,17 +7994,20 @@ async function kgAngebotZurueckBesichtigung(id) {
                 <option value="12|Sonstige / Nicht zugeordnet">Sonstige / Nicht zugeordnet</option>
             </select>
 
-            <label>Suchwort</label>
+<label>Suchwort</label>
 <input id="apifySuchwort" type="text" placeholder="z.B. Steuerberater">
 
 <label>Stadt</label>
-<input id="apifyStadt" type="text" value="" placeholder="z.B. Moers">
+<input id="apifyStadt" type="text" value="" placeholder="z.B. Duisburg">
 
-<label>PLZ</label>
-<input id="apifyPlz" type="text" placeholder="z.B. 47441">
+<label>PLZ – optional</label>
+<input id="apifyPlz" type="text" inputmode="numeric" maxlength="5" placeholder="z.B. 47055">
 
-<label>Google-Anfragen</label>
-<input id="apifyGoogleRequests" type="number" min="1" max="30" value="1" placeholder="1 = ca. 20 Firmen, 30 = ca. 600 Firmen">
+<label>Umkreis in km</label>
+<input id="apifyRadiusKm" type="number" min="1" max="50" value="10" placeholder="z.B. 10">
+
+<label>Google-Suchläufe</label>
+<input id="apifyGoogleRequests" type="number" min="1" max="30" value="1" placeholder="1 Suchlauf = maximal ca. 20 Firmen">
 
 <div id="apifyProgressBox" style="display:none; margin-top:12px;">
     <div style="font-size:12px; font-weight:900; color:#1d4ed8; margin-bottom:6px;">
