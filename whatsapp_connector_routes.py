@@ -422,7 +422,7 @@ def wa_build_ai_context(phone="", raw_from="", body="", name=""):
             ):
                 matched_workers.append(worker)
 
-    context_workers = matched_workers if matched_workers else workers
+    context_workers = matched_workers
 
     candidates = []
 
@@ -469,9 +469,13 @@ def wa_build_ai_context(phone="", raw_from="", body="", name=""):
         lines.append(active_job_context)
         lines.append("")
 
-    lines.append("AKTİF MITARBEITER LİSTESİ:")
+    lines.append("EŞLEŞEN MITARBEITER BİLGİSİ:")
+
+    if not context_workers:
+        lines.append("Eşleşen çalışan bulunamadı. Başka çalışanların bilgileri kesinlikle kullanılmamalıdır.")
 
     for worker in context_workers:
+
         summary = wa_worker_month_summary(worker["id"], year, month)
         full_name = f"{worker['vorname'] or ''} {worker['nachname'] or ''}".strip()
 
