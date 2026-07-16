@@ -5,6 +5,7 @@
 
 {% if kalender_mini or request.args.get("embed") == "1" %}
 <style>
+
 .portal-sidebar{
     display:none !important;
 }
@@ -14,8 +15,8 @@
     max-width:none !important;
     margin-left:0 !important;
     padding:0 !important;
+    overflow:hidden !important;
 }
-
 .portal-card{
     width:100% !important;
     max-width:none !important;
@@ -198,10 +199,24 @@
     function showStatus(text){ const el=document.getElementById("gcStatus"); el.textContent=text; el.style.display="block"; setTimeout(()=>el.style.display="none",3500); }
     function normalizeColor(value){ const allowed=["blue","orange","green","pink","yellow","purple","red"]; return allowed.includes(value)?value:"blue"; }
 
-    async function loadEvents(){
-        const start = monthStart(currentDate).toISOString();
-        const end = monthEnd(currentDate).toISOString();
-        try{
+async function loadEvents(){
+    const start = monthStart(currentDate).toISOString();
+    const end = monthEnd(currentDate).toISOString();
+    const cacheKey = `kg-calendar-events-${start.slice(0,7)}`;
+
+    try{
+        const cachedEvents = localStorage.getItem(cacheKey);
+
+        if(cachedEvents){
+            gcEvents = JSON.parse(cachedEvents);
+            buildCalendar();
+        }
+    }catch(cacheError){
+        console.log("Kalender Cache konnte nicht gelesen werden:", cacheError);
+    }
+
+    try{
+
             const response = await fetch(`${API_EVENTS_URL}?timeMin=${encodeURIComponent(start)}&timeMax=${encodeURIComponent(end)}`,{headers:{"Accept":"application/json"}});
             const data = await response.json();
             if(!response.ok || data.success === false) throw new Error(data.error || `HTTP ${response.status}`);
@@ -241,7 +256,14 @@
                     location: item.location || "",
                     description: item.description || ""
                 };
-            }).filter(item => item.id && item.start);
+    
+}).filter(item => item.id && item.start);
+
+try{
+    localStorage.setItem(cacheKey, JSON.stringify(gcEvents));
+}catch(cacheError){
+    console.log("Kalender Cache konnte nicht gespeichert werden:", cacheError);
+}
         }catch(error){
             gcEvents = [];
             showStatus(`Google Kalender yüklenemedi: ${error.message}`);
@@ -256,7 +278,18 @@
         const oldStart = String(ev.start);
         const oldEnd = String(ev.end || "");
         const isAllDay = !oldStart.includes("T");
-        const payload = {id:ev.id,title:ev.title,color:ev.color,location:ev.location||"",description:ev.description||""};
+        const payload = {
+    id: ev.id,
+    title: ev.title,
+    summary: ev.title,
+    calendarId: ev.calendarId || null,
+    calendar_id: ev.calendarId || null,
+    calendarName: ev.calendarName || "",
+    calendar_name: ev.calendarName || "",
+    color: ev.color,
+    location: ev.location || "",
+    description: ev.description || ""
+};
 
         if(isAllDay){
             let durationDays = 1;
@@ -575,7 +608,24 @@
             const endDateObj=new Date(`${selectedEndDate}T${time}:00`); endDateObj.setHours(endDateObj.getHours()+1);
             end=endDateObj.toISOString();
         }
-        const payload={id:editingEventId,title,summary:title,start,end,color,location:document.getElementById("gcLocation").value||"",description:document.getElementById("gcDescription").value||"",calendar_name:calendarName,recurrence:document.getElementById("gcRepeat").value,availability:document.getElementById("gcAvailability")?.value||"free",visibility:document.getElementById("gcVisibility")?.value||"default",guests:(document.getElementById("gcGuests").value||"").split(",").map(v=>v.trim()).filter(Boolean)};
+const payload={
+    id:editingEventId,
+    title,
+    summary:title,
+    start,
+    end,
+    color,
+    location:document.getElementById("gcLocation").value||"",
+    description:document.getElementById("gcDescription").value||"",
+    calendarId:editingEventId ? editingCalendarId : null,
+    calendar_id:editingEventId ? editingCalendarId : null,
+    calendarName:calendarName,
+    calendar_name:calendarName,
+    recurrence:document.getElementById("gcRepeat").value,
+    availability:document.getElementById("gcAvailability")?.value||"free",
+    visibility:document.getElementById("gcVisibility")?.value||"default",
+    guests:(document.getElementById("gcGuests").value||"").split(",").map(v=>v.trim()).filter(Boolean)
+};
         try{
             const response=await fetch(API_EVENTS_URL,{method:"POST",headers:{"Content-Type":"application/json","Accept":"application/json"},body:JSON.stringify(payload)});
             const data=await response.json();
@@ -665,22 +715,24 @@
             showStatus("Termin Google Kalender'a kaydedildi");
             await loadEvents();
 
-            const ok=confirm(
-                "Termin wurde gespeichert.\n\nMöchten Sie jetzt die Terminbestätigung per E-Mail vorbereiten?"
-            );
+            if(pageSource === "besichtigung"){
+                const ok=confirm(
+                    "Termin wurde gespeichert.\n\nMöchten Sie jetzt die Terminbestätigung per E-Mail vorbereiten?"
+                );
 
-            if(ok){
-                const parts=String(date).split("-");
-                const datumDE=parts.length===3
-                    ? parts[2]+"."+parts[1]+"."+parts[0]
-                    : date;
+                if(ok){
+                    const parts=String(date).split("-");
+                    const datumDE=parts.length===3
+                        ? parts[2]+"."+parts[1]+"."+parts[0]
+                        : date;
 
-                window.parent.postMessage({
-                    type:"kg-besichtigung-open-mail",
-                    firma:pageFirma,
-                    datum:datumDE,
-                    uhrzeit:time
-                },"*");
+                    window.parent.postMessage({
+                        type:"kg-besichtigung-open-mail",
+                        firma:pageFirma,
+                        datum:datumDE,
+                        uhrzeit:time
+                    },"*");
+                }
             }
 
         }catch(error){
@@ -808,6 +860,7 @@
     document.getElementById("gcTodayBtn").onclick=()=>{currentDate=new Date(today);miniDate=new Date(today.getFullYear(),today.getMonth(),1);buildMiniCalendar();loadEvents()};
 
     buildMiniCalendar();
+    buildCalendar();
     loadEvents();
 })();
 </script>
