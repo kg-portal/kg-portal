@@ -378,7 +378,7 @@ def wa_worker_identity_request_reply():
         "Örnek: Damla Kicci"
     )
 
-def wa_build_ai_context(phone="", raw_from="", body=""):
+def wa_build_ai_context(phone="", raw_from="", body="", name=""):
     year, month = wa_detect_requested_month(body)
     _, _, start_date, end_date = wa_month_range(year, month)
 
@@ -393,6 +393,24 @@ def wa_build_ai_context(phone="", raw_from="", body=""):
         WHERE COALESCE(status, 'aktiv') = 'aktiv'
         ORDER BY sort_order ASC, id ASC
     """).fetchall()
+
+    normalized_name = wa_normalize_text(name)
+    matched_workers = []
+
+    if normalized_name:
+        for worker in workers:
+            full_name = f"{worker['vorname'] or ''} {worker['nachname'] or ''}".strip()
+            normalized_full_name = wa_normalize_text(full_name)
+
+            if (
+                normalized_name == normalized_full_name
+                or normalized_name in normalized_full_name
+                or normalized_full_name in normalized_name
+            ):
+                matched_workers.append(worker)
+
+    context_workers = matched_workers if len(matched_workers) == 1 else workers
+
 
     candidates = []
 
@@ -441,7 +459,7 @@ def wa_build_ai_context(phone="", raw_from="", body=""):
 
     lines.append("AKTİF MITARBEITER LİSTESİ:")
 
-    for worker in workers:
+    for worker in context_workers:
         summary = wa_worker_month_summary(worker["id"], year, month)
         full_name = f"{worker['vorname'] or ''} {worker['nachname'] or ''}".strip()
 
@@ -680,8 +698,17 @@ def register_whatsapp_connector_routes(app, login_required):
 
         if is_known_worker and int(already_sent or 0) == 0:
             try:
-                ai_context = wa_build_ai_context(phone=phone, raw_from=raw_from, body=body)
-                reply_text = whatsapp_worker_auto_reply(name, body, ai_context).get("answer")
+                ai_context = wa_build_ai_context(
+                    phone=phone,
+                    raw_from=raw_from,
+                    body=body,
+                    name=name
+                )
+                reply_text = whatsapp_worker_auto_reply(
+                    name,
+                    body,
+                    ai_context
+                ).get("answer")
             except Exception as e:
                 print("AI WhatsApp cevap hatası:", str(e))
                 reply_text = wa_auto_reply_text(name=name, body=body)
@@ -690,6 +717,7 @@ def register_whatsapp_connector_routes(app, login_required):
                 INSERT INTO whatsapp_outbox (phone, text, status, source)
                 VALUES (?, ?, 'pending', 'ai_auto_reply')
             ''', (reply_target, reply_text))
+
         conn.commit()
         conn.close()
         return jsonify({"ok": True})
