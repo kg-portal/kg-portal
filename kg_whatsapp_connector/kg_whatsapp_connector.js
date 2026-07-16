@@ -1,6 +1,7 @@
 const { Client, LocalAuth } = require('whatsapp-web.js');
 const fs = require('fs');
-const qrcode = require('qrcode-terminal');
+const qrcodeTerminal = require('qrcode-terminal');
+const QRCode = require('qrcode');
 const express = require('express');
 const axios = require('axios');
 const cors = require('cors');
@@ -26,6 +27,7 @@ const EXECUTABLE_PATH = BROWSER_PATHS.find(p => fs.existsSync(p));
 let isReady = false;
 let lastError = '';
 let sendingOutbox = false;
+let latestQrDataUrl = '';
 
 const app = express();
 app.use(cors());
@@ -63,15 +65,29 @@ const client = new Client({
     }
 });
 
-client.on('qr', (qr) => {
-    isReady = false;
-    console.log('');
-    console.log('============================================================');
-    console.log('KG WHATSAPP CONNECTOR - QR KOD');
-    console.log('Damla telefon: WhatsApp > Verknuepfte Geraete > Geraet verknuepfen');
-    console.log('============================================================');
-    console.log('');
-    qrcode.generate(qr, { small: true });
+client.on('qr', async (qr) => {
+    try {
+        isReady = false;
+
+        latestQrDataUrl = await QRCode.toDataURL(qr, {
+            width: 420,
+            margin: 3,
+            errorCorrectionLevel: 'M'
+        });
+
+        console.log('');
+        console.log('============================================================');
+        console.log('KG WHATSAPP CONNECTOR - QR KOD HAZIR');
+        console.log('Temiz QR sayfasi: /qr');
+        console.log('============================================================');
+        console.log('');
+
+        qrcodeTerminal.generate(qr, { small: true });
+
+    } catch (err) {
+        lastError = `QR oluşturma hatası: ${err.message}`;
+        console.log(lastError);
+    }
 });
 
 client.on('ready', () => {
@@ -272,6 +288,62 @@ async function pollOutbox() {
 }
 
 setInterval(pollOutbox, 3000);
+
+app.get('/qr', (req, res) => {
+    if (isReady) {
+        return res.send(`
+            <!doctype html>
+            <html lang="tr">
+            <head>
+                <meta charset="utf-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1">
+                <title>KG WhatsApp Bağlandı</title>
+            </head>
+            <body style="font-family:Arial;text-align:center;padding:40px">
+                <h1>WhatsApp bağlantısı hazır</h1>
+                <p>Yeni QR okutmaya gerek yok.</p>
+            </body>
+            </html>
+        `);
+    }
+
+    if (!latestQrDataUrl) {
+        return res.status(503).send(`
+            <!doctype html>
+            <html lang="tr">
+            <head>
+                <meta charset="utf-8">
+                <meta http-equiv="refresh" content="3">
+                <meta name="viewport" content="width=device-width, initial-scale=1">
+                <title>QR hazırlanıyor</title>
+            </head>
+            <body style="font-family:Arial;text-align:center;padding:40px">
+                <h1>QR hazırlanıyor...</h1>
+                <p>Sayfa otomatik yenilenecek.</p>
+            </body>
+            </html>
+        `);
+    }
+
+    return res.send(`
+        <!doctype html>
+        <html lang="tr">
+        <head>
+            <meta charset="utf-8">
+            <meta http-equiv="refresh" content="20">
+            <meta name="viewport" content="width=device-width, initial-scale=1">
+            <title>KG WhatsApp QR</title>
+        </head>
+        <body style="font-family:Arial;text-align:center;padding:30px;background:#f5f7fb">
+            <div style="display:inline-block;background:white;padding:28px;border-radius:18px">
+                <h1>Damla WhatsApp bağlantısı</h1>
+                <img src="${latestQrDataUrl}" alt="WhatsApp QR" style="width:420px;max-width:90vw">
+                <p>WhatsApp → Bağlı cihazlar → Cihaz bağla</p>
+            </div>
+        </body>
+        </html>
+    `);
+});
 
 app.get('/status', (req, res) => {
     res.json({
