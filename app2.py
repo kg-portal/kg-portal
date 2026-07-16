@@ -1952,9 +1952,21 @@ def register_app2_routes(app, login_required):
                 plz = ""
 
             try:
+                radius_km = int(data.get("radius_km", 10) or 10)
+            except Exception:
+                radius_km = 10
+
+            if radius_km < 1 or radius_km > 50:
+                return jsonify({
+                    "success": False,
+                    "message": "Umkreis bitte zwischen 1 und 50 km eingeben."
+                }), 400
+
+            try:
                 google_requests = int(data.get("google_requests", 1) or 1)
             except Exception:
                 google_requests = 1
+
 
             if google_requests < 1 or google_requests > 30:
                 return jsonify({
@@ -1982,7 +1994,8 @@ def register_app2_routes(app, login_required):
                 suchwort=suchwort,
                 stadt=stadt,
                 max_results=max_results,
-                plz=plz
+                plz=plz,
+                radius_km=radius_km
             )
 
             if isinstance(result, dict):
@@ -2456,6 +2469,51 @@ def register_app2_routes(app, login_required):
         })
 
 # =====================================================
+# BESICHTIGUNG KAYDINI SİL
+# =====================================================
+
+    @app.route("/api/datenbank/besichtigung-delete", methods=["POST"])
+    @login_required
+    def app2_besichtigung_delete():
+        ensure_tagesliste_table()
+
+        data = request.get_json(silent=True) or {}
+
+        try:
+            tagesliste_id = int(data.get("id") or 0)
+        except Exception:
+            tagesliste_id = 0
+
+        if tagesliste_id <= 0:
+            return jsonify({
+                "ok": False,
+                "message": "Besichtigung-ID fehlt."
+            }), 400
+
+        conn = sqlite3.connect(DB_PATH)
+        cursor = conn.cursor()
+
+        cursor.execute("""
+            DELETE FROM tagesliste_leads
+            WHERE id = ?
+            AND status = 'besichtigung'
+        """, (tagesliste_id,))
+
+        cursor.execute("""
+            DELETE FROM tagesliste_status_backup
+            WHERE tagesliste_id = ?
+            AND status = 'besichtigung'
+        """, (tagesliste_id,))
+
+        conn.commit()
+        conn.close()
+
+        return jsonify({
+            "ok": True,
+            "message": "Besichtigung wurde gelöscht."
+        })
+
+# =====================================================
 # APP2 - TAGESLISTE'DEN GERİ AL / SİL
 # =====================================================
 
@@ -2661,17 +2719,17 @@ def register_app2_routes(app, login_required):
             cursor.execute("""
                 UPDATE tagesliste_leads
                 SET
-                    status = ?,
+                    status = 'offen',
                     spaeter_datum = ?,
                     besichtigung_data_json = COALESCE(NULLIF(?, ''), besichtigung_data_json)
                 WHERE id = ?
-            """, (status, spaeter_datum, besichtigung_data_json, tagesliste_id))
+            """, (spaeter_datum, besichtigung_data_json, tagesliste_id))
 
         elif status == "besichtigung":
             cursor.execute("""
                 UPDATE tagesliste_leads
                 SET
-                    status = ?,
+                    status = 'offen',
                     spaeter_datum = NULL,
                     besichtigung_data_json = COALESCE(NULLIF(?, ''), besichtigung_data_json),
                     angebot_vars_json = NULL,
@@ -2681,17 +2739,18 @@ def register_app2_routes(app, login_required):
                     angebot_mwst = NULL,
                     angebot_brutto = NULL
                 WHERE id = ?
-            """, (status, besichtigung_data_json, tagesliste_id))
+            """, (besichtigung_data_json, tagesliste_id))
 
         else:
             cursor.execute("""
                 UPDATE tagesliste_leads
                 SET
-                    status = ?,
+                    status = 'offen',
                     spaeter_datum = NULL,
                     besichtigung_data_json = COALESCE(NULLIF(?, ''), besichtigung_data_json)
                 WHERE id = ?
-            """, (status, besichtigung_data_json, tagesliste_id))
+            """, (besichtigung_data_json, tagesliste_id))
+
 
         if status == "offen":
             cursor.execute("""
