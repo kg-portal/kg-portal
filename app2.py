@@ -10,8 +10,9 @@ import os
 import re
 from html import escape
 from email.utils import parsedate_to_datetime
+from datetime import datetime
+from zoneinfo import ZoneInfo
 from bs4 import BeautifulSoup
-
 from lead_importer import run_apify_import
 
 import base64
@@ -766,6 +767,27 @@ def ensure_tagesliste_table():
 
     try:
         cursor.execute("ALTER TABLE tagesliste_leads ADD COLUMN spaeter_datum TEXT")
+    except Exception:
+        pass
+
+    # Tagesliste: Anrufen ve Interessiert tıklanma zamanı
+    try:
+        cursor.execute("ALTER TABLE tagesliste_leads ADD COLUMN angerufen_am TEXT")
+    except Exception:
+        pass
+
+    try:
+        cursor.execute("ALTER TABLE tagesliste_leads ADD COLUMN interessiert_am TEXT")
+    except Exception:
+        pass
+
+    try:
+        cursor.execute("ALTER TABLE tagesliste_status_backup ADD COLUMN angerufen_am TEXT")
+    except Exception:
+        pass
+
+    try:
+        cursor.execute("ALTER TABLE tagesliste_status_backup ADD COLUMN interessiert_am TEXT")
     except Exception:
         pass
 
@@ -2514,6 +2536,96 @@ def register_app2_routes(app, login_required):
         })
 
 # =====================================================
+# STATUS LİSTESİNDEKİ TEK KAYDI SİL
+# =====================================================
+
+    @app.route("/api/datenbank/status-record-delete", methods=["POST"])
+    @login_required
+    def app2_status_record_delete():
+        ensure_tagesliste_table()
+
+        data = request.get_json(silent=True) or {}
+
+        try:
+            tagesliste_id = int(data.get("id") or 0)
+        except Exception:
+            tagesliste_id = 0
+
+        status = str(data.get("status") or "").strip().lower()
+
+        erlaubte_status = [
+            "angerufen",
+            "interessiert",
+            "besichtigung",
+            "kontaktformular",
+            "spaeter",
+            "verloren"
+        ]
+
+        if tagesliste_id <= 0:
+            return jsonify({
+                "ok": False,
+                "message": "Tagesliste-ID fehlt."
+            }), 400
+
+        if status not in erlaubte_status:
+            return jsonify({
+                "ok": False,
+                "message": "Ungültiger Status."
+            }), 400
+
+        conn = sqlite3.connect(DB_PATH)
+        cursor = conn.cursor()
+
+        cursor.execute("""
+            DELETE FROM tagesliste_status_backup
+            WHERE tagesliste_id = ?
+            AND status = ?
+        """, (tagesliste_id, status))
+
+        cursor.execute("""
+            DELETE FROM tagesliste_status_history
+            WHERE tagesliste_id = ?
+            AND status = ?
+        """, (tagesliste_id, status))
+
+        if status == "angerufen":
+            cursor.execute("""
+                UPDATE tagesliste_leads
+                SET angerufen_am = NULL
+                WHERE id = ?
+            """, (tagesliste_id,))
+
+        elif status == "interessiert":
+            cursor.execute("""
+                UPDATE tagesliste_leads
+                SET interessiert_am = NULL
+                WHERE id = ?
+            """, (tagesliste_id,))
+
+        cursor.execute("""
+            UPDATE tagesliste_leads
+            SET
+                status = CASE
+                    WHEN status = ? THEN 'offen'
+                    ELSE status
+                END,
+                spaeter_datum = CASE
+                    WHEN ? = 'spaeter' THEN NULL
+                    ELSE spaeter_datum
+                END
+            WHERE id = ?
+        """, (status, status, tagesliste_id))
+
+        conn.commit()
+        conn.close()
+
+        return jsonify({
+            "ok": True,
+            "message": "Eintrag wurde gelöscht."
+        })
+
+# =====================================================
 # APP2 - TAGESLISTE'DEN GERİ AL / SİL
 # =====================================================
 
@@ -2680,6 +2792,7 @@ def register_app2_routes(app, login_required):
             tagesliste_id = 0
 
         status = str(data.get("status") or "offen").strip().lower()
+        reset_status = str(data.get("reset_status") or "").strip().lower()
         spaeter_datum = str(data.get("spaeter_datum") or "").strip()
 
         besichtigung_data_json = data.get("besichtigung_data_json", "")
@@ -2714,6 +2827,30 @@ def register_app2_routes(app, login_required):
 
         conn = sqlite3.connect(DB_PATH)
         cursor = conn.cursor()
+
+        status_zeit = ""
+
+        berlin_zeit = datetime.now(ZoneInfo("Europe/Berlin"))
+        db_zeit = berlin_zeit.strftime("%Y-%m-%d %H:%M:%S")
+        status_zeit = berlin_zeit.strftime("%d.%m.%Y %H:%M Uhr")
+
+        if status == "angerufen":
+            cursor.execute("""
+                UPDATE tagesliste_leads
+                SET angerufen_am = ?
+                WHERE id = ?
+            """, (db_zeit, tagesliste_id))
+
+        elif status == "interessiert":
+            cursor.execute("""
+                UPDATE tagesliste_leads
+                SET interessiert_am = ?
+                WHERE id = ?
+            """, (db_zeit, tagesliste_id))
+
+        else:
+            status_zeit = ""
+
 
         if status == "spaeter":
             cursor.execute("""
@@ -2753,11 +2890,34 @@ def register_app2_routes(app, login_required):
 
 
         if status == "offen":
+
+            if reset_status == "angerufen":
+                cursor.execute("""
+                    UPDATE tagesliste_leads
+                    SET angerufen_am = NULL
+                    WHERE id = ?
+                """, (tagesliste_id,))
+
+            elif reset_status == "interessiert":
+                cursor.execute("""
+                    UPDATE tagesliste_leads
+                    SET interessiert_am = NULL
+                    WHERE id = ?
+                """, (tagesliste_id,))
+
             cursor.execute("""
                 DELETE FROM tagesliste_status_history
                 WHERE tagesliste_id = ?
-                AND datum = date('now','localtime')
-            """, (tagesliste_id,))
+                AND status = ?
+            """, (tagesliste_id, reset_status))
+
+            cursor.execute("""
+                DELETE FROM tagesliste_status_backup
+                WHERE tagesliste_id = ?
+                AND status = ?
+            """, (tagesliste_id, reset_status))
+
+
         elif status in ["angerufen", "interessiert", "besichtigung", "angebot", "kontaktformular", "spaeter", "verloren"]:
             cursor.execute("""
                 INSERT OR IGNORE INTO tagesliste_status_history
@@ -2784,6 +2944,8 @@ def register_app2_routes(app, login_required):
                     notiz,
                     spaeter_datum,
                     erstellt_am,
+                    angerufen_am,
+                    interessiert_am,
                     backup_am
                 )
                 SELECT
@@ -2803,19 +2965,22 @@ def register_app2_routes(app, login_required):
                     notiz,
                     spaeter_datum,
                     erstellt_am,
+                    angerufen_am,
+                    interessiert_am,
                     CURRENT_TIMESTAMP
                 FROM tagesliste_leads
                 WHERE id = ?
             """, (status, tagesliste_id))
+
 
         conn.commit()
         conn.close()
 
         return jsonify({
             "ok": True,
-            "message": "Status wurde gespeichert."
+            "message": "Status wurde gespeichert.",
+            "status_zeit": status_zeit
         })
-
 
 # =====================================================
 # APP2 - ANGEBOT PREVIEW / HESAPLAMA TEST
@@ -3197,8 +3362,17 @@ def register_app2_routes(app, login_required):
                     status,
                     notiz,
                     spaeter_datum,
-                    erstellt_am
+                    erstellt_am,
+                    angerufen_am,
+                    interessiert_am,
+                    (
+                        SELECT GROUP_CONCAT(b2.status, ',')
+                        FROM tagesliste_status_backup b2
+                        WHERE b2.tagesliste_id = tagesliste_status_backup.tagesliste_id
+                    ) AS status_history
                 FROM tagesliste_status_backup
+
+
                 WHERE status = ?
                 ORDER BY backup_am DESC, tagesliste_id DESC
             """, (status,)).fetchall()
