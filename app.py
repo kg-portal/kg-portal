@@ -1442,100 +1442,556 @@ def hard_delete_mitarbeiter(id):
     conn.close()
     return redirect(url_for("mitarbeiter"))
 
+# =====================================================
+# Bölüm 12- GOOGLE CALENDAR API ENTEGRASYONU
+# =====================================================
+from google.oauth2 import service_account
+from googleapiclient.discovery import build
+from googleapiclient.errors import HttpError
+from datetime import timedelta
 
-# =====================================================
-# Bölüm 12- KALENDER
-# =====================================================
-def ensure_kalender_table():
-    conn = get_db_connection()
-    conn.execute("""
-        CREATE TABLE IF NOT EXISTS kalender_events (
-            id TEXT PRIMARY KEY,
-            datum TEXT NOT NULL,
-            uhrzeit TEXT DEFAULT '',
-            name TEXT NOT NULL,
-            typ TEXT DEFAULT 'Allgemein',
-            notiz TEXT DEFAULT ''
+GOOGLE_KEY_PATH = os.path.join("data", "calendar_key.json")
+GOOGLE_SCOPES = ["https://www.googleapis.com/auth/calendar"]
+GOOGLE_CALENDAR_ID = os.getenv(
+    "GOOGLE_CALENDAR_ID",
+    "primary"
+).strip() or "primary"
+GOOGLE_TIMEZONE = "Europe/Berlin"
+
+
+def get_calendar_service():
+    if not os.path.exists(GOOGLE_KEY_PATH):
+        raise FileNotFoundError(
+            f"Kritik Hata: {GOOGLE_KEY_PATH} bulunamadı!"
         )
-    """)
-    conn.commit()
-    conn.close()
+
+    creds = service_account.Credentials.from_service_account_file(
+        GOOGLE_KEY_PATH,
+        scopes=GOOGLE_SCOPES
+    )
+
+    return build(
+        "calendar",
+        "v3",
+        credentials=creds,
+        cache_discovery=False
+    )
 
 
-ensure_kalender_table()
+GOOGLE_COLOR_MAP = {
+    "9": "blue",
+    "6": "orange",
+    "10": "green",
+    "4": "pink",
+    "5": "yellow",
+    "3": "purple",
+    "11": "red"
+}
+
+REVERSE_COLOR_MAP = {
+    v: k for k, v in GOOGLE_COLOR_MAP.items()
+}
+
+
+def _calendar_id():
+    return GOOGLE_CALENDAR_ID
+
+
+def _iso_date_plus_one(date_text):
+    return (
+        datetime.strptime(
+            date_text[:10],
+            "%Y-%m-%d"
+        )
+        + timedelta(days=1)
+    ).strftime("%Y-%m-%d")
+
+
+def _event_body_from_payload(data):
+    title = str(
+        data.get("title")
+        or data.get("summary")
+        or "Neuer Termin"
+    ).strip()
+
+    start_val = str(
+        data.get("start")
+        or ""
+    ).strip()
+
+    if not start_val:
+        raise ValueError("start eksik")
+
+    end_val = str(
+        data.get("end")
+        or ""
+    ).strip()
+
+    is_all_day = "T" not in start_val
+
+    body = {
+        "summary": title,
+        "location": str(
+            data.get("location")
+            or ""
+        ),
+        "description": str(
+            data.get("description")
+            or ""
+        ),
+        "transparency": (
+            "transparent"
+            if data.get("availability") == "free"
+            else "opaque"
+        ),
+        "visibility": str(
+            data.get("visibility")
+            or "default"
+        )
+    }
+
+    if is_all_day:
+        start_date = start_val[:10]
+
+        requested_end = (
+            end_val[:10]
+            if end_val and "T" not in end_val
+            else ""
+        )
+
+        if (
+            not requested_end
+            or requested_end <= start_date
+        ):
+            requested_end = _iso_date_plus_one(
+                start_date
+            )
+
+        body["start"] = {
+            "date": start_date
+        }
+
+        body["end"] = {
+            "date": requested_end
+        }
+
+    else:
+        if not end_val:
+            start_dt = datetime.fromisoformat(
+                start_val.replace(
+                    "Z",
+                    "+00:00"
+                )
+            )
+
+            end_val = (
+                start_dt
+                + timedelta(hours=1)
+            ).isoformat()
+
+        body["start"] = {
+            "dateTime": start_val,
+            "timeZone": GOOGLE_TIMEZONE
+        }
+
+        body["end"] = {
+            "dateTime": end_val,
+            "timeZone": GOOGLE_TIMEZONE
+        }
+
+    guests = data.get("guests") or []
+
+    if isinstance(guests, list) and guests:
+        body["attendees"] = [
+            {
+                "email": str(email).strip()
+            }
+            for email in guests
+            if str(email).strip()
+        ]
+
+    return body
 
 
 @app.route("/kalender")
+@login_required
 def kalender():
     return render_template("kalender.html")
 
 
-@app.route("/api/kalender/events", methods=["GET"])
-def kalender_events_get():
-    conn = get_db_connection()
-    rows = conn.execute("""
-        SELECT id, datum, uhrzeit, name, typ, notiz
-        FROM kalender_events
-        ORDER BY datum, uhrzeit
-    """).fetchall()
-    conn.close()
+@app.route(
+    "/api/google-calendar/events",
+    methods=["GET"]
+)
+@login_required
+def google_calendar_events_get():
+    try:
+        service = get_calendar_service()
 
-    return jsonify([
-        {
-            "id": row["id"],
-            "key": row["datum"],
-            "time": row["uhrzeit"] or "",
-            "name": row["name"],
-            "type": row["typ"] or "Allgemein",
-            "note": row["notiz"] or ""
+        time_min = (
+            request.args.get("timeMin")
+            or datetime.utcnow().isoformat() + "Z"
+        )
+
+        time_max = request.args.get("timeMax")
+
+        calendar_name_colors = {
+            "Kalender": "blue",
+            "Bayram": "pink",
+            "Besichtigungstermine": "orange",
+            "Fensterreinigung": "green",
+            "Geburtstage": "yellow",
+            "Telefonakquise": "purple",
+            "Feiertage in Deutschland": "red"
         }
-        for row in rows
-    ])
+
+        calendars_by_id = {}
+
+        primary_calendar_id = _calendar_id()
+
+        calendars_by_id[primary_calendar_id] = {
+            "id": primary_calendar_id,
+            "summary": "Kalender"
+        }
+
+        try:
+            page_token = None
+
+            while True:
+                calendar_list_result = (
+                    service
+                    .calendarList()
+                    .list(
+                        maxResults=250,
+                        pageToken=page_token
+                    )
+                    .execute()
+                )
+
+                for calendar_item in (
+                    calendar_list_result.get(
+                        "items",
+                        []
+                    )
+                ):
+                    calendar_id = calendar_item.get(
+                        "id"
+                    )
+
+                    if calendar_id:
+                        calendars_by_id[
+                            calendar_id
+                        ] = calendar_item
+
+                page_token = (
+                    calendar_list_result.get(
+                        "nextPageToken"
+                    )
+                )
+
+                if not page_token:
+                    break
+
+        except Exception as calendar_list_error:
+            print(
+                "Google Takvim listesi alınamadı: "
+                f"{calendar_list_error}"
+            )
+
+        formatted_events = []
+
+        for (
+            calendar_id,
+            calendar_item
+        ) in calendars_by_id.items():
+
+            calendar_name = (
+                calendar_item.get("summaryOverride")
+                or calendar_item.get("summary")
+                or "Kalender"
+            )
+
+            calendar_color = (
+                calendar_name_colors.get(
+                    calendar_name,
+                    "blue"
+                )
+            )
+
+            params = {
+                "calendarId": calendar_id,
+                "timeMin": time_min,
+                "singleEvents": True,
+                "orderBy": "startTime",
+                "maxResults": 2500
+            }
+
+            if time_max:
+                params["timeMax"] = time_max
+
+            try:
+                events_result = (
+                    service
+                    .events()
+                    .list(**params)
+                    .execute()
+                )
+
+            except Exception as calendar_error:
+                print(
+                    f"Takvim okunamadı: "
+                    f"{calendar_name} | "
+                    f"{calendar_id} | "
+                    f"{calendar_error}"
+                )
+                continue
+
+            for item in events_result.get(
+                "items",
+                []
+            ):
+                start_data = item.get(
+                    "start",
+                    {}
+                )
+
+                end_data = item.get(
+                    "end",
+                    {}
+                )
+
+                start_val = (
+                    start_data.get("dateTime")
+                    or start_data.get("date")
+                )
+
+                if not start_val:
+                    continue
+
+                event_color_id = item.get(
+                    "colorId"
+                )
+
+                if event_color_id:
+                    event_color = (
+                        GOOGLE_COLOR_MAP.get(
+                            event_color_id,
+                            calendar_color
+                        )
+                    )
+                else:
+                    event_color_id = item.get("colorId")
+
+                if event_color_id:
+                    event_color = GOOGLE_COLOR_MAP.get(
+                        str(event_color_id),
+                        calendar_color
+                    )
+                else:
+                    event_color = calendar_color
 
 
-@app.route("/api/kalender/events", methods=["POST"])
-def kalender_events_save():
-    data = request.get_json(silent=True) or {}
+                formatted_events.append({
+                    "id": item.get("id"),
+                    "title": item.get(
+                        "summary",
+                        "Ohne Titel"
+                    ),
+                    "start": start_val,
+                    "end": (
+                        end_data.get("dateTime")
+                        or end_data.get("date")
+                    ),
+                    "color": event_color,
+                    "calendarId": calendar_id,
+                    "calendar_id": calendar_id,
+                    "calendarName": calendar_name,
+                    "calendar_name": calendar_name,
+                    "location": item.get(
+                        "location",
+                        ""
+                    ),
+                    "description": item.get(
+                        "description",
+                        ""
+                    )
+                })
 
-    event_id = str(data.get("id") or "").strip()
-    datum = str(data.get("key") or "").strip()
-    name = str(data.get("name") or "").strip()
-    uhrzeit = str(data.get("time") or "").strip()
-    typ = str(data.get("type") or "Allgemein").strip()
-    notiz = str(data.get("note") or "").strip()
+        formatted_events.sort(
+            key=lambda event: str(
+                event.get("start", "")
+            )
+        )
 
-    if not event_id or not datum or not name:
-        return jsonify({"success": False}), 400
+        return jsonify({
+            "success": True,
+            "events": formatted_events
+        })
 
-    conn = get_db_connection()
-    conn.execute("""
-        INSERT INTO kalender_events
-        (id, datum, uhrzeit, name, typ, notiz)
-        VALUES (?, ?, ?, ?, ?, ?)
-        ON CONFLICT(id) DO UPDATE SET
-            datum = excluded.datum,
-            uhrzeit = excluded.uhrzeit,
-            name = excluded.name,
-            typ = excluded.typ,
-            notiz = excluded.notiz
-    """, (event_id, datum, uhrzeit, name, typ, notiz))
-    conn.commit()
-    conn.close()
+    except Exception as e:
+        print(
+            f"Google Çekme Hatası: {e}"
+        )
 
-    return jsonify({"success": True})
+        return jsonify({
+            "success": False,
+            "error": str(e)
+        }), 500
 
 
-@app.route("/api/kalender/events/<event_id>", methods=["DELETE"])
-def kalender_events_delete(event_id):
-    conn = get_db_connection()
-    conn.execute(
-        "DELETE FROM kalender_events WHERE id = ?",
-        (event_id,)
-    )
-    conn.commit()
-    conn.close()
+@app.route(
+    "/api/google-calendar/events",
+    methods=["POST"]
+)
+@login_required
+def google_calendar_events_save():
+    try:
+        data = request.get_json(
+            silent=True
+        ) or {}
 
-    return jsonify({"success": True})
+        service = get_calendar_service()
+
+        calendar_ids = {
+            "Kalender": "damla-kicci@outlook.de",
+            "Bayram": "12deea15af211dd359c41db362926762958a5f3d5b15a6aec03e50634bd6ffec@group.calendar.google.com",
+            "Besichtigungstermine": "8aacde864cc6080193511498888ac675d017396b3d290ca8b510c09342b29651@group.calendar.google.com",
+            "Fensterreinigung": "f678773df8f3612fe9c77aff8c35941bf8ece7eb7d6e6f503c85d277b4e190b0@group.calendar.google.com",
+            "Telefonakquise": "d57a8276d22fcf5f74dac214290f672e0db064e78380de22d12f9034bd53c516@group.calendar.google.com"
+        }
+
+        calendar_name = str(
+            data.get("calendar_name")
+            or data.get("calendarName")
+            or "Kalender"
+        ).strip()
+
+        target_calendar_id = str(
+            data.get("calendarId")
+            or data.get("calendar_id")
+            or calendar_ids.get(calendar_name)
+            or _calendar_id()
+        ).strip()
+
+        event_body = _event_body_from_payload(
+            data
+        )
+
+        event_id = str(
+            data.get("id")
+            or ""
+        ).strip()
+
+        if (
+            event_id
+            and not event_id.startswith("demo-")
+        ):
+
+            saved = (
+                service
+                .events()
+                .patch(
+                    calendarId=target_calendar_id,
+                    eventId=event_id,
+                    body=event_body,
+                    sendUpdates="all"
+                )
+                .execute()
+            )
+
+        else:
+            saved = (
+                service
+                .events()
+                .insert(
+                    calendarId=target_calendar_id,
+                    body=event_body,
+                    sendUpdates="all"
+                )
+                .execute()
+            )
+
+        return jsonify({
+            "success": True,
+            "id": saved.get("id"),
+            "calendarId": target_calendar_id
+        })
+
+    except HttpError as e:
+        status = getattr(
+            e.resp,
+            "status",
+            500
+        )
+
+        return jsonify({
+            "success": False,
+            "error": str(e)
+        }), status
+
+    except Exception as e:
+        print(
+            f"Google Kayıt Hatası: {e}"
+        )
+
+        return jsonify({
+            "success": False,
+            "error": str(e)
+        }), 500
+
+
+@app.route(
+    "/api/google-calendar/events/<event_id>",
+    methods=["DELETE"]
+)
+@login_required
+def google_calendar_event_delete(event_id):
+    try:
+        service = get_calendar_service()
+
+        calendar_id = str(
+            request.args.get("calendarId")
+            or request.args.get("calendar_id")
+            or "d57a8276d22fcf5f74dac214290f672e0db064e78380de22d12f9034bd53c516@group.calendar.google.com"
+        ).strip()
+
+        service.events().delete(
+            calendarId=calendar_id,
+            eventId=event_id,
+            sendUpdates="all"
+        ).execute()
+
+        return jsonify({
+            "success": True
+        })
+
+    except HttpError as e:
+        status = getattr(
+            e.resp,
+            "status",
+            500
+        )
+
+        if status in (404, 410):
+            return jsonify({
+                "success": True,
+                "already_deleted": True
+            })
+
+        return jsonify({
+            "success": False,
+            "error": str(e)
+        }), status
+
+    except Exception as e:
+        print(
+            f"Google Silme Hatası: {e}"
+        )
+
+        return jsonify({
+            "success": False,
+            "error": str(e)
+        }), 500
 
 # =====================================================
 # Bölüm 16- STUNDENZETTEL (Dosya Sistemi ve Listeleme)
