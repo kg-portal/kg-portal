@@ -876,6 +876,38 @@ def logout():
 def whatsapp_inbox_page():
     return render_template("whatsapp_inbox.html")
 
+@app.route("/whatsapp-qr")
+@login_required
+def whatsapp_qr_page():
+    try:
+        import requests as http_requests
+
+        response = http_requests.get(
+            "http://127.0.0.1:3010/qr",
+            timeout=10
+        )
+
+        return (
+            response.content,
+            response.status_code,
+            {
+                "Content-Type": response.headers.get(
+                    "Content-Type",
+                    "text/html; charset=utf-8"
+                ),
+                "Cache-Control": "no-store"
+            }
+        )
+
+    except Exception as e:
+        return (
+            f"WhatsApp QR sayfasına ulaşılamadı: {e}",
+            502,
+            {"Content-Type": "text/plain; charset=utf-8"}
+        )
+
+
+
 # =====================================================
 # WHATSAPP İŞÇİ NUMARALARI SENKRON
 # =====================================================
