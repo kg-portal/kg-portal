@@ -1675,6 +1675,294 @@ body {
     }
 }
 
+/* STATUS KARTLARI – TAGESLISTE İÇ TASARIMI */
+
+.status-company-card .actions {
+    margin: 14px 18px 0 74px;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 9px;
+}
+
+.status-company-card .actions .btn {
+    border: 1px solid transparent;
+    border-radius: 14px;
+    padding: 11px 10px;
+    min-height: 42px;
+    font-size: 12px;
+    font-weight: 900;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    background: #ffffff;
+}
+
+.status-company-card .actions .btn.blue {
+    background: #eff6ff;
+    color: #1d4ed8;
+    border-color: #bfdbfe;
+}
+
+.status-company-card .actions .btn.green {
+    background: #ecfdf5;
+    color: #047857;
+    border-color: #bbf7d0;
+}
+
+.status-company-card .actions .btn.form {
+    background: #f5f3ff;
+    color: #6d28d9;
+    border-color: #ddd6fe;
+}
+
+.status-company-card .actions .btn.later {
+    background: #fffbeb;
+    color: #b45309;
+    border-color: #fde68a;
+}
+
+.status-company-card .actions .btn.red {
+    background: #fef2f2;
+    color: #dc2626;
+    border-color: #fecaca;
+}
+
+.status-company-card .actions .btn.active-blue {
+    background: #1d4ed8 !important;
+    color: #ffffff !important;
+    border-color: #1d4ed8 !important;
+}
+
+.status-company-card .actions .btn.active-green {
+    background: #047857 !important;
+    color: #ffffff !important;
+    border-color: #047857 !important;
+}
+
+.status-company-card .actions .btn.active-form {
+    background: #6d28d9 !important;
+    color: #ffffff !important;
+    border-color: #6d28d9 !important;
+}
+
+.status-company-card .actions .btn.active-later {
+    background: #b45309 !important;
+    color: #ffffff !important;
+    border-color: #b45309 !important;
+}
+
+.status-company-card .actions .btn.active-red {
+    background: #b91c1c !important;
+    color: #ffffff !important;
+    border-color: #b91c1c !important;
+}
+
+.status-company-card .details {
+    padding: 14px 18px 18px 74px;
+}
+
+.status-company-card .details-inner {
+    padding: 14px;
+    border-radius: 18px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+}
+
+.status-company-card .kg-contact-dashboard {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1.35fr;
+    gap: 12px;
+}
+
+.status-company-card .kg-contact-panel {
+    position: relative;
+    min-height: 145px;
+    padding: 16px;
+    border: 1px solid #dbe7f5;
+    border-radius: 18px;
+    background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+    box-shadow: 0 10px 24px rgba(15, 23, 42, 0.045);
+    overflow: hidden;
+}
+
+.status-company-card .kg-contact-panel::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    background: #2563eb;
+}
+
+.status-company-card .kg-contact-panel.phone::before {
+    background: #16a34a;
+}
+
+.status-company-card .kg-contact-panel.online::before {
+    background: #7c3aed;
+}
+
+.status-company-card .kg-contact-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 14px;
+}
+
+.status-company-card .kg-contact-icon {
+    width: 38px;
+    height: 38px;
+    border-radius: 13px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    background: #eff6ff;
+    color: #1d4ed8;
+    font-size: 18px;
+    font-weight: 900;
+}
+
+.status-company-card .kg-contact-panel.phone .kg-contact-icon {
+    background: #ecfdf5;
+    color: #047857;
+}
+
+.status-company-card .kg-contact-panel.online .kg-contact-icon {
+    background: #f5f3ff;
+    color: #7c3aed;
+}
+
+.status-company-card .kg-contact-title {
+    font-size: 11px;
+    line-height: 1;
+    text-transform: uppercase;
+    letter-spacing: 0.7px;
+    font-weight: 900;
+    color: #64748b;
+}
+
+.status-company-card .kg-contact-input {
+    width: 100%;
+    height: 44px;
+    margin: 0;
+    border: 1px solid #dbe3ef;
+    border-radius: 12px;
+    background: #ffffff;
+    padding: 0 13px;
+    color: #0f172a;
+    font-size: 13px;
+    font-weight: 800;
+    outline: none;
+}
+
+.status-company-card .kg-web-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.status-company-card .kg-contact-link {
+    position: relative;
+}
+
+.status-company-card .kg-contact-link .kg-contact-input {
+    padding-right: 46px;
+}
+
+.status-company-card .kg-contact-open {
+    position: absolute;
+    right: 7px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 32px;
+    height: 32px;
+    border: 0;
+    border-radius: 10px;
+    background: #eff6ff;
+    color: #2563eb;
+    font-size: 15px;
+    font-weight: 900;
+    cursor: pointer;
+}
+
+.status-company-card .kg-note-dashboard {
+    margin-top: 12px;
+    display: grid;
+    grid-template-columns: 56px minmax(0, 1fr) 180px;
+    gap: 12px;
+    align-items: center;
+    padding: 14px;
+    border: 1px solid #fde68a;
+    border-radius: 18px;
+    background: linear-gradient(135deg, #fffdf5 0%, #ffffff 70%);
+    box-shadow: 0 10px 22px rgba(180, 83, 9, 0.06);
+}
+
+.status-company-card .kg-note-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #fef3c7;
+    color: #b45309;
+    font-size: 22px;
+}
+
+.status-company-card .kg-note-area {
+    width: 100%;
+    min-height: 54px;
+    resize: vertical;
+    border: 0;
+    outline: none;
+    background: transparent;
+    color: #0f172a;
+    font-size: 13px;
+    font-weight: 700;
+    padding: 8px 4px;
+}
+
+.status-company-card .kg-note-save {
+    min-height: 48px;
+    border: 0;
+    border-radius: 13px;
+    background: linear-gradient(135deg, #1e40af 0%, #2563eb 100%);
+    color: #ffffff;
+    font-size: 13px;
+    font-weight: 900;
+    cursor: pointer;
+    box-shadow: 0 10px 20px rgba(37, 99, 235, 0.18);
+}
+
+@media (max-width: 1000px) {
+    .status-company-card .actions {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        margin-left: 18px;
+    }
+
+    .status-company-card .details {
+        padding-left: 18px;
+    }
+
+    .status-company-card .kg-contact-dashboard {
+        grid-template-columns: 1fr;
+    }
+
+    .status-company-card .kg-note-dashboard {
+        grid-template-columns: 48px minmax(0, 1fr);
+    }
+
+    .status-company-card .kg-note-save {
+        grid-column: 1 / -1;
+    }
+}
+
 /* ............................................................
    BÖLÜM 6 SONU
 ............................................................. */
@@ -2831,7 +3119,7 @@ body {
                 </div>
             </div>
 
-<iframe title="KG Portal Tagesliste" style="width:100%;height:1350px;border:0;border-radius:22px;display:block;background:#e9eef5;" srcdoc="&lt;!DOCTYPE html&gt;
+<iframe title="KG Portal Tagesliste" scrolling="no" style="width:100%;height:1350px;border:0;border-radius:22px;display:block;background:#e9eef5;" srcdoc="&lt;!DOCTYPE html&gt;
 &lt;html lang=&quot;de&quot;&gt;
 
 &lt;head&gt;
@@ -3970,7 +4258,9 @@ const leads = tageslisteDb.map(item => ({
     mail: item.email || '',
     web: item.website || '',
     maps: item.google_maps_url || '',
-    notiz: item.notiz || ''
+    notiz: item.notiz || '',
+    angerufen_am: item.angerufen_am || '',
+    interessiert_am: item.interessiert_am || ''
 }));
 
 const statusHistoryStatuses=[&#x27;angerufen&#x27;,&#x27;interessiert&#x27;,&#x27;besichtigung&#x27;,&#x27;kontaktformular&#x27;,&#x27;spaeter&#x27;,&#x27;verloren&#x27;];
@@ -4000,10 +4290,30 @@ function applyPersistedLeadStatuses(){
   const lead=leads[index];
   if(!lead)return;
   const currentStatus=lead.db_status || lead.status || &#x27;offen&#x27;;
-  const currentCfg=persistedStatusConfig(currentStatus);
-  const statusEl=card.querySelector(&#x27;.status&#x27;);
-  if(statusEl)statusEl.textContent=currentCfg.status;
+   const currentCfg=persistedStatusConfig(currentStatus);
+   const statusEl=card.querySelector('.status');
 
+   if(statusEl){
+    const zeitRaw=[
+     lead.angerufen_am || '',
+     lead.interessiert_am || ''
+    ].filter(Boolean).sort().pop() || '';
+
+    if(zeitRaw){
+     const teile=zeitRaw.split(' ');
+     const datumTeile=(teile[0] || '').split('-');
+     const uhrzeit=(teile[1] || '').slice(0,5);
+
+     statusEl.textContent=
+      datumTeile[2]+'.'+datumTeile[1]+'.'+datumTeile[0]+' '+uhrzeit+' Uhr';
+
+     statusEl.style.background='#15803d';
+     statusEl.style.color='#ffffff';
+     statusEl.style.borderColor='#15803d';
+    }else{
+     statusEl.textContent=currentCfg.status;
+    }
+   }
   const key=statusHistoryLeadKey(lead);
   const history=loadStatusHistory();
   const savedList=Array.isArray(history[key]) ? history[key] : [];
@@ -4309,13 +4619,21 @@ btn.textContent=btn.dataset.originalText || originalTexts[btn.dataset.type] || '
 
  let spaeterDatum='';
 
-      if(statusKey==='spaeter'){
- openSpaeterKalender(btn);
- btn.textContent=btn.dataset.originalText || '↷ Später';
- btn.disabled=false;
- return;
-}
+if(statusKey==='spaeter'){
 
+    btn.classList.add('active-later');
+    btn.style.background = '#b45309';
+    btn.style.color = '#ffffff';
+    btn.style.borderColor = '#b45309';
+    btn.innerHTML = '↷ Später';
+
+fetch('/datenbank/tagesliste-status',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:lead.id || 0,status:'spaeter',spaeter_datum:''})});
+ensureLeadStatusHistory(lead,'spaeter');
+later(btn);
+    btn.disabled = false;
+
+    return;
+}
    if(statusKey==='besichtigung'){
  btn.textContent='Speichert...';
  btn.disabled=true;
@@ -4397,12 +4715,26 @@ btn.textContent=btn.dataset.originalText || originalTexts[btn.dataset.type] || '
    lead.status=statusKey;
    updateListCount(openLeadCount());
 
-  if(statusKey==='angerufen'){
-   btn.textContent='✓ Angerufen';
-   if(statusEl)statusEl.textContent='Heute · angerufen';
-  }else if(statusKey==='interessiert'){
-   btn.textContent='✓ Hat Interesse';
-   if(statusEl)statusEl.textContent='Heute · hat Interesse';
+     if(statusKey==='angerufen'){
+    btn.textContent='✓ Angerufen';
+
+    if(statusEl && data.status_zeit){
+     statusEl.textContent=data.status_zeit;
+     statusEl.style.background='#15803d';
+     statusEl.style.color='#ffffff';
+     statusEl.style.borderColor='#15803d';
+    }
+
+   }else if(statusKey==='interessiert'){
+    btn.textContent='✓ Hat Interesse';
+
+    if(statusEl && data.status_zeit){
+     statusEl.textContent=data.status_zeit;
+     statusEl.style.background='#15803d';
+     statusEl.style.color='#ffffff';
+     statusEl.style.borderColor='#15803d';
+    }
+
   }else if(statusKey==='besichtigung'){
    btn.textContent='▦ Besichtigung';
    if(statusEl)statusEl.textContent='Heute · Besichtigung';
@@ -4631,10 +4963,26 @@ async function activate(btn,cls,text,stat,statusKey){
   btn.dataset.active=&#x27;true&#x27;;
   btn.dataset.old=btn.innerHTML;
   btn.dataset.cls=cls;
-  btn.classList.add(cls);
-  btn.innerHTML=text;
-  status(item,stat);
-  updateListCount(openLeadCount());
+   btn.classList.add(cls);
+   btn.innerHTML=text;
+
+   const statusEl=item.querySelector('.status');
+
+   if(
+    statusEl &&
+    data.status_zeit &&
+    (statusKey==='angerufen' || statusKey==='interessiert')
+   ){
+    statusEl.textContent=data.status_zeit;
+    statusEl.style.background='#15803d';
+    statusEl.style.color='#ffffff';
+    statusEl.style.borderColor='#15803d';
+   }else{
+    status(item,stat);
+   }
+
+   updateListCount(openLeadCount());
+
   if(window.parent&&typeof window.parent.updateStatusBoardCounts==='function'){
    window.parent.updateStatusBoardCounts()
   }
@@ -4699,7 +5047,7 @@ function openSpaeterKalender(btn){
   modal=document.createElement(&#x27;div&#x27;);
   modal.id=&#x27;spaeterKalenderBackdrop&#x27;;
   modal.className=&#x27;spaeter-kalender-backdrop&#x27;;
-  modal.innerHTML=&#x27;&lt;div class=&quot;spaeter-kalender-box&quot;&gt;&lt;div class=&quot;spaeter-kalender-head&quot;&gt;&lt;span&gt;KG Kalender · Schnellansicht&lt;/span&gt;&lt;button type=&quot;button&quot; class=&quot;spaeter-kalender-close&quot; onclick=&quot;closeSpaeterKalender()&quot;&gt;×&lt;/button&gt;&lt;/div&gt;&lt;iframe class=&quot;spaeter-kalender-frame&quot; src=&quot;/datenbank/kalender-mini?embed=1&quot;&gt;&lt;/iframe&gt;&lt;/div&gt;&#x27;;
+modal.innerHTML=&#x27;&lt;div class=&quot;spaeter-kalender-box&quot;&gt;&lt;div class=&quot;spaeter-kalender-head&quot;&gt;&lt;span&gt;KG Kalender · Schnellansicht&lt;/span&gt;&lt;button type=&quot;button&quot; class=&quot;spaeter-kalender-close&quot; onclick=&quot;closeSpaeterKalender()&quot;&gt;×&lt;/button&gt;&lt;/div&gt;&lt;iframe class=&quot;spaeter-kalender-frame&quot; src=&quot;/datenbank/kalender-mini?embed=1&quot;&gt;&lt;/iframe&gt;&lt;/div&gt;&#x27;;
   document.body.appendChild(modal);
  }
 
@@ -4714,10 +5062,10 @@ function later(btn){
  const item=btn.closest('.lead');
  const leadIndex=item?parseInt(item.dataset.index||'-1',10):-1;
  const lead=(typeof leads!=='undefined' && leadIndex>-1)?leads[leadIndex]:null;
- window.kgActiveSpaeterBtn=btn||null;
- window.kgActiveFormLead=lead||null;
- window.kgActiveFormBtn=btn||null;
-
+window.kgActiveSpaeterBtn=btn||null;
+window.kgActiveSpaeterLead=lead||null;
+window.kgActiveFormLead=lead||null;
+window.kgActiveFormBtn=btn||null;
  if(!lead)return;
 
  const kontaktperson=(lead.kontakt||'').trim();
@@ -4989,12 +5337,22 @@ function bind(btn,fn){
     const leadIndex=parseInt(item.dataset.index||&#x27;-1&#x27;,10);
     const lead=leads[leadIndex];
     if(lead){
-     const resetStatusKey=statusKeyFromButton(btn);
-     removeLeadStatusHistory(lead,resetStatusKey);
-     lead.status=&#x27;offen&#x27;;
-     lead.db_status=&#x27;offen&#x27;;
-     try{
-      await fetch(&#x27;/datenbank/tagesliste-status&#x27;,{method:&#x27;POST&#x27;,headers:{&#x27;Content-Type&#x27;:&#x27;application/json&#x27;},body:JSON.stringify({id:lead.id||0,status:&#x27;offen&#x27;})});
+const resetStatusKey=statusKeyFromButton(btn);
+removeLeadStatusHistory(lead,resetStatusKey);
+lead.status='offen';
+lead.db_status='offen';
+
+try{
+ await fetch('/datenbank/tagesliste-status',{
+  method:'POST',
+  headers:{'Content-Type':'application/json'},
+  body:JSON.stringify({
+   id:lead.id||0,
+   status:'offen',
+   reset_status:resetStatusKey
+  })
+ });
+
       if(window.parent&&typeof window.parent.updateStatusBoardCounts===&#x27;function&#x27;){
        window.parent.updateStatusBoardCounts()
       }
@@ -7039,83 +7397,220 @@ async function renderStatusCompanies(statusKey) {
     </button>
 </div>
     `
-    : `
-                    <div class="details-inner">
-                        <div class="grid">
-                            <div class="box">
-                                <div class="box-label">Ansprechpartner</div>
-                                <input class="lead-edit-input status-edit-input" data-field="ansprechpartner" value="${kgAwAttr(lead.ansprechpartner || '')}" onclick="event.stopPropagation()">
-                                <input class="lead-edit-input status-edit-input" data-field="telefon" value="${kgAwAttr(lead.telefon || '')}" onclick="event.stopPropagation()">
-                            </div>
+       : `
+        <div class="details-inner">
 
-                            <div class="box">
-                                <div class="box-label">E-Mail Adresse</div>
-                                <div class="lead-link-wrap" onclick="event.stopPropagation()">
-                                    <input class="lead-edit-input status-edit-input" data-field="email" value="${kgAwAttr(mail)}">
-                                    <button type="button" class="lead-open-btn" onclick="openStatusMail(event, this)">↗</button>
-                                </div>
-                            </div>
+            <div class="kg-contact-dashboard">
 
-                                                              <div class="box">
-                                <div class="box-label">Webseite</div>
-                                <div class="lead-link-wrap" onclick="event.stopPropagation()">
-                                    <input class="lead-edit-input status-edit-input" data-field="website" value="${kgAwAttr(web)}">
-                                    <button type="button" class="lead-open-btn" onclick="openStatusWeb(event, this)">↗</button>
-                                </div>
-                            </div>
-
-                        </div>
-
-                        <div class="note-row">
-                            <textarea class="note status-note" onclick="event.stopPropagation()" readonly>${kgAwEscape(lead.notiz || '')}</textarea>
-                            <button type="button" class="save" onclick="saveStatusContact(event, ${Number(lead.id) || 0}, this)">Kontaktdaten speichern</button>
-                        </div>
+                <div class="kg-contact-panel person">
+                    <div class="kg-contact-head">
+                        <div class="kg-contact-icon">♙</div>
+                        <div class="kg-contact-title">Kontaktperson</div>
                     </div>
-                `;
 
-            card.innerHTML = `
-                <div class="summary" onclick="toggleStatusCompany(this)">
+                    <input
+                        class="lead-edit-input kg-contact-input status-edit-input"
+                        data-field="ansprechpartner"
+                        value="${kgAwAttr(lead.ansprechpartner || '')}"
+                        placeholder="Ansprechpartner eintragen"
+                        onclick="event.stopPropagation()">
+                </div>
+
+                <div class="kg-contact-panel phone">
+                    <div class="kg-contact-head">
+                        <div class="kg-contact-icon">☎</div>
+                        <div class="kg-contact-title">Telefon</div>
+                    </div>
+
+                    <input
+                        class="lead-edit-input kg-contact-input status-edit-input"
+                        data-field="telefon"
+                        value="${kgAwAttr(lead.telefon || '')}"
+                        placeholder="Telefonnummer eintragen"
+                        onclick="event.stopPropagation()">
+                </div>
+
+                <div class="kg-contact-panel online">
+                    <div class="kg-contact-head">
+                        <div class="kg-contact-icon">◎</div>
+                        <div class="kg-contact-title">E-Mail & Webseite</div>
+                    </div>
+
+                    <div class="kg-web-stack">
+
+                        <div class="kg-contact-link" onclick="event.stopPropagation()">
+                            <input
+                                class="lead-edit-input kg-contact-input status-edit-input"
+                                data-field="email"
+                                value="${kgAwAttr(mail)}"
+                                placeholder="E-Mail-Adresse">
+
+                            <button
+                                type="button"
+                                class="kg-contact-open"
+                                onclick="openStatusMail(event,this)">↗</button>
+                        </div>
+
+                        <div class="kg-contact-link" onclick="event.stopPropagation()">
+                            <input
+                                class="lead-edit-input kg-contact-input status-edit-input"
+                                data-field="website"
+                                value="${kgAwAttr(web)}"
+                                placeholder="Webseite">
+
+                            <button
+                                type="button"
+                                class="kg-contact-open"
+                                onclick="openStatusWeb(event,this)">↗</button>
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="kg-note-dashboard">
+                <div class="kg-note-icon">▤</div>
+
+                <textarea
+                    class="note kg-note-area status-note"
+                    placeholder="Notiz zum Telefonat / nächste Aktion..."
+                    onclick="event.stopPropagation()">${kgAwEscape(lead.notiz || '')}</textarea>
+
+<button
+    type="button"
+    class="save kg-note-save"
+    onclick="saveStatusContact(event, ${Number(lead.id) || 0}, this)">
+    Kontaktdaten speichern
+</button>
+
+        </div>
+        </div>
+    `;
+
+    const statusHistory = String(lead.status_history || '')
+        .split(',')
+        .map(s => s.trim())
+        .filter(Boolean);
+
+    let statusZeitRaw = '';
+
+    if(statusKey === 'angerufen'){
+        statusZeitRaw = lead.angerufen_am || '';
+    }else if(statusKey === 'interessiert'){
+        statusZeitRaw = lead.interessiert_am || '';
+    }
+
+    let statusZeitText = '';
+
+    if(statusZeitRaw){
+        const p = statusZeitRaw.split(' ');
+        const d = (p[0] || '').split('-');
+        const t = (p[1] || '').substring(0,5);
+
+        if(d.length===3){
+            statusZeitText = `${d[2]}.${d[1]}.${d[0]} ${t} Uhr`;
+        }
+    }
+
+    card.innerHTML = `
+        <div class="summary" onclick="toggleStatusCompany(this)">
+
                     <div class="mainrow">
                         <div class="drag status-company-drag" onclick="event.stopPropagation()">☰</div>
 
                         <div>
                             <div class="kicker">
     <span class="badge">${kgAwEscape(badgeText)}</span>
-    <span class="status">${statusKey === 'spaeter' && lead.spaeter_datum ? 'Rückruf · ' + kgAwEscape(lead.spaeter_datum) : 'Heute · ' + kgAwEscape(statusTitles[statusKey] || 'offen')}</span>
+<span
+    class="status"
+    ${statusZeitText ? 'style="background:#15803d;color:#ffffff;border-color:#15803d;"' : ''}
+>
+    ${
+        statusZeitText
+            ? kgAwEscape(statusZeitText)
+            : statusKey === 'spaeter' && lead.spaeter_datum
+                ? 'Rückruf · ' + kgAwEscape(lead.spaeter_datum)
+                : 'Heute · ' + kgAwEscape(statusTitles[statusKey] || 'offen')
+    }
+</span>
 
-    ${statusKey === 'besichtigung' ? `
-        <button
-            type="button"
-            onclick="deleteBesichtigung(event, ${Number(lead.id) || 0}, this)"
-            style="
-                margin-left:8px;
-                width:30px;
-                height:30px;
-                border:1px solid #fecaca;
-                border-radius:9px;
-                background:#fef2f2;
-                color:#dc2626;
-                font-size:14px;
-                font-weight:900;
-                cursor:pointer;
-            "
-            title="Besichtigung löschen"
-        >🗑</button>
-    ` : ''}
+    <button
+        type="button"
+        onclick="deleteStatusRecord(
+            event,
+            ${Number(lead.id) || 0},
+            '${statusKey}',
+            this
+        )"
+        style="
+            margin-left:8px;
+            width:30px;
+            height:30px;
+            border:1px solid #fecaca;
+            border-radius:9px;
+            background:#fef2f2;
+            color:#dc2626;
+            font-size:14px;
+            font-weight:900;
+            cursor:pointer;
+        "
+        title="Eintrag löschen"
+    >🗑</button>
+
+</div>
+<div class="company">${kgAwEscape(lead.firma || '')}</div>
+<div class="meta">${kgAwEscape(metaText)}</div>
 </div>
 
+<div class="toggle">⌄</div>
+</div>
 
-                            <div class="company">${kgAwEscape(lead.firma || '')}</div>
-                            <div class="meta">${kgAwEscape(metaText)}</div>
-                        </div>
+<div class="actions">
 
-                        <div class="toggle">⌄</div>
-                    </div>
-                </div>
+    <button
+        class="btn blue ${statusHistory.includes('angerufen') ? 'active-blue' : ''}"
+        onclick="event.stopPropagation()">
+        ${statusHistory.includes('angerufen') ? '✓ Angerufen' : '☎ Anrufen'}
+    </button>
 
-                <div class="details">
-                    ${detailsHtml}
-                </div>
+    <button
+        class="btn green ${statusHistory.includes('interessiert') ? 'active-green' : ''}"
+        onclick="event.stopPropagation()">
+        ${statusHistory.includes('interessiert') ? '✓ Hat Interesse' : '✓ Interessiert'}
+    </button>
+
+    <button
+        class="btn blue ${statusHistory.includes('besichtigung') ? 'active-blue' : ''}"
+        onclick="event.stopPropagation()">
+        ${statusHistory.includes('besichtigung') ? '▦ Besichtigung' : '📅 Besichtigung'}
+    </button>
+
+    <button
+        class="btn form ${statusHistory.includes('kontaktformular') ? 'active-form' : ''}"
+        onclick="event.stopPropagation()">
+        ${statusHistory.includes('kontaktformular') ? '✓ Kontaktformular' : '✉ Kontaktformular'}
+    </button>
+
+    <button
+        class="btn later ${statusHistory.includes('spaeter') ? 'active-later' : ''}"
+        onclick="event.stopPropagation()">
+        ↷ Später
+    </button>
+
+    <button
+        class="btn red ${statusHistory.includes('verloren') ? 'active-red' : ''}"
+        onclick="event.stopPropagation()">
+        ✕ Verloren
+    </button>
+
+</div>
+
+</div>
+
+<div class="details">
+    ${detailsHtml}
+</div>
             `;
 
             list.appendChild(card);
@@ -7145,20 +7640,36 @@ function toggleStatusCompany(summaryEl) {
     }
 }
 
-async function deleteBesichtigung(event, leadId, btn){
+async function deleteStatusRecord(event, leadId, statusKey, btn){
     event.stopPropagation();
 
     if(!leadId){
-        alert("Besichtigung-ID fehlt.");
+        alert("Tagesliste-ID fehlt.");
         return;
     }
 
+    const statusNames = {
+        angerufen: "Angerufen",
+        interessiert: "Interessiert",
+        besichtigung: "Besichtigung",
+        kontaktformular: "Kontaktformular",
+        spaeter: "Später",
+        verloren: "Verloren"
+    };
+
+    const statusName = statusNames[statusKey] || statusKey;
+
     const firmaCard = btn.closest(".status-company-card");
-    const firmaEl = firmaCard ? firmaCard.querySelector(".company") : null;
-    const firma = firmaEl ? firmaEl.textContent.trim() : "diese Firma";
+    const firmaEl = firmaCard
+        ? firmaCard.querySelector(".company")
+        : null;
+
+    const firma = firmaEl
+        ? firmaEl.textContent.trim()
+        : "diese Firma";
 
     const bestaetigt = confirm(
-        firma + " wirklich aus Besichtigung löschen?"
+        firma + " wirklich aus " + statusName + " löschen?"
     );
 
     if(!bestaetigt){
@@ -7168,20 +7679,28 @@ async function deleteBesichtigung(event, leadId, btn){
     btn.disabled = true;
 
     try{
-        const response = await fetch("/api/datenbank/besichtigung-delete", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                id: leadId
-            })
-        });
+        const response = await fetch(
+            "/api/datenbank/status-record-delete",
+            {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    id: leadId,
+                    status: statusKey
+                })
+            }
+        );
 
         const data = await response.json();
 
         if(!data.ok){
-            alert(data.message || "Besichtigung konnte nicht gelöscht werden.");
+            alert(
+                data.message ||
+                "Der Eintrag konnte nicht gelöscht werden."
+            );
+
             btn.disabled = false;
             return;
         }
