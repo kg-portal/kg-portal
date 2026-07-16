@@ -1450,7 +1450,11 @@ from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 from datetime import timedelta
 
-GOOGLE_KEY_PATH = os.path.join("data", "calendar_key.json")
+GOOGLE_KEY_PATH = (
+    "/etc/secrets/calendar_key.json"
+    if os.path.exists("/etc/secrets/calendar_key.json")
+    else os.path.join("data", "calendar_key.json")
+)
 GOOGLE_SCOPES = ["https://www.googleapis.com/auth/calendar"]
 GOOGLE_CALENDAR_ID = os.getenv(
     "GOOGLE_CALENDAR_ID",
