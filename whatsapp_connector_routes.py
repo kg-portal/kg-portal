@@ -126,7 +126,7 @@ def wa_normalize_text(value):
     for old, new in replace_map.items():
         text = text.replace(old, new)
 
-    return text
+    return " ".join(text.split())
 
 
 def wa_is_worker_hours_question(body):
@@ -397,7 +397,20 @@ def wa_build_ai_context(phone="", raw_from="", body="", name=""):
     normalized_name = wa_normalize_text(name)
     matched_workers = []
 
-    if normalized_name:
+    # 1. Önce WhatsApp LID / phone ile eşleştir
+    for worker in workers:
+        worker_phone = wa_clean_id(worker["telefon"])
+
+        if worker_phone and phone_clean and worker_phone == phone_clean:
+            matched_workers = [worker]
+            break
+
+        if worker_phone and raw_clean and worker_phone == raw_clean:
+            matched_workers = [worker]
+            break
+
+    # 2. Numaradan bulunamadıysa isimden dene
+    if not matched_workers and normalized_name:
         for worker in workers:
             full_name = f"{worker['vorname'] or ''} {worker['nachname'] or ''}".strip()
             normalized_full_name = wa_normalize_text(full_name)
@@ -409,8 +422,7 @@ def wa_build_ai_context(phone="", raw_from="", body="", name=""):
             ):
                 matched_workers.append(worker)
 
-    context_workers = matched_workers if len(matched_workers) == 1 else workers
-
+    context_workers = matched_workers if matched_workers else workers
 
     candidates = []
 
