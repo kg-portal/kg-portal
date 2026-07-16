@@ -705,7 +705,13 @@ def get_search_center_coordinates(stadt="", plz=""):
         return None, None
 
 
-def call_google_text_search(text_query, latitude=None, longitude=None, radius_km=10):
+def call_google_text_search(
+    text_query,
+    latitude=None,
+    longitude=None,
+    radius_km=10,
+    page_token=""
+):
 
     if not GMAPS_KEY:
         return {}, False, "GMAPS_KEY fehlt"
@@ -719,6 +725,9 @@ def call_google_text_search(text_query, latitude=None, longitude=None, radius_km
         "regionCode": "DE",
         "pageSize": GOOGLE_PAGE_SIZE,
     }
+
+    if page_token:
+        payload["pageToken"] = page_token
 
     if latitude is not None and longitude is not None:
         payload["locationBias"] = {
@@ -837,45 +846,55 @@ def get_leads_from_google(suchwort, stadt, max_results=20, plz="", radius_km=10)
         plz=plz
     )
 
-    requested = 20
+    requested = max(1, int(max_results or 20))
 
     rows = []
     seen = set()
+    page_token = ""
 
-    data, ok, error = call_google_text_search(
-        text_query,
-        latitude=latitude,
-        longitude=longitude,
-        radius_km=radius_km
-    )
-
-    if not ok:
-        return rows
-
-    places = data.get("places") or []
-
-    for place in places:
-        if len(rows) >= requested:
-            break
-
-        lead = google_place_to_lead(
-            place=place,
-            branche_id=None,
-            branche_name="",
-            suchwort=suchwort,
-            fallback_stadt=stadt
+    while len(rows) < requested:
+        data, ok, error = call_google_text_search(
+            text_query,
+            latitude=latitude,
+            longitude=longitude,
+            radius_km=radius_km,
+            page_token=page_token
         )
 
-        if not lead:
-            continue
+        if not ok:
+            break
 
-        key = get_item_unique_key(lead)
+        places = data.get("places") or []
 
-        if not key or key in seen:
-            continue
+        for place in places:
+            if len(rows) >= requested:
+                break
 
-        seen.add(key)
-        rows.append(lead)
+            lead = google_place_to_lead(
+                place=place,
+                branche_id=None,
+                branche_name="",
+                suchwort=suchwort,
+                fallback_stadt=stadt
+            )
+
+            if not lead:
+                continue
+
+            key = get_item_unique_key(lead)
+
+            if not key or key in seen:
+                continue
+
+            seen.add(key)
+            rows.append(lead)
+
+        page_token = str(data.get("nextPageToken") or "").strip()
+
+        if not page_token:
+            break
+
+        time.sleep(2)
 
     return rows
 
@@ -953,15 +972,26 @@ def insert_lead(conn, lead):
 # ============================================================
 # CRM IMPORT FUNKSIYONU
 # app2.py su an run_apify_import import ettigi icin isim KORUNDU.
-# Icerik artik Apify degil: Google + Mailbul.
-# Manuel kullanimda HER ÇALIŞTIRMA = 1 Google isteği.
+# Icerik artik sadece Google Places.
+# E-posta aramasi yapilmaz.
 # ============================================================
 
-def run_apify_import(db_path, branche_id, branche_name, suchwort, stadt, max_results=20, plz="", radius_km=10):
+def run_apify_import(
+    db_path,
+    branche_id,
+    branche_name,
+    suchwort,
+    stadt,
+    max_results=20,
+    plz="",
+    radius_km=10
+):
+    requested = max(1, int(max_results or 20))
+
     result = {
         "success": True,
         "message": "",
-        "requested": 20,
+        "requested": requested,
         "received": 0,
         "inserted": 0,
         "skipped_duplicates": 0,
@@ -979,9 +1009,9 @@ def run_apify_import(db_path, branche_id, branche_name, suchwort, stadt, max_res
         return result
 
     leads = get_leads_from_google(
-        suchwort,
-        stadt,
-        20,
+        suchwort=suchwort,
+        stadt=stadt,
+        max_results=requested,
         plz=plz,
         radius_km=radius_km
     )
@@ -989,6 +1019,7 @@ def run_apify_import(db_path, branche_id, branche_name, suchwort, stadt, max_res
     for lead in leads:
         lead["branche_id"] = branche_id
         lead["branche_name"] = branche_name
+        lead["email"] = ""
 
     result["received"] = len(leads)
     result["google_usage_today"] = google_usage_today()
@@ -997,87 +1028,34 @@ def run_apify_import(db_path, branche_id, branche_name, suchwort, stadt, max_res
     conn.row_factory = sqlite3.Row
 
     try:
-        with sync_playwright() as p:
-            browser = p.chromium.launch(
-                headless=True,
-                args=["--disable-http2", "--disable-blink-features=AutomationControlled"]
-            )
+        for lead in leads:
+            firma = normalize_text(lead.get("firma", ""))
+            plz_lead = normalize_text(lead.get("plz", ""))
+            telefon = normalize_text(lead.get("telefon", ""))
+            website = normalize_url(lead.get("website", ""))
 
-            context = browser.new_context(ignore_https_errors=True, locale="de-DE")
+            if lead_exists(conn, firma, plz_lead, telefon, website):
+                result["skipped_duplicates"] += 1
+                continue
 
-            def handle_route(route):
-                try:
-                    if route.request.resource_type in ["image", "media", "font", "stylesheet"]:
-                        return route.abort()
-                except Exception:
-                    pass
-                return route.continue_()
+            if website:
+                result["website_found"] += 1
 
-            try:
-                context.route("**/*", handle_route)
-            except Exception:
-                pass
+            lead["email"] = ""
+            lead["website"] = website
 
-            for lead in leads:
-                firma = normalize_text(lead.get("firma", ""))
-                plz_lead = normalize_text(lead.get("plz", ""))
-                telefon = normalize_text(lead.get("telefon", ""))
-                website = normalize_url(lead.get("website", ""))
+            insert_lead(conn, lead)
 
-                if lead_exists(conn, firma, plz_lead, telefon, website):
-                    result["skipped_duplicates"] += 1
-                    continue
+            result["inserted"] += 1
 
-                email = ""
-
-                if website:
-                    result["website_found"] += 1
-                    page = None
-
-                    try:
-                        page = context.new_page()
-                        page.set_default_timeout(5000)
-                        page.set_default_navigation_timeout(5000)
-
-                        found_mail = scrape_fast(page, website)
-
-                        if found_mail:
-                            email = found_mail
-                            result["email_found"] += 1
-                        else:
-                            result["email_missing"] += 1
-
-                    except Exception:
-                        result["email_missing"] += 1
-
-                    finally:
-                        try:
-                            if page:
-                                page.close()
-                        except Exception:
-                            pass
-                else:
-                    result["email_missing"] += 1
-
-                lead["email"] = email
-                lead["website"] = website
-
-                insert_lead(conn, lead)
-
-                result["inserted"] += 1
-                conn.commit()
-
-            try:
-                browser.close()
-            except Exception:
-                pass
+        conn.commit()
 
     except Exception as e:
+        conn.rollback()
         result["success"] = False
         result["message"] = str(e)
 
     finally:
-        conn.commit()
         conn.close()
 
     result["google_usage_today"] = google_usage_today()
@@ -1086,7 +1064,6 @@ def run_apify_import(db_path, branche_id, branche_name, suchwort, stadt, max_res
         result["message"] = (
             f'{result["inserted"]} neue Google-Leads gespeichert. '
             f'Website: {result["website_found"]}, '
-            f'E-Mail: {result["email_found"]}, '
             f'Duplicate: {result["skipped_duplicates"]}.'
         )
 
