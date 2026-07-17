@@ -741,18 +741,9 @@ def register_whatsapp_connector_routes(app, login_required):
                 "reason": "connector_disabled"
             })
 
-        # İlk sürüm: aynı kişiye saatte en fazla bir otomatik cevap.
-        already_sent = conn.execute('''
-            SELECT COUNT(*)
-            FROM whatsapp_outbox
-            WHERE phone = ?
-            AND source = 'auto_reply'
-            AND datetime(created_at) >= datetime('now', '-1 hour')
-        ''', (phone,)).fetchone()[0]
-
         reply_target = phone
 
-        if is_known_worker and int(already_sent or 0) == 0:
+        if is_known_worker:
             try:
                 ai_context = wa_build_ai_context(
                     phone=phone,
