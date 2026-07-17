@@ -1,6 +1,8 @@
 import os
 import sqlite3
 import hashlib
+import traceback
+import time
 from datetime import datetime, date
 from typing import Optional, Dict, List
 
@@ -20,7 +22,6 @@ CUSTOMER_ID = None
 
 ACCOUNT_MAP = {
     "200325934": "geschäftskonto-kg-gebäudereinigung",
-    "200448785": "geschäftskonto-amazon-energie",
     "1301528228": "damla-privat",
 }
 
@@ -42,26 +43,62 @@ def ensure_balance_table():
     conn.close()
 
 def get_fints_pin() -> str:
-    return "Secret8391."
+    pin = os.getenv("FINTS_PIN", "").strip()
+    if not pin:
+        raise RuntimeError("FINTS_PIN environment variable bulunamadi.")
+    return pin
 
 def handle_need_tan(client, result, title="BANKA TAN ISTEDI"):
-    while isinstance(result, NeedTANResponse):
-        print("=" * 72)
-        print(title)
-        print("=" * 72)
+    """
+    PushTAN (decoupled) onayini terminal girdisi olmadan otomatik kontrol eder.
+    Kullanici telefondan onay verdiginde ayni FinTS oturumu devam eder.
+    """
+    if not isinstance(result, NeedTANResponse):
+        return result
 
-        challenge = getattr(result, "challenge_html", None) or getattr(result, "challenge", None)
-        if challenge:
-            print(challenge)
+    challenge = (
+        getattr(result, "challenge_html", None)
+        or getattr(result, "challenge", None)
+        or "PushTAN uygulamasindan islemi onaylayin."
+    )
 
-        if getattr(result, "decoupled", False):
-            input("PushTAN uygulamanda onay ver ve Enter'a bas... ")
-            result = client.send_tan(result, "")
-        else:
-            tan = input("TAN kodunu gir: ").strip()
-            result = client.send_tan(result, tan)
+    if not getattr(result, "decoupled", False):
+        raise RuntimeError(
+            f"{title} | Banka manuel TAN kodu istiyor; "
+            f"bu akista sadece PushTAN destekleniyor. Challenge: {challenge}"
+        )
 
-    return result
+    print("=" * 72)
+    print(title)
+    print(challenge)
+    print("PushTAN onayi bekleniyor...")
+    print("=" * 72)
+
+    # Bankaya cok sik durum sorgusu gondermemek icin once 5 saniye bekle.
+    time.sleep(5)
+
+    # Yaklasik 2 dakika boyunca telefondaki onayi otomatik kontrol et.
+    max_poll = 24
+    for poll_no in range(1, max_poll + 1):
+        result = client.send_tan(result, "")
+
+        if not isinstance(result, NeedTANResponse):
+            print("PushTAN onaylandi; FinTS islemi devam ediyor.")
+            return result
+
+        if not getattr(result, "decoupled", False):
+            raise RuntimeError(
+                "PushTAN kontrolu sirasinda banka manuel TAN koduna gecti."
+            )
+
+        if poll_no < max_poll:
+            print(f"PushTAN henuz onaylanmadi ({poll_no}/{max_poll}).")
+            time.sleep(5)
+
+    raise RuntimeError(
+        "PushTAN onayi 2 dakika icinde gelmedi. "
+        "Sparkasse uygulamasinda onay verip tekrar deneyin."
+    )
 
 def account_to_slug(account) -> Optional[str]:
     konto = str(getattr(account, "accountnumber", "") or "").strip()
@@ -81,15 +118,21 @@ def tx_field(tx, *names, default=""):
     for name in names:
         if hasattr(tx, name):
             val = getattr(tx, name)
-            if val not in [None, ""]:
-                return val
+            if val is None:
+                continue
+            if isinstance(val, str) and val == "":
+                continue
+            return val
 
     data = getattr(tx, "data", None)
     if data and hasattr(data, "get"):
         for name in names:
             val = data.get(name)
-            if val not in [None, ""]:
-                return val
+            if val is None:
+                continue
+            if isinstance(val, str) and val == "":
+                continue
+            return val
 
     return default
 
@@ -225,6 +268,7 @@ def sync_fints_to_db(start_date: Optional[date] = None, end_date: Optional[date]
         }
 
     except Exception as e:
+        traceback.print_exc()
         return {
             "ok": "0",
             "message": str(e)
@@ -290,7 +334,6 @@ def get_fints_all_balances() -> Dict[str, float]:
 
     balances = {
         "geschäftskonto-kg-gebäudereinigung": 0.0,
-        "geschäftskonto-amazon-energie": 0.0,
         "damla-privat": 0.0,
         "murat-privat": 0.0,
     }
