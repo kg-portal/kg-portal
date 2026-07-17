@@ -793,23 +793,54 @@ def register_whatsapp_connector_routes(app, login_required):
             ''', (reply_target, reply_text))
 
         else:
-            already_greeted = conn.execute('''
-                SELECT COUNT(*)
-                FROM whatsapp_outbox
-                WHERE phone = ?
-                  AND source = 'unknown_number_greeting'
-            ''', (reply_target,)).fetchone()[0]
+            full_ai_title = True
 
-            if int(already_greeted or 0) == 0:
-                conn.execute('''
-                    INSERT INTO whatsapp_outbox (phone, text, status, source)
-                    VALUES (?, ?, 'pending', 'unknown_number_greeting')
-                ''', (
-                    reply_target,
-                    "KG-AI Yapay Zeka Asistanı: Merhaba, ben Damla Hanım’ın "
-                    "yapay zeka asistanı KG-AI. Lütfen ne istediğinizi bana "
-                    "söyleyiniz, ben Damla Hanım’a ileteceğim."
-                ))
+            try:
+                recent_ai_reply = conn.execute('''
+                    SELECT id
+                    FROM whatsapp_outbox
+                    WHERE phone = ?
+                      AND source = 'ai_unknown_reply'
+                      AND datetime(created_at) >= datetime('now', '-24 hours')
+                    ORDER BY id DESC
+                    LIMIT 1
+                ''', (reply_target,)).fetchone()
+
+                full_ai_title = recent_ai_reply is None
+
+                ai_context = wa_build_ai_context(
+                    phone=phone,
+                    raw_from=raw_from,
+                    body=body,
+                    name=name
+                )
+
+                reply_text = whatsapp_worker_auto_reply(
+                    name=name,
+                    message=body,
+                    context=ai_context,
+                    full_ai_title=full_ai_title
+                ).get("answer")
+
+            except Exception as e:
+                print("Bilinmeyen numara AI cevap hatası:", str(e))
+
+                fallback_title = (
+                    "KG-AI Yapay Zeka Asistanı:"
+                    if full_ai_title
+                    else "KG-AI:"
+                )
+
+                reply_text = (
+                    f"{fallback_title} "
+                    "Mesajınız alındı. Talebinizi Frau Kicci’ye iletiyorum. "
+                    "Size en kısa sürede geri dönüş yapılacaktır."
+                )
+
+            conn.execute('''
+                INSERT INTO whatsapp_outbox (phone, text, status, source)
+                VALUES (?, ?, 'pending', 'ai_unknown_reply')
+            ''', (reply_target, reply_text))
 
         conn.commit()
         conn.close()
