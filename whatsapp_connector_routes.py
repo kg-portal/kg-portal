@@ -12,7 +12,16 @@ WORKER_WHATSAPP_FILE = os.path.join(BASE_DIR, "data", "worker_whatsapp_numbers.t
 WHATSAPP_CONNECTOR_ENABLED = True
 
 def wa_clean_id(value):
-    return "".join(ch for ch in str(value or "") if ch.isdigit())
+    phone = "".join(ch for ch in str(value or "") if ch.isdigit())
+
+    if phone.startswith("0049"):
+        phone = phone[4:]
+    elif phone.startswith("49"):
+        phone = phone[2:]
+    elif phone.startswith("0"):
+        phone = phone[1:]
+
+    return phone
 
 def wa_save_worker_id(value):
     worker_id = wa_clean_id(value)
