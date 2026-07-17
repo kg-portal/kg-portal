@@ -751,19 +751,43 @@ def register_whatsapp_connector_routes(app, login_required):
                     body=body,
                     name=name
                 )
+
                 reply_text = whatsapp_worker_auto_reply(
                     name,
                     body,
                     ai_context
                 ).get("answer")
+
             except Exception as e:
                 print("AI WhatsApp cevap hatası:", str(e))
-                reply_text = wa_auto_reply_text(name=name, body=body)
+                reply_text = (
+                    "KG-AI Yapay Zeka Asistanı: "
+                    "Mesajınız alındı. Frau Kicci’ye iletilecek."
+                )
 
             conn.execute('''
                 INSERT INTO whatsapp_outbox (phone, text, status, source)
                 VALUES (?, ?, 'pending', 'ai_auto_reply')
             ''', (reply_target, reply_text))
+
+        else:
+            already_greeted = conn.execute('''
+                SELECT COUNT(*)
+                FROM whatsapp_outbox
+                WHERE phone = ?
+                  AND source = 'unknown_number_greeting'
+            ''', (reply_target,)).fetchone()[0]
+
+            if int(already_greeted or 0) == 0:
+                conn.execute('''
+                    INSERT INTO whatsapp_outbox (phone, text, status, source)
+                    VALUES (?, ?, 'pending', 'unknown_number_greeting')
+                ''', (
+                    reply_target,
+                    "KG-AI Yapay Zeka Asistanı: Merhaba, ben Damla Hanım’ın "
+                    "yapay zeka asistanı KG-AI. Lütfen ne istediğinizi bana "
+                    "söyleyiniz, ben Damla Hanım’a ileteceğim."
+                ))
 
         conn.commit()
         conn.close()
