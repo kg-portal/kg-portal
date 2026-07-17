@@ -696,7 +696,7 @@ def register_whatsapp_connector_routes(app, login_required):
         # Kayıtlı işçiyse yazılı mesaj istemek için kısa cevap kuyruğa ekle.
         if not body:
             if WHATSAPP_CONNECTOR_ENABLED and is_known_worker:
-                reply_target = raw_from if raw_from else phone
+                reply_target = phone
 
                 conn = wa_conn()
                 conn.execute('''
@@ -741,7 +741,7 @@ def register_whatsapp_connector_routes(app, login_required):
             AND datetime(created_at) >= datetime('now', '-1 hour')
         ''', (phone,)).fetchone()[0]
 
-        reply_target = raw_from if raw_from else phone
+        reply_target = phone
 
         if is_known_worker and int(already_sent or 0) == 0:
             try:
