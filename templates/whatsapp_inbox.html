@@ -14,9 +14,25 @@
             </p>
         </div>
 
-        <button class="wa-refresh-btn" onclick="loadWhatsAppMessages()">
-            Yenile
-        </button>
+        <div class="wa-header-actions">
+            <div class="wa-switch-wrap">
+                <span class="wa-switch-label">WhatsApp Connector</span>
+
+                <button
+                    id="waConnectorToggle"
+                    type="button"
+                    class="wa-connector-toggle is-loading"
+                    onclick="toggleWhatsAppConnector()"
+                    disabled
+                >
+                    LÄDT...
+                </button>
+            </div>
+
+            <button class="wa-refresh-btn" onclick="loadWhatsAppMessages()">
+                Yenile
+            </button>
+        </div>
     </div>
 
     <div class="wa-grid">
@@ -73,6 +89,54 @@
     margin: 0;
     color: #64748b;
     font-weight: 700;
+}
+
+.wa-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
+}
+
+.wa-switch-wrap {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.wa-switch-label {
+    color: #334155;
+    font-weight: 900;
+}
+
+.wa-connector-toggle {
+    min-width: 105px;
+    border: none;
+    border-radius: 999px;
+    padding: 12px 20px;
+    color: #ffffff;
+    font-weight: 950;
+    font-size: 15px;
+    cursor: pointer;
+    box-shadow: 0 8px 18px rgba(15, 23, 42, 0.14);
+}
+
+.wa-connector-toggle.is-on {
+    background: #16a34a;
+}
+
+.wa-connector-toggle.is-off {
+    background: #dc2626;
+}
+
+.wa-connector-toggle.is-loading {
+    background: #64748b;
+    cursor: wait;
+}
+
+.wa-connector-toggle:disabled {
+    opacity: 0.75;
+    cursor: wait;
 }
 
 .wa-refresh-btn {
@@ -162,6 +226,65 @@
 </style>
 
 <script>
+
+function paintConnectorButton(enabled) {
+    const button = document.getElementById("waConnectorToggle");
+
+    if (!button) {
+        return;
+    }
+
+    button.disabled = false;
+    button.classList.remove("is-loading", "is-on", "is-off");
+    button.classList.add(enabled ? "is-on" : "is-off");
+    button.textContent = enabled ? "AN" : "AUS";
+    button.dataset.enabled = enabled ? "1" : "0";
+}
+
+async function loadWhatsAppConnectorStatus() {
+    try {
+        const response = await fetch("/whatsapp/api/connector-status");
+        const data = await response.json();
+
+        paintConnectorButton(data.enabled === true);
+    } catch (error) {
+        const button = document.getElementById("waConnectorToggle");
+
+        if (button) {
+            button.disabled = true;
+            button.textContent = "FEHLER";
+        }
+    }
+}
+
+async function toggleWhatsAppConnector() {
+    const button = document.getElementById("waConnectorToggle");
+
+    if (!button || button.disabled) {
+        return;
+    }
+
+    button.disabled = true;
+    button.classList.remove("is-on", "is-off");
+    button.classList.add("is-loading");
+    button.textContent = "LÄDT...";
+
+    try {
+        const response = await fetch("/whatsapp/api/connector-toggle", {
+            method: "POST"
+        });
+
+        const data = await response.json();
+        paintConnectorButton(data.enabled === true);
+    } catch (error) {
+        button.disabled = false;
+        button.classList.remove("is-loading");
+        button.classList.add("is-off");
+        button.textContent = "FEHLER";
+    }
+}
+
+
 async function loadWhatsAppMessages() {
     const inboxBox = document.getElementById("waInboxList");
     const outboxBox = document.getElementById("waOutboxList");
@@ -262,6 +385,7 @@ function escapeHtml(value) {
 }
 
 document.addEventListener("DOMContentLoaded", function () {
+    loadWhatsAppConnectorStatus();
     loadWhatsAppMessages();
 });
 </script>
