@@ -744,7 +744,21 @@ def register_whatsapp_connector_routes(app, login_required):
         reply_target = phone
 
         if is_known_worker:
+            full_ai_title = True
+
             try:
+                recent_ai_reply = conn.execute('''
+                    SELECT id
+                    FROM whatsapp_outbox
+                    WHERE phone = ?
+                      AND source = 'ai_auto_reply'
+                      AND datetime(created_at) >= datetime('now', '-24 hours')
+                    ORDER BY id DESC
+                    LIMIT 1
+                ''', (reply_target,)).fetchone()
+
+                full_ai_title = recent_ai_reply is None
+
                 ai_context = wa_build_ai_context(
                     phone=phone,
                     raw_from=raw_from,
@@ -753,15 +767,23 @@ def register_whatsapp_connector_routes(app, login_required):
                 )
 
                 reply_text = whatsapp_worker_auto_reply(
-                    name,
-                    body,
-                    ai_context
+                    name=name,
+                    message=body,
+                    context=ai_context,
+                    full_ai_title=full_ai_title
                 ).get("answer")
 
             except Exception as e:
                 print("AI WhatsApp cevap hatası:", str(e))
+
+                fallback_title = (
+                    "KG-AI Yapay Zeka Asistanı:"
+                    if full_ai_title
+                    else "KG-AI:"
+                )
+
                 reply_text = (
-                    "KG-AI Yapay Zeka Asistanı: "
+                    f"{fallback_title} "
                     "Mesajınız alındı. Frau Kicci’ye iletilecek."
                 )
 
