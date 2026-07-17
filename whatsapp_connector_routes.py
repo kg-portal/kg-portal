@@ -9,6 +9,7 @@ DB_PATH = os.path.join(BASE_DIR, "data", "kg_portal.db")
 
 WORKER_WHATSAPP_FILE = os.path.join(BASE_DIR, "data", "worker_whatsapp_numbers.txt")
 
+WHATSAPP_CONNECTOR_ENABLED = True
 
 def wa_clean_id(value):
     return "".join(ch for ch in str(value or "") if ch.isdigit())
@@ -582,6 +583,26 @@ def wa_get_active_job_context():
 def register_whatsapp_connector_routes(app, login_required):
     wa_ensure_tables()
 
+    @app.route("/whatsapp/api/connector-status", methods=["GET"])
+    @login_required
+    def whatsapp_connector_status():
+        return jsonify({
+            "ok": True,
+            "enabled": WHATSAPP_CONNECTOR_ENABLED
+        })
+
+    @app.route("/whatsapp/api/connector-toggle", methods=["POST"])
+    @login_required
+    def whatsapp_connector_toggle():
+        global WHATSAPP_CONNECTOR_ENABLED
+
+        WHATSAPP_CONNECTOR_ENABLED = not WHATSAPP_CONNECTOR_ENABLED
+
+        return jsonify({
+            "ok": True,
+            "enabled": WHATSAPP_CONNECTOR_ENABLED
+        })
+
     @app.route("/api/whatsapp-connector/incoming", methods=["POST"])
     def whatsapp_connector_incoming():
         if not wa_token_ok():
@@ -612,7 +633,7 @@ def register_whatsapp_connector_routes(app, login_required):
 
         # Damla kendi WhatsApp sayfasına yazarsa burası KG AI ana pencere gibi çalışır.
         # Bu pencereye yazılan her mesaj aktif iş ilanı bilgisi olarak kaydedilir.
-        if from_me and wa_is_ai_self_window(from_me, raw_from=raw_from, to_id=to_id, phone=phone):
+        if WHATSAPP_CONNECTOR_ENABLED and from_me and wa_is_ai_self_window(from_me, raw_from=raw_from, to_id=to_id, phone=phone):
             if body:
                 wa_save_active_job_context(body)
 
@@ -674,7 +695,7 @@ def register_whatsapp_connector_routes(app, login_required):
         # Sesli mesaj / boş içerik gelirse AI çözmeye çalışmasın.
         # Kayıtlı işçiyse yazılı mesaj istemek için kısa cevap kuyruğa ekle.
         if not body:
-            if is_known_worker:
+            if WHATSAPP_CONNECTOR_ENABLED and is_known_worker:
                 reply_target = raw_from if raw_from else phone
 
                 conn = wa_conn()
@@ -700,6 +721,16 @@ def register_whatsapp_connector_routes(app, login_required):
                 (wa_message_id, phone, name, body, msg_type, raw_from, wa_timestamp)
             VALUES (?, ?, ?, ?, ?, ?, ?)
         ''', (wa_message_id, phone, name, body, msg_type, raw_from, wa_timestamp))
+
+        if not WHATSAPP_CONNECTOR_ENABLED:
+            conn.commit()
+            conn.close()
+            return jsonify({
+                "ok": True,
+                "stored": True,
+                "skipped": True,
+                "reason": "connector_disabled"
+            })
 
         # İlk sürüm: aynı kişiye saatte en fazla bir otomatik cevap.
         already_sent = conn.execute('''
@@ -762,6 +793,13 @@ def register_whatsapp_connector_routes(app, login_required):
 
     @app.route("/api/whatsapp-connector/outbox", methods=["GET"])
     def whatsapp_connector_outbox():
+
+        if not WHATSAPP_CONNECTOR_ENABLED:
+            return jsonify({
+                "ok": True,
+                "items": [],
+                "disabled": True
+            })
         if not wa_token_ok():
             return jsonify({"ok": False, "message": "Unauthorized"}), 403
 
