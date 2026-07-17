@@ -311,5 +311,14 @@ CEVAP STİLİ:
 - Bilgi contextte yoksa uydurma.
 
 Kısa, net, doğal WhatsApp cevabı ver.
+
+ÇOK ÖNEMLİ ÇIKTI KURALI:
+- Her cevap mutlaka tam olarak şu ifadeyle başlasın:
+  KG-AI Yapay Zeka Asistanı:
+- Bu ifadeden sonra kişiye gönderilecek mesajı yaz.
+- Bu başlığı yalnızca bir kez yaz.
+
+Örnek:
+KG-AI Yapay Zeka Asistanı: Merhaba, nasıl yardımcı olabilirim?
 """
     return ask_ai(prompt)
