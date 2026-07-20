@@ -1647,6 +1647,82 @@ def register_app2_routes(app, login_required):
                 "Datenschutz akzeptiert: Ja"
             ])
 
+            def table_row(label, value):
+                safe_label = escape(str(label or ""))
+                safe_value = escape(
+                    str(value or "-")
+                ).replace("\n", "<br>")
+
+                return f"""
+                <tr>
+                    <td style="
+                        width:34%;
+                        padding:12px 14px;
+                        border:1px solid #d7deea;
+                        background:#f6f8fc;
+                        color:#1f2937;
+                        font-weight:700;
+                    ">
+                        {safe_label}
+                    </td>
+
+                    <td style="
+                        padding:12px 14px;
+                        border:1px solid #d7deea;
+                        background:#ffffff;
+                        color:#1f2937;
+                    ">
+                        {safe_value}
+                    </td>
+                </tr>
+                """
+
+            internal_html = f"""
+            <div style="
+                max-width:760px;
+                margin:0 auto;
+                font-family:Arial,Helvetica,sans-serif;
+                color:#1f2937;
+            ">
+                <div style="
+                    padding:20px;
+                    color:#ffffff;
+                    background:#064cff;
+                    font-size:21px;
+                    font-weight:700;
+                ">
+                    Neue Angebotsanfrage über kg-reinigung.de
+                </div>
+
+                <table style="
+                    width:100%;
+                    border-collapse:collapse;
+                    background:#ffffff;
+                ">
+                    {table_row("Firmenname", firmenname or "-")}
+                    {table_row("Ansprechpartner", ansprechpartner)}
+                    {table_row("E-Mail-Adresse", email)}
+                    {table_row("Telefonnummer", telefon)}
+                    {table_row("Gewünschte Reinigung", reinigung)}
+                    {table_row("Reinigungsintervall", intervall or "-")}
+                    {table_row("PLZ / Einsatzort", einsatzort or "-")}
+                    {table_row("Ungefähre Fläche", flaeche or "-")}
+                    {table_row("Weitere Informationen", nachricht)}
+                    {table_row("Datenschutz akzeptiert", "Ja")}
+                </table>
+
+                <div style="
+                    padding:14px 5px;
+                    color:#6b7280;
+                    font-size:12px;
+                    text-align:center;
+                ">
+                    Automatisch übermittelt durch das Anfrageformular
+                    auf kg-reinigung.de
+                </div>
+            </div>
+            """
+
             msg = EmailMessage()
             msg["From"] = (
                 "KG-Gebäudereinigung <info@kg-reinigung.de>"
@@ -1656,7 +1732,12 @@ def register_app2_routes(app, login_required):
             msg["Subject"] = (
                 f"Neue Website-Anfrage – {ansprechpartner}"
             )
+
             msg.set_content(message_text)
+            msg.add_alternative(
+                internal_html,
+                subtype="html"
+            )
 
             raw_message = base64.urlsafe_b64encode(
                 msg.as_bytes()
@@ -1668,6 +1749,176 @@ def register_app2_routes(app, login_required):
                 userId="me",
                 body={"raw": raw_message}
             ).execute()
+
+            # MÜŞTERİYE OTOMATİK ALINDI ONAYI
+            try:
+                customer_subject = (
+                    "Eingangsbestätigung Ihrer Anfrage – "
+                    "KG-Gebäudereinigung"
+                )
+
+                customer_plain = """Sehr geehrte Damen und Herren,
+
+vielen Dank für Ihre Anfrage und Ihr Interesse an den Dienstleistungen der KG-Gebäudereinigung.
+
+Hiermit bestätigen wir Ihnen den erfolgreichen Eingang Ihrer Anfrage. Ihre Angaben wurden zur Bearbeitung aufgenommen und werden von uns sorgfältig geprüft.
+
+Wir werden uns schnellstmöglich mit Ihnen in Verbindung setzen.
+
+Bei Fragen stehen wir Ihnen gern zur Verfügung.
+
+Vielen Dank.
+
+Mit freundlichen Grüßen
+
+Damla Kicci
+Inhaberin
+
+KG-Gebäudereinigung
+Fliederstr. 59
+47055 Duisburg - Wanheimerort
+
+0203 / 47 96 68 22
+0163 / 194 70 55
+
+info@kg-reinigung.de
+www.kg-reinigung.de
+"""
+
+                customer_html = """
+                <div style="
+                    max-width:650px;
+                    font-family:Arial,Helvetica,sans-serif;
+                    font-size:15px;
+                    line-height:1.65;
+                    color:#202124;
+                ">
+                    <p>Sehr geehrte Damen und Herren,</p>
+
+                    <p>
+                        vielen Dank für Ihre Anfrage und Ihr Interesse
+                        an den Dienstleistungen der
+                        KG-Gebäudereinigung.
+                    </p>
+
+                    <p>
+                        Hiermit bestätigen wir Ihnen den erfolgreichen
+                        Eingang Ihrer Anfrage. Ihre Angaben wurden zur
+                        Bearbeitung aufgenommen und werden von uns
+                        sorgfältig geprüft.
+                    </p>
+
+                    <p>
+                        Wir werden uns schnellstmöglich mit Ihnen in
+                        Verbindung setzen.
+                    </p>
+
+                    <p>
+                        Bei Fragen stehen wir Ihnen gern zur Verfügung.
+                    </p>
+
+                    <p>Vielen Dank.</p>
+
+                    <p>Mit freundlichen Grüßen</p>
+
+                    <div style="
+                        max-width:520px;
+                        margin-top:24px;
+                        padding-top:18px;
+                        border-top:2px solid #064cff;
+                    ">
+                        <strong style="
+                            color:#064cff;
+                            font-size:18px;
+                        ">
+                            Damla Kicci
+                        </strong>
+                        <br>
+
+                        Inhaberin
+                        <br><br>
+
+                        <strong>KG-Gebäudereinigung</strong>
+                        <br>
+
+                        Fliederstr. 59
+                        <br>
+
+                        47055 Duisburg - Wanheimerort
+                        <br><br>
+
+                        0203 / 47 96 68 22
+                        <br>
+
+                        0163 / 194 70 55
+                        <br><br>
+
+                        <a
+                            href="mailto:info@kg-reinigung.de"
+                            style="color:#064cff;"
+                        >
+                            info@kg-reinigung.de
+                        </a>
+                        <br>
+
+                        <a
+                            href="https://www.kg-reinigung.de"
+                            style="color:#064cff;"
+                        >
+                            www.kg-reinigung.de
+                        </a>
+                    </div>
+                </div>
+                """
+
+                customer_msg = EmailMessage()
+
+                customer_msg["From"] = (
+                    "KG-Gebäudereinigung "
+                    "<info@kg-reinigung.de>"
+                )
+
+                # Formda müşterinin yazdığı e-posta adresi
+                customer_msg["To"] = email
+
+                customer_msg["Reply-To"] = (
+                    "info@kg-reinigung.de"
+                )
+
+                customer_msg["Subject"] = customer_subject
+
+                customer_msg["Auto-Submitted"] = (
+                    "auto-replied"
+                )
+
+                customer_msg["X-Auto-Response-Suppress"] = (
+                    "All"
+                )
+
+                customer_msg.set_content(customer_plain)
+
+                customer_msg.add_alternative(
+                    customer_html,
+                    subtype="html"
+                )
+
+                customer_raw = base64.urlsafe_b64encode(
+                    customer_msg.as_bytes()
+                ).decode("utf-8")
+
+                service.users().messages().send(
+                    userId="me",
+                    body={"raw": customer_raw}
+                ).execute()
+
+            except Exception as customer_mail_error:
+                # Otomatik cevapta hata olsa bile bize gelen
+                # asıl müşteri başvurusu kaybolmaz.
+                print(
+                    "WEBSITE AUTO-ANTWORT FEHLER:",
+                    str(customer_mail_error)
+                )
+
 
             return cevap({
                 "ok": True,
