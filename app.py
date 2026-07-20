@@ -80,6 +80,8 @@ def auto_login_check():
         return
     if request.path.startswith('/api/whatsapp-connector/'):
         return
+    if request.path == '/api/website-anfrage':
+        return
     
     # 2. İŞÇİ LİNKLERİ İÇİN ŞİFRE SORMADAN GEÇİŞ İZNİ
     if request.path.startswith('/stundenzettel/worker/') or request.path.startswith('/api/stundenzettel/'):
