@@ -1521,6 +1521,167 @@ def register_app2_routes(app, login_required):
     def app2_gmail_spam():
         return gmail_box_response("spam")
 
+# =====================================================
+# WEBSITE FORMU - GMAIL API
+# =====================================================
+
+    @app.route("/api/website-anfrage", methods=["POST", "OPTIONS"])
+    def app2_website_anfrage():
+        allowed_origins = {
+            "https://www.kg-reinigung.de",
+            "https://kg-reinigung.de",
+            "https://dahlia-herring-fh3l.squarespace.com"
+        }
+
+        origin = str(request.headers.get("Origin") or "").rstrip("/")
+
+        def cevap(payload, status=200):
+            response = jsonify(payload)
+            response.status_code = status
+
+            if origin in allowed_origins:
+                response.headers["Access-Control-Allow-Origin"] = origin
+                response.headers["Vary"] = "Origin"
+
+            response.headers["Access-Control-Allow-Methods"] = "POST, OPTIONS"
+            response.headers["Access-Control-Allow-Headers"] = "Content-Type"
+            return response
+
+        if request.method == "OPTIONS":
+            if origin not in allowed_origins:
+                return cevap({
+                    "ok": False,
+                    "message": "Origin nicht erlaubt."
+                }, 403)
+
+            return cevap({"ok": True})
+
+        if origin and origin not in allowed_origins:
+            return cevap({
+                "ok": False,
+                "message": "Origin nicht erlaubt."
+            }, 403)
+
+        try:
+            data = request.get_json(silent=True) or {}
+
+            # Görünmez spam alanı doluysa bot kabul edilir.
+            if str(data.get("website") or "").strip():
+                return cevap({"ok": True})
+
+            firmenname = str(
+                data.get("firmenname") or ""
+            ).strip()[:150]
+
+            ansprechpartner = str(
+                data.get("ansprechpartner") or ""
+            ).strip()[:150]
+
+            email = str(
+                data.get("email") or ""
+            ).strip()[:254]
+
+            telefon = str(
+                data.get("telefon") or ""
+            ).strip()[:80]
+
+            reinigung = str(
+                data.get("reinigung") or ""
+            ).strip()[:150]
+
+            intervall = str(
+                data.get("intervall") or "Noch nicht sicher"
+            ).strip()[:150]
+
+            einsatzort = str(
+                data.get("einsatzort") or ""
+            ).strip()[:180]
+
+            flaeche = str(
+                data.get("flaeche") or ""
+            ).strip()[:100]
+
+            nachricht = str(
+                data.get("nachricht") or ""
+            ).strip()[:5000]
+
+            datenschutz = data.get("datenschutz") is True
+
+            if not all([
+                ansprechpartner,
+                email,
+                telefon,
+                reinigung,
+                nachricht,
+                datenschutz
+            ]):
+                return cevap({
+                    "ok": False,
+                    "message": "Bitte füllen Sie alle Pflichtfelder aus."
+                }, 400)
+
+            if not re.fullmatch(
+                r"[^\s@]+@[^\s@]+\.[^\s@]+",
+                email
+            ):
+                return cevap({
+                    "ok": False,
+                    "message": "Bitte geben Sie eine gültige E-Mail-Adresse ein."
+                }, 400)
+
+            message_text = "\n".join([
+                "Neue Angebotsanfrage über kg-reinigung.de",
+                "",
+                f"Firmenname: {firmenname or '-'}",
+                f"Ansprechpartner: {ansprechpartner}",
+                f"E-Mail-Adresse: {email}",
+                f"Telefonnummer: {telefon}",
+                f"Gewünschte Reinigung: {reinigung}",
+                f"Reinigungsintervall: {intervall or '-'}",
+                f"PLZ / Einsatzort: {einsatzort or '-'}",
+                f"Ungefähre Fläche: {flaeche or '-'}",
+                "",
+                "Weitere Informationen:",
+                nachricht,
+                "",
+                "Datenschutz akzeptiert: Ja"
+            ])
+
+            msg = EmailMessage()
+            msg["From"] = (
+                "KG-Gebäudereinigung <info@kg-reinigung.de>"
+            )
+            msg["To"] = "info@kg-reinigung.de"
+            msg["Reply-To"] = email
+            msg["Subject"] = (
+                f"Neue Website-Anfrage – {ansprechpartner}"
+            )
+            msg.set_content(message_text)
+
+            raw_message = base64.urlsafe_b64encode(
+                msg.as_bytes()
+            ).decode("utf-8")
+
+            service = get_gmail_service()
+
+            sent = service.users().messages().send(
+                userId="me",
+                body={"raw": raw_message}
+            ).execute()
+
+            return cevap({
+                "ok": True,
+                "message": "Ihre Anfrage wurde erfolgreich übermittelt.",
+                "request_id": sent.get("id", "")
+            })
+
+        except Exception as e:
+            print("WEBSITE ANFRAGE FEHLER:", str(e))
+
+            return cevap({
+                "ok": False,
+                "message": "Die Anfrage konnte nicht gesendet werden."
+            }, 500)
 
 # =====================================================
 # APP2 - KG-MAIL API - MAIL SENDEN
