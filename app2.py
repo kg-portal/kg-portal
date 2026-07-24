@@ -1039,9 +1039,9 @@ def angebot_next_number(cursor):
     """).fetchall()
 
     # Yeni doğru Angebot-Nummer sistemi:
-    # İlk yeni numara AN-2162 olacak.
-    # 2259, 357 gibi hatalı eski numaralar dikkate alınmayacak.
-    max_nr = 2161
+    # İlk yeni numara AN-2265 olacak.
+    # 2165 gibi hatalı eski numaralar dikkate alınmayacak.
+    max_nr = 2264
 
     for row in rows:
         raw = str(row[0] or "")
@@ -1051,9 +1051,8 @@ def angebot_next_number(cursor):
             try:
                 nummer = int(match.group(1))
 
-                # Sadece doğru seri dikkate alınır: 2161 - 2258
-                # Böylece mevcut hatalı AN-2259 sistemi yeni numarayı 2260'a zıplatmaz.
-                if 2161 <= nummer <= 2258 and nummer > max_nr:
+                # Sadece yeni doğru seri dikkate alınır: 2265 ve sonrası.
+                if nummer >= 2265 and nummer > max_nr:
                     max_nr = nummer
 
             except Exception:
