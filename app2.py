@@ -2362,9 +2362,326 @@ www.kg-reinigung.de
         )
 
 # =====================================================
-# APP2 - BÖLÜM 1.1 - APIFY LEAD IMPORT API
+# APP2 - BESTANDSKUNDEN ARAMA API
 # =====================================================
 
+    @app.route("/api/datenbank/bestandskunden-search")
+    @login_required
+    def app2_bestandskunden_search():
+        suchtext = str(request.args.get("q", "") or "").strip()
+
+        conn = sqlite3.connect(DB_PATH)
+        conn.row_factory = sqlite3.Row
+
+        if suchtext:
+            like_value = f"%{suchtext}%"
+
+            rows = conn.execute("""
+                SELECT
+                    id,
+                    firma,
+                    ort,
+                    strasse,
+                    plz,
+                    ansprechpartner_name,
+                    telefon,
+                    email,
+                    kundennummer
+                FROM kunden
+                WHERE
+                    firma LIKE ?
+                    OR ansprechpartner_name LIKE ?
+                    OR ort LIKE ?
+                    OR strasse LIKE ?
+                    OR plz LIKE ?
+                    OR telefon LIKE ?
+                    OR email LIKE ?
+                    OR kundennummer LIKE ?
+                ORDER BY firma ASC
+                LIMIT 20
+            """, (
+                like_value,
+                like_value,
+                like_value,
+                like_value,
+                like_value,
+                like_value,
+                like_value,
+                like_value
+            )).fetchall()
+
+        else:
+            rows = conn.execute("""
+                SELECT
+                    id,
+                    firma,
+                    ort,
+                    strasse,
+                    plz,
+                    ansprechpartner_name,
+                    telefon,
+                    email,
+                    kundennummer
+                FROM kunden
+                ORDER BY firma ASC
+                LIMIT 20
+            """).fetchall()
+
+        conn.close()
+
+        return jsonify({
+            "ok": True,
+            "kunden": [dict(row) for row in rows]
+        })
+
+
+# =====================================================
+# APP2 - DIREKTES ANGEBOT FÜR BESTANDSKUNDE
+# Bestandskunde wird nur zur Besichtigungsliste hinzugefügt.
+# Ein Angebot wird noch nicht erstellt.
+# =====================================================
+
+    @app.route("/api/datenbank/direktes-angebot-bestandskunde", methods=["POST"])
+    @login_required
+    def app2_direktes_angebot_bestandskunde():
+        ensure_tagesliste_table()
+
+        data = request.get_json(silent=True) or {}
+
+        try:
+            kunde_id = int(data.get("kunde_id") or 0)
+        except Exception:
+            kunde_id = 0
+
+        if kunde_id <= 0:
+            return jsonify({
+                "ok": False,
+                "message": "Kunden-ID fehlt."
+            }), 400
+
+        conn = sqlite3.connect(DB_PATH)
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
+
+        kunde = cursor.execute("""
+            SELECT
+                id,
+                firma,
+                ort,
+                strasse,
+                plz,
+                ansprechpartner_name,
+                telefon,
+                email,
+                kundennummer
+            FROM kunden
+            WHERE id = ?
+        """, (kunde_id,)).fetchone()
+
+        if not kunde:
+            conn.close()
+
+            return jsonify({
+                "ok": False,
+                "message": "Bestandskunde wurde nicht gefunden."
+            }), 404
+
+        besichtigung_data = {
+            "direktes_angebot": True,
+            "quelle": "Bestandskunde",
+            "kunde": {
+                "kunden_id": kunde["id"],
+                "kundennummer": kunde["kundennummer"] or "",
+                "firma": kunde["firma"] or "",
+                "ansprechpartner": kunde["ansprechpartner_name"] or "",
+                "strasse": kunde["strasse"] or "",
+                "plz": kunde["plz"] or "",
+                "ort": kunde["ort"] or "",
+                "telefon": kunde["telefon"] or "",
+                "email": kunde["email"] or ""
+            },
+            "leistungen": [],
+            "raeume": [],
+            "bereiche": [],
+            "sonstiges": [],
+            "notizen": []
+        }
+
+        company_key = (
+            "direktes-angebot-bestandskunde-"
+            + str(kunde_id)
+            + "-"
+            + datetime.now().strftime("%Y%m%d%H%M%S%f")
+        )
+
+        cursor.execute("""
+            INSERT INTO tagesliste_leads (
+                firma,
+                ansprechpartner,
+                strasse,
+                plz,
+                ort,
+                telefon,
+                email,
+                quelle,
+                status,
+                notiz,
+                company_key,
+                besichtigung_data_json
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """, (
+            kunde["firma"] or "",
+            kunde["ansprechpartner_name"] or "",
+            kunde["strasse"] or "",
+            kunde["plz"] or "",
+            kunde["ort"] or "",
+            kunde["telefon"] or "",
+            kunde["email"] or "",
+            "Direktes Angebot · Bestandskunde",
+            "besichtigung",
+            "Bestandskunde · Angebotsvorbereitung",
+            company_key,
+            json.dumps(besichtigung_data, ensure_ascii=False)
+        ))
+
+        besichtigung_id = cursor.lastrowid
+
+        cursor.execute("""
+            INSERT OR IGNORE INTO tagesliste_status_history (
+                tagesliste_id,
+                status,
+                datum
+            )
+            VALUES (?, 'besichtigung', date('now', 'localtime'))
+        """, (besichtigung_id,))
+
+        conn.commit()
+        conn.close()
+
+        return jsonify({
+            "ok": True,
+            "message": "Bestandskunde wurde zur Besichtigungsliste hinzugefügt.",
+            "besichtigung_id": besichtigung_id
+        })
+
+# =====================================================
+# APP2 - DIREKTES ANGEBOT FÜR NEUKUNDE
+# Neukunde wird gespeichert und zur Besichtigungsliste hinzugefügt.
+# Ein Angebot wird noch nicht erstellt.
+# =====================================================
+
+    @app.route("/api/datenbank/direktes-angebot-neukunde", methods=["POST"])
+    @login_required
+    def app2_direktes_angebot_neukunde():
+        ensure_tagesliste_table()
+
+        data = request.get_json(silent=True) or {}
+
+        firma = str(data.get("firma") or "").strip()
+        ansprechpartner = str(data.get("ansprechpartner") or "").strip()
+        strasse = str(data.get("strasse") or "").strip()
+        plz = str(data.get("plz") or "").strip()
+        ort = str(data.get("ort") or "").strip()
+        telefon = str(data.get("telefon") or "").strip()
+        email = str(data.get("email") or "").strip()
+
+        if not firma:
+            return jsonify({
+                "ok": False,
+                "message": "Firmenname fehlt."
+            }), 400
+
+        if not ort:
+            return jsonify({
+                "ok": False,
+                "message": "Ort fehlt."
+            }), 400
+
+        conn = sqlite3.connect(DB_PATH)
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
+
+        besichtigung_data = {
+            "direktes_angebot": True,
+            "quelle": "Neukunde",
+            "kunde": {
+                "firma": firma,
+                "ansprechpartner": ansprechpartner,
+                "strasse": strasse,
+                "plz": plz,
+                "ort": ort,
+                "telefon": telefon,
+                "email": email
+            },
+            "leistungen": [],
+            "raeume": [],
+            "bereiche": [],
+            "sonstiges": [],
+            "notizen": []
+        }
+
+        company_key = (
+            "direktes-angebot-neukunde-"
+            + datetime.now().strftime("%Y%m%d%H%M%S%f")
+        )
+
+        cursor.execute("""
+            INSERT INTO tagesliste_leads (
+                firma,
+                branche,
+                ansprechpartner,
+                strasse,
+                plz,
+                ort,
+                telefon,
+                email,
+                quelle,
+                status,
+                notiz,
+                company_key,
+                besichtigung_data_json
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """, (
+            firma,
+            "Direktes Angebot",
+            ansprechpartner,
+            strasse,
+            plz,
+            ort,
+            telefon,
+            email,
+            "Direktes Angebot · Neukunde",
+            "besichtigung",
+            "Neukunde · Angebotsvorbereitung",
+            company_key,
+            json.dumps(besichtigung_data, ensure_ascii=False)
+        ))
+
+        besichtigung_id = cursor.lastrowid
+
+        cursor.execute("""
+            INSERT OR IGNORE INTO tagesliste_status_history (
+                tagesliste_id,
+                status,
+                datum
+            )
+            VALUES (?, 'besichtigung', date('now', 'localtime'))
+        """, (besichtigung_id,))
+
+        conn.commit()
+        conn.close()
+
+        return jsonify({
+            "ok": True,
+            "message": "Neukunde wurde gespeichert und zur Besichtigungsliste hinzugefügt.",
+            "besichtigung_id": besichtigung_id
+        })
+
+# =====================================================
+# APP2 - BÖLÜM 1.1 - APIFY LEAD IMPORT API
+# =====================================================
     @app.route("/api/datenbank/apify-import", methods=["POST"])
     @login_required
     def app2_apify_import():
@@ -3278,7 +3595,11 @@ www.kg-reinigung.de
             cursor.execute("""
                 UPDATE tagesliste_leads
                 SET
-                    status = 'offen',
+                    status = CASE
+                        WHEN quelle LIKE 'Direktes Angebot · %'
+                        THEN 'besichtigung'
+                        ELSE 'offen'
+                    END,
                     spaeter_datum = NULL,
                     besichtigung_data_json = COALESCE(NULLIF(?, ''), besichtigung_data_json),
                     angebot_vars_json = NULL,
