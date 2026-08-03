@@ -492,8 +492,113 @@
 
 .index-weather-box {
     justify-self: end;
-    min-width: 270px;
+    width: 300px;
+    min-width: 300px;
     min-height: 112px;
+    padding: 13px 15px;
+    box-sizing: border-box;
+    overflow: hidden;
+    background: #ffffff;
+    border: 1px solid #dbeafe;
+    color: #172554;
+}
+
+.index-weather-box .index-weather-title {
+    color: #1e40af;
+}
+
+.index-weather-box .index-weather-main {
+    color: #172554;
+}
+
+.weather-current-info {
+    color: #475569;
+}
+
+.weather-current-info .weather-high {
+    color: #dc2626;
+}
+
+.weather-current-info .weather-low {
+    color: #2563eb;
+}
+
+.weather-forecast-window {
+    width: 100%;
+    overflow: hidden;
+    margin-top: 6px;
+    border-radius: 10px;
+    background: #eff6ff;
+}
+
+.weather-forecast-track {
+    display: flex;
+    width: max-content;
+    animation: weatherForecastMove 28s linear infinite;
+}
+
+.weather-forecast-window:hover .weather-forecast-track {
+    animation-play-state: paused;
+}
+
+.weather-forecast-day {
+    width: 70px;
+    min-width: 70px;
+    padding: 6px 3px;
+    text-align: center;
+    border-right: 1px solid #dbeafe;
+    box-sizing: border-box;
+}
+
+.weather-forecast-name {
+    display: block;
+    color: #1e40af;
+    font-size: 10px;
+    font-weight: 900;
+}
+
+.weather-forecast-icon {
+    width: 24px;
+    height: 24px;
+    display: block;
+    object-fit: contain;
+    margin: 3px auto;
+}
+
+.weather-forecast-temperature {
+    display: block;
+    font-size: 9px;
+    font-weight: 900;
+}
+
+.weather-forecast-max {
+    color: #dc2626;
+}
+
+.weather-forecast-min {
+    color: #2563eb;
+}
+
+.weather-current-info {
+    display: grid;
+    gap: 2px;
+    line-height: 1.1;
+}
+
+.weather-update-line {
+    color: #475569;
+    font-size: 9px;
+    font-weight: 900;
+}
+
+@keyframes weatherForecastMove {
+    from {
+        transform: translateX(0);
+    }
+
+    to {
+        transform: translateX(-490px);
+    }
 }
 
 .index-time {
@@ -681,7 +786,25 @@
                 </span>
             </div>
 
-            <div class="index-small-label">Automatisch aktualisiert</div>
+            <div class="index-small-label weather-current-info">
+                <div>
+                    <span class="weather-high">
+                        ↑ <span id="weather-max">--</span>°C
+                    </span>
+                    &nbsp;&nbsp;
+                    <span class="weather-low">
+                        ↓ <span id="weather-min">--</span>°C
+                    </span>
+                </div>
+
+                <div class="weather-update-line">
+                    Aktualisiert: <span id="weather-update-time">--:--</span>
+                </div>
+            </div>
+
+            <div class="weather-forecast-window">
+                <div id="weather-forecast-track" class="weather-forecast-track"></div>
+            </div>
         </div>
     </div>
 </section>
@@ -1311,6 +1434,41 @@ function updateClock() {
     setInterval(updateAccountingPeriodLabels, 3600000);
     updateAccountingPeriodLabels();
 
+    function getWeatherDetails(code) {
+        let iconPath = "/static/sunny.png";
+        let germanDesc = "Sonnig";
+
+        if (code === 0) {
+            iconPath = "/static/sunny.png";
+            germanDesc = "Klar";
+        }
+        else if ([1, 2].includes(code)) {
+            iconPath = "/static/cloudy.png";
+            germanDesc = "Teilweise bewölkt";
+        }
+        else if (code === 3) {
+            iconPath = "/static/clouds.png";
+            germanDesc = "Bewölkt";
+        }
+        else if ([45, 48].includes(code)) {
+            iconPath = "/static/clouds.png";
+            germanDesc = "Nebel";
+        }
+        else if ([51, 53, 55, 56, 57, 61, 63, 65, 66, 67, 80, 81, 82, 95, 96, 99].includes(code)) {
+            iconPath = "/static/heavy-rain.png";
+            germanDesc = "Regen";
+        }
+        else if ([71, 73, 75, 77, 85, 86].includes(code)) {
+            iconPath = "/static/snow.png";
+            germanDesc = "Schnee";
+        }
+
+        return {
+            iconPath: iconPath,
+            germanDesc: germanDesc
+        };
+    }
+
     async function fetchWeather() {
         try {
             const response = await fetch(
@@ -1318,6 +1476,8 @@ function updateClock() {
                 '?latitude=51.4344' +
                 '&longitude=6.7623' +
                 '&current=temperature_2m,weather_code' +
+                '&daily=weather_code,temperature_2m_max,temperature_2m_min' +
+                '&forecast_days=7' +
                 '&timezone=Europe%2FBerlin'
             );
 
@@ -1328,44 +1488,89 @@ function updateClock() {
             const data = await response.json();
 
             const temp = Math.round(data.current.temperature_2m);
-            const code = Number(data.current.weather_code);
+            const currentCode = Number(data.current.weather_code);
+            const currentWeather = getWeatherDetails(currentCode);
 
-            let iconPath = "/static/sunny.png";
-            let germanDesc = "Sonnig";
+            const maxTemp = Math.round(data.daily.temperature_2m_max[0]);
+            const minTemp = Math.round(data.daily.temperature_2m_min[0]);
 
-            if (code === 0) {
-                iconPath = "/static/sunny.png";
-                germanDesc = "Klar";
-            }
-            else if ([1, 2].includes(code)) {
-                iconPath = "/static/cloudy.png";
-                germanDesc = "Teilweise bewölkt";
-            }
-            else if (code === 3) {
-                iconPath = "/static/clouds.png";
-                germanDesc = "Bewölkt";
-            }
-            else if ([45, 48].includes(code)) {
-                iconPath = "/static/clouds.png";
-                germanDesc = "Nebel";
-            }
-            else if ([51, 53, 55, 56, 57, 61, 63, 65, 66, 67, 80, 81, 82, 95, 96, 99].includes(code)) {
-                iconPath = "/static/heavy-rain.png";
-                germanDesc = "Regen";
-            }
-            else if ([71, 73, 75, 77, 85, 86].includes(code)) {
-                iconPath = "/static/snow.png";
-                germanDesc = "Schnee";
-            }
+            document.getElementById('weather-desc').textContent =
+                currentWeather.germanDesc + " ";
 
-            document.getElementById('weather-desc').textContent = germanDesc;
-            document.getElementById('weather-temp').textContent = temp + "°C";
-            document.getElementById('weather-icon').src = iconPath;
+            document.getElementById('weather-temp').textContent =
+                temp + "°C";
+
+            document.getElementById('weather-icon').src =
+                currentWeather.iconPath;
+
+            document.getElementById('weather-max').textContent =
+                maxTemp;
+
+            document.getElementById('weather-min').textContent =
+                minTemp;
+
+            document.getElementById('weather-update-time').textContent =
+                new Date().toLocaleTimeString('de-DE', {
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+
+            const dayNames = [
+                "So",
+                "Mo",
+                "Di",
+                "Mi",
+                "Do",
+                "Fr",
+                "Sa"
+            ];
+
+            const forecastItems = data.daily.time.map((dateValue, index) => {
+                const date = new Date(dateValue + "T12:00:00");
+                const weather = getWeatherDetails(
+                    Number(data.daily.weather_code[index])
+                );
+
+                const dayName =
+                    index === 0
+                        ? "Heute"
+                        : dayNames[date.getDay()];
+
+                return `
+                    <div class="weather-forecast-day">
+                        <span class="weather-forecast-name">
+                            ${dayName}
+                        </span>
+
+                        <img
+                            class="weather-forecast-icon"
+                            src="${weather.iconPath}"
+                            alt="${weather.germanDesc}"
+                        >
+
+                        <span class="weather-forecast-temperature">
+                            <span class="weather-forecast-max">
+                                ${Math.round(data.daily.temperature_2m_max[index])}°
+                            </span>
+
+                            /
+
+                            <span class="weather-forecast-min">
+                                ${Math.round(data.daily.temperature_2m_min[index])}°
+                            </span>
+                        </span>
+                    </div>
+                `;
+            }).join("");
+
+            document.getElementById('weather-forecast-track').innerHTML =
+                forecastItems + forecastItems;
 
         } catch (error) {
             document.getElementById('weather-desc').textContent = "Offline";
             document.getElementById('weather-temp').textContent = "";
             document.getElementById('weather-icon').src = "/static/clouds.png";
+            document.getElementById('weather-forecast-track').innerHTML = "";
         }
     }
 
