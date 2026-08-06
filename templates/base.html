@@ -159,18 +159,20 @@
             display:inline-flex;
             align-items:center;
             justify-content:center;
-            margin-top:12px;
-            padding:6px 12px 5px 14px;
-            border-radius:999px;
-            font-size:10px;
+            margin-top:10px;
+            padding:0;
+            border-radius:0;
+            font-family:"Trebuchet MS", Arial, sans-serif;
+            font-size:11px;
             line-height:1;
-            font-weight:900;
-            letter-spacing:2.8px;
+            font-weight:700;
+            letter-spacing:4px;
             text-transform:uppercase;
-            color:#dbeafe;
-            background:rgba(255,255,255,0.12);
-            border:1px solid rgba(255,255,255,0.26);
-            box-shadow:inset 0 1px 0 rgba(255,255,255,0.22);
+            color:#ffffff;
+            background:transparent;
+            border:none;
+            box-shadow:none;
+            text-shadow:0 2px 8px rgba(0,0,0,0.28);
             white-space:nowrap;
         }
 
@@ -247,9 +249,9 @@
             transition:0.2s ease;
             flex-shrink:0;
             user-select:none;
-            background:linear-gradient(135deg, #0f2f83 0%, #1d4ed8 48%, #60a5fa 100%);
-            border:1px solid rgba(255,255,255,0.32);
-            box-shadow:inset 0 1px 0 rgba(255,255,255,0.20);
+            background:#ffffff;
+            border:1px solid #e2e8f0;
+            box-shadow:0 6px 16px rgba(15,23,42,0.08);
         }
 
         .portal-nav-content {
@@ -262,7 +264,7 @@
         .portal-drag-handle {
             width:auto !important;
             font-size:15px !important;
-            color:rgba(255,255,255,0.86) !important;
+            color:#3b82f6 !important;
             cursor:grab;
             opacity:0.9;
             margin-left:auto;
@@ -316,8 +318,8 @@
         }
 
         .portal-nav-item:hover {
-            background:linear-gradient(135deg, #0b2a75 0%, #2563eb 48%, #93c5fd 100%);
-            box-shadow:inset 0 1px 0 rgba(255,255,255,0.24);
+            background:#f8fafc;
+            box-shadow:0 8px 18px rgba(15,23,42,0.10);
             transform:translateY(-1px);
         }
 
@@ -351,26 +353,25 @@
         }
 
         .portal-nav-item .portal-nav-content {
-            color:#ffffff;
+            color:#123a8f;
             text-shadow:none;
             font-weight:900;
             letter-spacing:0.1px;
         }
 
         .portal-nav-item i {
-            color:#ffffff !important;
             filter:none;
         }
 
-        .icon-blue { color:#3b82f6; }
-        .icon-orange { color:#f59e0b; }
-        .icon-purple { color:#8b5cf6; }
-        .icon-green { color:#10b981; }
-        .icon-cyan { color:#06b6d4; }
-        .icon-indigo { color:#6366f1; }
-        .icon-teal { color:#14b8a6; }
-        .icon-red { color:#ef4444; }
-        .icon-pink { color:#ec4899; }
+        .icon-blue { color:#3b82f6 !important; }
+        .icon-orange { color:#f59e0b !important; }
+        .icon-purple { color:#8b5cf6 !important; }
+        .icon-green { color:#10b981 !important; }
+        .icon-cyan { color:#06b6d4 !important; }
+        .icon-indigo { color:#6366f1 !important; }
+        .icon-teal { color:#14b8a6 !important; }
+        .icon-red { color:#ef4444 !important; }
+        .icon-pink { color:#ec4899 !important; }
 
         .portal-main {
             width:calc(100% - var(--kg-sidebar-width));
@@ -775,7 +776,7 @@
 <div class="kg-portal-shell">
 
     <aside class="portal-sidebar">
-        <a class="portal-sidebar-title" href="/"><span class="portal-title-main">KG CRM</span><span class="portal-title-sub">NAVIGATION</span></a>
+        <a class="portal-sidebar-title" href="/"><span class="portal-title-main">KG CRM</span><span class="portal-title-sub">PORTAL</span></a>
 
         <nav id="portalNavSortable" class="portal-nav-list">
             <a class="portal-nav-item {% if request.path == '/' %}active{% endif %}" href="/" data-nav-key="startseite">
@@ -806,7 +807,7 @@
            </a>
 
            <a class="portal-nav-item {% if request.path.startswith('/whatsapp-inbox') %}active{% endif %}" href="/whatsapp-inbox" data-nav-key="whatsapp-inbox">
-               <span class="portal-nav-content"><i class="fa-solid fa-comments icon-green"></i> WhatsApp Inbox</span>
+               <span class="portal-nav-content" style="white-space:nowrap;font-size:14px;"><i class="fa-solid fa-comments icon-green"></i> WhatsApp Inbox</span>
                <i class="fa-solid fa-grip-vertical portal-drag-handle"></i>
            </a>
 
