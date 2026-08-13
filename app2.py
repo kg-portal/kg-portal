@@ -2677,6 +2677,75 @@ www.kg-reinigung.de
             "message": "Neukunde wurde gespeichert und zur Besichtigungsliste hinzugefügt.",
             "besichtigung_id": besichtigung_id
         })
+    # =====================================================
+    # KG SCAN APP - BESICHTIGUNG LISTESI API
+    # iPhone uygulamasi CRM'deki Besichtigung kayitlarini okur.
+    # =====================================================
+
+    @app.route("/internal/kg-scan/besichtigungen", methods=["GET"])
+    def kg_scan_besichtigungen():
+
+        expected_token = os.getenv("KG_SCAN_API_TOKEN", "").strip()
+        given_token = request.headers.get("X-KG-SCAN-TOKEN", "").strip()
+
+        if not expected_token or given_token != expected_token:
+            return jsonify({
+                "ok": False,
+                "message": "Unauthorized"
+            }), 403
+
+        conn = sqlite3.connect(DB_PATH)
+        conn.row_factory = sqlite3.Row
+
+        rows = conn.execute("""
+            SELECT
+                id,
+                firma,
+                branche,
+                ansprechpartner,
+                strasse,
+                plz,
+                ort,
+                telefon,
+                email,
+                website,
+                quelle,
+                status,
+                notiz,
+                besichtigung_data_json
+            FROM tagesliste_leads
+            WHERE status = 'besichtigung'
+            ORDER BY id DESC
+        """).fetchall()
+
+        conn.close()
+
+        termine = []
+
+        for row in rows:
+            termine.append({
+                "id": row["id"],
+                "firma": row["firma"] or "",
+                "branche": row["branche"] or "",
+                "ansprechpartner": row["ansprechpartner"] or "",
+                "strasse": row["strasse"] or "",
+                "plz": row["plz"] or "",
+                "ort": row["ort"] or "",
+                "telefon": row["telefon"] or "",
+                "email": row["email"] or "",
+                "website": row["website"] or "",
+                "quelle": row["quelle"] or "",
+                "status": row["status"] or "besichtigung",
+                "notiz": row["notiz"] or "",
+                "besichtigung_data_json": row["besichtigung_data_json"] or ""
+            })
+
+        return jsonify({
+            "ok": True,
+            "count": len(termine),
+            "termine": termine
+        })
+
 
 # =====================================================
 # APP2 - BÖLÜM 1.1 - APIFY LEAD IMPORT API
