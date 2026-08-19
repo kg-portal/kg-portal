@@ -7,6 +7,25 @@
 <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/de.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
 
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.166.1/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.166.1/examples/jsm/"
+  }
+}
+</script>
+
+<script type="module">
+import { USDZLoader } from "three/addons/loaders/USDZLoader.js";
+
+window.KGUSDZLoader = USDZLoader;
+</script>
+
 <style>
 /* ... Entegeka y'empewo n'ebisenge ... */
 *{box-sizing:border-box}
@@ -21,6 +40,102 @@ body{background:#edf2f7;font-family:'Inter',sans-serif;color:#0f172a}
 .hero-row{display:flex;align-items:stretch;gap:24px}
 .hero-left-content{flex:1;display:flex;flex-direction:column;justify-content:center}
 .hero-left-grid{flex:1;display:grid;grid-template-columns:1fr 1fr;gap:16px}
+
+/* KG SCAN 3D ERGEBNIS */
+.kg-scan-result-card{
+  width:100%;
+  background:#fff;
+  border-radius:24px;
+  padding:24px;
+  box-shadow:0 10px 30px rgba(15,23,42,.06);
+  border:1px solid #e2e8f0;
+}
+
+.kg-scan-result-header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:16px;
+  margin-bottom:18px;
+}
+
+.kg-scan-result-title{
+  font-size:18px;
+  font-weight:800;
+  color:#0f172a;
+}
+
+.kg-scan-result-status{
+  font-size:12px;
+  font-weight:700;
+  color:#64748b;
+}
+
+.kg-scan-result-body{
+  display:grid;
+  grid-template-columns:minmax(0,2fr) minmax(280px,1fr);
+  gap:20px;
+}
+
+.kg-scan-3d-view{
+  position:relative;
+  width:100%;
+  min-height:420px;
+  border-radius:18px;
+  border:1px solid #dbe3ef;
+  background:linear-gradient(180deg,#f8fafc 0%,#eef2f7 100%);
+  overflow:hidden;
+}
+
+.kg-scan-3d-empty{
+  position:absolute;
+  inset:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+  padding:30px;
+  color:#94a3b8;
+  font-size:15px;
+  font-weight:700;
+}
+
+.kg-scan-info-panel{
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+}
+
+.kg-scan-info-box{
+  border:1px solid #dbe3ef;
+  border-radius:16px;
+  background:#f8fafc;
+  padding:16px;
+}
+
+.kg-scan-info-label{
+  font-size:11px;
+  font-weight:800;
+  color:#64748b;
+  text-transform:uppercase;
+  margin-bottom:6px;
+}
+
+.kg-scan-info-value{
+  font-size:22px;
+  font-weight:800;
+  color:#0f172a;
+}
+
+@media(max-width:900px){
+  .kg-scan-result-body{
+    grid-template-columns:1fr;
+  }
+
+  .kg-scan-3d-view{
+    min-height:320px;
+  }
+}
 
 .hero-header-titles h1{margin:0;font-size:20px;font-weight:800;letter-spacing:0.5px;text-transform:uppercase}
 .hero-header-titles h2{margin:4px 0 0 0;font-size:14px;font-weight:500;opacity:0.9}
@@ -393,6 +508,64 @@ body{background:#edf2f7;font-family:'Inter',sans-serif;color:#0f172a}
       </div>
     </div>
 
+    <!-- KG SCAN 3D ERGEBNIS -->
+    <div class="kg-scan-result-card" id="kgScanResultCard">
+      <div class="kg-scan-result-header">
+        <div class="kg-scan-result-title">KG Scan · 3D Objekt</div>
+        <div class="kg-scan-result-status" id="kgScanResultStatus">
+          Noch kein Scan geladen
+        </div>
+      </div>
+
+      <div class="kg-scan-result-body">
+
+        <div class="kg-scan-3d-view" id="kgScan3DView">
+          <div class="kg-scan-3d-empty" id="kgScan3DEmpty">
+            Nach dem iPhone-Scan erscheint hier das 3D-Modell.
+          </div>
+        </div>
+
+        <div class="kg-scan-info-panel">
+
+          <div class="kg-scan-info-box">
+            <div class="kg-scan-info-label">Gesamtfläche</div>
+            <div class="kg-scan-info-value" id="kgScanTotalM2">0,00 m²</div>
+          </div>
+
+          <div class="kg-scan-info-box">
+            <div class="kg-scan-info-label">Räume</div>
+            <div class="kg-scan-info-value" id="kgScanRoomCount">0</div>
+          </div>
+
+          <div class="kg-scan-info-box">
+            <div class="kg-scan-info-label">Fenster</div>
+            <div class="kg-scan-info-value" id="kgScanWindowCount">0</div>
+          </div>
+
+          <div class="kg-scan-info-box">
+            <div class="kg-scan-info-label">Fensterfläche</div>
+            <div class="kg-scan-info-value" id="kgScanWindowM2">0,00 m²</div>
+          </div>
+
+          <div class="kg-scan-info-box">
+            <div class="kg-scan-info-label">Türen</div>
+            <div class="kg-scan-info-value" id="kgScanDoorCount">0</div>
+          </div>
+
+          <div class="kg-scan-info-box">
+            <div class="kg-scan-info-label">WC / Pissoir / Waschbecken</div>
+            <div class="kg-scan-info-value" id="kgScanSanitaer">0 / 0 / 0</div>
+          </div>
+
+          <div class="kg-scan-info-box">
+            <div class="kg-scan-info-label">Tische / Stühle / PC</div>
+            <div class="kg-scan-info-value" id="kgScanObjects">0 / 0 / 0</div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
     <!-- SÜRÜKLENEBİLİR ALANLAR -->
     <div id="sortableSections">
       
@@ -754,7 +927,980 @@ body{background:#edf2f7;font-family:'Inter',sans-serif;color:#0f172a}
 let besichtigungTermine = [];
 let aktiveBesichtigung = null;
 
+function kgGetScanData(lead) {
+  if (!lead || !lead.besichtigung_data_json) {
+    return null;
+  }
+
+  let data = lead.besichtigung_data_json;
+
+  if (typeof data === "string") {
+    try {
+      data = JSON.parse(data);
+    } catch (e) {
+      return null;
+    }
+  }
+
+  if (!data || typeof data !== "object") {
+    return null;
+  }
+
+  const scan = data.kg_scan || {};
+
+  return {
+    ...scan,
+    raeume: Array.isArray(data.raeume) ? data.raeume : []
+  };
+}
+
+const kgScanGLTFLoader = new THREE.GLTFLoader();
+
+const kgScanModelFiles = {
+  desk: "/static/kg_scan_models/desk.glb",
+  officeChair: "/static/kg_scan_models/office_chair.glb",
+  visitorChair: "/static/kg_scan_models/visitor_chair.glb",
+  monitor: "/static/kg_scan_models/monitor.glb",
+  cabinet: "/static/kg_scan_models/cabinet.glb",
+  coffeeTable: "/static/kg_scan_models/coffee_table.glb"
+};
+
+const kgScanModelCache = {};
+
+function kgLoad3DModel(modelKey) {
+  return new Promise((resolve, reject) => {
+    if (kgScanModelCache[modelKey]) {
+      resolve(kgScanModelCache[modelKey].clone(true));
+      return;
+    }
+
+    const modelUrl = kgScanModelFiles[modelKey];
+
+    if (!modelUrl) {
+      reject(new Error("Unbekanntes KG Scan Modell: " + modelKey));
+      return;
+    }
+
+    kgScanGLTFLoader.load(
+      modelUrl,
+      gltf => {
+        const model = gltf.scene;
+
+        kgScanModelCache[modelKey] = model;
+
+        resolve(model.clone(true));
+      },
+      undefined,
+      error => {
+        console.error(
+          "KG Scan 3D Modell konnte nicht geladen werden:",
+          modelKey,
+          error
+        );
+
+        reject(error);
+      }
+    );
+  });
+}
+
+function kgRenderScan3D(scan) {
+  const holder = document.getElementById("kgScan3DView");
+  const empty = document.getElementById("kgScan3DEmpty");
+  const status = document.getElementById("kgScanResultStatus");
+
+  if (!holder) {
+    return;
+  }
+
+  // Eski renderer / SVG / canvas / native preview temizle
+  holder.querySelectorAll("canvas").forEach(el => el.remove());
+  holder.querySelectorAll(".kg-scan-plan-svg").forEach(el => el.remove());
+  holder.querySelectorAll(".kg-scan-view-toolbar").forEach(el => el.remove());
+  holder.querySelectorAll(".kg-native-preview-image").forEach(el => el.remove());
+
+  if (holder.__kgAnimationFrame) {
+    cancelAnimationFrame(holder.__kgAnimationFrame);
+    holder.__kgAnimationFrame = null;
+  }
+
+  if (holder.__kgScanResizeHandler) {
+    window.removeEventListener(
+      "resize",
+      holder.__kgScanResizeHandler
+    );
+    holder.__kgScanResizeHandler = null;
+  }
+
+  const previewVersion = encodeURIComponent(
+    String(
+      scan?.preview_updated_at ||
+      Date.now()
+    )
+  );
+
+  const preview2DRawUrl = String(
+    scan?.preview_2d_url || ""
+  ).trim();
+
+  const preview3DRawUrl = String(
+    scan?.preview_3d_url || ""
+  ).trim();
+
+  const preview2DUrl =
+    preview2DRawUrl
+      ? preview2DRawUrl +
+        "?v=" +
+        previewVersion
+      : "";
+
+  const preview3DUrl =
+    preview3DRawUrl
+      ? preview3DRawUrl +
+        "?v=" +
+        previewVersion
+      : "";
+
+  if (preview2DUrl && preview3DUrl) {
+    if (empty) {
+      empty.style.display = "none";
+    }
+
+    holder.style.background = "#eeeeee";
+
+    const toolbar = document.createElement("div");
+    toolbar.className = "kg-scan-view-toolbar";
+
+    toolbar.style.cssText = `
+      position:absolute;
+      top:14px;
+      left:50%;
+      transform:translateX(-50%);
+      z-index:20;
+      display:flex;
+      align-items:center;
+      gap:4px;
+      padding:4px;
+      border-radius:12px;
+      background:rgba(255,255,255,.94);
+      box-shadow:0 4px 16px rgba(15,23,42,.16);
+      border:1px solid rgba(148,163,184,.35);
+    `;
+
+    const button2D =
+      document.createElement("button");
+
+    const button3D =
+      document.createElement("button");
+
+    function styleNativeButton(button) {
+      button.style.cssText = `
+        border:none;
+        border-radius:9px;
+        padding:8px 18px;
+        font-size:12px;
+        font-weight:800;
+        cursor:pointer;
+        transition:.15s;
+      `;
+    }
+
+    styleNativeButton(button2D);
+    styleNativeButton(button3D);
+
+    button2D.textContent = "2D";
+    button3D.textContent = "3D";
+
+    toolbar.appendChild(button2D);
+    toolbar.appendChild(button3D);
+    holder.appendChild(toolbar);
+
+    const previewImage =
+      document.createElement("img");
+
+    previewImage.className =
+      "kg-native-preview-image";
+
+    previewImage.style.cssText = `
+      position:absolute;
+      inset:0;
+      width:100%;
+      height:100%;
+      object-fit:contain;
+      display:block;
+    `;
+
+    holder.appendChild(
+      previewImage
+    );
+
+    function showNativePreview(mode) {
+      const is2D =
+        mode === "2d";
+
+      previewImage.src =
+        is2D
+          ? preview2DUrl
+          : preview3DUrl;
+
+      button2D.style.background =
+        is2D
+          ? "#087af5"
+          : "#ffffff";
+
+      button2D.style.color =
+        is2D
+          ? "#ffffff"
+          : "#4b5563";
+
+      button3D.style.background =
+        is2D
+          ? "#ffffff"
+          : "#087af5";
+
+      button3D.style.color =
+        is2D
+          ? "#4b5563"
+          : "#ffffff";
+
+      if (status) {
+        status.textContent =
+          is2D
+            ? "iPhone 2D-Plan geladen"
+            : "iPhone 3D-Modell geladen";
+      }
+    }
+
+    button2D.onclick = () => {
+      showNativePreview("2d");
+    };
+
+    button3D.onclick = () => {
+      showNativePreview("3d");
+    };
+
+    showNativePreview("3d");
+
+    return;
+  }
+
+  const modelUrl =    scan?.model_url ||
+    scan?.modelUrl ||
+    "";
+
+  if (!modelUrl) {
+    if (empty) {
+      empty.style.display = "flex";
+      empty.textContent =
+        "RoomPlan 3D-Modell wird geladen...";
+    }
+
+    if (status) {
+      status.textContent = "Modell noch nicht verfügbar";
+    }
+
+    return;
+  }
+
+  if (empty) {
+    empty.style.display = "none";
+  }
+
+  holder.style.background = "#eeeeee";
+
+  // =====================================================
+  // 2D / 3D SCHALTER
+  // =====================================================
+
+  const toolbar = document.createElement("div");
+
+  toolbar.className = "kg-scan-view-toolbar";
+
+  toolbar.style.cssText = `
+    position:absolute;
+    top:14px;
+    left:50%;
+    transform:translateX(-50%);
+    z-index:20;
+
+    display:flex;
+    align-items:center;
+    gap:4px;
+
+    padding:4px;
+
+    border-radius:12px;
+    background:rgba(255,255,255,.94);
+
+    box-shadow:
+      0 4px 16px rgba(15,23,42,.16);
+
+    border:
+      1px solid rgba(148,163,184,.35);
+  `;
+
+  const button2D =
+    document.createElement("button");
+
+  const button3D =
+    document.createElement("button");
+
+  function styleButton(button) {
+    button.style.cssText = `
+      border:none;
+      border-radius:9px;
+      padding:8px 18px;
+      font-size:12px;
+      font-weight:800;
+      cursor:pointer;
+      transition:.15s;
+    `;
+  }
+
+  styleButton(button2D);
+  styleButton(button3D);
+
+  button2D.textContent = "2D";
+  button3D.textContent = "3D";
+
+  toolbar.appendChild(button2D);
+  toolbar.appendChild(button3D);
+
+  holder.appendChild(toolbar);
+
+  // =====================================================
+  // THREE.JS
+  // =====================================================
+
+  const scene =
+    new THREE.Scene();
+
+  scene.background =
+    new THREE.Color(0xeeeeee);
+
+  const renderer =
+    new THREE.WebGLRenderer({
+      antialias: true,
+      alpha: false,
+      preserveDrawingBuffer: true
+    });
+
+  renderer.setPixelRatio(
+    Math.min(
+      window.devicePixelRatio || 1,
+      2
+    )
+  );
+
+  renderer.shadowMap.enabled = true;
+
+  if (
+    THREE.SRGBColorSpace &&
+    "outputColorSpace" in renderer
+  ) {
+    renderer.outputColorSpace =
+      THREE.SRGBColorSpace;
+  }
+
+  renderer.domElement.style.cssText = `
+    position:absolute;
+    inset:0;
+    width:100%;
+    height:100%;
+    display:block;
+  `;
+
+  holder.appendChild(
+    renderer.domElement
+  );
+
+  // =====================================================
+  // LICHT
+  // =====================================================
+
+  const hemiLight =
+    new THREE.HemisphereLight(
+      0xffffff,
+      0x888888,
+      2.2
+    );
+
+  scene.add(
+    hemiLight
+  );
+
+  const directionalLight =
+    new THREE.DirectionalLight(
+      0xffffff,
+      2.8
+    );
+
+  directionalLight.position.set(
+    5,
+    10,
+    7
+  );
+
+  directionalLight.castShadow = true;
+
+  scene.add(
+    directionalLight
+  );
+
+  const fillLight =
+    new THREE.DirectionalLight(
+      0xffffff,
+      1.2
+    );
+
+  fillLight.position.set(
+    -5,
+    6,
+    -5
+  );
+
+  scene.add(
+    fillLight
+  );
+
+  // =====================================================
+  // KAMERALAR
+  // =====================================================
+
+  let perspectiveCamera =
+    new THREE.PerspectiveCamera(
+      35,
+      1,
+      0.01,
+      1000
+    );
+
+  let orthoCamera =
+    new THREE.OrthographicCamera(
+      -5,
+      5,
+      5,
+      -5,
+      0.01,
+      1000
+    );
+
+  let activeCamera =
+    perspectiveCamera;
+
+  let controls = null;
+
+  let currentMode =
+    "3d";
+
+  let modelSize =
+    new THREE.Vector3(
+      1,
+      1,
+      1
+    );
+
+  // =====================================================
+  // MODELLADEN
+  // =====================================================
+
+  if (status) {
+    status.textContent =
+      "RoomPlan-Modell wird geladen...";
+  }
+
+  kgScanGLTFLoader.load(
+    modelUrl,
+
+    gltf => {
+      const model =
+        gltf.scene;
+
+      scene.add(
+        model
+      );
+
+      // Gerçek modelin bounding box'ı.
+      const box =
+        new THREE.Box3()
+          .setFromObject(
+            model
+          );
+
+      const center =
+        new THREE.Vector3();
+
+      box.getCenter(
+        center
+      );
+
+      box.getSize(
+        modelSize
+      );
+
+      // Modeli sahnenin merkezine al.
+      model.position.x -=
+        center.x;
+
+      model.position.y -=
+        box.min.y;
+
+      model.position.z -=
+        center.z;
+
+      // Tekrar gerçek ölçüyü al.
+      const centeredBox =
+        new THREE.Box3()
+          .setFromObject(
+            model
+          );
+
+      centeredBox.getSize(
+        modelSize
+      );
+
+      const maxSize =
+        Math.max(
+          modelSize.x,
+          modelSize.y,
+          modelSize.z,
+          1
+        );
+
+      // =================================================
+      // 3D KAMERA
+      // =================================================
+
+      perspectiveCamera.near =
+        Math.max(
+          maxSize / 1000,
+          0.01
+        );
+
+      perspectiveCamera.far =
+        maxSize * 100;
+
+      perspectiveCamera.position.set(
+        maxSize * 1.20,
+        maxSize * 1.15,
+        maxSize * 1.20
+      );
+
+      perspectiveCamera.lookAt(
+        0,
+        modelSize.y * 0.28,
+        0
+      );
+
+      perspectiveCamera.updateProjectionMatrix();
+
+      // =================================================
+      // 2D KAMERA
+      // RoomPlan modelinin DIREKT yukarıdan görüntüsü.
+      // SVG yeniden çizimi YOK.
+      // =================================================
+
+      const planWidth =
+        Math.max(
+          modelSize.x,
+          0.5
+        );
+
+      const planDepth =
+        Math.max(
+          modelSize.z,
+          0.5
+        );
+
+      const planPadding =
+        1.15;
+
+      orthoCamera.left =
+        -(planWidth * planPadding) / 2;
+
+      orthoCamera.right =
+        (planWidth * planPadding) / 2;
+
+      orthoCamera.top =
+        (planDepth * planPadding) / 2;
+
+      orthoCamera.bottom =
+        -(planDepth * planPadding) / 2;
+
+      orthoCamera.near =
+        0.01;
+
+      orthoCamera.far =
+        maxSize * 100;
+
+      orthoCamera.position.set(
+        0,
+        maxSize * 5,
+        0
+      );
+
+      // Yukarıdan bakarken ekran yönünü sabitle.
+      orthoCamera.up.set(
+        0,
+        0,
+        -1
+      );
+
+      orthoCamera.lookAt(
+        0,
+        0,
+        0
+      );
+
+      orthoCamera.updateProjectionMatrix();
+
+      // =================================================
+      // CONTROLS
+      // =================================================
+
+      controls =
+        new THREE.OrbitControls(
+          perspectiveCamera,
+          renderer.domElement
+        );
+
+      controls.enableDamping =
+        true;
+
+      controls.dampingFactor =
+        0.08;
+
+      controls.target.set(
+        0,
+        modelSize.y * 0.25,
+        0
+      );
+
+      controls.update();
+
+      setMode(
+        "3d"
+      );
+
+      if (status) {
+        status.textContent =
+          "RoomPlan · 2D / 3D";
+      }
+
+      resizeRenderer();
+    },
+
+    undefined,
+
+    error => {
+      console.error(
+        "RoomPlan Modell konnte nicht geladen werden:",
+        error
+      );
+
+      if (empty) {
+        empty.style.display =
+          "flex";
+
+        empty.textContent =
+          "3D-Modell konnte nicht geladen werden.";
+      }
+
+      if (status) {
+        status.textContent =
+          "Modellfehler";
+      }
+    }
+  );
+
+  // =====================================================
+  // 2D / 3D MODUS
+  // =====================================================
+
+  function setMode(mode) {
+    currentMode =
+      mode;
+
+    if (
+      mode === "2d"
+    ) {
+      activeCamera =
+        orthoCamera;
+
+      if (controls) {
+        controls.dispose();
+
+        controls =
+          new THREE.OrbitControls(
+            orthoCamera,
+            renderer.domElement
+          );
+
+        controls.enableRotate =
+          false;
+
+        controls.enablePan =
+          true;
+
+        controls.enableZoom =
+          true;
+
+        controls.enableDamping =
+          true;
+
+        controls.target.set(
+          0,
+          0,
+          0
+        );
+
+        controls.update();
+      }
+
+      button2D.style.background =
+        "#2563eb";
+
+      button2D.style.color =
+        "#ffffff";
+
+      button3D.style.background =
+        "transparent";
+
+      button3D.style.color =
+        "#475569";
+
+      if (status) {
+        status.textContent =
+          "RoomPlan · 2D Grundriss";
+      }
+
+    } else {
+
+      activeCamera =
+        perspectiveCamera;
+
+      if (controls) {
+        controls.dispose();
+
+        controls =
+          new THREE.OrbitControls(
+            perspectiveCamera,
+            renderer.domElement
+          );
+
+        controls.enableRotate =
+          true;
+
+        controls.enablePan =
+          true;
+
+        controls.enableZoom =
+          true;
+
+        controls.enableDamping =
+          true;
+
+        controls.dampingFactor =
+          0.08;
+
+        controls.target.set(
+          0,
+          modelSize.y * 0.25,
+          0
+        );
+
+        controls.update();
+      }
+
+      button3D.style.background =
+        "#2563eb";
+
+      button3D.style.color =
+        "#ffffff";
+
+      button2D.style.background =
+        "transparent";
+
+      button2D.style.color =
+        "#475569";
+
+      if (status) {
+        status.textContent =
+          "RoomPlan · 3D Modell";
+      }
+    }
+
+    resizeRenderer();
+  }
+
+  button2D.onclick =
+    () => setMode("2d");
+
+  button3D.onclick =
+    () => setMode("3d");
+
+  // =====================================================
+  // RESPONSIVE
+  // =====================================================
+
+  function resizeRenderer() {
+    const width =
+      Math.max(
+        holder.clientWidth,
+        1
+      );
+
+    const height =
+      Math.max(
+        holder.clientHeight,
+        1
+      );
+
+    renderer.setSize(
+      width,
+      height,
+      false
+    );
+
+    perspectiveCamera.aspect =
+      width / height;
+
+    perspectiveCamera.updateProjectionMatrix();
+
+    // 2D'de model oranını koru.
+    if (
+      modelSize.x > 0 &&
+      modelSize.z > 0
+    ) {
+      const aspect =
+        width / height;
+
+      const modelAspect =
+        modelSize.x /
+        modelSize.z;
+
+      const padding =
+        1.15;
+
+      if (
+        aspect >
+        modelAspect
+      ) {
+        const visibleHeight =
+          modelSize.z *
+          padding;
+
+        const visibleWidth =
+          visibleHeight *
+          aspect;
+
+        orthoCamera.left =
+          -visibleWidth / 2;
+
+        orthoCamera.right =
+          visibleWidth / 2;
+
+        orthoCamera.top =
+          visibleHeight / 2;
+
+        orthoCamera.bottom =
+          -visibleHeight / 2;
+
+      } else {
+
+        const visibleWidth =
+          modelSize.x *
+          padding;
+
+        const visibleHeight =
+          visibleWidth /
+          aspect;
+
+        orthoCamera.left =
+          -visibleWidth / 2;
+
+        orthoCamera.right =
+          visibleWidth / 2;
+
+        orthoCamera.top =
+          visibleHeight / 2;
+
+        orthoCamera.bottom =
+          -visibleHeight / 2;
+      }
+
+      orthoCamera.updateProjectionMatrix();
+    }
+  }
+
+  holder.__kgScanResizeHandler =
+    resizeRenderer;
+
+  window.addEventListener(
+    "resize",
+    resizeRenderer
+  );
+
+  resizeRenderer();
+
+  // =====================================================
+  // RENDER LOOP
+  // =====================================================
+
+  function animate() {
+    holder.__kgAnimationFrame =
+      requestAnimationFrame(
+        animate
+      );
+
+    if (controls) {
+      controls.update();
+    }
+
+    renderer.render(
+      scene,
+      activeCamera
+    );
+  }
+
+  animate();
+}
+function kgRenderScanInfo(scan) {
+  scan = scan || {};
+
+  const rooms = Array.isArray(scan.raeume) ? scan.raeume : [];
+
+  const totalM2 = rooms.reduce((sum, room) => {
+    return sum + Number(room.m2 || room.area || 0);
+  }, 0);
+
+  const windows = Number(scan.windows || 0);
+  const windowArea = Number(scan.window_area || scan.windowArea || 0);
+  const doors = Number(scan.doors || 0);
+
+  const toilets = Number(scan.toilets || 0);
+  const urinals = Number(scan.urinals || 0);
+  const sinks = Number(scan.sinks || 0);
+
+  const tables = Number(scan.tables || 0);
+  const chairs = Number(scan.chairs || 0);
+
+  const pc =
+    Number(scan.pc || 0) ||
+    Number(scan.pc_monitor || 0);
+
+  setText("kgScanTotalM2", totalM2.toFixed(2).replace(".", ",") + " m²");
+  setText("kgScanRoomCount", rooms.length);
+  setText("kgScanWindowCount", windows);
+  setText("kgScanWindowM2", windowArea.toFixed(2).replace(".", ",") + " m²");
+  setText("kgScanDoorCount", doors);
+  setText("kgScanSanitaer", `${toilets} / ${urinals} / ${sinks}`);
+  setText("kgScanObjects", `${tables} / ${chairs} / ${pc}`);
+}
+
 document.addEventListener("DOMContentLoaded", function() {
+
+
   if (document.getElementById("startTerminInput")) {
     flatpickr("#startTerminInput", {
       locale: "de",
@@ -795,6 +1941,7 @@ async function loadBesichtigungTermine() {
     renderBesichtigungTermine();
 
   } catch (err) {
+
     list.innerHTML = '<div class="besichtigung-empty">Besichtigungstermine konnten nicht geladen werden.</div>';
     if (count) count.textContent = "0";
   }
@@ -869,6 +2016,10 @@ function startBesichtigung(index) {
   fillBesichtigungHeader(lead);
   fillBesichtigungHiddenInputs(lead);
   kgRestoreSavedBesichtigungData(lead);
+
+  const scanData = kgGetScanData(lead);
+  kgRenderScan3D(scanData);
+  kgRenderScanInfo(scanData);
 
   const picker = document.getElementById("besichtigungPicker");
   if (picker) picker.classList.remove("open");
