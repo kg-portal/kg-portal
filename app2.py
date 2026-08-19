@@ -8,6 +8,8 @@ from urllib.parse import unquote
 import sqlite3
 import os
 import re
+import shutil
+import subprocess
 from html import escape
 from email.utils import parsedate_to_datetime
 from datetime import datetime
@@ -2678,21 +2680,145 @@ www.kg-reinigung.de
             "besichtigung_id": besichtigung_id
         })
     # =====================================================
-    # KG SCAN APP - BESICHTIGUNG LISTESI API
-    # iPhone uygulamasi CRM'deki Besichtigung kayitlarini okur.
+    # KG SCAN APP - CRM API
+    # GET  = Besichtigung listesini iPhone'a yollar
+    # POST = Tarama sonucunu ilgili Besichtigung kaydina yazar
     # =====================================================
 
-    @app.route("/internal/kg-scan/besichtigungen", methods=["GET"])
-    def kg_scan_besichtigungen():
-
+    def kg_scan_token_ok():
         expected_token = os.getenv("KG_SCAN_API_TOKEN", "").strip()
         given_token = request.headers.get("X-KG-SCAN-TOKEN", "").strip()
 
-        if not expected_token or given_token != expected_token:
+        return bool(
+            expected_token
+            and given_token
+            and given_token == expected_token
+        )
+
+
+    @app.route("/internal/kg-scan/neukunde", methods=["POST"])
+    def kg_scan_neukunde():
+        if not kg_scan_token_ok():
             return jsonify({
                 "ok": False,
                 "message": "Unauthorized"
             }), 403
+
+        ensure_tagesliste_table()
+
+        data = request.get_json(silent=True) or {}
+
+        firma = str(data.get("firma") or "").strip()
+        ansprechpartner = str(data.get("ansprechpartner") or "").strip()
+        strasse = str(data.get("strasse") or "").strip()
+        plz = str(data.get("plz") or "").strip()
+        ort = str(data.get("ort") or "").strip()
+        telefon = str(data.get("telefon") or "").strip()
+        email = str(data.get("email") or "").strip()
+
+        if not firma:
+            return jsonify({
+                "ok": False,
+                "message": "Firmenname fehlt."
+            }), 400
+
+        conn = sqlite3.connect(DB_PATH)
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
+
+        besichtigung_data = {
+            "direktes_angebot": True,
+            "quelle": "KG Scan Neukunde",
+            "kunde": {
+                "firma": firma,
+                "ansprechpartner": ansprechpartner,
+                "strasse": strasse,
+                "plz": plz,
+                "ort": ort,
+                "telefon": telefon,
+                "email": email
+            },
+            "leistungen": [],
+            "raeume": [],
+            "bereiche": [],
+            "sonstiges": [],
+            "notizen": []
+        }
+
+        company_key = (
+            "kg-scan-neukunde-"
+            + datetime.now().strftime("%Y%m%d%H%M%S%f")
+        )
+
+        cursor.execute("""
+            INSERT INTO tagesliste_leads (
+                firma,
+                branche,
+                ansprechpartner,
+                strasse,
+                plz,
+                ort,
+                telefon,
+                email,
+                quelle,
+                status,
+                notiz,
+                company_key,
+                besichtigung_data_json
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """, (
+            firma,
+            "KG Scan",
+            ansprechpartner,
+            strasse,
+            plz,
+            ort,
+            telefon,
+            email,
+            "KG Scan · Neukunde",
+            "besichtigung",
+            "Neukunde über KG Scan",
+            company_key,
+            json.dumps(
+                besichtigung_data,
+                ensure_ascii=False
+            )
+        ))
+
+        besichtigung_id = cursor.lastrowid
+
+        cursor.execute("""
+            INSERT OR IGNORE INTO tagesliste_status_history (
+                tagesliste_id,
+                status,
+                datum
+            )
+            VALUES (?, 'besichtigung', date('now', 'localtime'))
+        """, (
+            besichtigung_id,
+        ))
+
+        conn.commit()
+        conn.close()
+
+        return jsonify({
+            "ok": True,
+            "message": "Neukunde wurde gespeichert.",
+            "besichtigung_id": besichtigung_id
+        })
+
+
+    @app.route("/internal/kg-scan/besichtigungen", methods=["GET"])
+    def kg_scan_besichtigungen():
+
+        if not kg_scan_token_ok():
+            return jsonify({
+                "ok": False,
+                "message": "Unauthorized"
+            }), 403
+
+        ensure_tagesliste_table()
 
         conn = sqlite3.connect(DB_PATH)
         conn.row_factory = sqlite3.Row
@@ -2746,6 +2872,692 @@ www.kg-reinigung.de
             "termine": termine
         })
 
+    @app.route("/internal/kg-scan/model", methods=["POST"])
+    def kg_scan_model_upload():
+
+        if not kg_scan_token_ok():
+            return jsonify({
+                "ok": False,
+                "message": "Unauthorized"
+            }), 403
+
+        try:
+            tagesliste_id = int(
+                request.form.get("tagesliste_id") or 0
+            )
+        except Exception:
+            tagesliste_id = 0
+
+        if tagesliste_id <= 0:
+            return jsonify({
+                "ok": False,
+                "message": "Besichtigung-ID fehlt."
+            }), 400
+
+        model_file = request.files.get("model")
+
+        if not model_file:
+            return jsonify({
+                "ok": False,
+                "message": "USDZ-Datei fehlt."
+            }), 400
+
+        original_name = str(
+            model_file.filename or ""
+        ).strip()
+
+        if not original_name.lower().endswith(".usdz"):
+            return jsonify({
+                "ok": False,
+                "message": "Nur USDZ-Dateien sind erlaubt."
+            }), 400
+
+        conn = sqlite3.connect(DB_PATH)
+        conn.row_factory = sqlite3.Row
+
+        row = conn.execute("""
+            SELECT id, besichtigung_data_json
+            FROM tagesliste_leads
+            WHERE id = ?
+            AND status = 'besichtigung'
+        """, (tagesliste_id,)).fetchone()
+
+        if not row:
+            conn.close()
+
+            return jsonify({
+                "ok": False,
+                "message": "Besichtigung wurde nicht gefunden."
+            }), 404
+
+        model_dir = os.path.join(
+            STATIC_DIR,
+            "kg_scan_models",
+            "scans"
+        )
+
+        os.makedirs(
+            model_dir,
+            exist_ok=True
+        )
+
+        usdz_filename = (
+            f"besichtigung_{tagesliste_id}.usdz"
+        )
+
+        usdz_path = os.path.join(
+            model_dir,
+            usdz_filename
+        )
+
+        flattened_filename = (
+            f"besichtigung_{tagesliste_id}_flat.usdc"
+        )
+
+        flattened_path = os.path.join(
+            model_dir,
+            flattened_filename
+        )
+
+        glb_filename = (
+            f"besichtigung_{tagesliste_id}.glb"
+        )
+
+        glb_path = os.path.join(
+            model_dir,
+            glb_filename
+        )
+
+        model_file.save(
+            usdz_path
+        )
+
+        try:
+            from pxr import Usd
+
+            stage = Usd.Stage.Open(
+                usdz_path
+            )
+
+            if not stage:
+                raise RuntimeError(
+                    "USDZ konnte von OpenUSD nicht geöffnet werden."
+                )
+
+            if os.path.exists(
+                flattened_path
+            ):
+                os.remove(
+                    flattened_path
+                )
+
+            export_ok = stage.Export(
+                flattened_path
+            )
+
+            if not export_ok:
+                raise RuntimeError(
+                    "USDZ konnte nicht geflattet werden."
+                )
+
+        except Exception as e:
+            conn.close()
+
+            return jsonify({
+                "ok": False,
+                "message": (
+                    "OpenUSD-Fehler: "
+                    + str(e)
+                )
+            }), 500
+
+        blender_path = (
+            os.environ.get("BLENDER_BIN")
+            or shutil.which("blender")
+            or shutil.which("blender.exe")
+            or r"C:\Program Files\Blender Foundation\Blender 5.2\blender.exe"
+        )
+
+        if not blender_path:
+            conn.close()
+
+            return jsonify({
+                "ok": False,
+                "message": (
+                    "Blender wurde nicht gefunden."
+                )
+            }), 500
+
+        try:
+            if os.path.exists(
+                glb_path
+            ):
+                os.remove(
+                    glb_path
+                )
+
+            blender_script = (
+                "import bpy,sys;"
+                "src=sys.argv[sys.argv.index('--')+1];"
+                "dst=sys.argv[sys.argv.index('--')+2];"
+                "bpy.ops.object.select_all(action='SELECT');"
+                "bpy.ops.object.delete(use_global=False);"
+                "bpy.ops.wm.usd_import(filepath=src);"
+                "bpy.ops.export_scene.gltf("
+                "filepath=dst,"
+                "export_format='GLB'"
+                ")"
+            )
+
+            result = subprocess.run(
+                [
+                    blender_path,
+                    "--background",
+                    "--factory-startup",
+                    "--python-expr",
+                    blender_script,
+                    "--",
+                    flattened_path,
+                    glb_path
+                ],
+                capture_output=True,
+                text=True,
+                timeout=180
+            )
+
+            if (
+                result.returncode != 0
+                or not os.path.exists(glb_path)
+                or os.path.getsize(glb_path) <= 0
+            ):
+                raise RuntimeError(
+                    result.stderr
+                    or result.stdout
+                    or "GLB-Konvertierung fehlgeschlagen."
+                )
+
+        except Exception as e:
+            conn.close()
+
+            return jsonify({
+                "ok": False,
+                "message": (
+                    "GLB-Konvertierungsfehler: "
+                    + str(e)
+                )
+            }), 500
+
+        model_url = (
+            f"/static/kg_scan_models/scans/"
+            f"{glb_filename}"
+        )
+
+        fresh_row = conn.execute("""
+            SELECT besichtigung_data_json
+            FROM tagesliste_leads
+            WHERE id = ?
+        """, (
+            tagesliste_id,
+        )).fetchone()
+
+        existing = {}
+
+        if (
+            fresh_row
+            and fresh_row["besichtigung_data_json"]
+        ):
+            try:
+                existing = json.loads(
+                    fresh_row["besichtigung_data_json"]
+                )
+            except Exception:
+                existing = {}
+
+        if not isinstance(existing, dict):
+            existing = {}
+
+        kg_scan = existing.get("kg_scan") or {}
+
+        if not isinstance(kg_scan, dict):
+            kg_scan = {}
+
+        kg_scan["model_id"] = glb_filename
+        kg_scan["model_url"] = model_url
+        kg_scan["model_source_usdz"] = usdz_filename
+        kg_scan["model_updated_at"] = (
+            datetime.now().isoformat()
+        )
+
+        existing["kg_scan"] = kg_scan
+
+        conn.execute("""
+            UPDATE tagesliste_leads
+            SET besichtigung_data_json = ?
+            WHERE id = ?
+        """, (
+            json.dumps(
+                existing,
+                ensure_ascii=False
+            ),
+            tagesliste_id
+        ))
+
+        conn.commit()
+        conn.close()
+
+        try:
+            if os.path.exists(
+                flattened_path
+            ):
+                os.remove(
+                    flattened_path
+                )
+        except Exception:
+            pass
+
+        return jsonify({
+            "ok": True,
+            "model_id": glb_filename,
+            "model_url": model_url
+        })
+
+    @app.route("/internal/kg-scan/previews", methods=["POST"])
+    def kg_scan_previews_upload():
+
+        if not kg_scan_token_ok():
+            return jsonify({
+                "ok": False,
+                "message": "Unauthorized"
+            }), 403
+
+        try:
+            tagesliste_id = int(
+                request.form.get("tagesliste_id") or 0
+            )
+        except Exception:
+            tagesliste_id = 0
+
+        if tagesliste_id <= 0:
+            return jsonify({
+                "ok": False,
+                "message": "Besichtigung-ID fehlt."
+            }), 400
+
+        preview_2d = request.files.get("preview_2d")
+        preview_3d = request.files.get("preview_3d")
+
+        if not preview_2d or not preview_3d:
+            return jsonify({
+                "ok": False,
+                "message": "2D- oder 3D-Vorschau fehlt."
+            }), 400
+
+        conn = sqlite3.connect(
+            DB_PATH,
+            timeout=30
+        )
+
+        conn.execute(
+            "PRAGMA busy_timeout = 30000"
+        )
+
+        conn.row_factory = sqlite3.Row
+
+        row = conn.execute("""
+            SELECT id, besichtigung_data_json
+            FROM tagesliste_leads
+            WHERE id = ?
+            AND status = 'besichtigung'
+        """, (tagesliste_id,)).fetchone()
+
+        if not row:
+            conn.close()
+
+            return jsonify({
+                "ok": False,
+                "message": "Besichtigung wurde nicht gefunden."
+            }), 404
+
+        preview_dir = os.path.join(
+            os.path.dirname(DB_PATH),
+            "kg_scan_previews"
+        )
+        os.makedirs(
+            preview_dir,
+            exist_ok=True
+        )
+
+        preview_2d_filename = (
+            f"besichtigung_{tagesliste_id}_2d.png"
+        )
+
+        preview_3d_filename = (
+            f"besichtigung_{tagesliste_id}_3d.png"
+        )
+
+        preview_2d_path = os.path.join(
+            preview_dir,
+            preview_2d_filename
+        )
+
+        preview_3d_path = os.path.join(
+            preview_dir,
+            preview_3d_filename
+        )
+
+        preview_2d.save(
+            preview_2d_path
+        )
+
+        preview_3d.save(
+            preview_3d_path
+        )
+
+        preview_2d_url = (
+            f"/internal/kg-scan/preview/"
+            f"{preview_2d_filename}"
+        )
+
+        preview_3d_url = (
+            f"/internal/kg-scan/preview/"
+            f"{preview_3d_filename}"
+        )
+        existing = {}
+
+        if row["besichtigung_data_json"]:
+            try:
+                existing = json.loads(
+                    row["besichtigung_data_json"]
+                )
+            except Exception:
+                existing = {}
+
+        if not isinstance(existing, dict):
+            existing = {}
+
+        kg_scan = existing.get("kg_scan") or {}
+
+        if not isinstance(kg_scan, dict):
+            kg_scan = {}
+
+        kg_scan["preview_2d_url"] = (
+            preview_2d_url
+        )
+
+        kg_scan["preview_3d_url"] = (
+            preview_3d_url
+        )
+
+        kg_scan["preview_updated_at"] = (
+            datetime.now().isoformat()
+        )
+
+        existing["kg_scan"] = kg_scan
+
+        conn.execute("""
+            UPDATE tagesliste_leads
+            SET besichtigung_data_json = ?
+            WHERE id = ?
+        """, (
+            json.dumps(
+                existing,
+                ensure_ascii=False
+            ),
+            tagesliste_id
+        ))
+
+        conn.commit()
+        conn.close()
+
+        return jsonify({
+            "ok": True,
+            "preview_2d_url": preview_2d_url,
+            "preview_3d_url": preview_3d_url
+        })
+
+    @app.route(
+        "/internal/kg-scan/preview/<filename>",
+        methods=["GET"]
+    )
+    @login_required
+    def kg_scan_preview_file(filename):
+
+        safe_filename = os.path.basename(
+            filename
+        )
+
+        if (
+            safe_filename != filename
+            or not safe_filename.lower().endswith(".png")
+        ):
+            return Response(
+                status=404
+            )
+
+        preview_dir = os.path.join(
+            os.path.dirname(DB_PATH),
+            "kg_scan_previews"
+        )
+
+        preview_path = os.path.join(
+            preview_dir,
+            safe_filename
+        )
+
+        if not os.path.isfile(
+            preview_path
+        ):
+            return Response(
+                status=404
+            )
+
+        with open(
+            preview_path,
+            "rb"
+        ) as preview_file:
+            preview_data = preview_file.read()
+
+        return Response(
+            preview_data,
+            mimetype="image/png",
+            headers={
+                "Cache-Control": "no-store"
+            }
+        )
+
+    @app.route("/internal/kg-scan/result", methods=["POST"])
+    def kg_scan_result():
+        if not kg_scan_token_ok():
+            return jsonify({
+                "ok": False,
+                "message": "Unauthorized"
+            }), 403
+
+        ensure_tagesliste_table()
+
+        data = request.get_json(silent=True) or {}
+
+        try:
+            tagesliste_id = int(data.get("tagesliste_id") or 0)
+        except Exception:
+            tagesliste_id = 0
+
+        if tagesliste_id <= 0:
+            return jsonify({
+                "ok": False,
+                "message": "Besichtigung-ID fehlt."
+            }), 400
+
+        scan_rooms = data.get("raeume") or []
+
+        if not isinstance(scan_rooms, list):
+            scan_rooms = []
+
+        conn = sqlite3.connect(
+            DB_PATH,
+            timeout=30
+        )
+        conn.execute(
+            "PRAGMA busy_timeout = 30000"
+        )
+        conn.row_factory = sqlite3.Row
+
+        row = conn.execute("""
+            SELECT
+                firma,
+                ansprechpartner,
+                strasse,
+                plz,
+                ort,
+                telefon,
+                email,
+                besichtigung_data_json
+            FROM tagesliste_leads
+            WHERE id = ?
+            AND status = 'besichtigung'
+        """, (tagesliste_id,)).fetchone()
+
+        if not row:
+            conn.close()
+
+            return jsonify({
+                "ok": False,
+                "message": "Besichtigung wurde nicht gefunden."
+            }), 404
+
+        existing = {}
+
+        if row["besichtigung_data_json"]:
+            try:
+                existing = json.loads(row["besichtigung_data_json"])
+            except Exception:
+                existing = {}
+
+        if not isinstance(existing, dict):
+            existing = {}
+
+        vorhandene_leistungen = existing.get("leistungen")
+
+        if not isinstance(vorhandene_leistungen, list):
+            vorhandene_leistungen = []
+
+        if not vorhandene_leistungen:
+            vorhandene_leistungen = ["Unterhaltsreinigung"]
+
+        neue_raeume = []
+
+        for index, room in enumerate(scan_rooms, start=1):
+
+            if not isinstance(room, dict):
+                continue
+
+            typ = str(
+                room.get("typ")
+                or room.get("type")
+                or room.get("roomType")
+                or "Büroraum"
+            ).strip()
+
+            name = str(
+                room.get("name")
+                or f"{typ} {index}"
+            ).strip()
+
+            try:
+                m2 = float(
+                    str(
+                        room.get("m2")
+                        or room.get("area")
+                        or 0
+                    ).replace(",", ".")
+                )
+            except Exception:
+                m2 = 0.0
+
+            alte_frequenz = ""
+
+            for old_room in existing.get("raeume") or []:
+                if not isinstance(old_room, dict):
+                    continue
+
+                old_name = str(old_room.get("name") or "").strip().lower()
+                old_typ = str(old_room.get("typ") or "").strip().lower()
+
+                if (
+                    old_name == name.lower()
+                    or (
+                        old_typ == typ.lower()
+                        and not alte_frequenz
+                    )
+                ):
+                    alte_frequenz = str(
+                        old_room.get("haeufigkeit") or ""
+                    ).strip()
+                    break
+
+            neue_raeume.append({
+                "section": "Unterhaltsreinigung",
+                "typ": typ,
+                "name": name,
+                "m2": round(m2, 2),
+                "haeufigkeit": alte_frequenz
+            })
+
+        scan_data = {
+            "quelle": "KG Scan",
+            "kunde": {
+                "firma": row["firma"] or "",
+                "ansprechpartner": row["ansprechpartner"] or "",
+                "strasse": row["strasse"] or "",
+                "plz": row["plz"] or "",
+                "ort": row["ort"] or "",
+                "telefon": row["telefon"] or "",
+                "email": row["email"] or ""
+            },
+            "leistungen": vorhandene_leistungen,
+            "raeume": neue_raeume,
+            "elemente": existing.get("elemente") or {
+                "arbeitstische": "0",
+                "pc_monitor": "0",
+                "muellbehaelter": "0"
+            },
+            "sonstiges": existing.get("sonstiges") or [],
+            "einsatzzeiten": existing.get("einsatzzeiten") or [],
+            "notiz": existing.get("notiz") or "",
+            "kg_scan": {
+                "windows": data.get("windows") or 0,
+                "window_area": data.get("window_area") or 0,
+                "doors": data.get("doors") or 0,
+                "tables": data.get("tables") or 0,
+                "chairs": data.get("chairs") or 0,
+                "printers": data.get("printers") or 0,
+                "toilets": data.get("toilets") or 0,
+                "urinals": data.get("urinals") or 0,
+                "sinks": data.get("sinks") or 0,
+                "geometry": data.get("geometry") or [],
+                "model_id": data.get("model_id") or "",
+                "gescannt_am": datetime.now().isoformat()
+            }
+        }
+
+        conn.execute("""
+            UPDATE tagesliste_leads
+            SET besichtigung_data_json = ?
+            WHERE id = ?
+        """, (
+            json.dumps(scan_data, ensure_ascii=False),
+            tagesliste_id
+        ))
+
+        conn.commit()
+        conn.close()
+
+        return jsonify({
+            "ok": True,
+            "message": "Scan wurde in CRM gespeichert.",
+            "tagesliste_id": tagesliste_id,
+            "besichtigung_data": scan_data
+        })
 
 # =====================================================
 # APP2 - BÖLÜM 1.1 - APIFY LEAD IMPORT API
