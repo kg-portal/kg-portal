@@ -2841,9 +2841,34 @@ www.kg-reinigung.de
                 besichtigung_data_json
             FROM tagesliste_leads
             WHERE status = 'besichtigung'
+
+            UNION ALL
+
+            SELECT
+                b.tagesliste_id AS id,
+                b.firma,
+                b.branche,
+                b.ansprechpartner,
+                b.strasse,
+                b.plz,
+                b.ort,
+                b.telefon,
+                b.email,
+                b.website,
+                b.quelle,
+                b.status,
+                b.notiz,
+                NULL AS besichtigung_data_json
+            FROM tagesliste_status_backup b
+            WHERE b.status = 'besichtigung'
+            AND NOT EXISTS (
+                SELECT 1
+                FROM tagesliste_leads t
+                WHERE t.id = b.tagesliste_id
+            )
+
             ORDER BY id DESC
         """).fetchall()
-
         conn.close()
 
         termine = []
