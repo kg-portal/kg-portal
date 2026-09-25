@@ -1172,7 +1172,7 @@ def kunden():
                         sehir=form_data.get("stadt"),
                         sokak=form_data.get("strasse"),
                         plz=form_data.get("plz"),
-                        email=(form_data.get("rechnung_email") or form_data.get("email")),
+                        email=((form_data.get("rechnung_email") or "").strip() if (form_data.get("rechnung_email") or "").strip() not in ["-", "—", "–"] else (form_data.get("email") or "").strip()),
                         telefon=form_data.get("telefon")
                     )
             except Exception as e:
@@ -1206,7 +1206,7 @@ def kunden():
                     sehir=form_data.get("stadt"), 
                     sokak=form_data.get("strasse"),
                     plz=form_data.get("plz"),
-                    email=(form_data.get("rechnung_email") or form_data.get("email")),
+                    email=((form_data.get("rechnung_email") or "").strip() if (form_data.get("rechnung_email") or "").strip() not in ["-", "—", "–"] else (form_data.get("email") or "").strip()),
                     telefon=form_data.get("telefon")
                 )
                 
