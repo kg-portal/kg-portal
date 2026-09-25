@@ -402,9 +402,12 @@ function renderQualityCustomers(){
         const surveyText = k.last_survey_at
             ? '<button type="button" class="quality-badge green" style="border:none;cursor:pointer" onclick="event.stopPropagation(); openSurveyDetail('+k.id+')">'+escapeQualityHtml(surveyAverage)+'/5 ansehen</button>'
             : '<span class="quality-badge gray">Noch keine</span>';
+        const campaignBadge = k.campaign_active
+            ? '<span class="quality-badge green" style="margin-left:6px">Kampagne aktiv</span>'
+            : '';
         return `<div class="quality-row ${disabled?'disabled':''}">
             <div><input type="checkbox" class="quality-cb" data-id="${k.id}" ${disabled?'disabled':''} onchange="updateQualitySelectedCount()"></div>
-            <div><button type="button" class="quality-company-link" onclick="openSurveyDetail(${k.id})">${escapeQualityHtml(k.firma)}</button><div>${escapeQualityHtml(k.ort || '')} ${state}</div></div>
+            <div><button type="button" class="quality-company-link" onclick="openSurveyDetail(${k.id})">${escapeQualityHtml(k.firma)}</button><div>${escapeQualityHtml(k.ort || '')} ${state}${campaignBadge}</div></div>
             <div>${escapeQualityHtml(k.ansprechpartner_name || '-')}</div>
             <div>${escapeQualityHtml(k.email || '-')}</div>
             <div>${escapeQualityHtml(k.last_sent || '-')}</div>
