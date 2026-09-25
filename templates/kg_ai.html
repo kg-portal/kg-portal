@@ -389,8 +389,18 @@ function renderQualityCustomers(){
         else if(!k.last_sent) state = '<span class="quality-badge blue">Noch nie</span>';
         else if(qualityIsDue(k)) state = '<span class="quality-badge green">Fällig</span>';
         else state = '<span class="quality-badge gray">Aktuell</span>';
+        const surveyScores = [
+            Number(k.score_gesamt || 0),
+            Number(k.score_mitarbeiter || 0),
+            Number(k.score_sauberkeit || 0),
+            Number(k.score_reinigungsmittel || 0),
+            Number(k.score_kommunikation || 0)
+        ];
+        const surveyAverage = surveyScores.every(v => v > 0)
+            ? (surveyScores.reduce((sum, v) => sum + v, 0) / surveyScores.length).toFixed(1)
+            : '-';
         const surveyText = k.last_survey_at
-            ? '<button type="button" class="quality-badge green" style="border:none;cursor:pointer" onclick="event.stopPropagation(); openSurveyDetail('+k.id+')">'+escapeQualityHtml(k.score_gesamt || '-')+'/5 ansehen</button>'
+            ? '<button type="button" class="quality-badge green" style="border:none;cursor:pointer" onclick="event.stopPropagation(); openSurveyDetail('+k.id+')">'+escapeQualityHtml(surveyAverage)+'/5 ansehen</button>'
             : '<span class="quality-badge gray">Noch keine</span>';
         return `<div class="quality-row ${disabled?'disabled':''}">
             <div><input type="checkbox" class="quality-cb" data-id="${k.id}" ${disabled?'disabled':''} onchange="updateQualitySelectedCount()"></div>
