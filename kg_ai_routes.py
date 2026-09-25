@@ -447,7 +447,7 @@ def register_kg_ai_routes(app, login_required, get_db_connection, normalize_phon
         }
 
     def kundenpflege_mail_text(kunde, survey_url, unsubscribe_url):
-        return """Sehr geehrte Damen und Herren,
+        return """Sehr geehrter Kunde,
 
 wir möchten regelmäßig sicherstellen, dass Sie mit unserer Reinigungsleistung zufrieden sind.
 
@@ -478,7 +478,7 @@ Ihr Team von KG Gebäudereinigung
         firma = str(kunde.get("firma") or "").strip()
         return """
         <div style="font-family:Arial,Helvetica,sans-serif;font-size:14px;line-height:1.65;color:#111827;">
-            <p>Sehr geehrte Damen und Herren,</p>
+            <p>Sehr geehrter Kunde,</p>
             <p>wir möchten regelmäßig sicherstellen, dass Sie mit unserer Reinigungsleistung zufrieden sind.</p>
             <p>Dürfen wir Sie kurz um eine Rückmeldung bitten?</p>
             <ul style="padding-left:20px;">
