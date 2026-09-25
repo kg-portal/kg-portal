@@ -103,8 +103,7 @@ Wenn Sie diese Qualitätsabfragen künftig nicht mehr erhalten möchten:
 
 Mit freundlichen Grüßen
 
-Damla Kicci
--Inhaberin-
+Ihr KG-Gebäudereinigung Kundenservice
 
 KG-Gebäudereinigung
 Fliederstr. 59
@@ -126,7 +125,7 @@ www.kg-reinigung.de"""
           <a href="{unsubscribe_url}" style="display:inline-block;margin-left:6px;padding:7px 12px;background:#f97316;color:#fff;text-decoration:none;border-radius:8px;font-weight:700;">Abbestellen</a></p>
           <p style="margin-top:24px;">Mit freundlichen Grüßen</p>
           <div style="line-height:1.55;">
-            <strong>Damla Kicci</strong><br>-Inhaberin-<br><br>
+            <strong>Ihr KG-Gebäudereinigung Kundenservice</strong><br><br>
             <strong>KG-Gebäudereinigung</strong><br>
             Fliederstr. 59<br>47055 Duisburg - Wanheimerort<br><br>
             0203 / 47 96 68 22<br>0163 / 194 70 55<br><br>
@@ -149,7 +148,9 @@ www.kg-reinigung.de"""
                 recipient,
                 subject,
                 plain,
-                html
+                html,
+                from_email="kundenservice@kg-reinigung.de",
+                from_name="KG-Gebäudereinigung Kundenservice"
             )
             conn.execute("""
                 UPDATE kunden_quality_mail
@@ -655,8 +656,7 @@ Wenn Sie diese Qualitätsabfragen künftig nicht mehr erhalten möchten:
 
 Mit freundlichen Grüßen
 
-Damla Kicci
--Inhaberin-
+Ihr KG-Gebäudereinigung Kundenservice
 
 KG-Gebäudereinigung
 Fliederstr. 59
@@ -700,8 +700,7 @@ www.kg-reinigung.de
 
             <p style="margin-top:24px;">Mit freundlichen Grüßen</p>
             <div style="line-height:1.55;">
-                <strong>Damla Kicci</strong><br>
-                -Inhaberin-<br><br>
+                <strong>Ihr KG-Gebäudereinigung Kundenservice</strong><br><br>
                 <strong>KG-Gebäudereinigung</strong><br>
                 Fliederstr. 59<br>
                 47055 Duisburg - Wanheimerort<br><br>
