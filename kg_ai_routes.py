@@ -342,6 +342,357 @@ def register_kg_ai_routes(app, login_required, get_db_connection, normalize_phon
         }
 
     # =====================================================
+    # KG AI - KUNDENPFLEGE / QUALITAETSKONTROLLE
+    # =====================================================
+
+    def ensure_kundenpflege_tables():
+        conn = get_db_connection()
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS kunden_quality_pref (
+                kunde_id INTEGER PRIMARY KEY,
+                enabled INTEGER NOT NULL DEFAULT 1,
+                interval_months INTEGER NOT NULL DEFAULT 3,
+                unsubscribed_at TEXT,
+                updated_at TEXT DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS kunden_quality_mail (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                kunde_id INTEGER NOT NULL,
+                recipient TEXT NOT NULL,
+                subject TEXT NOT NULL,
+                body TEXT NOT NULL,
+                gmail_id TEXT,
+                status TEXT NOT NULL DEFAULT 'sent',
+                unsubscribe_token TEXT NOT NULL,
+                sent_at TEXT DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+        conn.execute("""
+            CREATE UNIQUE INDEX IF NOT EXISTS idx_kunden_quality_token
+            ON kunden_quality_mail(unsubscribe_token)
+        """)
+        conn.execute("""
+            CREATE INDEX IF NOT EXISTS idx_kunden_quality_kunde_sent
+            ON kunden_quality_mail(kunde_id, sent_at DESC)
+        """)
+        conn.commit()
+        conn.close()
+
+    def kundenpflege_new_token():
+        import secrets
+        return secrets.token_urlsafe(24)
+
+    def kundenpflege_customer_row(row):
+        return {
+            "id": row["id"],
+            "firma": row["firma"] or "",
+            "anrede": row["anrede"] or "",
+            "ansprechpartner_name": row["ansprechpartner_name"] or "",
+            "email": row["email"] or "",
+            "ort": row["ort"] or "",
+            "vertragsstatus": row["vertragsstatus"] or "aktuell",
+            "enabled": bool(row["quality_enabled"] if row["quality_enabled"] is not None else 1),
+            "interval_months": int(row["interval_months"] or 3),
+            "last_sent": row["last_sent"] or "",
+            "unsubscribed_at": row["unsubscribed_at"] or ""
+        }
+
+    def kundenpflege_salutation(kunde):
+        name = str(kunde.get("ansprechpartner_name") or "").strip()
+        anrede = str(kunde.get("anrede") or "").strip()
+
+        if name:
+            if anrede.lower() == "herr":
+                return f"Sehr geehrter Herr {name},"
+            if anrede.lower() == "frau":
+                return f"Sehr geehrte Frau {name},"
+            return f"Guten Tag {name},"
+
+        firma = str(kunde.get("firma") or "").strip()
+        return f"Guten Tag{(' ' + firma) if firma else ''},"
+
+    def kundenpflege_mail_text(kunde, unsubscribe_url):
+        return """{salutation}
+
+wir möchten regelmäßig sicherstellen, dass Sie mit unserer Reinigungsleistung zufrieden sind.
+
+Dürfen wir Sie kurz um eine Rückmeldung bitten?
+
+• Sind Sie mit unserer Reinigungsleistung insgesamt zufrieden?
+• Gibt es etwas, das unsere Mitarbeiter anders oder besser machen sollen?
+• Gibt es Bereiche, die künftig mehr Aufmerksamkeit benötigen?
+• Sind Sie mit den eingesetzten Reinigungsmitteln und deren Geruch zufrieden?
+• Haben Sie weitere Wünsche oder Hinweise für uns?
+
+Eine kurze Antwort auf diese E-Mail genügt. Ihre Rückmeldung hilft uns, Probleme frühzeitig zu erkennen und unsere Leistung laufend zu verbessern.
+
+Wenn Sie diese Qualitätsabfragen künftig nicht mehr erhalten möchten:
+{unsubscribe_url}
+
+Mit freundlichen Grüßen
+Ihr Team von KG Gebäudereinigung
+""".format(
+            salutation=kundenpflege_salutation(kunde),
+            unsubscribe_url=unsubscribe_url
+        ).strip()
+
+    @app.route("/api/ai/kundenpflege/kunden")
+    @login_required
+    def kg_ai_kundenpflege_kunden():
+        ensure_kundenpflege_tables()
+        conn = get_db_connection()
+        rows = conn.execute("""
+            SELECT
+                k.id,
+                k.firma,
+                k.anrede,
+                k.ansprechpartner_name,
+                k.email,
+                k.ort,
+                COALESCE(k.vertragsstatus, 'aktuell') AS vertragsstatus,
+                p.enabled AS quality_enabled,
+                p.interval_months,
+                p.unsubscribed_at,
+                (
+                    SELECT qm.sent_at
+                    FROM kunden_quality_mail qm
+                    WHERE qm.kunde_id = k.id
+                      AND qm.status = 'sent'
+                    ORDER BY qm.sent_at DESC, qm.id DESC
+                    LIMIT 1
+                ) AS last_sent
+            FROM kunden k
+            LEFT JOIN kunden_quality_pref p ON p.kunde_id = k.id
+            WHERE COALESCE(k.vertragsstatus, 'aktuell') != 'gekuendigt'
+            ORDER BY k.firma COLLATE NOCASE ASC
+        """).fetchall()
+        conn.close()
+
+        return jsonify({
+            "ok": True,
+            "kunden": [kundenpflege_customer_row(row) for row in rows]
+        })
+
+    @app.route("/api/ai/kundenpflege/preview", methods=["POST"])
+    @login_required
+    def kg_ai_kundenpflege_preview():
+        ensure_kundenpflege_tables()
+        data = request.get_json(silent=True) or {}
+        raw_ids = data.get("kunde_ids") or []
+
+        ids = []
+        for item in raw_ids:
+            try:
+                value = int(item)
+                if value > 0 and value not in ids:
+                    ids.append(value)
+            except Exception:
+                pass
+
+        if not ids:
+            return jsonify({"ok": False, "message": "Keine Kunden ausgewählt."}), 400
+
+        conn = get_db_connection()
+        placeholders = ",".join(["?"] * len(ids))
+        rows = conn.execute(f"""
+            SELECT
+                k.id,
+                k.firma,
+                k.anrede,
+                k.ansprechpartner_name,
+                k.email,
+                k.ort,
+                COALESCE(k.vertragsstatus, 'aktuell') AS vertragsstatus,
+                p.enabled AS quality_enabled,
+                p.interval_months,
+                p.unsubscribed_at,
+                NULL AS last_sent
+            FROM kunden k
+            LEFT JOIN kunden_quality_pref p ON p.kunde_id = k.id
+            WHERE k.id IN ({placeholders})
+            ORDER BY k.firma COLLATE NOCASE ASC
+        """, ids).fetchall()
+
+        result = []
+        for row in rows:
+            kunde = kundenpflege_customer_row(row)
+
+            if kunde["vertragsstatus"] == "gekuendigt":
+                continue
+            if not kunde["email"]:
+                continue
+            if not kunde["enabled"] or kunde["unsubscribed_at"]:
+                continue
+
+            token = kundenpflege_new_token()
+            unsubscribe_url = request.host_url.rstrip("/") + "/qualitaetsmail/abbestellen/" + token
+            body = kundenpflege_mail_text(kunde, unsubscribe_url)
+
+            result.append({
+                **kunde,
+                "subject": "Kurze Qualitätsabfrage zu unserer Reinigung",
+                "body": body,
+                "unsubscribe_token": token,
+                "unsubscribe_url": unsubscribe_url
+            })
+
+        conn.close()
+
+        if not result:
+            return jsonify({
+                "ok": False,
+                "message": "Für die Auswahl gibt es keine versandfähigen Kunden."
+            }), 400
+
+        return jsonify({"ok": True, "mails": result})
+
+    @app.route("/api/ai/kundenpflege/log", methods=["POST"])
+    @login_required
+    def kg_ai_kundenpflege_log():
+        ensure_kundenpflege_tables()
+        data = request.get_json(silent=True) or {}
+
+        try:
+            kunde_id = int(data.get("kunde_id") or 0)
+        except Exception:
+            kunde_id = 0
+
+        recipient = str(data.get("recipient") or "").strip()
+        subject = str(data.get("subject") or "").strip()
+        body = str(data.get("body") or "").strip()
+        gmail_id = str(data.get("gmail_id") or "").strip()
+        token = str(data.get("unsubscribe_token") or "").strip()
+        status = str(data.get("status") or "sent").strip()
+
+        if kunde_id <= 0 or not recipient or not subject or not body or not token:
+            return jsonify({"ok": False, "message": "Unvollständige Versanddaten."}), 400
+
+        conn = get_db_connection()
+        conn.execute("""
+            INSERT INTO kunden_quality_mail
+                (kunde_id, recipient, subject, body, gmail_id, status, unsubscribe_token, sent_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, datetime('now', 'localtime'))
+        """, (kunde_id, recipient, subject, body, gmail_id, status, token))
+        conn.execute("""
+            INSERT INTO kunden_quality_pref (kunde_id, enabled, interval_months, updated_at)
+            VALUES (?, 1, 3, datetime('now', 'localtime'))
+            ON CONFLICT(kunde_id) DO UPDATE SET
+                updated_at = datetime('now', 'localtime')
+        """, (kunde_id,))
+        conn.commit()
+        conn.close()
+
+        return jsonify({"ok": True})
+
+    @app.route("/api/ai/kundenpflege/history")
+    @login_required
+    def kg_ai_kundenpflege_history():
+        ensure_kundenpflege_tables()
+        conn = get_db_connection()
+        rows = conn.execute("""
+            SELECT
+                qm.id,
+                qm.kunde_id,
+                k.firma,
+                qm.recipient,
+                qm.subject,
+                qm.gmail_id,
+                qm.status,
+                qm.sent_at,
+                p.unsubscribed_at
+            FROM kunden_quality_mail qm
+            LEFT JOIN kunden k ON k.id = qm.kunde_id
+            LEFT JOIN kunden_quality_pref p ON p.kunde_id = qm.kunde_id
+            ORDER BY qm.sent_at DESC, qm.id DESC
+            LIMIT 200
+        """).fetchall()
+        conn.close()
+
+        return jsonify({
+            "ok": True,
+            "history": [dict(row) for row in rows]
+        })
+
+    @app.route("/api/ai/kundenpflege/preference", methods=["POST"])
+    @login_required
+    def kg_ai_kundenpflege_preference():
+        ensure_kundenpflege_tables()
+        data = request.get_json(silent=True) or {}
+
+        try:
+            kunde_id = int(data.get("kunde_id") or 0)
+            interval_months = int(data.get("interval_months") or 3)
+        except Exception:
+            return jsonify({"ok": False, "message": "Ungültige Kundendaten."}), 400
+
+        enabled = 1 if bool(data.get("enabled", True)) else 0
+        interval_months = max(1, min(interval_months, 24))
+
+        conn = get_db_connection()
+        conn.execute("""
+            INSERT INTO kunden_quality_pref
+                (kunde_id, enabled, interval_months, unsubscribed_at, updated_at)
+            VALUES (?, ?, ?, CASE WHEN ? = 1 THEN NULL ELSE datetime('now', 'localtime') END, datetime('now', 'localtime'))
+            ON CONFLICT(kunde_id) DO UPDATE SET
+                enabled = excluded.enabled,
+                interval_months = excluded.interval_months,
+                unsubscribed_at = CASE WHEN excluded.enabled = 1 THEN NULL ELSE COALESCE(kunden_quality_pref.unsubscribed_at, datetime('now', 'localtime')) END,
+                updated_at = datetime('now', 'localtime')
+        """, (kunde_id, enabled, interval_months, enabled))
+        conn.commit()
+        conn.close()
+
+        return jsonify({"ok": True})
+
+    @app.route("/qualitaetsmail/abbestellen/<token>")
+    def kg_ai_kundenpflege_unsubscribe(token):
+        ensure_kundenpflege_tables()
+        token = str(token or "").strip()
+
+        conn = get_db_connection()
+        row = conn.execute("""
+            SELECT kunde_id
+            FROM kunden_quality_mail
+            WHERE unsubscribe_token = ?
+            ORDER BY id DESC
+            LIMIT 1
+        """, (token,)).fetchone()
+
+        if not row:
+            conn.close()
+            return "<h2>Dieser Abmelde-Link ist ungültig oder nicht mehr verfügbar.</h2>", 404
+
+        kunde_id = int(row["kunde_id"])
+        conn.execute("""
+            INSERT INTO kunden_quality_pref
+                (kunde_id, enabled, interval_months, unsubscribed_at, updated_at)
+            VALUES (?, 0, 3, datetime('now', 'localtime'), datetime('now', 'localtime'))
+            ON CONFLICT(kunde_id) DO UPDATE SET
+                enabled = 0,
+                unsubscribed_at = datetime('now', 'localtime'),
+                updated_at = datetime('now', 'localtime')
+        """, (kunde_id,))
+        conn.commit()
+        conn.close()
+
+        return """
+        <!doctype html>
+        <html lang="de">
+        <head><meta charset="utf-8"><title>Abmeldung bestätigt</title></head>
+        <body style="font-family:Arial,sans-serif;background:#f8fafc;padding:40px;color:#0f172a;">
+          <div style="max-width:620px;margin:auto;background:#fff;border:1px solid #e2e8f0;border-radius:18px;padding:32px;">
+            <h2 style="margin-top:0;">Abmeldung bestätigt</h2>
+            <p>Sie erhalten künftig keine regelmäßigen Qualitätsabfragen mehr.</p>
+            <p>Vielen Dank.</p>
+            <p><strong>KG Gebäudereinigung</strong></p>
+          </div>
+        </body>
+        </html>
+        """
+
+    # =====================================================
     # KG AI ANA API
     # =====================================================
 
