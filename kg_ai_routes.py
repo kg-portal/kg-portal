@@ -4,6 +4,181 @@ from flask import request, jsonify, render_template
 from openai_client import ai_test, analyze_worker_message, kg_ai_chat
 
 
+def run_due_quality_campaigns(get_db_connection, base_url=None, only_customer_ids=None):
+    """Send due customer-quality campaign mails and advance the next run."""
+    import os
+    import secrets
+    from datetime import datetime
+    from app2 import send_gmail_message_direct
+
+    base_url = (
+        str(base_url or "").rstrip("/")
+        or str(os.getenv("KG_PUBLIC_BASE_URL") or "").rstrip("/")
+        or str(os.getenv("RENDER_EXTERNAL_URL") or "").rstrip("/")
+        or "http://127.0.0.1:5000"
+    )
+
+    conn = get_db_connection()
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS kunden_quality_campaign (
+            kunde_id INTEGER PRIMARY KEY,
+            interval_months INTEGER NOT NULL DEFAULT 2,
+            active INTEGER NOT NULL DEFAULT 1,
+            next_run_at TEXT,
+            last_run_at TEXT,
+            created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+            updated_at TEXT DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+    conn.commit()
+
+    params = []
+    extra = ""
+    if only_customer_ids:
+        ids = [int(x) for x in only_customer_ids if int(x) > 0]
+        if ids:
+            extra = " AND c.kunde_id IN (" + ",".join(["?"] * len(ids)) + ")"
+            params.extend(ids)
+
+    rows = conn.execute(f"""
+        SELECT
+            c.kunde_id,
+            c.interval_months,
+            c.next_run_at,
+            k.firma,
+            k.email,
+            COALESCE(k.vertragsstatus, 'aktuell') AS vertragsstatus,
+            p.enabled AS quality_enabled,
+            p.unsubscribed_at
+        FROM kunden_quality_campaign c
+        JOIN kunden k ON k.id = c.kunde_id
+        LEFT JOIN kunden_quality_pref p ON p.kunde_id = c.kunde_id
+        WHERE c.active = 1
+          AND (c.next_run_at IS NULL OR datetime(c.next_run_at) <= datetime('now', 'localtime'))
+          {extra}
+        ORDER BY c.kunde_id
+    """, params).fetchall()
+
+    sent = 0
+    skipped = 0
+    failed = 0
+
+    for row in rows:
+        kunde_id = int(row["kunde_id"])
+        status = str(row["vertragsstatus"] or "").strip().lower()
+        enabled = True if row["quality_enabled"] is None else bool(row["quality_enabled"])
+        unsubscribed = bool(row["unsubscribed_at"])
+        recipient = str(row["email"] or "").strip()
+
+        if status == "gekuendigt" or not enabled or unsubscribed:
+            conn.execute("""
+                UPDATE kunden_quality_campaign
+                SET active = 0, updated_at = datetime('now', 'localtime')
+                WHERE kunde_id = ?
+            """, (kunde_id,))
+            conn.commit()
+            skipped += 1
+            continue
+
+        if not recipient or recipient in {"-", "—", "–"}:
+            failed += 1
+            continue
+
+        unsubscribe_token = secrets.token_urlsafe(24)
+        survey_token = secrets.token_urlsafe(24)
+        unsubscribe_url = base_url + "/qualitaetsmail/abbestellen/" + unsubscribe_token
+        survey_url = base_url + "/kundenfeedback/" + survey_token
+        firma = str(row["firma"] or "").strip()
+
+        subject = "Kurze Qualitätsabfrage zu unserer Reinigung"
+        plain = f"""Sehr geehrter Kunde,
+
+wir möchten regelmäßig sicherstellen, dass Sie mit unserer Reinigungsleistung zufrieden sind.
+
+Eine kurze Antwort auf diese E-Mail genügt. Alternativ können Sie uns Ihr Feedback in wenigen Minuten direkt über unsere Kundenzufriedenheitsumfrage senden:
+{survey_url}
+
+Wenn Sie diese Qualitätsabfragen künftig nicht mehr erhalten möchten:
+{unsubscribe_url}
+
+Mit freundlichen Grüßen
+
+Damla Kicci
+-Inhaberin-
+
+KG-Gebäudereinigung
+Fliederstr. 59
+47055 Duisburg - Wanheimerort
+
+0203 / 47 96 68 22
+0163 / 194 70 55
+
+info@kg-reinigung.de
+www.kg-reinigung.de"""
+
+        html = f"""
+        <div style="font-family:Arial,Helvetica,sans-serif;font-size:14px;line-height:1.65;color:#111827;">
+          <p>Sehr geehrter Kunde,</p>
+          <p>wir möchten regelmäßig sicherstellen, dass Sie mit unserer Reinigungsleistung zufrieden sind.</p>
+          <p>Eine kurze Antwort auf diese E-Mail genügt. Alternativ können Sie uns Ihr Feedback in wenigen Minuten direkt über unsere Kundenzufriedenheitsumfrage senden.</p>
+          <p><a href="{survey_url}" style="display:inline-block;padding:11px 18px;background:#2563eb;color:#fff;text-decoration:none;border-radius:9px;font-weight:700;">Zur Kundenzufriedenheitsumfrage</a></p>
+          <p style="margin-top:24px;color:#64748b;font-size:13px;">Wenn Sie diese Qualitätsabfragen künftig nicht mehr erhalten möchten:
+          <a href="{unsubscribe_url}" style="display:inline-block;margin-left:6px;padding:7px 12px;background:#f97316;color:#fff;text-decoration:none;border-radius:8px;font-weight:700;">Abbestellen</a></p>
+          <p style="margin-top:24px;">Mit freundlichen Grüßen</p>
+          <div style="line-height:1.55;">
+            <strong>Damla Kicci</strong><br>-Inhaberin-<br><br>
+            <strong>KG-Gebäudereinigung</strong><br>
+            Fliederstr. 59<br>47055 Duisburg - Wanheimerort<br><br>
+            0203 / 47 96 68 22<br>0163 / 194 70 55<br><br>
+            <a href="mailto:info@kg-reinigung.de" style="color:#2563eb;">info@kg-reinigung.de</a><br>
+            <a href="https://www.kg-reinigung.de/" style="color:#2563eb;">www.kg-reinigung.de</a>
+          </div>
+        </div>
+        """
+
+        cur = conn.execute("""
+            INSERT INTO kunden_quality_mail
+                (kunde_id, recipient, subject, body, gmail_id, status, unsubscribe_token, survey_token, sent_at)
+            VALUES (?, ?, ?, ?, '', 'queued', ?, ?, datetime('now', 'localtime'))
+        """, (kunde_id, recipient, subject, plain, unsubscribe_token, survey_token))
+        mail_id = cur.lastrowid
+        conn.commit()
+
+        try:
+            gmail_id = send_gmail_message_direct(
+                recipient,
+                subject,
+                plain,
+                html
+            )
+            conn.execute("""
+                UPDATE kunden_quality_mail
+                SET gmail_id = ?, status = 'sent'
+                WHERE id = ?
+            """, (gmail_id, mail_id))
+            conn.execute("""
+                UPDATE kunden_quality_campaign
+                SET last_run_at = datetime('now', 'localtime'),
+                    next_run_at = datetime('now', 'localtime', '+' || interval_months || ' months'),
+                    updated_at = datetime('now', 'localtime')
+                WHERE kunde_id = ?
+            """, (kunde_id,))
+            conn.commit()
+            sent += 1
+        except Exception as exc:
+            conn.execute("""
+                UPDATE kunden_quality_mail
+                SET status = 'error'
+                WHERE id = ?
+            """, (mail_id,))
+            conn.commit()
+            print("QUALITY CAMPAIGN SEND ERROR:", kunde_id, str(exc))
+            failed += 1
+
+    conn.close()
+    return {"sent": sent, "skipped": skipped, "failed": failed, "checked": len(rows)}
+
+
 def register_kg_ai_routes(app, login_required, get_db_connection, normalize_phone_for_whatsapp):
 
     # =====================================================
@@ -376,6 +551,17 @@ def register_kg_ai_routes(app, login_required, get_db_connection, normalize_phon
             pass
 
         conn.execute("""
+            CREATE TABLE IF NOT EXISTS kunden_quality_campaign (
+                kunde_id INTEGER PRIMARY KEY,
+                interval_months INTEGER NOT NULL DEFAULT 2,
+                active INTEGER NOT NULL DEFAULT 1,
+                next_run_at TEXT,
+                last_run_at TEXT,
+                created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+                updated_at TEXT DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+        conn.execute("""
             CREATE TABLE IF NOT EXISTS kunden_quality_survey (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 mail_id INTEGER NOT NULL UNIQUE,
@@ -615,6 +801,129 @@ www.kg-reinigung.de
             "ok": True,
             "kunden": [kundenpflege_customer_row(row) for row in rows]
         })
+
+    @app.route("/api/ai/kundenpflege/campaign/start", methods=["POST"])
+    @login_required
+    def kg_ai_kundenpflege_campaign_start():
+        ensure_kundenpflege_tables()
+        data = request.get_json(silent=True) or {}
+        raw_ids = data.get("kunde_ids") or []
+
+        try:
+            interval_months = int(data.get("interval_months") or 2)
+        except Exception:
+            interval_months = 2
+
+        if interval_months not in [1, 2, 3, 6]:
+            return jsonify({"ok": False, "message": "Ungültiges Intervall."}), 400
+
+        ids = []
+        for item in raw_ids:
+            try:
+                value = int(item)
+                if value > 0 and value not in ids:
+                    ids.append(value)
+            except Exception:
+                pass
+
+        if not ids:
+            return jsonify({"ok": False, "message": "Keine Kunden ausgewählt."}), 400
+
+        conn = get_db_connection()
+        placeholders = ",".join(["?"] * len(ids))
+        valid_rows = conn.execute(f"""
+            SELECT
+                k.id,
+                k.email,
+                COALESCE(k.vertragsstatus, 'aktuell') AS vertragsstatus,
+                p.enabled,
+                p.unsubscribed_at
+            FROM kunden k
+            LEFT JOIN kunden_quality_pref p ON p.kunde_id = k.id
+            WHERE k.id IN ({placeholders})
+        """, ids).fetchall()
+
+        valid_ids = []
+        for row in valid_rows:
+            status = str(row["vertragsstatus"] or "").strip().lower()
+            enabled = True if row["enabled"] is None else bool(row["enabled"])
+            email = str(row["email"] or "").strip()
+            if status == "gekuendigt" or not enabled or row["unsubscribed_at"] or not email or email in ["-", "—", "–"]:
+                continue
+            valid_ids.append(int(row["id"]))
+
+        if not valid_ids:
+            conn.close()
+            return jsonify({"ok": False, "message": "Kein ausgewählter Kunde ist für die Kampagne verfügbar."}), 400
+
+        for kunde_id in valid_ids:
+            conn.execute("""
+                INSERT INTO kunden_quality_campaign
+                    (kunde_id, interval_months, active, next_run_at, created_at, updated_at)
+                VALUES (?, ?, 1, datetime('now', 'localtime'), datetime('now', 'localtime'), datetime('now', 'localtime'))
+                ON CONFLICT(kunde_id) DO UPDATE SET
+                    interval_months = excluded.interval_months,
+                    active = 1,
+                    next_run_at = datetime('now', 'localtime'),
+                    updated_at = datetime('now', 'localtime')
+            """, (kunde_id, interval_months))
+        conn.commit()
+        conn.close()
+
+        result = run_due_quality_campaigns(
+            get_db_connection,
+            base_url=request.host_url.rstrip("/"),
+            only_customer_ids=valid_ids
+        )
+
+        return jsonify({
+            "ok": True,
+            "message": "Kampagne gestartet.",
+            "interval_months": interval_months,
+            "kunden": len(valid_ids),
+            "run": result
+        })
+
+    @app.route("/api/ai/kundenpflege/campaign/status")
+    @login_required
+    def kg_ai_kundenpflege_campaign_status():
+        ensure_kundenpflege_tables()
+        conn = get_db_connection()
+        rows = conn.execute("""
+            SELECT
+                c.kunde_id,
+                c.interval_months,
+                c.active,
+                c.next_run_at,
+                c.last_run_at,
+                k.firma
+            FROM kunden_quality_campaign c
+            JOIN kunden k ON k.id = c.kunde_id
+            ORDER BY k.firma COLLATE NOCASE ASC
+        """).fetchall()
+        conn.close()
+        return jsonify({"ok": True, "campaigns": [dict(r) for r in rows]})
+
+    @app.route("/api/ai/kundenpflege/campaign/stop", methods=["POST"])
+    @login_required
+    def kg_ai_kundenpflege_campaign_stop():
+        ensure_kundenpflege_tables()
+        data = request.get_json(silent=True) or {}
+        try:
+            kunde_id = int(data.get("kunde_id") or 0)
+        except Exception:
+            kunde_id = 0
+        if kunde_id <= 0:
+            return jsonify({"ok": False, "message": "Ungültiger Kunde."}), 400
+        conn = get_db_connection()
+        conn.execute("""
+            UPDATE kunden_quality_campaign
+            SET active = 0, updated_at = datetime('now', 'localtime')
+            WHERE kunde_id = ?
+        """, (kunde_id,))
+        conn.commit()
+        conn.close()
+        return jsonify({"ok": True})
 
     @app.route("/api/ai/kundenpflege/preview", methods=["POST"])
     @login_required
