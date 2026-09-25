@@ -400,18 +400,7 @@ def register_kg_ai_routes(app, login_required, get_db_connection, normalize_phon
         }
 
     def kundenpflege_salutation(kunde):
-        name = str(kunde.get("ansprechpartner_name") or "").strip()
-        anrede = str(kunde.get("anrede") or "").strip()
-
-        if name:
-            if anrede.lower() == "herr":
-                return f"Sehr geehrter Herr {name},"
-            if anrede.lower() == "frau":
-                return f"Sehr geehrte Frau {name},"
-            return f"Guten Tag {name},"
-
-        firma = str(kunde.get("firma") or "").strip()
-        return f"Guten Tag{(' ' + firma) if firma else ''},"
+        return "Sehr geehrte Damen und Herren,"
 
     def kundenpflege_mail_text(kunde, unsubscribe_url):
         return """{salutation}
@@ -429,7 +418,7 @@ Dürfen wir Sie kurz um eine Rückmeldung bitten?
 Eine kurze Antwort auf diese E-Mail genügt. Ihre Rückmeldung hilft uns, Probleme frühzeitig zu erkennen und unsere Leistung laufend zu verbessern.
 
 Wenn Sie diese Qualitätsabfragen künftig nicht mehr erhalten möchten:
-{unsubscribe_url}
+Abbestellen
 
 Mit freundlichen Grüßen
 Ihr Team von KG Gebäudereinigung
@@ -527,11 +516,32 @@ Ihr Team von KG Gebäudereinigung
             token = kundenpflege_new_token()
             unsubscribe_url = request.host_url.rstrip("/") + "/qualitaetsmail/abbestellen/" + token
             body = kundenpflege_mail_text(kunde, unsubscribe_url)
+            body_html = """
+            <div style="font-family:Arial,Helvetica,sans-serif;font-size:14px;line-height:1.65;color:#111827;">
+                <p>Sehr geehrte Damen und Herren,</p>
+                <p>wir möchten regelmäßig sicherstellen, dass Sie mit unserer Reinigungsleistung zufrieden sind.</p>
+                <p>Dürfen wir Sie kurz um eine Rückmeldung bitten?</p>
+                <ul style="padding-left:20px;">
+                    <li>Sind Sie mit unserer Reinigungsleistung insgesamt zufrieden?</li>
+                    <li>Gibt es etwas, das unsere Mitarbeiter anders oder besser machen sollen?</li>
+                    <li>Gibt es Bereiche, die künftig mehr Aufmerksamkeit benötigen?</li>
+                    <li>Sind Sie mit den eingesetzten Reinigungsmitteln und deren Geruch zufrieden?</li>
+                    <li>Haben Sie weitere Wünsche oder Hinweise für uns?</li>
+                </ul>
+                <p>Eine kurze Antwort auf diese E-Mail genügt. Ihre Rückmeldung hilft uns, Probleme frühzeitig zu erkennen und unsere Leistung laufend zu verbessern.</p>
+                <p style="margin-top:22px;">
+                    Wenn Sie diese Qualitätsabfragen künftig nicht mehr erhalten möchten:
+                    <a href="{url}" style="display:inline-block;margin-left:6px;padding:7px 12px;background:#f97316;color:#ffffff;text-decoration:none;border-radius:8px;font-weight:700;">Abbestellen</a>
+                </p>
+                <p style="margin-top:24px;">Mit freundlichen Grüßen<br>Ihr Team von KG Gebäudereinigung</p>
+            </div>
+            """.format(url=unsubscribe_url).strip()
 
             result.append({
                 **kunde,
                 "subject": "Kurze Qualitätsabfrage zu unserer Reinigung",
                 "body": body,
+                "body_html": body_html,
                 "unsubscribe_token": token,
                 "unsubscribe_url": unsubscribe_url
             })
