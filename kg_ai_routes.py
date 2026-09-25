@@ -366,16 +366,48 @@ def register_kg_ai_routes(app, login_required, get_db_connection, normalize_phon
                 gmail_id TEXT,
                 status TEXT NOT NULL DEFAULT 'sent',
                 unsubscribe_token TEXT NOT NULL,
+                survey_token TEXT,
                 sent_at TEXT DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+        try:
+            conn.execute("ALTER TABLE kunden_quality_mail ADD COLUMN survey_token TEXT")
+        except Exception:
+            pass
+
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS kunden_quality_survey (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                mail_id INTEGER NOT NULL UNIQUE,
+                kunde_id INTEGER NOT NULL,
+                score_gesamt INTEGER NOT NULL,
+                score_mitarbeiter INTEGER NOT NULL,
+                score_sauberkeit INTEGER NOT NULL,
+                score_reinigungsmittel INTEGER NOT NULL,
+                score_kommunikation INTEGER NOT NULL,
+                kommentar TEXT,
+                submitted_at TEXT DEFAULT CURRENT_TIMESTAMP
             )
         """)
         conn.execute("""
             CREATE UNIQUE INDEX IF NOT EXISTS idx_kunden_quality_token
             ON kunden_quality_mail(unsubscribe_token)
         """)
+        try:
+            conn.execute("""
+                CREATE UNIQUE INDEX IF NOT EXISTS idx_kunden_quality_survey_token
+                ON kunden_quality_mail(survey_token)
+                WHERE survey_token IS NOT NULL
+            """)
+        except Exception:
+            pass
         conn.execute("""
             CREATE INDEX IF NOT EXISTS idx_kunden_quality_kunde_sent
             ON kunden_quality_mail(kunde_id, sent_at DESC)
+        """)
+        conn.execute("""
+            CREATE INDEX IF NOT EXISTS idx_kunden_quality_survey_kunde
+            ON kunden_quality_survey(kunde_id, submitted_at DESC)
         """)
         conn.commit()
         conn.close()
@@ -385,6 +417,14 @@ def register_kg_ai_routes(app, login_required, get_db_connection, normalize_phon
         return secrets.token_urlsafe(24)
 
     def kundenpflege_customer_row(row):
+        keys = set(row.keys())
+
+        def val(name, default=""):
+            if name not in keys:
+                return default
+            value = row[name]
+            return default if value is None else value
+
         return {
             "id": row["id"],
             "firma": row["firma"] or "",
@@ -396,14 +436,18 @@ def register_kg_ai_routes(app, login_required, get_db_connection, normalize_phon
             "enabled": bool(row["quality_enabled"] if row["quality_enabled"] is not None else 1),
             "interval_months": int(row["interval_months"] or 3),
             "last_sent": row["last_sent"] or "",
-            "unsubscribed_at": row["unsubscribed_at"] or ""
+            "unsubscribed_at": row["unsubscribed_at"] or "",
+            "last_survey_at": val("last_survey_at", ""),
+            "score_gesamt": val("score_gesamt", ""),
+            "score_mitarbeiter": val("score_mitarbeiter", ""),
+            "score_sauberkeit": val("score_sauberkeit", ""),
+            "score_reinigungsmittel": val("score_reinigungsmittel", ""),
+            "score_kommunikation": val("score_kommunikation", ""),
+            "survey_kommentar": val("survey_kommentar", "")
         }
 
-    def kundenpflege_salutation(kunde):
-        return "Sehr geehrte Damen und Herren,"
-
-    def kundenpflege_mail_text(kunde, unsubscribe_url):
-        return """{salutation}
+    def kundenpflege_mail_text(kunde, survey_url, unsubscribe_url):
+        return """Sehr geehrte Damen und Herren,
 
 wir möchten regelmäßig sicherstellen, dass Sie mit unserer Reinigungsleistung zufrieden sind.
 
@@ -417,13 +461,50 @@ Dürfen wir Sie kurz um eine Rückmeldung bitten?
 
 Eine kurze Antwort auf diese E-Mail genügt. Ihre Rückmeldung hilft uns, Probleme frühzeitig zu erkennen und unsere Leistung laufend zu verbessern.
 
+Alternativ können Sie uns Ihr Feedback in wenigen Minuten direkt über unsere kurze Kundenzufriedenheitsumfrage senden:
+{survey_url}
+
 Wenn Sie diese Qualitätsabfragen künftig nicht mehr erhalten möchten:
-Abbestellen
+{unsubscribe_url}
 
 Mit freundlichen Grüßen
 Ihr Team von KG Gebäudereinigung
 """.format(
-            salutation=kundenpflege_salutation(kunde),
+            survey_url=survey_url,
+            unsubscribe_url=unsubscribe_url
+        ).strip()
+
+    def kundenpflege_mail_html(kunde, survey_url, unsubscribe_url):
+        firma = str(kunde.get("firma") or "").strip()
+        return """
+        <div style="font-family:Arial,Helvetica,sans-serif;font-size:14px;line-height:1.65;color:#111827;">
+            <p>Sehr geehrte Damen und Herren,</p>
+            <p>wir möchten regelmäßig sicherstellen, dass Sie mit unserer Reinigungsleistung zufrieden sind.</p>
+            <p>Dürfen wir Sie kurz um eine Rückmeldung bitten?</p>
+            <ul style="padding-left:20px;">
+                <li>Sind Sie mit unserer Reinigungsleistung insgesamt zufrieden?</li>
+                <li>Gibt es etwas, das unsere Mitarbeiter anders oder besser machen sollen?</li>
+                <li>Gibt es Bereiche, die künftig mehr Aufmerksamkeit benötigen?</li>
+                <li>Sind Sie mit den eingesetzten Reinigungsmitteln und deren Geruch zufrieden?</li>
+                <li>Haben Sie weitere Wünsche oder Hinweise für uns?</li>
+            </ul>
+            <p>Eine kurze Antwort auf diese E-Mail genügt. Ihre Rückmeldung hilft uns, Probleme frühzeitig zu erkennen und unsere Leistung laufend zu verbessern.</p>
+
+            <div style="margin:24px 0;padding:18px;border:1px solid #dbeafe;background:#f8fbff;border-radius:14px;">
+                <div style="font-weight:700;margin-bottom:10px;">Alternativ können Sie uns Ihr Feedback in wenigen Minuten direkt über unsere kurze Kundenzufriedenheitsumfrage senden.</div>
+                <a href="{survey_url}" style="display:inline-block;padding:11px 18px;background:#2563eb;color:#ffffff;text-decoration:none;border-radius:9px;font-weight:700;">Zur Kundenzufriedenheitsumfrage</a>
+            </div>
+
+            <p style="margin-top:24px;color:#64748b;font-size:13px;">
+                Wenn Sie diese Qualitätsabfragen künftig nicht mehr erhalten möchten:
+                <a href="{unsubscribe_url}" style="display:inline-block;margin-left:6px;padding:7px 12px;background:#f97316;color:#ffffff;text-decoration:none;border-radius:8px;font-weight:700;">Abbestellen</a>
+            </p>
+
+            <p style="margin-top:24px;">Mit freundlichen Grüßen<br>Ihr Team von KG Gebäudereinigung</p>
+        </div>
+        """.format(
+            firma=firma,
+            survey_url=survey_url,
             unsubscribe_url=unsubscribe_url
         ).strip()
 
@@ -450,7 +531,56 @@ Ihr Team von KG Gebäudereinigung
                       AND qm.status = 'sent'
                     ORDER BY qm.sent_at DESC, qm.id DESC
                     LIMIT 1
-                ) AS last_sent
+                ) AS last_sent,
+                (
+                    SELECT qs.submitted_at
+                    FROM kunden_quality_survey qs
+                    WHERE qs.kunde_id = k.id
+                    ORDER BY qs.submitted_at DESC, qs.id DESC
+                    LIMIT 1
+                ) AS last_survey_at,
+                (
+                    SELECT qs.score_gesamt
+                    FROM kunden_quality_survey qs
+                    WHERE qs.kunde_id = k.id
+                    ORDER BY qs.submitted_at DESC, qs.id DESC
+                    LIMIT 1
+                ) AS score_gesamt,
+                (
+                    SELECT qs.score_mitarbeiter
+                    FROM kunden_quality_survey qs
+                    WHERE qs.kunde_id = k.id
+                    ORDER BY qs.submitted_at DESC, qs.id DESC
+                    LIMIT 1
+                ) AS score_mitarbeiter,
+                (
+                    SELECT qs.score_sauberkeit
+                    FROM kunden_quality_survey qs
+                    WHERE qs.kunde_id = k.id
+                    ORDER BY qs.submitted_at DESC, qs.id DESC
+                    LIMIT 1
+                ) AS score_sauberkeit,
+                (
+                    SELECT qs.score_reinigungsmittel
+                    FROM kunden_quality_survey qs
+                    WHERE qs.kunde_id = k.id
+                    ORDER BY qs.submitted_at DESC, qs.id DESC
+                    LIMIT 1
+                ) AS score_reinigungsmittel,
+                (
+                    SELECT qs.score_kommunikation
+                    FROM kunden_quality_survey qs
+                    WHERE qs.kunde_id = k.id
+                    ORDER BY qs.submitted_at DESC, qs.id DESC
+                    LIMIT 1
+                ) AS score_kommunikation,
+                (
+                    SELECT qs.kommentar
+                    FROM kunden_quality_survey qs
+                    WHERE qs.kunde_id = k.id
+                    ORDER BY qs.submitted_at DESC, qs.id DESC
+                    LIMIT 1
+                ) AS survey_kommentar
             FROM kunden k
             LEFT JOIN kunden_quality_pref p ON p.kunde_id = k.id
             WHERE COALESCE(k.vertragsstatus, 'aktuell') != 'gekuendigt'
@@ -513,37 +643,24 @@ Ihr Team von KG Gebäudereinigung
             if not kunde["enabled"] or kunde["unsubscribed_at"]:
                 continue
 
-            token = kundenpflege_new_token()
-            unsubscribe_url = request.host_url.rstrip("/") + "/qualitaetsmail/abbestellen/" + token
-            body = kundenpflege_mail_text(kunde, unsubscribe_url)
-            body_html = """
-            <div style="font-family:Arial,Helvetica,sans-serif;font-size:14px;line-height:1.65;color:#111827;">
-                <p>Sehr geehrte Damen und Herren,</p>
-                <p>wir möchten regelmäßig sicherstellen, dass Sie mit unserer Reinigungsleistung zufrieden sind.</p>
-                <p>Dürfen wir Sie kurz um eine Rückmeldung bitten?</p>
-                <ul style="padding-left:20px;">
-                    <li>Sind Sie mit unserer Reinigungsleistung insgesamt zufrieden?</li>
-                    <li>Gibt es etwas, das unsere Mitarbeiter anders oder besser machen sollen?</li>
-                    <li>Gibt es Bereiche, die künftig mehr Aufmerksamkeit benötigen?</li>
-                    <li>Sind Sie mit den eingesetzten Reinigungsmitteln und deren Geruch zufrieden?</li>
-                    <li>Haben Sie weitere Wünsche oder Hinweise für uns?</li>
-                </ul>
-                <p>Eine kurze Antwort auf diese E-Mail genügt. Ihre Rückmeldung hilft uns, Probleme frühzeitig zu erkennen und unsere Leistung laufend zu verbessern.</p>
-                <p style="margin-top:22px;">
-                    Wenn Sie diese Qualitätsabfragen künftig nicht mehr erhalten möchten:
-                    <a href="{url}" style="display:inline-block;margin-left:6px;padding:7px 12px;background:#f97316;color:#ffffff;text-decoration:none;border-radius:8px;font-weight:700;">Abbestellen</a>
-                </p>
-                <p style="margin-top:24px;">Mit freundlichen Grüßen<br>Ihr Team von KG Gebäudereinigung</p>
-            </div>
-            """.format(url=unsubscribe_url).strip()
+            unsubscribe_token = kundenpflege_new_token()
+            survey_token = kundenpflege_new_token()
+            base_url = request.host_url.rstrip("/")
+            unsubscribe_url = base_url + "/qualitaetsmail/abbestellen/" + unsubscribe_token
+            survey_url = base_url + "/kundenfeedback/" + survey_token
+
+            body = kundenpflege_mail_text(kunde, survey_url, unsubscribe_url)
+            body_html = kundenpflege_mail_html(kunde, survey_url, unsubscribe_url)
 
             result.append({
                 **kunde,
                 "subject": "Kurze Qualitätsabfrage zu unserer Reinigung",
                 "body": body,
                 "body_html": body_html,
-                "unsubscribe_token": token,
-                "unsubscribe_url": unsubscribe_url
+                "unsubscribe_token": unsubscribe_token,
+                "unsubscribe_url": unsubscribe_url,
+                "survey_token": survey_token,
+                "survey_url": survey_url
             })
 
         conn.close()
@@ -571,18 +688,19 @@ Ihr Team von KG Gebäudereinigung
         subject = str(data.get("subject") or "").strip()
         body = str(data.get("body") or "").strip()
         gmail_id = str(data.get("gmail_id") or "").strip()
-        token = str(data.get("unsubscribe_token") or "").strip()
+        unsubscribe_token = str(data.get("unsubscribe_token") or "").strip()
+        survey_token = str(data.get("survey_token") or "").strip()
         status = str(data.get("status") or "sent").strip()
 
-        if kunde_id <= 0 or not recipient or not subject or not body or not token:
+        if kunde_id <= 0 or not recipient or not subject or not body or not unsubscribe_token or not survey_token:
             return jsonify({"ok": False, "message": "Unvollständige Versanddaten."}), 400
 
         conn = get_db_connection()
         conn.execute("""
             INSERT INTO kunden_quality_mail
-                (kunde_id, recipient, subject, body, gmail_id, status, unsubscribe_token, sent_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?, datetime('now', 'localtime'))
-        """, (kunde_id, recipient, subject, body, gmail_id, status, token))
+                (kunde_id, recipient, subject, body, gmail_id, status, unsubscribe_token, survey_token, sent_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, datetime('now', 'localtime'))
+        """, (kunde_id, recipient, subject, body, gmail_id, status, unsubscribe_token, survey_token))
         conn.execute("""
             INSERT INTO kunden_quality_pref (kunde_id, enabled, interval_months, updated_at)
             VALUES (?, 1, 3, datetime('now', 'localtime'))
@@ -609,10 +727,13 @@ Ihr Team von KG Gebäudereinigung
                 qm.gmail_id,
                 qm.status,
                 qm.sent_at,
-                p.unsubscribed_at
+                p.unsubscribed_at,
+                qs.submitted_at AS survey_submitted_at,
+                qs.score_gesamt AS survey_score
             FROM kunden_quality_mail qm
             LEFT JOIN kunden k ON k.id = qm.kunde_id
             LEFT JOIN kunden_quality_pref p ON p.kunde_id = qm.kunde_id
+            LEFT JOIN kunden_quality_survey qs ON qs.mail_id = qm.id
             ORDER BY qm.sent_at DESC, qm.id DESC
             LIMIT 200
         """).fetchall()
@@ -653,6 +774,221 @@ Ihr Team von KG Gebäudereinigung
         conn.close()
 
         return jsonify({"ok": True})
+
+    @app.route("/kundenfeedback/<token>", methods=["GET", "POST"])
+    def kg_ai_kundenfeedback(token):
+        ensure_kundenpflege_tables()
+        token = str(token or "").strip()
+
+        conn = get_db_connection()
+        row = conn.execute("""
+            SELECT
+                qm.id AS mail_id,
+                qm.kunde_id,
+                qm.survey_token,
+                k.firma,
+                qs.id AS survey_id,
+                qs.submitted_at
+            FROM kunden_quality_mail qm
+            JOIN kunden k ON k.id = qm.kunde_id
+            LEFT JOIN kunden_quality_survey qs ON qs.mail_id = qm.id
+            WHERE qm.survey_token = ?
+            LIMIT 1
+        """, (token,)).fetchone()
+
+        if not row:
+            conn.close()
+            return "<h2>Dieser Umfrage-Link ist ungültig oder nicht mehr verfügbar.</h2>", 404
+
+        firma = str(row["firma"] or "Kunde").strip()
+
+        if request.method == "POST":
+            if row["survey_id"]:
+                conn.close()
+                return """
+                <!doctype html><html lang="de"><meta charset="utf-8">
+                <body style="font-family:Arial,sans-serif;background:#f8fafc;padding:40px;color:#0f172a;">
+                <div style="max-width:680px;margin:auto;background:white;border:1px solid #dbeafe;border-radius:22px;padding:36px;box-shadow:0 20px 50px rgba(15,23,42,.08);">
+                <h2>Vielen Dank.</h2><p>Ihr Feedback wurde bereits übermittelt.</p>
+                </div></body></html>
+                """
+
+            score_names = [
+                "score_gesamt",
+                "score_mitarbeiter",
+                "score_sauberkeit",
+                "score_reinigungsmittel",
+                "score_kommunikation"
+            ]
+
+            scores = {}
+            try:
+                for name in score_names:
+                    value = int(request.form.get(name, "0"))
+                    if value < 1 or value > 5:
+                        raise ValueError(name)
+                    scores[name] = value
+            except Exception:
+                conn.close()
+                return "<h2>Bitte bewerten Sie alle fünf Bereiche von 1 bis 5.</h2>", 400
+
+            kommentar = str(request.form.get("kommentar") or "").strip()[:4000]
+
+            conn.execute("""
+                INSERT INTO kunden_quality_survey (
+                    mail_id,
+                    kunde_id,
+                    score_gesamt,
+                    score_mitarbeiter,
+                    score_sauberkeit,
+                    score_reinigungsmittel,
+                    score_kommunikation,
+                    kommentar,
+                    submitted_at
+                )
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, datetime('now', 'localtime'))
+            """, (
+                int(row["mail_id"]),
+                int(row["kunde_id"]),
+                scores["score_gesamt"],
+                scores["score_mitarbeiter"],
+                scores["score_sauberkeit"],
+                scores["score_reinigungsmittel"],
+                scores["score_kommunikation"],
+                kommentar
+            ))
+            conn.commit()
+            conn.close()
+
+            average = round(sum(scores.values()) / 5, 1)
+            notification_text = (
+                f"Neue Kundenzufriedenheitsumfrage\n\n"
+                f"Kunde: {firma}\n"
+                f"Gesamtzufriedenheit: {scores['score_gesamt']}/5\n"
+                f"Mitarbeiter: {scores['score_mitarbeiter']}/5\n"
+                f"Sauberkeit & Gründlichkeit: {scores['score_sauberkeit']}/5\n"
+                f"Reinigungsmittel / Geruch: {scores['score_reinigungsmittel']}/5\n"
+                f"Kommunikation & Zuverlässigkeit: {scores['score_kommunikation']}/5\n"
+                f"Durchschnitt: {average}/5\n\n"
+                f"Kommentar: {kommentar or '-'}"
+            )
+
+            try:
+                from app2 import send_gmail_message_direct
+                send_gmail_message_direct(
+                    "info@kg-reinigung.de",
+                    f"Neue Kundenzufriedenheitsumfrage – {firma}",
+                    notification_text
+                )
+            except Exception as mail_error:
+                print("KUNDENFEEDBACK MAIL FEHLER:", str(mail_error))
+
+            return """
+            <!doctype html>
+            <html lang="de">
+            <head>
+              <meta charset="utf-8">
+              <meta name="viewport" content="width=device-width,initial-scale=1">
+              <title>Vielen Dank</title>
+            </head>
+            <body style="margin:0;font-family:Arial,Helvetica,sans-serif;background:linear-gradient(135deg,#eef5ff,#f8fafc);padding:36px;color:#0f172a;">
+              <div style="max-width:680px;margin:60px auto;background:#fff;border:1px solid #dbeafe;border-radius:24px;padding:42px;box-shadow:0 24px 70px rgba(37,99,235,.12);text-align:center;">
+                <div style="font-size:14px;font-weight:800;color:#2563eb;letter-spacing:.08em;text-transform:uppercase;">KG Gebäudereinigung</div>
+                <h1 style="margin:14px 0 10px;font-size:30px;">Vielen Dank für Ihr Feedback.</h1>
+                <p style="color:#64748b;font-size:16px;line-height:1.6;">Ihre Rückmeldung wurde erfolgreich übermittelt und hilft uns, unsere Qualität weiter zu verbessern.</p>
+              </div>
+            </body>
+            </html>
+            """
+
+        conn.close()
+
+        if row["survey_id"]:
+            return """
+            <!doctype html><html lang="de"><meta charset="utf-8">
+            <body style="font-family:Arial,sans-serif;background:#f8fafc;padding:40px;color:#0f172a;">
+            <div style="max-width:680px;margin:auto;background:white;border:1px solid #dbeafe;border-radius:22px;padding:36px;">
+            <h2>Vielen Dank.</h2><p>Für diesen Link wurde bereits Feedback übermittelt.</p>
+            </div></body></html>
+            """
+
+        from html import escape as html_escape
+        firma_safe = html_escape(firma)
+
+        rating_rows = [
+            ("score_gesamt", "Gesamtzufriedenheit", "Wie zufrieden sind Sie insgesamt mit unserer Reinigungsleistung?"),
+            ("score_mitarbeiter", "Mitarbeiter", "Wie zufrieden sind Sie mit der Arbeit unserer Mitarbeiter?"),
+            ("score_sauberkeit", "Sauberkeit & Gründlichkeit", "Wie zufrieden sind Sie mit Sauberkeit und Gründlichkeit?"),
+            ("score_reinigungsmittel", "Reinigungsmittel / Geruch", "Wie zufrieden sind Sie mit den eingesetzten Reinigungsmitteln und deren Geruch?"),
+            ("score_kommunikation", "Kommunikation & Zuverlässigkeit", "Wie zufrieden sind Sie mit Kommunikation und Zuverlässigkeit?")
+        ]
+
+        questions_html = []
+        for field, title, question in rating_rows:
+            buttons = "".join(
+                f'<label class="score"><input type="radio" name="{field}" value="{n}" required><span>{n}</span></label>'
+                for n in range(1, 6)
+            )
+            questions_html.append(
+                f'<div class="question"><div class="qtitle">{title}</div><div class="qtext">{question}</div>'
+                f'<div class="scores">{buttons}</div><div class="scale"><span>1 = nicht zufrieden</span><span>5 = sehr zufrieden</span></div></div>'
+            )
+
+        return f"""
+        <!doctype html>
+        <html lang="de">
+        <head>
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width,initial-scale=1">
+          <title>KG Kundenzufriedenheitsumfrage</title>
+          <style>
+            *{{box-sizing:border-box}}
+            body{{margin:0;font-family:Arial,Helvetica,sans-serif;background:linear-gradient(135deg,#eaf2ff 0%,#f8fafc 55%,#eef6ff 100%);color:#0f172a;padding:28px}}
+            .wrap{{max-width:820px;margin:22px auto}}
+            .hero{{background:linear-gradient(135deg,#0f2f78,#2563eb);color:white;border-radius:26px;padding:34px 36px;box-shadow:0 24px 70px rgba(37,99,235,.2)}}
+            .brand{{font-size:13px;font-weight:900;letter-spacing:.14em;text-transform:uppercase;opacity:.9}}
+            h1{{margin:10px 0 7px;font-size:32px}}
+            .company{{font-size:18px;font-weight:800;opacity:.96}}
+            .sub{{margin-top:13px;font-size:15px;line-height:1.6;opacity:.92}}
+            form{{margin-top:18px;background:white;border:1px solid #dbeafe;border-radius:24px;padding:28px;box-shadow:0 20px 55px rgba(15,23,42,.08)}}
+            .question{{padding:20px 0;border-bottom:1px solid #e2e8f0}}
+            .question:first-child{{padding-top:0}}
+            .qtitle{{font-size:17px;font-weight:900}}
+            .qtext{{color:#64748b;margin-top:5px;font-size:14px}}
+            .scores{{display:flex;gap:10px;margin-top:15px;flex-wrap:wrap}}
+            .score input{{position:absolute;opacity:0;pointer-events:none}}
+            .score span{{display:flex;width:48px;height:48px;align-items:center;justify-content:center;border:2px solid #dbeafe;border-radius:14px;font-weight:900;color:#1d4ed8;cursor:pointer;background:#fff;transition:.15s}}
+            .score input:checked + span{{background:#2563eb;color:#fff;border-color:#2563eb;transform:translateY(-2px);box-shadow:0 8px 18px rgba(37,99,235,.22)}}
+            .scale{{display:flex;justify-content:space-between;color:#94a3b8;font-size:11px;margin-top:7px;max-width:280px}}
+            textarea{{width:100%;min-height:130px;border:1px solid #cbd5e1;border-radius:14px;padding:14px;font:inherit;resize:vertical;outline:none}}
+            textarea:focus{{border-color:#2563eb;box-shadow:0 0 0 3px rgba(37,99,235,.12)}}
+            .send{{width:100%;margin-top:20px;border:none;border-radius:14px;background:#16a34a;color:white;padding:15px 20px;font-size:16px;font-weight:900;cursor:pointer}}
+            .foot{{text-align:center;color:#94a3b8;font-size:12px;margin-top:15px}}
+            @media(max-width:620px){{body{{padding:14px}}.hero{{padding:26px 22px}}h1{{font-size:26px}}form{{padding:20px}}}}
+          </style>
+        </head>
+        <body>
+          <div class="wrap">
+            <div class="hero">
+              <div class="brand">KG Gebäudereinigung</div>
+              <h1>Kundenzufriedenheitsumfrage</h1>
+              <div class="company">{firma_safe}</div>
+              <div class="sub">Ihre Rückmeldung dauert nur wenige Minuten. Bitte bewerten Sie die folgenden Bereiche von 1 bis 5.</div>
+            </div>
+            <form method="post">
+              {''.join(questions_html)}
+              <div class="question" style="border-bottom:none;">
+                <div class="qtitle">Möchten Sie uns noch etwas mitteilen?</div>
+                <div class="qtext" style="margin-bottom:12px;">Wünsche, Hinweise oder Verbesserungsvorschläge können Sie uns hier direkt mitteilen.</div>
+                <textarea name="kommentar" maxlength="4000" placeholder="Ihre Nachricht an uns ..."></textarea>
+              </div>
+              <button class="send" type="submit">Feedback senden</button>
+              <div class="foot">Vielen Dank, dass Sie uns helfen, unsere Leistung weiter zu verbessern.</div>
+            </form>
+          </div>
+        </body>
+        </html>
+        """
 
     @app.route("/qualitaetsmail/abbestellen/<token>")
     def kg_ai_kundenpflege_unsubscribe(token):
