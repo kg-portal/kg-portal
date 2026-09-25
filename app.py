@@ -31,7 +31,7 @@ from fints_import import (
 )
 from app2 import register_app2_routes
 from whatsapp_connector_routes import register_whatsapp_connector_routes
-from kg_ai_routes import register_kg_ai_routes
+from kg_ai_routes import register_kg_ai_routes, run_due_quality_campaigns
 from kg_todo_routes import register_kg_todo_routes
 
 
@@ -82,6 +82,10 @@ def auto_login_check():
         return
     if request.path == '/api/website-anfrage':
         return
+    if request.path.startswith('/qualitaetsmail/abbestellen/'):
+        return
+    if request.path.startswith('/kundenfeedback/'):
+        return
     
     # 2. İŞÇİ LİNKLERİ İÇİN ŞİFRE SORMADAN GEÇİŞ İZNİ
     if request.path.startswith('/stundenzettel/worker/') or request.path.startswith('/api/stundenzettel/'):
@@ -108,6 +112,7 @@ def run_nightly_crm_job_background():
         "ok": False,
         "google_pool": None,
         "tagesliste_cycle": None,
+        "quality_campaigns": None,
         "error": "",
         "traceback": ""
     }
@@ -127,6 +132,9 @@ def run_nightly_crm_job_background():
         from nightly_tagesliste_cycle import run_cycle
         run_cycle()
         result["tagesliste_cycle"] = "done"
+
+        # 3) KG-AI Qualitätskampagnen prüfen und fällige Mails senden.
+        result["quality_campaigns"] = run_due_quality_campaigns(get_db_connection)
 
         result["ok"] = True
 
@@ -513,6 +521,7 @@ def init_db():
             ansprechpartner_name TEXT,
             telefon TEXT,
             email TEXT,
+            rechnung_email TEXT,
             kundennummer TEXT,
             vertrag_beginn TEXT,
             vertrag_ende TEXT,
@@ -526,6 +535,11 @@ def init_db():
 
     try:
         conn.execute("ALTER TABLE kunden ADD COLUMN sort_order INTEGER DEFAULT 0")
+    except Exception:
+        pass
+
+    try:
+        conn.execute("ALTER TABLE kunden ADD COLUMN rechnung_email TEXT")
     except Exception:
         pass
 
@@ -1136,14 +1150,14 @@ def kunden():
             conn.execute("""
                 UPDATE kunden SET
                     firma=?, ort=?, monat=?, strasse=?, plz=?,
-                    ansprechpartner_name=?, telefon=?, email=?,
+                    ansprechpartner_name=?, telefon=?, email=?, rechnung_email=?,
                     kundennummer=?, vertrag_beginn=?, vertrag_ende=?,
                     haeufigkeit=?, vertragsstatus=?, vertragslaufzeit=?, data_json=?
                 WHERE id=?
             """, (
                 form_data.get("firma"), form_data.get("stadt"), form_data.get("betrag"),
                 form_data.get("strasse"), form_data.get("plz"), name,
-                form_data.get("telefon"), form_data.get("email"),
+                form_data.get("telefon"), form_data.get("email"), form_data.get("rechnung_email"),
                 form_data.get("kundennummer"), form_data.get("beginn"),
                 form_data.get("ende"), form_data.get("haeufigkeit"),
                 form_data.get("status"), form_data.get("laufzeit"),
@@ -1162,7 +1176,7 @@ def kunden():
                         sehir=form_data.get("stadt"),
                         sokak=form_data.get("strasse"),
                         plz=form_data.get("plz"),
-                        email=form_data.get("email"),
+                        email=((form_data.get("rechnung_email") or "").strip() if (form_data.get("rechnung_email") or "").strip() not in ["-", "—", "–"] else (form_data.get("email") or "").strip()),
                         telefon=form_data.get("telefon")
                     )
             except Exception as e:
@@ -1173,14 +1187,14 @@ def kunden():
             cursor = conn.execute("""
                 INSERT INTO kunden (
                     firma, ort, monat, strasse, plz,
-                    ansprechpartner_name, telefon, email,
+                    ansprechpartner_name, telefon, email, rechnung_email,
                     kundennummer, vertrag_beginn, vertrag_ende,
                     haeufigkeit, vertragsstatus, vertragslaufzeit, data_json
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """, (
                 form_data.get("firma"), form_data.get("stadt"), form_data.get("betrag"),
                 form_data.get("strasse"), form_data.get("plz"), name,
-                form_data.get("telefon"), form_data.get("email"),
+                form_data.get("telefon"), form_data.get("email"), form_data.get("rechnung_email"),
                 form_data.get("kundennummer"), form_data.get("beginn"),
                 form_data.get("ende"), form_data.get("haeufigkeit"),
                 form_data.get("status"), form_data.get("laufzeit"),
@@ -1196,7 +1210,7 @@ def kunden():
                     sehir=form_data.get("stadt"), 
                     sokak=form_data.get("strasse"),
                     plz=form_data.get("plz"),
-                    email=form_data.get("email"),
+                    email=((form_data.get("rechnung_email") or "").strip() if (form_data.get("rechnung_email") or "").strip() not in ["-", "—", "–"] else (form_data.get("email") or "").strip()),
                     telefon=form_data.get("telefon")
                 )
                 

@@ -1148,6 +1148,49 @@ def angebot_build_template_vars(besichtigung_data, berechnung, nr, datum):
     }
 
 
+# =====================================================
+# KG-AI KUNDENFEEDBACK - DIREKTE GMAIL BILDIRIMI
+# =====================================================
+
+def send_gmail_message_direct(to_email, subject, message_text, message_html="", from_email="info@kg-reinigung.de", from_name="KG-Gebäudereinigung"):
+    to_email = str(to_email or "").strip()
+    subject = str(subject or "").strip()
+    message_text = str(message_text or "").strip()
+    message_html = str(message_html or "").strip()
+    from_email = str(from_email or "info@kg-reinigung.de").strip()
+    from_name = str(from_name or "KG-Gebäudereinigung").strip()
+
+    if not to_email:
+        raise ValueError("Empfänger fehlt.")
+
+    msg = EmailMessage()
+    msg["From"] = f"{from_name} <{from_email}>"
+    msg["To"] = to_email
+    msg["Subject"] = subject or "KG Portal Nachricht"
+    msg.set_content(message_text or " ")
+
+    if message_html:
+        msg.add_alternative(message_html, subtype="html")
+
+    raw_message = base64.urlsafe_b64encode(msg.as_bytes()).decode("utf-8")
+    service = get_gmail_service()
+    sent = service.users().messages().send(
+        userId="me",
+        body={"raw": raw_message}
+    ).execute()
+
+    try:
+        ensure_gmail_cache_table()
+        conn = sqlite3.connect(DB_PATH)
+        conn.execute("DELETE FROM gmail_mail_cache WHERE box = ?", ("sent",))
+        conn.commit()
+        conn.close()
+    except Exception:
+        pass
+
+    return sent.get("id", "")
+
+
 def register_app2_routes(app, login_required):
 
     @app.route("/datenbank/kalender-mini")
@@ -1946,11 +1989,13 @@ www.kg-reinigung.de
             data = request.get_json(silent=True) or {}
 
             from_email = str(data.get("from") or "info@kg-reinigung.de").strip()
+            from_name = str(data.get("from_name") or "KG-Gebäudereinigung").strip()
             to_email = str(data.get("to") or "").strip()
             cc_email = str(data.get("cc") or "").strip()
             bcc_email = str(data.get("bcc") or "").strip()
             subject = str(data.get("subject") or "").strip()
             message_text = str(data.get("message") or "").strip()
+            message_html = str(data.get("message_html") or "").strip()
             signature_html = str(data.get("signature") or "").strip()
             attachments = data.get("attachments") or []
 
@@ -1966,17 +2011,26 @@ www.kg-reinigung.de
                     "message": "Betreff fehlt."
                 }), 400
 
-            plain_html = escape(message_text).replace("\n", "<br>")
-            body_html = f"""
-            <div style="font-family:Arial,Helvetica,sans-serif;font-size:14px;line-height:1.6;color:#111827;">
-                {plain_html}
-                <br><br>
-                {signature_html}
-            </div>
-            """
+            if message_html:
+                body_html = f"""
+                <div style="font-family:Arial,Helvetica,sans-serif;font-size:14px;line-height:1.6;color:#111827;">
+                    {message_html}
+                    <br><br>
+                    {signature_html}
+                </div>
+                """
+            else:
+                plain_html = escape(message_text).replace("\n", "<br>")
+                body_html = f"""
+                <div style="font-family:Arial,Helvetica,sans-serif;font-size:14px;line-height:1.6;color:#111827;">
+                    {plain_html}
+                    <br><br>
+                    {signature_html}
+                </div>
+                """
 
             msg = EmailMessage()
-            msg["From"] = f"KG-Gebäudereinigung <{from_email}>"
+            msg["From"] = f"{from_name} <{from_email}>"
             msg["To"] = to_email
             msg["Subject"] = subject
 
@@ -2387,6 +2441,7 @@ www.kg-reinigung.de
                     ansprechpartner_name,
                     telefon,
                     email,
+                    rechnung_email,
                     kundennummer
                 FROM kunden
                 WHERE
@@ -2422,6 +2477,7 @@ www.kg-reinigung.de
                     ansprechpartner_name,
                     telefon,
                     email,
+                    rechnung_email,
                     kundennummer
                 FROM kunden
                 ORDER BY firma ASC
@@ -2474,6 +2530,7 @@ www.kg-reinigung.de
                 ansprechpartner_name,
                 telefon,
                 email,
+                rechnung_email,
                 kundennummer
             FROM kunden
             WHERE id = ?
@@ -2499,7 +2556,8 @@ www.kg-reinigung.de
                 "plz": kunde["plz"] or "",
                 "ort": kunde["ort"] or "",
                 "telefon": kunde["telefon"] or "",
-                "email": kunde["email"] or ""
+                "email": kunde["email"] or "",
+                "rechnung_email": kunde["rechnung_email"] or ""
             },
             "leistungen": [],
             "raeume": [],
