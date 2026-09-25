@@ -536,12 +536,12 @@ def sync_lexware_customers_to_db():
             if lexware_id in existing_ids:
                 cur.execute("""
                     UPDATE kunden
-                    SET firma=?, ort=?, strasse=?, plz=?, email=?, telefon=?
+                    SET firma=?, ort=?, strasse=?, plz=?, rechnung_email=?, telefon=?
                     WHERE lexware_id=?
                 """, (firma, sehir, sokak, posta, email, telefon, lexware_id))
             else:
                 cur.execute("""
-                    INSERT INTO kunden (firma, ort, strasse, plz, email, telefon, lexware_id, vertragsstatus, created_at)
+                    INSERT INTO kunden (firma, ort, strasse, plz, rechnung_email, telefon, lexware_id, vertragsstatus, created_at)
                     VALUES (?, ?, ?, ?, ?, ?, ?, 'Aktiv', CURRENT_TIMESTAMP)
                 """, (firma, sehir, sokak, posta, email, telefon, lexware_id))
 
