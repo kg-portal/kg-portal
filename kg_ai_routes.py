@@ -654,7 +654,9 @@ def register_kg_ai_routes(app, login_required, get_db_connection, normalize_phon
             "score_sauberkeit": val("score_sauberkeit", ""),
             "score_reinigungsmittel": val("score_reinigungsmittel", ""),
             "score_kommunikation": val("score_kommunikation", ""),
-            "survey_kommentar": val("survey_kommentar", "")
+            "survey_kommentar": val("survey_kommentar", ""),
+            "campaign_active": bool(val("campaign_active", 0)),
+            "campaign_interval_months": int(val("campaign_interval_months", 0) or 0)
         }
 
     def kundenpflege_mail_text(kunde, survey_url, unsubscribe_url):
@@ -756,6 +758,8 @@ www.kg-reinigung.de
                 p.enabled AS quality_enabled,
                 p.interval_months,
                 p.unsubscribed_at,
+                COALESCE(c.active, 0) AS campaign_active,
+                c.interval_months AS campaign_interval_months,
                 (
                     SELECT qm.sent_at
                     FROM kunden_quality_mail qm
@@ -815,6 +819,7 @@ www.kg-reinigung.de
                 ) AS survey_kommentar
             FROM kunden k
             LEFT JOIN kunden_quality_pref p ON p.kunde_id = k.id
+            LEFT JOIN kunden_quality_campaign c ON c.kunde_id = k.id
             WHERE COALESCE(k.vertragsstatus, 'aktuell') != 'gekuendigt'
             ORDER BY k.firma COLLATE NOCASE ASC
         """).fetchall()
