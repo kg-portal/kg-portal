@@ -323,7 +323,7 @@ function renderQualityCustomers(){
         const disabled = !k.email || !k.enabled;
         let state = '';
         if(!k.email) state = '<span class="quality-badge gray">Keine E-Mail</span>';
-        else if(!k.enabled) state = '<span class="quality-badge red">Abbestellt</span>';
+        else if(!k.enabled) state = '<button type="button" class="quality-badge red" style="border:none;cursor:pointer" onclick="event.stopPropagation(); reactivateQualityCustomer('+k.id+')">Abbestellt</button>';
         else if(!k.last_sent) state = '<span class="quality-badge blue">Noch nie</span>';
         else if(qualityIsDue(k)) state = '<span class="quality-badge green">Fällig</span>';
         else state = '<span class="quality-badge gray">Aktuell</span>';
@@ -338,6 +338,22 @@ function renderQualityCustomers(){
     const all = document.getElementById('qualitySelectAll'); if(all) all.checked=false;
     updateQualitySelectedCount();
 }
+async function reactivateQualityCustomer(kundeId){
+    if(!confirm('Möchten Sie die Qualitätsabfragen für diesen Kunden wirklich wieder aktivieren?')) return;
+    try{
+        const res = await fetch('/api/ai/kundenpflege/preference',{
+            method:'POST',
+            headers:{'Content-Type':'application/json'},
+            body:JSON.stringify({kunde_id:kundeId,enabled:true,interval_months:3})
+        });
+        const data = await res.json();
+        if(!res.ok || !data.ok) throw new Error(data.message || data.error || 'Aktivierung fehlgeschlagen.');
+        await loadQualityCustomers();
+    }catch(err){
+        alert('Fehler: ' + err.message);
+    }
+}
+
 function toggleQualitySelectAll(checked){
     document.querySelectorAll('.quality-cb:not(:disabled)').forEach(cb=>cb.checked=checked);
     updateQualitySelectedCount();
