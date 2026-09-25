@@ -1951,6 +1951,7 @@ www.kg-reinigung.de
             bcc_email = str(data.get("bcc") or "").strip()
             subject = str(data.get("subject") or "").strip()
             message_text = str(data.get("message") or "").strip()
+            message_html = str(data.get("message_html") or "").strip()
             signature_html = str(data.get("signature") or "").strip()
             attachments = data.get("attachments") or []
 
@@ -1966,14 +1967,23 @@ www.kg-reinigung.de
                     "message": "Betreff fehlt."
                 }), 400
 
-            plain_html = escape(message_text).replace("\n", "<br>")
-            body_html = f"""
-            <div style="font-family:Arial,Helvetica,sans-serif;font-size:14px;line-height:1.6;color:#111827;">
-                {plain_html}
-                <br><br>
-                {signature_html}
-            </div>
-            """
+            if message_html:
+                body_html = f"""
+                <div style="font-family:Arial,Helvetica,sans-serif;font-size:14px;line-height:1.6;color:#111827;">
+                    {message_html}
+                    <br><br>
+                    {signature_html}
+                </div>
+                """
+            else:
+                plain_html = escape(message_text).replace("\n", "<br>")
+                body_html = f"""
+                <div style="font-family:Arial,Helvetica,sans-serif;font-size:14px;line-height:1.6;color:#111827;">
+                    {plain_html}
+                    <br><br>
+                    {signature_html}
+                </div>
+                """
 
             msg = EmailMessage()
             msg["From"] = f"KG-Gebäudereinigung <{from_email}>"
