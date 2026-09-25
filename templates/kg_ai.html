@@ -544,7 +544,7 @@ async function sendQualityMails(){
         const m=qualityPreviewMails[i];
         status.textContent='Sende '+(i+1)+' / '+qualityPreviewMails.length+': '+m.firma;
         try{
-            const sendRes=await fetch('/api/gmail/send',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({from:'info@kg-reinigung.de',to:m.email,cc:'',bcc:'',subject:m.subject,message:m.body,message_html:m.body_html||'',signature:'',attachments:[]})});
+            const sendRes=await fetch('/api/gmail/send',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({from:'kundenservice@kg-reinigung.de',from_name:'KG-Gebäudereinigung Kundenservice',to:m.email,cc:'',bcc:'',subject:m.subject,message:m.body,message_html:m.body_html||'',signature:'',attachments:[]})});
             const sendData=await sendRes.json();
             if(!sendRes.ok||!sendData.ok)throw new Error(sendData.message||'Gmail Versand fehlgeschlagen.');
             const logRes=await fetch('/api/ai/kundenpflege/log',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({kunde_id:m.id,recipient:m.email,subject:m.subject,body:m.body,gmail_id:sendData.gmail_id||'',unsubscribe_token:m.unsubscribe_token,survey_token:m.survey_token,status:'sent'})});
