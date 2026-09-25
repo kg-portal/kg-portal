@@ -31,7 +31,7 @@ from fints_import import (
 )
 from app2 import register_app2_routes
 from whatsapp_connector_routes import register_whatsapp_connector_routes
-from kg_ai_routes import register_kg_ai_routes
+from kg_ai_routes import register_kg_ai_routes, run_due_quality_campaigns
 from kg_todo_routes import register_kg_todo_routes
 
 
@@ -112,6 +112,7 @@ def run_nightly_crm_job_background():
         "ok": False,
         "google_pool": None,
         "tagesliste_cycle": None,
+        "quality_campaigns": None,
         "error": "",
         "traceback": ""
     }
@@ -131,6 +132,9 @@ def run_nightly_crm_job_background():
         from nightly_tagesliste_cycle import run_cycle
         run_cycle()
         result["tagesliste_cycle"] = "done"
+
+        # 3) KG-AI Qualitätskampagnen prüfen und fällige Mails senden.
+        result["quality_campaigns"] = run_due_quality_campaigns(get_db_connection)
 
         result["ok"] = True
 
