@@ -221,6 +221,23 @@
                 <div id="qualityCustomerRows"><div class="quality-empty">Kunden werden geladen...</div></div>
             </div>
 
+            <div style="margin-top:16px;padding:14px;border:1px solid #dbeafe;background:#f8fbff;border-radius:14px;">
+                <div style="font-weight:900;margin-bottom:8px;color:#0f172a">Regelmäßige Qualitätskampagne</div>
+                <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+                    <select id="qualityCampaignInterval" class="quality-select">
+                        <option value="1">Jeden Monat</option>
+                        <option value="2" selected>Alle 2 Monate</option>
+                        <option value="3">Alle 3 Monate</option>
+                        <option value="6">Alle 6 Monate</option>
+                    </select>
+                    <button class="quality-primary" onclick="confirmStartQualityCampaign()">Kampagne starten</button>
+                    <span id="qualityCampaignStatus" style="font-size:13px;font-weight:800;color:#475569"></span>
+                </div>
+                <div style="font-size:12px;color:#64748b;margin-top:8px">
+                    Die Kampagne läuft weiter, bis der Kunde die Qualitätsabfrage abbestellt oder im Kundenstamm als „Gekündigt“ markiert wird.
+                </div>
+            </div>
+
             <div class="quality-actions">
                 <div>
                     <label style="font-weight:800"><input type="checkbox" id="qualitySelectAll" onchange="toggleQualitySelectAll(this.checked)"> Sichtbare auswählen</label>
@@ -277,6 +294,25 @@
             <button class="survey-close" onclick="closeSurveyDetail()">×</button>
         </div>
         <div id="surveyModalContent"></div>
+    </div>
+</div>
+
+<div id="qualityCampaignConfirmModal" class="survey-modal-backdrop" onclick="closeQualityCampaignConfirm(event)">
+    <div class="survey-modal" style="max-width:560px">
+        <div class="survey-modal-head">
+            <div>
+                <div class="survey-modal-title">Kampagne wirklich starten?</div>
+                <div id="qualityCampaignConfirmText" style="color:#64748b;margin-top:8px;line-height:1.5"></div>
+            </div>
+            <button class="survey-close" onclick="closeQualityCampaignConfirm()">×</button>
+        </div>
+        <div style="margin-top:22px;padding:14px;background:#fff7ed;border:1px solid #fed7aa;border-radius:12px;color:#9a3412;font-weight:800">
+            Die erste Qualitätsmail wird direkt nach dem Start gesendet. Danach läuft die Kampagne automatisch im gewählten Intervall weiter.
+        </div>
+        <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:22px">
+            <button class="quality-secondary" onclick="closeQualityCampaignConfirm()">Abbrechen</button>
+            <button class="quality-primary danger" onclick="startQualityCampaign()">Ja, ich bin sicher – Kampagne starten</button>
+        </div>
     </div>
 </div>
 
@@ -426,6 +462,46 @@ function updateQualitySelectedCount(){
     const el=document.getElementById('qualitySelectedCount');
     if(el) el.textContent=selectedQualityIds().length+' ausgewählt';
 }
+function confirmStartQualityCampaign(){
+    const ids = selectedQualityIds();
+    if(!ids.length){
+        document.getElementById('qualityCampaignStatus').textContent = 'Bitte mindestens einen Kunden auswählen.';
+        return;
+    }
+    const interval = Number(document.getElementById('qualityCampaignInterval').value || 2);
+    const intervalText = interval === 1 ? 'jeden Monat' : 'alle ' + interval + ' Monate';
+    document.getElementById('qualityCampaignConfirmText').textContent =
+        ids.length + ' Kunde(n) werden ausgewählt. Die Qualitätsmail wird ' + intervalText + ' automatisch versendet.';
+    document.getElementById('qualityCampaignConfirmModal').classList.add('open');
+}
+function closeQualityCampaignConfirm(event){
+    const modal = document.getElementById('qualityCampaignConfirmModal');
+    if(event && event.target !== modal) return;
+    modal.classList.remove('open');
+}
+async function startQualityCampaign(){
+    const ids = selectedQualityIds();
+    const interval = Number(document.getElementById('qualityCampaignInterval').value || 2);
+    const status = document.getElementById('qualityCampaignStatus');
+    closeQualityCampaignConfirm();
+    status.textContent = 'Kampagne wird gestartet ...';
+    try{
+        const res = await fetch('/api/ai/kundenpflege/campaign/start',{
+            method:'POST',
+            headers:{'Content-Type':'application/json'},
+            body:JSON.stringify({kunde_ids:ids, interval_months:interval})
+        });
+        const data = await res.json();
+        if(!res.ok || !data.ok) throw new Error(data.message || data.error || 'Kampagne konnte nicht gestartet werden.');
+        const run = data.run || {};
+        status.textContent = 'Kampagne aktiv · ' + data.kunden + ' Kunde(n) · erste Mail gesendet: ' + (run.sent || 0);
+        await loadQualityCustomers();
+        await loadQualityHistory();
+    }catch(err){
+        status.textContent = 'Fehler: ' + err.message;
+    }
+}
+
 async function prepareQualityPreview(){
     const ids=selectedQualityIds();
     const status=document.getElementById('qualityStatus');
