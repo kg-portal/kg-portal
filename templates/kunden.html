@@ -171,6 +171,11 @@
           </div>
 
           <div class="kunden-detail-box">
+            <div class="kunden-detail-label">Rechnungs-E-Mail</div>
+            <div class="kunden-detail-value">{{ k.rechnung_email or "" }}</div>
+          </div>
+
+          <div class="kunden-detail-box">
             <div class="kunden-detail-label">Kundennummer</div>
             <div class="kunden-detail-value">{{ k.kundennummer }}</div>
           </div>
@@ -223,6 +228,7 @@
   <span class="t-name">{{ k.ansprechpartner_name or "" }}</span>
   <span class="t-tel">{{ k.telefon or "" }}</span>
   <span class="t-mail">{{ k.email or "" }}</span>
+  <span class="t-rechnung-mail">{{ k.rechnung_email or "" }}</span>
 
   <span class="t-knr">{{ k.kundennummer }}</span>
   <span class="t-freq">{{ k.haeufigkeit }}</span>
@@ -312,7 +318,7 @@
     </label>
   </div>
 
-  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:22px">
+  <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:22px">
     <div>
       <label class="input-lbl" style="color:#2563eb">Name</label>
       <input class="m-input" name="name" id="f_name">
@@ -322,8 +328,12 @@
       <input class="m-input" name="telefon" id="f_tel">
     </div>
     <div>
-      <label class="input-lbl" style="color:#2563eb">E-Mail</label>
+      <label class="input-lbl" style="color:#2563eb">Ansprechpartner E-Mail</label>
       <input class="m-input" name="email" id="f_mail">
+    </div>
+    <div>
+      <label class="input-lbl" style="color:#2563eb">Rechnungs-E-Mail</label>
+      <input class="m-input" name="rechnung_email" id="f_rechnung_mail">
     </div>
   </div>
 </div>
@@ -1317,6 +1327,7 @@ function editKunde(id) {
   document.getElementById('f_name').value = row.querySelector('.t-name').innerText;
   document.getElementById('f_tel').value = row.querySelector('.t-tel').innerText;
   document.getElementById('f_mail').value = row.querySelector('.t-mail').innerText;
+  document.getElementById('f_rechnung_mail').value = row.querySelector('.t-rechnung-mail')?.innerText || "";
   document.getElementById('f_knr').value = row.querySelector('.t-knr').innerText;
   document.getElementById('f_monat').value = row.querySelector('.t-raw-monat').innerText;
   document.getElementById('f_freq').value = row.querySelector('.t-freq').innerText;
@@ -1360,6 +1371,7 @@ function previewKunde(id) {
     <strong>Anschrift:</strong> ${row.querySelector('.t-strasse').innerText}, ${row.querySelector('.t-plz').innerText} ${row.querySelector('.t-ort').innerText}<br>
     <strong>Ansprechpartner:</strong> ${row.querySelector('.t-name').innerText}<br>
     <strong>Kontakt:</strong> ${row.querySelector('.t-tel').innerText} | ${row.querySelector('.t-mail').innerText}<br>
+    <strong>Rechnungs-E-Mail:</strong> ${row.querySelector('.t-rechnung-mail')?.innerText || '-'}<br>
     <strong>Vertrag:</strong> ${row.querySelector('.t-beginn').innerText} bis ${row.querySelector('.t-ende').innerText}<br>
     <strong>Konditionen:</strong> ${row.querySelector('.t-monat').innerText} / ${row.querySelector('.t-freq').innerText}
   `;
