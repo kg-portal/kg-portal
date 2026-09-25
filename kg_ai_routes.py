@@ -95,7 +95,17 @@ def run_due_quality_campaigns(get_db_connection, base_url=None, only_customer_id
 
 wir möchten regelmäßig sicherstellen, dass Sie mit unserer Reinigungsleistung zufrieden sind.
 
-Eine kurze Antwort auf diese E-Mail genügt. Alternativ können Sie uns Ihr Feedback in wenigen Minuten direkt über unsere Kundenzufriedenheitsumfrage senden:
+Dürfen wir Sie kurz um eine Rückmeldung bitten?
+
+• Sind Sie mit unserer Reinigungsleistung insgesamt zufrieden?
+• Gibt es etwas, das unsere Mitarbeiter anders oder besser machen sollen?
+• Gibt es Bereiche, die künftig mehr Aufmerksamkeit benötigen?
+• Sind Sie mit den eingesetzten Reinigungsmitteln und deren Geruch zufrieden?
+• Haben Sie weitere Wünsche oder Hinweise für uns?
+
+Eine kurze Antwort auf diese E-Mail genügt. Ihre Rückmeldung hilft uns, Probleme frühzeitig zu erkennen und unsere Leistung laufend zu verbessern.
+
+Alternativ können Sie uns Ihr Feedback in wenigen Minuten direkt über unsere kurze Kundenzufriedenheitsumfrage senden:
 {survey_url}
 
 Wenn Sie diese Qualitätsabfragen künftig nicht mehr erhalten möchten:
@@ -119,10 +129,24 @@ www.kg-reinigung.de"""
         <div style="font-family:Arial,Helvetica,sans-serif;font-size:14px;line-height:1.65;color:#111827;">
           <p>Sehr geehrter Kunde,</p>
           <p>wir möchten regelmäßig sicherstellen, dass Sie mit unserer Reinigungsleistung zufrieden sind.</p>
-          <p>Eine kurze Antwort auf diese E-Mail genügt. Alternativ können Sie uns Ihr Feedback in wenigen Minuten direkt über unsere Kundenzufriedenheitsumfrage senden.</p>
-          <p><a href="{survey_url}" style="display:inline-block;padding:11px 18px;background:#2563eb;color:#fff;text-decoration:none;border-radius:9px;font-weight:700;">Zur Kundenzufriedenheitsumfrage</a></p>
+          <p>Dürfen wir Sie kurz um eine Rückmeldung bitten?</p>
+          <ul style="padding-left:20px;">
+            <li>Sind Sie mit unserer Reinigungsleistung insgesamt zufrieden?</li>
+            <li>Gibt es etwas, das unsere Mitarbeiter anders oder besser machen sollen?</li>
+            <li>Gibt es Bereiche, die künftig mehr Aufmerksamkeit benötigen?</li>
+            <li>Sind Sie mit den eingesetzten Reinigungsmitteln und deren Geruch zufrieden?</li>
+            <li>Haben Sie weitere Wünsche oder Hinweise für uns?</li>
+          </ul>
+          <p>Eine kurze Antwort auf diese E-Mail genügt. Ihre Rückmeldung hilft uns, Probleme frühzeitig zu erkennen und unsere Leistung laufend zu verbessern.</p>
+
+          <div style="margin:24px 0;padding:18px;border:1px solid #dbeafe;background:#f8fbff;border-radius:14px;">
+            <div style="font-weight:700;margin-bottom:10px;">Alternativ können Sie uns Ihr Feedback in wenigen Minuten direkt über unsere kurze Kundenzufriedenheitsumfrage senden.</div>
+            <a href="{survey_url}" style="display:inline-block;padding:11px 18px;background:#2563eb;color:#fff;text-decoration:none;border-radius:9px;font-weight:700;">Zur Kundenzufriedenheitsumfrage</a>
+          </div>
+
           <p style="margin-top:24px;color:#64748b;font-size:13px;">Wenn Sie diese Qualitätsabfragen künftig nicht mehr erhalten möchten:
           <a href="{unsubscribe_url}" style="display:inline-block;margin-left:6px;padding:7px 12px;background:#f97316;color:#fff;text-decoration:none;border-radius:8px;font-weight:700;">Abbestellen</a></p>
+
           <p style="margin-top:24px;">Mit freundlichen Grüßen</p>
           <div style="line-height:1.55;">
             <strong>Ihr KG-Gebäudereinigung Kundenservice</strong><br><br>
