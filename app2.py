@@ -1152,17 +1152,19 @@ def angebot_build_template_vars(besichtigung_data, berechnung, nr, datum):
 # KG-AI KUNDENFEEDBACK - DIREKTE GMAIL BILDIRIMI
 # =====================================================
 
-def send_gmail_message_direct(to_email, subject, message_text, message_html=""):
+def send_gmail_message_direct(to_email, subject, message_text, message_html="", from_email="info@kg-reinigung.de", from_name="KG-Gebäudereinigung"):
     to_email = str(to_email or "").strip()
     subject = str(subject or "").strip()
     message_text = str(message_text or "").strip()
     message_html = str(message_html or "").strip()
+    from_email = str(from_email or "info@kg-reinigung.de").strip()
+    from_name = str(from_name or "KG-Gebäudereinigung").strip()
 
     if not to_email:
         raise ValueError("Empfänger fehlt.")
 
     msg = EmailMessage()
-    msg["From"] = "KG-Gebäudereinigung <info@kg-reinigung.de>"
+    msg["From"] = f"{from_name} <{from_email}>"
     msg["To"] = to_email
     msg["Subject"] = subject or "KG Portal Nachricht"
     msg.set_content(message_text or " ")
@@ -2027,7 +2029,7 @@ www.kg-reinigung.de
                 """
 
             msg = EmailMessage()
-            msg["From"] = f"KG-Gebäudereinigung <{from_email}>"
+            msg["From"] = f"{from_name} <{from_email}>"
             msg["To"] = to_email
             msg["Subject"] = subject
 
