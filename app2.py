@@ -1989,6 +1989,7 @@ www.kg-reinigung.de
             data = request.get_json(silent=True) or {}
 
             from_email = str(data.get("from") or "info@kg-reinigung.de").strip()
+            from_name = str(data.get("from_name") or "KG-Gebäudereinigung").strip()
             to_email = str(data.get("to") or "").strip()
             cc_email = str(data.get("cc") or "").strip()
             bcc_email = str(data.get("bcc") or "").strip()
