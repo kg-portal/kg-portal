@@ -110,7 +110,7 @@
     .quality-input,.quality-select{border:1px solid #cbd5e1;border-radius:10px;padding:10px 12px;font-size:14px;background:#fff}
     .quality-input{min-width:260px;flex:1}
     .quality-list{border:1px solid #e2e8f0;border-radius:14px;overflow:hidden}
-    .quality-row{display:grid;grid-template-columns:42px 1.6fr 1.1fr 1.3fr 125px;gap:10px;align-items:center;padding:13px 14px;border-bottom:1px solid #e2e8f0;font-size:13px}
+    .quality-row{display:grid;grid-template-columns:42px 1.45fr 1.05fr 1.25fr 115px 120px;gap:10px;align-items:center;padding:13px 14px;border-bottom:1px solid #e2e8f0;font-size:13px}
     .quality-row:last-child{border-bottom:none}
     .quality-row.head{background:#f8fafc;font-weight:900;color:#475569}
     .quality-row.disabled{background:#f8fafc;color:#94a3b8}
@@ -135,6 +135,19 @@
     .quality-history th{background:#f8fafc;color:#475569}
     .quality-empty{padding:25px;text-align:center;color:#64748b;font-weight:700}
     .quality-status{margin-top:12px;font-size:13px;font-weight:800;color:#1d4ed8}
+    .quality-company-link{background:none;border:none;padding:0;font:inherit;font-weight:900;color:#0f172a;cursor:pointer;text-align:left}
+    .quality-company-link:hover{text-decoration:underline;color:#2563eb}
+    .survey-modal-backdrop{display:none;position:fixed;inset:0;background:rgba(15,23,42,.62);z-index:5000;align-items:center;justify-content:center;padding:20px}
+    .survey-modal-backdrop.open{display:flex}
+    .survey-modal{width:min(680px,96vw);max-height:88vh;overflow:auto;background:#fff;border-radius:22px;padding:26px;box-shadow:0 30px 80px rgba(15,23,42,.28)}
+    .survey-modal-head{display:flex;justify-content:space-between;gap:16px;align-items:flex-start}
+    .survey-modal-title{font-size:22px;font-weight:900;color:#0f172a}
+    .survey-close{border:none;background:#f1f5f9;border-radius:999px;width:36px;height:36px;cursor:pointer;font-size:18px}
+    .survey-score-grid{display:grid;grid-template-columns:1fr 70px;gap:10px;margin-top:18px}
+    .survey-score-row{display:contents}
+    .survey-score-label{padding:10px 0;border-bottom:1px solid #e2e8f0;font-weight:700;color:#334155}
+    .survey-score-value{padding:10px 0;border-bottom:1px solid #e2e8f0;text-align:right;font-weight:900;color:#2563eb}
+    .survey-comment{margin-top:18px;padding:14px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;white-space:pre-wrap;color:#334155}
     @media(max-width:850px){.quality-row{grid-template-columns:34px 1fr}.quality-row.head{display:none}.quality-row>div:nth-child(n+3){grid-column:2}.quality-preview-grid{grid-template-columns:1fr}}
 
 </style>
@@ -203,7 +216,7 @@
 
             <div class="quality-list">
                 <div class="quality-row head">
-                    <div></div><div>Kunde</div><div>Ansprechpartner</div><div>E-Mail</div><div>Letzte Kontrolle</div>
+                    <div></div><div>Kunde</div><div>Ansprechpartner</div><div>E-Mail</div><div>Letzte Kontrolle</div><div>Letzte Umfrage</div>
                 </div>
                 <div id="qualityCustomerRows"><div class="quality-empty">Kunden werden geladen...</div></div>
             </div>
@@ -246,11 +259,24 @@
         <div id="qualityPanelHistory" class="quality-panel">
             <div style="overflow:auto">
                 <table class="quality-history">
-                    <thead><tr><th>Datum</th><th>Firma</th><th>Empfänger</th><th>Status</th><th>Abbestellt</th></tr></thead>
-                    <tbody id="qualityHistoryRows"><tr><td colspan="5" class="quality-empty">Verlauf wird geladen...</td></tr></tbody>
+                    <thead><tr><th>Datum</th><th>Firma</th><th>Empfänger</th><th>Status</th><th>Umfrage</th><th>Abbestellt</th></tr></thead>
+                    <tbody id="qualityHistoryRows"><tr><td colspan="6" class="quality-empty">Verlauf wird geladen...</td></tr></tbody>
                 </table>
             </div>
         </div>
+    </div>
+</div>
+
+<div id="surveyDetailModal" class="survey-modal-backdrop" onclick="closeSurveyDetail(event)">
+    <div class="survey-modal">
+        <div class="survey-modal-head">
+            <div>
+                <div class="survey-modal-title" id="surveyModalTitle">Letzte Umfrage</div>
+                <div id="surveyModalDate" style="color:#64748b;margin-top:4px"></div>
+            </div>
+            <button class="survey-close" onclick="closeSurveyDetail()">×</button>
+        </div>
+        <div id="surveyModalContent"></div>
     </div>
 </div>
 
@@ -327,17 +353,52 @@ function renderQualityCustomers(){
         else if(!k.last_sent) state = '<span class="quality-badge blue">Noch nie</span>';
         else if(qualityIsDue(k)) state = '<span class="quality-badge green">Fällig</span>';
         else state = '<span class="quality-badge gray">Aktuell</span>';
+        const surveyText = k.last_survey_at
+            ? '<button type="button" class="quality-badge green" style="border:none;cursor:pointer" onclick="event.stopPropagation(); openSurveyDetail('+k.id+')">'+escapeQualityHtml(k.score_gesamt || '-')+'/5 ansehen</button>'
+            : '<span class="quality-badge gray">Noch keine</span>';
         return `<div class="quality-row ${disabled?'disabled':''}">
             <div><input type="checkbox" class="quality-cb" data-id="${k.id}" ${disabled?'disabled':''} onchange="updateQualitySelectedCount()"></div>
-            <div><div class="quality-company">${escapeQualityHtml(k.firma)}</div><div>${escapeQualityHtml(k.ort || '')} ${state}</div></div>
+            <div><button type="button" class="quality-company-link" onclick="openSurveyDetail(${k.id})">${escapeQualityHtml(k.firma)}</button><div>${escapeQualityHtml(k.ort || '')} ${state}</div></div>
             <div>${escapeQualityHtml(k.ansprechpartner_name || '-')}</div>
             <div>${escapeQualityHtml(k.email || '-')}</div>
             <div>${escapeQualityHtml(k.last_sent || '-')}</div>
+            <div>${surveyText}</div>
         </div>`;
     }).join('');
     const all = document.getElementById('qualitySelectAll'); if(all) all.checked=false;
     updateQualitySelectedCount();
 }
+function openSurveyDetail(kundeId){
+    const k = qualityCustomers.find(x=>Number(x.id)===Number(kundeId));
+    if(!k) return;
+
+    document.getElementById('surveyModalTitle').textContent = 'Letzte Umfrage · ' + (k.firma || '');
+    document.getElementById('surveyModalDate').textContent = k.last_survey_at ? ('Eingegangen am ' + k.last_survey_at) : '';
+
+    const content = document.getElementById('surveyModalContent');
+    if(!k.last_survey_at){
+        content.innerHTML = '<div class="quality-empty">Für diesen Kunden wurde noch keine Umfrage beantwortet.</div>';
+    }else{
+        const rows = [
+            ['Gesamtzufriedenheit', k.score_gesamt],
+            ['Mitarbeiter', k.score_mitarbeiter],
+            ['Sauberkeit & Gründlichkeit', k.score_sauberkeit],
+            ['Reinigungsmittel / Geruch', k.score_reinigungsmittel],
+            ['Kommunikation & Zuverlässigkeit', k.score_kommunikation]
+        ];
+        content.innerHTML = '<div class="survey-score-grid">' +
+            rows.map(r=>'<div class="survey-score-row"><div class="survey-score-label">'+escapeQualityHtml(r[0])+'</div><div class="survey-score-value">'+escapeQualityHtml(r[1] || '-')+'/5</div></div>').join('') +
+            '</div><div class="survey-comment"><strong>Kommentar</strong><br><br>'+escapeQualityHtml(k.survey_kommentar || 'Kein zusätzlicher Kommentar.')+'</div>';
+    }
+
+    document.getElementById('surveyDetailModal').classList.add('open');
+}
+function closeSurveyDetail(event){
+    const modal = document.getElementById('surveyDetailModal');
+    if(event && event.target !== modal) return;
+    modal.classList.remove('open');
+}
+
 async function reactivateQualityCustomer(kundeId){
     if(!confirm('Möchten Sie die Qualitätsabfragen für diesen Kunden wirklich wieder aktivieren?')) return;
     try{
@@ -410,7 +471,7 @@ async function sendQualityMails(){
             const sendRes=await fetch('/api/gmail/send',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({from:'info@kg-reinigung.de',to:m.email,cc:'',bcc:'',subject:m.subject,message:m.body,message_html:m.body_html||'',signature:'',attachments:[]})});
             const sendData=await sendRes.json();
             if(!sendRes.ok||!sendData.ok)throw new Error(sendData.message||'Gmail Versand fehlgeschlagen.');
-            const logRes=await fetch('/api/ai/kundenpflege/log',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({kunde_id:m.id,recipient:m.email,subject:m.subject,body:m.body,gmail_id:sendData.gmail_id||'',unsubscribe_token:m.unsubscribe_token,status:'sent'})});
+            const logRes=await fetch('/api/ai/kundenpflege/log',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({kunde_id:m.id,recipient:m.email,subject:m.subject,body:m.body,gmail_id:sendData.gmail_id||'',unsubscribe_token:m.unsubscribe_token,survey_token:m.survey_token,status:'sent'})});
             const logData=await logRes.json();
             if(!logRes.ok||!logData.ok)throw new Error(logData.message||'Versand wurde nicht protokolliert.');
             sent++;
@@ -429,8 +490,8 @@ async function loadQualityHistory(){
         const data=await res.json();
         if(!res.ok||!data.ok)throw new Error(data.message||data.error||'Verlauf konnte nicht geladen werden.');
         const rows=data.history||[];
-        if(!rows.length){tbody.innerHTML='<tr><td colspan="5" class="quality-empty">Noch keine Qualitätsmails versendet.</td></tr>';return;}
-        tbody.innerHTML=rows.map(r=>`<tr><td>${escapeQualityHtml(r.sent_at||'')}</td><td><strong>${escapeQualityHtml(r.firma||'')}</strong></td><td>${escapeQualityHtml(r.recipient||'')}</td><td><span class="quality-badge green">${escapeQualityHtml(r.status||'sent')}</span></td><td>${r.unsubscribed_at?'<span class="quality-badge red">Ja</span>':'<span class="quality-badge gray">Nein</span>'}</td></tr>`).join('');
+        if(!rows.length){tbody.innerHTML='<tr><td colspan="6" class="quality-empty">Noch keine Qualitätsmails versendet.</td></tr>';return;}
+        tbody.innerHTML=rows.map(r=>`<tr><td>${escapeQualityHtml(r.sent_at||'')}</td><td><strong>${escapeQualityHtml(r.firma||'')}</strong></td><td>${escapeQualityHtml(r.recipient||'')}</td><td><span class="quality-badge green">${escapeQualityHtml(r.status||'sent')}</span></td><td>${r.survey_submitted_at?'<span class="quality-badge blue">'+escapeQualityHtml(r.survey_score||'-')+'/5</span>':'<span class="quality-badge gray">Offen</span>'}</td><td>${r.unsubscribed_at?'<span class="quality-badge red">Ja</span>':'<span class="quality-badge gray">Nein</span>'}</td></tr>`).join('');
     }catch(err){tbody.innerHTML='<tr><td colspan="5" class="quality-empty">Fehler: '+escapeQualityHtml(err.message)+'</td></tr>';}
 }
 document.addEventListener('DOMContentLoaded',function(){loadQualityCustomers();loadQualityHistory();});
