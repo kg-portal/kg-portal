@@ -2438,6 +2438,7 @@ www.kg-reinigung.de
                     ansprechpartner_name,
                     telefon,
                     email,
+                    rechnung_email,
                     kundennummer
                 FROM kunden
                 WHERE
@@ -2473,6 +2474,7 @@ www.kg-reinigung.de
                     ansprechpartner_name,
                     telefon,
                     email,
+                    rechnung_email,
                     kundennummer
                 FROM kunden
                 ORDER BY firma ASC
@@ -2525,6 +2527,7 @@ www.kg-reinigung.de
                 ansprechpartner_name,
                 telefon,
                 email,
+                rechnung_email,
                 kundennummer
             FROM kunden
             WHERE id = ?
@@ -2550,7 +2553,8 @@ www.kg-reinigung.de
                 "plz": kunde["plz"] or "",
                 "ort": kunde["ort"] or "",
                 "telefon": kunde["telefon"] or "",
-                "email": kunde["email"] or ""
+                "email": kunde["email"] or "",
+                "rechnung_email": kunde["rechnung_email"] or ""
             },
             "leistungen": [],
             "raeume": [],
