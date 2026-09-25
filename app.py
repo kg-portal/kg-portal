@@ -517,6 +517,7 @@ def init_db():
             ansprechpartner_name TEXT,
             telefon TEXT,
             email TEXT,
+            rechnung_email TEXT,
             kundennummer TEXT,
             vertrag_beginn TEXT,
             vertrag_ende TEXT,
@@ -530,6 +531,11 @@ def init_db():
 
     try:
         conn.execute("ALTER TABLE kunden ADD COLUMN sort_order INTEGER DEFAULT 0")
+    except Exception:
+        pass
+
+    try:
+        conn.execute("ALTER TABLE kunden ADD COLUMN rechnung_email TEXT")
     except Exception:
         pass
 
@@ -1140,14 +1146,14 @@ def kunden():
             conn.execute("""
                 UPDATE kunden SET
                     firma=?, ort=?, monat=?, strasse=?, plz=?,
-                    ansprechpartner_name=?, telefon=?, email=?,
+                    ansprechpartner_name=?, telefon=?, email=?, rechnung_email=?,
                     kundennummer=?, vertrag_beginn=?, vertrag_ende=?,
                     haeufigkeit=?, vertragsstatus=?, vertragslaufzeit=?, data_json=?
                 WHERE id=?
             """, (
                 form_data.get("firma"), form_data.get("stadt"), form_data.get("betrag"),
                 form_data.get("strasse"), form_data.get("plz"), name,
-                form_data.get("telefon"), form_data.get("email"),
+                form_data.get("telefon"), form_data.get("email"), form_data.get("rechnung_email"),
                 form_data.get("kundennummer"), form_data.get("beginn"),
                 form_data.get("ende"), form_data.get("haeufigkeit"),
                 form_data.get("status"), form_data.get("laufzeit"),
@@ -1166,7 +1172,7 @@ def kunden():
                         sehir=form_data.get("stadt"),
                         sokak=form_data.get("strasse"),
                         plz=form_data.get("plz"),
-                        email=form_data.get("email"),
+                        email=(form_data.get("rechnung_email") or form_data.get("email")),
                         telefon=form_data.get("telefon")
                     )
             except Exception as e:
@@ -1177,14 +1183,14 @@ def kunden():
             cursor = conn.execute("""
                 INSERT INTO kunden (
                     firma, ort, monat, strasse, plz,
-                    ansprechpartner_name, telefon, email,
+                    ansprechpartner_name, telefon, email, rechnung_email,
                     kundennummer, vertrag_beginn, vertrag_ende,
                     haeufigkeit, vertragsstatus, vertragslaufzeit, data_json
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """, (
                 form_data.get("firma"), form_data.get("stadt"), form_data.get("betrag"),
                 form_data.get("strasse"), form_data.get("plz"), name,
-                form_data.get("telefon"), form_data.get("email"),
+                form_data.get("telefon"), form_data.get("email"), form_data.get("rechnung_email"),
                 form_data.get("kundennummer"), form_data.get("beginn"),
                 form_data.get("ende"), form_data.get("haeufigkeit"),
                 form_data.get("status"), form_data.get("laufzeit"),
@@ -1200,7 +1206,7 @@ def kunden():
                     sehir=form_data.get("stadt"), 
                     sokak=form_data.get("strasse"),
                     plz=form_data.get("plz"),
-                    email=form_data.get("email"),
+                    email=(form_data.get("rechnung_email") or form_data.get("email")),
                     telefon=form_data.get("telefon")
                 )
                 
