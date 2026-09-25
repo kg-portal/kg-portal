@@ -1233,12 +1233,42 @@ www.kg-reinigung.de
                 f"Kommentar: {kommentar or '-'}"
             )
 
+            notification_html = f"""
+            <div style="font-family:Arial,Helvetica,sans-serif;background:#f5f7fb;padding:24px;color:#0f172a;">
+              <div style="max-width:680px;margin:0 auto;background:#ffffff;border:1px solid #dbeafe;border-radius:18px;overflow:hidden;">
+                <div style="background:#2563eb;color:#ffffff;padding:22px 26px;">
+                  <div style="font-size:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;">KG-Gebäudereinigung</div>
+                  <div style="font-size:23px;font-weight:900;margin-top:6px;">Neue Kundenzufriedenheitsumfrage</div>
+                  <div style="font-size:15px;margin-top:6px;">{firma}</div>
+                </div>
+                <div style="padding:24px 26px;">
+                  <div style="display:inline-block;background:#eff6ff;border:1px solid #bfdbfe;border-radius:12px;padding:10px 14px;margin-bottom:18px;">
+                    <div style="font-size:13px;color:#475569;">Gesamtdurchschnitt</div>
+                    <div style="font-size:24px;font-weight:900;color:#1d4ed8;">{average:.1f} / 5</div>
+                  </div>
+                  <table style="width:100%;border-collapse:collapse;font-size:14px;">
+                    <tr><td style="padding:9px 0;border-bottom:1px solid #e2e8f0;">Gesamtzufriedenheit</td><td style="padding:9px 0;border-bottom:1px solid #e2e8f0;text-align:right;font-weight:800;">{scores['score_gesamt']} / 5</td></tr>
+                    <tr><td style="padding:9px 0;border-bottom:1px solid #e2e8f0;">Mitarbeiter</td><td style="padding:9px 0;border-bottom:1px solid #e2e8f0;text-align:right;font-weight:800;">{scores['score_mitarbeiter']} / 5</td></tr>
+                    <tr><td style="padding:9px 0;border-bottom:1px solid #e2e8f0;">Sauberkeit &amp; Gründlichkeit</td><td style="padding:9px 0;border-bottom:1px solid #e2e8f0;text-align:right;font-weight:800;">{scores['score_sauberkeit']} / 5</td></tr>
+                    <tr><td style="padding:9px 0;border-bottom:1px solid #e2e8f0;">Reinigungsmittel / Geruch</td><td style="padding:9px 0;border-bottom:1px solid #e2e8f0;text-align:right;font-weight:800;">{scores['score_reinigungsmittel']} / 5</td></tr>
+                    <tr><td style="padding:9px 0;">Kommunikation &amp; Zuverlässigkeit</td><td style="padding:9px 0;text-align:right;font-weight:800;">{scores['score_kommunikation']} / 5</td></tr>
+                  </table>
+                  <div style="margin-top:20px;padding:15px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;">
+                    <div style="font-size:13px;font-weight:800;color:#475569;margin-bottom:6px;">Zusätzliche Nachricht des Kunden</div>
+                    <div style="font-size:15px;line-height:1.5;">{kommentar or '-'}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            """
+
             try:
                 from app2 import send_gmail_message_direct
                 send_gmail_message_direct(
                     "info@kg-reinigung.de",
                     f"Neue Kundenzufriedenheitsumfrage – {firma}",
-                    notification_text
+                    notification_text,
+                    notification_html
                 )
             except Exception as mail_error:
                 print("KUNDENFEEDBACK MAIL FEHLER:", str(mail_error))
