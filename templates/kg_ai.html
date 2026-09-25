@@ -97,6 +97,46 @@
         font-size: 13px;
         font-weight: 700;
     }
+
+    .quality-card{margin-top:24px;background:#fff;border:1px solid #dbeafe;border-radius:18px;padding:24px;box-shadow:0 10px 30px rgba(15,23,42,.06)}
+    .quality-head{display:flex;justify-content:space-between;gap:18px;align-items:flex-start;flex-wrap:wrap}
+    .quality-title{font-size:24px;font-weight:900;color:#0f172a}
+    .quality-sub{font-size:14px;color:#64748b;margin-top:5px}
+    .quality-tabs{display:flex;gap:8px;flex-wrap:wrap;margin:20px 0 16px}
+    .quality-tab{border:1px solid #cbd5e1;background:#f8fafc;color:#334155;border-radius:10px;padding:10px 14px;font-weight:800;cursor:pointer}
+    .quality-tab.active{background:#2563eb;color:white;border-color:#2563eb}
+    .quality-panel{display:none}.quality-panel.active{display:block}
+    .quality-toolbar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+    .quality-input,.quality-select{border:1px solid #cbd5e1;border-radius:10px;padding:10px 12px;font-size:14px;background:#fff}
+    .quality-input{min-width:260px;flex:1}
+    .quality-list{border:1px solid #e2e8f0;border-radius:14px;overflow:hidden}
+    .quality-row{display:grid;grid-template-columns:42px 1.6fr 1.1fr 1.3fr 125px;gap:10px;align-items:center;padding:13px 14px;border-bottom:1px solid #e2e8f0;font-size:13px}
+    .quality-row:last-child{border-bottom:none}
+    .quality-row.head{background:#f8fafc;font-weight:900;color:#475569}
+    .quality-row.disabled{background:#f8fafc;color:#94a3b8}
+    .quality-company{font-weight:900;color:#0f172a}.quality-row.disabled .quality-company{color:#94a3b8}
+    .quality-badge{display:inline-block;border-radius:999px;padding:4px 8px;font-size:11px;font-weight:900}
+    .quality-badge.green{background:#dcfce7;color:#166534}.quality-badge.red{background:#fee2e2;color:#991b1b}.quality-badge.blue{background:#dbeafe;color:#1d4ed8}.quality-badge.gray{background:#e2e8f0;color:#475569}
+    .quality-actions{display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap;margin-top:16px}
+    .quality-primary{border:none;background:#2563eb;color:#fff;border-radius:11px;padding:12px 18px;font-weight:900;cursor:pointer}
+    .quality-primary.danger{background:#dc2626}
+    .quality-primary:disabled{opacity:.45;cursor:not-allowed}
+    .quality-secondary{border:1px solid #cbd5e1;background:#fff;color:#334155;border-radius:11px;padding:10px 14px;font-weight:800;cursor:pointer}
+    .quality-preview-grid{display:grid;grid-template-columns:280px 1fr;gap:16px}
+    .quality-preview-list{border:1px solid #e2e8f0;border-radius:12px;max-height:500px;overflow:auto}
+    .quality-preview-item{padding:11px 12px;border-bottom:1px solid #e2e8f0;cursor:pointer}
+    .quality-preview-item.active{background:#eff6ff;color:#1d4ed8}
+    .quality-mailbox{border:1px solid #dbeafe;border-radius:14px;padding:18px;background:#fff}
+    .quality-mail-subject{font-weight:900;font-size:17px;margin-bottom:12px}
+    .quality-mail-body{white-space:pre-wrap;line-height:1.6;font-size:14px;color:#1e293b}
+    .quality-confirm{margin-top:15px;padding:12px 14px;background:#fff7ed;border:1px solid #fed7aa;border-radius:12px;font-size:13px;font-weight:800;color:#9a3412}
+    .quality-history{width:100%;border-collapse:collapse;font-size:13px}
+    .quality-history th,.quality-history td{border-bottom:1px solid #e2e8f0;padding:10px;text-align:left}
+    .quality-history th{background:#f8fafc;color:#475569}
+    .quality-empty{padding:25px;text-align:center;color:#64748b;font-weight:700}
+    .quality-status{margin-top:12px;font-size:13px;font-weight:800;color:#1d4ed8}
+    @media(max-width:850px){.quality-row{grid-template-columns:34px 1fr}.quality-row.head{display:none}.quality-row>div:nth-child(n+3){grid-column:2}.quality-preview-grid{grid-template-columns:1fr}}
+
 </style>
 
 <div class="kg-ai-page">
@@ -132,10 +172,253 @@
 
         <div id="kgAiOutput" class="kg-ai-output">Hazır.</div>
     </div>
+
+    <div class="quality-card">
+        <div class="quality-head">
+            <div>
+                <div class="quality-title">Kundenpflege & Qualitätskontrolle</div>
+                <div class="quality-sub">Bestandskunden auswählen, Qualitätsmail vorbereiten, freigeben und Versandhistorie verfolgen.</div>
+            </div>
+            <span class="quality-badge blue">TEST-BRANCH</span>
+        </div>
+
+        <div class="quality-tabs">
+            <button class="quality-tab active" onclick="openQualityTab('kunden', this)">Kunden auswählen</button>
+            <button class="quality-tab" onclick="openQualityTab('preview', this)">Vorschau</button>
+            <button class="quality-tab" onclick="openQualityTab('history', this)">Verlauf</button>
+        </div>
+
+        <div id="qualityPanelKunden" class="quality-panel active">
+            <div class="quality-toolbar">
+                <input id="qualitySearch" class="quality-input" placeholder="Firma, Ansprechpartner, Ort oder E-Mail suchen" oninput="renderQualityCustomers()">
+                <select id="qualityFilter" class="quality-select" onchange="renderQualityCustomers()">
+                    <option value="all">Alle aktiven Kunden</option>
+                    <option value="due">Kontrolle fällig</option>
+                    <option value="never">Noch nie angeschrieben</option>
+                    <option value="unsubscribed">Abbestellt</option>
+                    <option value="noemail">Ohne E-Mail</option>
+                </select>
+                <button class="quality-secondary" onclick="loadQualityCustomers()">Aktualisieren</button>
+            </div>
+
+            <div class="quality-list">
+                <div class="quality-row head">
+                    <div></div><div>Kunde</div><div>Ansprechpartner</div><div>E-Mail</div><div>Letzte Kontrolle</div>
+                </div>
+                <div id="qualityCustomerRows"><div class="quality-empty">Kunden werden geladen...</div></div>
+            </div>
+
+            <div class="quality-actions">
+                <div>
+                    <label style="font-weight:800"><input type="checkbox" id="qualitySelectAll" onchange="toggleQualitySelectAll(this.checked)"> Sichtbare auswählen</label>
+                    <span id="qualitySelectedCount" style="margin-left:12px;color:#64748b;font-weight:800">0 ausgewählt</span>
+                </div>
+                <button class="quality-primary" onclick="prepareQualityPreview()">Mail vorbereiten</button>
+            </div>
+            <div id="qualityStatus" class="quality-status"></div>
+        </div>
+
+        <div id="qualityPanelPreview" class="quality-panel">
+            <div id="qualityPreviewEmpty" class="quality-empty">Noch keine Vorschau vorbereitet.</div>
+            <div id="qualityPreviewContent" style="display:none">
+                <div class="quality-preview-grid">
+                    <div id="qualityPreviewList" class="quality-preview-list"></div>
+                    <div class="quality-mailbox">
+                        <div id="qualityPreviewRecipient" style="font-size:13px;color:#64748b;margin-bottom:6px"></div>
+                        <div id="qualityPreviewSubject" class="quality-mail-subject"></div>
+                        <div id="qualityPreviewBody" class="quality-mail-body"></div>
+                    </div>
+                </div>
+                <div class="quality-confirm">
+                    <label>
+                        <input type="checkbox" id="qualityConfirmSend" onchange="updateQualitySendButton()">
+                        Ich habe die Empfänger und Mailtexte geprüft. Erst danach darf wirklich über Gmail gesendet werden.
+                    </label>
+                </div>
+                <div class="quality-actions">
+                    <button class="quality-secondary" onclick="openQualityTabByName('kunden')">Zurück zur Auswahl</button>
+                    <button id="qualitySendBtn" class="quality-primary danger" disabled onclick="sendQualityMails()">Freigeben & senden</button>
+                </div>
+                <div id="qualitySendStatus" class="quality-status"></div>
+            </div>
+        </div>
+
+        <div id="qualityPanelHistory" class="quality-panel">
+            <div style="overflow:auto">
+                <table class="quality-history">
+                    <thead><tr><th>Datum</th><th>Firma</th><th>Empfänger</th><th>Status</th><th>Abbestellt</th></tr></thead>
+                    <tbody id="qualityHistoryRows"><tr><td colspan="5" class="quality-empty">Verlauf wird geladen...</td></tr></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
 </div>
 
 <script>
 let pendingBulkWhatsappMessage = null;
+let qualityCustomers = [];
+let qualityPreviewMails = [];
+let qualityPreviewIndex = 0;
+
+function escapeQualityHtml(value){
+    return String(value ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+}
+function openQualityTab(name, btn){
+    document.querySelectorAll('.quality-tab').forEach(x=>x.classList.remove('active'));
+    document.querySelectorAll('.quality-panel').forEach(x=>x.classList.remove('active'));
+    if(btn) btn.classList.add('active');
+    const id = 'qualityPanel' + name.charAt(0).toUpperCase() + name.slice(1);
+    document.getElementById(id)?.classList.add('active');
+    if(name === 'history') loadQualityHistory();
+}
+function openQualityTabByName(name){
+    const buttons = Array.from(document.querySelectorAll('.quality-tab'));
+    const map = {kunden:0,preview:1,history:2};
+    openQualityTab(name, buttons[map[name] ?? 0]);
+}
+async function loadQualityCustomers(){
+    const box = document.getElementById('qualityCustomerRows');
+    if(box) box.innerHTML = '<div class="quality-empty">Kunden werden geladen...</div>';
+    try{
+        const res = await fetch('/api/ai/kundenpflege/kunden', {cache:'no-store'});
+        const data = await res.json();
+        if(!res.ok || !data.ok) throw new Error(data.message || data.error || 'Kunden konnten nicht geladen werden.');
+        qualityCustomers = Array.isArray(data.kunden) ? data.kunden : [];
+        renderQualityCustomers();
+    }catch(err){
+        if(box) box.innerHTML = '<div class="quality-empty">Fehler: '+escapeQualityHtml(err.message)+'</div>';
+    }
+}
+function qualityIsDue(k){
+    if(!k.last_sent) return true;
+    const last = new Date(String(k.last_sent).replace(' ','T'));
+    if(Number.isNaN(last.getTime())) return true;
+    const due = new Date(last);
+    due.setMonth(due.getMonth() + Number(k.interval_months || 3));
+    return new Date() >= due;
+}
+function qualityVisibleCustomers(){
+    const q = (document.getElementById('qualitySearch')?.value || '').trim().toLowerCase();
+    const f = document.getElementById('qualityFilter')?.value || 'all';
+    return qualityCustomers.filter(k=>{
+        const hay = [k.firma,k.ansprechpartner_name,k.ort,k.email].join(' ').toLowerCase();
+        if(q && !hay.includes(q)) return false;
+        if(f==='due' && (!k.enabled || !k.email || !qualityIsDue(k))) return false;
+        if(f==='never' && k.last_sent) return false;
+        if(f==='unsubscribed' && k.enabled) return false;
+        if(f==='noemail' && k.email) return false;
+        return true;
+    });
+}
+function renderQualityCustomers(){
+    const box = document.getElementById('qualityCustomerRows');
+    if(!box) return;
+    const rows = qualityVisibleCustomers();
+    if(!rows.length){
+        box.innerHTML = '<div class="quality-empty">Keine passenden Kunden gefunden.</div>';
+        updateQualitySelectedCount();
+        return;
+    }
+    box.innerHTML = rows.map(k=>{
+        const disabled = !k.email || !k.enabled;
+        let state = '';
+        if(!k.email) state = '<span class="quality-badge gray">Keine E-Mail</span>';
+        else if(!k.enabled) state = '<span class="quality-badge red">Abbestellt</span>';
+        else if(!k.last_sent) state = '<span class="quality-badge blue">Noch nie</span>';
+        else if(qualityIsDue(k)) state = '<span class="quality-badge green">Fällig</span>';
+        else state = '<span class="quality-badge gray">Aktuell</span>';
+        return `<div class="quality-row ${disabled?'disabled':''}">
+            <div><input type="checkbox" class="quality-cb" data-id="${k.id}" ${disabled?'disabled':''} onchange="updateQualitySelectedCount()"></div>
+            <div><div class="quality-company">${escapeQualityHtml(k.firma)}</div><div>${escapeQualityHtml(k.ort || '')} ${state}</div></div>
+            <div>${escapeQualityHtml(k.ansprechpartner_name || '-')}</div>
+            <div>${escapeQualityHtml(k.email || '-')}</div>
+            <div>${escapeQualityHtml(k.last_sent || '-')}</div>
+        </div>`;
+    }).join('');
+    const all = document.getElementById('qualitySelectAll'); if(all) all.checked=false;
+    updateQualitySelectedCount();
+}
+function toggleQualitySelectAll(checked){
+    document.querySelectorAll('.quality-cb:not(:disabled)').forEach(cb=>cb.checked=checked);
+    updateQualitySelectedCount();
+}
+function selectedQualityIds(){
+    return Array.from(document.querySelectorAll('.quality-cb:checked')).map(cb=>Number(cb.dataset.id)).filter(Boolean);
+}
+function updateQualitySelectedCount(){
+    const el=document.getElementById('qualitySelectedCount');
+    if(el) el.textContent=selectedQualityIds().length+' ausgewählt';
+}
+async function prepareQualityPreview(){
+    const ids=selectedQualityIds();
+    const status=document.getElementById('qualityStatus');
+    if(!ids.length){status.textContent='Bitte mindestens einen versandfähigen Kunden auswählen.';return;}
+    status.textContent='Mailvorschau wird vorbereitet...';
+    try{
+        const res=await fetch('/api/ai/kundenpflege/preview',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({kunde_ids:ids})});
+        const data=await res.json();
+        if(!res.ok||!data.ok) throw new Error(data.message||data.error||'Vorschau konnte nicht erstellt werden.');
+        qualityPreviewMails=data.mails||[]; qualityPreviewIndex=0; renderQualityPreview();
+        status.textContent=qualityPreviewMails.length+' Mail(s) vorbereitet.';
+        openQualityTabByName('preview');
+    }catch(err){status.textContent='Fehler: '+err.message;}
+}
+function renderQualityPreview(){
+    const empty=document.getElementById('qualityPreviewEmpty');
+    const content=document.getElementById('qualityPreviewContent');
+    if(!qualityPreviewMails.length){empty.style.display='block';content.style.display='none';return;}
+    empty.style.display='none';content.style.display='block';
+    document.getElementById('qualityPreviewList').innerHTML=qualityPreviewMails.map((m,i)=>`<div class="quality-preview-item ${i===qualityPreviewIndex?'active':''}" onclick="selectQualityPreview(${i})"><strong>${escapeQualityHtml(m.firma)}</strong><br><span style="font-size:12px;color:#64748b">${escapeQualityHtml(m.email)}</span></div>`).join('');
+    const m=qualityPreviewMails[qualityPreviewIndex];
+    document.getElementById('qualityPreviewRecipient').textContent='An: '+m.email;
+    document.getElementById('qualityPreviewSubject').textContent=m.subject;
+    document.getElementById('qualityPreviewBody').textContent=m.body;
+    document.getElementById('qualityConfirmSend').checked=false;
+    updateQualitySendButton();
+}
+function selectQualityPreview(i){qualityPreviewIndex=i;renderQualityPreview();}
+function updateQualitySendButton(){
+    const btn=document.getElementById('qualitySendBtn');
+    if(btn) btn.disabled=!document.getElementById('qualityConfirmSend')?.checked||!qualityPreviewMails.length;
+}
+async function sendQualityMails(){
+    if(!document.getElementById('qualityConfirmSend')?.checked)return;
+    if(!confirm('Die ausgewählten Qualitätsmails jetzt wirklich über Gmail senden?'))return;
+    const btn=document.getElementById('qualitySendBtn');
+    const status=document.getElementById('qualitySendStatus');
+    btn.disabled=true; let sent=0,failed=0;
+    for(let i=0;i<qualityPreviewMails.length;i++){
+        const m=qualityPreviewMails[i];
+        status.textContent='Sende '+(i+1)+' / '+qualityPreviewMails.length+': '+m.firma;
+        try{
+            const sendRes=await fetch('/api/gmail/send',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({from:'info@kg-reinigung.de',to:m.email,cc:'',bcc:'',subject:m.subject,message:m.body,signature:'',attachments:[]})});
+            const sendData=await sendRes.json();
+            if(!sendRes.ok||!sendData.ok)throw new Error(sendData.message||'Gmail Versand fehlgeschlagen.');
+            const logRes=await fetch('/api/ai/kundenpflege/log',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({kunde_id:m.id,recipient:m.email,subject:m.subject,body:m.body,gmail_id:sendData.gmail_id||'',unsubscribe_token:m.unsubscribe_token,status:'sent'})});
+            const logData=await logRes.json();
+            if(!logRes.ok||!logData.ok)throw new Error(logData.message||'Versand wurde nicht protokolliert.');
+            sent++;
+        }catch(err){failed++;console.error('Qualitätsmail Fehler',m.firma,err);}
+    }
+    status.textContent='Fertig. Gesendet: '+sent+' · Fehler: '+failed;
+    qualityPreviewMails=[];
+    document.getElementById('qualityConfirmSend').checked=false;
+    updateQualitySendButton();
+    await loadQualityCustomers(); await loadQualityHistory();
+}
+async function loadQualityHistory(){
+    const tbody=document.getElementById('qualityHistoryRows');
+    try{
+        const res=await fetch('/api/ai/kundenpflege/history',{cache:'no-store'});
+        const data=await res.json();
+        if(!res.ok||!data.ok)throw new Error(data.message||data.error||'Verlauf konnte nicht geladen werden.');
+        const rows=data.history||[];
+        if(!rows.length){tbody.innerHTML='<tr><td colspan="5" class="quality-empty">Noch keine Qualitätsmails versendet.</td></tr>';return;}
+        tbody.innerHTML=rows.map(r=>`<tr><td>${escapeQualityHtml(r.sent_at||'')}</td><td><strong>${escapeQualityHtml(r.firma||'')}</strong></td><td>${escapeQualityHtml(r.recipient||'')}</td><td><span class="quality-badge green">${escapeQualityHtml(r.status||'sent')}</span></td><td>${r.unsubscribed_at?'<span class="quality-badge red">Ja</span>':'<span class="quality-badge gray">Nein</span>'}</td></tr>`).join('');
+    }catch(err){tbody.innerHTML='<tr><td colspan="5" class="quality-empty">Fehler: '+escapeQualityHtml(err.message)+'</td></tr>';}
+}
+document.addEventListener('DOMContentLoaded',function(){loadQualityCustomers();loadQualityHistory();});
+
 
 function setKgAiOutput(text) {
     const output = document.getElementById("kgAiOutput");
