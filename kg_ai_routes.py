@@ -388,7 +388,7 @@ def register_kg_ai_routes(app, login_required, get_db_connection, normalize_phon
         return {
             "id": row["id"],
             "firma": row["firma"] or "",
-            "anrede": row["anrede"] or "",
+            "anrede": "",
             "ansprechpartner_name": row["ansprechpartner_name"] or "",
             "email": row["email"] or "",
             "ort": row["ort"] or "",
@@ -447,7 +447,6 @@ Ihr Team von KG Gebäudereinigung
             SELECT
                 k.id,
                 k.firma,
-                k.anrede,
                 k.ansprechpartner_name,
                 k.email,
                 k.ort,
@@ -500,7 +499,6 @@ Ihr Team von KG Gebäudereinigung
             SELECT
                 k.id,
                 k.firma,
-                k.anrede,
                 k.ansprechpartner_name,
                 k.email,
                 k.ort,
