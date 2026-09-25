@@ -1148,6 +1148,47 @@ def angebot_build_template_vars(besichtigung_data, berechnung, nr, datum):
     }
 
 
+# =====================================================
+# KG-AI KUNDENFEEDBACK - DIREKTE GMAIL BILDIRIMI
+# =====================================================
+
+def send_gmail_message_direct(to_email, subject, message_text, message_html=""):
+    to_email = str(to_email or "").strip()
+    subject = str(subject or "").strip()
+    message_text = str(message_text or "").strip()
+    message_html = str(message_html or "").strip()
+
+    if not to_email:
+        raise ValueError("Empfänger fehlt.")
+
+    msg = EmailMessage()
+    msg["From"] = "KG-Gebäudereinigung <info@kg-reinigung.de>"
+    msg["To"] = to_email
+    msg["Subject"] = subject or "KG Portal Nachricht"
+    msg.set_content(message_text or " ")
+
+    if message_html:
+        msg.add_alternative(message_html, subtype="html")
+
+    raw_message = base64.urlsafe_b64encode(msg.as_bytes()).decode("utf-8")
+    service = get_gmail_service()
+    sent = service.users().messages().send(
+        userId="me",
+        body={"raw": raw_message}
+    ).execute()
+
+    try:
+        ensure_gmail_cache_table()
+        conn = sqlite3.connect(DB_PATH)
+        conn.execute("DELETE FROM gmail_mail_cache WHERE box = ?", ("sent",))
+        conn.commit()
+        conn.close()
+    except Exception:
+        pass
+
+    return sent.get("id", "")
+
+
 def register_app2_routes(app, login_required):
 
     @app.route("/datenbank/kalender-mini")
