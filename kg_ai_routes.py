@@ -11,12 +11,7 @@ def run_due_quality_campaigns(get_db_connection, base_url=None, only_customer_id
     from datetime import datetime
     from app2 import send_gmail_message_direct
 
-    base_url = (
-        str(base_url or "").rstrip("/")
-        or str(os.getenv("KG_PUBLIC_BASE_URL") or "").rstrip("/")
-        or str(os.getenv("RENDER_EXTERNAL_URL") or "").rstrip("/")
-        or "http://127.0.0.1:5000"
-    )
+    base_url = "https://kg-portal.onrender.com"
 
     conn = get_db_connection()
     conn.execute("""
@@ -900,7 +895,7 @@ www.kg-reinigung.de
 
         result = run_due_quality_campaigns(
             get_db_connection,
-            base_url=request.host_url.rstrip("/"),
+            base_url="https://kg-portal.onrender.com",
             only_customer_ids=valid_ids
         )
 
@@ -1005,7 +1000,7 @@ www.kg-reinigung.de
 
             unsubscribe_token = kundenpflege_new_token()
             survey_token = kundenpflege_new_token()
-            base_url = request.host_url.rstrip("/")
+            base_url = "https://kg-portal.onrender.com"
             unsubscribe_url = base_url + "/qualitaetsmail/abbestellen/" + unsubscribe_token
             survey_url = base_url + "/kundenfeedback/" + survey_token
 
