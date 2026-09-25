@@ -468,7 +468,19 @@ Wenn Sie diese Qualitätsabfragen künftig nicht mehr erhalten möchten:
 {unsubscribe_url}
 
 Mit freundlichen Grüßen
-Ihr Team von KG Gebäudereinigung
+
+Damla Kicci
+-Inhaberin-
+
+KG-Gebäudereinigung
+Fliederstr. 59
+47055 Duisburg - Wanheimerort
+
+0203 / 47 96 68 22
+0163 / 194 70 55
+
+info@kg-reinigung.de
+www.kg-reinigung.de
 """.format(
             survey_url=survey_url,
             unsubscribe_url=unsubscribe_url
@@ -500,7 +512,18 @@ Ihr Team von KG Gebäudereinigung
                 <a href="{unsubscribe_url}" style="display:inline-block;margin-left:6px;padding:7px 12px;background:#f97316;color:#ffffff;text-decoration:none;border-radius:8px;font-weight:700;">Abbestellen</a>
             </p>
 
-            <p style="margin-top:24px;">Mit freundlichen Grüßen<br>Ihr Team von KG Gebäudereinigung</p>
+            <p style="margin-top:24px;">Mit freundlichen Grüßen</p>
+            <div style="line-height:1.55;">
+                <strong>Damla Kicci</strong><br>
+                -Inhaberin-<br><br>
+                <strong>KG-Gebäudereinigung</strong><br>
+                Fliederstr. 59<br>
+                47055 Duisburg - Wanheimerort<br><br>
+                0203 / 47 96 68 22<br>
+                0163 / 194 70 55<br><br>
+                <a href="mailto:info@kg-reinigung.de" style="color:#2563eb;">info@kg-reinigung.de</a><br>
+                <a href="https://www.kg-reinigung.de/" style="color:#2563eb;">www.kg-reinigung.de</a>
+            </div>
         </div>
         """.format(
             firma=firma,
