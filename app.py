@@ -917,45 +917,63 @@ def whatsapp_sync_workers():
 # =====================================================
 # Bölüm 5- ANA SAYFA
 # =====================================================
+
+# Startseite hızlı açılsın diye Lexware senkronu arka planda çalışır.
+# Kilit, art arda sayfa açılışlarında aynı senkronun üst üste binmesini önler.
+STARTSEITE_LEXWARE_SYNC_LOCK = threading.Lock()
+
+def sync_lexware_for_startseite_background():
+    if not STARTSEITE_LEXWARE_SYNC_LOCK.acquire(blocking=False):
+        return
+    try:
+        sync_lexware_to_db()
+    except Exception as e:
+        print(f"⚠️ Startseite Lexware arka plan senkronu başarısız: {e}")
+    finally:
+        STARTSEITE_LEXWARE_SYNC_LOCK.release()
+
 @app.route("/")
 @login_required
 def index():
-    # 1. API Senkronizasyonu (En güncel veriyi çekmek için)
-    try:
-        sync_lexware_to_db() 
-    except Exception as e:
-        print(f"⚠️ API baglantisi yok: {e}")
-
+    # 1. Sayfa açılışını Lexware API yüzünden bekletme.
+    # Mevcut cache hemen gösterilir; senkron sayfa hazırlandıktan sonra arka planda başlar.
     conn = get_db_connection()
     import datetime
     now = datetime.datetime.now()
 
-    # 2. CİRO HESAPLAMA (Mart başındaki faturaları da yakalayan zırhlı sorgu)
+    # 2-3. CİRO + YILLIK GRAFİK
+    # Önceden her ay için ayrı SQL sorgusu atılıyordu. Aynı sonucu tek sorgudan hesapla.
     target_month = f"{now.month:02d}"
     target_year = str(now.year)
+    jahres_grafik_verisi = [0.0] * 12
 
-    monat_row = conn.execute("""
-        SELECT SUM(brutto) FROM lexware_cache 
-        WHERE (datum LIKE ? OR datum LIKE ?)
-    """, (f"{target_year}-{target_month}-%", f"%.{target_month}.{target_year}")).fetchone()
+    lexware_year_rows = conn.execute("""
+        SELECT datum, brutto
+        FROM lexware_cache
+        WHERE datum LIKE ? OR datum LIKE ?
+    """, (f"{target_year}-%", f"%.{target_year}")).fetchall()
 
-    monatlicher_umsatz = monat_row[0] if monat_row and monat_row[0] else 0.0
+    for row in lexware_year_rows:
+        datum_text = str(row["datum"] or "").strip()
+        month_no = 0
+        try:
+            if len(datum_text) >= 7 and datum_text[:4] == target_year and datum_text[4] == "-":
+                month_no = int(datum_text[5:7])
+            elif "." in datum_text:
+                parts = datum_text.split(".")
+                if len(parts) >= 3 and parts[2][:4] == target_year:
+                    month_no = int(parts[1])
+        except Exception:
+            month_no = 0
 
-    # 3. YILLIK GRAFİK VERİSİ (Boşluk hatası giderilmiş temiz versiyon)
-    jahres_grafik_verisi = []
-    jahres_umsatz = 0
-    for m in range(1, 13):
-        p_iso = f"{now.year}-{m:02d}-%"
-        p_dot = f"%.{m:02d}.{now.year}"
-        
-        r = conn.execute("""
-            SELECT SUM(brutto) FROM lexware_cache 
-            WHERE (datum LIKE ? OR datum LIKE ?)
-        """, (p_iso, p_dot)).fetchone()
-        
-        val = r[0] if r and r[0] else 0.0
-        jahres_grafik_verisi.append(val)
-        jahres_umsatz += val
+        if 1 <= month_no <= 12:
+            try:
+                jahres_grafik_verisi[month_no - 1] += float(row["brutto"] or 0)
+            except Exception:
+                pass
+
+    monatlicher_umsatz = jahres_grafik_verisi[now.month - 1]
+    jahres_umsatz = sum(jahres_grafik_verisi)
 
     # 4. MÜŞTERİ VE PERSONEL SAYILARI
     customer_count = conn.execute("SELECT COUNT(*) FROM kunden WHERE vertragsstatus != 'gekuendigt' OR vertragsstatus IS NULL").fetchone()[0]
@@ -975,31 +993,52 @@ def index():
             personel_grafik_verisi[int(row['ay']) - 1] = row[1]
 
     # 5. TO-DO VE PİL (BATTERY) HESAPLARI
+    # Önceden 52 hafta için 104 ayrı COUNT sorgusu çalışıyordu.
+    # Aynı haftalık sonuçları tek veri çekişinden bellekte hesapla.
     todo_kw_labels = []
-    todo_erledigt_verisi = []
-    todo_offen_verisi = []
+    todo_erledigt_verisi = [0] * 52
+    todo_offen_verisi = [0] * 52
     start_of_year = datetime.datetime(now.year, 1, 1)
     start_date = start_of_year - datetime.timedelta(days=start_of_year.weekday())
+    todo_end_date = start_date + datetime.timedelta(weeks=52, days=-1)
 
     for i in range(52):
         week_start = start_date + datetime.timedelta(weeks=i)
-        week_end = week_start + datetime.timedelta(days=6)
         todo_kw_labels.append(f"KW {week_start.isocalendar()[1]}")
-        
-        er = conn.execute("SELECT COUNT(*) FROM todos WHERE done = 1 AND deadline BETWEEN ? AND ?", (week_start.strftime('%Y-%m-%d'), week_end.strftime('%Y-%m-%d'))).fetchone()[0]
-        of = conn.execute("SELECT COUNT(*) FROM todos WHERE done = 0 AND deadline BETWEEN ? AND ?", (week_start.strftime('%Y-%m-%d'), week_end.strftime('%Y-%m-%d'))).fetchone()[0]
-        todo_erledigt_verisi.append(er)
-        todo_offen_verisi.append(of)
+
+    todo_rows = conn.execute("""
+        SELECT deadline, done
+        FROM todos
+        WHERE deadline BETWEEN ? AND ?
+    """, (start_date.strftime('%Y-%m-%d'), todo_end_date.strftime('%Y-%m-%d'))).fetchall()
+
+    for row in todo_rows:
+        try:
+            deadline_date = datetime.datetime.strptime(str(row["deadline"]), "%Y-%m-%d")
+            week_index = (deadline_date.date() - start_date.date()).days // 7
+            if 0 <= week_index < 52:
+                if int(row["done"] or 0) == 1:
+                    todo_erledigt_verisi[week_index] += 1
+                else:
+                    todo_offen_verisi[week_index] += 1
+        except Exception:
+            pass
 
     initial_todo_index = max(0, min(now.isocalendar()[1] - 3, 47))
-    t_er = conn.execute("SELECT COUNT(*) FROM todos WHERE done = 1").fetchone()[0]
-    t_of = conn.execute("SELECT COUNT(*) FROM todos WHERE done = 0").fetchone()[0]
+    todo_totals = conn.execute("""
+        SELECT
+            SUM(CASE WHEN done = 1 THEN 1 ELSE 0 END) AS erledigt,
+            SUM(CASE WHEN done = 0 THEN 1 ELSE 0 END) AS offen
+        FROM todos
+    """).fetchone()
+    t_er = int(todo_totals["erledigt"] or 0)
+    t_of = int(todo_totals["offen"] or 0)
     todo_percent = int((t_er / (t_er + t_of)) * 100) if (t_er + t_of) > 0 else 0
 
     monatstrend_grafik_verisi = [0, 2500, 5000, 7500, monatlicher_umsatz]
     conn.close()
 
-    return render_template(
+    page_html = render_template(
         "index.html",
         customer_count=customer_count,
         kunden_grafik_verisi=kunden_grafik_verisi,
@@ -1015,6 +1054,13 @@ def index():
         initial_todo_index=initial_todo_index,
         monatstrend_grafik_verisi=monatstrend_grafik_verisi
     )
+
+    threading.Thread(
+        target=sync_lexware_for_startseite_background,
+        daemon=True
+    ).start()
+
+    return page_html
 
     # -------------------------------------------------------
 
@@ -2109,8 +2155,8 @@ def buchhaltung():
     # NOT: Lexware gider senkronizasyonu hazır olana kadar dinamik çekim pasif.
     # ----------------------------------------------------
 
-    # 1. Lexware ile veritabanını eşitle
-    sync_lexware_to_db() 
+    # 1. Buchhaltung açılışını Lexware API yüzünden bekletme.
+    # Mevcut Lexware cache hemen gösterilir; senkron sayfa hazırlandıktan sonra arka planda çalışır.
     
     # 2. Seçilen ay ve yıl bilgilerini al (Aşağıdaki değişkenleri kullandığın için burası kalmalı)
     # now ve selected_month/year yukarıda tanımlandığı için çakışmaz.
@@ -2173,7 +2219,7 @@ def buchhaltung():
     total_r = sum(r['restbetrag'] for r in ratenzahlungen) if ratenzahlungen else 0.0
     
     # 5. Tüm verileri HTML'e gönder
-    return render_template(
+    page_html = render_template(
         "buchhaltung.html",
         rechnungen=veriler,
         ratenzahlungen=ratenzahlungen,
@@ -2192,6 +2238,13 @@ def buchhaltung():
         gewerbliche_ausgaben=gewerbliche_ausgaben,
         private_ausgaben=private_ausgaben
     )
+
+    threading.Thread(
+        target=sync_lexware_for_startseite_background,
+        daemon=True
+    ).start()
+
+    return page_html
 
 @app.route("/delete_ratenzahlung/<int:id>")
 @login_required
