@@ -2155,8 +2155,8 @@ def buchhaltung():
     # NOT: Lexware gider senkronizasyonu hazır olana kadar dinamik çekim pasif.
     # ----------------------------------------------------
 
-    # 1. Lexware ile veritabanını eşitle
-    sync_lexware_to_db() 
+    # 1. Buchhaltung açılışını Lexware API yüzünden bekletme.
+    # Mevcut Lexware cache hemen gösterilir; senkron sayfa hazırlandıktan sonra arka planda çalışır.
     
     # 2. Seçilen ay ve yıl bilgilerini al (Aşağıdaki değişkenleri kullandığın için burası kalmalı)
     # now ve selected_month/year yukarıda tanımlandığı için çakışmaz.
@@ -2219,7 +2219,7 @@ def buchhaltung():
     total_r = sum(r['restbetrag'] for r in ratenzahlungen) if ratenzahlungen else 0.0
     
     # 5. Tüm verileri HTML'e gönder
-    return render_template(
+    page_html = render_template(
         "buchhaltung.html",
         rechnungen=veriler,
         ratenzahlungen=ratenzahlungen,
@@ -2238,6 +2238,13 @@ def buchhaltung():
         gewerbliche_ausgaben=gewerbliche_ausgaben,
         private_ausgaben=private_ausgaben
     )
+
+    threading.Thread(
+        target=sync_lexware_for_startseite_background,
+        daemon=True
+    ).start()
+
+    return page_html
 
 @app.route("/delete_ratenzahlung/<int:id>")
 @login_required
