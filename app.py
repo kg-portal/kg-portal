@@ -2745,6 +2745,34 @@ def calc():
     })
 
 # =====================================================
+# 404 - SADECE GERİ + YENİLE TUŞLARI
+# =====================================================
+
+@app.errorhandler(404)
+def not_found_float_nav(error):
+    return """<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>KG Portal V2 - 404 Not Found</title>
+<style>
+body{font-family:Arial,Helvetica,sans-serif;margin:8px}
+.kg-float-nav{position:fixed;right:16px;bottom:16px;display:flex;gap:8px;z-index:100000}
+.kg-float-nav button{width:38px;height:38px;border:1px solid #dbe3ef;border-radius:999px;background:#fff;color:#123a8f;cursor:pointer;box-shadow:0 4px 12px rgba(15,23,42,.18);font-size:18px;padding:0;margin:0}
+</style>
+</head>
+<body>
+<h1>Not Found</h1>
+<p>The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.</p>
+<div class="kg-float-nav">
+<button type="button" title="Zurück" onclick="if(history.length>1){history.back()}else{location.href='/'}">←</button>
+<button type="button" title="Neu laden" onclick="location.reload()">↻</button>
+</div>
+</body>
+</html>""", 404
+
+# =====================================================
 # BÖLÜM 24: UYGULAMA BAŞLATICI (NİHAİ ZIRHLI SÜRÜM)
 # =====================================================
 
