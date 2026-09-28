@@ -2765,9 +2765,9 @@ body{font-family:Arial,Helvetica,sans-serif;margin:8px}
 <body>
 <h1>Not Found</h1>
 <p>The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.</p>
-<div class="kg-float-nav">
-<button type="button" title="Zurück" onclick="if(history.length>1){history.back()}else{location.href='/'}">←</button>
-<button type="button" title="Neu laden" onclick="location.reload()">↻</button>
+<div class="kg-float-nav" style="position:fixed!important;left:8px!important;top:8px!important;display:flex!important;gap:6px!important;z-index:2147483647!important;visibility:visible!important;opacity:1!important;">
+<button type="button" title="Zurück" style="width:32px;height:32px;border:1px solid #cbd5e1;border-radius:8px;background:#fff;color:#123a8f;font-size:20px;cursor:pointer" onclick="if(history.length>1){history.back()}else{location.href='/'}">←</button>
+<button type="button" title="Neu laden" style="width:32px;height:32px;border:1px solid #cbd5e1;border-radius:8px;background:#fff;color:#123a8f;font-size:20px;cursor:pointer" onclick="location.reload()">↻</button>
 </div>
 </body>
 </html>""", 404
