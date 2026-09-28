@@ -2758,8 +2758,8 @@ def not_found_float_nav(error):
 <title>KG Portal V2 - 404 Not Found</title>
 <style>
 body{font-family:Arial,Helvetica,sans-serif;margin:8px}
-.kg-float-nav{position:fixed;right:16px;bottom:16px;display:flex;gap:8px;z-index:100000}
-.kg-float-nav button{width:38px;height:38px;border:1px solid #dbe3ef;border-radius:999px;background:#fff;color:#123a8f;cursor:pointer;box-shadow:0 4px 12px rgba(15,23,42,.18);font-size:18px;padding:0;margin:0}
+.kg-float-nav{position:fixed;left:10px;top:10px;display:flex;gap:8px;z-index:100000}
+.kg-float-nav button{width:34px;height:34px;border:1px solid #dbe3ef;border-radius:9px;background:#fff;color:#123a8f;cursor:pointer;box-shadow:0 4px 12px rgba(15,23,42,.18);font-size:17px;padding:0;margin:0}
 </style>
 </head>
 <body>
