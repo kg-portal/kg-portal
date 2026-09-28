@@ -917,15 +917,26 @@ def whatsapp_sync_workers():
 # =====================================================
 # Bölüm 5- ANA SAYFA
 # =====================================================
+
+# Startseite hızlı açılsın diye Lexware senkronu arka planda çalışır.
+# Kilit, art arda sayfa açılışlarında aynı senkronun üst üste binmesini önler.
+STARTSEITE_LEXWARE_SYNC_LOCK = threading.Lock()
+
+def sync_lexware_for_startseite_background():
+    if not STARTSEITE_LEXWARE_SYNC_LOCK.acquire(blocking=False):
+        return
+    try:
+        sync_lexware_to_db()
+    except Exception as e:
+        print(f"⚠️ Startseite Lexware arka plan senkronu başarısız: {e}")
+    finally:
+        STARTSEITE_LEXWARE_SYNC_LOCK.release()
+
 @app.route("/")
 @login_required
 def index():
-    # 1. API Senkronizasyonu (En güncel veriyi çekmek için)
-    try:
-        sync_lexware_to_db() 
-    except Exception as e:
-        print(f"⚠️ API baglantisi yok: {e}")
-
+    # 1. Sayfa açılışını Lexware API yüzünden bekletme.
+    # Mevcut cache hemen gösterilir; senkron sayfa hazırlandıktan sonra arka planda başlar.
     conn = get_db_connection()
     import datetime
     now = datetime.datetime.now()
@@ -999,7 +1010,7 @@ def index():
     monatstrend_grafik_verisi = [0, 2500, 5000, 7500, monatlicher_umsatz]
     conn.close()
 
-    return render_template(
+    page_html = render_template(
         "index.html",
         customer_count=customer_count,
         kunden_grafik_verisi=kunden_grafik_verisi,
@@ -1015,6 +1026,13 @@ def index():
         initial_todo_index=initial_todo_index,
         monatstrend_grafik_verisi=monatstrend_grafik_verisi
     )
+
+    threading.Thread(
+        target=sync_lexware_for_startseite_background,
+        daemon=True
+    ).start()
+
+    return page_html
 
     # -------------------------------------------------------
 
