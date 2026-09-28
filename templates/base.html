@@ -774,9 +774,6 @@
                 overflow:hidden !important;
             }
         }
-    
-        .kg-float-nav{position:fixed;left:calc(var(--kg-sidebar-width) + 12px);top:10px;display:flex;gap:8px;z-index:100000;pointer-events:auto}
-        .kg-float-nav button{width:34px;height:34px;border:1px solid #dbe3ef;border-radius:9px;background:#fff;color:#123a8f;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 4px 12px rgba(15,23,42,.18);font-size:14px;padding:0;margin:0}
     </style>
 </head>
 <body class="kg-portal-body">
@@ -973,14 +970,5 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 </script>
 
-
-<div class="kg-float-nav" style="position:fixed!important;left:220px!important;top:8px!important;display:flex!important;gap:6px!important;z-index:2147483647!important;visibility:visible!important;opacity:1!important;">
-    <button type="button" title="Zurück" aria-label="Zurück"
-      style="width:32px!important;height:32px!important;display:block!important;border:1px solid #cbd5e1!important;border-radius:8px!important;background:#fff!important;color:#123a8f!important;font-size:20px!important;line-height:28px!important;padding:0!important;margin:0!important;cursor:pointer!important;box-shadow:0 2px 8px rgba(15,23,42,.22)!important;"
-      onclick="if(history.length>1){history.back()}else{location.href='/'}">←</button>
-    <button type="button" title="Neu laden" aria-label="Neu laden"
-      style="width:32px!important;height:32px!important;display:block!important;border:1px solid #cbd5e1!important;border-radius:8px!important;background:#fff!important;color:#123a8f!important;font-size:20px!important;line-height:28px!important;padding:0!important;margin:0!important;cursor:pointer!important;box-shadow:0 2px 8px rgba(15,23,42,.22)!important;"
-      onclick="location.reload()">↻</button>
-</div>
 </body>
 </html>
