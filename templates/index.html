@@ -956,6 +956,42 @@
 <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
+    // ✨ Açılış efekti (KG Business ile aynı): çubuk/çizgi grafikler sıfırdan başlayıp 1,4 sn'de yumuşakça dolar.
+    // Veriye, renklere ve düzene dokunmaz; sadece ilk çizimde çalışır.
+    if (window.Chart) {
+        Chart.defaults.animation.duration = 1400;
+        Chart.defaults.animation.easing = 'easeOutQuart';
+        Chart.register({
+            id: 'kgGrowIn',
+            beforeInit(chart) {
+                const type = chart.config.type;
+                if (type !== 'bar' && type !== 'line') return;
+                const sets = chart.data && chart.data.datasets;
+                if (!sets || !sets.every(ds => Array.isArray(ds.data) && ds.data.every(v => typeof v === 'number' || v === null))) return;
+                chart.$kgGrow = sets.map(ds => {
+                    const zeros = ds.data.map(v => (v === null ? null : 0));
+                    const item = { final: ds.data, zeros: zeros };
+                    ds.data = zeros;
+                    return item;
+                });
+            },
+            afterInit(chart) {
+                const grow = chart.$kgGrow;
+                if (!grow) return;
+                delete chart.$kgGrow;
+                requestAnimationFrame(() => requestAnimationFrame(() => {
+                    let changed = false;
+                    chart.data.datasets.forEach((ds, i) => {
+                        // Başka kod veriyi bu arada değiştirdiyse ona dokunma
+                        if (grow[i] && ds.data === grow[i].zeros) { ds.data = grow[i].final; changed = true; }
+                    });
+                    if (changed) chart.update();
+                }));
+            }
+        });
+    }
+</script>
+<script>
     function kgFallbackValue(rawValue, fallbackValue) {
         const rawText = String(rawValue).trim();
         if (rawText.includes('{{') || rawText.includes('}}') || rawText === '' || rawText === 'undefined' || rawText === 'null') {
