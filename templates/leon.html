@@ -146,7 +146,7 @@
         const s = (a.lead_status || a.ergebnis || a.status || '').toLowerCase();
         if (a.fehler) return 'bad';
         if (!a.abgeschlossen) return 'live';
-        if (s.includes('interess') || s.includes('rückruf') || s.includes('termin')) return 'good';
+        if (s.includes('interess') || s.includes('rückruf') || s.includes('termin') || s.includes('rechnung')) return 'good';
         if (s.includes('kein interesse') || s.includes('gesperrt')) return 'bad';
         if (s.includes('nicht erreichbar') || s.includes('besetzt') || s.includes('anrufbeantworter')) return 'warn';
         return '';
@@ -155,13 +155,14 @@
     function statusText(a) {
         if (a.fehler) return 'Fehler';
         if (!a.abgeschlossen) return a.status || 'Läuft';
-        return a.ergebnis || a.lead_status || a.status || 'Beendet';
+        const text = a.ergebnis || a.lead_status || a.status || 'Beendet';
+        return text === 'Rechnung' ? 'Besichtigung' : text;
     }
 
     function isFollowUp(a) {
         if (a.erledigt || !a.abgeschlossen) return false;
         const s = ((a.ergebnis || '') + ' ' + (a.lead_status || '')).toLowerCase();
-        return !!a.rueckruf_am || s.includes('interess') || s.includes('rückruf');
+        return !!a.rueckruf_am || s.includes('interess') || s.includes('rückruf') || s.includes('rechnung');
     }
 
     async function api(url, options) {
