@@ -20,6 +20,7 @@ from docx import Document
 from docx.shared import RGBColor
 from docx.enum.text import WD_COLOR_INDEX
 import tempfile
+from urllib.parse import urlparse, unquote
 from datetime import datetime
 
 from lexware import sync_lexware_to_db, get_cached_rechnungen
@@ -2312,8 +2313,38 @@ def add_ratenzahlung():
 # 🔥 BÖLÜM 18.5: STUNDENZETTEL KAYIT MOTORU (NİHAİ ZIRH)
 # =====================================================
 
+def _stundenzettel_worker_id(requested_id, data=None):
+    """Welche worker_id darf diese Anfrage benutzen?
+    - Eingeloggter Chef: wie bisher die übergebene worker_id.
+    - İşçi linki: worker_id kommt aus dem geheimen Link-Code (Body "code" oder Referer),
+      nicht aus der Zahl, die die Seite schickt. Alte, noch offene Seiten senden den
+      Code nicht, aber ihr Referer enthält den Link – daher merken sie nichts."""
+    if 'logged_in' in session:
+        return requested_id
+
+    code = str((data or {}).get("code") or "").strip()
+    if not code:
+        ref_path = urlparse(request.headers.get("Referer", "")).path
+        prefix = "/stundenzettel/worker/"
+        if ref_path.startswith(prefix):
+            code = unquote(ref_path[len(prefix):].split("/")[0]).strip()
+    if not code:
+        return None
+
+    conn = get_db_connection()
+    try:
+        row = conn.execute("SELECT id FROM mitarbeiter WHERE access_code = ?", (code,)).fetchone()
+    finally:
+        conn.close()
+    return row["id"] if row else None
+
+
 @app.route("/api/stundenzettel/<int:worker_id>")
 def get_stundenzettel(worker_id):
+    allowed_id = _stundenzettel_worker_id(worker_id, request.args)
+    if allowed_id is None or str(allowed_id) != str(worker_id):
+        return jsonify({"success": False, "error": "Zugriff verweigert"}), 403
+
     conn = get_db_connection()
     logs = conn.execute("""
         SELECT datum, start_time, end_time, place, signed
@@ -2348,6 +2379,11 @@ def save_stundenzettel():
     
     if not worker_id or not entries:
         return jsonify({"success": False, "error": "Daten fehlen"}), 400
+
+    # İşçi sadece kendi linkindeki koda ait kayıtları değiştirebilir
+    worker_id = _stundenzettel_worker_id(worker_id, data)
+    if not worker_id:
+        return jsonify({"success": False, "error": "Zugriff verweigert"}), 403
 
     conn = get_db_connection()
     try:
@@ -2386,6 +2422,11 @@ def delete_stundenzettel():
 
     if not worker_id or not date:
         return jsonify({"success": False, "error": "Daten fehlen"}), 400
+
+    # İşçi sadece kendi linkindeki koda ait kayıtları silebilir
+    worker_id = _stundenzettel_worker_id(worker_id, data)
+    if not worker_id:
+        return jsonify({"success": False, "error": "Zugriff verweigert"}), 403
 
     conn = get_db_connection()
     try:

@@ -462,6 +462,7 @@ function clearDayPopup() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
             worker_id: workerId,
+            code: decodeURIComponent(window.location.pathname.split("/").filter(Boolean).pop() || ""),
             date: date
         })
     })
@@ -800,6 +801,7 @@ function saveDayPopup() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
             worker_id: workerId,
+            code: decodeURIComponent(window.location.pathname.split("/").filter(Boolean).pop() || ""),
             entries: [entry]
         })
     })
