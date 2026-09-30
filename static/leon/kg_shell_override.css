@@ -1,0 +1,127 @@
+/* Exact isolated shell based on KG CRM base.html structure */
+:root{
+  --business-bg:#f8fafc;
+  --business-sidebar:#ffffff;
+  --business-border:#e2e8f0;
+  --business-text:#1e293b;
+  --business-muted:#64748b;
+  --business-sidebar-width:280px;
+  --business-green-dark:#1e3a8a;
+  --business-green:#2563eb;
+  --business-green-mid:#3b82f6;
+}
+html,body{margin:0!important;padding:0!important;min-height:100vh!important;background:var(--business-bg)!important;overflow-x:hidden!important;font-family:Arial,Helvetica,sans-serif!important;color:var(--business-text)!important}
+*,*::before,*::after{box-sizing:border-box!important}
+
+.kg-business-shell{width:100%!important;min-height:100vh!important;background:var(--business-bg)!important}
+
+.business-portal-sidebar{
+  position:fixed!important;left:0!important;top:0!important;width:var(--business-sidebar-width)!important;height:100vh!important;
+  background:var(--business-sidebar)!important;border-right:1px solid var(--business-border)!important;
+  padding:58px 20px 30px!important;display:flex!important;flex-direction:column!important;
+  overflow-y:auto!important;overflow-x:hidden!important;z-index:9999!important;margin:0!important;
+}
+
+.business-portal-title{
+  position:relative!important;overflow:hidden!important;display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;
+  text-decoration:none!important;cursor:pointer!important;text-align:center!important;margin:0 0 40px!important;min-height:106px!important;
+  padding:22px 18px 20px!important;border-radius:20px!important;
+  background:#fff!important;
+  border:2px solid #3b82f6!important;
+  box-shadow:0 16px 30px rgba(37,99,235,.16),inset 0 1px 0 rgba(255,255,255,.95)!important;
+  color:#1b2a6b!important;isolation:isolate!important;flex-shrink:0!important;
+}
+.business-portal-title::before{
+  content:""!important;position:absolute!important;top:-70%!important;left:-45%!important;width:58%!important;height:240%!important;
+  background:linear-gradient(120deg,transparent 0%,rgba(59,130,246,.03) 35%,rgba(59,130,246,.10) 50%,rgba(59,130,246,.03) 65%,transparent 100%)!important;
+  transform:rotate(18deg)!important;pointer-events:none!important;z-index:1!important;
+}
+.business-portal-title::after{
+  content:""!important;position:absolute!important;left:36px!important;right:36px!important;bottom:17px!important;height:2px!important;border-radius:999px!important;
+  background:linear-gradient(90deg,transparent,#1b2a6b,#22c55e,transparent)!important;
+  box-shadow:0 0 10px rgba(34,197,94,.45)!important;pointer-events:none!important;z-index:2!important;
+}
+.business-title-main{position:relative!important;z-index:3!important;display:block!important;font-size:24px!important;line-height:.95!important;font-weight:900!important;letter-spacing:-.8px!important;color:#fff!important;white-space:nowrap!important}
+.business-title-sub{position:relative!important;z-index:3!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;margin-top:10px!important;font-size:11px!important;line-height:1!important;font-weight:700!important;letter-spacing:4px!important;text-transform:uppercase!important;color:#2563eb!important;margin-bottom:6px!important}
+.business-portal-title::before{display:none!important}
+.business-title-logo{position:relative!important;z-index:3!important;display:block!important;height:128px!important;width:auto!important;max-width:100%!important;object-fit:contain!important}
+
+.business-nav-list{display:flex!important;flex-direction:column!important;width:100%!important}
+.business-nav-group-title{color:#000!important;font-size:11px!important;font-weight:900!important;letter-spacing:1.5px!important;text-transform:uppercase!important;margin:0 0 12px 6px!important;line-height:1!important;user-select:none!important;flex-shrink:0!important}
+.business-nav-item{
+  position:relative!important;overflow:hidden!important;padding:16px 14px 16px 20px!important;border-radius:14px!important;color:#fff!important;cursor:pointer!important;
+  font-weight:800!important;font-size:15px!important;margin-bottom:10px!important;display:flex!important;align-items:center!important;justify-content:space-between!important;gap:12px!important;
+  text-decoration:none!important;transition:.2s ease!important;flex-shrink:0!important;user-select:none!important;background:#fff!important;border:1px solid #e2e8f0!important;
+  box-shadow:0 6px 16px rgba(15,23,42,.08)!important;min-height:52px!important;width:100%!important;
+}
+.business-nav-item[data-nav-key="startseite"]{margin-bottom:26px!important}
+.business-nav-item[data-nav-key="kg-ai"]{margin-bottom:36px!important}
+.business-nav-item[data-nav-key="buchhaltung"]{margin-bottom:36px!important}
+.business-nav-item[data-nav-key="vertrag"]{margin-bottom:36px!important}
+.business-nav-item[data-nav-key="kunden"]{margin-bottom:36px!important}
+.business-nav-content{display:flex!important;align-items:center!important;gap:15px!important;min-width:0!important;color:#1e40af!important;text-shadow:none!important;font-weight:900!important;letter-spacing:.1px!important}
+.business-nav-item i{font-size:20px!important;width:25px!important;text-align:center!important;flex-shrink:0!important}
+.business-drag-handle{width:auto!important;font-size:15px!important;color:#3b82f6!important;cursor:grab!important;opacity:.9!important;margin-left:auto!important;position:relative!important;z-index:2!important}
+.business-drag-handle:active{cursor:grabbing!important}
+.business-nav-item:hover{background:#f8fafc!important;box-shadow:0 8px 18px rgba(15,23,42,.10)!important;transform:translateY(-1px)!important}
+.business-nav-item.active{background:#fff!important;color:#1e40af!important;border:2px solid #3b82f6!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.95)!important}
+.business-nav-item.active .business-nav-content{color:#1e40af!important}
+.business-nav-item.active .business-drag-handle{color:#3b82f6!important}
+.business-nav-item.active .business-nav-content i{color:#2563eb!important}
+.business-nav-item.is-soon{cursor:default!important;opacity:.55!important;box-shadow:none!important;background:#f8fafc!important}
+.business-nav-item.is-soon:hover{transform:none!important;box-shadow:none!important}
+.business-soon-badge{margin-left:auto!important;font-size:10px!important;font-weight:800!important;letter-spacing:.6px!important;text-transform:uppercase!important;color:#64748b!important;background:#e2e8f0!important;border-radius:999px!important;padding:3px 8px!important}
+.business-nav-ghost{opacity:.45!important;background:#dbeafe!important}.business-nav-chosen{box-shadow:none!important}
+
+.business-sidebar-bottom{margin-top:auto!important;padding-top:16px!important;border-top:1px solid #e2e8f0!important;flex-shrink:0!important}
+.business-user-box{display:flex!important;align-items:center!important;gap:9px!important;margin-bottom:13px!important}
+.business-user-avatar{width:34px!important;height:34px!important;border-radius:50%!important;background:linear-gradient(135deg,#2563eb,#3b82f6)!important;color:#fff!important;display:flex!important;align-items:center!important;justify-content:center!important;font-size:12px!important;font-weight:900!important}
+.business-user-meta strong{display:block!important;font-size:11px!important;color:#123a32!important}.business-user-meta span{display:block!important;color:#8497a3!important;font-size:9px!important;margin-top:2px!important}
+.business-settings-link{display:inline-flex!important;align-items:center!important;gap:7px!important;color:#5f7481!important;text-decoration:none!important;font-size:12px!important;font-weight:700!important;padding:6px 2px!important}
+.business-settings-link:hover,.business-settings-link.active{color:#2563eb!important}
+
+.business-portal-main{
+  width:calc(100% - var(--business-sidebar-width))!important;min-height:100vh!important;margin-left:var(--business-sidebar-width)!important;
+  padding:30px!important;background:var(--business-bg)!important;overflow:visible!important;display:block!important;
+}
+
+/* KG CRM portal-card: white content card inside main */
+.business-portal-card{
+  width:100%!important;min-height:calc(100vh - 60px)!important;background:#fff!important;
+  border:1px solid var(--business-border)!important;border-radius:24px!important;padding:30px!important;overflow:visible!important;position:relative!important;
+}
+.business-portal-card.card-flush{padding:0!important;overflow:hidden!important}
+
+/* old shell leftover: blue band behind page header */
+body::before{display:none!important}
+
+.icon-blue{color:#3b82f6!important}.icon-orange{color:#f59e0b!important}.icon-purple{color:#8b5cf6!important}.icon-green{color:#3b82f6!important}.icon-cyan{color:#06b6d4!important}.icon-indigo{color:#6366f1!important}.icon-teal{color:#14b8a6!important}.icon-red{color:#ef4444!important}.icon-pink{color:#ec4899!important}
+
+.business-menu-toggle{display:none!important}
+
+/* Tablet + Telefon: kompakte Kopfleiste mit ☰-Menü (Desktop bleibt unverändert) */
+@media(max-width:1024px){
+  .business-portal-sidebar{position:sticky!important;left:auto!important;top:0!important;width:100%!important;height:auto!important;max-height:100vh!important;padding:10px 14px!important;flex-direction:row!important;flex-wrap:wrap!important;align-items:center!important;justify-content:space-between!important;border-right:0!important;border-bottom:1px solid var(--business-border)!important;overflow:visible!important;box-shadow:0 4px 14px rgba(15,23,42,.06)!important}
+  .business-portal-title{min-height:0!important;margin:0!important;padding:6px 14px!important;flex-direction:row!important;gap:10px!important;border-width:1.5px!important;border-radius:14px!important;box-shadow:none!important}
+  .business-portal-title::after{display:none!important}
+  .business-title-logo{height:40px!important}
+  .business-title-sub{margin:0!important;font-size:10px!important;letter-spacing:3px!important}
+  .business-menu-toggle{display:inline-flex!important;align-items:center!important;justify-content:center!important;width:46px!important;height:46px!important;border-radius:14px!important;border:1.5px solid #3b82f6!important;background:#fff!important;color:#2563eb!important;font-size:20px!important;cursor:pointer!important;padding:0!important}
+  .business-nav-list{display:none!important;flex-basis:100%!important;width:100%!important;max-height:calc(100vh - 150px)!important;overflow-y:auto!important;padding:14px 2px 4px!important;-webkit-overflow-scrolling:touch}
+  .business-portal-sidebar.is-open .business-nav-list{display:flex!important}
+  .business-nav-group-title{margin:10px 0 8px 6px!important}
+  .business-drag-handle,.business-nav-item.is-soon{display:none!important}
+  .business-nav-item,.business-nav-item[data-nav-key]{margin:0 0 8px!important;min-height:46px!important;padding:12px 14px!important;font-size:15px!important}
+  .business-sidebar-bottom{display:none!important;flex-basis:100%!important;width:100%!important;margin-top:4px!important;padding-top:10px!important}
+  .business-portal-sidebar.is-open .business-sidebar-bottom{display:flex!important;flex-wrap:wrap!important;align-items:center!important;gap:6px 16px!important}
+  .business-portal-sidebar.is-open .business-user-box{flex-basis:100%!important;margin-bottom:0!important}
+  .business-portal-main{width:100%!important;margin-left:0!important;padding:18px!important}
+}
+
+@media(max-width:760px){
+  .business-portal-sidebar{padding:8px 10px!important}
+  .business-title-logo{height:34px!important}
+  .business-portal-main{padding:8px!important}
+  .business-portal-card{padding:12px!important;min-height:0!important;border-radius:18px!important}
+  .business-portal-card.card-flush{padding:0!important}
+}

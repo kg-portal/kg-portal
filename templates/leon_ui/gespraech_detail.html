@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gespräch | KG Gebäudereinigung Voice</title>
+
+    <style>
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            font-family: -apple-system, "Segoe UI", Arial, Helvetica, sans-serif;
+            background: #f3f6f9;
+            color: #24323c;
+        }
+
+        .topbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 22px 32px;
+            background: #ffffff;
+            border-bottom: 1px solid #dfe7ec;
+        }
+
+        .topbar-left { display: flex; align-items: center; gap: 16px; }
+
+        .back-btn {
+            width: 38px;
+            height: 38px;
+            border-radius: 10px;
+            border: 1px solid #dfe7ec;
+            background: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            color: #24323c;
+            font-size: 18px;
+        }
+
+        .back-btn:hover { background: #eaf1f5; }
+
+        .topbar h1 { margin: 0; font-size: 21px; font-weight: 800; }
+
+        .topbar .meta { margin-top: 4px; font-size: 13px; color: #81929d; }
+
+        .layout {
+            display: grid;
+            grid-template-columns: 1fr 340px;
+            gap: 20px;
+            padding: 24px 32px;
+            max-width: 1300px;
+            margin: 0 auto;
+        }
+
+        .panel {
+            background: #ffffff;
+            border: 1px solid #dfe7ec;
+            border-radius: 16px;
+            padding: 22px;
+            box-shadow: 0 2px 8px rgba(30,58,78,0.05);
+            margin-bottom: 18px;
+        }
+
+        .panel h2 {
+            margin: 0 0 16px;
+            font-size: 15px;
+            font-weight: 800;
+            color: #24323c;
+        }
+
+        audio { width: 100%; }
+
+        .bubble-row { margin-bottom: 14px; }
+
+        .bubble-label {
+            font-size: 11px;
+            font-weight: 800;
+            letter-spacing: 0.4px;
+            text-transform: uppercase;
+            color: #81929d;
+            margin-bottom: 5px;
+        }
+
+        .bubble {
+            display: inline-block;
+            max-width: 80%;
+            padding: 10px 14px;
+            border-radius: 12px;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .bubble.ki {
+            background: #e6f7f1;
+            color: #145c43;
+        }
+
+        .bubble.kunde {
+            background: #f0f3f6;
+            color: #24323c;
+        }
+
+        .raw-transcript {
+            white-space: pre-wrap;
+            font-size: 13.5px;
+            line-height: 1.6;
+            color: #45525c;
+        }
+
+        .side-note {
+            font-size: 12px;
+            color: #9aa7b1;
+            margin-top: 14px;
+            line-height: 1.5;
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 9px 0;
+            border-bottom: 1px solid #eef2f5;
+            font-size: 13.5px;
+        }
+
+        .info-row:last-child { border-bottom: none; }
+
+        .info-label { color: #81929d; }
+        .info-value { font-weight: 700; text-align: right; }
+
+        .score-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 999px;
+            font-weight: 800;
+            font-size: 13px;
+            background: #e6f7f1;
+            color: #22a477;
+        }
+
+        .score-badge.low { background: #fdecec; color: #ef5c62; }
+        .score-badge.mid { background: #fff6e0; color: #f4a423; }
+
+        .empty-note {
+            color: #9aa7b1;
+            font-size: 13.5px;
+            padding: 20px 0;
+            text-align: center;
+        }
+
+        @media (max-width: 900px) {
+            .layout { grid-template-columns: 1fr; }
+        }
+    </style>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='leon/kg_portal.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='leon/kg_shell_override.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='leon/kg_page_theme.css') }}">
+
+<style id="kg-crm-frame">
+  /* Im KG CRM eingebettet: ohne eigene Sidebar, volle Breite */
+  .business-portal-sidebar{display:none!important}
+  .business-portal-main{width:100%!important;margin-left:0!important;padding:18px!important}
+  body{background:#f8fafc!important}
+</style>
+</head>
+<body>
+<div class="kg-business-shell">
+
+<main class="business-portal-main"><section class="business-portal-card card-flush">
+
+<section class="kgb-hero">
+<div class="topbar">
+    <div class="topbar-left">
+        <a href="/leon-ui/gespraeche" class="back-btn">←</a>
+        <div>
+            <h1 id="pageTitle">Gespräch</h1>
+            <div class="meta" id="pageMeta">Wird geladen ...</div>
+        </div>
+    </div>
+</div>
+</section>
+
+
+<div class="layout">
+
+    <div>
+        <div class="panel">
+            <h2>Aufnahme</h2>
+            <div id="audioWrap">
+                <div class="empty-note">Keine Aufnahme vorhanden.</div>
+            </div>
+        </div>
+
+        <div class="panel">
+            <h2>Transkript</h2>
+            <div id="transcriptWrap">
+                <div class="empty-note">Wird geladen ...</div>
+            </div>
+            <div class="side-note" id="dialogueNote" style="display:none;">
+                Hinweis: Die Sprecheraufteilung (KI/Kunde) wurde von der KI anhand
+                des Gesprächsinhalts rekonstruiert — die Aufnahme selbst enthält
+                keine technische Sprechererkennung. Bei Unklarheiten gilt der
+                Rohtext weiter unten als verbindliche Quelle.
+            </div>
+        </div>
+    </div>
+
+    <div>
+        <div class="panel">
+            <h2>Zusammenfassung</h2>
+            <div id="summaryWrap">
+                <div class="empty-note">Wird geladen ...</div>
+            </div>
+        </div>
+
+        <div class="panel">
+            <h2>Vertragsdaten</h2>
+            <div id="contractWrap">
+                <div class="empty-note">Wird geladen ...</div>
+            </div>
+        </div>
+
+        <div class="panel">
+            <h2>Kontaktdaten</h2>
+            <div id="contactWrap">
+                <div class="empty-note">Wird geladen ...</div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+const callId = {{ call_id }};
+
+function escapeHtml(value) {
+    if (value === null || value === undefined) return "";
+    return String(value)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;");
+}
+
+function formatDateTime(value) {
+    if (!value) return "—";
+    try {
+        const d = new Date(value.replace(" ", "T"));
+        if (isNaN(d.getTime())) return value;
+        return d.toLocaleDateString("de-DE") + ", " +
+            d.toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" }) + " Uhr";
+    } catch (e) {
+        return value;
+    }
+}
+
+function formatDuration(seconds) {
+    seconds = Number(seconds) || 0;
+    const m = Math.floor(seconds / 60);
+    const s = seconds % 60;
+    return m + ":" + String(s).padStart(2, "0") + " Min";
+}
+
+function scoreClass(score) {
+    if (score === null || score === undefined || score === "") return "";
+    const n = Number(score);
+    if (n <= 4) return "low";
+    if (n <= 6) return "mid";
+    return "";
+}
+
+async function loadCall() {
+    try {
+        const response = await fetch("/leon-api/calls/" + callId);
+        const data = await response.json();
+
+        if (!response.ok || !data.success) {
+            throw new Error(data.error || "Gespräch konnte nicht geladen werden.");
+        }
+
+        const call = data.call;
+        const name = call.firma || call.ansprechpartner || "Unbekannter Kontakt";
+
+        document.getElementById("pageTitle").textContent = "Gespräch · " + name;
+
+        document.getElementById("pageMeta").textContent =
+            formatDateTime(call.created_at) + " · " +
+            formatDuration(call.duration_seconds) + " · " +
+            "KG Gebäudereinigung Vertriebsassistent (KI) · " +
+            (call.direction === "inbound" ? "eingehend" : "ausgehend");
+
+        // Audio
+        const audioWrap = document.getElementById("audioWrap");
+        if (call.recording_url) {
+            audioWrap.innerHTML = `<audio controls src="/leon-api/calls/${callId}/recording"></audio>`;
+        }
+
+        // Transcript — rendered as reconstructed dialogue bubbles when available
+        const transcriptWrap = document.getElementById("transcriptWrap");
+        const dialogueNote = document.getElementById("dialogueNote");
+
+        if (Array.isArray(call.dialogue) && call.dialogue.length > 0) {
+            transcriptWrap.innerHTML = call.dialogue.map(turn => {
+                const isKi = (turn.speaker || "").toLowerCase().indexOf("ki") !== -1 ||
+                             (turn.speaker || "").toLowerCase().indexOf("kicci") !== -1;
+                return `
+                    <div class="bubble-row">
+                        <div class="bubble-label">${escapeHtml(turn.speaker || (isKi ? "KI" : "Kunde"))}</div>
+                        <div class="bubble ${isKi ? "ki" : "kunde"}">${escapeHtml(turn.text)}</div>
+                    </div>
+                `;
+            }).join("");
+            dialogueNote.style.display = "block";
+        } else if (call.transcript) {
+            transcriptWrap.innerHTML = `<div class="raw-transcript">${escapeHtml(call.transcript)}</div>`;
+        } else {
+            transcriptWrap.innerHTML = `<div class="empty-note">Noch keine Transkription vorhanden.</div>`;
+        }
+
+        // Summary
+        const summaryWrap = document.getElementById("summaryWrap");
+        let summaryHtml = "";
+
+        if (call.summary) {
+            summaryHtml += `<p style="margin-top:0; font-size:14px; line-height:1.6;">${escapeHtml(call.summary)}</p>`;
+        } else {
+            summaryHtml += `<div class="empty-note">Noch keine Zusammenfassung vorhanden.</div>`;
+        }
+
+        if (call.score !== null && call.score !== undefined && call.score !== "") {
+            summaryHtml += `<span class="score-badge ${scoreClass(call.score)}">${escapeHtml(call.score)}/10</span>`;
+        }
+
+        summaryWrap.innerHTML = summaryHtml;
+
+        // Vertragsdaten
+        const contractWrap = document.getElementById("contractWrap");
+
+        const stromFields = [
+            ["Anbieter", call.stromanbieter || call.lead_stromanbieter],
+            ["Jahresverbrauch", call.stromverbrauch || call.lead_stromverbrauch],
+            ["Vertragsende", call.vertragsende_strom || call.lead_vertragsende_strom]
+        ];
+
+        const gasFields = [
+            ["Anbieter", call.gasanbieter || call.lead_gasanbieter],
+            ["Jahresverbrauch", call.gasverbrauch || call.lead_gasverbrauch],
+            ["Vertragsende", call.vertragsende_gas || call.lead_vertragsende_gas]
+        ];
+
+        const waermepumpeFields = [
+            ["Vorhanden", Number(call.waermepumpe || call.lead_waermepumpe) === 1 ? "Ja" : ""],
+            ["Eigener Zähler", Number(call.waermepumpe_eigener_zaehler || call.lead_waermepumpe_eigener_zaehler) === 1 ? "Ja" : ""],
+            ["Anbieter", call.waermepumpe_anbieter || call.lead_waermepumpe_anbieter],
+            ["Jahresverbrauch", call.waermepumpe_verbrauch || call.lead_waermepumpe_verbrauch],
+            ["Vertragsende", call.vertragsende_waermepumpe || call.lead_vertragsende_waermepumpe],
+            ["Inbetriebnahme", call.waermepumpe_inbetriebnahme || call.lead_waermepumpe_inbetriebnahme],
+            ["§14a / Netzentgelt", call.waermepumpe_14a || call.lead_waermepumpe_14a]
+        ];
+
+        const renderEnergyBlock = (title, fields) => {
+            const useful = fields.filter(([, value]) => value !== null && value !== undefined && String(value).trim() !== "");
+            if (!useful.length) return "";
+            return `
+                <div style="margin-bottom:14px;">
+                    <strong style="display:block;margin-bottom:6px;">${escapeHtml(title)}</strong>
+                    ${useful.map(([label, value]) => `
+                        <div class="info-row">
+                            <span class="info-label">${escapeHtml(label)}</span>
+                            <span class="info-value">${escapeHtml(value)}</span>
+                        </div>
+                    `).join("")}
+                </div>
+            `;
+        };
+
+        let contractHtml =
+            renderEnergyBlock("Strom", stromFields)
+            + renderEnergyBlock("Gas", gasFields)
+            + renderEnergyBlock("Wärmepumpe", waermepumpeFields);
+
+        if (!contractHtml && (call.energy_provider || call.annual_consumption || call.contract_end)) {
+            contractHtml = renderEnergyBlock(
+                "Vertragsdaten (älterer Datensatz)",
+                [
+                    ["Anbieter", call.energy_provider],
+                    ["Jahresverbrauch", call.annual_consumption],
+                    ["Vertragsende", call.contract_end]
+                ]
+            );
+        }
+
+        if (call.captured_email) {
+            contractHtml += `
+                <div class="info-row">
+                    <span class="info-label">E-Mail (genannt)</span>
+                    <span class="info-value">${escapeHtml(call.captured_email)}</span>
+                </div>
+            `;
+        }
+
+        contractWrap.innerHTML = contractHtml || `<div class="empty-note">Noch keine Vertragsdaten erkannt.</div>`;
+
+        // Kontaktdaten
+        const contactWrap = document.getElementById("contactWrap");
+        const contactFields = [
+            ["Firma", call.firma],
+            ["Ansprechpartner", call.ansprechpartner],
+            ["Telefon", call.phone_number || call.lead_telefon],
+            ["E-Mail (Lead)", call.lead_email]
+        ];
+
+        contactWrap.innerHTML = contactFields.map(([label, value]) => `
+            <div class="info-row">
+                <span class="info-label">${escapeHtml(label)}</span>
+                <span class="info-value">${value ? escapeHtml(value) : "—"}</span>
+            </div>
+        `).join("");
+
+    } catch (error) {
+        document.getElementById("pageMeta").textContent = error.message;
+        document.getElementById("transcriptWrap").innerHTML =
+            `<div class="empty-note">${escapeHtml(error.message)}</div>`;
+    }
+}
+
+loadCall();
+</script>
+
+</section></main>
+</div>
+</body>
+</html>

@@ -1,0 +1,14 @@
+<style>
+    .leon-tabs { display: flex; gap: 8px; flex-wrap: wrap; margin: 0 0 18px; font-family: 'Inter', sans-serif; }
+    .leon-tab {
+        padding: 10px 16px; border-radius: 12px; font-size: 14px; font-weight: 800; text-decoration: none;
+        color: #1e3a8a; background: #fff; border: 1px solid #e2e8f0; box-shadow: 0 4px 12px rgba(0,0,0,.04);
+    }
+    .leon-tab:hover { border-color: #93c5fd; }
+    .leon-tab.active { background: #2563eb; border-color: #2563eb; color: #fff; }
+</style>
+<nav class="leon-tabs" aria-label="Leon Bereiche">
+    {% for key, href, label in leon_tabs %}
+    <a class="leon-tab {% if key == leon_tab %}active{% endif %}" href="{{ href }}">{{ label }}</a>
+    {% endfor %}
+</nav>

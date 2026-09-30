@@ -1,0 +1,3139 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Gesprächsübersicht | KG Gebäudereinigung Voice</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg: #f3f6f9;
+            --sidebar: #eaf1f5;
+            --card: #ffffff;
+            --border: #dfe7ec;
+            --text: #24323c;
+            --muted: #81929d;
+
+            --blue: #3d85aa;
+            --blue-dark: #2f7194;
+            --blue-soft: #edf5f9;
+
+            --green: #22a477;
+            --green-soft: #e6f7f1;
+
+            --red: #ef5c62;
+            --yellow: #ffc400;
+            --orange: #f4a423;
+
+            --shadow:
+                0 2px 8px
+                rgba(30, 58, 78, 0.05);
+        }
+
+        body {
+            margin: 0;
+            font-family:
+                Inter,
+                Arial,
+                Helvetica,
+                sans-serif;
+            background: var(--bg);
+            color: var(--text);
+        }
+
+        button,
+        input {
+            font: inherit;
+        }
+
+        button {
+            cursor: pointer;
+        }
+
+        .app {
+            display: grid;
+            grid-template-columns: 235px minmax(0, 1fr);
+            min-height: 100vh;
+        }
+
+        /* =====================================================
+           SIDEBAR
+           ===================================================== */
+
+        .sidebar {
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            background: var(--sidebar);
+            border-right: 1px solid #d9e3e9;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+        }
+
+        .sidebar-top {
+            padding: 25px 16px 20px;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 0 5px;
+            margin-bottom: 24px;
+        }
+
+        .brand-mark {
+            width: 39px;
+            height: 39px;
+            border-radius: 11px;
+            background:
+                linear-gradient(
+                    135deg,
+                    #87b8cf,
+                    #2f7ea4
+                );
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 15px;
+            font-weight: 900;
+        }
+
+        .brand-text strong {
+            display: block;
+            font-size: 18px;
+            line-height: 1.05;
+        }
+
+        .brand-text span {
+            display: block;
+            margin-top: 3px;
+            color: #7690a0;
+            font-size: 10px;
+            letter-spacing: 1.1px;
+            font-weight: 800;
+        }
+
+        .system-card {
+            background: white;
+            border: 1px solid #d8e2e7;
+            border-radius: 14px;
+            padding: 15px;
+            margin-bottom: 13px;
+            box-shadow: var(--shadow);
+        }
+
+        .system-title {
+            font-size: 11px;
+            font-weight: 800;
+            margin-bottom: 10px;
+        }
+
+        .system-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .system-circle {
+            width: 39px;
+            height: 39px;
+            border: 2px solid #75a8c2;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #2f7194;
+            font-size: 12px;
+            font-weight: 900;
+        }
+
+        .system-meta strong {
+            display: block;
+            font-size: 12px;
+        }
+
+        .system-meta span {
+            display: block;
+            margin-top: 2px;
+            color: #8b9ba5;
+            font-size: 10px;
+        }
+
+        .agent-button {
+            width: 100%;
+            border: 0;
+            border-radius: 8px;
+            background: var(--blue);
+            color: white;
+            padding: 10px 12px;
+            margin-top: 12px;
+            font-size: 11px;
+            font-weight: 800;
+        }
+
+        .new-call {
+            width: 100%;
+            border: 0;
+            border-radius: 18px;
+            background: var(--blue);
+            color: white;
+            padding: 12px 15px;
+            font-size: 12px;
+            font-weight: 800;
+            margin-bottom: 18px;
+        }
+
+        .nav {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .nav-title {
+            color: #8ca0ac;
+            font-size: 9px;
+            letter-spacing: 1.4px;
+            text-transform: uppercase;
+            font-weight: 900;
+            padding: 15px 8px 6px;
+        }
+
+        .nav a {
+            text-decoration: none;
+            color: #55707f;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            min-height: 39px;
+            padding: 9px 9px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 700;
+            position: relative;
+        }
+
+        .nav a:hover {
+            background: rgba(255,255,255,.65);
+        }
+
+        .nav a.active {
+            background: rgba(255,255,255,.88);
+            color: var(--blue-dark);
+        }
+
+        .nav a.active::before {
+            content: "";
+            position: absolute;
+            left: -16px;
+            top: 4px;
+            bottom: 4px;
+            width: 3px;
+            border-radius: 6px;
+            background: var(--blue);
+        }
+
+        .nav-icon {
+            width: 18px;
+            text-align: center;
+            font-size: 14px;
+        }
+
+        .sidebar-bottom {
+            margin-top: auto;
+            padding: 16px;
+            border-top: 1px solid #d9e3e9;
+        }
+
+        .user-row {
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            margin-bottom: 12px;
+        }
+
+        .user-avatar {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            background: var(--blue);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 900;
+        }
+
+        .user-info strong {
+            display: block;
+            font-size: 11px;
+        }
+
+        .user-info span {
+            display: block;
+            margin-top: 2px;
+            color: #8a9ba6;
+            font-size: 9px;
+        }
+
+        /* =====================================================
+           MAIN
+           ===================================================== */
+
+        .main {
+            min-width: 0;
+            padding: 28px 28px 45px;
+        }
+
+        .page-title {
+            margin: 0 0 20px;
+            font-size: 25px;
+            letter-spacing: -.4px;
+        }
+
+        /* =====================================================
+           FILTER
+           ===================================================== */
+
+        .filter-panel {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 13px;
+            box-shadow: var(--shadow);
+            padding: 17px;
+            margin-bottom: 14px;
+        }
+
+        .filter-top {
+            display: grid;
+            grid-template-columns:
+                minmax(360px, 1fr)
+                35px
+                190px
+                30px
+                190px
+                auto;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .search-box {
+            position: relative;
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 13px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #8ba0ad;
+            font-size: 15px;
+        }
+
+        .search-input,
+        .date-input {
+            width: 100%;
+            height: 39px;
+            border: 1px solid #dce5ea;
+            background: #fbfcfd;
+            border-radius: 8px;
+            outline: none;
+            padding: 0 12px;
+            font-size: 11px;
+            color: #495f6b;
+        }
+
+        .search-input {
+            padding-left: 38px;
+        }
+
+        .filter-word {
+            font-size: 10px;
+            color: #607581;
+            text-align: center;
+        }
+
+        .filter-button {
+            border: 0;
+            height: 39px;
+            padding: 0 18px;
+            border-radius: 20px;
+            background: var(--blue);
+            color: white;
+            font-size: 11px;
+            font-weight: 800;
+        }
+
+        .filter-bottom {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 13px;
+        }
+
+        .check-filter {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 10px;
+            color: #667b87;
+            margin-right: 8px;
+        }
+
+        .legend-link {
+            border: 0;
+            background: transparent;
+            color: #2d88b4;
+            font-size: 10px;
+            font-weight: 800;
+            padding: 5px 8px;
+        }
+
+        .filter-pill {
+            min-height: 31px;
+            border: 1px solid #91b8cd;
+            border-radius: 999px;
+            padding: 5px 12px;
+            background: white;
+            color: #39738f;
+            font-size: 10px;
+            font-weight: 800;
+        }
+
+        .filter-pill.active {
+            background: var(--blue);
+            color: white;
+            border-color: var(--blue);
+        }
+
+        /* =====================================================
+           TABLE
+           ===================================================== */
+
+        .table-card {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 13px;
+            box-shadow: var(--shadow);
+            overflow: hidden;
+        }
+
+        .table-scroll {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            min-width: 1500px;
+            border-collapse: collapse;
+        }
+
+        thead {
+            background: #f7fafc;
+        }
+
+        th {
+            text-align: left;
+            color: #8496a1;
+            font-size: 9px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: .3px;
+            padding: 12px 12px;
+            border-bottom: 1px solid #e3eaee;
+        }
+
+        td {
+            padding: 14px 12px;
+            vertical-align: top;
+            font-size: 10px;
+            color: #435964;
+            border-bottom: 1px solid #e8edf1;
+        }
+
+        tbody tr:hover {
+            background: #fbfdfe;
+        }
+
+        .col-date {
+            width: 125px;
+        }
+
+        .col-name {
+            width: 180px;
+        }
+
+        .col-phone {
+            width: 175px;
+        }
+
+        .col-ab {
+            width: 90px;
+        }
+
+        .col-callback {
+            width: 95px;
+        }
+
+        .col-summary {
+            min-width: 600px;
+        }
+
+        .col-actions {
+            width: 175px;
+        }
+
+        .contact-line {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: #2f80a3;
+            font-weight: 700;
+        }
+
+        .contact-phone {
+            color: var(--green);
+        }
+
+        .yes {
+            color: var(--green);
+            font-weight: 900;
+        }
+
+        .no {
+            color: var(--red);
+            font-weight: 900;
+        }
+
+        .summary {
+            line-height: 1.5;
+            color: #344c58;
+        }
+
+        .summary strong {
+            color: #203845;
+        }
+
+        .transcript-link {
+            display: inline-block;
+            margin-top: 4px;
+            color: #2388bd;
+            text-decoration: none;
+            font-weight: 800;
+        }
+
+        .action-row {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            gap: 9px;
+        }
+
+        .analyse-icon {
+            font-size: 14px;
+            color: #8ba2af;
+        }
+
+        .play-button {
+            width: 31px;
+            height: 31px;
+            border: 0;
+            border-radius: 7px;
+            background: var(--green);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+        }
+
+        .score {
+            height: 23px;
+            min-width: 39px;
+            padding: 0 7px;
+            border-radius: 6px;
+            background: var(--yellow);
+            color: #4b3b00;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 9px;
+            font-weight: 900;
+        }
+
+        .score.good {
+            background: #23b66f;
+            color: white;
+        }
+
+        .more-button {
+            width: 31px;
+            height: 31px;
+            border: 1px solid #e1e8ec;
+            border-radius: 7px;
+            background: white;
+            color: #607783;
+            font-size: 15px;
+        }
+
+        /* =====================================================
+           KNOWLEDGE GAP
+           ===================================================== */
+
+        .knowledge-gap {
+            margin-top: 8px;
+            border-left: 3px solid var(--orange);
+            background: #fff7df;
+            border-radius: 4px;
+            padding: 9px 10px;
+        }
+
+        .knowledge-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+        .knowledge-head strong {
+            color: #855900;
+            font-size: 9px;
+        }
+
+        .knowledge-add {
+            border: 1px solid #f0b340;
+            border-radius: 999px;
+            background: white;
+            color: #d88a00;
+            padding: 4px 8px;
+            font-size: 8px;
+            font-weight: 800;
+        }
+
+        .knowledge-text {
+            margin-top: 5px;
+            color: #775f2a;
+            font-size: 10px;
+            line-height: 1.5;
+        }
+
+        /* =====================================================
+           VOICEONE GESPRÄCHSÜBERSICHT SCALE
+           ===================================================== */
+
+        .main {
+            padding: 30px 32px 50px;
+        }
+
+        .page-title {
+            margin: 0 0 22px;
+            font-size: 29px;
+            font-weight: 700;
+        }
+
+        .filter-panel {
+            padding: 19px;
+            border-radius: 14px;
+            margin-bottom: 16px;
+        }
+
+        .search-input,
+        .date-input {
+            height: 43px;
+            font-size: 13px;
+        }
+
+        .search-icon {
+            font-size: 17px;
+        }
+
+        .filter-word {
+            font-size: 12px;
+        }
+
+        .filter-button {
+            height: 43px;
+            padding: 0 21px;
+            font-size: 13px;
+        }
+
+        .filter-bottom {
+            gap: 9px;
+            margin-top: 15px;
+        }
+
+        .check-filter {
+            font-size: 12px;
+        }
+
+        .legend-link {
+            font-size: 12px;
+        }
+
+        .filter-pill {
+            min-height: 35px;
+            padding: 6px 14px;
+            font-size: 12px;
+        }
+
+        th {
+            font-size: 11px;
+            padding: 14px 13px;
+        }
+
+        td {
+            padding: 16px 13px;
+            font-size: 12px;
+        }
+
+        .contact-line {
+            gap: 7px;
+            font-size: 12px;
+        }
+
+        .summary {
+            font-size: 12px;
+            line-height: 1.52;
+        }
+
+        .transcript-link {
+            margin-top: 5px;
+            font-size: 12px;
+        }
+
+        .analyse-icon {
+            font-size: 16px;
+        }
+
+        .play-button {
+            width: 35px;
+            height: 35px;
+            border-radius: 8px;
+            font-size: 15px;
+        }
+
+        .score {
+            height: 26px;
+            min-width: 44px;
+            padding: 0 8px;
+            font-size: 11px;
+        }
+
+        .more-button {
+            width: 35px;
+            height: 35px;
+            border-radius: 8px;
+            font-size: 17px;
+        }
+
+        .knowledge-gap {
+            margin-top: 10px;
+            padding: 11px 12px;
+        }
+
+        .knowledge-head strong {
+            font-size: 11px;
+        }
+
+        .knowledge-add {
+            padding: 5px 10px;
+            font-size: 10px;
+        }
+
+        .knowledge-text {
+            font-size: 10px;
+            line-height: 1.5;
+        }
+
+        @media(max-width: 1000px) {
+            .app {
+                grid-template-columns:
+                    200px
+                    minmax(0, 1fr);
+            }
+
+            .filter-top {
+                grid-template-columns:
+                    1fr
+                    30px
+                    150px
+                    25px
+                    150px;
+            }
+
+            .filter-button {
+                grid-column: 1 / -1;
+            }
+        }
+
+        @media(max-width: 640px) {
+            .filter-top {
+                grid-template-columns: auto minmax(0, 1fr);
+            }
+
+            .filter-top > :first-child {
+                grid-column: 1 / -1;
+            }
+
+            .filter-top .date-input {
+                width: 100%;
+                min-width: 0;
+            }
+        }
+
+        /* Gesprächsübersicht — final consistency / working filters */
+        .page-title{
+            font-size:28px !important;
+            line-height:1.15 !important;
+            font-weight:760 !important;
+            color:#0f172a !important;
+            letter-spacing:-.45px !important;
+        }
+
+        .filter-panel{
+            padding:18px !important;
+            border-radius:14px !important;
+        }
+
+        .search-input,
+        .date-input{
+            height:42px !important;
+            font-size:13px !important;
+            font-weight:500 !important;
+            color:#0f172a !important;
+        }
+
+        .filter-word,
+        .check-filter,
+        .legend-link,
+        .filter-pill,
+        .filter-button{
+            font-size:12px !important;
+            line-height:1.3 !important;
+        }
+
+        .check-filter{
+            font-weight:600 !important;
+            color:#475569 !important;
+        }
+
+        .filter-pill{
+            min-height:36px !important;
+            font-weight:700 !important;
+        }
+
+        .filter-pill:disabled{
+            opacity:.42 !important;
+            cursor:not-allowed !important;
+        }
+
+        .overview-filter-status{
+            margin:0 0 10px;
+            color:#64748b;
+            font-size:12px;
+            font-weight:600;
+        }
+
+        .overview-legend{
+            display:flex;
+            flex-wrap:wrap;
+            gap:14px;
+            margin:0 0 12px;
+            padding:10px 12px;
+            background:#fff;
+            border:1px solid #e2e8f0;
+            border-radius:10px;
+            color:#64748b;
+            font-size:11px;
+            font-weight:600;
+        }
+
+        .overview-legend[hidden]{
+            display:none !important;
+        }
+
+        .overview-legend span{
+            display:inline-flex;
+            align-items:center;
+            gap:6px;
+        }
+
+        .legend-swatch{
+            width:8px;
+            height:8px;
+            border-radius:50%;
+            display:inline-block;
+        }
+
+        .legend-swatch.blue{background:#2563eb}
+        .legend-swatch.orange{background:#f59e0b}
+        .legend-swatch.red{background:#ef4444}
+        .legend-swatch.green{background:#3b82f6}
+
+        th{
+            font-size:10px !important;
+            font-weight:750 !important;
+            color:#64748b !important;
+        }
+
+        td{
+            font-size:12px !important;
+            line-height:1.5 !important;
+            color:#334155 !important;
+        }
+
+        .contact-line{
+            font-size:12px !important;
+            font-weight:650 !important;
+            color:#0f172a !important;
+        }
+
+        .summary{
+            font-size:12px !important;
+            line-height:1.55 !important;
+            color:#334155 !important;
+        }
+
+        .transcript-link{
+            font-size:11px !important;
+            font-weight:700 !important;
+        }
+
+        .knowledge-gap{
+            margin-top:10px !important;
+            padding:10px 11px !important;
+            border-left:3px solid #f59e0b !important;
+            background:#fffbeb !important;
+            border-radius:7px !important;
+        }
+
+        .knowledge-head strong{
+            font-size:11px !important;
+            font-weight:750 !important;
+            color:#92400e !important;
+        }
+
+        .knowledge-text{
+            font-size:11px !important;
+            line-height:1.45 !important;
+            color:#78350f !important;
+        }
+
+        .caller-count-badge{
+            display:inline-flex;
+            margin-left:6px;
+            padding:2px 6px;
+            border-radius:999px;
+            background:#eff6ff;
+            color:#1e40af;
+            font-size:9px;
+            font-weight:750;
+            vertical-align:middle;
+        }
+
+        .empty-overview{
+            padding:28px 16px !important;
+            text-align:center;
+            color:#64748b !important;
+            font-size:13px !important;
+            font-weight:550 !important;
+        }
+
+        .page-head-row{
+            display:flex;
+            align-items:center;
+            justify-content:space-between;
+            gap:16px;
+            margin-bottom:14px;
+        }
+
+        .page-head-row .page-title{
+            margin:0;
+        }
+
+        .page-actions{
+            display:flex;
+            align-items:center;
+            gap:8px;
+            flex-wrap:wrap;
+        }
+
+        .archive-action-button,
+        .restore-action-button,
+        .danger-clear-button{
+            border-radius:8px;
+            padding:9px 12px;
+            font-size:12px;
+            font-weight:800;
+            cursor:pointer;
+        }
+
+        .archive-action-button,
+        .restore-action-button{
+            border:1px solid #d7e2e8;
+            background:#ffffff;
+            color:#365565;
+        }
+
+        .danger-clear-button{
+            border:1px solid #ef5c62;
+            background:#fff5f5;
+            color:#c83f46;
+        }
+
+        .archive-action-button:hover,
+        .restore-action-button:hover{
+            background:#f3f7f9;
+        }
+
+        .danger-clear-button:hover{
+            background:#ffe9ea;
+        }
+
+    </style>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='leon/kg_portal.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='leon/kg_shell_override.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='leon/kg_page_theme.css') }}">
+
+<style id="kg-crm-frame">
+  /* Im KG CRM eingebettet: ohne eigene Sidebar, volle Breite */
+  .business-portal-sidebar{display:none!important}
+  .business-portal-main{width:100%!important;margin-left:0!important;padding:18px!important}
+  body{background:#f8fafc!important}
+</style>
+</head>
+
+<body>
+
+<div class="kg-business-shell">
+
+    
+
+
+    <main class="business-portal-main"><section class="business-portal-card">
+
+        <section class="kgb-hero">
+<div class="page-head-row">
+            <h1 class="page-title">
+                {{ "Archiv" if archive_mode else "Gesprächsübersicht" }}
+            </h1>
+
+            <div class="page-actions">
+                {% if archive_mode %}
+                <button
+                    class="archive-action-button"
+                    type="button"
+                    onclick="window.location.href='/leon-ui/gespraeche'"
+                >
+                    Zur Gesprächsübersicht
+                </button>
+                {% else %}
+                <button
+                    class="danger-clear-button"
+                    id="deleteAllCallsButton"
+                    type="button"
+                >
+                    Alle Anrufe löschen
+                </button>
+                {% endif %}
+            </div>
+        </div>
+</section>
+
+
+        <section class="filter-panel">
+
+            <div class="filter-top">
+
+                <div class="search-box">
+
+                    <span class="search-icon">
+                        ⌕
+                    </span>
+
+                    <input
+                        class="search-input"
+                        id="overviewSearch"
+                        type="text"
+                        placeholder="Suche nach Name, Telefon, Ergebnis oder Zusammenfassung..."
+                    >
+
+                </div>
+
+                <div class="filter-word">
+                    von
+                </div>
+
+                <input
+                    class="date-input"
+                    id="overviewFrom"
+                    type="text"
+                    placeholder="tt.mm.jjjj"
+                >
+
+                <div class="filter-word">
+                    bis
+                </div>
+
+                <input
+                    class="date-input"
+                    id="overviewTo"
+                    type="text"
+                    placeholder="tt.mm.jjjj"
+                >
+
+                <button
+                    class="filter-button"
+                    id="overviewFilterButton"
+                    type="button"
+                >
+                    ▼ Filtern
+                </button>
+
+            </div>
+
+            <div class="filter-bottom">
+
+                <label class="check-filter">
+                    <input
+                        id="overviewLowScore"
+                        type="checkbox"
+                    >
+                    ↓ Nur Anrufe mit Score ≤ 4
+                </label>
+
+                <label class="check-filter">
+                    <input
+                        id="overviewGapsOnly"
+                        type="checkbox"
+                    >
+                    💡 Nur Anrufe mit Wissenslücken
+                </label>
+
+                <button
+                    class="legend-link"
+                    id="overviewLegendButton"
+                    type="button"
+                >
+                    ● Legende
+                </button>
+
+                <button
+                    class="filter-pill active"
+                    type="button"
+                    data-overview-mode="all"
+                >
+                    ☰ Alle
+                </button>
+
+                <button
+                    class="filter-pill"
+                    type="button"
+                    data-overview-mode="caller"
+                >
+                    👥 Pro Anrufer
+                </button>
+
+                <button
+                    class="filter-pill active"
+                    type="button"
+                    data-overview-channel="all"
+                >
+                    Alle Kanäle
+                </button>
+
+                <button
+                    class="filter-pill"
+                    type="button"
+                    data-overview-channel="phone"
+                >
+                    ☎ Telefon
+                </button>
+
+                <button
+                    class="filter-pill"
+                    type="button"
+                    data-overview-channel="voice"
+                >
+                    🎙 Sprache
+                </button>
+
+                <button
+                    class="filter-pill"
+                    type="button"
+                    disabled
+                    title="Chat-Kanal ist in diesem Portal noch nicht angebunden."
+                >
+                    💬 Chat
+                </button>
+
+            </div>
+
+        </section>
+
+        <div
+            class="overview-filter-status"
+            id="overviewFilterStatus"
+        >
+            Anrufe werden geladen …
+        </div>
+
+        <div
+            class="overview-legend"
+            id="overviewLegend"
+            hidden
+        >
+            <span><b class="legend-swatch blue"></b>Ausgewertetes Gespräch</span>
+            <span><b class="legend-swatch orange"></b>Wissenslücke</span>
+            <span><b class="legend-swatch red"></b>Score ≤ 4</span>
+            <span><b class="legend-swatch green"></b>Rückruf</span>
+        </div>
+
+        <section class="table-card">
+
+            <div class="table-scroll">
+
+                <table>
+
+                    <thead>
+
+                        <tr>
+                            <th class="col-date">
+                                Datum
+                            </th>
+
+                            <th class="col-name">
+                                Name
+                            </th>
+
+                            <th class="col-phone">
+                                Telefon
+                            </th>
+
+                            <th class="col-ab">
+                                AB
+                            </th>
+
+                            <th class="col-callback">
+                                Rückruf
+                            </th>
+
+                            <th class="col-summary">
+                                Zusammenfassung
+                            </th>
+
+                            <th class="col-actions">
+                            </th>
+                        </tr>
+
+                    </thead>
+
+                    <tbody id="callsTableBody">
+
+                        <tr>
+
+                            <td>
+                                16.09.2026 15:47
+                            </td>
+
+                            <td>
+
+                                <div class="contact-line">
+                                    <span class="contact-phone">
+                                        ☎
+                                    </span>
+                                    Müller GmbH
+                                </div>
+
+                            </td>
+
+                            <td>
+                                +49 203 123456
+                            </td>
+
+                            <td class="no">
+                                ×
+                            </td>
+
+                            <td class="no">
+                                ×
+                            </td>
+
+                            <td>
+
+                                <div class="summary">
+                                    Keine ausreichenden Gesprächsdaten
+                                    für eine Zusammenfassung vorhanden.
+                                    Der Kunde hat nicht gesprochen
+                                    oder das Gespräch wurde vorzeitig beendet.
+                                </div>
+
+                                <a
+                                    href="#"
+                                    class="transcript-link"
+                                >
+                                    Transkript ▣
+                                </a>
+
+                            </td>
+
+                            <td>
+
+                                <div class="action-row">
+
+                                    <span class="analyse-icon">
+                                        ♨
+                                    </span>
+
+                                    <button class="play-button">
+                                        ▶
+                                    </button>
+
+                                    <button class="more-button">
+                                        ···
+                                    </button>
+
+                                </div>
+
+                            </td>
+
+                        </tr>
+
+
+                        <tr>
+
+                            <td>
+                                16.09.2026 10:47
+                            </td>
+
+                            <td>
+
+                                <div class="contact-line">
+                                    <span class="contact-phone">
+                                        ☎
+                                    </span>
+                                    Elektro Weber
+                                </div>
+
+                            </td>
+
+                            <td>
+                                +49 211 334455
+                            </td>
+
+                            <td class="no">
+                                ×
+                            </td>
+
+                            <td class="no">
+                                ×
+                            </td>
+
+                            <td>
+
+                                <div class="summary">
+
+                                    <strong>
+                                        zuständige Person erreicht:
+                                    </strong>
+                                    ja
+                                    <br>
+
+                                    <strong>
+                                        Interesse:
+                                    </strong>
+                                    unklar
+                                    <br>
+
+                                    <strong>
+                                        aktueller Stromanbieter:
+                                    </strong>
+                                    unbekannt
+                                    <br>
+
+                                    <strong>
+                                        Jahresverbrauch:
+                                    </strong>
+                                    unbekannt
+                                    <br>
+
+                                    <strong>
+                                        Vertragsende/Laufzeit:
+                                    </strong>
+                                    unbekannt
+                                    <br>
+
+                                    <strong>
+                                        E-Mail-Adresse:
+                                    </strong>
+                                    unbekannt
+                                    <br>
+
+                                    <strong>
+                                        Unterlagen/Rechnung zugesendet:
+                                    </strong>
+                                    nein
+                                    <br>
+
+                                    <strong>
+                                        Soll KG Gebäudereinigung zuerst eine E-Mail senden:
+                                    </strong>
+                                    unbekannt
+                                    <br>
+
+                                    <strong>
+                                        Rückrufwunsch mit Datum/Uhrzeit:
+                                    </strong>
+                                    nein
+                                    <br>
+
+                                    <strong>
+                                        vereinbarter nächster Schritt:
+                                    </strong>
+                                    Agent stellt Frage nach aktuellem Stromanbieter.
+
+                                </div>
+
+                                <a
+                                    href="#"
+                                    class="transcript-link"
+                                >
+                                    Transkript ▣
+                                </a>
+
+                            </td>
+
+                            <td>
+
+                                <div class="action-row">
+
+                                    <span class="analyse-icon">
+                                        ♨
+                                    </span>
+
+                                    <button class="play-button">
+                                        ▶
+                                    </button>
+
+                                    <div class="score">
+                                        6/10
+                                    </div>
+
+                                    <button class="more-button">
+                                        ···
+                                    </button>
+
+                                </div>
+
+                            </td>
+
+                        </tr>
+
+
+                        <tr>
+
+                            <td>
+                                16.09.2026 10:44
+                            </td>
+
+                            <td>
+
+                                <div class="contact-line">
+                                    <span class="contact-phone">
+                                        ☎
+                                    </span>
+                                    Kanzlei Schmidt
+                                </div>
+
+                            </td>
+
+                            <td>
+                                +49 201 556677
+                            </td>
+
+                            <td class="no">
+                                ×
+                            </td>
+
+                            <td class="no">
+                                ×
+                            </td>
+
+                            <td>
+
+                                <div class="summary">
+
+                                    <strong>
+                                        zuständige Person erreicht:
+                                    </strong>
+                                    ja
+                                    <br>
+
+                                    <strong>
+                                        Interesse:
+                                    </strong>
+                                    nein
+                                    <br>
+
+                                    <strong>
+                                        aktueller Stromanbieter:
+                                    </strong>
+                                    nicht genannt
+                                    <br>
+
+                                    <strong>
+                                        Jahresverbrauch:
+                                    </strong>
+                                    nicht genannt
+                                    <br>
+
+                                    <strong>
+                                        Vertragsende/Laufzeit:
+                                    </strong>
+                                    nicht genannt
+                                    <br>
+
+                                    <strong>
+                                        E-Mail-Adresse:
+                                    </strong>
+                                    nicht genannt
+                                    <br>
+
+                                    <strong>
+                                        Unterlagen/Rechnung zugesendet:
+                                    </strong>
+                                    nein
+                                    <br>
+
+                                    <strong>
+                                        vereinbarter nächster Schritt:
+                                    </strong>
+                                    kein weiterer Schritt vereinbart
+
+                                </div>
+
+                                <a
+                                    href="#"
+                                    class="transcript-link"
+                                >
+                                    Transkript ▣
+                                </a>
+
+                            </td>
+
+                            <td>
+
+                                <div class="action-row">
+
+                                    <span class="analyse-icon">
+                                        ♨
+                                    </span>
+
+                                    <button class="play-button">
+                                        ▶
+                                    </button>
+
+                                    <div class="score">
+                                        7/10
+                                    </div>
+
+                                    <button class="more-button">
+                                        ···
+                                    </button>
+
+                                </div>
+
+                            </td>
+
+                        </tr>
+
+
+                        <tr>
+
+                            <td>
+                                16.09.2026 10:43
+                            </td>
+
+                            <td>
+
+                                <div class="contact-line">
+                                    <span class="contact-phone">
+                                        ☎
+                                    </span>
+                                    Praxis Hoffmann
+                                </div>
+
+                            </td>
+
+                            <td>
+                                +49 203 998877
+                            </td>
+
+                            <td class="no">
+                                ×
+                            </td>
+
+                            <td class="no">
+                                ×
+                            </td>
+
+                            <td>
+
+                                <div class="summary">
+
+                                    <strong>
+                                        Was:
+                                    </strong>
+                                    Vergleich von Stromtarifen
+                                    für ein Unternehmen.
+                                    <br>
+
+                                    <strong>
+                                        Zusammenfassung:
+                                    </strong>
+                                    Kicci fragt nach dem Zuständigen
+                                    für die Energieverträge.
+                                    Der Kunde stimmt grundsätzlich zu.
+                                    Aktueller Anbieter ist EWE.
+                                    Geschätzter Jahresverbrauch:
+                                    ca. 40.000 kWh.
+                                    Vertragsende noch unklar.
+                                    Kunde möchte Informationen
+                                    per E-Mail erhalten.
+                                    <br>
+
+                                    <strong>
+                                        Termin:
+                                    </strong>
+                                    kein Termin vereinbart.
+
+                                </div>
+
+                                <a
+                                    href="#"
+                                    class="transcript-link"
+                                >
+                                    Transkript ▣
+                                </a>
+
+                            </td>
+
+                            <td>
+
+                                <div class="action-row">
+
+                                    <span class="analyse-icon">
+                                        ♨
+                                    </span>
+
+                                    <button class="play-button">
+                                        ▶
+                                    </button>
+
+                                    <div class="score good">
+                                        8/10
+                                    </div>
+
+                                    <button class="more-button">
+                                        ···
+                                    </button>
+
+                                </div>
+
+                            </td>
+
+                        </tr>
+
+
+                        <tr>
+
+                            <td>
+                                16.09.2026 10:29
+                            </td>
+
+                            <td>
+
+                                <div class="contact-line">
+                                    <span class="contact-phone">
+                                        ☎
+                                    </span>
+                                    IT Service Nord
+                                </div>
+
+                            </td>
+
+                            <td>
+                                +49 211 443322
+                            </td>
+
+                            <td class="no">
+                                ×
+                            </td>
+
+                            <td class="yes">
+                                ✓
+                            </td>
+
+                            <td>
+
+                                <div class="summary">
+
+                                    <strong>
+                                        Was:
+                                    </strong>
+                                    Gewerblicher Stromtarifvergleich.
+                                    <br>
+
+                                    <strong>
+                                        Zusammenfassung:
+                                    </strong>
+                                    Ansprechpartner grundsätzlich interessiert.
+                                    Chef entscheidet final.
+                                    Aktueller Stromanbieter wurde genannt.
+                                    Verbrauchsdaten fehlen.
+                                    Rückruf soll nach interner Rücksprache erfolgen.
+                                    <br>
+
+                                    <strong>
+                                        Termin:
+                                    </strong>
+                                    Rückruf vereinbart.
+
+                                </div>
+
+                                <a
+                                    href="#"
+                                    class="transcript-link"
+                                >
+                                    Transkript ▣
+                                </a>
+
+                                <div class="knowledge-gap">
+
+                                    <div class="knowledge-head">
+
+                                        <strong>
+                                            💡 Wissenslücken erkannt (1)
+                                        </strong>
+
+                                        <button class="knowledge-add">
+                                            + Hinzufügen
+                                        </button>
+
+                                    </div>
+
+                                    <div class="knowledge-text">
+                                        Jährlicher Stromverbrauch
+                                        des Unternehmens fehlt.
+                                        Kicci soll künftig gezielt
+                                        nach Verbrauch oder Rechnung fragen.
+                                    </div>
+
+                                </div>
+
+                            </td>
+
+                            <td>
+
+                                <div class="action-row">
+
+                                    <span class="analyse-icon">
+                                        ♨
+                                    </span>
+
+                                    <button class="play-button">
+                                        ▶
+                                    </button>
+
+                                    <div class="score good">
+                                        8/10
+                                    </div>
+
+                                    <button class="more-button">
+                                        ···
+                                    </button>
+
+                                </div>
+
+                            </td>
+
+                        </tr>
+
+
+                        <tr>
+
+                            <td>
+                                16.09.2026 09:57
+                            </td>
+
+                            <td>
+
+                                <div class="contact-line">
+                                    <span class="contact-phone">
+                                        ☎
+                                    </span>
+                                    Steuerbüro König
+                                </div>
+
+                            </td>
+
+                            <td>
+                                +49 201 112233
+                            </td>
+
+                            <td class="no">
+                                ×
+                            </td>
+
+                            <td class="no">
+                                ×
+                            </td>
+
+                            <td>
+
+                                <div class="summary">
+                                    Keine ausreichenden Gesprächsdaten
+                                    für eine Zusammenfassung vorhanden.
+                                    Der Kunde hat nicht gesprochen
+                                    oder das Gespräch wurde vorzeitig beendet.
+                                </div>
+
+                                <a
+                                    href="#"
+                                    class="transcript-link"
+                                >
+                                    Transkript ▣
+                                </a>
+
+                            </td>
+
+                            <td>
+
+                                <div class="action-row">
+
+                                    <span class="analyse-icon">
+                                        ♨
+                                    </span>
+
+                                    <button class="play-button">
+                                        ▶
+                                    </button>
+
+                                    <button class="more-button">
+                                        ···
+                                    </button>
+
+                                </div>
+
+                            </td>
+
+                        </tr>
+
+
+                        <tr>
+
+                            <td>
+                                12.09.2026 16:33
+                            </td>
+
+                            <td>
+
+                                <div class="contact-line">
+                                    <span class="contact-phone">
+                                        ☎
+                                    </span>
+                                    Autohaus Berger
+                                </div>
+
+                            </td>
+
+                            <td>
+                                +49 203 445566
+                            </td>
+
+                            <td class="no">
+                                ×
+                            </td>
+
+                            <td class="yes">
+                                ✓
+                            </td>
+
+                            <td>
+
+                                <div class="summary">
+
+                                    <strong>
+                                        Was:
+                                    </strong>
+                                    Gewerbliche Strom-
+                                    und Gasversorgung
+                                    und unverbindlicher Tarifvergleich.
+                                    <br>
+
+                                    <strong>
+                                        Zusammenfassung:
+                                    </strong>
+                                    Kunde nennt EWE als aktuellen Anbieter.
+                                    Jahresverbrauch kann nicht direkt genannt werden.
+                                    Ansprechpartner verweist auf den Chef.
+                                    Rückruf wurde vereinbart.
+                                    <br>
+
+                                    <strong>
+                                        Termin:
+                                    </strong>
+                                    Rückruf am Montag.
+
+                                </div>
+
+                                <a
+                                    href="#"
+                                    class="transcript-link"
+                                >
+                                    Transkript ▣
+                                </a>
+
+                                <div class="knowledge-gap">
+
+                                    <div class="knowledge-head">
+
+                                        <strong>
+                                            💡 Wissenslücken erkannt (1)
+                                        </strong>
+
+                                        <button class="knowledge-add">
+                                            + Hinzufügen
+                                        </button>
+
+                                    </div>
+
+                                    <div class="knowledge-text">
+                                        Jährlicher Stromverbrauch
+                                        des Unternehmens:
+                                        Prozessbeschreibung fehlt,
+                                        wie fehlende Verbrauchsdaten
+                                        vor dem Rückruf effizient
+                                        angefragt werden können.
+                                    </div>
+
+                                </div>
+
+                            </td>
+
+                            <td>
+
+                                <div class="action-row">
+
+                                    <span class="analyse-icon">
+                                        ♨
+                                    </span>
+
+                                    <button class="play-button">
+                                        ▶
+                                    </button>
+
+                                    <div class="score good">
+                                        8/10
+                                    </div>
+
+                                    <button class="more-button">
+                                        ···
+                                    </button>
+
+                                </div>
+
+                            </td>
+
+                        </tr>
+
+
+                        <tr>
+
+                            <td>
+                                12.09.2026 15:55
+                            </td>
+
+                            <td>
+
+                                <div class="contact-line">
+                                    <span class="contact-phone">
+                                        ☎
+                                    </span>
+                                    Logistik West
+                                </div>
+
+                            </td>
+
+                            <td>
+                                +49 211 556688
+                            </td>
+
+                            <td class="no">
+                                ×
+                            </td>
+
+                            <td class="no">
+                                ×
+                            </td>
+
+                            <td>
+
+                                <div class="summary">
+
+                                    <strong>
+                                        Was:
+                                    </strong>
+                                    Telefonische Kontaktaufnahme
+                                    wegen unverbindlichem Tarifvergleich.
+                                    <br>
+
+                                    <strong>
+                                        Zusammenfassung:
+                                    </strong>
+                                    Kunde signalisiert Interesse,
+                                    kann aber nicht entscheiden,
+                                    da der Chef nicht anwesend ist.
+                                    Anbieter und Verbrauch wurden
+                                    nicht genannt.
+                                    Rückruf gewünscht.
+
+                                </div>
+
+                                <a
+                                    href="#"
+                                    class="transcript-link"
+                                >
+                                    Transkript ▣
+                                </a>
+
+                                <div class="knowledge-gap">
+
+                                    <div class="knowledge-head">
+
+                                        <strong>
+                                            💡 Wissenslücken erkannt (1)
+                                        </strong>
+
+                                        <button class="knowledge-add">
+                                            + Hinzufügen
+                                        </button>
+
+                                    </div>
+
+                                    <div class="knowledge-text">
+                                        Aktueller Strom-/Gasanbieter
+                                        wurde nicht erfasst.
+                                        Kicci soll diese Information
+                                        künftig systematischer abfragen.
+                                    </div>
+
+                                </div>
+
+                            </td>
+
+                            <td>
+
+                                <div class="action-row">
+
+                                    <span class="analyse-icon">
+                                        ♨
+                                    </span>
+
+                                    <button class="play-button">
+                                        ▶
+                                    </button>
+
+                                    <div class="score">
+                                        7/10
+                                    </div>
+
+                                    <button class="more-button">
+                                        ···
+                                    </button>
+
+                                </div>
+
+                            </td>
+
+                        </tr>
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </section>
+
+    </section></main>
+
+</div>
+
+<script>
+    const ARCHIVE_MODE = {{ 'true' if archive_mode else 'false' }};
+
+    function escapeHtml(value) {
+        return String(value ?? "")
+            .replaceAll("&", "&amp;")
+            .replaceAll("<", "&lt;")
+            .replaceAll(">", "&gt;")
+            .replaceAll('"', "&quot;")
+            .replaceAll("'", "&#039;");
+    }
+
+
+    function formatDate(value) {
+        if (!value) {
+            return "—";
+        }
+
+        const date = new Date(
+            value.replace(" ", "T") + "Z"
+        );
+
+        if (Number.isNaN(date.getTime())) {
+            return value;
+        }
+
+        return date.toLocaleString(
+            "de-DE",
+            {
+                day: "2-digit",
+                month: "2-digit",
+                year: "numeric",
+                hour: "2-digit",
+                minute: "2-digit"
+            }
+        );
+    }
+
+
+    function getKnowledgeGaps(
+        call
+    ) {
+        const evaluated =
+            Boolean(
+                call.summary
+                ||
+                call.transcript
+                ||
+                call.score != null
+            );
+
+        if (!evaluated) {
+            return [];
+        }
+
+        const gaps = [];
+
+        const hasAnyEnergyProvider = [
+            call.stromanbieter,
+            call.gasanbieter,
+            call.waermepumpe_anbieter,
+            call.energy_provider
+        ].some(value => String(value || "").trim());
+
+        const hasAnyConsumption = [
+            call.stromverbrauch,
+            call.gasverbrauch,
+            call.waermepumpe_verbrauch,
+            call.annual_consumption
+        ].some(value => String(value || "").trim());
+
+        const hasAnyContractEnd = [
+            call.vertragsende_strom,
+            call.vertragsende_gas,
+            call.vertragsende_waermepumpe,
+            call.contract_end
+        ].some(value => String(value || "").trim());
+
+        if (!hasAnyEnergyProvider) {
+            gaps.push(
+                "Anbieter"
+            );
+        }
+
+        if (!hasAnyConsumption) {
+            gaps.push(
+                "Jahresverbrauch"
+            );
+        }
+
+        if (!hasAnyContractEnd) {
+            gaps.push(
+                "Vertragsende"
+            );
+        }
+
+        if (!String(
+            call.captured_email
+            ||
+            call.lead_email
+            ||
+            ""
+        ).trim()) {
+            gaps.push(
+                "E-Mail"
+            );
+        }
+
+        if (
+            call.result === "Rückruf"
+            &&
+            !String(
+                call.callback_at
+                ||
+                ""
+            ).trim()
+        ) {
+            gaps.push(
+                "Rückrufzeit"
+            );
+        }
+
+        return gaps;
+    }
+
+
+    function buildSummary(call) {
+        const transcriptLink =
+            call.id
+                ? `
+                    <a
+                        href="/leon-ui/gespraech/${call.id}"
+                        class="transcript-link"
+                    >
+                        Details & Transkript →
+                    </a>
+                `
+                : "";
+
+        let content = "";
+
+        if (call.summary) {
+            content =
+                `
+                    <div class="summary">
+                        ${escapeHtml(call.summary)}
+                    </div>
+                `;
+        } else if (call.result) {
+            content =
+                `
+                    <div class="summary">
+                        ${escapeHtml(call.result)}
+                    </div>
+                `;
+        } else {
+            content =
+                `
+                    <div class="summary">
+                        Noch keine Gesprächsauswertung vorhanden.
+                    </div>
+                `;
+        }
+
+        const gaps =
+            getKnowledgeGaps(
+                call
+            );
+
+        const gapBlock =
+            gaps.length
+                ? `
+                    <div class="knowledge-gap">
+                        <div class="knowledge-head">
+                            <strong>
+                                💡 Wissenslücken (${gaps.length})
+                            </strong>
+                        </div>
+
+                        <div class="knowledge-text">
+                            ${gaps.map(escapeHtml).join(" · ")}
+                        </div>
+                    </div>
+                `
+                : "";
+
+        return (
+            content
+            +
+            (
+                call.transcript
+                ||
+                call.id
+                    ? transcriptLink
+                    : ""
+            )
+            +
+            gapBlock
+        );
+    }
+
+
+    let activeAudio = null;
+    let activePlayButton = null;
+
+
+    function playRecording(callId, button) {
+        if (
+            activeAudio
+            &&
+            activePlayButton === button
+        ) {
+            if (activeAudio.paused) {
+                activeAudio.play();
+
+                button.textContent = "❚❚";
+            }
+
+            else {
+                activeAudio.pause();
+
+                button.textContent = "▶";
+            }
+
+            return;
+        }
+
+        if (activeAudio) {
+            activeAudio.pause();
+
+            activeAudio.currentTime = 0;
+        }
+
+        if (activePlayButton) {
+            activePlayButton.textContent = "▶";
+        }
+
+        activeAudio = new Audio(
+            "/leon-api/calls/"
+            + callId
+            + "/recording"
+        );
+
+        activePlayButton = button;
+
+        button.textContent = "❚❚";
+
+        activeAudio.addEventListener(
+            "ended",
+            () => {
+                button.textContent = "▶";
+
+                activeAudio = null;
+                activePlayButton = null;
+            }
+        );
+
+        activeAudio.addEventListener(
+            "error",
+            () => {
+                button.textContent = "▶";
+
+                activeAudio = null;
+                activePlayButton = null;
+
+                alert(
+                    "Die Aufnahme konnte nicht abgespielt werden."
+                );
+            }
+        );
+
+        activeAudio.play().catch(
+            () => {
+                button.textContent = "▶";
+
+                activeAudio = null;
+                activePlayButton = null;
+            }
+        );
+    }
+
+
+
+    let overviewCalls = [];
+    let overviewMode = "all";
+    let overviewChannel = "all";
+
+
+    function parseFilterDate(
+        value,
+        endOfDay=false
+    ) {
+        const text =
+            String(
+                value
+                ||
+                ""
+            ).trim();
+
+        if (!text) {
+            return null;
+        }
+
+        const match =
+            text.match(
+                /^(\d{2})\.(\d{2})\.(\d{4})$/
+            );
+
+        if (!match) {
+            return null;
+        }
+
+        const date =
+            new Date(
+                Number(
+                    match[3]
+                ),
+                Number(
+                    match[2]
+                )
+                -
+                1,
+                Number(
+                    match[1]
+                ),
+                endOfDay
+                    ? 23
+                    : 0,
+                endOfDay
+                    ? 59
+                    : 0,
+                endOfDay
+                    ? 59
+                    : 0
+            );
+
+        return Number.isNaN(
+            date.getTime()
+        )
+            ? null
+            : date;
+    }
+
+
+    function getCallDate(
+        call
+    ) {
+        if (!call.created_at) {
+            return null;
+        }
+
+        const date =
+            new Date(
+                String(
+                    call.created_at
+                ).replace(
+                    " ",
+                    "T"
+                )
+                +
+                "Z"
+            );
+
+        return Number.isNaN(
+            date.getTime()
+        )
+            ? null
+            : date;
+    }
+
+
+    function applyOverviewFilters() {
+        const query =
+            String(
+                document.getElementById(
+                    "overviewSearch"
+                ).value
+                ||
+                ""
+            ).trim().toLowerCase();
+
+        const from =
+            parseFilterDate(
+                document.getElementById(
+                    "overviewFrom"
+                ).value,
+                false
+            );
+
+        const to =
+            parseFilterDate(
+                document.getElementById(
+                    "overviewTo"
+                ).value,
+                true
+            );
+
+        const lowScoreOnly =
+            document.getElementById(
+                "overviewLowScore"
+            ).checked;
+
+        const gapsOnly =
+            document.getElementById(
+                "overviewGapsOnly"
+            ).checked;
+
+        let filtered =
+            overviewCalls.filter(
+                call => {
+                    if (query) {
+                        const haystack =
+                            [
+                                call.firma,
+                                call.ansprechpartner,
+                                call.phone_number,
+                                call.summary,
+                                call.transcript,
+                                call.result,
+                                call.energy_provider,
+                                call.annual_consumption,
+                                call.contract_end,
+                                call.stromanbieter,
+                                call.stromverbrauch,
+                                call.vertragsende_strom,
+                                call.gasanbieter,
+                                call.gasverbrauch,
+                                call.vertragsende_gas,
+                                call.waermepumpe_anbieter,
+                                call.waermepumpe_verbrauch,
+                                call.vertragsende_waermepumpe,
+                                call.waermepumpe_inbetriebnahme,
+                                call.waermepumpe_14a,
+                                call.lead_source,
+                                call.captured_email,
+                                call.lead_email
+                            ]
+                            .filter(Boolean)
+                            .join(
+                                " "
+                            )
+                            .toLowerCase();
+
+                        if (!haystack.includes(
+                            query
+                        )) {
+                            return false;
+                        }
+                    }
+
+                    const callDate =
+                        getCallDate(
+                            call
+                        );
+
+                    if (
+                        from
+                        &&
+                        (
+                            !callDate
+                            ||
+                            callDate < from
+                        )
+                    ) {
+                        return false;
+                    }
+
+                    if (
+                        to
+                        &&
+                        (
+                            !callDate
+                            ||
+                            callDate > to
+                        )
+                    ) {
+                        return false;
+                    }
+
+                    if (
+                        lowScoreOnly
+                        &&
+                        !(
+                            Number.isFinite(
+                                Number(
+                                    call.score
+                                )
+                            )
+                            &&
+                            Number(
+                                call.score
+                            )
+                            <= 4
+                        )
+                    ) {
+                        return false;
+                    }
+
+                    if (
+                        gapsOnly
+                        &&
+                        !getKnowledgeGaps(
+                            call
+                        ).length
+                    ) {
+                        return false;
+                    }
+
+                    if (
+                        overviewChannel === "voice"
+                        &&
+                        !(
+                            call.transcript
+                            ||
+                            call.recording_url
+                            ||
+                            Number(
+                                call.duration_seconds
+                                ||
+                                0
+                            ) > 0
+                        )
+                    ) {
+                        return false;
+                    }
+
+                    return true;
+                }
+            );
+
+        if (
+            overviewMode === "caller"
+        ) {
+            const grouped =
+                new Map();
+
+            filtered.forEach(
+                call => {
+                    const key =
+                        String(
+                            call.lead_id
+                            ||
+                            call.phone_number
+                            ||
+                            call.id
+                        );
+
+                    if (!grouped.has(
+                        key
+                    )) {
+                        grouped.set(
+                            key,
+                            {
+                                call:
+                                    call,
+                                count:
+                                    0
+                            }
+                        );
+                    }
+
+                    grouped.get(
+                        key
+                    ).count += 1;
+                }
+            );
+
+            filtered =
+                Array.from(
+                    grouped.values()
+                )
+                .map(
+                    item => ({
+                        ...item.call,
+                        grouped_count:
+                            item.count
+                    })
+                );
+        }
+
+        renderOverviewRows(
+            filtered
+        );
+
+        document.getElementById(
+            "overviewFilterStatus"
+        ).textContent =
+            filtered.length
+            +
+            (
+                filtered.length === 1
+                    ? " Eintrag"
+                    : " Einträge"
+            )
+            +
+            " · "
+            +
+            (
+                overviewMode === "caller"
+                    ? "pro Anrufer gruppiert"
+                    : "Einzelgespräche"
+            );
+    }
+
+
+    function renderOverviewRows(
+        calls
+    ) {
+        const tbody =
+            document.getElementById(
+                "callsTableBody"
+            );
+
+        if (!calls.length) {
+            tbody.innerHTML =
+                `
+                    <tr>
+                        <td
+                            colspan="7"
+                            class="empty-overview"
+                        >
+                            Keine Gespräche entsprechen den aktuellen Filtern.
+                        </td>
+                    </tr>
+                `;
+
+            return;
+        }
+
+        tbody.innerHTML =
+            calls.map(
+                call => {
+                    const name =
+                        call.firma
+                        ||
+                        call.ansprechpartner
+                        ||
+                        "Unbekannter Kontakt";
+
+                    const callback =
+                        call.result === "Rückruf"
+                        ||
+                        Boolean(
+                            call.callback_at
+                        );
+
+                    const voicemail =
+                        call.status ===
+                        "Anrufbeantworter";
+
+                    const groupedBadge =
+                        Number(
+                            call.grouped_count
+                            ||
+                            0
+                        ) > 1
+                            ? `
+                                <span class="caller-count-badge">
+                                    ${call.grouped_count} Anrufe
+                                </span>
+                            `
+                            : "";
+
+                    return `
+                        <tr>
+                            <td>
+                                ${escapeHtml(
+                                    formatDate(
+                                        call.created_at
+                                    )
+                                )}
+                            </td>
+
+                            <td>
+                                <div class="contact-line">
+                                    <span class="contact-phone">☎</span>
+                                    ${escapeHtml(name)}
+                                    ${groupedBadge}
+                                </div>
+                            </td>
+
+                            <td>
+                                ${escapeHtml(
+                                    call.phone_number
+                                    ||
+                                    "—"
+                                )}
+                            </td>
+
+                            <td class="${voicemail ? "yes" : "no"}">
+                                ${voicemail ? "✓" : "×"}
+                            </td>
+
+                            <td class="${callback ? "yes" : "no"}">
+                                ${callback ? "✓" : "×"}
+                            </td>
+
+                            <td>
+                                ${buildSummary(call)}
+                            </td>
+
+                            <td>
+                                <div class="action-row">
+                                    <button
+                                        class="play-button"
+                                        type="button"
+                                        title="${call.recording_url ? "Aufnahme abspielen" : "Keine Aufnahme vorhanden"}"
+                                        ${call.recording_url ? "" : "disabled"}
+                                        onclick="playRecording(${call.id}, this)"
+                                    >
+                                        ▶
+                                    </button>
+
+                                    ${
+                                        call.score != null
+                                            ? `
+                                                <div class="score ${Number(call.score) >= 8 ? "good" : ""}">
+                                                    ${escapeHtml(call.score)}/10
+                                                </div>
+                                            `
+                                            : ""
+                                    }
+
+                                    ${
+                                        ARCHIVE_MODE
+                                            ? `
+                                                <button
+                                                    class="restore-action-button"
+                                                    type="button"
+                                                    title="Aus dem Archiv zurückholen"
+                                                    onclick="restoreCall(${call.id})"
+                                                >
+                                                    Zurückholen
+                                                </button>
+                                            `
+                                            : `
+                                                <button
+                                                    class="archive-action-button"
+                                                    type="button"
+                                                    title="Anruf archivieren"
+                                                    onclick="archiveCall(${call.id})"
+                                                >
+                                                    Archivieren
+                                                </button>
+                                            `
+                                    }
+
+                                    <button
+                                        class="more-button"
+                                        type="button"
+                                        title="Gespräch öffnen"
+                                        onclick="window.location.href='/leon-ui/gespraech/${call.id}'"
+                                    >
+                                        ···
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                }
+            ).join(
+                ""
+            );
+    }
+
+
+    async function archiveCall(callId) {
+        try {
+            const response = await fetch(
+                "/leon-api/calls/" + callId + "/archive",
+                {
+                    method: "POST"
+                }
+            );
+
+            const data = await response.json();
+
+            if (!response.ok || !data.success) {
+                throw new Error(
+                    data.error
+                    ||
+                    "Der Anruf konnte nicht archiviert werden."
+                );
+            }
+
+            await loadCalls();
+
+        } catch (error) {
+            alert(error.message);
+        }
+    }
+
+
+    async function restoreCall(callId) {
+        try {
+            const response = await fetch(
+                "/leon-api/calls/" + callId + "/restore",
+                {
+                    method: "POST"
+                }
+            );
+
+            const data = await response.json();
+
+            if (!response.ok || !data.success) {
+                throw new Error(
+                    data.error
+                    ||
+                    "Der Anruf konnte nicht zurückgeholt werden."
+                );
+            }
+
+            await loadCalls();
+
+        } catch (error) {
+            alert(error.message);
+        }
+    }
+
+
+    async function deleteAllCalls() {
+        const confirmed = confirm(
+            "Sind Sie sicher, dass Sie alle Anrufe aus der Gesprächsübersicht endgültig löschen möchten? Archivierte Anrufe, Leads, Kampagnen sowie 'Kein Interesse'- und 'Nicht mehr anrufen'-Sperren bleiben erhalten. Dieser Vorgang kann nicht rückgängig gemacht werden."
+        );
+
+        if (!confirmed) {
+            return;
+        }
+
+        const button =
+            document.getElementById(
+                "deleteAllCallsButton"
+            );
+
+        if (button) {
+            button.disabled = true;
+            button.textContent = "Wird gelöscht …";
+        }
+
+        try {
+            const response = await fetch(
+                "/leon-api/calls/all",
+                {
+                    method: "DELETE"
+                }
+            );
+
+            const data = await response.json();
+
+            if (!response.ok || !data.success) {
+                throw new Error(
+                    data.error
+                    ||
+                    "Die Anrufe konnten nicht gelöscht werden."
+                );
+            }
+
+            await loadCalls();
+
+            alert(
+                String(data.deleted_calls || 0)
+                +
+                " Anruf(e) wurden gelöscht. Archiv und Sperrvermerke bleiben erhalten."
+            );
+
+        } catch (error) {
+            alert(error.message);
+
+        } finally {
+            if (button) {
+                button.disabled = false;
+                button.textContent = "Alle Anrufe löschen";
+            }
+        }
+    }
+
+
+    function bindOverviewFilters() {
+        document.getElementById(
+            "overviewFilterButton"
+        ).addEventListener(
+            "click",
+            applyOverviewFilters
+        );
+
+        document.getElementById(
+            "overviewSearch"
+        ).addEventListener(
+            "input",
+            applyOverviewFilters
+        );
+
+        document.getElementById(
+            "overviewLowScore"
+        ).addEventListener(
+            "change",
+            applyOverviewFilters
+        );
+
+        document.getElementById(
+            "overviewGapsOnly"
+        ).addEventListener(
+            "change",
+            applyOverviewFilters
+        );
+
+        document.getElementById(
+            "overviewLegendButton"
+        ).addEventListener(
+            "click",
+            () => {
+                const legend =
+                    document.getElementById(
+                        "overviewLegend"
+                    );
+
+                legend.hidden =
+                    !legend.hidden;
+            }
+        );
+
+        document.querySelectorAll(
+            "[data-overview-mode]"
+        ).forEach(
+            button => {
+                button.addEventListener(
+                    "click",
+                    () => {
+                        overviewMode =
+                            button.dataset.overviewMode;
+
+                        document.querySelectorAll(
+                            "[data-overview-mode]"
+                        ).forEach(
+                            other =>
+                                other.classList.toggle(
+                                    "active",
+                                    other === button
+                                )
+                        );
+
+                        applyOverviewFilters();
+                    }
+                );
+            }
+        );
+
+        document.querySelectorAll(
+            "[data-overview-channel]"
+        ).forEach(
+            button => {
+                button.addEventListener(
+                    "click",
+                    () => {
+                        overviewChannel =
+                            button.dataset.overviewChannel;
+
+                        document.querySelectorAll(
+                            "[data-overview-channel]"
+                        ).forEach(
+                            other =>
+                                other.classList.toggle(
+                                    "active",
+                                    other === button
+                                )
+                        );
+
+                        applyOverviewFilters();
+                    }
+                );
+            }
+        );
+    }
+
+
+    async function loadCalls() {
+        const tbody =
+            document.getElementById(
+                "callsTableBody"
+            );
+
+        try {
+            const response =
+                await fetch(
+                    ARCHIVE_MODE
+                        ? "/leon-api/calls?archived=1"
+                        : "/leon-api/calls"
+                );
+
+            const data =
+                await response.json();
+
+            if (
+                !response.ok
+                ||
+                !data.success
+            ) {
+                throw new Error(
+                    "Anrufe konnten nicht geladen werden."
+                );
+            }
+
+            overviewCalls =
+                Array.isArray(
+                    data.calls
+                )
+                    ? data.calls
+                    : [];
+
+            applyOverviewFilters();
+
+        } catch (error) {
+            console.error(
+                error
+            );
+
+            tbody.innerHTML =
+                `
+                    <tr>
+                        <td
+                            colspan="7"
+                            class="empty-overview"
+                        >
+                            Anrufdaten konnten nicht geladen werden.
+                        </td>
+                    </tr>
+                `;
+
+            document.getElementById(
+                "overviewFilterStatus"
+            ).textContent =
+                "Fehler beim Laden der Anrufe";
+        }
+    }
+
+
+    bindOverviewFilters();
+
+    const deleteAllCallsButton =
+        document.getElementById(
+            "deleteAllCallsButton"
+        );
+
+    if (deleteAllCallsButton) {
+        deleteAllCallsButton.addEventListener(
+            "click",
+            deleteAllCalls
+        );
+    }
+
+
+    loadCalls();
+</script>
+
+</body>
+</html>

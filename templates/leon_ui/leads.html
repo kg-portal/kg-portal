@@ -1,0 +1,3791 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>
+        Leads | KG Gebäudereinigung Voice Portal
+    </title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, Helvetica, sans-serif;
+            background: #f6f8fc;
+            color: #172033;
+        }
+
+        .app {
+            display: grid;
+            grid-template-columns: 235px minmax(0, 1fr);
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            background: #eaf1f5;
+            border-right: 1px solid #d9e3e9;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            padding: 0;
+        }
+
+        .sidebar-top {
+            padding: 25px 16px 20px;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 0 5px;
+            margin-bottom: 24px;
+        }
+
+        .brand-mark {
+            width: 39px;
+            height: 39px;
+            border-radius: 11px;
+            background: linear-gradient(
+                135deg,
+                #87b8cf,
+                #2f7ea4
+            );
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 15px;
+            font-weight: 900;
+        }
+
+        .brand-text strong {
+            display: block;
+            font-size: 18px;
+            line-height: 1.05;
+        }
+
+        .brand-text span {
+            display: block;
+            margin-top: 3px;
+            color: #7690a0;
+            font-size: 10px;
+            letter-spacing: 1.1px;
+            font-weight: 800;
+        }
+
+        .trial-card {
+            background: white;
+            border: 1px solid #d8e2e7;
+            border-radius: 14px;
+            padding: 15px;
+            margin-bottom: 13px;
+            box-shadow: 0 2px 8px rgba(30, 58, 78, 0.05);
+        }
+
+        .trial-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 11px;
+            color: #4b5f6c;
+            font-weight: 800;
+            margin-bottom: 10px;
+        }
+
+        .trial-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .trial-circle {
+            width: 39px;
+            height: 39px;
+            border: 2px solid #75a8c2;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #2f7194;
+            font-size: 12px;
+            font-weight: 900;
+            background: #f8fcfe;
+        }
+
+        .trial-main strong {
+            display: block;
+            font-size: 12px;
+        }
+
+        .trial-main span {
+            display: block;
+            margin-top: 2px;
+            color: #8b9ba5;
+            font-size: 10px;
+        }
+
+        .trial-button {
+            width: 100%;
+            margin-top: 11px;
+            border: 0;
+            border-radius: 8px;
+            background: #3d85aa;
+            color: white;
+            padding: 10px 12px;
+            font-size: 11px;
+            font-weight: 800;
+        }
+
+        .new-call {
+            width: 100%;
+            border: 0;
+            border-radius: 18px;
+            background: #3d85aa;
+            color: white;
+            padding: 12px 15px;
+            font-size: 12px;
+            font-weight: 800;
+            margin-bottom: 18px;
+        }
+
+        .nav {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .nav-section-title {
+            color: #8ca0ac;
+            font-size: 9px;
+            letter-spacing: 1.4px;
+            text-transform: uppercase;
+            font-weight: 900;
+            padding: 15px 7px 6px;
+        }
+
+        .nav a {
+            text-decoration: none;
+            color: #55707f;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            min-height: 39px;
+            padding: 9px 9px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 700;
+            position: relative;
+        }
+
+        .nav a:hover {
+            background: rgba(255,255,255,.65);
+        }
+
+        .nav a.active {
+            background: rgba(255,255,255,.88);
+            color: #2f7194;
+        }
+
+        .nav a.active::before {
+            content: "";
+            position: absolute;
+            left: -16px;
+            top: 4px;
+            bottom: 4px;
+            width: 3px;
+            border-radius: 10px;
+            background: #3d85aa;
+        }
+
+        .nav-icon {
+            width: 18px;
+            text-align: center;
+            font-size: 14px;
+            opacity: .85;
+        }
+
+        .sidebar-bottom {
+            margin-top: auto;
+            padding: 16px;
+            border-top: 1px solid #d9e3e9;
+        }
+
+        .user-box {
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            margin-bottom: 13px;
+        }
+
+        .user-avatar {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            background: #3d85aa;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 900;
+        }
+
+        .user-meta strong {
+            display: block;
+            font-size: 11px;
+        }
+
+        .user-meta span {
+            display: block;
+            color: #8a9ba6;
+            font-size: 9px;
+            margin-top: 2px;
+        }
+
+        .mini-links {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .mini-links a {
+            color: #5f7481;
+            text-decoration: none;
+            font-size: 11px;
+            padding: 6px 2px;
+        }
+
+        .main {
+            padding: 32px;
+            min-width: 0;
+        }
+
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            gap: 20px;
+            align-items: flex-start;
+            margin-bottom: 24px;
+        }
+
+        .topbar h1 {
+            margin: 0;
+            font-size: 28px;
+        }
+
+        .topbar p {
+            margin: 7px 0 0;
+            color: #64748b;
+        }
+
+        .top-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+        }
+
+        button {
+            border: 0;
+            border-radius: 12px;
+            padding: 12px 18px;
+            font-weight: 800;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .btn-primary {
+            background: #1e40af;
+            color: white;
+        }
+
+        .btn-secondary {
+            background: #eef2f7;
+            color: #334155;
+        }
+
+        .btn-danger {
+            background: #fee2e2;
+            color: #b91c1c;
+        }
+
+        .btn-warning {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .btn-small {
+            padding: 8px 11px;
+            border-radius: 9px;
+            font-size: 12px;
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns:
+                repeat(6, minmax(0, 1fr));
+            gap: 14px;
+            margin-bottom: 20px;
+        }
+
+        .summary-card {
+            background: white;
+            border: 1px solid #e3e8f2;
+            border-radius: 18px;
+            padding: 18px;
+        }
+
+        .summary-card span {
+            display: block;
+            color: #64748b;
+            font-size: 12px;
+            font-weight: 700;
+            margin-bottom: 7px;
+        }
+
+        .summary-card strong {
+            font-size: 25px;
+        }
+
+        .panel {
+            background: white;
+            border: 1px solid #e3e8f2;
+            border-radius: 20px;
+            padding: 20px;
+        }
+
+        .toolbar {
+            display: grid;
+            grid-template-columns:
+                minmax(200px, 1.4fr)
+                minmax(0, .8fr)
+                minmax(0, .7fr)
+                minmax(0, .6fr)
+                minmax(0, .6fr)
+                auto;
+            gap: 10px;
+            align-items: center;
+            margin-bottom: 18px;
+        }
+
+        input,
+        select,
+        textarea {
+            width: 100%;
+            border: 1px solid #cfd8e6;
+            border-radius: 12px;
+            padding: 12px 14px;
+            font-size: 14px;
+            color: #172033;
+            background: white;
+            outline: none;
+            font-family: inherit;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 90px;
+        }
+
+        input:focus,
+        select:focus,
+        textarea:focus {
+            border-color: #2563eb;
+            box-shadow:
+                0 0 0 3px
+                rgba(37,99,235, 0.10);
+        }
+
+        .table-wrap {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 1500px;
+        }
+
+        th,
+        td {
+            text-align: left;
+            padding: 13px 12px;
+            border-bottom: 1px solid #edf1f6;
+            vertical-align: middle;
+            font-size: 13px;
+        }
+
+        th {
+            color: #64748b;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: .04em;
+            background: #f8fafc;
+        }
+
+        td strong {
+            color: #172033;
+        }
+
+        .muted {
+            color: #94a3b8;
+        }
+
+        .subline {
+            display: block;
+            margin-top: 4px;
+            color: #64748b;
+            font-size: 11px;
+            line-height: 1.4;
+        }
+
+        .flag {
+            display: inline-flex;
+            align-items: center;
+            padding: 5px 8px;
+            margin: 0 5px 5px 0;
+            border-radius: 999px;
+            font-size: 10px;
+            font-weight: 800;
+            background: #eef2f7;
+            color: #475569;
+            white-space: nowrap;
+        }
+
+        .flag.dnc {
+            background: #fee2e2;
+            color: #b91c1c;
+        }
+
+        .flag.email {
+            background: #e0f2fe;
+            color: #0369a1;
+        }
+
+        .flag.callback {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .status {
+            display: inline-flex;
+            align-items: center;
+            min-height: 28px;
+            padding: 5px 10px;
+            border-radius: 999px;
+            background: #eef2f7;
+            color: #475569;
+            font-size: 11px;
+            font-weight: 800;
+            white-space: nowrap;
+        }
+
+        .status.interessiert {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .status.rueckruf {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .status.rechnung {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .status.kein-interesse {
+            background: #fee2e2;
+            color: #b91c1c;
+        }
+
+        .actions {
+            display: flex;
+            gap: 7px;
+        }
+
+        .empty {
+            padding: 44px 20px;
+            text-align: center;
+            color: #94a3b8;
+        }
+
+        .footer-info {
+            display: flex;
+            justify-content: space-between;
+            gap: 20px;
+            color: #64748b;
+            font-size: 12px;
+            margin-top: 14px;
+        }
+
+        .modal-backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, .42);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            z-index: 1000;
+        }
+
+        .modal-backdrop.open {
+            display: flex;
+        }
+
+        .modal {
+            width: min(1080px, 100%);
+            max-height: calc(100vh - 40px);
+            overflow-y: auto;
+            background: white;
+            border-radius: 22px;
+            padding: 24px;
+            box-shadow:
+                0 24px 70px
+                rgba(15, 23, 42, .22);
+        }
+
+        .modal.small {
+            width: min(760px, 100%);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .modal-header h2 {
+            margin: 0;
+            font-size: 20px;
+        }
+
+        .close-button {
+            background: #eef2f7;
+            color: #475569;
+            width: 38px;
+            height: 38px;
+            padding: 0;
+            border-radius: 50%;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns:
+                repeat(3, minmax(0, 1fr));
+            gap: 16px;
+        }
+
+        .field {
+            min-width: 0;
+        }
+
+        .field.span-2 {
+            grid-column: span 2;
+        }
+
+        .field.full {
+            grid-column: 1 / -1;
+        }
+
+        .section-title {
+            grid-column: 1 / -1;
+            margin-top: 4px;
+            padding-top: 14px;
+            border-top: 1px solid #edf1f6;
+            color: #172033;
+            font-size: 13px;
+            font-weight: 900;
+        }
+
+        .checkbox-field {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            min-height: 45px;
+            padding: 10px 12px;
+            border: 1px solid #cfd8e6;
+            border-radius: 12px;
+            background: #f8fafc;
+        }
+
+        .checkbox-field input {
+            width: auto;
+            margin: 0;
+        }
+
+        .checkbox-field label {
+            margin: 0;
+            cursor: pointer;
+        }
+
+        .ai-updated-field {
+            color: #2563eb !important;
+            font-weight: 800;
+        }
+
+        .checkbox-field.ai-updated-field {
+            border-color: #2563eb;
+            background: rgba(37,99,235, 0.06);
+        }
+
+        .checkbox-field.ai-updated-field label {
+            color: #2563eb;
+        }
+
+        .checkbox-field.ai-updated-field input {
+            accent-color: #2563eb;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 7px;
+            font-size: 12px;
+            font-weight: 800;
+            color: #475569;
+        }
+
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 22px;
+        }
+
+        .notice {
+            display: none;
+            margin-bottom: 16px;
+            padding: 12px 14px;
+            border-radius: 12px;
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        .notice.show {
+            display: block;
+        }
+
+        .notice.success {
+            background: #eff6ff;
+            border: 1px solid #bfdbfe;
+            color: #2563eb;
+        }
+
+        .notice.error {
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            color: #b91c1c;
+        }
+
+        .csv-help {
+            margin-top: 10px;
+            color: #64748b;
+            font-size: 12px;
+            line-height: 1.5;
+        }
+
+        @media(max-width: 1100px) {
+            .summary-grid {
+                grid-template-columns:
+                    repeat(2, minmax(0, 1fr));
+            }
+
+            .toolbar {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .toolbar button {
+                grid-column: 1 / -1;
+            }
+        }
+
+        @media(max-width: 760px) {
+            .app {
+                grid-template-columns: 1fr;
+            }
+
+            .sidebar {
+                border-right: 0;
+                border-bottom: 1px solid #e3e8f2;
+            }
+
+            .topbar {
+                flex-direction: column;
+            }
+
+            .top-actions {
+                justify-content: flex-start;
+            }
+
+            .summary-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .toolbar {
+                grid-template-columns: 1fr;
+            }
+
+            .toolbar button {
+                grid-column: auto;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .field.full,
+            .field.span-2,
+            .section-title {
+                grid-column: auto;
+            }
+        }
+    </style>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='leon/kg_portal.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='leon/kg_shell_override.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='leon/kg_page_theme.css') }}">
+
+<style id="kg-crm-frame">
+  /* Im KG CRM eingebettet: ohne eigene Sidebar, volle Breite */
+  .business-portal-sidebar{display:none!important}
+  .business-portal-main{width:100%!important;margin-left:0!important;padding:18px!important}
+  body{background:#f8fafc!important}
+</style>
+</head>
+
+<body>
+
+<div class="kg-business-shell">
+
+    
+
+    <main class="business-portal-main"><section class="business-portal-card">
+
+        <section class="kgb-hero">
+<div class="topbar">
+
+            <div>
+                <h1>
+                    Leads
+                </h1>
+
+                <p>
+                    Firmenkontakte verwalten und für Kampagnen vorbereiten.
+                </p>
+            </div>
+
+            <div class="top-actions">
+
+                <button
+                    class="btn-secondary"
+                    id="leadSelectModeButton"
+                    type="button"
+                    onclick="toggleLeadSelectionMode()"
+                >
+                    Auswählen
+                </button>
+
+                <button
+                    class="btn-secondary"
+                    id="leadSelectAllButton"
+                    type="button"
+                    onclick="selectAllVisibleLeads()"
+                    style="display:none;"
+                >
+                    Alle auswählen
+                </button>
+
+                <button
+                    class="btn-danger"
+                    id="leadDeleteSelectedButton"
+                    type="button"
+                    onclick="deleteSelectedLeads()"
+                    style="display:none;"
+                >
+                    Auswahl löschen
+                </button>
+
+                <button
+                    class="btn-secondary"
+                    id="leadCancelSelectionButton"
+                    type="button"
+                    onclick="cancelLeadSelectionMode()"
+                    style="display:none;"
+                >
+                    Abbrechen
+                </button>
+
+                <button
+                    class="btn-secondary"
+                    type="button"
+                    onclick="openImportModal()"
+                >
+                    CSV importieren
+                </button>
+
+                <button
+                    class="btn-primary"
+                    type="button"
+                    onclick="openLeadModal()"
+                >
+                    + Lead hinzufügen
+                </button>
+
+            </div>
+
+        </div>
+
+        
+
+        <section class="summary-grid">
+
+            <div class="summary-card">
+                <span>
+                    Leads gesamt
+                </span>
+
+                <strong id="totalLeads">
+                    0
+                </strong>
+            </div>
+
+            <div class="summary-card">
+                <span>
+                    Aktuelle Ansicht
+                </span>
+
+                <strong id="shownLeads">
+                    0
+                </strong>
+            </div>
+
+            <div class="summary-card">
+                <span>
+                    Interessiert
+                </span>
+
+                <strong id="interestedLeads">
+                    0
+                </strong>
+            </div>
+
+            <div class="summary-card">
+                <span>
+                    Bereit / Anrufen
+                </span>
+
+                <strong id="readyLeads">
+                    0
+                </strong>
+            </div>
+
+            <div class="summary-card">
+                <span>
+                    Rückruf fällig
+                </span>
+
+                <strong id="callbackDueLeads">
+                    0
+                </strong>
+            </div>
+
+            <div class="summary-card">
+                <span>
+                    Nicht anrufen
+                </span>
+
+                <strong id="doNotCallLeads">
+                    0
+                </strong>
+            </div>
+
+        </section>
+</section>
+<div
+            id="notice"
+            class="notice"
+        ></div>
+
+
+        <section class="panel">
+
+            <div class="toolbar">
+
+                <input
+                    id="searchInput"
+                    type="search"
+                    placeholder="Firma, Kontakt, Telefon, E-Mail, Ort, Anbieter ..."
+                    oninput="scheduleLoad()"
+                >
+
+                <select
+                    id="statusFilter"
+                    onchange="loadLeads()"
+                >
+                </select>
+
+                <input
+                    id="sourceFilter"
+                    type="search"
+                    placeholder="Quelle / Source"
+                    oninput="scheduleLoad()"
+                >
+
+                <select
+                    id="dncFilter"
+                    onchange="loadLeads()"
+                >
+                    <option value="">
+                        Alle Sperrstatus
+                    </option>
+
+                    <option value="0">
+                        Darf angerufen werden
+                    </option>
+
+                    <option value="1">
+                        Nicht anrufen
+                    </option>
+                </select>
+
+                <select
+                    id="callbackFilter"
+                    onchange="loadLeads()"
+                >
+                    <option value="">
+                        Alle Rückrufe
+                    </option>
+
+                    <option value="1">
+                        Nur fällige Rückrufe
+                    </option>
+                </select>
+
+                <button
+                    class="btn-secondary"
+                    type="button"
+                    onclick="resetFilters()"
+                >
+                    Filter zurücksetzen
+                </button>
+
+            </div>
+
+            <div class="table-wrap">
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th
+                                id="leadSelectHeader"
+                                style="display:none;width:44px;"
+                            >
+                                ✓
+                            </th>
+                            <th>Firma</th>
+                            <th>Kontakt</th>
+                            <th>Telefon / E-Mail</th>
+                            <th>Ort / Branche</th>
+                            <th>Energie</th>
+                            <th>Status</th>
+                            <th>Rückruf</th>
+                            <th>Flags</th>
+                            <th>Aktionen</th>
+                        </tr>
+                    </thead>
+
+                    <tbody id="leadTableBody">
+                    </tbody>
+                </table>
+
+                <div
+                    id="emptyState"
+                    class="empty"
+                    style="display: none;"
+                >
+                    Noch keine Leads vorhanden.
+                </div>
+
+            </div>
+
+            <div class="footer-info">
+                <span id="resultInfo">
+                    0 Leads
+                </span>
+
+                <span>
+                    Kampagnen-Zuordnung folgt im nächsten Modul.
+                </span>
+            </div>
+
+        </section>
+
+    </section></main>
+
+</div>
+
+
+<div
+    id="leadModalBackdrop"
+    class="modal-backdrop"
+    onclick="backdropClose(event, 'leadModalBackdrop')"
+>
+
+    <div class="modal">
+
+        <div class="modal-header">
+
+            <h2 id="leadModalTitle">
+                Lead hinzufügen
+            </h2>
+
+            <button
+                class="close-button"
+                type="button"
+                onclick="closeLeadModal()"
+            >
+                ×
+            </button>
+
+        </div>
+
+        <div class="form-grid">
+
+            <div class="section-title">
+                Firma & Kontakt
+            </div>
+
+            <div class="field span-2">
+                <label for="firma">
+                    Firma *
+                </label>
+
+                <input
+                    id="firma"
+                    type="text"
+                    autocomplete="organization"
+                >
+            </div>
+
+            <div class="field">
+                <label for="ansprechpartner">
+                    Ansprechpartner
+                </label>
+
+                <input
+                    id="ansprechpartner"
+                    type="text"
+                    autocomplete="name"
+                >
+            </div>
+
+            <div class="field">
+                <label for="telefon">
+                    Telefon
+                </label>
+
+                <input
+                    id="telefon"
+                    type="text"
+                    autocomplete="tel"
+                >
+            </div>
+
+            <div class="field">
+                <label for="email">
+                    E-Mail
+                </label>
+
+                <input
+                    id="email"
+                    type="email"
+                    autocomplete="email"
+                >
+            </div>
+
+            <div class="field">
+                <label for="website">
+                    Website
+                </label>
+
+                <input
+                    id="website"
+                    type="text"
+                >
+            </div>
+
+            <div class="field span-2">
+                <label for="strasse">
+                    Straße
+                </label>
+
+                <input
+                    id="strasse"
+                    type="text"
+                >
+            </div>
+
+            <div class="field">
+                <label for="plz">
+                    PLZ
+                </label>
+
+                <input
+                    id="plz"
+                    type="text"
+                >
+            </div>
+
+            <div class="field">
+                <label for="stadt">
+                    Stadt
+                </label>
+
+                <input
+                    id="stadt"
+                    type="text"
+                >
+            </div>
+
+            <div class="field">
+                <label for="branche">
+                    Branche
+                </label>
+
+                <input
+                    id="branche"
+                    type="text"
+                >
+            </div>
+
+            <div class="field">
+                <label for="source">
+                    Quelle
+                </label>
+
+                <input
+                    id="source"
+                    type="text"
+                    placeholder="Google, CSV Import, Empfehlung ..."
+                >
+            </div>
+
+
+            <div class="section-title">
+                Energie & Vertrag
+            </div>
+
+            <div class="field">
+                <label for="stromanbieter">
+                    Stromanbieter
+                </label>
+
+                <input
+                    id="stromanbieter"
+                    type="text"
+                >
+            </div>
+
+            <div class="field">
+                <label for="stromverbrauch">
+                    Stromverbrauch / Jahr (kWh)
+                </label>
+
+                <input
+                    id="stromverbrauch"
+                    type="text"
+                >
+            </div>
+
+            <div class="field">
+                <label for="vertragsende_strom">
+                    Vertragsende Strom
+                </label>
+
+                <input
+                    id="vertragsende_strom"
+                    type="text"
+                >
+            </div>
+
+            <div class="field">
+                <label for="gasanbieter">
+                    Gasanbieter
+                </label>
+
+                <input
+                    id="gasanbieter"
+                    type="text"
+                >
+            </div>
+
+            <div class="field">
+                <label for="gasverbrauch">
+                    Gasverbrauch / Jahr (kWh)
+                </label>
+
+                <input
+                    id="gasverbrauch"
+                    type="text"
+                >
+            </div>
+
+            <div class="field">
+                <label for="vertragsende_gas">
+                    Vertragsende Gas
+                </label>
+
+                <input
+                    id="vertragsende_gas"
+                    type="text"
+                >
+            </div>
+
+            <div class="section-title">
+                Wärmepumpe
+            </div>
+
+            <div class="field">
+                <label>
+                    Wärmepumpe vorhanden
+                </label>
+                <div class="checkbox-field">
+                    <input id="waermepumpe" type="checkbox">
+                    <label for="waermepumpe">Ja</label>
+                </div>
+            </div>
+
+            <div class="field">
+                <label>
+                    Eigener Wärmepumpenzähler
+                </label>
+                <div class="checkbox-field">
+                    <input id="waermepumpe_eigener_zaehler" type="checkbox">
+                    <label for="waermepumpe_eigener_zaehler">Ja</label>
+                </div>
+            </div>
+
+            <div class="field">
+                <label for="waermepumpe_anbieter">
+                    Wärmepumpen-Anbieter
+                </label>
+                <input id="waermepumpe_anbieter" type="text">
+            </div>
+
+            <div class="field">
+                <label for="waermepumpe_verbrauch">
+                    Wärmepumpenverbrauch / Jahr (kWh)
+                </label>
+                <input id="waermepumpe_verbrauch" type="text">
+            </div>
+
+            <div class="field">
+                <label for="vertragsende_waermepumpe">
+                    Vertragsende Wärmepumpe
+                </label>
+                <input id="vertragsende_waermepumpe" type="text">
+            </div>
+
+            <div class="field">
+                <label for="waermepumpe_inbetriebnahme">
+                    Inbetriebnahme Wärmepumpe
+                </label>
+                <input id="waermepumpe_inbetriebnahme" type="text">
+            </div>
+
+            <div class="field span-2">
+                <label for="waermepumpe_14a">
+                    §14a / Netzentgelt-Hinweis
+                </label>
+                <input id="waermepumpe_14a" type="text">
+            </div>
+
+
+            <div class="section-title">
+                Telefonie & Nachverfolgung
+            </div>
+
+            <div class="field">
+                <label for="status">
+                    Status
+                </label>
+
+                <select id="status">
+                </select>
+            </div>
+
+            <div class="field">
+                <label for="entscheider_name">
+                    Entscheider
+                </label>
+
+                <input
+                    id="entscheider_name"
+                    type="text"
+                >
+            </div>
+
+            <div class="field">
+                <label for="best_call_time">
+                    Beste Anrufzeit
+                </label>
+
+                <input
+                    id="best_call_time"
+                    type="text"
+                >
+            </div>
+
+            <div class="field">
+                <label for="callback_at">
+                    Rückruf am
+                </label>
+
+                <input
+                    id="callback_at"
+                    type="datetime-local"
+                >
+            </div>
+
+            <div class="field">
+                <label for="attempt_count">
+                    Anrufversuche
+                </label>
+
+                <input
+                    id="attempt_count"
+                    type="number"
+                    min="0"
+                    step="1"
+                >
+            </div>
+
+            <div class="field">
+                <label for="last_call_result">
+                    Letztes Anrufergebnis
+                </label>
+
+                <input
+                    id="last_call_result"
+                    type="text"
+                >
+            </div>
+
+            <div class="field full">
+                <label for="callback_note">
+                    Rückrufnotiz
+                </label>
+
+                <textarea
+                    id="callback_note"
+                ></textarea>
+            </div>
+
+
+            <div class="section-title">
+                Kontaktregeln & Kommunikation
+            </div>
+
+            <div class="field">
+                <label for="contact_basis">
+                    Kontaktgrundlage
+                </label>
+
+                <input
+                    id="contact_basis"
+                    type="text"
+                >
+            </div>
+
+            <div class="field">
+                <label for="preferred_language">
+                    Sprache
+                </label>
+
+                <select id="preferred_language">
+                    <option value="de">
+                        Deutsch
+                    </option>
+
+                    <option value="tr">
+                        Türkisch
+                    </option>
+
+                    <option value="en">
+                        Englisch
+                    </option>
+                </select>
+            </div>
+
+            <div class="field">
+                <label>
+                    Sperrstatus
+                </label>
+
+                <div class="checkbox-field">
+
+                    <input
+                        id="do_not_call"
+                        type="checkbox"
+                    >
+
+                    <label for="do_not_call">
+                        Nicht mehr anrufen
+                    </label>
+
+                </div>
+            </div>
+
+            <div class="field span-2">
+                <label for="do_not_call_reason">
+                    Sperrgrund
+                </label>
+
+                <input
+                    id="do_not_call_reason"
+                    type="text"
+                >
+            </div>
+
+            <div class="field">
+                <label>
+                    E-Mail
+                </label>
+
+                <div class="checkbox-field">
+
+                    <input
+                        id="email_requested"
+                        type="checkbox"
+                    >
+
+                    <label for="email_requested">
+                        Kunde möchte eine E-Mail
+                    </label>
+
+                </div>
+            </div>
+
+            <div class="field full">
+                <label for="notes">
+                    Notizen
+                </label>
+
+                <textarea
+                    id="notes"
+                ></textarea>
+            </div>
+
+        </div>
+
+        <div class="modal-actions">
+
+            <button
+                class="btn-secondary"
+                type="button"
+                onclick="closeLeadModal()"
+            >
+                Abbrechen
+            </button>
+
+            <button
+                class="btn-primary"
+                type="button"
+                onclick="saveLead()"
+            >
+                Speichern
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<div
+    id="importModalBackdrop"
+    class="modal-backdrop"
+    onclick="backdropClose(event, 'importModalBackdrop')"
+>
+
+    <div class="modal small">
+
+        <div class="modal-header">
+
+            <h2>
+                CSV importieren
+            </h2>
+
+            <button
+                class="close-button"
+                type="button"
+                onclick="closeImportModal()"
+            >
+                ×
+            </button>
+
+        </div>
+
+        <div class="field">
+
+            <label for="csvFile">
+                CSV-Datei
+            </label>
+
+            <input
+                id="csvFile"
+                type="file"
+                accept=".csv,text/csv"
+            >
+
+            <div class="csv-help">
+                Benötigt wird mindestens eine Firmenspalte.
+                Unterstützt werden unter anderem Firma,
+                Ansprechpartner, Telefon, E-Mail, Straße,
+                PLZ, Stadt, Branche, Website, Stromanbieter,
+                Gasanbieter, Stromverbrauch, Gasverbrauch,
+                Vertragsende, Status, Quelle, Entscheider,
+                Rückruf, Notizen und Sperrstatus.
+                Semikolon-, Komma-, Tab- und Pipe-Dateien
+                werden erkannt.
+            </div>
+
+        </div>
+
+        <div class="modal-actions">
+
+            <button
+                class="btn-secondary"
+                type="button"
+                onclick="closeImportModal()"
+            >
+                Abbrechen
+            </button>
+
+            <button
+                class="btn-primary"
+                type="button"
+                onclick="importCsv()"
+            >
+                Import starten
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<script>
+    const LEAD_STATUSES = [
+        "Neu",
+        "Bereit",
+        "Anrufen",
+        "In Kampagne",
+        "In Bearbeitung",
+        "Kontaktiert",
+        "Angerufen",
+        "Rückruf",
+        "Wiedervorlage",
+        "Entscheider nicht erreichbar",
+        "Nicht erreichbar",
+        "Anruf fehlgeschlagen",
+        "Anrufbeantworter erreicht",
+        "Anrufbeantworter (Max. erreicht)",
+        "Interessiert",
+        "Qualifiziert",
+        "Nicht Qualifiziert",
+        "Rechnung",
+        "Kunde",
+        "Abschluss",
+        "Kein Interesse",
+        "Gesperrt"
+    ];
+
+
+    const LEAD_FORM_FIELDS = [
+        "firma",
+        "ansprechpartner",
+        "telefon",
+        "email",
+        "strasse",
+        "plz",
+        "stadt",
+        "branche",
+        "website",
+        "stromanbieter",
+        "gasanbieter",
+        "stromverbrauch",
+        "gasverbrauch",
+        "vertragsende_strom",
+        "vertragsende_gas",
+        "waermepumpe",
+        "waermepumpe_eigener_zaehler",
+        "waermepumpe_anbieter",
+        "waermepumpe_verbrauch",
+        "vertragsende_waermepumpe",
+        "waermepumpe_inbetriebnahme",
+        "waermepumpe_14a",
+        "status",
+        "source",
+        "notes",
+        "entscheider_name",
+        "best_call_time",
+        "callback_at",
+        "callback_note",
+        "attempt_count",
+        "last_call_result",
+        "do_not_call",
+        "do_not_call_reason",
+        "email_requested",
+        "contact_basis",
+        "preferred_language"
+    ];
+
+
+    let leads = [];
+    let editingLeadId = null;
+    let loadTimer = null;
+    let leadSelectionMode = false;
+    const selectedLeadIds = new Set();
+
+
+    function initializeStatusOptions() {
+        const filter =
+            document.getElementById(
+                "statusFilter"
+            );
+
+        const formStatus =
+            document.getElementById(
+                "status"
+            );
+
+
+        filter.innerHTML =
+            '<option value="">Alle Status</option>';
+
+        formStatus.innerHTML =
+            "";
+
+
+        LEAD_STATUSES.forEach(
+            status => {
+                const filterOption =
+                    document.createElement(
+                        "option"
+                    );
+
+                filterOption.value =
+                    status;
+
+                filterOption.textContent =
+                    status;
+
+                filter.appendChild(
+                    filterOption
+                );
+
+
+                const formOption =
+                    document.createElement(
+                        "option"
+                    );
+
+                formOption.value =
+                    status;
+
+                formOption.textContent =
+                    status;
+
+                formStatus.appendChild(
+                    formOption
+                );
+            }
+        );
+
+
+        formStatus.value =
+            "Neu";
+    }
+
+
+    function scheduleLoad() {
+        clearTimeout(loadTimer);
+
+        loadTimer = setTimeout(
+            loadLeads,
+            250
+        );
+    }
+
+
+    async function loadLeads() {
+        const search =
+            document.getElementById(
+                "searchInput"
+            ).value.trim();
+
+        const status =
+            document.getElementById(
+                "statusFilter"
+            ).value;
+
+        const source =
+            document.getElementById(
+                "sourceFilter"
+            ).value.trim();
+
+        const doNotCall =
+            document.getElementById(
+                "dncFilter"
+            ).value;
+
+        const callbackDue =
+            document.getElementById(
+                "callbackFilter"
+            ).value;
+
+
+        const params =
+            new URLSearchParams();
+
+
+        if (search) {
+            params.set(
+                "search",
+                search
+            );
+        }
+
+
+        if (status) {
+            params.set(
+                "status",
+                status
+            );
+        }
+
+
+        if (source) {
+            params.set(
+                "source",
+                source
+            );
+        }
+
+
+        if (
+            doNotCall !==
+            ""
+        ) {
+            params.set(
+                "do_not_call",
+                doNotCall
+            );
+        }
+
+
+        if (callbackDue) {
+            params.set(
+                "callback_due",
+                callbackDue
+            );
+        }
+
+
+        try {
+            const response =
+                await fetch(
+                    "/leon-api/leads?" +
+                    params.toString()
+                );
+
+            const data =
+                await response.json();
+
+
+            if (
+                !response.ok ||
+                !data.success
+            ) {
+                throw new Error(
+                    data.error ||
+                    "Leads konnten nicht geladen werden."
+                );
+            }
+
+
+            leads =
+                data.leads || [];
+
+
+            renderLeads();
+
+
+            document.getElementById(
+                "totalLeads"
+            ).textContent =
+                data.total || 0;
+
+
+            document.getElementById(
+                "shownLeads"
+            ).textContent =
+                data.shown || 0;
+
+
+            document.getElementById(
+                "callbackDueLeads"
+            ).textContent =
+                data.callback_due_count || 0;
+
+
+            document.getElementById(
+                "doNotCallLeads"
+            ).textContent =
+                data.do_not_call_count || 0;
+
+
+            document.getElementById(
+                "resultInfo"
+            ).textContent =
+                (data.shown || 0) +
+                " von " +
+                (data.total || 0) +
+                " Leads";
+
+
+            updateCounters();
+
+        } catch (error) {
+            showNotice(
+                error.message,
+                "error"
+            );
+        }
+    }
+
+
+    function renderLeads() {
+        const tbody =
+            document.getElementById(
+                "leadTableBody"
+            );
+
+        const emptyState =
+            document.getElementById(
+                "emptyState"
+            );
+
+
+        tbody.innerHTML =
+            "";
+
+
+        if (!leads.length) {
+            emptyState.style.display =
+                "block";
+
+            return;
+        }
+
+
+        emptyState.style.display =
+            "none";
+
+
+        leads.forEach(
+            lead => {
+                const tr =
+                    document.createElement(
+                        "tr"
+                    );
+
+
+                const energyLines =
+                    [];
+
+
+                if (
+                    lead.stromanbieter ||
+                    lead.stromverbrauch
+                ) {
+                    energyLines.push(
+                        "Strom: " +
+                        [
+                            lead.stromanbieter,
+
+                            lead.stromverbrauch
+                                ? formatGermanNumber(
+                                    lead.stromverbrauch
+                                ) +
+                                " kWh"
+                                : ""
+                        ]
+                        .filter(
+                            Boolean
+                        )
+                        .join(
+                            " · "
+                        )
+                    );
+                }
+
+
+                if (
+                    lead.gasanbieter ||
+                    lead.gasverbrauch
+                ) {
+                    energyLines.push(
+                        "Gas: " +
+                        [
+                            lead.gasanbieter,
+
+                            lead.gasverbrauch
+                                ? formatGermanNumber(
+                                    lead.gasverbrauch
+                                ) +
+                                " kWh"
+                                : ""
+                        ]
+                        .filter(
+                            Boolean
+                        )
+                        .join(
+                            " · "
+                        )
+                    );
+                }
+
+                if (
+                    Number(
+                        lead.waermepumpe
+                    ) === 1
+                    ||
+                    lead.waermepumpe_anbieter
+                    ||
+                    lead.waermepumpe_verbrauch
+                ) {
+                    energyLines.push(
+                        "Wärmepumpe: " +
+                        [
+                            lead.waermepumpe_anbieter,
+                            lead.waermepumpe_verbrauch
+                                ? formatGermanNumber(
+                                    lead.waermepumpe_verbrauch
+                                ) + " kWh"
+                                : "",
+                            Number(
+                                lead.waermepumpe_eigener_zaehler
+                            ) === 1
+                                ? "eigener Zähler"
+                                : ""
+                        ]
+                        .filter(
+                            Boolean
+                        )
+                        .join(
+                            " · "
+                        )
+                    );
+                }
+
+
+                const flags =
+                    [];
+
+
+                if (
+                    Number(
+                        lead.do_not_call
+                    ) === 1
+                ) {
+                    flags.push(
+                        '<span class="flag dnc">Nicht anrufen</span>'
+                    );
+                }
+
+
+                if (
+                    Number(
+                        lead.email_requested
+                    ) === 1
+                ) {
+                    flags.push(
+                        '<span class="flag email">E-Mail gewünscht</span>'
+                    );
+                }
+
+
+                if (
+                    lead.callback_at &&
+                    isCallbackDue(
+                        lead.callback_at
+                    )
+                ) {
+                    flags.push(
+                        '<span class="flag callback">Rückruf fällig</span>'
+                    );
+                }
+
+
+                if (
+                    Number(
+                        lead.attempt_count || 0
+                    ) > 0
+                ) {
+                    flags.push(
+                        '<span class="flag">' +
+                        escapeHtml(
+                            lead.attempt_count
+                        ) +
+                        ' Versuch(e)</span>'
+                    );
+                }
+
+
+                tr.innerHTML = `
+                    ${leadSelectionMode
+                        ? `
+                            <td>
+                                <input
+                                    type="checkbox"
+                                    aria-label="Lead auswählen"
+                                    ${selectedLeadIds.has(Number(lead.id)) ? "checked" : ""}
+                                    onchange="toggleLeadSelection(${lead.id}, this.checked)"
+                                >
+                            </td>
+                        `
+                        : ""
+                    }
+                    <td>
+                        <strong>
+                            ${escapeHtml(
+                                lead.firma
+                            )}
+                        </strong>
+
+                        ${lead.website
+                            ? `
+                                <span class="subline">
+                                    ${escapeHtml(
+                                        lead.website
+                                    )}
+                                </span>
+                            `
+                            : ""
+                        }
+                    </td>
+
+                    <td>
+                        ${displayValue(
+                            lead.ansprechpartner
+                        )}
+
+                        ${lead.entscheider_name
+                            ? `
+                                <span class="subline">
+                                    Entscheider:
+                                    ${escapeHtml(
+                                        lead.entscheider_name
+                                    )}
+                                </span>
+                            `
+                            : ""
+                        }
+                    </td>
+
+                    <td>
+                        ${displayValue(
+                            lead.telefon
+                        )}
+
+                        ${lead.email
+                            ? `
+                                <span class="subline">
+                                    ${escapeHtml(
+                                        lead.email
+                                    )}
+                                </span>
+                            `
+                            : ""
+                        }
+                    </td>
+
+                    <td>
+                        ${displayValue(
+                            [
+                                lead.plz,
+                                lead.stadt
+                            ]
+                            .filter(
+                                Boolean
+                            )
+                            .join(
+                                " "
+                            )
+                        )}
+
+                        ${lead.branche
+                            ? `
+                                <span class="subline">
+                                    ${escapeHtml(
+                                        lead.branche
+                                    )}
+                                </span>
+                            `
+                            : ""
+                        }
+
+                        ${lead.source
+                            ? `
+                                <span class="subline">
+                                    Quelle:
+                                    ${escapeHtml(
+                                        lead.source
+                                    )}
+                                </span>
+                            `
+                            : ""
+                        }
+                    </td>
+
+                    <td>
+                        ${energyLines.length
+                            ? energyLines
+                                .map(
+                                    line => `
+                                        <span class="subline">
+                                            ${escapeHtml(
+                                                line
+                                            )}
+                                        </span>
+                                    `
+                                )
+                                .join(
+                                    ""
+                                )
+                            : `
+                                <span class="muted">
+                                    —
+                                </span>
+                            `
+                        }
+                    </td>
+
+                    <td>
+                        <span class="
+                            status
+                            ${statusClass(
+                                lead.status
+                            )}
+                        ">
+                            ${escapeHtml(
+                                lead.status
+                            )}
+                        </span>
+
+                        ${lead.last_call_result
+                            ? `
+                                <span class="subline">
+                                    ${escapeHtml(
+                                        lead.last_call_result
+                                    )}
+                                </span>
+                            `
+                            : ""
+                        }
+                    </td>
+
+                    <td>
+                        ${lead.callback_at
+                            ? escapeHtml(
+                                formatDateTime(
+                                    lead.callback_at
+                                )
+                            )
+                            : `
+                                <span class="muted">
+                                    —
+                                </span>
+                            `
+                        }
+
+                        ${lead.callback_note
+                            ? `
+                                <span class="subline">
+                                    ${escapeHtml(
+                                        lead.callback_note
+                                    )}
+                                </span>
+                            `
+                            : ""
+                        }
+                    </td>
+
+                    <td>
+                        ${flags.length
+                            ? flags.join("")
+                            : `
+                                <span class="muted">
+                                    —
+                                </span>
+                            `
+                        }
+                    </td>
+
+                    <td>
+                        <div class="actions">
+
+                            <button
+                                class="btn-primary btn-small"
+                                type="button"
+
+                                ${(
+                                    !lead.telefon ||
+                                    Number(
+                                        lead.do_not_call
+                                    ) === 1
+                                )
+                                    ? "disabled"
+                                    : ""
+                                }
+
+                                onclick="openLeadInLiveCall(
+                                    ${lead.id}
+                                )"
+                            >
+                                Anrufen
+                            </button>
+
+                            <button
+                                class="btn-warning btn-small"
+                                type="button"
+                                onclick="quickCallback(
+                                    ${lead.id}
+                                )"
+                            >
+                                Rückruf
+                            </button>
+
+                            <button
+                                class="btn-secondary btn-small"
+                                type="button"
+                                onclick="editLead(
+                                    ${lead.id}
+                                )"
+                            >
+                                Bearbeiten
+                            </button>
+
+                            <button
+                                class="btn-success btn-small"
+                                type="button"
+                                title="Lead als Bestandskunde übernehmen"
+                                onclick="window.top.location.href='/kunden'"
+                            >
+                                Als Kunde
+                            </button>
+
+                            <button
+                                class="btn-danger btn-small"
+                                type="button"
+                                onclick="deleteLead(
+                                    ${lead.id}
+                                )"
+                            >
+                                Löschen
+                            </button>
+
+                        </div>
+                    </td>
+                `;
+
+
+                tbody.appendChild(
+                    tr
+                );
+            }
+        );
+    }
+
+
+    function updateCounters() {
+        const interested =
+            leads.filter(
+                lead =>
+                    [
+                        "Interessiert",
+                        "Qualifiziert",
+                        "Kunde",
+                        "Abschluss"
+                    ].includes(
+                        lead.status
+                    )
+            ).length;
+
+
+        const ready =
+            leads.filter(
+                lead =>
+                    [
+                        "Bereit",
+                        "Anrufen"
+                    ].includes(
+                        lead.status
+                    )
+                    &&
+                    Number(
+                        lead.do_not_call
+                    ) !== 1
+                    &&
+                    Boolean(
+                        lead.telefon
+                    )
+            ).length;
+
+
+        document.getElementById(
+            "interestedLeads"
+        ).textContent =
+            interested;
+
+
+        document.getElementById(
+            "readyLeads"
+        ).textContent =
+            ready;
+    }
+
+
+    function openLeadModal() {
+        editingLeadId = null;
+
+        document.getElementById(
+            "leadModalTitle"
+        ).textContent =
+            "Lead hinzufügen";
+
+        clearLeadForm();
+
+        document.getElementById(
+            "leadModalBackdrop"
+        ).classList.add(
+            "open"
+        );
+
+        setTimeout(
+            () => {
+                document.getElementById(
+                    "firma"
+                ).focus();
+            },
+            50
+        );
+    }
+
+    function openLeadInLiveCall(leadId) {
+        const lead =
+            leads.find(
+                item =>
+                    item.id === leadId
+            );
+
+        if (!lead) {
+            showNotice(
+                "Lead wurde nicht gefunden.",
+                "error"
+            );
+
+            return;
+        }
+
+        if (
+            Number(
+                lead.do_not_call
+            ) === 1
+        ) {
+            showNotice(
+                "Dieser Lead ist als „Nicht anrufen“ gesperrt.",
+                "error"
+            );
+
+            return;
+        }
+
+        if (!lead.telefon) {
+            showNotice(
+                "Für diesen Lead ist keine Telefonnummer hinterlegt.",
+                "error"
+            );
+
+            return;
+        }
+
+        sessionStorage.setItem(
+            "kg_live_lead",
+            JSON.stringify(
+                {
+                    lead:
+                        lead,
+
+                    campaign_id: null,
+                    campaign_name: null,
+                    auto_start_call: false
+                }
+            )
+        );
+
+        window.top.location.href = "/leon/live";
+    }
+
+
+    function editLead(
+        leadId
+    ) {
+        const lead =
+            leads.find(
+                item =>
+                    item.id ===
+                    leadId
+            );
+
+
+        if (!lead) {
+            return;
+        }
+
+
+        editingLeadId =
+            leadId;
+
+
+        document.getElementById(
+            "leadModalTitle"
+        ).textContent =
+            "Lead bearbeiten";
+
+
+        fillLeadForm(
+            lead
+        );
+
+
+        document.getElementById(
+            "leadModalBackdrop"
+        ).classList.add(
+            "open"
+        );
+    }
+
+
+    function quickCallback(
+        leadId
+    ) {
+        const lead =
+            leads.find(
+                item =>
+                    item.id ===
+                    leadId
+            );
+
+
+        if (!lead) {
+            return;
+        }
+
+
+        editingLeadId =
+            leadId;
+
+
+        fillLeadForm(
+            lead
+        );
+
+
+        document.getElementById(
+            "leadModalTitle"
+        ).textContent =
+            "Rückruf planen";
+
+
+        document.getElementById(
+            "status"
+        ).value =
+            "Rückruf";
+
+
+        document.getElementById(
+            "leadModalBackdrop"
+        ).classList.add(
+            "open"
+        );
+
+
+        setTimeout(
+            () => {
+                document.getElementById(
+                    "callback_at"
+                ).focus();
+            },
+            50
+        );
+    }
+
+
+    function parseAiUpdatedFields(
+        value
+    ) {
+        if (!value) {
+            return new Set();
+        }
+
+        try {
+            const parsed =
+                JSON.parse(
+                    value
+                );
+
+            if (
+                Array.isArray(
+                    parsed
+                )
+            ) {
+                return new Set(
+                    parsed.map(
+                        item =>
+                            String(
+                                item
+                            ).trim()
+                    ).filter(
+                        Boolean
+                    )
+                );
+            }
+
+        } catch (error) {
+            return new Set(
+                String(
+                    value
+                )
+                .split(",")
+                .map(
+                    item =>
+                        item.trim()
+                )
+                .filter(
+                    Boolean
+                )
+            );
+        }
+
+        return new Set();
+    }
+
+
+    function setAiFieldStyle(
+        element,
+        isAiUpdated
+    ) {
+        if (!element) {
+            return;
+        }
+
+        if (
+            element.type ===
+            "checkbox"
+        ) {
+            const wrapper =
+                element.closest(
+                    ".checkbox-field"
+                );
+
+            if (wrapper) {
+                wrapper.classList.toggle(
+                    "ai-updated-field",
+                    isAiUpdated
+                );
+            }
+
+            return;
+        }
+
+        element.classList.toggle(
+            "ai-updated-field",
+            isAiUpdated
+        );
+    }
+
+
+    function fillLeadForm(
+        lead
+    ) {
+        const aiUpdatedFields =
+            parseAiUpdatedFields(
+                lead.ai_updated_fields
+            );
+
+        LEAD_FORM_FIELDS.forEach(
+            fieldName => {
+                const element =
+                    document.getElementById(
+                        fieldName
+                    );
+
+
+                if (!element) {
+                    return;
+                }
+
+                setAiFieldStyle(
+                    element,
+                    aiUpdatedFields.has(
+                        fieldName
+                    )
+                );
+
+
+                if (
+                    element.type ===
+                    "checkbox"
+                ) {
+                    element.checked =
+                        Number(
+                            lead[
+                                fieldName
+                            ] || 0
+                        ) === 1;
+
+                    return;
+                }
+
+
+                if (
+                    fieldName ===
+                    "callback_at"
+                ) {
+                    element.value =
+                        toDateTimeLocalValue(
+                            lead.callback_at
+                        );
+
+                    return;
+                }
+
+
+                element.value =
+                    lead[
+                        fieldName
+                    ] ?? "";
+            }
+        );
+    }
+
+
+    function closeLeadModal() {
+        document.getElementById(
+            "leadModalBackdrop"
+        ).classList.remove(
+            "open"
+        );
+
+        editingLeadId = null;
+    }
+
+
+    function clearLeadForm() {
+        LEAD_FORM_FIELDS.forEach(
+            fieldName => {
+                const element =
+                    document.getElementById(
+                        fieldName
+                    );
+
+
+                if (!element) {
+                    return;
+                }
+
+                setAiFieldStyle(
+                    element,
+                    false
+                );
+
+
+                if (
+                    element.type ===
+                    "checkbox"
+                ) {
+                    element.checked =
+                        false;
+
+                    return;
+                }
+
+
+                element.value =
+                    "";
+            }
+        );
+
+
+        document.getElementById(
+            "status"
+        ).value =
+            "Neu";
+
+
+        document.getElementById(
+            "attempt_count"
+        ).value =
+            "0";
+
+
+        document.getElementById(
+            "preferred_language"
+        ).value =
+            "de";
+    }
+
+
+    async function saveLead() {
+        const wasEditing =
+            Boolean(
+                editingLeadId
+            );
+
+
+        const payload = {
+            firma:
+                document.getElementById(
+                    "firma"
+                ).value.trim(),
+
+            ansprechpartner:
+                document.getElementById(
+                    "ansprechpartner"
+                ).value.trim(),
+
+            telefon:
+                document.getElementById(
+                    "telefon"
+                ).value.trim(),
+
+            email:
+                document.getElementById(
+                    "email"
+                ).value.trim(),
+
+            strasse:
+                document.getElementById(
+                    "strasse"
+                ).value.trim(),
+
+            plz:
+                document.getElementById(
+                    "plz"
+                ).value.trim(),
+
+            stadt:
+                document.getElementById(
+                    "stadt"
+                ).value.trim(),
+
+            branche:
+                document.getElementById(
+                    "branche"
+                ).value.trim(),
+
+            website:
+                document.getElementById(
+                    "website"
+                ).value.trim(),
+
+            stromanbieter:
+                document.getElementById(
+                    "stromanbieter"
+                ).value.trim(),
+
+            gasanbieter:
+                document.getElementById(
+                    "gasanbieter"
+                ).value.trim(),
+
+            stromverbrauch:
+                document.getElementById(
+                    "stromverbrauch"
+                ).value.trim(),
+
+            gasverbrauch:
+                document.getElementById(
+                    "gasverbrauch"
+                ).value.trim(),
+
+            vertragsende_strom:
+                document.getElementById(
+                    "vertragsende_strom"
+                ).value.trim(),
+
+            vertragsende_gas:
+                document.getElementById(
+                    "vertragsende_gas"
+                ).value.trim(),
+
+            waermepumpe:
+                document.getElementById(
+                    "waermepumpe"
+                ).checked,
+
+            waermepumpe_eigener_zaehler:
+                document.getElementById(
+                    "waermepumpe_eigener_zaehler"
+                ).checked,
+
+            waermepumpe_anbieter:
+                document.getElementById(
+                    "waermepumpe_anbieter"
+                ).value.trim(),
+
+            waermepumpe_verbrauch:
+                document.getElementById(
+                    "waermepumpe_verbrauch"
+                ).value.trim(),
+
+            vertragsende_waermepumpe:
+                document.getElementById(
+                    "vertragsende_waermepumpe"
+                ).value.trim(),
+
+            waermepumpe_inbetriebnahme:
+                document.getElementById(
+                    "waermepumpe_inbetriebnahme"
+                ).value.trim(),
+
+            waermepumpe_14a:
+                document.getElementById(
+                    "waermepumpe_14a"
+                ).value.trim(),
+
+            status:
+                document.getElementById(
+                    "status"
+                ).value,
+
+            source:
+                document.getElementById(
+                    "source"
+                ).value.trim(),
+
+            notes:
+                document.getElementById(
+                    "notes"
+                ).value.trim(),
+
+            entscheider_name:
+                document.getElementById(
+                    "entscheider_name"
+                ).value.trim(),
+
+            best_call_time:
+                document.getElementById(
+                    "best_call_time"
+                ).value.trim(),
+
+            callback_at:
+                document.getElementById(
+                    "callback_at"
+                ).value,
+
+            callback_note:
+                document.getElementById(
+                    "callback_note"
+                ).value.trim(),
+
+            attempt_count:
+                document.getElementById(
+                    "attempt_count"
+                ).value,
+
+            last_call_result:
+                document.getElementById(
+                    "last_call_result"
+                ).value.trim(),
+
+            do_not_call:
+                document.getElementById(
+                    "do_not_call"
+                ).checked,
+
+            do_not_call_reason:
+                document.getElementById(
+                    "do_not_call_reason"
+                ).value.trim(),
+
+            email_requested:
+                document.getElementById(
+                    "email_requested"
+                ).checked,
+
+            contact_basis:
+                document.getElementById(
+                    "contact_basis"
+                ).value.trim(),
+
+            preferred_language:
+                document.getElementById(
+                    "preferred_language"
+                ).value
+        };
+
+
+        if (!payload.firma) {
+            showNotice(
+                "Bitte Firma eingeben.",
+                "error"
+            );
+
+            return;
+        }
+
+
+        if (
+            payload.do_not_call &&
+            !payload.do_not_call_reason
+        ) {
+            showNotice(
+                "Bitte einen Sperrgrund eintragen.",
+                "error"
+            );
+
+            return;
+        }
+
+
+        if (
+            payload.status ===
+            "Rückruf" &&
+            !payload.callback_at
+        ) {
+            showNotice(
+                "Bitte einen Rückrufzeitpunkt eintragen.",
+                "error"
+            );
+
+            return;
+        }
+
+
+        const url =
+            editingLeadId
+                ? "/leon-api/leads/" +
+                    editingLeadId
+                : "/leon-api/leads";
+
+
+        const method =
+            editingLeadId
+                ? "PUT"
+                : "POST";
+
+
+        try {
+            const response =
+                await fetch(
+                    url,
+                    {
+                        method:
+                            method,
+
+                        headers: {
+                            "Content-Type":
+                                "application/json"
+                        },
+
+                        body:
+                            JSON.stringify(
+                                payload
+                            )
+                    }
+                );
+
+
+            const data =
+                await response.json();
+
+
+            if (
+                !response.ok ||
+                !data.success
+            ) {
+                throw new Error(
+                    data.error ||
+                    "Lead konnte nicht gespeichert werden."
+                );
+            }
+
+
+            closeLeadModal();
+
+
+            showNotice(
+                wasEditing
+                    ? "Lead wurde aktualisiert."
+                    : "Lead wurde hinzugefügt.",
+                "success"
+            );
+
+
+            await loadLeads();
+
+        } catch (error) {
+            showNotice(
+                error.message,
+                "error"
+            );
+        }
+    }
+
+
+    function updateLeadSelectionControls() {
+        document.getElementById(
+            "leadSelectHeader"
+        ).style.display =
+            leadSelectionMode
+                ? ""
+                : "none";
+
+        document.getElementById(
+            "leadSelectModeButton"
+        ).style.display =
+            leadSelectionMode
+                ? "none"
+                : "";
+
+        document.getElementById(
+            "leadSelectAllButton"
+        ).style.display =
+            leadSelectionMode
+                ? ""
+                : "none";
+
+        document.getElementById(
+            "leadDeleteSelectedButton"
+        ).style.display =
+            leadSelectionMode
+                ? ""
+                : "none";
+
+        document.getElementById(
+            "leadCancelSelectionButton"
+        ).style.display =
+            leadSelectionMode
+                ? ""
+                : "none";
+
+        if (leadSelectionMode) {
+            document.getElementById(
+                "leadDeleteSelectedButton"
+            ).textContent =
+                "Auswahl löschen (" +
+                selectedLeadIds.size +
+                ")";
+        }
+    }
+
+
+    function toggleLeadSelectionMode() {
+        leadSelectionMode = true;
+        selectedLeadIds.clear();
+        updateLeadSelectionControls();
+        renderLeads();
+    }
+
+
+    function cancelLeadSelectionMode() {
+        leadSelectionMode = false;
+        selectedLeadIds.clear();
+        updateLeadSelectionControls();
+        renderLeads();
+    }
+
+
+    function toggleLeadSelection(
+        leadId,
+        checked
+    ) {
+        const id = Number(
+            leadId
+        );
+
+        if (checked) {
+            selectedLeadIds.add(
+                id
+            );
+        } else {
+            selectedLeadIds.delete(
+                id
+            );
+        }
+
+        updateLeadSelectionControls();
+    }
+
+
+    function selectAllVisibleLeads() {
+        const allVisibleSelected =
+            leads.length > 0
+            &&
+            leads.every(
+                lead =>
+                    selectedLeadIds.has(
+                        Number(
+                            lead.id
+                        )
+                    )
+            );
+
+        if (allVisibleSelected) {
+            leads.forEach(
+                lead =>
+                    selectedLeadIds.delete(
+                        Number(
+                            lead.id
+                        )
+                    )
+            );
+        } else {
+            leads.forEach(
+                lead =>
+                    selectedLeadIds.add(
+                        Number(
+                            lead.id
+                        )
+                    )
+            );
+        }
+
+        updateLeadSelectionControls();
+        renderLeads();
+
+        document.getElementById(
+            "leadSelectAllButton"
+        ).textContent =
+            allVisibleSelected
+                ? "Alle auswählen"
+                : "Auswahl aufheben";
+    }
+
+
+    async function deleteSelectedLeads() {
+        const ids = Array.from(
+            selectedLeadIds
+        );
+
+        if (!ids.length) {
+            showNotice(
+                "Bitte mindestens einen Lead auswählen.",
+                "error"
+            );
+            return;
+        }
+
+        const confirmed =
+            confirm(
+                "Sind Sie sicher, dass Sie " +
+                ids.length +
+                " ausgewählte Lead(s) endgültig löschen möchten? Dieser Vorgang kann nicht rückgängig gemacht werden."
+            );
+
+        if (!confirmed) {
+            return;
+        }
+
+        let deleted = 0;
+        let failed = 0;
+
+        for (const leadId of ids) {
+            try {
+                const response =
+                    await fetch(
+                        "/leon-api/leads/" +
+                        leadId,
+                        {
+                            method:
+                                "DELETE"
+                        }
+                    );
+
+                const data =
+                    await response.json();
+
+                if (
+                    response.ok
+                    &&
+                    data.success
+                ) {
+                    deleted += 1;
+                } else {
+                    failed += 1;
+                }
+
+            } catch (error) {
+                failed += 1;
+            }
+        }
+
+        leadSelectionMode = false;
+        selectedLeadIds.clear();
+        updateLeadSelectionControls();
+        await loadLeads();
+
+        showNotice(
+            deleted +
+            " Lead(s) gelöscht." +
+            (
+                failed
+                    ? " " +
+                      failed +
+                      " konnten nicht gelöscht werden."
+                    : ""
+            ),
+            failed
+                ? "error"
+                : "success"
+        );
+    }
+
+
+    async function deleteLead(leadId) {
+        const lead =
+            leads.find(
+                item =>
+                    item.id === leadId
+            );
+
+        const name =
+            lead
+                ? lead.firma
+                : "diesen Lead";
+
+        if (
+            !confirm(
+                name +
+                " wirklich löschen?"
+            )
+        ) {
+            return;
+        }
+
+        try {
+            const response =
+                await fetch(
+                    "/leon-api/leads/" +
+                    leadId,
+                    {
+                        method: "DELETE"
+                    }
+                );
+
+            const data =
+                await response.json();
+
+            if (
+                !response.ok ||
+                !data.success
+            ) {
+                throw new Error(
+                    data.error ||
+                    "Lead konnte nicht gelöscht werden."
+                );
+            }
+
+            showNotice(
+                "Lead wurde gelöscht.",
+                "success"
+            );
+
+            await loadLeads();
+
+        } catch (error) {
+            showNotice(
+                error.message,
+                "error"
+            );
+        }
+    }
+
+
+    function openImportModal() {
+        document.getElementById(
+            "csvFile"
+        ).value = "";
+
+        document.getElementById(
+            "importModalBackdrop"
+        ).classList.add(
+            "open"
+        );
+    }
+
+
+    function closeImportModal() {
+        document.getElementById(
+            "importModalBackdrop"
+        ).classList.remove(
+            "open"
+        );
+    }
+
+
+    async function importCsv() {
+        const fileInput =
+            document.getElementById(
+                "csvFile"
+            );
+
+        if (!fileInput.files.length) {
+            showNotice(
+                "Bitte eine CSV-Datei auswählen.",
+                "error"
+            );
+
+            return;
+        }
+
+        const formData =
+            new FormData();
+
+        formData.append(
+            "file",
+            fileInput.files[0]
+        );
+
+        try {
+            const response =
+                await fetch(
+                    "/leon-api/leads/import",
+                    {
+                        method: "POST",
+                        body: formData
+                    }
+                );
+
+            const data =
+                await response.json();
+
+            if (
+                !response.ok ||
+                !data.success
+            ) {
+                throw new Error(
+                    data.error ||
+                    "CSV konnte nicht importiert werden."
+                );
+            }
+
+            closeImportModal();
+
+            const importParts = [
+                data.imported +
+                " Leads importiert"
+            ];
+
+
+            if (
+                data.duplicates
+            ) {
+                importParts.push(
+                    data.duplicates +
+                    " Duplikate übersprungen"
+                );
+            }
+
+
+            if (
+                data.skipped
+            ) {
+                importParts.push(
+                    data.skipped +
+                    " ungültige Zeilen übersprungen"
+                );
+            }
+
+
+            if (
+                data.without_phone
+            ) {
+                importParts.push(
+                    data.without_phone +
+                    " ohne Telefonnummer"
+                );
+            }
+
+
+            showNotice(
+                importParts.join(
+                    ", "
+                ) +
+                ".",
+                "success"
+            );
+
+            await loadLeads();
+
+        } catch (error) {
+            showNotice(
+                error.message,
+                "error"
+            );
+        }
+    }
+
+
+    function resetFilters() {
+        document.getElementById(
+            "searchInput"
+        ).value =
+            "";
+
+        document.getElementById(
+            "statusFilter"
+        ).value =
+            "";
+
+        document.getElementById(
+            "sourceFilter"
+        ).value =
+            "";
+
+        document.getElementById(
+            "dncFilter"
+        ).value =
+            "";
+
+        document.getElementById(
+            "callbackFilter"
+        ).value =
+            "";
+
+
+        loadLeads();
+    }
+
+
+    function backdropClose(
+        event,
+        backdropId
+    ) {
+        if (
+            event.target.id !==
+            backdropId
+        ) {
+            return;
+        }
+
+        if (
+            backdropId ===
+            "leadModalBackdrop"
+        ) {
+            closeLeadModal();
+        }
+
+        if (
+            backdropId ===
+            "importModalBackdrop"
+        ) {
+            closeImportModal();
+        }
+    }
+
+
+    function displayValue(value) {
+        if (!value) {
+            return `
+                <span class="muted">
+                    —
+                </span>
+            `;
+        }
+
+        return escapeHtml(
+            value
+        );
+    }
+
+
+    function statusClass(status) {
+        if (
+            status ===
+            "Interessiert"
+        ) {
+            return "interessiert";
+        }
+
+        if (
+            status ===
+            "Rückruf"
+        ) {
+            return "rueckruf";
+        }
+
+        if (
+            status ===
+            "Rechnung"
+        ) {
+            return "rechnung";
+        }
+
+        if (
+            status ===
+            "Kein Interesse"
+        ) {
+            return "kein-interesse";
+        }
+
+        return "";
+    }
+
+
+    function formatGermanNumber(
+        value
+    ) {
+        const number =
+            Number(
+                value
+            );
+
+
+        if (
+            Number.isNaN(
+                number
+            )
+        ) {
+            return String(
+                value
+            );
+        }
+
+
+        return new Intl.NumberFormat(
+            "de-DE"
+        ).format(
+            number
+        );
+    }
+
+
+    function formatDateTime(
+        value
+    ) {
+        if (!value) {
+            return "";
+        }
+
+
+        const date =
+            new Date(
+                String(
+                    value
+                ).replace(
+                    " ",
+                    "T"
+                )
+            );
+
+
+        if (
+            Number.isNaN(
+                date.getTime()
+            )
+        ) {
+            return String(
+                value
+            );
+        }
+
+
+        return new Intl.DateTimeFormat(
+            "de-DE",
+            {
+                dateStyle:
+                    "short",
+
+                timeStyle:
+                    "short"
+            }
+        ).format(
+            date
+        );
+    }
+
+
+    function toDateTimeLocalValue(
+        value
+    ) {
+        if (!value) {
+            return "";
+        }
+
+
+        const text =
+            String(
+                value
+            )
+            .trim()
+            .replace(
+                " ",
+                "T"
+            );
+
+
+        if (
+            /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/
+                .test(
+                    text
+                )
+        ) {
+            return text.slice(
+                0,
+                16
+            );
+        }
+
+
+        return "";
+    }
+
+
+    function isCallbackDue(
+        value
+    ) {
+        if (!value) {
+            return false;
+        }
+
+
+        const date =
+            new Date(
+                String(
+                    value
+                ).replace(
+                    " ",
+                    "T"
+                )
+            );
+
+
+        return (
+            !Number.isNaN(
+                date.getTime()
+            )
+            &&
+            date.getTime() <=
+            Date.now()
+        );
+    }
+
+
+    function escapeHtml(value) {
+        return String(
+            value ?? ""
+        )
+            .replaceAll(
+                "&",
+                "&amp;"
+            )
+            .replaceAll(
+                "<",
+                "&lt;"
+            )
+            .replaceAll(
+                ">",
+                "&gt;"
+            )
+            .replaceAll(
+                "\"",
+                "&quot;"
+            )
+            .replaceAll(
+                "'",
+                "&#039;"
+            );
+    }
+
+
+    function showNotice(
+        message,
+        type
+    ) {
+        const notice =
+            document.getElementById(
+                "notice"
+            );
+
+        notice.textContent =
+            message;
+
+        notice.className =
+            "notice show " +
+            type;
+
+        clearTimeout(
+            notice.hideTimer
+        );
+
+        notice.hideTimer =
+            setTimeout(
+                () => {
+                    notice.className =
+                        "notice";
+                },
+                4500
+            );
+    }
+
+
+    document.addEventListener(
+        "keydown",
+        event => {
+            if (
+                event.key !==
+                "Escape"
+            ) {
+                return;
+            }
+
+            closeLeadModal();
+            closeImportModal();
+        }
+    );
+
+
+    initializeStatusOptions();
+    updateLeadSelectionControls();
+
+    loadLeads();
+</script>
+
+</body>
+</html>

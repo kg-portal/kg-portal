@@ -13,7 +13,7 @@ import threading
 from datetime import datetime
 
 import requests
-from flask import jsonify, render_template, request
+from flask import Response, abort, jsonify, render_template, request, stream_with_context
 
 
 LEON_TERMINAL_STATUSES = {
@@ -163,6 +163,33 @@ Keine technische Begrüßung.
 Keine Wartefloskeln."""
 
 
+# Business-Leon-Seiten im CRM (templates/leon_ui, API über /leon-api)
+LEON_PAGES = {
+    "live": ("live.html", {}),
+    "kampagnen": ("kampagnen.html", {}),
+    "leads": ("leads.html", {}),
+    "gespraeche": ("gespraechsuebersicht.html", {"archive_mode": False}),
+    "archiv": ("gespraechsuebersicht.html", {"archive_mode": True}),
+    "anrufe": ("anrufe.html", {}),
+    "ergebnisse": ("ergebnisse.html", {}),
+    "agent": ("agent.html", {}),
+    "system": ("einstellungen.html", {}),
+}
+
+LEON_TABS = [
+    ("uebersicht", "/leon", "Übersicht"),
+    ("live", "/leon/live", "Live Call"),
+    ("kampagnen", "/leon/kampagnen", "Kampagnen"),
+    ("leads", "/leon/leads", "Leads"),
+    ("gespraeche", "/leon/gespraeche", "Gespräche"),
+    ("archiv", "/leon/archiv", "Archiv"),
+    ("anrufe", "/leon/anrufe", "Anrufe"),
+    ("ergebnisse", "/leon/ergebnisse", "Ergebnisse"),
+    ("agent", "/leon/agent", "Leon Einstellungen"),
+    ("system", "/leon/system", "Anrufzeiten & Kosten"),
+]
+
+
 # -----------------------------------------------------
 # Verbindung zum Leon-Motor
 # -----------------------------------------------------
@@ -214,6 +241,35 @@ class LeonClient:
         if resp.status_code in (301, 302, 303) and "/login" in resp.headers.get("Location", ""):
             return True
         return False
+
+    def raw(self, method, path, params=None, data=None, headers=None, stream=False, timeout=60):
+        """Ungefilterte Antwort vom Motor (für den /leon-api Proxy)."""
+        for attempt in range(2):
+            with self._lock:
+                if self._session is None:
+                    self._login()
+                session = self._session
+            try:
+                resp = session.request(
+                    method,
+                    self.base_url() + path,
+                    params=params,
+                    data=data,
+                    headers=headers,
+                    allow_redirects=False,
+                    stream=stream,
+                    timeout=timeout,
+                )
+            except requests.RequestException as exc:
+                raise LeonError(f"Leon nicht erreichbar: {exc}")
+            if self._needs_login(resp) and attempt == 0:
+                resp.close()
+                with self._lock:
+                    if self._session is session:
+                        self._session = None
+                continue
+            return resp
+        raise LeonError("Anmeldung bei Leon fehlgeschlagen.")
 
     def request(self, method, path, payload=None, timeout=30):
         with self._lock:
@@ -341,7 +397,69 @@ def register_leon_routes(app, login_required, get_db_connection):
     @app.route("/leon")
     @login_required
     def leon_page():
-        return render_template("leon.html")
+        return render_template("leon.html", leon_tab="uebersicht", leon_tabs=LEON_TABS)
+
+    @app.route("/leon/<page>")
+    @login_required
+    def leon_frame(page):
+        if page not in LEON_PAGES:
+            abort(404)
+        return render_template("leon_frame.html", leon_tab=page, leon_tabs=LEON_TABS, frame_src=f"/leon-ui/{page}")
+
+    @app.route("/leon/gespraech/<int:call_id>")
+    @login_required
+    def leon_frame_gespraech(call_id):
+        return render_template("leon_frame.html", leon_tab="gespraeche", leon_tabs=LEON_TABS, frame_src=f"/leon-ui/gespraech/{call_id}")
+
+    @app.route("/leon-ui/<page>")
+    @login_required
+    def leon_ui(page):
+        if page not in LEON_PAGES:
+            abort(404)
+        template, context = LEON_PAGES[page]
+        return render_template(f"leon_ui/{template}", **context)
+
+    @app.route("/leon-ui/gespraech/<int:call_id>")
+    @login_required
+    def leon_ui_gespraech(call_id):
+        return render_template("leon_ui/gespraech_detail.html", call_id=call_id)
+
+    @app.route("/leon-api/<path:path>", methods=["GET", "POST", "PUT", "PATCH", "DELETE"])
+    @login_required
+    def leon_api_proxy(path):
+        headers = {}
+        for key in ("Content-Type", "Range", "Accept"):
+            if request.headers.get(key):
+                headers[key] = request.headers[key]
+        try:
+            upstream = leon_client.raw(
+                request.method,
+                "/api/" + path,
+                params=request.args,
+                data=request.get_data(),
+                headers=headers,
+                stream=True,
+                timeout=120,
+            )
+        except LeonError as exc:
+            return jsonify({"success": False, "error": str(exc)}), 502
+
+        passthrough = {}
+        for key in ("Content-Type", "Content-Range", "Accept-Ranges", "Content-Disposition", "Cache-Control"):
+            if upstream.headers.get(key):
+                passthrough[key] = upstream.headers[key]
+        if upstream.headers.get("Content-Length") and "Content-Encoding" not in upstream.headers:
+            passthrough["Content-Length"] = upstream.headers["Content-Length"]
+
+        def generate():
+            try:
+                for chunk in upstream.iter_content(chunk_size=64 * 1024):
+                    if chunk:
+                        yield chunk
+            finally:
+                upstream.close()
+
+        return Response(stream_with_context(generate()), status=upstream.status_code, headers=passthrough)
 
     @app.route("/api/leon/status")
     @login_required

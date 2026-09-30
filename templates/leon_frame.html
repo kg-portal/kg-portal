@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block content %}
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+
+{% include "_leon_tabs.html" %}
+
+<iframe
+    id="leonFrame"
+    src="{{ frame_src }}"
+    title="Leon"
+    style="display:block;width:100%;height:calc(100vh - 150px);min-height:600px;border:0;border-radius:20px;background:#f8fafc;box-shadow:0 10px 25px rgba(0,0,0,.05);"
+></iframe>
+
+<script>
+    // Rahmenhöhe an das Fenster anpassen
+    (function () {
+        const frame = document.getElementById('leonFrame');
+        function fit() {
+            const top = frame.getBoundingClientRect().top + window.scrollY;
+            frame.style.height = Math.max(600, window.innerHeight - top - 24) + 'px';
+        }
+        window.addEventListener('resize', fit);
+        fit();
+    })();
+</script>
+
+{% endblock %}
