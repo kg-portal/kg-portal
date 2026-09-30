@@ -4,14 +4,24 @@ import os
 from datetime import datetime
 
 # LEXWARE API AYARLARI
-LEXWARE_TOKEN = "Q7hU5KjS_5.u0e0HMc2d2QiLhZow5WsWQco.PP54VkP7xmtv"
+# Token kommt aus tokenlar.env / Render Environment (LEXWARE_API_TOKEN) – nie in den Code schreiben
+_LEXWARE_WARNED = False
+
+def _lexware_token():
+    global _LEXWARE_WARNED
+    token = os.getenv("LEXWARE_API_TOKEN", "").strip()
+    if not token and not _LEXWARE_WARNED:
+        print("⚠️ LEXWARE_API_TOKEN fehlt (tokenlar.env / Render Environment) – Lexware-Daten können nicht geladen werden.")
+        _LEXWARE_WARNED = True
+    return token
+
 BASE_URL = "https://api.lexware.io/v1"
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DB_PATH = os.path.join(BASE_DIR, 'data', 'kg_portal.db')
 
 def sync_lexware_to_db():
     """Lexware'den faturaları çeker ve borcu bitenleri otomatik 'paid' yapar."""
-    headers = {"Authorization": f"Bearer {LEXWARE_TOKEN}", "Accept": "application/json"}
+    headers = {"Authorization": f"Bearer {_lexware_token()}", "Accept": "application/json"}
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
     try:
@@ -158,7 +168,7 @@ def get_cached_rechnungen(month, year):
 
 def get_bank_transactions(account_slug):
     """Banka hareketlerini sadece eksikleri tamamlayacak şekilde (Incremental) çeker."""
-    headers = {"Authorization": f"Bearer {LEXWARE_TOKEN}", "Accept": "application/json"}
+    headers = {"Authorization": f"Bearer {_lexware_token()}", "Accept": "application/json"}
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
 
@@ -227,7 +237,7 @@ def get_bank_transactions(account_slug):
 
 def get_all_bank_balances():
     """Tüm banka bakiyelerini TEK BİR API isteğiyle topluca çeker (Hızı 4-8 kat artırır)."""
-    headers = {"Authorization": f"Bearer {LEXWARE_TOKEN}"}
+    headers = {"Authorization": f"Bearer {_lexware_token()}"}
     bank_mapping = {
         "5736092": "geschäftskonto-kg-gebäudereinigung",
         "5736093": "geschäftskonto-amazon-energie",
@@ -260,7 +270,7 @@ def get_bank_balance(account_slug):
     if not acc_id: return 0.0
 
     url = f"{BASE_URL}/bank-accounts/{acc_id}"
-    headers = {"Authorization": f"Bearer {LEXWARE_TOKEN}"}
+    headers = {"Authorization": f"Bearer {_lexware_token()}"}
     
     try:
         res = requests.get(url, headers=headers)
@@ -283,7 +293,7 @@ def sync_ausgaben_dinamik(month, year=2026):
     import sqlite3
     import requests
 
-    headers = {"Authorization": f"Bearer {LEXWARE_TOKEN}", "Accept": "application/json"}
+    headers = {"Authorization": f"Bearer {_lexware_token()}", "Accept": "application/json"}
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
 
@@ -440,7 +450,7 @@ def create_lexware_contact(firma_adi, sehir, sokak, plz, email, telefon=None):
     import requests
 
     headers = {
-        "Authorization": f"Bearer {LEXWARE_TOKEN}",
+        "Authorization": f"Bearer {_lexware_token()}",
         "Content-Type": "application/json",
         "Accept": "application/json"
     }
@@ -480,7 +490,7 @@ def sync_lexware_customers_to_db():
     """
     import requests, sqlite3
 
-    headers = {"Authorization": f"Bearer {LEXWARE_TOKEN}", "Accept": "application/json"}
+    headers = {"Authorization": f"Bearer {_lexware_token()}", "Accept": "application/json"}
     conn = sqlite3.connect(DB_PATH)
     cur = conn.cursor()
 
@@ -566,7 +576,7 @@ def update_lexware_contact(lexware_id, firma_adi, sehir, sokak, plz, email, tele
         return None
 
     headers = {
-        "Authorization": f"Bearer {LEXWARE_TOKEN}",
+        "Authorization": f"Bearer {_lexware_token()}",
         "Content-Type": "application/json",
         "Accept": "application/json"
     }
