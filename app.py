@@ -34,6 +34,7 @@ from app2 import register_app2_routes
 from whatsapp_connector_routes import register_whatsapp_connector_routes
 from kg_ai_routes import register_kg_ai_routes, run_due_quality_campaigns
 from kg_todo_routes import register_kg_todo_routes
+from leon_routes import register_leon_routes
 
 
 try:
@@ -862,6 +863,7 @@ def run_db_migration():
 run_db_migration()
 
 register_kg_todo_routes(app, login_required, get_db_connection)
+register_leon_routes(app, login_required, get_db_connection)
 
 
 # =====================================================

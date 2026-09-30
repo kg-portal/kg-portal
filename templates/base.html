@@ -822,6 +822,11 @@
                 <i class="fa-solid fa-grip-vertical portal-drag-handle"></i>
             </a>
 
+            <a class="portal-nav-item {% if request.path.startswith('/leon') %}active{% endif %}" href="/leon" data-nav-key="leon">
+                <span class="portal-nav-content"><i class="fa-solid fa-phone-volume icon-blue"></i> Leon</span>
+                <i class="fa-solid fa-grip-vertical portal-drag-handle"></i>
+            </a>
+
             <a class="portal-nav-item {% if request.path.startswith('/besichtigung') %}active{% endif %}" href="/besichtigung" data-nav-key="besichtigung">
                 <span class="portal-nav-content"><i class="fa-solid fa-clipboard-check icon-teal"></i> Besichtigung</span>
                 <i class="fa-solid fa-grip-vertical portal-drag-handle"></i>
@@ -909,6 +914,7 @@ document.addEventListener('DOMContentLoaded', function () {
         'kg-ai',
         'whatsapp-inbox',
         'datenbank',
+        'leon',
         'besichtigung',
         'angebot',
         'leistungsverzeichnis',

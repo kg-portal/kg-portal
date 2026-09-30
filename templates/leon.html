@@ -1,0 +1,284 @@
+{% extends "base.html" %}
+{% block content %}
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+
+<style>
+    .leon-wrap { font-family: 'Inter', sans-serif; display: flex; flex-direction: column; gap: 22px; }
+    .leon-head {
+        display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap;
+        background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 60%, #3b82f6 100%);
+        color: #fff; border-radius: 22px; padding: 26px 30px; box-shadow: 0 14px 30px rgba(37, 99, 235, .25);
+    }
+    .leon-head h1 { margin: 0; font-size: 26px; font-weight: 800; }
+    .leon-head p { margin: 6px 0 0; opacity: .85; font-size: 14px; font-weight: 600; }
+    .leon-pill { padding: 8px 14px; border-radius: 999px; font-size: 13px; font-weight: 800; background: rgba(255,255,255,.18); }
+    .leon-pill.ok { background: #16a34a; }
+    .leon-pill.err { background: #dc2626; }
+
+    .leon-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 20px; padding: 22px 24px; box-shadow: 0 10px 25px rgba(0,0,0,.05); }
+    .leon-card h2 { margin: 0 0 14px; font-size: 18px; font-weight: 800; color: #1e3a8a; display: flex; align-items: center; gap: 10px; }
+    .leon-badge { background: #eff6ff; color: #2563eb; border-radius: 999px; padding: 2px 10px; font-size: 13px; }
+
+    .leon-form { display: grid; grid-template-columns: 2fr 1.3fr 1.3fr 1fr auto; gap: 12px; align-items: end; }
+    .leon-form label { display: block; font-size: 12px; font-weight: 800; color: #475569; margin-bottom: 6px; }
+    .leon-input, .leon-textarea {
+        width: 100%; box-sizing: border-box; padding: 12px 14px; border-radius: 12px;
+        border: 2px solid #f1f5f9; background: #f8fafc; font-size: 15px; font-weight: 600; outline: none;
+    }
+    .leon-input:focus, .leon-textarea:focus { border-color: #2563eb; background: #fff; }
+    .leon-textarea { font-size: 13px; font-weight: 500; min-height: 140px; resize: vertical; font-family: inherit; }
+    .leon-btn { border: none; border-radius: 12px; padding: 13px 18px; font-weight: 800; font-size: 14px; cursor: pointer; background: #2563eb; color: #fff; white-space: nowrap; }
+    .leon-btn:hover { background: #1d4ed8; }
+    .leon-btn:disabled { opacity: .6; cursor: wait; }
+    .leon-btn.grey { background: #e2e8f0; color: #1e293b; }
+    .leon-btn.green { background: #16a34a; }
+    .leon-btn.small { padding: 7px 12px; font-size: 12px; border-radius: 10px; }
+    .leon-msg { margin-top: 10px; font-size: 14px; font-weight: 700; }
+    .leon-msg.ok { color: #16a34a; } .leon-msg.err { color: #dc2626; }
+
+    .leon-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    .leon-table th { text-align: left; font-size: 11px; text-transform: uppercase; color: #64748b; padding: 10px 8px; border-bottom: 2px solid #f1f5f9; }
+    .leon-table td { padding: 12px 8px; border-bottom: 1px solid #f1f5f9; vertical-align: top; }
+    .leon-status { display: inline-block; padding: 3px 10px; border-radius: 999px; font-size: 12px; font-weight: 800; background: #f1f5f9; color: #334155; white-space: nowrap; }
+    .leon-status.live { background: #dbeafe; color: #1d4ed8; }
+    .leon-status.good { background: #dcfce7; color: #15803d; }
+    .leon-status.warn { background: #fef3c7; color: #b45309; }
+    .leon-status.bad { background: #fee2e2; color: #b91c1c; }
+    .leon-summary { color: #334155; font-size: 13px; line-height: 1.45; max-width: 520px; }
+    .leon-transcript { white-space: pre-wrap; background: #f8fafc; border-radius: 10px; padding: 10px; margin-top: 8px; font-size: 12px; color: #475569; max-height: 260px; overflow: auto; }
+    .leon-empty { color: #94a3b8; font-weight: 600; padding: 12px 4px; }
+    .leon-settings-grid { display: grid; grid-template-columns: 1fr 2fr; gap: 12px; margin-bottom: 12px; }
+    .leon-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 12px; }
+    details.leon-details summary { cursor: pointer; list-style: none; }
+
+    @media (max-width: 900px) {
+        .leon-form, .leon-settings-grid { grid-template-columns: 1fr; }
+        .leon-table thead { display: none; }
+        .leon-table tr { display: block; border-bottom: 1px solid #e2e8f0; padding: 8px 0; }
+        .leon-table td { display: block; border: none; padding: 4px 0; }
+    }
+</style>
+
+<div class="leon-wrap">
+
+    <div class="leon-head">
+        <div>
+            <h1>📞 Leon – Telefonassistent</h1>
+            <p>Leon ruft für KG Gebäudereinigung an. Ergebnisse, Interessenten und Rückrufe landen hier.</p>
+        </div>
+        <span class="leon-pill" id="leonConn">Verbindung wird geprüft …</span>
+    </div>
+
+    <div class="leon-card">
+        <h2>Neuer Anruf</h2>
+        <div class="leon-form">
+            <div><label for="lFirma">Firma *</label><input class="leon-input" id="lFirma" placeholder="z. B. Praxis Dr. Müller"></div>
+            <div><label for="lTelefon">Telefon *</label><input class="leon-input" id="lTelefon" placeholder="0203 …" inputmode="tel"></div>
+            <div><label for="lAnsprech">Ansprechpartner</label><input class="leon-input" id="lAnsprech"></div>
+            <div><label for="lOrt">Ort</label><input class="leon-input" id="lOrt" placeholder="Duisburg"></div>
+            <button class="leon-btn" id="lCall" type="button">📞 Leon anrufen</button>
+        </div>
+        <div class="leon-msg" id="lCallMsg"></div>
+    </div>
+
+    <div class="leon-card">
+        <h2>Rückrufe &amp; Interessenten <span class="leon-badge" id="lFollowCount">0</span></h2>
+        <table class="leon-table">
+            <thead><tr><th>Wann</th><th>Firma</th><th>Telefon</th><th>Ergebnis</th><th>Worum geht’s</th><th></th></tr></thead>
+            <tbody id="lFollow"></tbody>
+        </table>
+    </div>
+
+    <div class="leon-card">
+        <h2>Letzte Anrufe</h2>
+        <table class="leon-table">
+            <thead><tr><th>Datum</th><th>Firma</th><th>Telefon</th><th>Status</th><th>Zusammenfassung</th></tr></thead>
+            <tbody id="lCalls"></tbody>
+        </table>
+        <div class="leon-msg err" id="lSyncMsg"></div>
+    </div>
+
+    <div class="leon-card">
+        <details class="leon-details" id="lSettingsBox">
+            <summary><h2 style="margin:0">⚙️ Leon Einstellungen (Gesprächsleitfaden)</h2></summary>
+            <div style="margin-top:16px">
+                <div class="leon-settings-grid">
+                    <div><label class="leon-form-label" for="sName"><b>Name</b></label><input class="leon-input" id="sName"></div>
+                    <div><label for="sOpening"><b>Begrüßung</b></label><input class="leon-input" id="sOpening"></div>
+                </div>
+                <label for="sVoice"><b>Gesprächsverhalten (Voice Prompt)</b></label>
+                <textarea class="leon-textarea" id="sVoice" style="min-height:260px"></textarea>
+                <label for="sBackend" style="display:block;margin-top:12px"><b>Funktionslogik (Backend Prompt)</b></label>
+                <textarea class="leon-textarea" id="sBackend"></textarea>
+                <div class="leon-actions">
+                    <button class="leon-btn green" id="sSave" type="button">Speichern</button>
+                    <button class="leon-btn grey" id="sDefault" type="button">Reinigungs-Vorlage einsetzen</button>
+                </div>
+                <div class="leon-msg" id="sMsg"></div>
+            </div>
+        </details>
+    </div>
+</div>
+
+<script>
+(function () {
+    const $ = (id) => document.getElementById(id);
+    let vorlage = null;
+    let pollTimer = null;
+
+    function esc(value) {
+        return String(value == null ? '' : value)
+            .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    function fmtDate(value) {
+        if (!value) return '';
+        const d = new Date(String(value).replace(' ', 'T'));
+        if (isNaN(d)) return esc(value);
+        return d.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' }) + ' ' +
+               d.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
+    }
+
+    function statusClass(a) {
+        const s = (a.lead_status || a.ergebnis || a.status || '').toLowerCase();
+        if (a.fehler) return 'bad';
+        if (!a.abgeschlossen) return 'live';
+        if (s.includes('interess') || s.includes('rückruf') || s.includes('termin')) return 'good';
+        if (s.includes('kein interesse') || s.includes('gesperrt')) return 'bad';
+        if (s.includes('nicht erreichbar') || s.includes('besetzt') || s.includes('anrufbeantworter')) return 'warn';
+        return '';
+    }
+
+    function statusText(a) {
+        if (a.fehler) return 'Fehler';
+        if (!a.abgeschlossen) return a.status || 'Läuft';
+        return a.ergebnis || a.lead_status || a.status || 'Beendet';
+    }
+
+    function isFollowUp(a) {
+        if (a.erledigt || !a.abgeschlossen) return false;
+        const s = ((a.ergebnis || '') + ' ' + (a.lead_status || '')).toLowerCase();
+        return !!a.rueckruf_am || s.includes('interess') || s.includes('rückruf');
+    }
+
+    async function api(url, options) {
+        const res = await fetch(url, Object.assign({ headers: { 'Content-Type': 'application/json' } }, options || {}));
+        let data = {};
+        try { data = await res.json(); } catch (e) { data = { success: false, error: 'Unerwartete Antwort (' + res.status + ')' }; }
+        return data;
+    }
+
+    async function checkConnection() {
+        const pill = $('leonConn');
+        const data = await api('/api/leon/status');
+        if (data.ok) { pill.textContent = '● Leon verbunden'; pill.className = 'leon-pill ok'; }
+        else { pill.textContent = '● ' + (data.error || 'Leon nicht erreichbar'); pill.className = 'leon-pill err'; }
+    }
+
+    function render(anrufe) {
+        const follow = anrufe.filter(isFollowUp);
+        $('lFollowCount').textContent = follow.length;
+        $('lFollow').innerHTML = follow.length ? follow.map(a => `
+            <tr>
+                <td>${a.rueckruf_am ? '<b>' + fmtDate(a.rueckruf_am) + '</b>' : fmtDate(a.erstellt_am)}</td>
+                <td><b>${esc(a.firma)}</b>${a.ansprechpartner ? '<br><span style="color:#64748b">' + esc(a.ansprechpartner) + '</span>' : ''}</td>
+                <td><a href="tel:${esc(a.telefon)}">${esc(a.telefon)}</a></td>
+                <td><span class="leon-status ${statusClass(a)}">${esc(statusText(a))}</span></td>
+                <td class="leon-summary">${esc(a.rueckruf_notiz || a.zusammenfassung || '')}</td>
+                <td><button class="leon-btn small grey" data-done="${a.id}" type="button">✓ Erledigt</button></td>
+            </tr>`).join('') : '<tr><td colspan="6" class="leon-empty">Keine offenen Rückrufe oder Interessenten.</td></tr>';
+
+        $('lCalls').innerHTML = anrufe.length ? anrufe.map(a => `
+            <tr>
+                <td>${fmtDate(a.erstellt_am)}</td>
+                <td><b>${esc(a.firma)}</b></td>
+                <td>${esc(a.telefon)}</td>
+                <td><span class="leon-status ${statusClass(a)}">${esc(statusText(a))}</span>${a.dauer_sekunden ? '<br><span style="color:#94a3b8;font-size:12px">' + Math.round(a.dauer_sekunden) + ' s</span>' : ''}</td>
+                <td class="leon-summary">${a.fehler ? '<span style="color:#dc2626">' + esc(a.fehler) + '</span>' : esc(a.zusammenfassung || '')}
+                    ${a.transkript ? '<details><summary style="cursor:pointer;color:#2563eb;font-weight:700;margin-top:6px">Gespräch anzeigen</summary><div class="leon-transcript">' + esc(a.transkript) + '</div></details>' : ''}
+                </td>
+            </tr>`).join('') : '<tr><td colspan="5" class="leon-empty">Noch keine Anrufe.</td></tr>';
+
+        document.querySelectorAll('[data-done]').forEach(btn => btn.addEventListener('click', async () => {
+            btn.disabled = true;
+            await api('/api/leon/anrufe/' + btn.dataset.done + '/erledigt', { method: 'POST', body: '{}' });
+            loadCalls();
+        }));
+    }
+
+    async function loadCalls() {
+        const data = await api('/api/leon/anrufe');
+        if (!data.success) return;
+        $('lSyncMsg').textContent = data.sync_error ? 'Aktualisierung: ' + data.sync_error : '';
+        render(data.anrufe || []);
+        const running = (data.anrufe || []).some(a => !a.abgeschlossen && !a.fehler);
+        clearTimeout(pollTimer);
+        pollTimer = setTimeout(loadCalls, running ? 5000 : 30000);
+    }
+
+    $('lCall').addEventListener('click', async () => {
+        const firma = $('lFirma').value.trim();
+        const telefon = $('lTelefon').value.trim();
+        const msg = $('lCallMsg');
+        if (!firma || !telefon) { msg.className = 'leon-msg err'; msg.textContent = 'Bitte Firma und Telefon eingeben.'; return; }
+        if (!confirm('Leon ruft jetzt ' + firma + ' (' + telefon + ') an. Starten?')) return;
+        $('lCall').disabled = true;
+        msg.className = 'leon-msg'; msg.textContent = 'Anruf wird gestartet …';
+        const data = await api('/api/leon/anrufen', {
+            method: 'POST',
+            body: JSON.stringify({ firma, telefon, ansprechpartner: $('lAnsprech').value.trim(), ort: $('lOrt').value.trim() })
+        });
+        $('lCall').disabled = false;
+        if (data.success) {
+            msg.className = 'leon-msg ok'; msg.textContent = '✓ Leon ruft an: ' + (data.status || '');
+            ['lFirma', 'lTelefon', 'lAnsprech', 'lOrt'].forEach(id => $(id).value = '');
+        } else {
+            msg.className = 'leon-msg err'; msg.textContent = data.error || 'Anruf konnte nicht gestartet werden.';
+        }
+        loadCalls();
+    });
+
+    function fillSettings(s) {
+        $('sName').value = s.agent_name || '';
+        $('sOpening').value = s.opening || '';
+        $('sVoice').value = s.voice_prompt || '';
+        $('sBackend').value = s.backend_prompt || '';
+    }
+
+    $('lSettingsBox').addEventListener('toggle', async () => {
+        if (!$('lSettingsBox').open || vorlage) return;
+        $('sMsg').className = 'leon-msg'; $('sMsg').textContent = 'Lade Einstellungen …';
+        const data = await api('/api/leon/einstellungen');
+        if (!data.success) { $('sMsg').className = 'leon-msg err'; $('sMsg').textContent = data.error || 'Fehler'; return; }
+        vorlage = data.vorlage;
+        fillSettings(data.settings);
+        $('sMsg').textContent = '';
+    });
+
+    $('sDefault').addEventListener('click', () => {
+        if (!vorlage) return;
+        fillSettings(vorlage);
+        $('sMsg').className = 'leon-msg'; $('sMsg').textContent = 'Vorlage eingesetzt – zum Übernehmen „Speichern“ klicken.';
+    });
+
+    $('sSave').addEventListener('click', async () => {
+        $('sSave').disabled = true;
+        const data = await api('/api/leon/einstellungen', {
+            method: 'POST',
+            body: JSON.stringify({
+                agent_name: $('sName').value, opening: $('sOpening').value,
+                voice_prompt: $('sVoice').value, backend_prompt: $('sBackend').value
+            })
+        });
+        $('sSave').disabled = false;
+        $('sMsg').className = 'leon-msg ' + (data.success ? 'ok' : 'err');
+        $('sMsg').textContent = data.success ? '✓ Gespeichert – gilt ab dem nächsten Anruf.' : (data.error || 'Speichern fehlgeschlagen.');
+    });
+
+    checkConnection();
+    loadCalls();
+})();
+</script>
+
+{% endblock %}
