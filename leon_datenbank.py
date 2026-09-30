@@ -106,6 +106,13 @@ def _besichtigung_data(link, reinigung, summary):
         notiz_teile.append("Uhrzeit-Wunsch: " + _clean(reinigung.get("uhrzeit_wunsch")))
     if _clean(reinigung.get("aktuelle_firma")):
         notiz_teile.append("Bisherige Firma: " + _clean(reinigung.get("aktuelle_firma")) + (" (" + _clean(reinigung.get("zufriedenheit")) + ")" if _clean(reinigung.get("zufriedenheit")) else ""))
+    kontakt = ", ".join(p for p in (
+        _clean(reinigung.get("ansprechpartner")),
+        _clean(reinigung.get("kontakt_telefon")),
+        _clean(reinigung.get("kontakt_email")),
+    ) if p)
+    if kontakt:
+        notiz_teile.append("Kontakt: " + kontakt)
     if summary:
         notiz_teile.append("Gespräch: " + _clean(summary, 1000))
 
@@ -490,7 +497,14 @@ def register_leon_datenbank(app, login_required, get_db_connection, leon_client,
                     client.post("/datenbank/tagesliste-status", json=payload)
 
                     zeit = datetime.now(ZoneInfo("Europe/Berlin")).strftime("%d.%m.%Y %H:%M")
-                    _notiz_anhaengen(conn, tl_id, f"[Leon {zeit}] {anzeige}: {_clean(summary, 600)}".rstrip(": "))
+                    extra = " | ".join(p for p in (
+                        ("Kontakt: " + ", ".join(x for x in (_clean(reinigung.get("ansprechpartner")), _clean(reinigung.get("kontakt_telefon")), _clean(reinigung.get("kontakt_email"))) if x)) if (reinigung.get("ansprechpartner") or reinigung.get("kontakt_telefon") or reinigung.get("kontakt_email")) else "",
+                        ("Erreichbar: " + _clean(reinigung.get("rueckruf_wann"))) if _clean(reinigung.get("rueckruf_wann")) else "",
+                    ) if p)
+                    text = f"[Leon {zeit}] {anzeige}: {_clean(summary, 600)}".rstrip(": ")
+                    if extra:
+                        text += " | " + extra
+                    _notiz_anhaengen(conn, tl_id, text)
                     conn.execute(
                         """UPDATE leon_links SET letzter_call_id = ?, letzter_status = ?, letztes_ergebnis = ?,
                            aktualisiert_am = ? WHERE id = ?""",
