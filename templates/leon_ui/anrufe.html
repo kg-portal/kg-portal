@@ -553,7 +553,7 @@ function resultPill(name,currentResult){
     const normalized = currentResult === "Gesperrt" ? "Kein Interesse" : String(currentResult || "");
     const active = normalized === name;
     const cssMap = {"Interessiert":"interested","Rückruf":"callback","Rechnung":"invoice","Kein Interesse":"no-interest"};
-    return '<span class="call-result-pill ' + cssMap[name] + (active ? ' active' : '') + '">' + esc(name) + '</span>';
+    return '<span class="call-result-pill ' + cssMap[name] + (active ? ' active' : '') + '">' + esc(name === 'Rechnung' ? 'Besichtigung' : name) + '</span>';
 }
 
 function updateMetrics(){

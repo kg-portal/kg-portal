@@ -218,7 +218,7 @@
         </div>
 
         <div class="panel">
-            <h2>Vertragsdaten</h2>
+            <h2>Angebotsdaten (Reinigung)</h2>
             <div id="contractWrap">
                 <div class="empty-note">Wird geladen ...</div>
             </div>
@@ -377,18 +377,43 @@ async function loadCall() {
             `;
         };
 
+
+        const reinigung = (() => { try { return JSON.parse(call.reinigung_json || "{}") || {}; } catch (e) { return {}; } })();
+        const bereichZeilen = (Array.isArray(reinigung.bereiche) ? reinigung.bereiche : []).map(b => [
+            b.bereich || "Bereich",
+            [b.m2 ? b.m2 + " m²" : "", b.haeufigkeit || "", b.tage ? "(" + b.tage + ")" : ""].filter(Boolean).join(" ")
+        ]);
+        const besichtigung = [reinigung.besichtigung_datum, reinigung.besichtigung_uhrzeit, reinigung.besichtigung_adresse].filter(Boolean).join(" · ");
         let contractHtml =
-            renderEnergyBlock("Strom", stromFields)
-            + renderEnergyBlock("Gas", gasFields)
-            + renderEnergyBlock("Wärmepumpe", waermepumpeFields);
+            renderEnergyBlock("Objekt", [
+                ["Objektart", reinigung.objektart],
+                ["Fläche gesamt", reinigung.flaeche_gesamt_m2 ? reinigung.flaeche_gesamt_m2 + " m²" : ""],
+                ["Leistungen", Array.isArray(reinigung.leistungen) ? reinigung.leistungen.join(", ") : reinigung.leistungen]
+            ])
+            + renderEnergyBlock("Bereiche & Rhythmus", bereichZeilen)
+            + renderEnergyBlock("Wunschzeiten", [
+                ["Wunschtage", reinigung.wunschtage],
+                ["Uhrzeit", reinigung.uhrzeit_wunsch]
+            ])
+            + renderEnergyBlock("Besichtigung", [
+                ["Termin", besichtigung],
+                ["Ansprechpartner", reinigung.ansprechpartner]
+            ])
+            + renderEnergyBlock("Aktuelle Reinigung", [
+                ["Firma", reinigung.aktuelle_firma],
+                ["Zufriedenheit", reinigung.zufriedenheit],
+                ["Vertragsende", reinigung.vertragsende_aktuell]
+            ])
+            + renderEnergyBlock("Notiz", [["Notiz", reinigung.notiz]]);
+
 
         if (!contractHtml && (call.energy_provider || call.annual_consumption || call.contract_end)) {
             contractHtml = renderEnergyBlock(
-                "Vertragsdaten (älterer Datensatz)",
+                "Zusammenfassung Objekt",
                 [
-                    ["Anbieter", call.energy_provider],
-                    ["Jahresverbrauch", call.annual_consumption],
-                    ["Vertragsende", call.contract_end]
+                    ["Objekt", call.energy_provider],
+                    ["Bereiche & Rhythmus", call.annual_consumption],
+                    ["Termin / Wunschtage", call.contract_end]
                 ]
             );
         }
@@ -402,7 +427,7 @@ async function loadCall() {
             `;
         }
 
-        contractWrap.innerHTML = contractHtml || `<div class="empty-note">Noch keine Vertragsdaten erkannt.</div>`;
+        contractWrap.innerHTML = contractHtml || `<div class="empty-note">Noch keine Angebotsdaten erkannt.</div>`;
 
         // Kontaktdaten
         const contactWrap = document.getElementById("contactWrap");

@@ -68,11 +68,13 @@ Wenn der Gesprächspartner danach positiv reagiert, zum Beispiel mit „Ja“, �
 „Ich mach’s ganz kurz. Wir sind eine Gebäudereinigung aus Duisburg und kümmern uns um Büros, Praxen und Gewerbeflächen hier in der Region. Wie ist das bei Ihnen aktuell mit der Reinigung geregelt – machen Sie das intern oder haben Sie eine Firma?“
 
 Wenn der Kunde selbst zuständig ist, führe das Gespräch natürlich weiter.
-Kläre nacheinander, soweit es sich ergibt:
-- welche Art Objekt (Büro, Praxis, Laden, Treppenhaus, Halle …)
-- ungefähre Größe in Quadratmetern
-- wie oft gereinigt werden soll (täglich, mehrmals pro Woche, wöchentlich)
-- ob es aktuell eine Reinigungsfirma gibt und ob man zufrieden ist
+Kläre nacheinander, soweit es sich ergibt (das sind die Angaben für unser Angebot):
+- welche Art Objekt (Büro, Praxis, Kanzlei, Laden, Treppenhaus, Halle …)
+- welche Bereiche gereinigt werden sollen (Büroräume, WC/Sanitär, Küche, Flur …) und ungefähr wie viele Quadratmeter
+- wie oft pro Woche – auch getrennt nach Bereichen, zum Beispiel Sanitär zweimal, Büro einmal pro Woche
+- an welchen Tagen und zu welcher Tageszeit (zum Beispiel morgens vor Arbeitsbeginn oder abends)
+- ob es aktuell eine Reinigungsfirma gibt, ob man zufrieden ist und wann der Vertrag endet
+Wenn der Kunde Quadratmeter oder Details nicht weiß, nicht drängen: „Kein Problem, das schauen wir uns bei der Besichtigung an.“
 
 Immer nur eine Frage gleichzeitig.
 Bereits beantwortete Fragen nicht erneut stellen.
@@ -179,6 +181,7 @@ LEON_PAGES = {
 LEON_TABS = [
     ("uebersicht", "/leon", "Übersicht"),
     ("live", "/leon/live", "Live Call"),
+    ("datenbank", "/leon/datenbank", "Aus Datenbank"),
     ("kampagnen", "/leon/kampagnen", "Kampagnen"),
     ("leads", "/leon/leads", "Leads"),
     ("gespraeche", "/leon/gespraeche", "Gespräche"),
@@ -394,10 +397,19 @@ def register_leon_routes(app, login_required, get_db_connection):
     finally:
         conn.close()
 
+    # Datenbank/Tagesliste <-> Leon (Übergabe + Rückmeldung)
+    from leon_datenbank import register_leon_datenbank
+    register_leon_datenbank(app, login_required, get_db_connection, leon_client, LeonError)
+
     @app.route("/leon")
     @login_required
     def leon_page():
         return render_template("leon.html", leon_tab="uebersicht", leon_tabs=LEON_TABS)
+
+    @app.route("/leon/datenbank")
+    @login_required
+    def leon_datenbank_page():
+        return render_template("leon_datenbank.html", leon_tab="datenbank", leon_tabs=LEON_TABS)
 
     @app.route("/leon/<page>")
     @login_required
