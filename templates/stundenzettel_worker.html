@@ -473,6 +473,9 @@ function clearDayPopup() {
             return;
         }
 
+        // Ekran listesinden de çıkar: ay değiştirip dönünce silinen kayıt geri gelmesin
+        delete SAVED_LOGS[date];
+
         document.getElementById('popupStart').value = '';
         document.getElementById('popupEnd').value = '';
         document.getElementById('popupPlace').value = '';
@@ -809,12 +812,15 @@ function saveDayPopup() {
     .then(data => {
         if (data.success) {
             console.log("✅ Veritabanına kaydedildi. Urlaub bakiyesi düşürüldü.");
+            // Ekran listesini de güncelle: ay değiştirip dönünce saat kaybolmasın
+            SAVED_LOGS[date] = { start: start, end: end, place: finalPlace, signed: signed ? 1 : 0 };
         } else {
             alert("⚠️ Kayıt Hatası: " + data.error);
         }
     })
     .catch(err => {
         console.error("Bağlantı kesildi:", err);
+        alert("⚠️ Nicht gespeichert – keine Verbindung. Bitte nochmal speichern.");
     });
 
     closeDayPopup();
@@ -847,6 +853,49 @@ function refreshDaySummary(row) {
         button.style.background = '#2563eb';
     }
 }
+
+// 🔄 Telefonda uygulamaya geri dönülünce saatleri sunucudan sessizce yeniden al.
+// Sadece veri değiştiyse ve kayıt penceresi açık değilse ekranı yeniden çizer.
+let lastLogsReload = 0;
+function reloadSavedLogs() {
+    const now = Date.now();
+    if (now - lastLogsReload < 5000) return;
+    lastLogsReload = now;
+
+    const workerId = {{ mitarbeiter_liste[0].id }};
+    const code = decodeURIComponent(window.location.pathname.split("/").filter(Boolean).pop() || "");
+
+    fetch(window.location.origin + '/api/stundenzettel/' + workerId + '?code=' + encodeURIComponent(code), { cache: 'no-store' })
+        .then(res => res.json())
+        .then(data => {
+            if (!data || !data.success || !Array.isArray(data.entries)) return;
+
+            const fresh = {};
+            data.entries.forEach(e => {
+                fresh[e.date] = { start: e.start, end: e.end, place: e.place, signed: e.signed ? 1 : 0 };
+            });
+
+            const norm = obj => JSON.stringify(Object.keys(obj).sort().map(k => [k,
+                obj[k].start || '', obj[k].end || '', obj[k].place || '', obj[k].signed ? 1 : 0]));
+            if (norm(fresh) === norm(SAVED_LOGS)) return;
+
+            Object.keys(SAVED_LOGS).forEach(k => delete SAVED_LOGS[k]);
+            Object.assign(SAVED_LOGS, fresh);
+
+            const popup = document.getElementById('dayPopup');
+            const popupOpen = popup && popup.style.display && popup.style.display !== 'none';
+            const section = document.getElementById('timeSheetSection');
+            if (!popupOpen && section && section.style.display === 'block') renderMonthRows();
+        })
+        .catch(() => {});
+}
+
+document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') reloadSavedLogs();
+});
+window.addEventListener('pageshow', (e) => {
+    if (e.persisted) reloadSavedLogs();
+});
 </script>
 
 
