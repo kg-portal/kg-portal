@@ -1568,24 +1568,6 @@
             return;
         }
 
-        const confirmed =
-            window.confirm(
-                "Telefonanruf an " +
-                phoneNumber +
-                " jetzt wirklich starten?\n\n" +
-                "Der Anruf verursacht Telefonkosten. OpenAI wird vorab verbunden, damit Leon beim Abheben ohne zusätzliche Wartezeit bereit ist."
-            );
-
-        if (!confirmed) {
-            phoneCallStatus.textContent =
-                "Anruf nicht gestartet.";
-
-            phoneCallStatus.className =
-                "phone-call-status";
-
-            return;
-        }
-
         rememberPhoneNumber(
             phoneNumber
         );
