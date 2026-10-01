@@ -555,20 +555,18 @@ const SAVED_LOGS = {{ saved_logs | safe if saved_logs else '{}' }};
 let currentPopupRow = null;
 let selectedMonthIndex = 0;
 
-const monthList = [
-    { month: 4, year: 2026, label: 'April 2026' },
-    { month: 5, year: 2026, label: 'Mai 2026' },
-    { month: 6, year: 2026, label: 'Juni 2026' },
-    { month: 7, year: 2026, label: 'Juli 2026' },
-    { month: 8, year: 2026, label: 'August 2026' },
-    { month: 9, year: 2026, label: 'September 2026' },
-    { month: 10, year: 2026, label: 'Oktober 2026' },
-    { month: 11, year: 2026, label: 'November 2026' },
-    { month: 12, year: 2026, label: 'Dezember 2026' },
-    { month: 1, year: 2027, label: 'Januar 2027' },
-    { month: 2, year: 2027, label: 'Februar 2027' },
-    { month: 3, year: 2027, label: 'März 2027' }
-];
+const MONATSNAMEN = ['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni', 'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember'];
+
+// Ab April 2026 bis fünf Monate nach dem aktuellen Monat – läuft automatisch weiter
+const monthList = (function () {
+    const liste = [];
+    const jetzt = new Date();
+    const ende = new Date(jetzt.getFullYear(), jetzt.getMonth() + 5, 1);
+    for (let d = new Date(2026, 3, 1); d <= ende; d = new Date(d.getFullYear(), d.getMonth() + 1, 1)) {
+        liste.push({ month: d.getMonth() + 1, year: d.getFullYear(), label: MONATSNAMEN[d.getMonth()] + ' ' + d.getFullYear() });
+    }
+    return liste;
+})();
 
 const heute = new Date();
 const aktuellerMonatIndex = monthList.findIndex(item =>
