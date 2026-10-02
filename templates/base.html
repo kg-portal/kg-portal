@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>KG Portal V2</title>
+    <script src="/static/kg_theme.js"></script>
     <link rel="manifest" href="/static/manifest.json">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -791,6 +792,7 @@
 
     <aside class="portal-sidebar">
         <a class="portal-sidebar-title" href="/"><span class="portal-title-main">KG CRM</span><span class="portal-title-sub">PORTAL</span></a>
+        <div data-kg-theme-slot style="padding:0 18px 12px;"></div>
 
         <nav id="portalNavSortable" class="portal-nav-list">
             <a class="portal-nav-item {% if request.path == '/' %}active{% endif %}" href="/" data-nav-key="startseite">
