@@ -209,8 +209,8 @@ button.primary,
 /* Sarı aksiyon */
 .btn-warning,
 .warning-btn {
-    background:linear-gradient(135deg,#f59e0b,#fbbf24) !important;
-    color:#3b1d02 !important;
+    background:linear-gradient(135deg,#c2410c,#f97316) !important;
+    color:#fff !important;
 }
 
 /* Kırmızı aksiyon */
@@ -313,8 +313,8 @@ button.primary,
 }
 
 .result-btn[data-result="Rechnung"] {
-    background:linear-gradient(135deg,#f59e0b,#fbbf24) !important;
-    color:#3b1d02 !important;
+    background:linear-gradient(135deg,#c2410c,#f97316) !important;
+    color:#fff !important;
 }
 
 .result-btn[data-result="Kein Interesse"],
