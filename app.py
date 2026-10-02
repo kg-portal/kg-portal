@@ -34,6 +34,7 @@ from app2 import register_app2_routes
 from whatsapp_connector_routes import register_whatsapp_connector_routes
 from kg_ai_routes import register_kg_ai_routes, run_due_quality_campaigns
 from kg_todo_routes import register_kg_todo_routes
+from leon_routes import register_leon_routes
 
 
 try:
@@ -862,6 +863,7 @@ def run_db_migration():
 run_db_migration()
 
 register_kg_todo_routes(app, login_required, get_db_connection)
+register_leon_routes(app, login_required, get_db_connection)
 
 
 # =====================================================
@@ -2388,6 +2390,13 @@ def save_stundenzettel():
     conn = get_db_connection()
     try:
         for e in entries:
+            # Vorheriger Eintrag dieses Tages – für die Urlaubsrechnung
+            vorher = conn.execute(
+                "SELECT place FROM work_logs WHERE worker_id = ? AND datum = ?",
+                (worker_id, e['date'])
+            ).fetchone()
+            war_urlaub = bool(vorher) and vorher["place"] == "Urlaub"
+
             # 🚀 Bölüm 18.5: UPSERT MANTIĞI 
             # (Aynı işçi ve tarih varsa güncelle, yoksa yeni satır aç)
             conn.execute('''
@@ -2400,9 +2409,13 @@ def save_stundenzettel():
                     signed=excluded.signed
             ''', (worker_id, e['date'], e['start'], e['end'], e['place'], 1 if e['signed'] else 0))
             
-            # 🔥 Bölüm 18.5: URALUB DÜŞME
-            if e['place'] == "Urlaub":
-                conn.execute("UPDATE mitarbeiter SET resturlaub = MAX(0, resturlaub - 1) WHERE id = ?", (worker_id,))
+            # 🔥 Bölüm 18.5: URLAUB – nur abziehen, wenn der Tag NEU Urlaub wird;
+            # wird ein Urlaubstag geändert, den Tag zurückgeben (vorher bei jedem Speichern erneut abgezogen)
+            ist_urlaub = e['place'] == "Urlaub"
+            if ist_urlaub and not war_urlaub:
+                conn.execute("UPDATE mitarbeiter SET resturlaub = MAX(0, COALESCE(resturlaub, 0) - 1) WHERE id = ?", (worker_id,))
+            elif war_urlaub and not ist_urlaub:
+                conn.execute("UPDATE mitarbeiter SET resturlaub = COALESCE(resturlaub, 0) + 1 WHERE id = ?", (worker_id,))
 
         conn.commit()
         return jsonify({"success": True})
@@ -2430,10 +2443,19 @@ def delete_stundenzettel():
 
     conn = get_db_connection()
     try:
+        vorher = conn.execute(
+            "SELECT place FROM work_logs WHERE worker_id = ? AND datum = ?",
+            (worker_id, date)
+        ).fetchone()
+
         conn.execute("""
             DELETE FROM work_logs
             WHERE worker_id = ? AND datum = ?
         """, (worker_id, date))
+
+        # Gelöschter Urlaubstag: Tag zurückgeben
+        if vorher and vorher["place"] == "Urlaub":
+            conn.execute("UPDATE mitarbeiter SET resturlaub = COALESCE(resturlaub, 0) + 1 WHERE id = ?", (worker_id,))
 
         conn.commit()
         return jsonify({"success": True})

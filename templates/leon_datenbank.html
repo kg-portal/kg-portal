@@ -1,0 +1,247 @@
+{% extends "base.html" %}
+{% block content %}
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+
+<style>
+    .ldb { font-family: 'Inter', sans-serif; display: flex; flex-direction: column; gap: 20px; }
+    .ldb-head { background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 60%, #3b82f6 100%); color: #fff; border-radius: 22px; padding: 24px 28px; box-shadow: 0 14px 30px rgba(37,99,235,.25); }
+    .ldb-head h1 { margin: 0; font-size: 24px; font-weight: 800; }
+    .ldb-head p { margin: 6px 0 0; opacity: .88; font-size: 14px; font-weight: 600; line-height: 1.5; }
+    .ldb-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 20px; padding: 20px 22px; box-shadow: 0 10px 25px rgba(0,0,0,.05); }
+    .ldb-card h2 { margin: 0 0 14px; font-size: 17px; font-weight: 800; color: #1e3a8a; }
+    .ldb-filters { display: grid; grid-template-columns: 1.1fr 1.4fr 1fr 1.2fr auto; gap: 10px; align-items: end; }
+    .ldb-filters label, .ldb-target label { display: block; font-size: 12px; font-weight: 800; color: #475569; margin-bottom: 6px; }
+    .ldb-input { width: 100%; box-sizing: border-box; padding: 11px 13px; border-radius: 12px; border: 2px solid #f1f5f9; background: #f8fafc; font-size: 14px; font-weight: 600; outline: none; font-family: inherit; }
+    .ldb-input:focus { border-color: #2563eb; background: #fff; }
+    .ldb-check { display: flex; gap: 8px; align-items: center; font-size: 13px; font-weight: 700; color: #334155; margin-top: 10px; }
+    .ldb-btn { border: none; border-radius: 12px; padding: 12px 16px; font-weight: 800; font-size: 14px; cursor: pointer; background: #2563eb; color: #fff; white-space: nowrap; font-family: inherit; }
+    .ldb-btn:hover { background: #1d4ed8; }
+    .ldb-btn:disabled { opacity: .6; cursor: wait; }
+    .ldb-btn.grey { background: #e2e8f0; color: #1e293b; }
+    .ldb-table-wrap { max-height: 460px; overflow: auto; border: 1px solid #f1f5f9; border-radius: 14px; }
+    .ldb-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .ldb-table th { position: sticky; top: 0; background: #f8fafc; text-align: left; font-size: 11px; text-transform: uppercase; color: #64748b; padding: 10px 8px; border-bottom: 2px solid #eef2f7; }
+    .ldb-table td { padding: 9px 8px; border-bottom: 1px solid #f1f5f9; vertical-align: top; }
+    .ldb-pill { display: inline-block; padding: 2px 9px; border-radius: 999px; font-size: 11px; font-weight: 800; background: #f1f5f9; color: #334155; }
+    .ldb-pill.blue { background: #dbeafe; color: #1d4ed8; }
+    .ldb-pill.green { background: #dcfce7; color: #15803d; }
+    .ldb-pill.red { background: #fee2e2; color: #b91c1c; }
+    .ldb-target { display: grid; grid-template-columns: 1.3fr 1.3fr auto; gap: 10px; align-items: end; margin-top: 14px; }
+    .ldb-msg { margin-top: 10px; font-size: 14px; font-weight: 700; }
+    .ldb-msg.ok { color: #16a34a; } .ldb-msg.err { color: #dc2626; }
+    .ldb-muted { color: #64748b; font-weight: 600; }
+    @media (max-width: 1000px) { .ldb-filters, .ldb-target { grid-template-columns: 1fr; } }
+</style>
+
+{% include "_leon_tabs.html" %}
+
+<div class="ldb">
+    <div class="ldb-head">
+        <h1>📋 Aus Datenbank an Leon</h1>
+        <p>Firmen aus der Tagesliste oder der großen Datenbank auswählen und einer Leon-Kampagne geben.
+           Nach jedem Anruf trägt Leon das Ergebnis selbst in die Tagesliste ein – wie Damla:
+           <b>Besichtigung</b> (mit m², Rhythmus und Tagen vorbefüllt), <b>Interessiert</b>, <b>Später/Rückruf</b>,
+           <b>Verloren</b> bei kein Interesse. Nicht erreicht ändert nichts.</p>
+    </div>
+
+    <div class="ldb-card">
+        <h2>1. Firmen auswählen</h2>
+        <div class="ldb-filters">
+            <div>
+                <label for="fQuelle">Quelle</label>
+                <select class="ldb-input" id="fQuelle">
+                    <option value="tagesliste">Tagesliste (offen)</option>
+                    <option value="leads">Datenbank (alle Leads)</option>
+                </select>
+            </div>
+            <div>
+                <label for="fBranche">Branche</label>
+                <select class="ldb-input" id="fBranche"><option value="">Alle Branchen</option></select>
+            </div>
+            <div>
+                <label for="fOrt">Ort / PLZ</label>
+                <input class="ldb-input" id="fOrt" placeholder="z. B. Duisburg oder 470">
+            </div>
+            <div>
+                <label for="fSuche">Firma</label>
+                <input class="ldb-input" id="fSuche" placeholder="Name enthält …">
+            </div>
+            <button class="ldb-btn" id="fLaden" type="button">Anzeigen</button>
+        </div>
+        <label class="ldb-check"><input type="checkbox" id="fNurNeu" checked> Nur Firmen, die Leon noch nicht hat</label>
+
+        <div style="display:flex;justify-content:space-between;align-items:center;margin:14px 0 8px;">
+            <span id="lInfo" class="ldb-muted">Noch nichts geladen.</span>
+            <span>
+                <button class="ldb-btn grey" id="lAlle" type="button">Alle markieren</button>
+                <button class="ldb-btn grey" id="lKeine" type="button">Keine</button>
+            </span>
+        </div>
+        <div class="ldb-table-wrap">
+            <table class="ldb-table">
+                <thead><tr><th></th><th>Firma</th><th>Branche</th><th>Ort</th><th>Telefon</th><th>CRM-Status</th><th>Leon</th></tr></thead>
+                <tbody id="lRows"><tr><td colspan="7" class="ldb-muted">Filter wählen und „Anzeigen“ klicken.</td></tr></tbody>
+            </table>
+        </div>
+
+        <h2 style="margin-top:20px">2. An Leon übergeben</h2>
+        <div class="ldb-target">
+            <div>
+                <label for="tKampagne">Kampagne</label>
+                <select class="ldb-input" id="tKampagne"><option value="">– neue Kampagne –</option></select>
+            </div>
+            <div>
+                <label for="tNeu">Name der neuen Kampagne</label>
+                <input class="ldb-input" id="tNeu" placeholder="z. B. Praxen Duisburg Oktober">
+            </div>
+            <button class="ldb-btn" id="tSenden" type="button">📞 An Leon übergeben</button>
+        </div>
+        <div class="ldb-msg" id="tMsg"></div>
+        <p class="ldb-muted" style="font-size:12px;margin:10px 0 0">Die Kampagne startest du danach im Reiter <a href="/leon/kampagnen">Kampagnen</a> (Status „Aktiv“). Leon ruft nur in den Anrufzeiten an.</p>
+    </div>
+
+    <div class="ldb-card">
+        <h2 style="display:flex;justify-content:space-between;align-items:center">
+            <span>3. Rückmeldung in die Tagesliste</span>
+            <button class="ldb-btn grey" id="sJetzt" type="button">Jetzt abgleichen</button>
+        </h2>
+        <div class="ldb-msg" id="sMsg" style="margin-top:0"></div>
+        <div class="ldb-table-wrap" style="max-height:360px">
+            <table class="ldb-table">
+                <thead><tr><th>Firma</th><th>Quelle</th><th>Kampagne</th><th>Letzter Anruf</th><th>Ergebnis</th><th>Aktualisiert</th></tr></thead>
+                <tbody id="vRows"></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+(function () {
+    const $ = (id) => document.getElementById(id);
+    let kandidaten = [];
+    let kampagnenNamen = {};
+
+    function esc(v) {
+        return String(v == null ? '' : v).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+    async function api(url, options) {
+        const res = await fetch(url, Object.assign({ headers: { 'Content-Type': 'application/json' } }, options || {}));
+        try { return await res.json(); } catch (e) { return { success: false, error: 'Unerwartete Antwort (' + res.status + ')' }; }
+    }
+    function ergebnisPill(text) {
+        const t = String(text || '');
+        const cls = /besichtigung|interess/i.test(t) ? 'green' : /kein|verloren/i.test(t) ? 'red' : t ? 'blue' : '';
+        return t ? `<span class="ldb-pill ${cls}">${esc(t)}</span>` : '<span class="ldb-muted">–</span>';
+    }
+
+    async function ladeBranchen() {
+        const data = await api('/api/leon/datenbank/branchen');
+        (data.branchen || []).forEach(b => {
+            const o = document.createElement('option'); o.value = b; o.textContent = b; $('fBranche').appendChild(o);
+        });
+    }
+
+    async function ladeKampagnen() {
+        const data = await api('/leon-api/campaigns');
+        const list = data.campaigns || [];
+        kampagnenNamen = {};
+        list.forEach(c => {
+            kampagnenNamen[c.id] = c.name;
+            const o = document.createElement('option');
+            o.value = c.id; o.textContent = c.name + ' (' + (c.status || '') + ', ' + (c.lead_count || 0) + ' Leads)';
+            $('tKampagne').appendChild(o);
+        });
+    }
+
+    async function ladeKandidaten() {
+        $('lInfo').textContent = 'Lade …';
+        const params = new URLSearchParams({
+            quelle: $('fQuelle').value, branche: $('fBranche').value, ort: $('fOrt').value.trim(),
+            q: $('fSuche').value.trim(), nur_neu: $('fNurNeu').checked ? '1' : '0', limit: '300'
+        });
+        const data = await api('/api/leon/datenbank/kandidaten?' + params);
+        kandidaten = data.kandidaten || [];
+        $('lInfo').textContent = kandidaten.length + ' Firmen' + (kandidaten.length >= 300 ? ' (max. 300 – Filter enger stellen)' : '');
+        $('lRows').innerHTML = kandidaten.length ? kandidaten.map(k => `
+            <tr>
+                <td><input type="checkbox" class="lPick" value="${k.id}"></td>
+                <td><b>${esc(k.firma)}</b>${k.ansprechpartner ? '<br><span class="ldb-muted">' + esc(k.ansprechpartner) + '</span>' : ''}</td>
+                <td>${esc(k.branche)}</td>
+                <td>${esc([k.plz, k.ort].filter(Boolean).join(' '))}</td>
+                <td>${esc(k.telefon)}</td>
+                <td><span class="ldb-pill">${esc(k.crm_status || '')}</span></td>
+                <td>${ergebnisPill(k.letztes_ergebnis || (k.letzter_status ? k.letzter_status : ''))}</td>
+            </tr>`).join('') : '<tr><td colspan="7" class="ldb-muted">Keine passenden Firmen mit Telefonnummer.</td></tr>';
+    }
+
+    async function ladeVerknuepfungen() {
+        const data = await api('/api/leon/datenbank/verknuepfungen');
+        const links = data.links || [];
+        $('vRows').innerHTML = links.length ? links.map(l => `
+            <tr>
+                <td><b>${esc(l.firma)}</b><br><span class="ldb-muted">${esc(l.telefon)}</span></td>
+                <td>${l.quelle === 'tagesliste' ? 'Tagesliste' : 'Datenbank'}${l.tagesliste_id ? ' <span class="ldb-muted">#' + l.tagesliste_id + '</span>' : ''}</td>
+                <td>${esc(kampagnenNamen[l.kampagne_id] || (l.kampagne_id ? '#' + l.kampagne_id : ''))}</td>
+                <td>${esc(l.letzter_status || 'noch nicht angerufen')}</td>
+                <td>${ergebnisPill(l.letztes_ergebnis)}</td>
+                <td class="ldb-muted">${esc(l.aktualisiert_am || l.erstellt_am || '')}</td>
+            </tr>`).join('') : '<tr><td colspan="6" class="ldb-muted">Noch keine Firmen an Leon übergeben.</td></tr>';
+    }
+
+    $('fLaden').addEventListener('click', ladeKandidaten);
+    $('fQuelle').addEventListener('change', ladeKandidaten);
+    $('lAlle').addEventListener('click', () => document.querySelectorAll('.lPick').forEach(c => c.checked = true));
+    $('lKeine').addEventListener('click', () => document.querySelectorAll('.lPick').forEach(c => c.checked = false));
+
+    $('tSenden').addEventListener('click', async () => {
+        const ids = Array.from(document.querySelectorAll('.lPick:checked')).map(c => Number(c.value));
+        const msg = $('tMsg');
+        if (!ids.length) { msg.className = 'ldb-msg err'; msg.textContent = 'Bitte Firmen markieren.'; return; }
+        const kampagne = $('tKampagne').value;
+        const neu = $('tNeu').value.trim();
+        if (!kampagne && !neu) { msg.className = 'ldb-msg err'; msg.textContent = 'Bitte Kampagne wählen oder einen Namen für die neue Kampagne eingeben.'; return; }
+        if (!confirm(ids.length + ' Firmen an Leon übergeben?')) return;
+        $('tSenden').disabled = true;
+        msg.className = 'ldb-msg'; msg.textContent = 'Übergebe …';
+        const data = await api('/api/leon/datenbank/uebergeben', {
+            method: 'POST',
+            body: JSON.stringify({ quelle: $('fQuelle').value, ids, kampagne_id: kampagne || null, neue_kampagne: neu })
+        });
+        $('tSenden').disabled = false;
+        if (data.success) {
+            msg.className = 'ldb-msg ok';
+            msg.textContent = '✓ ' + data.uebernommen + ' Firmen an Leon übergeben, ' + data.in_kampagne + ' neu in der Kampagne.'
+                + (data.hinweise && data.hinweise.length ? ' Hinweise: ' + data.hinweise.join(' · ') : '');
+            $('tKampagne').innerHTML = '<option value="">– neue Kampagne –</option>';
+            await ladeKampagnen();
+            if (data.kampagne_id) $('tKampagne').value = String(data.kampagne_id);
+            $('tNeu').value = '';
+            ladeKandidaten();
+            ladeVerknuepfungen();
+        } else {
+            msg.className = 'ldb-msg err'; msg.textContent = data.error || 'Übergabe fehlgeschlagen.';
+        }
+    });
+
+    $('sJetzt').addEventListener('click', async () => {
+        $('sJetzt').disabled = true;
+        const data = await api('/api/leon/datenbank/sync', { method: 'POST', body: '{}' });
+        $('sJetzt').disabled = false;
+        const msg = $('sMsg');
+        if (data.ok) {
+            msg.className = 'ldb-msg ok';
+            msg.textContent = data.laeuft_bereits ? 'Abgleich läuft bereits …'
+                : '✓ ' + (data.aktualisiert || 0) + ' Firmen in der Tagesliste aktualisiert, ' + (data.nicht_erreicht || 0) + ' nicht erreicht.';
+        } else {
+            msg.className = 'ldb-msg err'; msg.textContent = data.error || 'Abgleich fehlgeschlagen.';
+        }
+        ladeVerknuepfungen();
+    });
+
+    ladeBranchen();
+    ladeKampagnen().then(ladeVerknuepfungen);
+})();
+</script>
+
+{% endblock %}

@@ -95,7 +95,7 @@ body{background:#edf2f7;font-family:'Inter',sans-serif;color:#0f172a}
   justify-content:center;
   text-align:center;
   padding:30px;
-  color:#94a3b8;
+  color:#64748b;
   font-size:15px;
   font-weight:700;
 }
@@ -150,6 +150,16 @@ body{background:#edf2f7;font-family:'Inter',sans-serif;color:#0f172a}
 .hero-mini-plus{width:34px;height:34px;border-radius:10px;border:none;background:#fff;color:#16368b;font-size:20px;font-weight:800;display:flex;align-items:center;justify-content:center;cursor:pointer}
 .hero-mini-title{font-size:11px;font-weight:700;color:#fff;text-transform:uppercase}
 .hero-mini-sub{font-size:9px;color:#ffffffcc;text-align:center;line-height:1}
+
+/* Telefon: Kopfbereich passt in die Breite (rechte Knöpfe nicht abgeschnitten) */
+.hero-left-content,.hero-left-grid{min-width:0}
+@media(max-width:600px){
+  .hero-row{gap:12px}
+  .hero-btn-wrapper{flex:0 0 96px}
+  .hero-mini{width:92px}
+  .hero-left-grid{grid-template-columns:1fr}
+  .hero-header-titles h1{font-size:17px;overflow-wrap:anywhere}
+}
 
 .section-title{font-size:18px;font-weight:800;line-height:1.1;margin:0 0 24px 0;color:#0f172a;text-align:left;display:flex;align-items:center;flex-wrap:wrap;gap:10px;}
 .total-badge {background:linear-gradient(135deg,#16368b 0%,#2563eb 100%); color:#fff; padding:4px 12px; border-radius:20px; font-size:13px; font-weight:700;}
@@ -411,19 +421,19 @@ body{background:#edf2f7;font-family:'Inter',sans-serif;color:#0f172a}
   justify-content: center;
 }
 .btn-speichern {
-  background: #16a34a;
+  background: #15803d;
   box-shadow: 0 4px 14px rgba(22, 163, 74, 0.3);
 }
 .btn-speichern:hover {
-  background: #15803d;
+  background: #166534;
   transform: translateY(-2px);
 }
 .btn-senden {
-  background: #ef4444;
+  background: #dc2626;
   box-shadow: 0 4px 14px rgba(239, 68, 68, 0.3);
 }
 .btn-senden:hover {
-  background: #dc2626;
+  background: #b91c1c;
   transform: translateY(-2px);
 }
 

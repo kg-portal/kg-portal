@@ -773,6 +773,16 @@
                 margin-left:auto !important;
                 overflow:hidden !important;
             }
+
+        /* Telefon: Eingabefelder mind. 16px, sonst vergrößert das iPhone die Seite beim Antippen.
+           Steht absichtlich vor der folgenden (schon vorhandenen, überzähligen) Klammer, sonst wird die Regel ignoriert. */
+        @media (max-width: 768px) {
+            input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]),
+            select,
+            textarea {
+                font-size:16px !important;
+            }
+        }
         }
     </style>
 </head>
@@ -819,6 +829,11 @@
 
             <a class="portal-nav-item {% if request.path.startswith('/datenbank') %}active{% endif %}" href="/datenbank" data-nav-key="datenbank">
                 <span class="portal-nav-content"><i class="fa-solid fa-server icon-purple"></i> Datenbank</span>
+                <i class="fa-solid fa-grip-vertical portal-drag-handle"></i>
+            </a>
+
+            <a class="portal-nav-item {% if request.path.startswith('/leon') %}active{% endif %}" href="/leon" data-nav-key="leon">
+                <span class="portal-nav-content"><i class="fa-solid fa-phone-volume icon-blue"></i> Leon</span>
                 <i class="fa-solid fa-grip-vertical portal-drag-handle"></i>
             </a>
 
@@ -909,6 +924,7 @@ document.addEventListener('DOMContentLoaded', function () {
         'kg-ai',
         'whatsapp-inbox',
         'datenbank',
+        'leon',
         'besichtigung',
         'angebot',
         'leistungsverzeichnis',

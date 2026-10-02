@@ -57,9 +57,9 @@
 }
 
 .kg-mit-hero-btn.whatsapp {
-    background: #22c55e;
+    background: #15803d;
     color: #ffffff;
-    border-color: #22c55e;
+    border-color: #15803d;
 }
 
 .kg-mit-hero-btn.print {
@@ -87,12 +87,18 @@
     position: relative;
     z-index: 9999;
     overflow: visible;
+    flex-wrap: wrap; /* Knöpfe brechen um statt rechts abgeschnitten zu werden */
+}
+
+/* Vertrag-Leiste: Knöpfe brechen bei wenig Platz in die nächste Zeile um */
+#vertragBar {
+    flex-wrap: wrap;
 }
 .kg-mit-table-card {
     background: #ffffff;
     border: 1px solid #dbe3ef;
     border-radius: 20px;
-    overflow: hidden;
+    overflow-x: auto; /* Telefon: Tabelle seitlich wischbar statt abgeschnitten */
     box-shadow: 0 14px 32px rgba(15,23,42,0.07);
 }
 
@@ -170,7 +176,7 @@
 
     .kg-mit-toolbar {
         align-items: flex-start;
-        flex-wrap: nowrap;
+        flex-wrap: wrap;
     }
 }
 
@@ -571,7 +577,7 @@ function toggleWeitere(){
 <DIV CLASS="NO-PRINT kg-mit-toolbar">
     <DIV STYLE="DISPLAY: FLEX; ALIGN-ITEMS: CENTER; GAP: 10PX;">
         <SPAN STYLE="
-            BACKGROUND: #16A34A;
+            BACKGROUND: #15803D;
             COLOR: WHITE;
             HEIGHT: 36PX;
             PADDING: 0 14PX;
@@ -609,7 +615,7 @@ function toggleWeitere(){
     <DIV STYLE="WIDTH: 1.5PX; HEIGHT: 28PX; BACKGROUND: #E2E8F0; MARGIN: 0 4PX;"></DIV>
 
     <BUTTON onclick="startBulkPrintEngine()" STYLE="
-        BACKGROUND: #16A34A;
+        BACKGROUND: #15803D;
         COLOR: WHITE;
         BORDER: NONE;
         HEIGHT: 36PX;
@@ -695,7 +701,7 @@ function toggleWeitere(){
 
         <button id="vertragErstellenBtn"
                 style="
-                    background: #16A34A;
+                    background: #15803D;
                     color: white;
                     border: none;
                     height: 36px;
@@ -717,7 +723,7 @@ function toggleWeitere(){
 
         <button id="befreiungErstellenBtn"
                 style="
-                    background: #F59E0B;
+                    background: linear-gradient(135deg, #C2410C, #F97316);
                     color: white;
                     border: none;
                     height: 36px;
@@ -788,7 +794,7 @@ function toggleWeitere(){
         {% for m in mitarbeiter_liste if m.status == 'aktiv' %}
         <tr id="row-{{ m.id }}" data-id="{{ m.id }}" style="border-bottom: 1px solid #f1f5f9;">
             <td class="no-print" style="padding: 15px; width:44px; color:#94a3b8; text-align:center;">
-    <span class="drag-handle" style="cursor:grab; font-size:18px; user-select:none;">☰</span>
+    <span class="drag-handle" style="cursor:grab; color:#64748b; font-size:18px; user-select:none;">☰</span>
 </td>
 <td class="display-name" style="padding: 15px; font-weight: 600; color:#1e293b;">
     {{ m.vorname }} {{ m.nachname }}
@@ -822,13 +828,13 @@ function toggleWeitere(){
 </td>
 
 <td class="display-stadt" style="padding: 15px; color:#1e293b; font-weight: 600;">{{ m.ort if m.ort and m.ort != 'None' else '' }}</td>
-<td style="padding: 15px; color: #059669; font-weight: 700;">
+<td style="padding: 15px; color: #047857; font-weight: 700;">
   {{ "{:,.2f}".format((m.stundenlohn|string|replace(",", ".")|float)).replace(",", "X").replace(".", ",").replace("X", ".") }} €
 </td>
 
 <td style="padding: 15px; color:#1e293b;">
     {{ m.urlaub if m.urlaub else '0' }} /
-    <span style="color:#ef4444; font-weight:700;">
+    <span style="color:#dc2626; font-weight:700;">
         {{ m.resturlaub if m.resturlaub is not none else '0' }}
     </span>
 </td>

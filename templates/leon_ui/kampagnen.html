@@ -1,0 +1,4165 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>
+        Kampagnen | KG Gebäudereinigung Voice Portal
+    </title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, Helvetica, sans-serif;
+            background: #f6f8fc;
+            color: #172033;
+        }
+
+        .app {
+            display: grid;
+            grid-template-columns: 235px minmax(0, 1fr);
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            background: #eaf1f5;
+            border-right: 1px solid #d9e3e9;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            padding: 0;
+        }
+
+        .sidebar-top {
+            padding: 25px 16px 20px;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 0 5px;
+            margin-bottom: 24px;
+        }
+
+        .brand-mark {
+            width: 39px;
+            height: 39px;
+            border-radius: 11px;
+            background: linear-gradient(
+                135deg,
+                #87b8cf,
+                #2f7ea4
+            );
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 15px;
+            font-weight: 900;
+        }
+
+        .brand-text strong {
+            display: block;
+            font-size: 18px;
+            line-height: 1.05;
+        }
+
+        .brand-text span {
+            display: block;
+            margin-top: 3px;
+            color: #7690a0;
+            font-size: 10px;
+            letter-spacing: 1.1px;
+            font-weight: 800;
+        }
+
+        .trial-card {
+            background: white;
+            border: 1px solid #d8e2e7;
+            border-radius: 14px;
+            padding: 15px;
+            margin-bottom: 13px;
+            box-shadow: 0 2px 8px rgba(30, 58, 78, 0.05);
+        }
+
+        .trial-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 11px;
+            color: #4b5f6c;
+            font-weight: 800;
+            margin-bottom: 10px;
+        }
+
+        .trial-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .trial-circle {
+            width: 39px;
+            height: 39px;
+            border: 2px solid #75a8c2;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #2f7194;
+            font-size: 12px;
+            font-weight: 900;
+            background: #f8fcfe;
+        }
+
+        .trial-main strong {
+            display: block;
+            font-size: 12px;
+        }
+
+        .trial-main span {
+            display: block;
+            margin-top: 2px;
+            color: #8b9ba5;
+            font-size: 10px;
+        }
+
+        .trial-button {
+            width: 100%;
+            margin-top: 11px;
+            border: 0;
+            border-radius: 8px;
+            background: #3d85aa;
+            color: white;
+            padding: 10px 12px;
+            font-size: 11px;
+            font-weight: 800;
+        }
+
+        .new-call {
+            width: 100%;
+            border: 0;
+            border-radius: 18px;
+            background: #3d85aa;
+            color: white;
+            padding: 12px 15px;
+            font-size: 12px;
+            font-weight: 800;
+            margin-bottom: 18px;
+        }
+
+        .nav {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .nav-section-title {
+            color: #8ca0ac;
+            font-size: 9px;
+            letter-spacing: 1.4px;
+            text-transform: uppercase;
+            font-weight: 900;
+            padding: 15px 7px 6px;
+        }
+
+        .nav a {
+            text-decoration: none;
+            color: #55707f;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            min-height: 39px;
+            padding: 9px 9px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 700;
+            position: relative;
+        }
+
+        .nav a:hover {
+            background: rgba(255,255,255,.65);
+        }
+
+        .nav a.active {
+            background: rgba(255,255,255,.88);
+            color: #2f7194;
+        }
+
+        .nav a.active::before {
+            content: "";
+            position: absolute;
+            left: -16px;
+            top: 4px;
+            bottom: 4px;
+            width: 3px;
+            border-radius: 10px;
+            background: #3d85aa;
+        }
+
+        .nav-icon {
+            width: 18px;
+            text-align: center;
+            font-size: 14px;
+            opacity: .85;
+        }
+
+        .sidebar-bottom {
+            margin-top: auto;
+            padding: 16px;
+            border-top: 1px solid #d9e3e9;
+        }
+
+        .user-box {
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            margin-bottom: 13px;
+        }
+
+        .user-avatar {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            background: #3d85aa;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 900;
+        }
+
+        .user-meta strong {
+            display: block;
+            font-size: 11px;
+        }
+
+        .user-meta span {
+            display: block;
+            color: #8a9ba6;
+            font-size: 9px;
+            margin-top: 2px;
+        }
+
+        .mini-links {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .mini-links a {
+            color: #5f7481;
+            text-decoration: none;
+            font-size: 11px;
+            padding: 6px 2px;
+        }
+
+        .main {
+            padding: 32px;
+            min-width: 0;
+        }
+
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 20px;
+            margin-bottom: 24px;
+        }
+
+        .topbar h1 {
+            margin: 0;
+            font-size: 28px;
+        }
+
+        .topbar p {
+            margin: 7px 0 0;
+            color: #64748b;
+        }
+
+        button {
+            border: 0;
+            border-radius: 12px;
+            padding: 12px 18px;
+            font-size: 14px;
+            font-weight: 800;
+            cursor: pointer;
+        }
+
+        .btn-primary {
+            background: #1e40af;
+            color: white;
+        }
+
+        .btn-secondary {
+            background: #eef2f7;
+            color: #334155;
+        }
+
+        .btn-danger {
+            background: #fee2e2;
+            color: #b91c1c;
+        }
+
+        .btn-small {
+            padding: 8px 11px;
+            border-radius: 9px;
+            font-size: 12px;
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns:
+                repeat(5, minmax(0, 1fr));
+            gap: 14px;
+            margin-bottom: 20px;
+        }
+
+        .summary-card {
+            background: white;
+            border: 1px solid #e3e8f2;
+            border-radius: 18px;
+            padding: 18px;
+        }
+
+        .summary-card span {
+            display: block;
+            color: #64748b;
+            font-size: 12px;
+            font-weight: 700;
+            margin-bottom: 7px;
+        }
+
+        .summary-card strong {
+            font-size: 25px;
+        }
+
+        .panel {
+            background: white;
+            border: 1px solid #e3e8f2;
+            border-radius: 20px;
+            padding: 20px;
+        }
+
+        .table-wrap {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 1250px;
+        }
+
+        th,
+        td {
+            text-align: left;
+            padding: 13px 12px;
+            border-bottom: 1px solid #edf1f6;
+            vertical-align: middle;
+            font-size: 13px;
+        }
+
+        th {
+            color: #64748b;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: .04em;
+            background: #f8fafc;
+        }
+
+        td strong {
+            color: #172033;
+        }
+
+        .muted {
+            color: #64748b;
+        }
+
+        .subline {
+            display: block;
+            margin-top: 4px;
+            color: #64748b;
+            font-size: 11px;
+            line-height: 1.4;
+        }
+
+        .mini-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 4px 7px;
+            margin: 3px 4px 0 0;
+            border-radius: 999px;
+            background: #eef2f7;
+            color: #475569;
+            font-size: 10px;
+            font-weight: 800;
+            white-space: nowrap;
+        }
+
+        .mini-badge.running {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .mini-badge.retry {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .mini-badge.blocked {
+            background: #fee2e2;
+            color: #b91c1c;
+        }
+
+        .status {
+            display: inline-flex;
+            align-items: center;
+            min-height: 28px;
+            padding: 5px 10px;
+            border-radius: 999px;
+            background: #eef2f7;
+            color: #475569;
+            font-size: 11px;
+            font-weight: 800;
+            white-space: nowrap;
+        }
+
+        .status.aktiv {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .status.bereit {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .status.pausiert {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .status.beendet {
+            background: #e2e8f0;
+            color: #475569;
+        }
+
+        .status.entwurf {
+            background: #f1f5f9;
+            color: #64748b;
+        }
+
+        .actions {
+            display: flex;
+            gap: 7px;
+            flex-wrap: wrap;
+        }
+
+        .progress-wrap {
+            min-width: 150px;
+        }
+
+        .progress-bar {
+            height: 8px;
+            background: #e8edf5;
+            border-radius: 999px;
+            overflow: hidden;
+            margin-bottom: 5px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: #2563eb;
+            border-radius: 999px;
+            width: 0%;
+        }
+
+        .progress-text {
+            font-size: 11px;
+            color: #64748b;
+        }
+
+        .empty {
+            padding: 46px 20px;
+            text-align: center;
+            color: #64748b;
+        }
+
+        .notice {
+            display: none;
+            margin-bottom: 16px;
+            padding: 12px 14px;
+            border-radius: 12px;
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        .notice.show {
+            display: block;
+        }
+
+        .notice.success {
+            background: #eff6ff;
+            border: 1px solid #bfdbfe;
+            color: #2563eb;
+        }
+
+        .notice.error {
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            color: #b91c1c;
+        }
+
+        .modal-backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, .42);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            z-index: 1000;
+        }
+
+        .modal-backdrop.open {
+            display: flex;
+        }
+
+        .modal {
+            width: min(760px, 100%);
+            max-height: 90vh;
+            overflow-y: auto;
+            background: white;
+            border-radius: 22px;
+            padding: 24px;
+
+            box-shadow:
+                0 24px 70px
+                rgba(15, 23, 42, .22);
+        }
+
+        .modal.large {
+            width: min(1050px, 100%);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .modal-header h2 {
+            margin: 0;
+            font-size: 20px;
+        }
+
+        .close-button {
+            background: #eef2f7;
+            color: #475569;
+            width: 38px;
+            height: 38px;
+            padding: 0;
+            border-radius: 50%;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .field {
+            min-width: 0;
+        }
+
+        .field.full {
+            grid-column: 1 / -1;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 7px;
+            font-size: 12px;
+            font-weight: 800;
+            color: #475569;
+        }
+
+        input,
+        select {
+            width: 100%;
+            border: 1px solid #cfd8e6;
+            border-radius: 12px;
+            padding: 12px 14px;
+            font-size: 14px;
+            color: #172033;
+            background: white;
+            outline: none;
+        }
+
+        input:focus,
+        select:focus {
+            border-color: #2563eb;
+
+            box-shadow:
+                0 0 0 3px
+                rgba(37,99,235, 0.10);
+        }
+
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 22px;
+        }
+
+        .lead-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .lead-box {
+            border: 1px solid #e3e8f2;
+            border-radius: 16px;
+            overflow: hidden;
+        }
+
+        .lead-box-header {
+            padding: 14px 16px;
+            background: #f8fafc;
+            border-bottom: 1px solid #e3e8f2;
+            font-weight: 800;
+            font-size: 13px;
+        }
+
+        .lead-list {
+            max-height: 430px;
+            overflow-y: auto;
+        }
+
+        .lead-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            padding: 12px 14px;
+            border-bottom: 1px solid #edf1f6;
+        }
+
+        .lead-item:last-child {
+            border-bottom: 0;
+        }
+
+        .lead-info {
+            min-width: 0;
+        }
+
+        .lead-info strong {
+            display: block;
+            font-size: 13px;
+            margin-bottom: 3px;
+        }
+
+        .lead-info span {
+            display: block;
+            color: #64748b;
+            font-size: 11px;
+            line-height: 1.4;
+        }
+
+        .lead-select {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .lead-select input {
+            width: auto;
+        }
+
+        .order-controls {
+            display: flex;
+            gap: 5px;
+            align-items: center;
+        }
+
+        .order-button {
+            width: 30px;
+            height: 30px;
+            padding: 0;
+            border-radius: 8px;
+            background: #eef2f7;
+            color: #334155;
+        }
+
+        .manage-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            margin-top: 18px;
+        }
+
+        .selected-count {
+            font-size: 12px;
+            color: #64748b;
+        }
+
+        @media(max-width: 1050px) {
+            .summary-grid {
+                grid-template-columns:
+                    repeat(2, minmax(0, 1fr));
+            }
+
+            .lead-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media(max-width: 760px) {
+            .app {
+                grid-template-columns: 1fr;
+            }
+
+            .sidebar {
+                border-right: 0;
+                border-bottom: 1px solid #e3e8f2;
+            }
+
+            .topbar {
+                flex-direction: column;
+            }
+
+            .summary-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .field.full {
+                grid-column: auto;
+            }
+        }
+    </style>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='leon/kg_portal.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='leon/kg_shell_override.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='leon/kg_page_theme.css') }}">
+
+<style id="kg-crm-frame">
+  /* Im KG CRM eingebettet: ohne eigene Sidebar, volle Breite */
+  .business-portal-sidebar{display:none!important}
+  .business-portal-main{width:100%!important;margin-left:0!important;padding:18px!important}
+  body{background:#f8fafc!important}
+</style>
+</head>
+
+<body>
+
+<div class="kg-business-shell">
+
+    
+
+    <main class="business-portal-main"><section class="business-portal-card">
+
+        <section class="kgb-hero">
+<div class="topbar">
+
+            <div>
+                <h1>
+                    Kampagnen
+                </h1>
+
+                <p>
+                    Leads, Agenten und Anrufreihenfolge verwalten.
+                </p>
+            </div>
+
+            <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+                <button
+                    class="btn-secondary"
+                    id="campaignSelectModeButton"
+                    type="button"
+                    onclick="toggleCampaignSelectionMode()"
+                >
+                    Auswählen
+                </button>
+
+                <button
+                    class="btn-secondary"
+                    id="campaignSelectAllButton"
+                    type="button"
+                    onclick="selectAllCampaigns()"
+                    style="display:none;"
+                >
+                    Alle auswählen
+                </button>
+
+                <button
+                    class="btn-danger"
+                    id="campaignDeleteSelectedButton"
+                    type="button"
+                    onclick="deleteSelectedCampaigns()"
+                    style="display:none;"
+                >
+                    Auswahl löschen
+                </button>
+
+                <button
+                    class="btn-secondary"
+                    id="campaignCancelSelectionButton"
+                    type="button"
+                    onclick="cancelCampaignSelectionMode()"
+                    style="display:none;"
+                >
+                    Abbrechen
+                </button>
+
+                <button
+                    class="btn-primary"
+                    type="button"
+                    onclick="openCampaignModal()"
+                >
+                    + Kampagne erstellen
+                </button>
+            </div>
+
+        </div>
+
+        
+
+        <section class="summary-grid">
+
+            <div class="summary-card">
+                <span>
+                    Kampagnen gesamt
+                </span>
+
+                <strong id="campaignCount">
+                    0
+                </strong>
+            </div>
+
+            <div class="summary-card">
+                <span>
+                    Aktiv
+                </span>
+
+                <strong id="activeCount">
+                    0
+                </strong>
+            </div>
+
+            <div class="summary-card">
+                <span>
+                    Leads in Kampagnen
+                </span>
+
+                <strong id="campaignLeadCount">
+                    0
+                </strong>
+            </div>
+
+            <div class="summary-card">
+                <span>
+                    Noch offen
+                </span>
+
+                <strong id="waitingLeadCount">
+                    0
+                </strong>
+            </div>
+
+            <div class="summary-card">
+                <span>
+                    Laufende Anrufe
+                </span>
+
+                <strong id="runningCallCount">
+                    0
+                </strong>
+            </div>
+
+        </section>
+</section>
+<div
+            id="notice"
+            class="notice"
+        ></div>
+
+
+        <section class="panel">
+
+            <div class="table-wrap">
+
+                <table>
+
+                    <thead>
+                        <tr>
+                            <th
+                                id="campaignSelectHeader"
+                                style="display:none;width:44px;"
+                            >
+                                ✓
+                            </th>
+
+                            <th>
+                                Kampagne
+                            </th>
+
+                            <th>
+                                Agent
+                            </th>
+
+                            <th>
+                                Status
+                            </th>
+
+                            <th>
+                                Leads
+                            </th>
+
+                            <th>
+                                Einstellungen
+                            </th>
+
+                            <th>
+                                Fortschritt
+                            </th>
+
+                            <th>
+                                Aktionen
+                            </th>
+                        </tr>
+                    </thead>
+
+                    <tbody id="campaignTableBody">
+
+                        <tr>
+                            <td
+                                colspan="7"
+                                class="empty"
+                            >
+                                Kampagnen werden geladen ...
+                            </td>
+                        </tr>
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </section>
+
+    </section></main>
+
+</div>
+
+
+<div
+    id="campaignModalBackdrop"
+    class="modal-backdrop"
+>
+
+    <div class="modal">
+
+        <div class="modal-header">
+
+            <h2 id="campaignModalTitle">
+                Neue Kampagne
+            </h2>
+
+            <button
+                class="close-button"
+                type="button"
+                onclick="closeCampaignModal()"
+            >
+                ×
+            </button>
+
+        </div>
+
+        <div class="form-grid">
+
+            <div class="field full">
+
+                <label for="campaignName">
+                    Kampagnenname
+                </label>
+
+                <input
+                    id="campaignName"
+                    type="text"
+                    placeholder="z. B. Gewerbestrom Düsseldorf"
+                >
+
+            </div>
+
+            <div class="field">
+
+                <label for="campaignAgent">
+                    Agent
+                </label>
+
+                <select id="campaignAgent">
+                    <option value="1">
+                        Leon
+                    </option>
+                </select>
+
+            </div>
+
+            <div class="field">
+
+                <label for="campaignStatus">
+                    Status
+                </label>
+
+                <select id="campaignStatus">
+
+                    <option value="Entwurf">
+                        Entwurf
+                    </option>
+
+                    <option value="Bereit">
+                        Bereit
+                    </option>
+
+                    <option value="Aktiv" disabled>
+                        Aktiv
+                    </option>
+
+                    <option value="Pausiert">
+                        Pausiert
+                    </option>
+
+                    <option value="Beendet">
+                        Beendet
+                    </option>
+
+                </select>
+
+            </div>
+
+
+            <div class="field">
+
+                <label for="campaignDailyLimit">
+                    Tageslimit
+                </label>
+
+                <input
+                    id="campaignDailyLimit"
+                    type="number"
+                    min="0"
+                    max="10000"
+                    step="1"
+                    value="0"
+                >
+
+                <span class="subline">
+                    0 = unbegrenzt
+                </span>
+
+            </div>
+
+
+            <div class="field">
+
+                <label for="campaignParallelCalls">
+                    Gleichzeitige Anrufe
+                </label>
+
+                <input
+                    id="campaignParallelCalls"
+                    type="number"
+                    min="1"
+                    max="20"
+                    step="1"
+                    value="2"
+                >
+
+            </div>
+
+
+            <div class="field">
+
+                <label for="campaignMaxAttempts">
+                    Max. Anrufversuche pro Lead
+                </label>
+
+                <input
+                    id="campaignMaxAttempts"
+                    type="number"
+                    min="1"
+                    max="20"
+                    step="1"
+                    value="3"
+                >
+
+            </div>
+
+
+            <div class="field">
+
+                <label for="campaignRetryMinutes">
+                    Wiederholung nach Minuten
+                </label>
+
+                <input
+                    id="campaignRetryMinutes"
+                    type="number"
+                    min="1"
+                    max="10080"
+                    step="1"
+                    value="60"
+                >
+
+            </div>
+
+            <div class="field">
+                <label for="campaignPilotEnabled">
+                    Pilotmodus
+                </label>
+                <select id="campaignPilotEnabled">
+                    <option value="0">Aus</option>
+                    <option value="1">Aktiv</option>
+                </select>
+                <span class="subline">
+                    Stoppt automatisch nach jeder Pilot-Stufe zur Kontrolle.
+                </span>
+            </div>
+
+            <div class="field">
+                <label for="campaignPilotStages">
+                    Pilot-Stufen
+                </label>
+                <input
+                    id="campaignPilotStages"
+                    type="text"
+                    value="5,10,25,50"
+                    placeholder="5,10,25,50"
+                >
+                <span class="subline">
+                    Anzahl Anrufe pro Freigabestufe, durch Komma getrennt.
+                </span>
+            </div>
+
+        </div>
+
+        <div class="modal-actions">
+
+            <button
+                class="btn-secondary"
+                type="button"
+                onclick="closeCampaignModal()"
+            >
+                Abbrechen
+            </button>
+
+            <button
+                class="btn-primary"
+                type="button"
+                onclick="saveCampaign()"
+            >
+                Speichern
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<div
+    id="leadModalBackdrop"
+    class="modal-backdrop"
+>
+
+    <div class="modal large">
+
+        <div class="modal-header">
+
+            <div>
+                <h2 id="leadModalTitle">
+                    Kampagne
+                </h2>
+
+                <div
+                    id="leadModalSubtitle"
+                    class="muted"
+                    style="margin-top:5px;font-size:12px;"
+                ></div>
+            </div>
+
+            <button
+                class="close-button"
+                type="button"
+                onclick="closeLeadModal()"
+            >
+                ×
+            </button>
+
+        </div>
+
+        <div class="lead-layout">
+
+            <section class="lead-box">
+
+                <div class="lead-box-header">
+                    Verfügbare Leads
+                </div>
+
+                <div
+                    id="availableLeadList"
+                    class="lead-list"
+                ></div>
+
+            </section>
+
+            <section class="lead-box">
+
+                <div class="lead-box-header">
+                    Leads in dieser Kampagne
+                </div>
+
+                <div
+                    id="selectedLeadList"
+                    class="lead-list"
+                ></div>
+
+            </section>
+
+        </div>
+
+        <div class="manage-actions">
+
+            <div
+                id="selectedLeadCount"
+                class="selected-count"
+            >
+                0 Leads ausgewählt
+            </div>
+
+            <div style="display:flex;gap:10px;">
+
+                <button
+                    class="btn-secondary"
+                    type="button"
+                    onclick="closeLeadModal()"
+                >
+                    Schließen
+                </button>
+
+                <button
+                    class="btn-primary"
+                    type="button"
+                    onclick="addSelectedLeads()"
+                >
+                    Ausgewählte hinzufügen
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<script>
+    let campaigns = [];
+    let agents = [];
+
+    let campaignSelectionMode = false;
+    const selectedCampaignIds = new Set();
+
+    let editingCampaignId = null;
+    let managingCampaignId = null;
+
+    let availableLeads = [];
+    let selectedLeads = [];
+
+    let runnerCampaignId = null;
+    let runnerTimer = null;
+    let runnerBusy = false;
+
+
+    function escapeHtml(value) {
+        const div =
+            document.createElement(
+                "div"
+            );
+
+        div.textContent =
+            value ?? "";
+
+        return div.innerHTML;
+    }
+
+
+    function statusClass(status) {
+        const value =
+            (
+                status ||
+                ""
+            )
+                .toLowerCase()
+                .replaceAll(
+                    " ",
+                    "-"
+                );
+
+        return value;
+    }
+
+
+    function formatCampaignDateTime(
+        value
+    ) {
+        if (!value) {
+            return "";
+        }
+
+
+        const date =
+            new Date(
+                String(
+                    value
+                ).replace(
+                    " ",
+                    "T"
+                )
+            );
+
+
+        if (
+            Number.isNaN(
+                date.getTime()
+            )
+        ) {
+            return String(
+                value
+            );
+        }
+
+
+        return new Intl.DateTimeFormat(
+            "de-DE",
+            {
+                dateStyle:
+                    "short",
+
+                timeStyle:
+                    "short"
+            }
+        ).format(
+            date
+        );
+    }
+
+
+    function showNotice(
+        message,
+        type = "success"
+    ) {
+        const notice =
+            document.getElementById(
+                "notice"
+            );
+
+
+        notice.textContent =
+            message;
+
+
+        notice.className =
+            "notice show " +
+            type;
+
+
+        clearTimeout(
+            notice.hideTimer
+        );
+
+
+        notice.hideTimer =
+            setTimeout(
+                () => {
+                    notice.className =
+                        "notice";
+                },
+                4000
+            );
+    }
+
+
+    async function loadAgents() {
+        try {
+            const response =
+                await fetch(
+                    "/leon-api/agents"
+                );
+
+            const result =
+                await response.json();
+
+            if (
+                !response.ok ||
+                !result.success
+            ) {
+                throw new Error(
+                    result.error ||
+                    "Agenten konnten nicht geladen werden."
+                );
+            }
+
+            agents =
+                result.agents || [];
+
+            renderAgentOptions();
+
+        } catch (error) {
+            console.error(
+                error
+            );
+        }
+    }
+
+
+    function renderAgentOptions() {
+        const select =
+            document.getElementById(
+                "campaignAgent"
+            );
+
+        if (!agents.length) {
+            select.innerHTML =
+                `
+                    <option value="1">
+                        Leon
+                    </option>
+                `;
+
+            return;
+        }
+
+        select.innerHTML =
+            agents.map(
+                agent => {
+                    return `
+                        <option value="${agent.id}">
+                            ${escapeHtml(agent.agent_name)}
+                        </option>
+                    `;
+                }
+            ).join("");
+    }
+
+
+    async function loadCampaigns() {
+        try {
+            const response =
+                await fetch(
+                    "/leon-api/campaigns"
+                );
+
+            const result =
+                await response.json();
+
+            if (
+                !response.ok ||
+                !result.success
+            ) {
+                throw new Error(
+                    result.error ||
+                    "Kampagnen konnten nicht geladen werden."
+                );
+            }
+
+            campaigns =
+                result.campaigns || [];
+
+            renderCampaigns();
+            renderSummary();
+            resumeCampaignRunner();
+
+        } catch (error) {
+            console.error(
+                error
+            );
+
+            document.getElementById(
+                "campaignTableBody"
+            ).innerHTML =
+                `
+                    <tr>
+                        <td
+                            colspan="7"
+                            class="empty"
+                        >
+                            Kampagnen konnten nicht geladen werden.
+                        </td>
+                    </tr>
+                `;
+
+            showNotice(
+                error.message,
+                "error"
+            );
+        }
+    }
+
+
+    function renderSummary() {
+        let active = 0;
+        let totalLeads = 0;
+        let waiting = 0;
+        let running = 0;
+
+
+        campaigns.forEach(
+            campaign => {
+                if (
+                    campaign.status ===
+                    "Aktiv"
+                ) {
+                    active += 1;
+                }
+
+
+                totalLeads +=
+                    Number(
+                        campaign.lead_count ||
+                        0
+                    );
+
+
+                waiting +=
+                    Number(
+                        campaign.waiting_count ||
+                        0
+                    );
+
+
+                running +=
+                    Number(
+                        campaign.running_count ||
+                        0
+                    );
+            }
+        );
+
+
+        document.getElementById(
+            "campaignCount"
+        ).textContent =
+            campaigns.length;
+
+
+        document.getElementById(
+            "activeCount"
+        ).textContent =
+            active;
+
+
+        document.getElementById(
+            "campaignLeadCount"
+        ).textContent =
+            totalLeads;
+
+
+        document.getElementById(
+            "waitingLeadCount"
+        ).textContent =
+            waiting;
+
+
+        document.getElementById(
+            "runningCallCount"
+        ).textContent =
+            running;
+    }
+
+
+    function renderCampaigns() {
+        const body =
+            document.getElementById(
+                "campaignTableBody"
+            );
+
+
+        if (!campaigns.length) {
+            body.innerHTML =
+                `
+                    <tr>
+                        <td
+                            colspan="7"
+                            class="empty"
+                        >
+                            Noch keine Kampagne vorhanden.
+                        </td>
+                    </tr>
+                `;
+
+            return;
+        }
+
+
+        body.innerHTML =
+            campaigns.map(
+                campaign => {
+                    const leadCount =
+                        Number(
+                            campaign.lead_count ||
+                            0
+                        );
+
+
+                    const processed =
+                        Number(
+                            campaign.processed_count ||
+                            0
+                        );
+
+
+                    const running =
+                        Number(
+                            campaign.running_count ||
+                            0
+                        );
+
+
+                    const retryWaiting =
+                        Number(
+                            campaign.retry_waiting_count ||
+                            0
+                        );
+
+
+                    let progress = 0;
+
+
+                    if (leadCount > 0) {
+                        progress =
+                            Math.round(
+                                (
+                                    processed /
+                                    leadCount
+                                ) *
+                                100
+                            );
+                    }
+
+
+                    const todayCount =
+                        Number(
+                            campaign.today_call_count ||
+                            0
+                        );
+
+
+                    const dailyLimit =
+                        Number(
+                            campaign.daily_limit ??
+                            0
+                        );
+
+
+                    const parallelCalls =
+                        Number(
+                            campaign.max_parallel_calls ||
+                            2
+                        );
+
+
+                    const maxAttempts =
+                        Number(
+                            campaign.max_attempts ||
+                            3
+                        );
+
+
+                    const retryMinutes =
+                        Number(
+                            campaign.retry_minutes ||
+                            60
+                        );
+
+                    const pilotState =
+                        campaign.pilot_state ||
+                        {};
+
+                    const pilotEnabled =
+                        Boolean(
+                            campaign.pilot_enabled
+                        );
+
+                    const pilotLimit =
+                        Number(
+                            pilotState.stage_limit ||
+                            0
+                        );
+
+
+                    const dailyText =
+                        dailyLimit === 0
+                            ? (
+                                todayCount +
+                                " / unbegrenzt"
+                            )
+                            : (
+                                todayCount +
+                                " / " +
+                                dailyLimit
+                            );
+
+
+                    let runnerControls =
+                        "";
+
+
+                    if (
+                        campaign.status ===
+                        "Aktiv"
+                    ) {
+                        runnerControls = `
+                            <button
+                                class="btn-secondary btn-small"
+                                type="button"
+                                onclick="campaignControl(
+                                    ${campaign.id},
+                                    'pause'
+                                )"
+                            >
+                                Pausieren
+                            </button>
+                        `;
+
+                    } else if (
+                        leadCount > 0 &&
+                        campaign.status !==
+                        "Beendet"
+                    ) {
+                        runnerControls = `
+                            <button
+                                class="btn-primary btn-small"
+                                type="button"
+                                onclick="campaignControl(
+                                    ${campaign.id},
+                                    'start'
+                                )"
+                            >
+                                Starten
+                            </button>
+                        `;
+                    }
+
+
+                    if (
+                        campaign.status ===
+                        "Pausiert" &&
+                        pilotEnabled &&
+                        pilotLimit > 0 &&
+                        Number(
+                            campaign.today_call_count ||
+                            0
+                        ) >= pilotLimit
+                    ) {
+                        runnerControls += `
+                            <button
+                                class="btn-secondary btn-small"
+                                type="button"
+                                onclick="advancePilotStage(
+                                    ${campaign.id}
+                                )"
+                            >
+                                Nächste Pilot-Stufe
+                            </button>
+                        `;
+                    }
+
+
+                    if (
+                        campaign.status ===
+                        "Aktiv" ||
+                        campaign.status ===
+                        "Pausiert"
+                    ) {
+                        runnerControls += `
+                            <button
+                                class="btn-danger btn-small"
+                                type="button"
+                                onclick="campaignControl(
+                                    ${campaign.id},
+                                    'stop'
+                                )"
+                            >
+                                Beenden
+                            </button>
+                        `;
+                    }
+
+
+                    return `
+                        <tr>
+
+                            ${campaignSelectionMode
+                                ? `
+                                    <td>
+                                        <input
+                                            type="checkbox"
+                                            aria-label="Kampagne auswählen"
+                                            ${selectedCampaignIds.has(Number(campaign.id)) ? "checked" : ""}
+                                            onchange="toggleCampaignSelection(${campaign.id}, this.checked)"
+                                        >
+                                    </td>
+                                `
+                                : ""
+                            }
+
+                            <td>
+                                <strong>
+                                    ${escapeHtml(
+                                        campaign.name
+                                    )}
+                                </strong>
+
+                                ${pilotEnabled
+                                    ? `<span class="mini-badge running">Pilot ${Number(pilotState.stage_index || 0) + 1}: ${pilotLimit}</span>`
+                                    : ""
+                                }
+
+                                ${retryWaiting > 0
+                                    ? `
+                                        <span class="mini-badge retry">
+                                            ${retryWaiting}
+                                            Wiederholung(en)
+                                        </span>
+                                    `
+                                    : ""
+                                }
+
+                                ${running > 0
+                                    ? `
+                                        <span class="mini-badge running">
+                                            ${running}
+                                            läuft/laufen
+                                        </span>
+                                    `
+                                    : ""
+                                }
+                            </td>
+
+
+                            <td>
+                                ${escapeHtml(
+                                    campaign.agent_name ||
+                                    "Leon"
+                                )}
+                            </td>
+
+
+                            <td>
+                                <span
+                                    class="
+                                        status
+                                        ${statusClass(
+                                            campaign.status
+                                        )}
+                                    "
+                                >
+                                    ${escapeHtml(
+                                        campaign.status
+                                    )}
+                                </span>
+                            </td>
+
+
+                            <td>
+                                ${leadCount}
+
+                                <span class="subline">
+                                    Offen:
+                                    ${Number(
+                                        campaign.waiting_count ||
+                                        0
+                                    )}
+                                </span>
+                            </td>
+
+
+                            <td>
+                                <span class="mini-badge">
+                                    Parallel:
+                                    ${parallelCalls}
+                                </span>
+
+                                <span class="mini-badge">
+                                    Versuche:
+                                    ${maxAttempts}
+                                </span>
+
+                                <span class="mini-badge">
+                                    Retry:
+                                    ${retryMinutes} Min.
+                                </span>
+
+                                <span class="mini-badge">
+                                    Tageslimit:
+                                    ${
+                                        dailyLimit === 0
+                                            ? "∞"
+                                            : dailyLimit
+                                    }
+                                </span>
+                            </td>
+
+
+                            <td>
+
+                                <div class="progress-wrap">
+
+                                    <div class="progress-bar">
+
+                                        <div
+                                            class="progress-fill"
+                                            style="
+                                                width:${progress}%;
+                                            "
+                                        ></div>
+
+                                    </div>
+
+                                    <div class="progress-text">
+                                        ${processed}
+                                        von
+                                        ${leadCount}
+                                        bearbeitet
+
+                                        · Heute:
+                                        ${dailyText}
+                                    </div>
+
+                                </div>
+
+                            </td>
+
+
+                            <td>
+
+                                <div class="actions">
+
+                                    ${runnerControls}
+
+                                    <button
+                                        class="btn-secondary btn-small"
+                                        type="button"
+                                        onclick="manageLeads(
+                                            ${campaign.id}
+                                        )"
+                                    >
+                                        Leads
+                                    </button>
+
+                                    <button
+                                        class="btn-secondary btn-small"
+                                        type="button"
+                                        onclick="editCampaign(
+                                            ${campaign.id}
+                                        )"
+                                    >
+                                        Bearbeiten
+                                    </button>
+
+                                    <button
+                                        class="btn-danger btn-small"
+                                        type="button"
+                                        onclick="deleteCampaign(
+                                            ${campaign.id}
+                                        )"
+                                    >
+                                        Löschen
+                                    </button>
+
+                                </div>
+
+                            </td>
+
+                        </tr>
+                    `;
+                }
+            ).join("");
+    }
+
+
+    function stopRunnerTimer() {
+        if (runnerTimer) {
+            clearTimeout(
+                runnerTimer
+            );
+
+            runnerTimer = null;
+        }
+    }
+
+
+    function scheduleCampaignCycle(
+        delay = 2000
+    ) {
+        stopRunnerTimer();
+
+        if (!runnerCampaignId) {
+            return;
+        }
+
+        runnerTimer = setTimeout(
+            runCampaignCycle,
+            delay
+        );
+    }
+
+
+    function resumeCampaignRunner() {
+        /*
+         * Kampagnen werden serverseitig ausgeführt.
+         * Die Seite zeigt und steuert nur noch den Status;
+         * Seitenwechsel oder Schließen stoppt keine neuen Anrufe.
+         */
+        runnerCampaignId = null;
+        stopRunnerTimer();
+    }
+
+
+    async function campaignControl(
+        campaignId,
+        action
+    ) {
+        try {
+            const response =
+                await fetch(
+                    "/leon-api/campaigns/" +
+                    campaignId +
+                    "/control",
+                    {
+                        method: "POST",
+
+                        headers: {
+                            "Content-Type":
+                                "application/json"
+                        },
+
+                        body:
+                            JSON.stringify(
+                                {
+                                    action: action
+                                }
+                            )
+                    }
+                );
+
+            const result =
+                await response.json();
+
+            if (
+                !response.ok ||
+                !result.success
+            ) {
+                throw new Error(
+                    result.error ||
+                    "Kampagnenaktion fehlgeschlagen."
+                );
+            }
+
+            if (action === "start") {
+                runnerCampaignId = null;
+                stopRunnerTimer();
+
+                showNotice(
+                    "Kampagne gestartet."
+                );
+
+            } else {
+                if (
+                    runnerCampaignId ===
+                    campaignId
+                ) {
+                    runnerCampaignId = null;
+                    stopRunnerTimer();
+                }
+
+                showNotice(
+                    action === "pause"
+                        ? "Kampagne pausiert."
+                        : "Kampagne beendet."
+                );
+            }
+
+            await loadCampaigns();
+
+        } catch (error) {
+            console.error(
+                error
+            );
+
+            showNotice(
+                error.message,
+                "error"
+            );
+        }
+    }
+
+
+    async function pauseRunnerAfterError(
+        campaignId
+    ) {
+        runnerCampaignId = null;
+        stopRunnerTimer();
+
+        try {
+            await fetch(
+                "/leon-api/campaigns/" +
+                campaignId +
+                "/control",
+                {
+                    method: "POST",
+
+                    headers: {
+                        "Content-Type":
+                            "application/json"
+                    },
+
+                    body:
+                        JSON.stringify(
+                            {
+                                action: "pause"
+                            }
+                        )
+                }
+            );
+
+        } catch (error) {
+            console.error(
+                error
+            );
+        }
+
+        await loadCampaigns();
+    }
+
+
+    async function startCampaignLeadCall(
+        campaignId,
+        lead
+    ) {
+        const callResponse =
+            await fetch(
+                "/leon-api/calls/start",
+                {
+                    method:
+                        "POST",
+
+                    headers: {
+                        "Content-Type":
+                            "application/json"
+                    },
+
+                    body:
+                        JSON.stringify(
+                            {
+                                lead_id:
+                                    lead.lead_id,
+
+                                campaign_id:
+                                    campaignId,
+
+                                phone_number:
+                                    lead.telefon
+                            }
+                        )
+                }
+            );
+
+
+        const callResult =
+            await callResponse.json();
+
+
+        if (
+            !callResponse.ok ||
+            !callResult.success
+        ) {
+            await fetch(
+                "/leon-api/campaigns/" +
+                campaignId +
+                "/release",
+                {
+                    method:
+                        "POST",
+
+                    headers: {
+                        "Content-Type":
+                            "application/json"
+                    },
+
+                    body:
+                        JSON.stringify(
+                            {
+                                lead_id:
+                                    lead.lead_id
+                            }
+                        )
+                }
+            );
+
+
+            throw new Error(
+                callResult.error ||
+                "Anruf konnte nicht gestartet werden."
+            );
+        }
+
+
+        const confirmResponse =
+            await fetch(
+                "/leon-api/campaigns/" +
+                campaignId +
+                "/confirm-call",
+                {
+                    method:
+                        "POST",
+
+                    headers: {
+                        "Content-Type":
+                            "application/json"
+                    },
+
+                    body:
+                        JSON.stringify(
+                            {
+                                lead_id:
+                                    lead.lead_id,
+
+                                call_id:
+                                    callResult.call_id
+                            }
+                        )
+                }
+            );
+
+
+        const confirmResult =
+            await confirmResponse.json();
+
+
+        if (
+            !confirmResponse.ok ||
+            !confirmResult.success
+        ) {
+            /*
+             * Der Anruf existiert bereits.
+             * /release kann ihn anhand von
+             * campaign_id + lead_id wieder
+             * mit campaign_leads verbinden.
+             */
+            await fetch(
+                "/leon-api/campaigns/" +
+                campaignId +
+                "/release",
+                {
+                    method:
+                        "POST",
+
+                    headers: {
+                        "Content-Type":
+                            "application/json"
+                    },
+
+                    body:
+                        JSON.stringify(
+                            {
+                                lead_id:
+                                    lead.lead_id
+                            }
+                        )
+                }
+            );
+
+
+            throw new Error(
+                confirmResult.error ||
+                "Anruf konnte der Kampagne nicht zugeordnet werden."
+            );
+        }
+
+
+        return {
+            call_id:
+                callResult.call_id,
+
+            lead:
+                lead
+        };
+    }
+
+
+    async function runCampaignCycle() {
+        if (
+            runnerBusy ||
+            !runnerCampaignId
+        ) {
+            return;
+        }
+
+
+        runnerBusy =
+            true;
+
+
+        const campaignId =
+            runnerCampaignId;
+
+
+        try {
+            const progressResponse =
+                await fetch(
+                    "/leon-api/campaigns/" +
+                    campaignId +
+                    "/progress"
+                );
+
+
+            const progress =
+                await progressResponse.json();
+
+
+            if (
+                !progressResponse.ok ||
+                !progress.success
+            ) {
+                throw new Error(
+                    progress.error ||
+                    "Kampagnenfortschritt konnte nicht geladen werden."
+                );
+            }
+
+
+            if (
+                progress.status !==
+                "Aktiv"
+            ) {
+                runnerCampaignId =
+                    null;
+
+                stopRunnerTimer();
+
+                await loadCampaigns();
+
+                return;
+            }
+
+
+            const maxParallel =
+                Math.max(
+                    1,
+                    Number(
+                        progress.max_parallel_calls ||
+                        1
+                    )
+                );
+
+
+            const occupiedSlots =
+                Number(
+                    progress.reserved ||
+                    0
+                )
+                +
+                Number(
+                    progress.running ||
+                    0
+                );
+
+
+            let freeSlots =
+                Math.max(
+                    0,
+                    maxParallel -
+                    occupiedSlots
+                );
+
+
+            if (freeSlots <= 0) {
+                scheduleCampaignCycle();
+
+                return;
+            }
+
+
+            /*
+             * Günlük limit varsa,
+             * aynı turda limiti aşacak kadar
+             * rezervasyon yapma.
+             */
+            if (
+                Number(
+                    progress.daily_limit ||
+                    0
+                ) > 0
+            ) {
+                const remainingToday =
+                    Math.max(
+                        0,
+                        Number(
+                            progress.remaining_today ||
+                            0
+                        )
+                    );
+
+
+                freeSlots =
+                    Math.min(
+                        freeSlots,
+                        remainingToday
+                    );
+
+
+                if (
+                    freeSlots <= 0
+                ) {
+                    scheduleCampaignCycle();
+
+                    return;
+                }
+            }
+
+
+            let startedCalls =
+                0;
+
+
+            for (
+                let slot = 0;
+                slot < freeSlots;
+                slot += 1
+            ) {
+                const nextResponse =
+                    await fetch(
+                        "/leon-api/campaigns/" +
+                        campaignId +
+                        "/next",
+                        {
+                            method:
+                                "POST"
+                        }
+                    );
+
+
+                const nextResult =
+                    await nextResponse.json();
+
+
+                if (
+                    !nextResponse.ok ||
+                    !nextResult.success
+                ) {
+                    if (
+                        nextResult.capacity_reached
+                    ) {
+                        break;
+                    }
+
+
+                    if (
+                        nextResult.retry_waiting
+                    ) {
+                        break;
+                    }
+
+
+                    if (
+                        nextResult.limit_reached
+                    ) {
+                        runnerCampaignId =
+                            null;
+
+                        stopRunnerTimer();
+
+                        showNotice(
+                            nextResult.error,
+                            "success"
+                        );
+
+                        await loadCampaigns();
+
+                        return;
+                    }
+
+
+                    if (
+                        nextResult.completed
+                    ) {
+                        runnerCampaignId =
+                            null;
+
+                        stopRunnerTimer();
+
+                        showNotice(
+                            nextResult.error,
+                            "success"
+                        );
+
+                        await loadCampaigns();
+
+                        return;
+                    }
+
+
+                    if (
+                        nextResult.reservation_conflict
+                    ) {
+                        continue;
+                    }
+
+
+                    throw new Error(
+                        nextResult.error ||
+                        "Nächster Lead konnte nicht reserviert werden."
+                    );
+                }
+
+
+                const lead =
+                    nextResult.lead;
+
+
+                await startCampaignLeadCall(
+                    campaignId,
+                    lead
+                );
+
+
+                startedCalls +=
+                    1;
+
+
+                showNotice(
+                    "Anruf gestartet: " +
+                    (
+                        lead.firma ||
+                        lead.ansprechpartner ||
+                        lead.telefon
+                    )
+                );
+            }
+
+
+            if (
+                startedCalls > 0
+            ) {
+                await loadCampaigns();
+            }
+
+
+            scheduleCampaignCycle();
+
+        } catch (error) {
+            console.error(
+                error
+            );
+
+
+            showNotice(
+                error.message,
+                "error"
+            );
+
+
+            await pauseRunnerAfterError(
+                campaignId
+            );
+
+        } finally {
+            runnerBusy =
+                false;
+        }
+    }
+
+
+    async function advancePilotStage(
+        campaignId
+    ) {
+        try {
+            const response =
+                await fetch(
+                    "/leon-api/campaigns/" +
+                    campaignId +
+                    "/pilot/advance",
+                    {
+                        method: "POST"
+                    }
+                );
+
+            const result =
+                await response.json();
+
+            if (
+                !response.ok ||
+                !result.success
+            ) {
+                throw new Error(
+                    result.error ||
+                    "Pilot-Stufe konnte nicht freigegeben werden."
+                );
+            }
+
+            showNotice(
+                "Nächste Pilot-Stufe freigegeben: " +
+                result.pilot_stage_limit +
+                " Anrufe.",
+                "success"
+            );
+
+            await loadCampaigns();
+
+        } catch (error) {
+            showNotice(
+                error.message,
+                "error"
+            );
+        }
+    }
+
+
+    function openCampaignModal() {
+        editingCampaignId = null;
+
+        document.getElementById(
+            "campaignModalTitle"
+        ).textContent =
+            "Neue Kampagne";
+
+        document.getElementById(
+            "campaignName"
+        ).value = "";
+
+        document.getElementById(
+            "campaignStatus"
+        ).value =
+            "Entwurf";
+
+
+        document.getElementById(
+            "campaignDailyLimit"
+        ).value =
+            "0";
+
+
+        document.getElementById(
+            "campaignParallelCalls"
+        ).value =
+            "2";
+
+
+        document.getElementById(
+            "campaignMaxAttempts"
+        ).value =
+            "3";
+
+
+        document.getElementById(
+            "campaignRetryMinutes"
+        ).value =
+            "60";
+
+        document.getElementById(
+            "campaignPilotEnabled"
+        ).value =
+            "0";
+
+        document.getElementById(
+            "campaignPilotStages"
+        ).value =
+            "5,10,25,50";
+
+
+        if (
+            document.getElementById(
+                "campaignAgent"
+            ).options.length
+        ) {
+            document.getElementById(
+                "campaignAgent"
+            ).selectedIndex = 0;
+        }
+
+        document.getElementById(
+            "campaignModalBackdrop"
+        ).classList.add(
+            "open"
+        );
+    }
+
+
+    function closeCampaignModal() {
+        document.getElementById(
+            "campaignModalBackdrop"
+        ).classList.remove(
+            "open"
+        );
+
+        editingCampaignId = null;
+    }
+
+
+    function editCampaign(id) {
+        const campaign =
+            campaigns.find(
+                item =>
+                    item.id === id
+            );
+
+        if (!campaign) {
+            return;
+        }
+
+        editingCampaignId =
+            id;
+
+        document.getElementById(
+            "campaignModalTitle"
+        ).textContent =
+            "Kampagne bearbeiten";
+
+        document.getElementById(
+            "campaignName"
+        ).value =
+            campaign.name || "";
+
+        document.getElementById(
+            "campaignAgent"
+        ).value =
+            String(
+                campaign.agent_id ||
+                1
+            );
+
+        document.getElementById(
+            "campaignStatus"
+        ).value =
+            campaign.status ||
+            "Entwurf";
+
+
+        document.getElementById(
+            "campaignDailyLimit"
+        ).value =
+            Number(
+                campaign.daily_limit ??
+                0
+            );
+
+
+        document.getElementById(
+            "campaignParallelCalls"
+        ).value =
+            Number(
+                campaign.max_parallel_calls ||
+                2
+            );
+
+
+        document.getElementById(
+            "campaignMaxAttempts"
+        ).value =
+            Number(
+                campaign.max_attempts ||
+                3
+            );
+
+
+        document.getElementById(
+            "campaignRetryMinutes"
+        ).value =
+            Number(
+                campaign.retry_minutes ||
+                60
+            );
+
+        document.getElementById(
+            "campaignPilotEnabled"
+        ).value =
+            Number(
+                campaign.pilot_enabled ||
+                0
+            )
+                ? "1"
+                : "0";
+
+        document.getElementById(
+            "campaignPilotStages"
+        ).value =
+            campaign.pilot_stages ||
+            "5,10,25,50";
+
+
+        document.getElementById(
+            "campaignModalBackdrop"
+        ).classList.add(
+            "open"
+        );
+    }
+
+
+    async function saveCampaign() {
+        const name =
+            document.getElementById(
+                "campaignName"
+            ).value.trim();
+
+        const agentId =
+            Number(
+                document.getElementById(
+                    "campaignAgent"
+                ).value
+            );
+
+        const status =
+            document.getElementById(
+                "campaignStatus"
+            ).value;
+
+
+        const dailyLimit =
+            Number(
+                document.getElementById(
+                    "campaignDailyLimit"
+                ).value
+            );
+
+
+        const maxParallelCalls =
+            Number(
+                document.getElementById(
+                    "campaignParallelCalls"
+                ).value
+            );
+
+
+        const maxAttempts =
+            Number(
+                document.getElementById(
+                    "campaignMaxAttempts"
+                ).value
+            );
+
+
+        const retryMinutes =
+            Number(
+                document.getElementById(
+                    "campaignRetryMinutes"
+                ).value
+            );
+
+        const pilotEnabled =
+            document.getElementById(
+                "campaignPilotEnabled"
+            ).value === "1";
+
+        const pilotStages =
+            document.getElementById(
+                "campaignPilotStages"
+            ).value.trim();
+
+
+        if (!name) {
+            showNotice(
+                "Bitte Kampagnenname eingeben.",
+                "error"
+            );
+
+            return;
+        }
+
+
+        if (
+            !Number.isInteger(
+                dailyLimit
+            ) ||
+            dailyLimit < 0 ||
+            dailyLimit > 10000
+        ) {
+            showNotice(
+                "Tageslimit muss zwischen 0 und 10000 liegen.",
+                "error"
+            );
+
+            return;
+        }
+
+
+        if (
+            !Number.isInteger(
+                maxParallelCalls
+            ) ||
+            maxParallelCalls < 1 ||
+            maxParallelCalls > 20
+        ) {
+            showNotice(
+                "Gleichzeitige Anrufe müssen zwischen 1 und 20 liegen.",
+                "error"
+            );
+
+            return;
+        }
+
+
+        if (
+            !Number.isInteger(
+                maxAttempts
+            ) ||
+            maxAttempts < 1 ||
+            maxAttempts > 20
+        ) {
+            showNotice(
+                "Maximale Anrufversuche müssen zwischen 1 und 20 liegen.",
+                "error"
+            );
+
+            return;
+        }
+
+
+        if (
+            !Number.isInteger(
+                retryMinutes
+            ) ||
+            retryMinutes < 1 ||
+            retryMinutes > 10080
+        ) {
+            showNotice(
+                "Wiederholungszeit muss zwischen 1 und 10080 Minuten liegen.",
+                "error"
+            );
+
+            return;
+        }
+
+
+        const payload = {
+            name: name,
+            agent_id: agentId,
+            status: status,
+            daily_limit:
+                dailyLimit,
+            max_parallel_calls:
+                maxParallelCalls,
+            max_attempts:
+                maxAttempts,
+            retry_minutes:
+                retryMinutes,
+            pilot_enabled:
+                pilotEnabled,
+            pilot_stages:
+                pilotStages
+        };
+
+        let url =
+            "/leon-api/campaigns";
+
+        let method =
+            "POST";
+
+        const wasEditing =
+            editingCampaignId !== null;
+
+        if (editingCampaignId) {
+            url =
+                "/leon-api/campaigns/" +
+                editingCampaignId;
+
+            method =
+                "PUT";
+        }
+
+        try {
+            const response =
+                await fetch(
+                    url,
+                    {
+                        method: method,
+
+                        headers: {
+                            "Content-Type":
+                                "application/json"
+                        },
+
+                        body:
+                            JSON.stringify(
+                                payload
+                            )
+                    }
+                );
+
+            const result =
+                await response.json();
+
+            if (
+                !response.ok ||
+                !result.success
+            ) {
+                throw new Error(
+                    result.error ||
+                    "Kampagne konnte nicht gespeichert werden."
+                );
+            }
+
+            closeCampaignModal();
+
+            showNotice(
+                wasEditing
+                    ? "Kampagne gespeichert."
+                    : "Kampagne erstellt."
+            );
+
+            await loadCampaigns();
+
+        } catch (error) {
+            console.error(
+                error
+            );
+
+            showNotice(
+                error.message,
+                "error"
+            );
+        }
+    }
+
+
+    function updateCampaignSelectionControls() {
+        document.getElementById(
+            "campaignSelectHeader"
+        ).style.display =
+            campaignSelectionMode
+                ? ""
+                : "none";
+
+        document.getElementById(
+            "campaignSelectModeButton"
+        ).style.display =
+            campaignSelectionMode
+                ? "none"
+                : "";
+
+        document.getElementById(
+            "campaignSelectAllButton"
+        ).style.display =
+            campaignSelectionMode
+                ? ""
+                : "none";
+
+        document.getElementById(
+            "campaignDeleteSelectedButton"
+        ).style.display =
+            campaignSelectionMode
+                ? ""
+                : "none";
+
+        document.getElementById(
+            "campaignCancelSelectionButton"
+        ).style.display =
+            campaignSelectionMode
+                ? ""
+                : "none";
+
+        if (campaignSelectionMode) {
+            document.getElementById(
+                "campaignDeleteSelectedButton"
+            ).textContent =
+                "Auswahl löschen (" +
+                selectedCampaignIds.size +
+                ")";
+        }
+    }
+
+
+    function toggleCampaignSelectionMode() {
+        campaignSelectionMode = true;
+        selectedCampaignIds.clear();
+        updateCampaignSelectionControls();
+        renderCampaigns();
+    }
+
+
+    function cancelCampaignSelectionMode() {
+        campaignSelectionMode = false;
+        selectedCampaignIds.clear();
+        updateCampaignSelectionControls();
+        renderCampaigns();
+    }
+
+
+    function toggleCampaignSelection(
+        campaignId,
+        checked
+    ) {
+        const id = Number(
+            campaignId
+        );
+
+        if (checked) {
+            selectedCampaignIds.add(
+                id
+            );
+        } else {
+            selectedCampaignIds.delete(
+                id
+            );
+        }
+
+        updateCampaignSelectionControls();
+    }
+
+
+    function selectAllCampaigns() {
+        const allSelected =
+            campaigns.length > 0
+            &&
+            campaigns.every(
+                campaign =>
+                    selectedCampaignIds.has(
+                        Number(
+                            campaign.id
+                        )
+                    )
+            );
+
+        if (allSelected) {
+            campaigns.forEach(
+                campaign =>
+                    selectedCampaignIds.delete(
+                        Number(
+                            campaign.id
+                        )
+                    )
+            );
+        } else {
+            campaigns.forEach(
+                campaign =>
+                    selectedCampaignIds.add(
+                        Number(
+                            campaign.id
+                        )
+                    )
+            );
+        }
+
+        updateCampaignSelectionControls();
+        renderCampaigns();
+
+        document.getElementById(
+            "campaignSelectAllButton"
+        ).textContent =
+            allSelected
+                ? "Alle auswählen"
+                : "Auswahl aufheben";
+    }
+
+
+    async function deleteSelectedCampaigns() {
+        const ids = Array.from(
+            selectedCampaignIds
+        );
+
+        if (!ids.length) {
+            showNotice(
+                "Bitte mindestens eine Kampagne auswählen.",
+                "error"
+            );
+            return;
+        }
+
+        const confirmed =
+            confirm(
+                "Sind Sie sicher, dass Sie " +
+                ids.length +
+                " ausgewählte Kampagne(n) löschen möchten? Aktive Kampagnen werden vom System nicht gelöscht."
+            );
+
+        if (!confirmed) {
+            return;
+        }
+
+        let deleted = 0;
+        let failed = 0;
+
+        for (const campaignId of ids) {
+            try {
+                const response =
+                    await fetch(
+                        "/leon-api/campaigns/" +
+                        campaignId,
+                        {
+                            method:
+                                "DELETE"
+                        }
+                    );
+
+                const result =
+                    await response.json();
+
+                if (
+                    response.ok
+                    &&
+                    result.success
+                ) {
+                    deleted += 1;
+                } else {
+                    failed += 1;
+                }
+
+            } catch (error) {
+                failed += 1;
+            }
+        }
+
+        campaignSelectionMode = false;
+        selectedCampaignIds.clear();
+        updateCampaignSelectionControls();
+        await loadCampaigns();
+
+        showNotice(
+            deleted +
+            " Kampagne(n) gelöscht." +
+            (
+                failed
+                    ? " " +
+                      failed +
+                      " konnten nicht gelöscht werden."
+                    : ""
+            ),
+            failed
+                ? "error"
+                : "success"
+        );
+    }
+
+
+    async function deleteCampaign(id) {
+        const campaign =
+            campaigns.find(
+                item =>
+                    item.id === id
+            );
+
+        if (!campaign) {
+            return;
+        }
+
+        const confirmed =
+            confirm(
+                'Kampagne "' +
+                campaign.name +
+                '" wirklich löschen?'
+            );
+
+        if (!confirmed) {
+            return;
+        }
+
+        try {
+            const response =
+                await fetch(
+                    "/leon-api/campaigns/" +
+                    id,
+                    {
+                        method:
+                            "DELETE"
+                    }
+                );
+
+            const result =
+                await response.json();
+
+            if (
+                !response.ok ||
+                !result.success
+            ) {
+                throw new Error(
+                    result.error ||
+                    "Kampagne konnte nicht gelöscht werden."
+                );
+            }
+
+            showNotice(
+                "Kampagne gelöscht."
+            );
+
+            await loadCampaigns();
+
+        } catch (error) {
+            console.error(
+                error
+            );
+
+            showNotice(
+                error.message,
+                "error"
+            );
+        }
+    }
+
+
+    async function manageLeads(
+        campaignId
+    ) {
+        managingCampaignId =
+            campaignId;
+
+        try {
+            const response =
+                await fetch(
+                    "/leon-api/campaigns/" +
+                    campaignId +
+                    "/leads"
+                );
+
+            const result =
+                await response.json();
+
+            if (
+                !response.ok ||
+                !result.success
+            ) {
+                throw new Error(
+                    result.error ||
+                    "Leads konnten nicht geladen werden."
+                );
+            }
+
+            availableLeads =
+                result.available_leads ||
+                [];
+
+            selectedLeads =
+                result.selected_leads ||
+                [];
+
+            document.getElementById(
+                "leadModalTitle"
+            ).textContent =
+                result.campaign.name;
+
+            document.getElementById(
+                "leadModalSubtitle"
+            ).textContent =
+                "Agent: " +
+                (
+                    result.campaign.agent_name ||
+                    "Leon"
+                )
+                +
+                " · Parallel: " +
+                Number(
+                    result.campaign.max_parallel_calls ||
+                    2
+                )
+                +
+                " · Versuche: " +
+                Number(
+                    result.campaign.max_attempts ||
+                    3
+                )
+                +
+                " · Retry: " +
+                Number(
+                    result.campaign.retry_minutes ||
+                    60
+                )
+                +
+                " Min.";
+
+            renderAvailableLeads();
+            renderSelectedLeads();
+
+            document.getElementById(
+                "leadModalBackdrop"
+            ).classList.add(
+                "open"
+            );
+
+        } catch (error) {
+            console.error(
+                error
+            );
+
+            showNotice(
+                error.message,
+                "error"
+            );
+        }
+    }
+
+
+    function closeLeadModal() {
+        document.getElementById(
+            "leadModalBackdrop"
+        ).classList.remove(
+            "open"
+        );
+
+        managingCampaignId = null;
+        availableLeads = [];
+        selectedLeads = [];
+    }
+
+
+    function renderAvailableLeads() {
+        const container =
+            document.getElementById(
+                "availableLeadList"
+            );
+
+        if (!availableLeads.length) {
+            container.innerHTML =
+                `
+                    <div class="empty">
+                        Keine weiteren Leads verfügbar.
+                    </div>
+                `;
+
+            document.getElementById(
+                "selectedLeadCount"
+            ).textContent =
+                "0 Leads ausgewählt";
+
+            return;
+        }
+
+        container.innerHTML =
+            availableLeads.map(
+                lead => {
+                    return `
+                        <div class="lead-item">
+
+                            <label class="lead-select">
+
+                                <input
+                                    class="available-lead-checkbox"
+                                    type="checkbox"
+                                    value="${lead.id}"
+                                    onchange="updateSelectedCount()"
+                                >
+
+                                <div class="lead-info">
+
+                                    <strong>
+                                        ${escapeHtml(lead.firma)}
+                                    </strong>
+
+                                    <span>
+                                        ${escapeHtml(
+                                            lead.ansprechpartner ||
+                                            "Kein Ansprechpartner"
+                                        )}
+                                    </span>
+
+                                    <span>
+                                        ${escapeHtml(
+                                            lead.telefon ||
+                                            "Keine Telefonnummer"
+                                        )}
+                                    </span>
+
+                                </div>
+
+                            </label>
+
+                        </div>
+                    `;
+                }
+            ).join("");
+
+        updateSelectedCount();
+    }
+
+
+    function updateSelectedCount() {
+        const checked =
+            document.querySelectorAll(
+                ".available-lead-checkbox:checked"
+            ).length;
+
+        document.getElementById(
+            "selectedLeadCount"
+        ).textContent =
+            checked +
+            (
+                checked === 1
+                    ? " Lead ausgewählt"
+                    : " Leads ausgewählt"
+            );
+    }
+
+
+    function renderSelectedLeads() {
+        const container =
+            document.getElementById(
+                "selectedLeadList"
+            );
+
+        if (!selectedLeads.length) {
+            container.innerHTML =
+                `
+                    <div class="empty">
+                        Noch keine Leads in dieser Kampagne.
+                    </div>
+                `;
+
+            return;
+        }
+
+        container.innerHTML =
+            selectedLeads.map(
+                (
+                    lead,
+                    index
+                ) => {
+                    return `
+                        <div class="lead-item">
+
+                            <div class="lead-info">
+
+                                <strong>
+                                    ${index + 1}.
+                                    ${escapeHtml(lead.firma)}
+                                </strong>
+
+                                <span>
+                                    ${escapeHtml(
+                                        lead.ansprechpartner ||
+                                        "Kein Ansprechpartner"
+                                    )}
+                                </span>
+
+                                <span>
+                                    ${escapeHtml(
+                                        lead.telefon ||
+                                        "Keine Telefonnummer"
+                                    )}
+                                </span>
+
+                                <span>
+                                    Status:
+                                    ${escapeHtml(
+                                        lead.campaign_status ||
+                                        "Wartet"
+                                    )}
+                                    · Versuche:
+                                    ${Number(
+                                        lead.attempt_count ||
+                                        0
+                                    )}
+                                </span>
+                                ${Number(lead.pilot_priority || 0) === 1
+                                    ? `
+                                        <span style="color:#1e40af;font-weight:800">
+                                            ★ Pilot-Lead
+                                        </span>
+                                    `
+                                    : ""
+                                }
+
+                                ${lead.next_attempt_at
+                                    ? `
+                                        <span>
+                                            Nächster Versuch:
+                                            ${escapeHtml(
+                                                formatCampaignDateTime(
+                                                    lead.next_attempt_at
+                                                )
+                                            )}
+                                        </span>
+                                    `
+                                    : ""
+                                }
+
+                                ${lead.last_result
+                                    ? `
+                                        <span>
+                                            Letztes Ergebnis:
+                                            ${escapeHtml(
+                                                lead.last_result
+                                            )}
+                                        </span>
+                                    `
+                                    : ""
+                                }
+
+                            </div>
+
+                            <div class="order-controls">
+
+                                <button
+                                    class="btn-primary btn-small"
+                                    type="button"
+
+                                    ${(
+                                        !lead.telefon ||
+                                        Number(
+                                            lead.do_not_call
+                                        ) === 1
+                                    )
+                                        ? "disabled"
+                                        : ""
+                                    }
+
+                                    onclick="openLeadInLiveCall(
+                                        ${lead.lead_id}
+                                    )"
+                                >
+                                    Live Call
+                                </button>
+                                <button
+                                    class="btn-secondary btn-small"
+                                    type="button"
+                                    onclick="togglePilotLead(
+                                        ${lead.lead_id},
+                                        ${Number(lead.pilot_priority || 0) === 1 ? "false" : "true"}
+                                    )"
+                                >
+                                    ${Number(lead.pilot_priority || 0) === 1 ? "Pilot entfernen" : "★ Als Pilot"}
+                                </button>
+
+                                <button
+                                    class="order-button"
+                                    type="button"
+                                    title="Nach oben"
+                                    onclick="moveLead(${index}, -1)"
+                                    ${index === 0 ? "disabled" : ""}
+                                >
+                                    ↑
+                                </button>
+
+                                <button
+                                    class="order-button"
+                                    type="button"
+                                    title="Nach unten"
+                                    onclick="moveLead(${index}, 1)"
+                                    ${
+                                        index ===
+                                        selectedLeads.length - 1
+                                            ? "disabled"
+                                            : ""
+                                    }
+                                >
+                                    ↓
+                                </button>
+
+                                <button
+                                    class="btn-danger btn-small"
+                                    type="button"
+                                    onclick="removeCampaignLead(${lead.lead_id})"
+                                >
+                                    Entfernen
+                                </button>
+
+                            </div>
+
+                        </div>
+                    `;
+                }
+            ).join("");
+    }
+
+
+    async function addSelectedLeads() {
+        const checkboxes =
+            document.querySelectorAll(
+                ".available-lead-checkbox:checked"
+            );
+
+        const leadIds =
+            Array.from(
+                checkboxes
+            ).map(
+                checkbox =>
+                    Number(
+                        checkbox.value
+                    )
+            );
+
+        if (!leadIds.length) {
+            showNotice(
+                "Bitte mindestens einen Lead auswählen.",
+                "error"
+            );
+
+            return;
+        }
+
+        try {
+            const response =
+                await fetch(
+                    "/leon-api/campaigns/" +
+                    managingCampaignId +
+                    "/leads",
+                    {
+                        method:
+                            "POST",
+
+                        headers: {
+                            "Content-Type":
+                                "application/json"
+                        },
+
+                        body:
+                            JSON.stringify(
+                                {
+                                    lead_ids:
+                                        leadIds
+                                }
+                            )
+                    }
+                );
+
+            const result =
+                await response.json();
+
+            if (
+                !response.ok ||
+                !result.success
+            ) {
+                throw new Error(
+                    result.error ||
+                    "Leads konnten nicht hinzugefügt werden."
+                );
+            }
+
+            showNotice(
+                result.added +
+                " Lead(s) hinzugefügt."
+            );
+
+            await refreshLeadManager();
+            await loadCampaigns();
+
+        } catch (error) {
+            console.error(
+                error
+            );
+
+            showNotice(
+                error.message,
+                "error"
+            );
+        }
+    }
+
+
+    async function togglePilotLead(
+        leadId,
+        enabled
+    ) {
+        try {
+            const response =
+                await fetch(
+                    "/leon-api/campaigns/" +
+                    managingCampaignId +
+                    "/leads/" +
+                    leadId +
+                    "/pilot",
+                    {
+                        method: "POST",
+                        headers: {
+                            "Content-Type":
+                                "application/json"
+                        },
+                        body:
+                            JSON.stringify(
+                                {
+                                    enabled:
+                                        enabled
+                                }
+                            )
+                    }
+                );
+
+            const result =
+                await response.json();
+
+            if (
+                !response.ok ||
+                !result.success
+            ) {
+                throw new Error(
+                    result.error ||
+                    "Pilot-Markierung konnte nicht gespeichert werden."
+                );
+            }
+
+            await refreshLeadManager();
+
+            showNotice(
+                enabled
+                    ? "Lead als Pilot markiert."
+                    : "Pilot-Markierung entfernt.",
+                "success"
+            );
+
+        } catch (error) {
+            showNotice(
+                error.message,
+                "error"
+            );
+        }
+    }
+
+    async function removeCampaignLead(
+        leadId
+    ) {
+        try {
+            const response =
+                await fetch(
+                    "/leon-api/campaigns/" +
+                    managingCampaignId +
+                    "/leads/" +
+                    leadId,
+                    {
+                        method:
+                            "DELETE"
+                    }
+                );
+
+            const result =
+                await response.json();
+
+            if (
+                !response.ok ||
+                !result.success
+            ) {
+                throw new Error(
+                    result.error ||
+                    "Lead konnte nicht entfernt werden."
+                );
+            }
+
+            await refreshLeadManager();
+            await loadCampaigns();
+
+        } catch (error) {
+            console.error(
+                error
+            );
+
+            showNotice(
+                error.message,
+                "error"
+            );
+        }
+    }
+
+
+    async function refreshLeadManager() {
+        const response =
+            await fetch(
+                "/leon-api/campaigns/" +
+                managingCampaignId +
+                "/leads"
+            );
+
+        const result =
+            await response.json();
+
+        if (
+            !response.ok ||
+            !result.success
+        ) {
+            throw new Error(
+                result.error ||
+                "Leads konnten nicht aktualisiert werden."
+            );
+        }
+
+        availableLeads =
+            result.available_leads ||
+            [];
+
+        selectedLeads =
+            result.selected_leads ||
+            [];
+
+        renderAvailableLeads();
+        renderSelectedLeads();
+    }
+
+
+    async function openLeadInLiveCall(
+        leadId
+    ) {
+        const selectedLead =
+            selectedLeads.find(
+                item =>
+                    item.lead_id ===
+                    leadId
+            );
+
+
+        if (!selectedLead) {
+            showNotice(
+                "Lead wurde nicht gefunden.",
+                "error"
+            );
+
+            return;
+        }
+
+
+        if (
+            Number(
+                selectedLead.do_not_call
+            ) === 1
+        ) {
+            showNotice(
+                "Dieser Lead ist als „Nicht anrufen“ gesperrt.",
+                "error"
+            );
+
+            return;
+        }
+
+
+        if (!selectedLead.telefon) {
+            showNotice(
+                "Für diesen Lead ist keine Telefonnummer hinterlegt.",
+                "error"
+            );
+
+            return;
+        }
+
+
+        const campaign =
+            campaigns.find(
+                item =>
+                    item.id ===
+                    managingCampaignId
+            );
+
+
+        try {
+            const response =
+                await fetch(
+                    "/leon-api/leads/" +
+                    leadId
+                );
+
+
+            const result =
+                await response.json();
+
+
+            if (
+                !response.ok ||
+                !result.success
+            ) {
+                throw new Error(
+                    result.error ||
+                    "Lead konnte nicht geladen werden."
+                );
+            }
+
+
+            sessionStorage.setItem(
+                "kg_live_lead",
+                JSON.stringify(
+                    {
+                        lead:
+                            result.lead,
+
+                        campaign_id:
+                            managingCampaignId,
+
+                        campaign_name:
+                            campaign
+                                ? campaign.name
+                                : "",
+
+                        auto_start_call:
+                            false
+                    }
+                )
+            );
+
+
+            window.top.location.href = "/leon/live";
+
+        } catch (error) {
+            showNotice(
+                error.message,
+                "error"
+            );
+        }
+    }
+
+
+    async function moveLead(
+        index,
+        direction
+    ) {
+        const targetIndex =
+            index +
+            direction;
+
+        if (
+            targetIndex < 0 ||
+            targetIndex >=
+            selectedLeads.length
+        ) {
+            return;
+        }
+
+        const current =
+            selectedLeads[index];
+
+        selectedLeads[index] =
+            selectedLeads[targetIndex];
+
+        selectedLeads[targetIndex] =
+            current;
+
+        renderSelectedLeads();
+
+        const leadIds =
+            selectedLeads.map(
+                lead =>
+                    lead.lead_id
+            );
+
+        try {
+            const response =
+                await fetch(
+                    "/leon-api/campaigns/" +
+                    managingCampaignId +
+                    "/leads/reorder",
+                    {
+                        method:
+                            "POST",
+
+                        headers: {
+                            "Content-Type":
+                                "application/json"
+                        },
+
+                        body:
+                            JSON.stringify(
+                                {
+                                    lead_ids:
+                                        leadIds
+                                }
+                            )
+                    }
+                );
+
+            const result =
+                await response.json();
+
+            if (
+                !response.ok ||
+                !result.success
+            ) {
+                throw new Error(
+                    result.error ||
+                    "Reihenfolge konnte nicht gespeichert werden."
+                );
+            }
+
+        } catch (error) {
+            console.error(
+                error
+            );
+
+            showNotice(
+                error.message,
+                "error"
+            );
+
+            await refreshLeadManager();
+        }
+    }
+
+
+    document.getElementById(
+        "campaignModalBackdrop"
+    ).addEventListener(
+        "click",
+        event => {
+            if (
+                event.target ===
+                event.currentTarget
+            ) {
+                closeCampaignModal();
+            }
+        }
+    );
+
+
+    document.getElementById(
+        "leadModalBackdrop"
+    ).addEventListener(
+        "click",
+        event => {
+            if (
+                event.target ===
+                event.currentTarget
+            ) {
+                closeLeadModal();
+            }
+        }
+    );
+
+
+    window.addEventListener(
+        "beforeunload",
+        () => {
+            stopRunnerTimer();
+        }
+    );
+
+
+    document.addEventListener(
+        "DOMContentLoaded",
+        async () => {
+            updateCampaignSelectionControls();
+            await loadAgents();
+            await loadCampaigns();
+        }
+    );
+</script>
+
+</body>
+</html>

@@ -1,0 +1,3223 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Call | KG Gebäudereinigung Voice Portal</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, Helvetica, sans-serif;
+            background: #f5f7fb;
+            color: #172033;
+        }
+
+        .app {
+            display: grid;
+            grid-template-columns: 235px minmax(0, 1fr);
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            background: #eaf1f5;
+            border-right: 1px solid #d9e3e9;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            padding: 0;
+        }
+
+        .sidebar-top {
+            padding: 25px 16px 20px;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 0 5px;
+            margin-bottom: 24px;
+        }
+
+        .brand-mark {
+            width: 39px;
+            height: 39px;
+            border-radius: 11px;
+            background: linear-gradient(
+                135deg,
+                #87b8cf,
+                #2f7ea4
+            );
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 15px;
+            font-weight: 900;
+        }
+
+        .brand-text strong {
+            display: block;
+            font-size: 18px;
+            line-height: 1.05;
+        }
+
+        .brand-text span {
+            display: block;
+            margin-top: 3px;
+            color: #7690a0;
+            font-size: 10px;
+            letter-spacing: 1.1px;
+            font-weight: 800;
+        }
+
+        .trial-card {
+            background: white;
+            border: 1px solid #d8e2e7;
+            border-radius: 14px;
+            padding: 15px;
+            margin-bottom: 13px;
+            box-shadow: 0 2px 8px rgba(30, 58, 78, 0.05);
+        }
+
+        .trial-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 11px;
+            color: #4b5f6c;
+            font-weight: 800;
+            margin-bottom: 10px;
+        }
+
+        .trial-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .trial-circle {
+            width: 39px;
+            height: 39px;
+            border: 2px solid #75a8c2;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #2f7194;
+            font-size: 12px;
+            font-weight: 900;
+            background: #f8fcfe;
+        }
+
+        .trial-main strong {
+            display: block;
+            font-size: 12px;
+        }
+
+        .trial-main span {
+            display: block;
+            margin-top: 2px;
+            color: #8b9ba5;
+            font-size: 10px;
+        }
+
+        .trial-button {
+            width: 100%;
+            margin-top: 11px;
+            border: 0;
+            border-radius: 8px;
+            background: #3d85aa;
+            color: white;
+            padding: 10px 12px;
+            font-size: 11px;
+            font-weight: 800;
+        }
+
+        .new-call {
+            width: 100%;
+            border: 0;
+            border-radius: 18px;
+            background: #3d85aa;
+            color: white;
+            padding: 12px 15px;
+            font-size: 12px;
+            font-weight: 800;
+            margin-bottom: 18px;
+        }
+
+        .nav {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .nav-section-title {
+            color: #8ca0ac;
+            font-size: 9px;
+            letter-spacing: 1.4px;
+            text-transform: uppercase;
+            font-weight: 900;
+            padding: 15px 7px 6px;
+        }
+
+        .nav a {
+            text-decoration: none;
+            color: #55707f;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            min-height: 39px;
+            padding: 9px 9px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 700;
+            position: relative;
+        }
+
+        .nav a:hover {
+            background: rgba(255,255,255,.65);
+        }
+
+        .nav a.active {
+            background: rgba(255,255,255,.88);
+            color: #2f7194;
+        }
+
+        .nav a.active::before {
+            content: "";
+            position: absolute;
+            left: -16px;
+            top: 4px;
+            bottom: 4px;
+            width: 3px;
+            border-radius: 10px;
+            background: #3d85aa;
+        }
+
+        .nav-icon {
+            width: 18px;
+            text-align: center;
+            font-size: 14px;
+            opacity: .85;
+        }
+
+        .sidebar-bottom {
+            margin-top: auto;
+            padding: 16px;
+            border-top: 1px solid #d9e3e9;
+        }
+
+        .user-box {
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            margin-bottom: 13px;
+        }
+
+        .user-avatar {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            background: #3d85aa;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 900;
+        }
+
+        .user-meta strong {
+            display: block;
+            font-size: 11px;
+        }
+
+        .user-meta span {
+            display: block;
+            color: #8a9ba6;
+            font-size: 9px;
+            margin-top: 2px;
+        }
+
+        .mini-links {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .mini-links a {
+            color: #5f7481;
+            text-decoration: none;
+            font-size: 11px;
+            padding: 6px 2px;
+        }
+
+        .main {
+            padding: 26px 30px;
+        }
+
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 22px;
+        }
+
+        .topbar-left h1 {
+            margin: 0;
+            font-size: 28px;
+        }
+
+        .topbar-left p {
+            margin: 6px 0 0;
+            color: #64748b;
+            font-size: 14px;
+        }
+
+        .call-status {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: #eff6ff;
+            border: 1px solid #bfdbfe;
+            color: #2563eb;
+            border-radius: 999px;
+            padding: 10px 16px;
+            font-size: 13px;
+            font-weight: 800;
+        }
+
+        .status-dot {
+            width: 9px;
+            height: 9px;
+            border-radius: 50%;
+            background: #3b82f6;
+        }
+
+        .content {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) 330px;
+            gap: 20px;
+        }
+
+        .call-panel {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 20px;
+            overflow: hidden;
+            min-height: 720px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .call-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 22px;
+            border-bottom: 1px solid #e8edf4;
+        }
+
+        .agent-box {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .avatar {
+            width: 44px;
+            height: 44px;
+            border-radius: 14px;
+            background: linear-gradient(135deg, #1e40af, #60a5fa);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 900;
+            font-size: 18px;
+        }
+
+        .agent-info strong {
+            display: block;
+            font-size: 15px;
+        }
+
+        .agent-info span {
+            display: block;
+            margin-top: 3px;
+            color: #64748b;
+            font-size: 12px;
+        }
+
+        .call-timer {
+            font-size: 22px;
+            font-weight: 900;
+            color: #0f172a;
+            letter-spacing: 1px;
+        }
+
+        .transcript {
+            flex: 1;
+            padding: 24px;
+            overflow-y: auto;
+            background: #fbfcfe;
+        }
+
+        .message {
+            margin-bottom: 22px;
+            max-width: 78%;
+        }
+
+        .message.agent {
+            margin-right: auto;
+        }
+
+        .message.customer {
+            margin-left: auto;
+        }
+
+        .speaker {
+            font-size: 11px;
+            font-weight: 900;
+            letter-spacing: .6px;
+            text-transform: uppercase;
+            margin-bottom: 7px;
+        }
+
+        .message.agent .speaker {
+            color: #1e40af;
+        }
+
+        .message.customer .speaker {
+            color: #475569;
+            text-align: right;
+        }
+
+        .bubble {
+            padding: 13px 15px;
+            border-radius: 16px;
+            line-height: 1.55;
+            font-size: 14px;
+            white-space: pre-wrap;
+        }
+
+        .message.agent .bubble {
+            background: #e7f8f2;
+            color: #173a8f;
+            border-bottom-left-radius: 5px;
+        }
+
+        .message.customer .bubble {
+            background: #eef2f6;
+            color: #334155;
+            border-bottom-right-radius: 5px;
+        }
+
+        .empty-transcript {
+            color: #64748b;
+            text-align: center;
+            padding: 80px 20px;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 14px;
+            padding: 18px 22px;
+            border-top: 1px solid #e8edf4;
+            background: white;
+            flex-wrap: wrap;
+        }
+
+        .control-btn {
+            border: 0;
+            border-radius: 14px;
+            padding: 13px 18px;
+            font-size: 13px;
+            font-weight: 800;
+            cursor: pointer;
+        }
+
+        .control-btn.secondary {
+            background: #eef2f7;
+            color: #334155;
+        }
+
+        .control-btn.start {
+            background: #1e40af;
+            color: white;
+            padding-left: 24px;
+            padding-right: 24px;
+        }
+
+        .control-btn.end {
+            background: #dc2626;
+            color: white;
+            padding-left: 24px;
+            padding-right: 24px;
+        }
+
+        .side-column {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .card {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 20px;
+            padding: 20px;
+        }
+
+        .card h2 {
+            margin: 0 0 18px;
+            font-size: 17px;
+        }
+
+        .info-row {
+            margin-bottom: 15px;
+        }
+
+        .info-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .info-label {
+            font-size: 11px;
+            color: #64748b;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: .5px;
+            margin-bottom: 5px;
+        }
+
+        .info-value {
+            font-size: 14px;
+            font-weight: 700;
+            color: #334155;
+        }
+
+        .info-value.detected {
+            color: #2563eb;
+        }
+
+        .tag {
+            display: inline-block;
+            padding: 7px 10px;
+            border-radius: 999px;
+            background: #eff6ff;
+            color: #1e40af;
+            font-size: 12px;
+            font-weight: 800;
+        }
+
+        .result-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .result-btn {
+            border: 1px solid #dbe3ef;
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 11px 10px;
+            cursor: pointer;
+            font-weight: 800;
+            font-size: 12px;
+            color: #475569;
+        }
+
+        .result-btn:hover {
+            background: #f8fafc;
+        }
+
+        .result-btn.active[data-result="Interessiert"] {
+            background:#eff6ff;
+            border-color:#60a5fa;
+            color:#2563eb;
+            box-shadow:0 0 0 2px rgba(59,130,246,.10);
+        }
+
+        .result-btn.active[data-result="Rückruf"] {
+            background:#eff6ff;
+            border-color:#60a5fa;
+            color:#1e40af;
+            box-shadow:0 0 0 2px rgba(59,130,246,.10);
+        }
+
+        .result-btn.active[data-result="Rechnung"] {
+            background:#fffbeb;
+            border-color:#fbbf24;
+            color:#b45309;
+            box-shadow:0 0 0 2px rgba(245,158,11,.10);
+        }
+
+        .result-btn.active[data-result="Kein Interesse"] {
+            background:#fef2f2;
+            border-color:#f87171;
+            color:#b91c1c;
+            box-shadow:0 0 0 2px rgba(239,68,68,.10);
+        }
+
+        .phone-call-box {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-left: 6px;
+        }
+
+        .phone-input {
+            width: 180px;
+            border: 1px solid #dbe3ef;
+            border-radius: 12px;
+            padding: 12px 13px;
+            font-size: 13px;
+            color: #334155;
+            outline: none;
+            background: #ffffff;
+        }
+
+        .phone-input:focus {
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37,99,235, .10);
+        }
+
+        .control-btn.phone {
+            background: #2563eb;
+            color: white;
+            padding-left: 20px;
+            padding-right: 20px;
+        }
+
+        .control-btn.phone:disabled {
+            opacity: .55;
+            cursor: not-allowed;
+        }
+
+        .phone-call-status {
+            min-width: 130px;
+            font-size: 12px;
+            font-weight: 800;
+            color: #64748b;
+        }
+
+        .phone-call-status.success {
+            color: #2563eb;
+        }
+
+        .phone-call-status.error {
+            color: #b91c1c;
+        }
+
+        .active-calls-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .active-call-card {
+            border: 1px solid #dbe3ef;
+            border-radius: 12px;
+            padding: 12px;
+            background: #f8fafc;
+        }
+
+        .active-call-card strong {
+            display: block;
+            font-size: 13px;
+            color: #172033;
+            margin-bottom: 5px;
+        }
+
+        .active-call-card span {
+            display: block;
+            font-size: 11px;
+            color: #64748b;
+            margin-top: 3px;
+        }
+
+        .active-call-empty {
+            color: #64748b;
+            font-size: 12px;
+        }
+
+        @media(max-width: 1100px) {
+            .content {
+                grid-template-columns: 1fr;
+            }
+
+            .phone-call-box {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+
+        @media(max-width: 640px) {
+            .controls {
+                padding: 14px;
+                gap: 10px;
+            }
+
+            .controls > .control-btn {
+                flex: 1 1 0;
+            }
+
+            .phone-call-box {
+                margin-left: 0;
+                flex-wrap: wrap;
+            }
+
+            .phone-input {
+                flex: 1 1 100%;
+                width: auto;
+                min-width: 0;
+            }
+
+            .phone-call-box .control-btn.phone {
+                flex: 1 1 100%;
+            }
+        }
+    </style>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='leon/kg_portal.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='leon/kg_shell_override.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='leon/kg_page_theme.css') }}">
+
+<style id="kg-crm-frame">
+  /* Im KG CRM eingebettet: ohne eigene Sidebar, volle Breite */
+  .business-portal-sidebar{display:none!important}
+  .business-portal-main{width:100%!important;margin-left:0!important;padding:18px!important}
+  body{background:#f8fafc!important}
+</style>
+</head>
+
+<body>
+
+<div class="kg-business-shell">
+
+    
+
+    <main class="business-portal-main"><section class="business-portal-card">
+
+        <section class="kgb-hero">
+<div class="topbar">
+
+            <div class="topbar-left">
+                <h1>Live Call</h1>
+                <p>OpenAI GPT-Live Gesprächskonsole</p>
+            </div>
+
+            <div class="call-status">
+                <span class="status-dot"></span>
+                <span id="connectionStatus">Bereit</span>
+            </div>
+
+        </div>
+</section>
+
+
+        <div class="content">
+
+            <section class="call-panel">
+
+                <div class="call-header">
+
+                    <div class="agent-box">
+
+                        <div class="avatar">
+                            K
+                        </div>
+
+                        <div class="agent-info">
+                            <strong>Leon</strong>
+                            <span>KG Gebäudereinigung Voice Agent</span>
+                        </div>
+
+                    </div>
+
+                    <div
+                        id="callTimer"
+                        class="call-timer"
+                    >
+                        00:00
+                    </div>
+
+                </div>
+
+                <div
+                    id="transcript"
+                    class="transcript"
+                >
+
+                    <div
+                        id="emptyTranscript"
+                        class="empty-transcript"
+                    >
+                        Noch kein Gespräch gestartet.
+                    </div>
+
+                </div>
+
+                <div class="controls">
+
+                    <button
+                        id="muteButton"
+                        class="control-btn secondary"
+                        type="button"
+                    >
+                        Mikrofon
+                    </button>
+
+                    <button
+                        id="startCallButton"
+                        class="control-btn start"
+                        type="button"
+                    >
+                        Gespräch testen
+                    </button>
+
+                    <button
+                        id="endCallButton"
+                        class="control-btn end"
+                        type="button"
+                        style="display:none;"
+                    >
+                        Gespräch beenden
+                    </button>
+
+                    <div class="phone-call-box">
+
+                        <input
+                            id="phoneNumberInput"
+                            class="phone-input"
+                            type="tel"
+                            placeholder="Telefonnummer"
+                            autocomplete="tel"
+                            list="phoneNumberHistory"
+                        >
+                        <datalist id="phoneNumberHistory"></datalist>
+
+                        <button
+                            id="phoneCallButton"
+                            class="control-btn phone"
+                            type="button"
+                            onclick="startPhoneCall()"
+                        >
+                            Telefonanruf starten
+                        </button>
+                        <span
+                            id="phoneCallStatus"
+                            class="phone-call-status"
+                        ></span>
+
+                    </div>
+
+                </div>
+
+                <audio
+                    id="remoteAudio"
+                    autoplay
+                ></audio>
+
+            </section>
+
+            <aside class="side-column">
+
+                <section class="card">
+
+                    <h2>Aktive Anrufe</h2>
+
+                    <div
+                        id="activeCallsList"
+                        class="active-calls-list"
+                    >
+                        <div class="active-call-empty">
+                            Keine aktiven Anrufe.
+                        </div>
+                    </div>
+
+                </section>
+
+                <section class="card">
+
+                    <h2>Kunde</h2>
+
+                    <div class="info-row">
+
+                        <div class="info-label">
+                            Firma
+                        </div>
+
+                        <div
+                            id="customerCompanyValue"
+                            class="info-value"
+                        >
+                            Noch kein Lead ausgewählt
+                        </div>
+
+                    </div>
+
+                    <div class="info-row">
+
+                        <div class="info-label">
+                            Ansprechpartner
+                        </div>
+
+                        <div
+                            id="customerContactValue"
+                            class="info-value"
+                        >
+                            –
+                        </div>
+
+                    </div>
+
+                    <div class="info-row">
+
+                        <div class="info-label">
+                            Telefonnummer
+                        </div>
+
+                        <div
+                            id="customerPhoneValue"
+                            class="info-value"
+                        >
+                            –
+                        </div>
+
+                    </div>
+
+                    <div class="info-row">
+
+                        <div class="info-label">
+                            Kampagne
+                        </div>
+
+                        <div class="info-value">
+
+                            <span
+                                id="customerCampaignValue"
+                                class="tag"
+                            >
+                                Keine Kampagne
+                            </span>
+
+                        </div>
+
+                    </div>
+
+                </section>
+
+                <section class="card">
+
+                    <h2>Gesprächsdaten</h2>
+
+                    <div class="info-row">
+
+                        <div class="info-label">
+                            Objekt
+                        </div>
+
+                        <div
+                            id="providerValue"
+                            class="info-value"
+                        >
+                            –
+                        </div>
+
+                    </div>
+
+                    <div class="info-row">
+
+                        <div class="info-label">
+                            Bereiche & Rhythmus
+                        </div>
+
+                        <div
+                            id="consumptionValue"
+                            class="info-value"
+                        >
+                            –
+                        </div>
+
+                    </div>
+
+                    <div class="info-row">
+
+                        <div class="info-label">
+                            Termin / Wunschtage
+                        </div>
+
+                        <div
+                            id="contractValue"
+                            class="info-value"
+                        >
+                            –
+                        </div>
+
+                    </div>
+
+                    <div class="info-row">
+
+                        <div class="info-label">
+                            E-Mail
+                        </div>
+
+                        <div
+                            id="emailValue"
+                            class="info-value"
+                        >
+                            –
+                        </div>
+
+                    </div>
+
+                </section>
+
+                <section class="card">
+
+                    <h2>Ergebnis</h2>
+
+                    <div class="result-buttons">
+
+                        <button class="result-btn" data-result="Interessiert" type="button">
+                            Interessiert
+                        </button>
+
+                        <button class="result-btn" data-result="Rückruf" type="button">
+                            Rückruf
+                        </button>
+
+                        <button class="result-btn" data-result="Rechnung" type="button">
+                            Besichtigung
+                        </button>
+
+                        <button class="result-btn" data-result="Kein Interesse" type="button">
+                            Kein Interesse
+                        </button>
+
+                    </div>
+
+                </section>
+
+            </aside>
+
+        </div>
+
+    </section></main>
+
+</div>
+
+<script>
+    let peerConnection = null;
+    let localStream = null;
+    let dataChannel = null;
+    let timerInterval = null;
+    let callSeconds = 0;
+    let microphoneMuted = false;
+
+    let currentCustomerBubble = null;
+    let currentAgentBubble = null;
+
+    let currentCustomerTurnText = "";
+    let currentAgentTurnText = "";
+    let expectedField = null;
+
+    let selectedLead = null;
+    let selectedCampaign = null;
+    let autoStartPhoneCall = false;
+
+    let currentPhoneCallId = null;
+    let phoneCallPollTimer = null;
+
+    const startButton =
+        document.getElementById("startCallButton");
+
+    const endButton =
+        document.getElementById("endCallButton");
+
+    const muteButton =
+        document.getElementById("muteButton");
+
+    const transcript =
+        document.getElementById("transcript");
+
+    const emptyTranscript =
+        document.getElementById("emptyTranscript");
+
+    const connectionStatus =
+        document.getElementById("connectionStatus");
+
+    const callTimer =
+        document.getElementById("callTimer");
+
+    const providerValue =
+        document.getElementById("providerValue");
+
+    const consumptionValue =
+        document.getElementById("consumptionValue");
+
+    const contractValue =
+        document.getElementById("contractValue");
+
+    const emailValue =
+        document.getElementById("emailValue");
+
+    const customerCompanyValue =
+        document.getElementById("customerCompanyValue");
+
+    const customerContactValue =
+        document.getElementById("customerContactValue");
+
+    const customerPhoneValue =
+        document.getElementById("customerPhoneValue");
+
+    const customerCampaignValue =
+        document.getElementById("customerCampaignValue");
+
+    const phoneNumberInput =
+        document.getElementById("phoneNumberInput");
+
+    const phoneCallButton =
+        document.getElementById("phoneCallButton");
+
+    const phoneCallStatus =
+        document.getElementById("phoneCallStatus");
+
+    const phoneNumberHistory =
+        document.getElementById("phoneNumberHistory");
+
+    const PHONE_HISTORY_KEY =
+        "kgBusinessRecentPhoneNumbers";
+
+
+    function renderPhoneNumberHistory() {
+        let numbers = [];
+
+        try {
+            numbers =
+                JSON.parse(
+                    localStorage.getItem(
+                        PHONE_HISTORY_KEY
+                    ) || "[]"
+                );
+        } catch (error) {
+            numbers = [];
+        }
+
+        phoneNumberHistory.innerHTML = "";
+
+        numbers.forEach(
+            number => {
+                const option =
+                    document.createElement(
+                        "option"
+                    );
+
+                option.value =
+                    number;
+
+                phoneNumberHistory.appendChild(
+                    option
+                );
+            }
+        );
+    }
+
+
+    function rememberPhoneNumber(
+        phoneNumber
+    ) {
+        let numbers = [];
+
+        try {
+            numbers =
+                JSON.parse(
+                    localStorage.getItem(
+                        PHONE_HISTORY_KEY
+                    ) || "[]"
+                );
+        } catch (error) {
+            numbers = [];
+        }
+
+        numbers =
+            [
+                phoneNumber,
+                ...numbers.filter(
+                    number =>
+                        number !==
+                        phoneNumber
+                )
+            ].slice(
+                0,
+                10
+            );
+
+        localStorage.setItem(
+            PHONE_HISTORY_KEY,
+            JSON.stringify(
+                numbers
+            )
+        );
+
+        renderPhoneNumberHistory();
+    }
+
+    const activeCallsList =
+        document.getElementById(
+            "activeCallsList"
+        );
+
+
+    function formatActiveCallDuration(
+        seconds
+    ) {
+        const totalSeconds =
+            Math.max(
+                0,
+                Number(
+                    seconds ||
+                    0
+                )
+            );
+
+        const minutes =
+            Math.floor(
+                totalSeconds / 60
+            )
+                .toString()
+                .padStart(
+                    2,
+                    "0"
+                );
+
+        const remainingSeconds =
+            (
+                totalSeconds % 60
+            )
+                .toString()
+                .padStart(
+                    2,
+                    "0"
+                );
+
+        return (
+            minutes +
+            ":" +
+            remainingSeconds
+        );
+    }
+
+
+    async function loadActiveCalls() {
+        try {
+            const response =
+                await fetch(
+                    "/leon-api/calls"
+                );
+
+            const result =
+                await response.json();
+
+            if (
+                !response.ok ||
+                !result.success
+            ) {
+                return;
+            }
+
+            const activeStatuses = [
+                "OpenAI wird vorbereitet",
+                "OpenAI wird verbunden",
+                "Kunde wird angerufen",
+                "Gestartet",
+                "Klingelt",
+                "Verbunden",
+                "Warteschlange"
+            ];
+
+            const activeCalls =
+                (
+                    result.calls ||
+                    []
+                ).filter(
+                    call =>
+                        activeStatuses.includes(
+                            call.status
+                        )
+                );
+
+            if (
+                !activeCalls.length
+            ) {
+                activeCallsList.innerHTML =
+                    `
+                        <div class="active-call-empty">
+                            Keine aktiven Anrufe.
+                        </div>
+                    `;
+
+                return;
+            }
+
+            activeCallsList.innerHTML =
+                activeCalls.map(
+                    call => {
+                        const name =
+                            call.firma ||
+                            call.ansprechpartner ||
+                            call.phone_number ||
+                            (
+                                "Anruf #" +
+                                call.id
+                            );
+
+                        return `
+                            <div
+                                class="active-call-card"
+                                data-call-id="${call.id}"
+                            >
+                                <strong>
+                                    ${name}
+                                </strong>
+
+                                <span>
+                                    ${call.phone_number || ""}
+                                </span>
+
+                                <span>
+                                    Status:
+                                    ${call.status || "Unbekannt"}
+                                </span>
+
+                                <span>
+                                    Dauer:
+                                    ${formatActiveCallDuration(
+                                        call.duration_seconds
+                                    )}
+                                </span>
+                            </div>
+                        `;
+                    }
+                ).join("");
+
+        } catch (error) {
+            console.error(
+                "Aktive Anrufe konnten nicht geladen werden:",
+                error
+            );
+        }
+    }
+
+
+    function loadSelectedLead() {
+        try {
+            const raw =
+                sessionStorage.getItem(
+                    "kg_live_lead"
+                );
+
+            if (!raw) {
+                return;
+            }
+
+            const stored =
+                JSON.parse(raw);
+
+            autoStartPhoneCall =
+                stored &&
+                stored.auto_start_call === true;
+
+            if (
+                autoStartPhoneCall
+            ) {
+                stored.auto_start_call =
+                    false;
+
+                sessionStorage.setItem(
+                    "kg_live_lead",
+                    JSON.stringify(
+                        stored
+                    )
+                );
+            }
+
+            if (
+                stored &&
+                stored.lead
+            ) {
+                selectedLead =
+                    stored.lead;
+
+                selectedCampaign =
+                    stored.campaign_name ||
+                    stored.campaign ||
+                    null;
+            } else {
+                selectedLead =
+                    stored;
+
+                selectedCampaign =
+                    stored.campaign_name ||
+                    stored.campaign ||
+                    null;
+            }
+
+            if (!selectedLead) {
+                return;
+            }
+
+            customerCompanyValue.textContent =
+                selectedLead.firma ||
+                "–";
+
+            customerContactValue.textContent =
+                selectedLead.ansprechpartner ||
+                "–";
+
+            customerPhoneValue.textContent =
+                selectedLead.telefon ||
+                "–";
+
+            phoneNumberInput.value =
+                selectedLead.telefon ||
+                "";
+
+            customerCampaignValue.textContent =
+                selectedCampaign ||
+                "Keine Kampagne";
+
+        } catch (error) {
+            console.error(
+                "Lead konnte nicht geladen werden:",
+                error
+            );
+        }
+    }
+
+
+    function stopPhoneCallPolling() {
+        if (
+            phoneCallPollTimer
+        ) {
+            clearInterval(
+                phoneCallPollTimer
+            );
+
+            phoneCallPollTimer =
+                null;
+        }
+    }
+
+
+    async function pollPhoneCallState() {
+        if (
+            !currentPhoneCallId
+        ) {
+            return;
+        }
+
+        try {
+            const response =
+                await fetch(
+                    "/leon-api/calls/" +
+                    currentPhoneCallId
+                );
+
+            const result =
+                await response.json();
+
+            if (
+                !response.ok ||
+                !result.success ||
+                !result.call
+            ) {
+                return;
+            }
+
+            const call =
+                result.call;
+
+            renderPhoneDialogue(
+                call.dialogue_json
+            );
+
+            const status =
+                call.status ||
+                "Unbekannt";
+
+            document
+                .querySelectorAll(
+                    ".result-btn"
+                )
+                .forEach(
+                    button => {
+                        const selected =
+                            call.result ===
+                            button.dataset.result
+                            ||
+                            (
+                                call.result === "Gesperrt"
+                                &&
+                                button.dataset.result === "Kein Interesse"
+                            );
+
+                        button.classList.toggle(
+                            "active",
+                            selected
+                        );
+                    }
+                );
+
+            connectionStatus.textContent =
+                status;
+
+            phoneCallStatus.textContent =
+                status;
+
+            const terminalStatuses = [
+                "Beendet",
+                "Besetzt",
+                "Fehler",
+                "Nicht erreichbar",
+                "Abgebrochen",
+                "OpenAI Fehler"
+            ];
+
+            if (
+                terminalStatuses.includes(
+                    status
+                )
+            ) {
+                stopPhoneCallPolling();
+                stopTimer();
+
+                const duration =
+                    Number(
+                        call.duration_seconds ||
+                        0
+                    );
+
+                if (
+                    duration > 0
+                ) {
+                    callSeconds =
+                        duration;
+
+                    updateTimer();
+                }
+
+                phoneCallButton.disabled =
+                    false;
+            }
+
+        } catch (error) {
+            console.error(
+                "Telefonstatus konnte nicht geladen werden:",
+                error
+            );
+        }
+    }
+
+
+    function startPhoneCallPolling(
+        callId
+    ) {
+        currentPhoneCallId =
+            callId;
+
+        stopPhoneCallPolling();
+
+        pollPhoneCallState();
+
+        phoneCallPollTimer =
+            setInterval(
+                pollPhoneCallState,
+                1000
+            );
+    }
+
+
+    async function startPhoneCall() {
+        const phoneNumber =
+            phoneNumberInput.value.trim();
+
+        if (!phoneNumber) {
+            phoneCallStatus.textContent =
+                "Telefonnummer fehlt.";
+
+            phoneCallStatus.className =
+                "phone-call-status error";
+
+            phoneNumberInput.focus();
+
+            return;
+        }
+
+        rememberPhoneNumber(
+            phoneNumber
+        );
+
+        phoneCallButton.disabled =
+            true;
+
+        phoneCallStatus.textContent =
+            "Anruf wird gestartet ...";
+
+        phoneCallStatus.className =
+            "phone-call-status";
+
+        const payload = {
+            phone_number:
+                phoneNumber
+        };
+
+        if (
+            selectedLead &&
+            selectedLead.id
+        ) {
+            payload.lead_id =
+                selectedLead.id;
+        }
+
+        const campaignId =
+            selectedLead &&
+            selectedLead.campaign_id
+                ? selectedLead.campaign_id
+                : null;
+
+        if (campaignId) {
+            payload.campaign_id =
+                campaignId;
+        }
+
+        try {
+            const response =
+                await fetch(
+                    "/leon-api/calls/start",
+                    {
+                        method:
+                            "POST",
+
+                        headers: {
+                            "Content-Type":
+                                "application/json"
+                        },
+
+                        body:
+                            JSON.stringify(
+                                payload
+                            )
+                    }
+                );
+
+            const result =
+                await response.json();
+
+            if (
+                !response.ok ||
+                !result.success
+            ) {
+                throw new Error(
+                    result.error ||
+                    "Telefonanruf konnte nicht gestartet werden."
+                );
+            }
+
+            currentPhoneCallId =
+                result.call_id;
+
+            phoneCallStatus.textContent =
+                result.status ||
+                "Anruf gestartet";
+
+            phoneCallStatus.className =
+                "phone-call-status success";
+
+            connectionStatus.textContent =
+                result.status ||
+                "Telefonanruf läuft";
+
+            customerPhoneValue.textContent =
+                result.phone_number ||
+                phoneNumber;
+
+            stopTimer();
+            startTimer();
+
+            startPhoneCallPolling(
+                result.call_id
+            );
+
+        } catch (error) {
+            console.error(
+                error
+            );
+
+            phoneCallStatus.textContent =
+                error.message;
+
+            phoneCallStatus.className =
+                "phone-call-status error";
+
+            connectionStatus.textContent =
+                "Bereit";
+
+            stopTimer();
+
+        } finally {
+            if (
+                !currentPhoneCallId
+            ) {
+                phoneCallButton.disabled =
+                    false;
+            }
+        }
+    }
+
+    function startTimer() {
+        callSeconds = 0;
+
+        updateTimer();
+
+        timerInterval =
+            setInterval(
+                () => {
+                    callSeconds++;
+
+                    updateTimer();
+                },
+                1000
+            );
+    }
+
+
+    function stopTimer() {
+        if (
+            timerInterval
+        ) {
+            clearInterval(
+                timerInterval
+            );
+
+            timerInterval =
+                null;
+        }
+    }
+
+
+    function updateTimer() {
+        const minutes =
+            Math.floor(
+                callSeconds / 60
+            )
+                .toString()
+                .padStart(
+                    2,
+                    "0"
+                );
+
+        const seconds =
+            (
+                callSeconds % 60
+            )
+                .toString()
+                .padStart(
+                    2,
+                    "0"
+                );
+
+        callTimer.textContent =
+            `${minutes}:${seconds}`;
+    }
+
+
+    function renderPhoneDialogue(
+        dialogueJson
+    ) {
+        if (!currentPhoneCallId) {
+            return;
+        }
+
+        let dialogue = [];
+
+        if (Array.isArray(dialogueJson)) {
+            dialogue = dialogueJson;
+        } else if (
+            typeof dialogueJson === "string"
+            &&
+            dialogueJson.trim()
+        ) {
+            try {
+                const parsed =
+                    JSON.parse(
+                        dialogueJson
+                    );
+
+                if (Array.isArray(parsed)) {
+                    dialogue = parsed;
+                }
+            } catch (error) {
+                return;
+            }
+        }
+
+        if (!dialogue.length) {
+            return;
+        }
+
+        transcript
+            .querySelectorAll(
+                ".message.phone-live"
+            )
+            .forEach(
+                element => {
+                    element.remove();
+                }
+            );
+
+        if (emptyTranscript) {
+            emptyTranscript.style.display =
+                "none";
+        }
+
+        dialogue.forEach(
+            item => {
+                if (
+                    !item
+                    ||
+                    !item.text
+                ) {
+                    return;
+                }
+
+                const role =
+                    String(
+                        item.speaker ||
+                        ""
+                    ).toLowerCase() === "kunde"
+                        ? "customer"
+                        : "agent";
+
+                const wrapper =
+                    document.createElement(
+                        "div"
+                    );
+
+                wrapper.className =
+                    "message " +
+                    role +
+                    " phone-live";
+
+                const speaker =
+                    document.createElement(
+                        "div"
+                    );
+
+                speaker.className =
+                    "speaker";
+
+                speaker.textContent =
+                    role === "agent"
+                        ? "Leon"
+                        : "Kunde";
+
+                const bubble =
+                    document.createElement(
+                        "div"
+                    );
+
+                bubble.className =
+                    "bubble";
+
+                bubble.textContent =
+                    item.text;
+
+                wrapper.appendChild(
+                    speaker
+                );
+
+                wrapper.appendChild(
+                    bubble
+                );
+
+                transcript.appendChild(
+                    wrapper
+                );
+            }
+        );
+
+        transcript.scrollTop =
+            transcript.scrollHeight;
+    }
+
+
+    function createMessage(
+        role
+    ) {
+        if (
+            emptyTranscript
+        ) {
+            emptyTranscript.style.display =
+                "none";
+        }
+
+        const wrapper =
+            document.createElement(
+                "div"
+            );
+
+        wrapper.className =
+            `message ${role}`;
+
+        const speaker =
+            document.createElement(
+                "div"
+            );
+
+        speaker.className =
+            "speaker";
+
+        speaker.textContent =
+            role === "agent"
+                ? "Leon"
+                : "Kunde";
+
+        const bubble =
+            document.createElement(
+                "div"
+            );
+
+        bubble.className =
+            "bubble";
+
+        wrapper.appendChild(
+            speaker
+        );
+
+        wrapper.appendChild(
+            bubble
+        );
+
+        transcript.appendChild(
+            wrapper
+        );
+
+        transcript.scrollTop =
+            transcript.scrollHeight;
+
+        return bubble;
+    }
+
+
+    function appendCustomerTranscript(
+        text
+    ) {
+        if (
+            currentAgentTurnText.trim()
+        ) {
+            finalizeAgentTurn();
+        }
+
+        currentAgentBubble =
+            null;
+
+        if (
+            !currentCustomerBubble
+        ) {
+            currentCustomerBubble =
+                createMessage(
+                    "customer"
+                );
+        }
+
+        currentCustomerBubble.textContent +=
+            text;
+
+        currentCustomerTurnText +=
+            text;
+
+        tryExtractEmail(
+            currentCustomerTurnText
+        );
+
+        transcript.scrollTop =
+            transcript.scrollHeight;
+    }
+
+
+    function appendAgentTranscript(
+        text
+    ) {
+        if (
+            currentCustomerTurnText.trim()
+        ) {
+            finalizeCustomerTurn();
+        }
+
+        currentCustomerBubble =
+            null;
+
+        if (
+            !currentAgentBubble
+        ) {
+            currentAgentBubble =
+                createMessage(
+                    "agent"
+                );
+        }
+
+        currentAgentBubble.textContent +=
+            text;
+
+        currentAgentTurnText +=
+            text;
+
+        transcript.scrollTop =
+            transcript.scrollHeight;
+    }
+
+
+    function finalizeAgentTurn() {
+        const text =
+            currentAgentTurnText
+                .toLowerCase()
+                .trim();
+
+        if (
+            text.includes(
+                "anbieter"
+            ) &&
+            (
+                text.includes(
+                    "strom"
+                ) ||
+                text.includes(
+                    "beziehen"
+                )
+            )
+        ) {
+            expectedField =
+                "provider";
+        }
+
+        else if (
+            text.includes(
+                "jahresverbrauch"
+            ) ||
+            text.includes(
+                "stromverbrauch"
+            ) ||
+            text.includes(
+                "kilowattstunden"
+            )
+        ) {
+            expectedField =
+                "consumption";
+        }
+
+        else if (
+            text.includes(
+                "vertrag"
+            ) &&
+            (
+                text.includes(
+                    "läuft"
+                ) ||
+                text.includes(
+                    "laufzeit"
+                ) ||
+                text.includes(
+                    "endet"
+                ) ||
+                text.includes(
+                    "vertragsende"
+                )
+            )
+        ) {
+            expectedField =
+                "contract";
+        }
+
+        else if (
+            text.includes(
+                "e-mail"
+            ) &&
+            (
+                text.includes(
+                    "wie lautet"
+                ) ||
+                text.includes(
+                    "geschäftliche"
+                ) ||
+                text.includes(
+                    "adresse"
+                )
+            )
+        ) {
+            expectedField =
+                "email";
+        }
+
+        currentAgentTurnText =
+            "";
+    }
+
+
+    function finalizeCustomerTurn() {
+        const text =
+            currentCustomerTurnText.trim();
+
+        if (!text) {
+            currentCustomerTurnText =
+                "";
+
+            return;
+        }
+
+        tryExtractEmail(
+            text
+        );
+
+        if (
+            expectedField ===
+            "provider"
+        ) {
+            const provider =
+                extractProvider(
+                    text
+                );
+
+            if (
+                provider
+            ) {
+                setDetectedValue(
+                    providerValue,
+                    provider
+                );
+            }
+        }
+
+        if (
+            expectedField ===
+            "consumption"
+        ) {
+            const consumption =
+                extractConsumption(
+                    text
+                );
+
+            if (
+                consumption
+            ) {
+                setDetectedValue(
+                    consumptionValue,
+                    consumption
+                );
+            }
+        }
+
+        if (
+            expectedField ===
+            "contract"
+        ) {
+            const contract =
+                extractContract(
+                    text
+                );
+
+            if (
+                contract
+            ) {
+                setDetectedValue(
+                    contractValue,
+                    contract
+                );
+            }
+        }
+
+        if (
+            expectedField ===
+            "email"
+        ) {
+            const email =
+                extractEmail(
+                    text
+                );
+
+            if (
+                email
+            ) {
+                setDetectedValue(
+                    emailValue,
+                    email
+                );
+            }
+        }
+
+        currentCustomerTurnText =
+            "";
+
+        expectedField =
+            null;
+    }
+
+
+    function setDetectedValue(
+        element,
+        value
+    ) {
+        element.textContent =
+            value;
+
+        element.classList.add(
+            "detected"
+        );
+    }
+
+
+    function extractProvider(
+        text
+    ) {
+        const normalized =
+            text
+                .toLowerCase()
+                .replace(
+                    /[.,!?]/g,
+                    " "
+                )
+                .replace(
+                    /\s+/g,
+                    " "
+                )
+                .trim();
+
+        if (
+            /\be[\s-]?on\b/i.test(
+                normalized
+            ) ||
+            normalized.includes(
+                "eon"
+            )
+        ) {
+            return "E.ON";
+        }
+
+        if (
+            /\bewe\b/i.test(
+                normalized
+            )
+        ) {
+            return "EWE";
+        }
+
+        if (
+            /\brwe\b/i.test(
+                normalized
+            )
+        ) {
+            return "RWE";
+        }
+
+        if (
+            normalized.includes(
+                "vattenfall"
+            )
+        ) {
+            return "Vattenfall";
+        }
+
+        if (
+            normalized.includes(
+                "enbw"
+            )
+        ) {
+            return "EnBW";
+        }
+
+        if (
+            normalized.includes(
+                "eprimo"
+            )
+        ) {
+            return "eprimo";
+        }
+
+        if (
+            normalized.includes(
+                "yello"
+            )
+        ) {
+            return "Yello";
+        }
+
+        if (
+            normalized.includes(
+                "octopus"
+            )
+        ) {
+            return "Octopus Energy";
+        }
+
+        if (
+            normalized.includes(
+                "stadtwerke"
+            )
+        ) {
+            return text.trim();
+        }
+
+        let cleaned =
+            text
+                .replace(
+                    /\b(äh|ähm|glaube ich|ja|also|ich denke|wahrscheinlich)\b/gi,
+                    ""
+                )
+                .replace(
+                    /\s+/g,
+                    " "
+                )
+                .trim();
+
+        if (
+            cleaned.length >
+            1 &&
+            cleaned.length <
+            60
+        ) {
+            return cleaned;
+        }
+
+        return null;
+    }
+
+
+    function extractConsumption(
+        text
+    ) {
+        const normalized =
+            text
+                .toLowerCase()
+                .replace(
+                    /-/g,
+                    " "
+                )
+                .replace(
+                    /\s+/g,
+                    " "
+                )
+                .trim();
+
+        const compact =
+            normalized.replace(
+                /\s+/g,
+                ""
+            );
+
+        const spokenNumbers = {
+            "eintausend": 1000,
+            "zweitausend": 2000,
+            "dreitausend": 3000,
+            "viertausend": 4000,
+            "fünftausend": 5000,
+            "sechstausend": 6000,
+            "siebentausend": 7000,
+            "achttausend": 8000,
+            "neuntausend": 9000,
+            "zehntausend": 10000,
+            "fünfzehntausend": 15000,
+            "zwanzigtausend": 20000,
+            "fünfundzwanzigtausend": 25000,
+            "dreißigtausend": 30000,
+            "vierzigtausend": 40000,
+            "fünfzigtausend": 50000,
+            "sechzigtausend": 60000,
+            "siebzigtausend": 70000,
+            "achtzigtausend": 80000,
+            "neunzigtausend": 90000,
+            "hunderttausend": 100000
+        };
+
+        for (
+            const [
+                spoken,
+                value
+            ]
+            of Object.entries(
+                spokenNumbers
+            )
+        ) {
+            if (
+                compact.includes(
+                    spoken
+                )
+            ) {
+                return (
+                    formatGermanNumber(
+                        value
+                    )
+                    + " kWh"
+                );
+            }
+        }
+
+        const matches =
+            text.match(
+                /\d[\d.\s]{2,8}/g
+            );
+
+        if (
+            !matches
+        ) {
+            return null;
+        }
+
+        const numbers =
+            matches
+                .map(
+                    value => {
+                        const cleaned =
+                            value.replace(
+                                /[^\d]/g,
+                                ""
+                            );
+
+                        return parseInt(
+                            cleaned,
+                            10
+                        );
+                    }
+                )
+                .filter(
+                    value =>
+                        !isNaN(
+                            value
+                        ) &&
+                        value >=
+                        100 &&
+                        value <=
+                        100000000
+                );
+
+        if (
+            !numbers.length
+        ) {
+            return null;
+        }
+
+        const unique =
+            [
+                ...new Set(
+                    numbers
+                )
+            ];
+
+        if (
+            unique.length >=
+            2
+        ) {
+            return (
+                formatGermanNumber(
+                    unique[0]
+                )
+                +
+                "–"
+                +
+                formatGermanNumber(
+                    unique[1]
+                )
+                +
+                " kWh"
+            );
+        }
+
+        return (
+            formatGermanNumber(
+                unique[0]
+            )
+            +
+            " kWh"
+        );
+    }
+
+    function formatGermanNumber(
+        number
+    ) {
+        return new Intl.NumberFormat(
+            "de-DE"
+        ).format(
+            number
+        );
+    }
+
+
+    function extractContract(
+        text
+    ) {
+        const normalized =
+            text.toLowerCase();
+
+        if (
+            normalized.includes(
+                "ein jahr"
+            ) ||
+            normalized.includes(
+                "1 jahr"
+            )
+        ) {
+            return "ca. 1 Jahr";
+        }
+
+        if (
+            normalized.includes(
+                "zwei jahre"
+            ) ||
+            normalized.includes(
+                "2 jahre"
+            )
+        ) {
+            return "ca. 2 Jahre";
+        }
+
+        if (
+            normalized.includes(
+                "drei jahre"
+            ) ||
+            normalized.includes(
+                "3 jahre"
+            )
+        ) {
+            return "ca. 3 Jahre";
+        }
+
+        const yearMatch =
+            normalized.match(
+                /(\d+)\s*jahr/
+            );
+
+        if (
+            yearMatch
+        ) {
+            return (
+                "ca. " +
+                yearMatch[1] +
+                " Jahr" +
+                (
+                    yearMatch[1] ===
+                    "1"
+                        ? ""
+                        : "e"
+                )
+            );
+        }
+
+        const monthMatch =
+            normalized.match(
+                /(\d+)\s*monat/
+            );
+
+        if (
+            monthMatch
+        ) {
+            return (
+                "ca. " +
+                monthMatch[1] +
+                " Monate"
+            );
+        }
+
+        if (
+            normalized.includes(
+                "nächstes jahr"
+            )
+        ) {
+            return "Nächstes Jahr";
+        }
+
+        if (
+            normalized.includes(
+                "weiß ich nicht"
+            ) ||
+            normalized.includes(
+                "muss ich gucken"
+            ) ||
+            normalized.includes(
+                "müsste ich nachsehen"
+            )
+        ) {
+            return "Unklar";
+        }
+
+        if (
+            text.length >
+            0 &&
+            text.length <
+            80
+        ) {
+            return text.trim();
+        }
+
+        return null;
+    }
+
+
+    function tryExtractEmail(
+        text
+    ) {
+        const email =
+            extractEmail(
+                text
+            );
+
+        if (
+            email
+        ) {
+            setDetectedValue(
+                emailValue,
+                email
+            );
+        }
+    }
+
+
+    function extractEmail(
+        text
+    ) {
+        let normalized =
+            text
+                .toLowerCase()
+                .trim();
+
+        normalized =
+            normalized
+                .replace(
+                    /\bklammeraffe\b/g,
+                    " @ "
+                )
+                .replace(
+                    /\bät\b/g,
+                    " @ "
+                )
+                .replace(
+                    /\bat\b/g,
+                    " @ "
+                )
+                .replace(
+                    /\bminus\b/g,
+                    " - "
+                )
+                .replace(
+                    /\bbindestrich\b/g,
+                    " - "
+                )
+                .replace(
+                    /\bpunkt\b/g,
+                    " . "
+                )
+                .replace(
+                    /\bdot\b/g,
+                    " . "
+                );
+
+        normalized =
+            normalized
+                .replace(
+                    /\s*@\s*/g,
+                    "@"
+                )
+                .replace(
+                    /\s*-\s*/g,
+                    "-"
+                )
+                .replace(
+                    /\s*\.\s*/g,
+                    "."
+                )
+                .replace(
+                    /\s+/g,
+                    ""
+                );
+
+        const match =
+            normalized.match(
+                /[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}/i
+            );
+
+        if (
+            !match
+        ) {
+            return null;
+        }
+
+        return match[0];
+    }
+
+
+    async function startCall() {
+        try {
+            resetConversationData();
+
+            startButton.disabled =
+                true;
+
+            connectionStatus.textContent =
+                "Verbindung wird aufgebaut ...";
+
+            localStream =
+                await navigator.mediaDevices.getUserMedia(
+                    {
+                        audio:
+                            true
+                    }
+                );
+
+            peerConnection =
+                new RTCPeerConnection();
+
+            localStream
+                .getTracks()
+                .forEach(
+                    track => {
+                        peerConnection.addTrack(
+                            track,
+                            localStream
+                        );
+                    }
+                );
+
+            peerConnection.ontrack =
+                event => {
+                    const audio =
+                        document.getElementById(
+                            "remoteAudio"
+                        );
+
+                    audio.srcObject =
+                        event.streams[0];
+                };
+
+            dataChannel =
+                peerConnection.createDataChannel(
+                    "oai-events"
+                );
+
+            dataChannel.onopen =
+                () => {
+                    connectionStatus.textContent =
+                        "Live verbunden";
+
+                    startButton.style.display =
+                        "none";
+
+                    endButton.style.display =
+                        "inline-block";
+
+                    muteButton.disabled =
+                        false;
+
+                    startTimer();
+                };
+
+            dataChannel.onmessage =
+                event => {
+                    try {
+                        const message =
+                            JSON.parse(
+                                event.data
+                            );
+
+                        console.log(
+                            "OpenAI Live:",
+                            message
+                        );
+
+                        if (
+                            message.type ===
+                            "session.started"
+                        ) {
+                            connectionStatus.textContent =
+                                "Live verbunden";
+                        }
+
+                        if (
+                            message.type ===
+                            "session.input_transcript.delta"
+                        ) {
+                            appendCustomerTranscript(
+                                message.delta ||
+                                ""
+                            );
+                        }
+
+                        if (
+                            message.type ===
+                            "session.output_transcript.delta"
+                        ) {
+                            appendAgentTranscript(
+                                message.delta ||
+                                ""
+                            );
+                        }
+
+                        if (
+                            message.type ===
+                            "session.closed"
+                        ) {
+                            stopCall();
+                        }
+
+                        if (
+                            message.type ===
+                            "error"
+                        ) {
+                            console.error(
+                                "OpenAI Live Fehler:",
+                                message
+                            );
+                        }
+
+                    } catch (
+                        error
+                    ) {
+                        console.error(
+                            "Live Nachricht konnte nicht gelesen werden:",
+                            error
+                        );
+                    }
+                };
+
+            const offer =
+                await peerConnection.createOffer();
+
+            await peerConnection.setLocalDescription(
+                offer
+            );
+
+            if (
+                peerConnection.iceGatheringState !==
+                "complete"
+            ) {
+                await new Promise(
+                    resolve => {
+                        const checkIceGatheringState =
+                            () => {
+                                if (
+                                    peerConnection.iceGatheringState ===
+                                    "complete"
+                                ) {
+                                    peerConnection.removeEventListener(
+                                        "icegatheringstatechange",
+                                        checkIceGatheringState
+                                    );
+
+                                    resolve();
+                                }
+                            };
+
+                        peerConnection.addEventListener(
+                            "icegatheringstatechange",
+                            checkIceGatheringState
+                        );
+
+                        setTimeout(
+                            () => {
+                                peerConnection.removeEventListener(
+                                    "icegatheringstatechange",
+                                    checkIceGatheringState
+                                );
+
+                                resolve();
+                            },
+                            5000
+                        );
+                    }
+                );
+            }
+
+            const localDescription =
+                peerConnection.localDescription;
+
+            if (
+                !localDescription ||
+                !localDescription.sdp ||
+                !localDescription.sdp.trim()
+            ) {
+                throw new Error(
+                    "Browser hat kein gültiges SDP erzeugt."
+                );
+            }
+
+            console.log(
+                "SDP Länge:",
+                localDescription.sdp.length
+            );
+
+            const response =
+                await fetch(
+                    "/leon-api/live/session",
+                    {
+                        method:
+                            "POST",
+
+                        headers: {
+                            "Content-Type":
+                                "application/json"
+                        },
+
+                        body:
+                            JSON.stringify(
+                                {
+                                    sdp:
+                                        localDescription.sdp
+                                }
+                            )
+                    }
+                );
+
+            const result =
+                await response.json();
+
+            if (
+                !response.ok ||
+                !result.success
+            ) {
+                throw new Error(
+                    result.error ||
+                    "Live Session konnte nicht erstellt werden."
+                );
+            }
+
+            await peerConnection.setRemoteDescription(
+                {
+                    type:
+                        "answer",
+
+                    sdp:
+                        result.sdp
+                }
+            );
+
+        } catch (
+            error
+        ) {
+            console.error(
+                error
+            );
+
+            connectionStatus.textContent =
+                "Fehler";
+
+            alert(
+                error.message
+            );
+
+            stopCall();
+
+        } finally {
+            startButton.disabled =
+                false;
+        }
+    }
+
+
+    function resetConversationData() {
+        currentCustomerBubble =
+            null;
+
+        currentAgentBubble =
+            null;
+
+        currentCustomerTurnText =
+            "";
+
+        currentAgentTurnText =
+            "";
+
+        expectedField =
+            null;
+
+        providerValue.textContent =
+            "–";
+
+        consumptionValue.textContent =
+            "–";
+
+        contractValue.textContent =
+            "–";
+
+        emailValue.textContent =
+            "–";
+
+        providerValue.classList.remove(
+            "detected"
+        );
+
+        consumptionValue.classList.remove(
+            "detected"
+        );
+
+        contractValue.classList.remove(
+            "detected"
+        );
+
+        emailValue.classList.remove(
+            "detected"
+        );
+
+        transcript
+            .querySelectorAll(
+                ".message"
+            )
+            .forEach(
+                element => {
+                    element.remove();
+                }
+            );
+
+        emptyTranscript.style.display =
+            "block";
+
+        callTimer.textContent =
+            "00:00";
+    }
+
+
+    function toggleMicrophone() {
+        if (
+            !localStream
+        ) {
+            return;
+        }
+
+        microphoneMuted =
+            !microphoneMuted;
+
+        localStream
+            .getAudioTracks()
+            .forEach(
+                track => {
+                    track.enabled =
+                        !microphoneMuted;
+                }
+            );
+
+        if (
+            microphoneMuted
+        ) {
+            muteButton.textContent =
+                "Mikrofon aus";
+        } else {
+            muteButton.textContent =
+                "Mikrofon";
+        }
+    }
+
+
+    function stopCall() {
+        if (
+            currentCustomerTurnText.trim()
+        ) {
+            finalizeCustomerTurn();
+        }
+
+        stopTimer();
+
+        if (
+            dataChannel &&
+            dataChannel.readyState ===
+            "open"
+        ) {
+            try {
+                dataChannel.send(
+                    JSON.stringify(
+                        {
+                            type:
+                                "session.close"
+                        }
+                    )
+                );
+            } catch (
+                error
+            ) {
+                console.error(
+                    error
+                );
+            }
+        }
+
+        if (
+            dataChannel
+        ) {
+            dataChannel.close();
+
+            dataChannel =
+                null;
+        }
+
+        if (
+            peerConnection
+        ) {
+            peerConnection.close();
+
+            peerConnection =
+                null;
+        }
+
+        if (
+            localStream
+        ) {
+            localStream
+                .getTracks()
+                .forEach(
+                    track => {
+                        track.stop();
+                    }
+                );
+
+            localStream =
+                null;
+        }
+
+        document.getElementById(
+            "remoteAudio"
+        ).srcObject =
+            null;
+
+        currentCustomerBubble =
+            null;
+
+        currentAgentBubble =
+            null;
+
+        currentCustomerTurnText =
+            "";
+
+        currentAgentTurnText =
+            "";
+
+        expectedField =
+            null;
+
+        microphoneMuted =
+            false;
+
+        muteButton.textContent =
+            "Mikrofon";
+
+        connectionStatus.textContent =
+            "Bereit";
+
+        startButton.style.display =
+            "inline-block";
+
+        endButton.style.display =
+            "none";
+    }
+
+
+    startButton.addEventListener(
+        "click",
+        startCall
+    );
+
+    endButton.addEventListener(
+        "click",
+        stopCall
+    );
+
+    muteButton.addEventListener(
+        "click",
+        toggleMicrophone
+    );
+
+    phoneNumberInput.addEventListener(
+        "keydown",
+        event => {
+            if (
+                event.key ===
+                "Enter"
+            ) {
+                startPhoneCall();
+            }
+        }
+    );
+
+    phoneNumberInput.addEventListener(
+        "click",
+        () => {
+            if (
+                typeof phoneNumberInput.showPicker ===
+                "function"
+            ) {
+                try {
+                    phoneNumberInput.showPicker();
+                } catch (error) {
+                }
+            }
+        }
+    );
+
+    activeCallsList.addEventListener(
+        "click",
+        event => {
+            const card =
+                event.target.closest(
+                    ".active-call-card"
+                );
+
+            if (
+                !card
+            ) {
+                return;
+            }
+
+            const callId =
+                Number(
+                    card.dataset.callId
+                );
+
+            if (
+                !callId
+            ) {
+                return;
+            }
+
+            window.location.href =
+                "/leon-ui/gespraech/" +
+                callId;
+        }
+    );
+
+
+    loadSelectedLead();
+
+    renderPhoneNumberHistory();
+
+    loadActiveCalls();
+
+    setInterval(
+        loadActiveCalls,
+        2000
+    );
+
+    // Kosten-Schutz: Ein Telefonanruf startet ausschließlich
+    // durch eine bewusste Benutzeraktion auf dieser Seite.
+    // Ein alter sessionStorage auto_start_call-Wert wird nie ausgeführt.
+    autoStartPhoneCall = false;
+</script>
+</body>
+</html>

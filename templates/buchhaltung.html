@@ -16,7 +16,7 @@
 .card{border:none;border-radius:10px;transition:.3s}
 /* 🔥 BURAYI SABİTLEDİK: Mouse gelince zıplamayı durdurur */
 .card:hover{transform:none !important} 
-.nav-tabs .nav-link.active{background:#007bff;color:#fff!important;border-radius:5px 5px 0 0}
+.nav-tabs .nav-link.active{background:#0069d9;color:#fff!important;border-radius:5px 5px 0 0}
 .table thead th{background:#28a745 !important;color:#fff;border:none}
 .status-paid{background:#d4edda;color:#155724;font-weight:bold}
 .status-open{background:#f8d7da;color:#721c24;font-weight:bold}
@@ -96,10 +96,17 @@ html {
     position:relative;
     z-index:1;
     display:grid;
-    grid-template-columns:minmax(330px,1fr) minmax(260px,0.7fr);
+    grid-template-columns:minmax(0,1fr) minmax(0,0.7fr);
     gap:18px;
     align-items:flex-start;
     margin-bottom:26px;
+}
+
+/* Telefon: Kopfbereich einspaltig, Datumsbox nicht abgeschnitten */
+@media (max-width:760px) {
+    .buchhaltung-title-row {
+        grid-template-columns:minmax(0,1fr);
+    }
 }
 
 .buchhaltung-title h1 {
@@ -122,7 +129,8 @@ html {
 .live-date-box {
     justify-self:end;
     margin-top:0;
-    width:260px;
+    width:100%;
+    max-width:260px;
     display:grid;
     grid-template-columns:1fr;
     align-items:center;

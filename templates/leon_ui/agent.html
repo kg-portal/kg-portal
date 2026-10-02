@@ -1,0 +1,1732 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agent | KG Gebäudereinigung Voice Portal</title>
+    <style>
+        * { box-sizing: border-box; }
+        :root {
+            --bg:#f3f6f9; --sidebar:#eaf1f5; --card:#ffffff; --border:#dfe7ec;
+            --text:#24323c; --muted:#81929d; --blue:#2563eb; --blue-dark:#1e40af;
+            --blue-soft:#eff6ff; --green:#22a477; --green-soft:#e6f7f1;
+            --orange:#f4a423; --orange-soft:#fff6e0; --red:#ef5c62;
+            --shadow:0 2px 8px rgba(30,58,78,.05);
+        }
+        body { margin:0; font-family:Inter,Arial,Helvetica,sans-serif; background:var(--bg); color:var(--text); }
+        button,input,select,textarea { font:inherit; }
+        button { cursor:pointer; }
+        .app {
+            display: grid;
+            grid-template-columns: 235px minmax(0, 1fr);
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            background: var(--sidebar);
+            border-right: 1px solid #d9e3e9;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+        }
+
+        .sidebar-top {
+            padding: 25px 16px 20px;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 0 5px;
+            margin-bottom: 24px;
+        }
+
+        .brand-mark {
+            width: 39px;
+            height: 39px;
+            border-radius: 11px;
+            background: linear-gradient(135deg, #87b8cf, #2f7ea4);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 15px;
+            font-weight: 900;
+        }
+
+        .brand-text strong {
+            display: block;
+            font-size: 18px;
+            line-height: 1.05;
+        }
+
+        .brand-text span {
+            display: block;
+            margin-top: 3px;
+            color: #7690a0;
+            font-size: 10px;
+            letter-spacing: 1.1px;
+            font-weight: 800;
+        }
+
+        .system-card {
+            background: white;
+            border: 1px solid #d8e2e7;
+            border-radius: 14px;
+            padding: 15px;
+            margin-bottom: 13px;
+            box-shadow: var(--shadow);
+        }
+
+        .system-title {
+            font-size: 11px;
+            font-weight: 800;
+            margin-bottom: 10px;
+        }
+
+        .system-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .system-circle {
+            width: 39px;
+            height: 39px;
+            border: 2px solid #75a8c2;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #1e40af;
+            font-size: 12px;
+            font-weight: 900;
+        }
+
+        .system-meta strong {
+            display: block;
+            font-size: 12px;
+        }
+
+        .system-meta span {
+            display: block;
+            margin-top: 2px;
+            color: #8b9ba5;
+            font-size: 10px;
+        }
+
+        .agent-button {
+            width: 100%;
+            border: 0;
+            border-radius: 8px;
+            background: var(--blue);
+            color: white;
+            padding: 10px 12px;
+            margin-top: 12px;
+            font-size: 11px;
+            font-weight: 800;
+        }
+
+        .new-call {
+            width: 100%;
+            border: 0;
+            border-radius: 18px;
+            background: var(--blue);
+            color: white;
+            padding: 12px 15px;
+            font-size: 12px;
+            font-weight: 800;
+            margin-bottom: 18px;
+        }
+
+        .nav {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .nav-title {
+            color: #8ca0ac;
+            font-size: 9px;
+            letter-spacing: 1.4px;
+            text-transform: uppercase;
+            font-weight: 900;
+            padding: 15px 8px 6px;
+        }
+
+        .nav a {
+            text-decoration: none;
+            color: #55707f;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            min-height: 39px;
+            padding: 9px 9px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 700;
+            position: relative;
+        }
+
+        .nav a:hover {
+            background: rgba(255,255,255,.65);
+        }
+
+        .nav a.active {
+            background: rgba(255,255,255,.88);
+            color: var(--blue-dark);
+        }
+
+        .nav a.active::before {
+            content: "";
+            position: absolute;
+            left: -16px;
+            top: 4px;
+            bottom: 4px;
+            width: 3px;
+            border-radius: 6px;
+            background: var(--blue);
+        }
+
+        .nav-icon {
+            width: 18px;
+            text-align: center;
+            font-size: 14px;
+        }
+
+        .sidebar-bottom {
+            margin-top: auto;
+            padding: 16px;
+            border-top: 1px solid #d9e3e9;
+        }
+
+        .user-row {
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            margin-bottom: 12px;
+        }
+
+        .user-avatar {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            background: var(--blue);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 900;
+        }
+
+        .user-info strong {
+            display: block;
+            font-size: 11px;
+        }
+
+        .user-info span {
+            display: block;
+            margin-top: 2px;
+            color: #8a9ba6;
+            font-size: 9px;
+        }
+
+        .main { padding:26px 30px 50px; min-width:0; }
+        .topbar { display:flex; align-items:center; justify-content:space-between; gap:20px; margin-bottom:18px; }
+        .topbar h1 { margin:0; font-size:26px; }
+        .topbar p { margin:5px 0 0; color:var(--muted); font-size:13px; }
+        .top-actions { display:flex; gap:10px; align-items:center; }
+        .saved-status { display:none; background:var(--green-soft); color:#17785a; border:1px solid #bce9d9; padding:8px 12px; border-radius:9px; font-size:11px; font-weight:800; }
+        .btn { border:0; border-radius:9px; padding:10px 15px; font-weight:800; font-size:12px; }
+        .btn-primary { background:#20a377; color:white; }
+        .btn-blue { background:var(--blue); color:white; }
+        .btn-secondary { background:#eef2f5; color:#526572; }
+        .btn-danger { background:var(--red); color:white; }
+        .tabs { display:flex; gap:2px; border-bottom:1px solid var(--border); margin-bottom:20px; overflow-x:auto; }
+        .tab { border:0; background:transparent; color:#536978; padding:12px 15px 11px; font-size:12px; white-space:nowrap; border-bottom:2px solid transparent; }
+        .tab.active { color:#1e3a8a; font-weight:800; border-bottom-color:#1e3a8a; }
+        .tab-panel { display:none; }
+        .tab-panel.active { display:block; }
+        .card { background:#fff; border:1px solid var(--border); border-radius:15px; box-shadow:var(--shadow); margin-bottom:18px; overflow:hidden; }
+        .card-head { padding:16px 18px; border-bottom:1px solid #edf1f3; display:flex; align-items:center; justify-content:space-between; gap:14px; }
+        .card-head h2 { margin:0; font-size:15px; }
+        .card-body { padding:18px; }
+        .grid2 { display:grid; grid-template-columns:1fr 1fr; gap:18px; }
+        .field { margin-bottom:17px; }
+        .field:last-child { margin-bottom:0; }
+        label { display:block; margin-bottom:7px; font-size:11px; font-weight:800; color:#607887; }
+        input,select,textarea { width:100%; border:1px solid #dbe3e8; background:#f7f9fb; color:#24323c; border-radius:8px; padding:11px 12px; outline:none; }
+        input:focus,select:focus,textarea:focus { border-color:#79aeca; box-shadow:0 0 0 3px rgba(61,133,170,.08); background:#fff; }
+        textarea { resize:vertical; min-height:110px; line-height:1.55; }
+        #voice_prompt { min-height:360px; }
+        #backend_prompt { min-height:300px; }
+        .prompt-stack { display:grid; gap:18px; }
+        .prompt-card { border:1px solid #e2e9ed; border-radius:12px; padding:16px; background:#fbfcfd; }
+        .prompt-card h3 { margin:0 0 5px; font-size:13px; }
+        .prompt-card p { margin:0 0 12px; color:#8798a3; font-size:10.5px; line-height:1.5; }
+        .hint { color:#64748b; font-size:10.5px; line-height:1.5; margin-top:6px; }
+        .voice-row { display:grid; grid-template-columns:1fr auto; gap:10px; align-items:center; }
+        .voice-preview-button { border:1px solid #cbd9e0; background:#fff; color:#356f8e; border-radius:8px; padding:10px 14px; font-weight:800; font-size:11px; white-space:nowrap; }
+        .voice-preview-button.playing { background:#ef5c62; border-color:#ef5c62; color:#fff; }
+        .preview-status { min-height:18px; margin-top:7px; color:#6f8795; font-size:10px; }
+        .notice { display:flex; gap:10px; align-items:flex-start; background:#f2f8fb; border:1px solid #d9e9f1; border-radius:10px; padding:12px 14px; color:#567688; font-size:11px; line-height:1.5; }
+        .info-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; }
+        .info-box { border:1px solid #e2e9ed; border-radius:11px; padding:14px; background:#fbfcfd; }
+        .info-box strong { display:block; font-size:12px; margin-bottom:5px; }
+        .info-box span { color:#64748b; font-size:10px; line-height:1.45; }
+        .switch-row { display:flex; align-items:center; justify-content:space-between; gap:20px; padding:16px 0; border-bottom:1px solid #edf1f3; }
+        .switch-row:last-child { border-bottom:0; }
+        .switch-copy strong { display:block; font-size:12px; }
+        .switch-copy span { display:block; margin-top:4px; color:#8b9aa5; font-size:10px; line-height:1.4; }
+        .switch { width:42px; height:24px; border-radius:999px; background:#d9e2e7; position:relative; flex:0 0 auto; }
+        .switch.on { background:#4c94b7; }
+        .switch::after { content:""; width:18px; height:18px; background:white; border-radius:50%; position:absolute; top:3px; left:3px; box-shadow:0 1px 3px rgba(0,0,0,.18); }
+        .switch.on::after { left:21px; }
+        .analysis-list { display:grid; grid-template-columns:1fr 1fr; gap:10px 16px; }
+        .analysis-item { border:1px solid #e3eaee; border-radius:9px; padding:11px 12px; background:#fbfcfd; font-size:11px; }
+        .analysis-item strong { display:block; margin-bottom:3px; }
+        .analysis-item span { color:#8a9aa5; }
+        .test-wrap { max-width:900px; }
+        .test-status { margin-top:12px; padding:11px 13px; border-radius:9px; background:#f7f9fb; border:1px solid #dfe7ec; color:#6f8290; font-size:11px; }
+        .test-status.connected { background:#eff6ff; border-color:#bfdbfe; color:#1d4ed8; }
+        .test-status.error { background:#fff1f2; border-color:#fecdd3; color:#be3340; }
+        .test-actions { display:flex; justify-content:flex-start; gap:10px; margin-top:16px; }
+        .footer-save { display:flex; justify-content:flex-end; margin-top:18px; }
+        @media(max-width:950px){ .app{grid-template-columns:1fr}.sidebar{position:relative;height:auto}.grid2,.info-grid,.analysis-list{grid-template-columns:1fr}.main{padding:20px}.topbar{align-items:flex-start;flex-direction:column}.top-actions{width:100%;justify-content:flex-end} }
+    </style>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='leon/kg_portal.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='leon/kg_shell_override.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='leon/kg_page_theme.css') }}">
+
+<style id="kg-crm-frame">
+  /* Im KG CRM eingebettet: ohne eigene Sidebar, volle Breite */
+  .business-portal-sidebar{display:none!important}
+  .business-portal-main{width:100%!important;margin-left:0!important;padding:18px!important}
+  body{background:#f8fafc!important}
+</style>
+</head>
+<body>
+<div class="kg-business-shell">
+    
+
+    <main class="business-portal-main"><section class="business-portal-card">
+        <section class="kgb-hero">
+<div class="topbar">
+            <div><h1>Agent: Leon</h1><p>Vertriebsassistent für KG Gebäudereinigung konfigurieren.</p></div>
+            <div class="top-actions">
+                <div id="savedStatus" class="saved-status">✓ Gespeichert</div>
+                <button class="btn btn-primary" type="button" onclick="saveAgentSettings()">💾 Speichern</button>
+            </div>
+        </div>
+</section>
+
+
+        <div class="tabs">
+            <button class="tab active" data-tab="allgemein" onclick="showTab('allgemein')">Allgemein</button>
+            <button class="tab" data-tab="stimme" onclick="showTab('stimme')">Stimme & Sprache</button>
+            <button class="tab" data-tab="wissen" onclick="showTab('wissen')">Wissensbasis</button>
+            <button class="tab" data-tab="funktionen" onclick="showTab('funktionen')">Funktionen</button>
+            <button class="tab" data-tab="test" onclick="showTab('test')">Testanruf</button>
+        </div>
+
+        <section id="tab-allgemein" class="tab-panel active">
+            <div class="card">
+                <div class="card-head"><h2>Allgemein</h2><span style="font-size:10px;color:#64748b">Grunddaten des Agents</span></div>
+                <div class="card-body">
+                    <div class="grid2">
+                        <div>
+                            <div class="field"><label for="agent_name">Name des Agenten</label><input id="agent_name" type="text" value="Leon"></div>
+                        </div>
+                        <div>
+                            <div class="field"><label for="opening">Begrüßungstext</label><textarea id="opening" placeholder="Guten Tag, hier ist Leon von KG Gebäudereinigung ..."></textarea><div class="hint">Wird beim Gesprächsbeginn verwendet. Deine vollständige Gesprächslogik bleibt im System Prompt.</div></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="tab-stimme" class="tab-panel">
+            <div class="card">
+                <div class="card-head">
+                    <h2>Stimme & Sprache</h2>
+                    <span style="font-size:10px;color:#64748b">OpenAI Live · native Parameter</span>
+                </div>
+                <div class="card-body">
+                    <div class="grid2">
+                        <div>
+                            <div class="field">
+                                <label for="model">Live Model</label>
+                                <select id="model">
+                                    <option value="gpt-live-1" selected>gpt-live-1</option>
+                                </select>
+                                <div class="hint">Full-duplex Voice-Modell für das hörbare Gespräch.</div>
+                            </div>
+
+                            <div class="field">
+                                <label for="speed">Sprechtempo</label>
+                                <input id="speed" type="number" min="0.25" max="1.50" step="0.05" value="1.00">
+                                <div class="hint">1.00 = normal. Bei SIP-Telefonaten wird dieser Wert als Gesprächsanweisung umgesetzt, da OpenAI Live SIP keinen direkten speed-Parameter akzeptiert.</div>
+                            </div>
+
+                            <div class="field">
+                                <label for="turn_detection">Turn Detection</label>
+                                <select id="turn_detection" onchange="syncVadFields()">
+                                    <option value="server_vad" selected>Server VAD</option>
+                                    <option value="semantic_vad">Semantic VAD</option>
+                                </select>
+                                <div class="hint">Server VAD reagiert direkt auf Sprach-/Stille-Erkennung. Semantic VAD bewertet zusätzlich, ob der Satz inhaltlich beendet ist.</div>
+                            </div>
+
+                            <div class="field" id="vadEagernessField" style="display:none">
+                                <label for="vad_eagerness">Semantic VAD Eagerness</label>
+                                <select id="vad_eagerness">
+                                    <option value="low">low</option>
+                                    <option value="medium">medium</option>
+                                    <option value="high">high</option>
+                                    <option value="auto" selected>auto</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div>
+                            <div class="field">
+                                <label for="voice">Voice</label>
+                                <div class="voice-row">
+                                    <select id="voice">
+                                        <option value="alloy">Alloy</option><option value="ash">Ash</option><option value="ballad">Ballad</option><option value="beacon">Beacon</option><option value="bossa">Bossa</option><option value="cedar">Cedar</option><option value="cinder">Cinder</option><option value="coral">Coral</option><option value="delta">Delta</option><option value="echo">Echo</option><option value="gleam" selected>Gleam</option><option value="marin">Marin</option><option value="meridian">Meridian</option><option value="quartz">Quartz</option><option value="ripple">Ripple</option><option value="sage">Sage</option><option value="shimmer">Shimmer</option><option value="stone">Stone</option><option value="tempo">Tempo</option><option value="verse">Verse</option><option value="vesper">Vesper</option><option value="willow">Willow</option>
+                                    </select>
+                                    <button id="voicePreviewButton" class="voice-preview-button" type="button" onclick="toggleVoicePreview()">▶ Probe anhören</button>
+                                </div>
+                                <div id="voicePreviewStatus" class="preview-status"></div>
+                                <audio id="voicePreviewAudio" autoplay></audio>
+                            </div>
+
+                            <div class="notice">
+                                <span>ℹ</span>
+                                <div>
+                                    <strong style="display:block;margin-bottom:4px;color:#24323c">Aktuelle Empfehlung für Leon</strong>
+                                    Tempo 1.00 · GPT-Live 1. Für Telefonate wird das Tempo über Leons Gesprächsanweisung gesteuert; die SIP-Verbindung bleibt bei der offiziell unterstützten Voice-Konfiguration.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="border-top:1px solid #edf1f3;margin:20px 0"></div>
+
+                    <div class="card-head" style="padding:0 0 14px;border:0">
+                        <h2>Delegated model</h2>
+                        <span style="font-size:10px;color:#64748b">Responses Backend</span>
+                    </div>
+
+                    <div class="grid2">
+                        <div>
+                            <div class="field">
+                                <label>Type</label>
+                                <input type="text" value="Responses" disabled>
+                            </div>
+
+                            <div class="field">
+                                <label for="delegated_model">Model</label>
+                                <select id="delegated_model">
+                                    <option value="gpt-5.6-luna">gpt-5.6-luna</option>
+                                    <option value="gpt-5.6-terra" selected>gpt-5.6-terra</option>
+                                    <option value="gpt-5.6-sol">gpt-5.6-sol</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div>
+                            <div class="field">
+                                <label for="reasoning_effort">Reasoning effort</label>
+                                <select id="reasoning_effort">
+                                    <option value="none">none</option>
+                                    <option value="low" selected>low</option>
+                                    <option value="medium">medium</option>
+                                    <option value="high">high</option>
+                                    <option value="xhigh">xhigh</option>
+                                    <option value="max">max</option>
+                                </select>
+                                <div class="hint">Für E-Mail/Kalender/DNC ist low bewusst gewählt: weniger Latenz und geringere Backend-Kosten.</div>
+                            </div>
+
+                            <div class="field">
+                                <label for="web_search">Web search</label>
+                                <select id="web_search">
+                                    <option value="none" selected>none</option>
+                                    <option value="low">low</option>
+                                    <option value="medium">medium</option>
+                                    <option value="high">high</option>
+                                </select>
+                                <div class="hint">Standardmäßig aus. Aktivieren nur, wenn Leon wirklich aktuelle Web-Informationen im Gespräch braucht.</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="tab-wissen" class="tab-panel">
+            <div class="card">
+                <div class="card-head">
+                    <h2>Prompts</h2>
+                    <span style="font-size:10px;color:#64748b">Gespräch und Backend sauber getrennt</span>
+                </div>
+                <div class="card-body">
+                    <div class="prompt-stack">
+
+                        <div class="prompt-card">
+                            <h3>Voice Prompt / Gesprächsverhalten</h3>
+                            <p>
+                                Steuert ausschließlich, wie Leon spricht und das Gespräch führt:
+                                Ton, Kürze, Gesprächsfluss, Einwände, Unterbrechungen und Verabschiedung.
+                            </p>
+
+                            <div class="field">
+                                <label for="voice_prompt">Voice Prompt</label>
+                                <textarea
+                                    id="voice_prompt"
+                                    placeholder="Du bist Lena von KG Gebäudereinigung ..."
+                                ></textarea>
+
+                                <div class="hint">
+                                    Änderungen hier beeinflussen Leons hörbares Gespräch.
+                                    Technische Tool-Regeln gehören nicht in dieses Feld.
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="prompt-card">
+                            <h3>Backend Prompt / Funktionslogik</h3>
+                            <p>
+                                Steuert ausschließlich die interne Logik für Rückruf, Kalender,
+                                E-Mail und andere Funktionen. Dieser Prompt spricht nicht selbst mit dem Kunden.
+                            </p>
+
+                            <div class="field">
+                                <label for="backend_prompt">Backend Prompt</label>
+                                <textarea
+                                    id="backend_prompt"
+                                    placeholder="Du bist der interne technische Assistent für Leons Telefonate ..."
+                                ></textarea>
+
+                                <div class="hint">
+                                    Hier stehen Regeln dafür, wann Funktionen ausgeführt werden dürfen,
+                                    welche Angaben bestätigt sein müssen und wie Ergebnisse zurückgegeben werden.
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <div class="footer-save">
+                        <button
+                            class="btn btn-primary"
+                            type="button"
+                            onclick="saveAgentSettings()"
+                        >
+                            💾 Einstellungen speichern
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-head">
+                    <h2>Wissensbasis</h2>
+                    <span style="font-size:10px;color:#64748b">Aktive Fakten werden Leon im Gespräch bereitgestellt</span>
+                </div>
+                <div class="card-body">
+                    <div class="grid2">
+                        <div>
+                            <div class="field">
+                                <label for="kbTitle">Titel</label>
+                                <input id="kbTitle" type="text" placeholder="z. B. Ablauf Besichtigung">
+                            </div>
+                            <div class="field">
+                                <label for="kbCategory">Kategorie</label>
+                                <input id="kbCategory" type="text" placeholder="z. B. Angebot, FAQ, Einwand">
+                            </div>
+                        </div>
+                        <div>
+                            <div class="field">
+                                <label for="kbContent">Inhalt</label>
+                                <textarea id="kbContent" placeholder="Nur verlässliche Fakten eintragen."></textarea>
+                            </div>
+                            <button class="btn btn-blue" type="button" onclick="addKnowledgeItem()">+ Wissenseintrag speichern</button>
+                        </div>
+                    </div>
+                    <div id="knowledgeList" style="margin-top:18px"></div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-head">
+                    <h2>Prompt-Versionen</h2>
+                    <span style="font-size:10px;color:#64748b">Vor jeder Prompt-Änderung wird die vorherige Version gesichert</span>
+                </div>
+                <div class="card-body">
+                    <div id="promptVersionList"></div>
+                </div>
+            </div>
+        </section>
+
+        <section id="tab-funktionen" class="tab-panel">
+            <div class="card">
+                <div class="card-head">
+                    <h2>Funktionen</h2>
+                    <span style="font-size:10px;color:#64748b">Delegated Responses Tools</span>
+                </div>
+                <div class="card-body">
+                    <div class="kg-setting-row">
+                        <div>
+                            <strong>send_lena_email</strong>
+                            <small>Bestätigte Kunden-E-Mail senden · Duplicate-Schutz aktiv</small>
+                        </div>
+                        <span class="kg-status ok">Aktiv</span>
+                    </div>
+
+                    <div class="kg-setting-row">
+                        <div>
+                            <strong>create_lena_callback</strong>
+                            <small>Bestätigten Rückruf in Google Kalender eintragen · relative Datumsauflösung aktiv</small>
+                        </div>
+                        <span class="kg-status ok">Aktiv</span>
+                    </div>
+
+                    <div class="kg-setting-row">
+                        <div>
+                            <strong>mark_do_not_call</strong>
+                            <small>Kein Interesse / nicht mehr anrufen dauerhaft am Lead speichern</small>
+                        </div>
+                        <span class="kg-status ok">Aktiv</span>
+                    </div>
+
+                    <div class="kg-setting-row">
+                        <div>
+                            <strong>Tool choice</strong>
+                            <small>OpenAI Responses entscheidet automatisch, wann eine Funktion nötig ist.</small>
+                        </div>
+                        <span class="kg-status">auto</span>
+                    </div>
+
+                    <div class="kg-setting-row">
+                        <div>
+                            <strong>Parallel tool calls</strong>
+                            <small>E-Mail und Rückruf dürfen gleichzeitig ausgeführt werden, wenn beide vollständig bestätigt sind.</small>
+                        </div>
+                        <span class="kg-status ok">Aktiv</span>
+                    </div>
+
+                    <div class="kg-setting-row">
+                        <div>
+                            <strong>Web search</strong>
+                            <small id="webSearchFunctionHint">Aktuell deaktiviert.</small>
+                        </div>
+                        <span id="webSearchFunctionStatus" class="kg-status">none</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="tab-test" class="tab-panel">
+            <div class="card test-wrap">
+                <div class="card-head"><h2>Testanruf im Browser</h2><span style="font-size:10px;color:#64748b">GPT-Live</span></div>
+                <div class="card-body">
+                    <p style="margin:0 0 8px;font-size:13px">Teste Leon direkt mit deinem Mikrofon.</p>
+                    <div class="notice"><span>⚠</span><div>Dieser Test startet eine echte GPT-Live Session und verursacht Nutzungskosten.</div></div>
+                    <div class="test-actions"><button id="testButton" class="btn btn-blue" type="button" onclick="toggleLiveTest()">☎ Testanruf im Browser starten</button></div>
+                    <div id="testStatus" class="test-status">Nicht verbunden</div>
+                    <audio id="remoteAudio" autoplay></audio>
+                </div>
+            </div>
+        </section>
+    </section></main>
+</div>
+<script>
+    function showTab(name) {
+        document.querySelectorAll('.tab').forEach(button => {
+            button.classList.toggle('active', button.dataset.tab === name);
+        });
+        document.querySelectorAll('.tab-panel').forEach(panel => {
+            panel.classList.toggle('active', panel.id === 'tab-' + name);
+        });
+    }
+
+    document.addEventListener(
+        "change",
+        event => {
+            if (
+                event.target
+                &&
+                event.target.id === "web_search"
+            ) {
+                syncFunctionStatus();
+            }
+        }
+    );
+
+    let previewPeerConnection = null;
+    let previewDataChannel = null;
+    let previewTimeout = null;
+    let previewRunning = false;
+
+    let peerConnection = null;
+    let localStream = null;
+    let dataChannel = null;
+    let liveConnected = false;
+
+
+    async function loadAgentSettings() {
+        const response =
+            await fetch(
+                "/leon-api/agent/settings"
+            );
+
+        const data =
+            await response.json();
+
+        document.getElementById(
+            "agent_name"
+        ).value =
+            data.agent_name || "Leon";
+
+        document.getElementById(
+            "model"
+        ).value =
+            data.model || "gpt-live-1";
+
+        document.getElementById(
+            "voice"
+        ).value =
+            data.voice || "gleam";
+
+        document.getElementById(
+            "speed"
+        ).value =
+            data.speed || "1.0";
+
+        document.getElementById(
+            "delegated_model"
+        ).value =
+            data.delegated_model || "gpt-5.6-terra";
+
+        document.getElementById(
+            "reasoning_effort"
+        ).value =
+            data.reasoning_effort || "low";
+
+        document.getElementById(
+            "web_search"
+        ).value =
+            data.web_search || "none";
+
+        document.getElementById(
+            "turn_detection"
+        ).value =
+            data.turn_detection || "server_vad";
+
+        document.getElementById(
+            "vad_eagerness"
+        ).value =
+            data.vad_eagerness || "auto";
+
+        syncVadFields();
+        syncFunctionStatus();
+
+        document.getElementById(
+            "opening"
+        ).value =
+            data.opening || "";
+
+        document.getElementById(
+            "voice_prompt"
+        ).value =
+            data.voice_prompt ||
+            data.prompt ||
+            "";
+
+        document.getElementById(
+            "backend_prompt"
+        ).value =
+            data.backend_prompt ||
+            "";
+    }
+
+
+    function syncVadFields() {
+        const type =
+            document.getElementById(
+                "turn_detection"
+            ).value;
+
+        document.getElementById(
+            "vadEagernessField"
+        ).style.display =
+            type === "semantic_vad"
+                ? "block"
+                : "none";
+    }
+
+
+    function syncFunctionStatus() {
+        const level =
+            document.getElementById(
+                "web_search"
+            ).value;
+
+        const badge =
+            document.getElementById(
+                "webSearchFunctionStatus"
+            );
+
+        const hint =
+            document.getElementById(
+                "webSearchFunctionHint"
+            );
+
+        if (!badge || !hint) {
+            return;
+        }
+
+        badge.textContent =
+            level;
+
+        badge.className =
+            "kg-status "
+            + (
+                level === "none"
+                    ? ""
+                    : "ok"
+            );
+
+        hint.textContent =
+            level === "none"
+                ? "Aktuell deaktiviert."
+                : "OpenAI Web Search aktiv · search_context_size: " + level;
+    }
+
+
+    function escapeHtml(value) {
+        return String(
+            value ?? ""
+        )
+            .replaceAll("&", "&amp;")
+            .replaceAll("<", "&lt;")
+            .replaceAll(">", "&gt;")
+            .replaceAll('"', "&quot;")
+            .replaceAll("'", "&#039;");
+    }
+
+
+    async function loadKnowledgeItems() {
+        const target =
+            document.getElementById(
+                "knowledgeList"
+            );
+
+        try {
+            const response =
+                await fetch(
+                    "/leon-api/knowledge"
+                );
+
+            const result =
+                await response.json();
+
+            const items =
+                result.items || [];
+
+            if (!items.length) {
+                target.innerHTML =
+                    '<div class="hint">Noch keine Wissenseinträge vorhanden.</div>';
+                return;
+            }
+
+            target.innerHTML =
+                items.map(
+                    item => `
+                        <div class="kg-setting-row">
+                            <div style="min-width:0">
+                                <strong>${escapeHtml(item.title)}</strong>
+                                <small>
+                                    ${escapeHtml(item.category || "Allgemein")}
+                                    ·
+                                    ${Number(item.active) === 1 ? "Aktiv" : "Inaktiv"}
+                                </small>
+                                <div class="hint" style="margin-top:6px">
+                                    ${escapeHtml(item.content)}
+                                </div>
+                            </div>
+                            <button
+                                class="btn btn-danger"
+                                type="button"
+                                onclick="deleteKnowledgeItem(${Number(item.id)})"
+                            >
+                                Löschen
+                            </button>
+                        </div>
+                    `
+                ).join("");
+
+        } catch (error) {
+            target.innerHTML =
+                '<div class="hint">Wissensbasis konnte nicht geladen werden.</div>';
+        }
+    }
+
+
+    async function addKnowledgeItem() {
+        const title =
+            document.getElementById(
+                "kbTitle"
+            ).value.trim();
+
+        const category =
+            document.getElementById(
+                "kbCategory"
+            ).value.trim();
+
+        const content =
+            document.getElementById(
+                "kbContent"
+            ).value.trim();
+
+        if (!title || !content) {
+            alert(
+                "Titel und Inhalt sind erforderlich."
+            );
+            return;
+        }
+
+        const response =
+            await fetch(
+                "/leon-api/knowledge",
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type":
+                            "application/json"
+                    },
+                    body:
+                        JSON.stringify(
+                            {
+                                title,
+                                category,
+                                content,
+                                active: true
+                            }
+                        )
+                }
+            );
+
+        const result =
+            await response.json();
+
+        if (!response.ok || !result.success) {
+            alert(
+                result.error ||
+                "Wissenseintrag konnte nicht gespeichert werden."
+            );
+            return;
+        }
+
+        document.getElementById(
+            "kbTitle"
+        ).value = "";
+
+        document.getElementById(
+            "kbCategory"
+        ).value = "";
+
+        document.getElementById(
+            "kbContent"
+        ).value = "";
+
+        await loadKnowledgeItems();
+    }
+
+
+    async function deleteKnowledgeItem(
+        itemId
+    ) {
+        if (!confirm(
+            "Wissenseintrag wirklich löschen?"
+        )) {
+            return;
+        }
+
+        const response =
+            await fetch(
+                "/leon-api/knowledge/" +
+                itemId,
+                {
+                    method: "DELETE"
+                }
+            );
+
+        const result =
+            await response.json();
+
+        if (!response.ok || !result.success) {
+            alert(
+                result.error ||
+                "Wissenseintrag konnte nicht gelöscht werden."
+            );
+            return;
+        }
+
+        await loadKnowledgeItems();
+    }
+
+
+    async function loadPromptVersions() {
+        const target =
+            document.getElementById(
+                "promptVersionList"
+            );
+
+        try {
+            const response =
+                await fetch(
+                    "/leon-api/agent/prompt-versions"
+                );
+
+            const result =
+                await response.json();
+
+            const versions =
+                result.versions || [];
+
+            if (!versions.length) {
+                target.innerHTML =
+                    '<div class="hint">Noch keine ältere Prompt-Version vorhanden.</div>';
+                return;
+            }
+
+            target.innerHTML =
+                versions.map(
+                    version => `
+                        <div class="kg-setting-row">
+                            <div>
+                                <strong>Version ${Number(version.version_number)}</strong>
+                                <small>
+                                    ${escapeHtml(version.created_at || "")}
+                                    ·
+                                    ${escapeHtml(version.label || "")}
+                                </small>
+                            </div>
+                            <button
+                                class="btn btn-secondary"
+                                type="button"
+                                onclick="restorePromptVersion(${Number(version.id)})"
+                            >
+                                Wiederherstellen
+                            </button>
+                        </div>
+                    `
+                ).join("");
+
+        } catch (error) {
+            target.innerHTML =
+                '<div class="hint">Prompt-Versionen konnten nicht geladen werden.</div>';
+        }
+    }
+
+
+    async function restorePromptVersion(
+        versionId
+    ) {
+        if (!confirm(
+            "Diese Prompt-Version wiederherstellen?"
+        )) {
+            return;
+        }
+
+        const response =
+            await fetch(
+                "/leon-api/agent/prompt-versions/" +
+                versionId +
+                "/restore",
+                {
+                    method: "POST"
+                }
+            );
+
+        const result =
+            await response.json();
+
+        if (!response.ok || !result.success) {
+            alert(
+                result.error ||
+                "Prompt-Version konnte nicht wiederhergestellt werden."
+            );
+            return;
+        }
+
+        await loadAgentSettings();
+        await loadPromptVersions();
+    }
+
+
+    async function saveAgentSettings() {
+        const data = {
+            agent_name:
+                document.getElementById(
+                    "agent_name"
+                ).value,
+
+            model:
+                document.getElementById(
+                    "model"
+                ).value,
+
+            voice:
+                document.getElementById(
+                    "voice"
+                ).value,
+
+            speed:
+                document.getElementById(
+                    "speed"
+                ).value,
+
+            delegated_model:
+                document.getElementById(
+                    "delegated_model"
+                ).value,
+
+            reasoning_effort:
+                document.getElementById(
+                    "reasoning_effort"
+                ).value,
+
+            web_search:
+                document.getElementById(
+                    "web_search"
+                ).value,
+
+            turn_detection:
+                document.getElementById(
+                    "turn_detection"
+                ).value,
+
+            vad_eagerness:
+                document.getElementById(
+                    "vad_eagerness"
+                ).value,
+
+            opening:
+                document.getElementById(
+                    "opening"
+                ).value,
+
+            voice_prompt:
+                document.getElementById(
+                    "voice_prompt"
+                ).value,
+
+            backend_prompt:
+                document.getElementById(
+                    "backend_prompt"
+                ).value,
+
+            prompt:
+                document.getElementById(
+                    "voice_prompt"
+                ).value
+        };
+
+        const response =
+            await fetch(
+                "/leon-api/agent/settings",
+                {
+                    method: "POST",
+
+                    headers: {
+                        "Content-Type":
+                            "application/json"
+                    },
+
+                    body:
+                        JSON.stringify(data)
+                }
+            );
+
+        const result =
+            await response.json();
+
+        if (!result.success) {
+            alert(
+                result.error ||
+                "Einstellungen konnten nicht gespeichert werden."
+            );
+
+            return;
+        }
+
+        const savedStatus =
+            document.getElementById(
+                "savedStatus"
+            );
+
+        savedStatus.style.display =
+            "block";
+
+        setTimeout(
+            () => {
+                savedStatus.style.display =
+                    "none";
+            },
+            2000
+        );
+
+        await loadPromptVersions();
+    }
+
+
+    async function saveAgentSettingsSilently() {
+        const data = {
+            agent_name:
+                document.getElementById(
+                    "agent_name"
+                ).value,
+
+            model:
+                document.getElementById(
+                    "model"
+                ).value,
+
+            voice:
+                document.getElementById(
+                    "voice"
+                ).value,
+
+            speed:
+                document.getElementById(
+                    "speed"
+                ).value,
+
+            delegated_model:
+                document.getElementById(
+                    "delegated_model"
+                ).value,
+
+            reasoning_effort:
+                document.getElementById(
+                    "reasoning_effort"
+                ).value,
+
+            web_search:
+                document.getElementById(
+                    "web_search"
+                ).value,
+
+            turn_detection:
+                document.getElementById(
+                    "turn_detection"
+                ).value,
+
+            vad_eagerness:
+                document.getElementById(
+                    "vad_eagerness"
+                ).value,
+
+            opening:
+                document.getElementById(
+                    "opening"
+                ).value,
+
+            voice_prompt:
+                document.getElementById(
+                    "voice_prompt"
+                ).value,
+
+            backend_prompt:
+                document.getElementById(
+                    "backend_prompt"
+                ).value,
+
+            prompt:
+                document.getElementById(
+                    "voice_prompt"
+                ).value
+        };
+
+        const response =
+            await fetch(
+                "/leon-api/agent/settings",
+                {
+                    method: "POST",
+
+                    headers: {
+                        "Content-Type":
+                            "application/json"
+                    },
+
+                    body:
+                        JSON.stringify(data)
+                }
+            );
+
+        const result =
+            await response.json();
+
+        if (
+            !response.ok ||
+            !result.success
+        ) {
+            throw new Error(
+                result.error ||
+                "Agent Einstellungen konnten nicht gespeichert werden."
+            );
+        }
+    }
+
+
+    async function toggleVoicePreview() {
+        if (previewRunning) {
+            stopVoicePreview();
+            return;
+        }
+
+        await startVoicePreview();
+    }
+
+
+    async function startVoicePreview() {
+        const voice =
+            document.getElementById(
+                "voice"
+            ).value;
+
+        const button =
+            document.getElementById(
+                "voicePreviewButton"
+            );
+
+        const status =
+            document.getElementById(
+                "voicePreviewStatus"
+            );
+
+        const audio =
+            document.getElementById(
+                "voicePreviewAudio"
+            );
+
+        try {
+            button.disabled = true;
+
+            status.textContent =
+                voice +
+                " wird geladen ...";
+
+            const response =
+                await fetch(
+                    "/leon-api/voice/preview",
+                    {
+                        method: "POST",
+
+                        headers: {
+                            "Content-Type":
+                                "application/json"
+                        },
+
+                        body:
+                            JSON.stringify(
+                                {
+                                    voice:
+                                        voice
+                                }
+                            )
+                    }
+                );
+
+            if (!response.ok) {
+                let errorMessage =
+                    "Vorschau konnte nicht geladen werden.";
+
+                try {
+                    const result =
+                        await response.json();
+
+                    errorMessage =
+                        result.error ||
+                        errorMessage;
+                } catch (parseError) {
+                    console.error(
+                        parseError
+                    );
+                }
+
+                throw new Error(
+                    errorMessage
+                );
+            }
+
+            const audioBlob =
+                await response.blob();
+
+            const audioUrl =
+                URL.createObjectURL(
+                    audioBlob
+                );
+
+            audio.src = audioUrl;
+
+            previewRunning = true;
+
+            button.disabled = false;
+
+            button.textContent =
+                "■ Vorschau stoppen";
+
+            button.classList.add(
+                "playing"
+            );
+
+            status.textContent =
+                voice +
+                " wird abgespielt.";
+
+            audio.onended =
+                () => {
+                    stopVoicePreview();
+                };
+
+            await audio.play();
+
+        } catch (error) {
+            console.error(error);
+
+            status.textContent =
+                error.message;
+
+            stopVoicePreview(
+                false
+            );
+
+        } finally {
+            if (!previewRunning) {
+                button.disabled =
+                    false;
+            }
+        }
+    }
+
+
+    function stopVoicePreview(
+        clearStatus = true
+    ) {
+        const audio =
+            document.getElementById(
+                "voicePreviewAudio"
+            );
+
+        audio.pause();
+
+        audio.currentTime = 0;
+
+        if (
+            audio.src &&
+            audio.src.startsWith(
+                "blob:"
+            )
+        ) {
+            URL.revokeObjectURL(
+                audio.src
+            );
+        }
+
+        audio.src = "";
+
+        previewRunning = false;
+
+        const button =
+            document.getElementById(
+                "voicePreviewButton"
+            );
+
+        button.disabled = false;
+
+        button.textContent =
+            "▶ Probe anhören";
+
+        button.classList.remove(
+            "playing"
+        );
+
+        if (clearStatus) {
+            document.getElementById(
+                "voicePreviewStatus"
+            ).textContent = "";
+        }
+    }
+
+
+    function setTestStatus(
+        message,
+        type = ""
+    ) {
+        const status =
+            document.getElementById(
+                "testStatus"
+            );
+
+        status.textContent =
+            message;
+
+        status.className =
+            "test-status";
+
+        if (type) {
+            status.classList.add(
+                type
+            );
+        }
+    }
+
+
+    async function toggleLiveTest() {
+        if (liveConnected) {
+            stopLiveTest();
+            return;
+        }
+
+        await startLiveTest();
+    }
+
+
+    async function startLiveTest() {
+        const button =
+            document.getElementById(
+                "testButton"
+            );
+
+        try {
+            button.disabled = true;
+
+            setTestStatus(
+                "Mikrofon wird gestartet ..."
+            );
+
+            await saveAgentSettingsSilently();
+
+            localStream =
+                await navigator.mediaDevices
+                    .getUserMedia(
+                        {
+                            audio: true
+                        }
+                    );
+
+            peerConnection =
+                new RTCPeerConnection();
+
+            localStream
+                .getTracks()
+                .forEach(
+                    track => {
+                        peerConnection.addTrack(
+                            track,
+                            localStream
+                        );
+                    }
+                );
+
+            peerConnection.ontrack =
+                event => {
+                    document.getElementById(
+                        "remoteAudio"
+                    ).srcObject =
+                        event.streams[0];
+                };
+
+            dataChannel =
+                peerConnection
+                    .createDataChannel(
+                        "oai-events"
+                    );
+
+            dataChannel.onopen =
+                () => {
+                    liveConnected = true;
+
+                    setTestStatus(
+                        "Live verbunden – sprechen Sie jetzt.",
+                        "connected"
+                    );
+
+                    button.textContent =
+                        "Test beenden";
+
+                    button.classList.remove(
+                        "btn-secondary"
+                    );
+
+                    button.classList.add(
+                        "btn-danger"
+                    );
+                };
+
+            const offer =
+                await peerConnection
+                    .createOffer();
+
+            await peerConnection
+                .setLocalDescription(
+                    offer
+                );
+
+            const response =
+                await fetch(
+                    "/leon-api/live/session",
+                    {
+                        method: "POST",
+
+                        headers: {
+                            "Content-Type":
+                                "application/json"
+                        },
+
+                        body:
+                            JSON.stringify(
+                                {
+                                    sdp:
+                                        offer.sdp
+                                }
+                            )
+                    }
+                );
+
+            const result =
+                await response.json();
+
+            if (
+                !response.ok ||
+                !result.success
+            ) {
+                throw new Error(
+                    result.error ||
+                    "Live Session konnte nicht erstellt werden."
+                );
+            }
+
+            await peerConnection
+                .setRemoteDescription(
+                    {
+                        type: "answer",
+                        sdp:
+                            result.sdp
+                    }
+                );
+
+        } catch (error) {
+            console.error(error);
+
+            setTestStatus(
+                error.message,
+                "error"
+            );
+
+            stopLiveTest(
+                false
+            );
+
+        } finally {
+            button.disabled = false;
+        }
+    }
+
+
+    function stopLiveTest(
+        updateStatus = true
+    ) {
+        if (
+            dataChannel &&
+            dataChannel.readyState === "open"
+        ) {
+            try {
+                dataChannel.send(
+                    JSON.stringify(
+                        {
+                            type:
+                                "session.close"
+                        }
+                    )
+                );
+            } catch (error) {
+                console.error(error);
+            }
+        }
+
+        if (dataChannel) {
+            dataChannel.close();
+            dataChannel = null;
+        }
+
+        if (peerConnection) {
+            peerConnection.close();
+            peerConnection = null;
+        }
+
+        if (localStream) {
+            localStream
+                .getTracks()
+                .forEach(
+                    track => {
+                        track.stop();
+                    }
+                );
+
+            localStream = null;
+        }
+
+        document.getElementById(
+            "remoteAudio"
+        ).srcObject = null;
+
+        liveConnected = false;
+
+        const button =
+            document.getElementById(
+                "testButton"
+            );
+
+        button.textContent =
+            "Live testen";
+
+        button.classList.remove(
+            "btn-danger"
+        );
+
+        button.classList.add(
+            "btn-secondary"
+        );
+
+        if (updateStatus) {
+            setTestStatus(
+                "Nicht verbunden"
+            );
+        }
+    }
+
+
+    document.addEventListener(
+        "DOMContentLoaded",
+        async () => {
+            await loadAgentSettings();
+            await loadKnowledgeItems();
+            await loadPromptVersions();
+        }
+    );
+</script>
+</body>
+</html>

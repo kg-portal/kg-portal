@@ -1,0 +1,220 @@
+/* =========================================================
+   KG Business – einheitliches Seiten-Design
+   Grüner Kopfbereich (wie Kunden / Rückrufe / Buchhaltung)
+   für die älteren Seiten. Nur Optik, keine Funktion.
+   Wird als letzte Stylesheet-Datei geladen.
+   ========================================================= */
+
+:root {
+  --kgb-green-dark: #1e3a8a;
+  --kgb-green: #2563eb;
+  --kgb-green-mid: #3b82f6;
+  --kgb-green-soft: #eff6ff;
+  --kgb-green-line: #bfdbfe;
+
+  /* Variablen aus kg_portal.css auf KG-Business-Grün umstellen */
+  --kg-blue: #2563eb;
+  --kg-blue-dark: #1e40af;
+  --kg-blue-soft: #eff6ff;
+  --kg-pro-blue: #2563eb;
+}
+
+/* ---------- Kopfbereich ---------- */
+.kgb-hero {
+  position: relative !important;
+  background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 55%, #3b82f6 100%) !important;
+  color: #fff !important;
+  border-radius: 24px !important;
+  padding: 28px 30px !important;
+  margin: 0 0 24px !important;
+  box-shadow: 0 18px 40px rgba(37,99,235, .16) !important;
+  overflow: visible !important;
+}
+
+.kgb-hero > .topbar,
+.kgb-hero > .kg-page-head,
+.kgb-hero > .page-head-row {
+  position: static !important;
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  min-height: 0 !important;
+  backdrop-filter: none !important;
+}
+
+.kgb-hero > .topbar + *,
+.kgb-hero > .kg-page-head + *,
+.kgb-hero > .page-head-row + * {
+  margin-top: 24px !important;
+}
+
+.kgb-hero h1,
+.kgb-hero .page-title {
+  color: #fff !important;
+  font-size: 30px !important;
+  line-height: 1.1 !important;
+  font-weight: 900 !important;
+  letter-spacing: -.4px !important;
+  margin: 0 !important;
+  text-shadow: none !important;
+  -webkit-text-fill-color: #fff !important;
+  background: none !important;
+}
+
+.kgb-hero p,
+.kgb-hero .meta {
+  color: rgba(255, 255, 255, .88) !important;
+  font-size: 13px !important;
+  font-weight: 700 !important;
+  margin-top: 8px !important;
+}
+
+/* Buttons im Kopfbereich: hell-transparent, Hauptaktion weiß */
+.kgb-hero button,
+.kgb-hero .btn,
+.kgb-hero .back-btn,
+.kgb-hero a.kg-action {
+  background: rgba(255, 255, 255, .14) !important;
+  color: #fff !important;
+  border: 1px solid rgba(255, 255, 255, .3) !important;
+  box-shadow: none !important;
+}
+
+.kgb-hero button:hover,
+.kgb-hero .btn:hover,
+.kgb-hero .back-btn:hover {
+  background: rgba(255, 255, 255, .24) !important;
+}
+
+.kgb-hero .btn-primary,
+.kgb-hero .kg-action,
+.kgb-hero .archive-action-button {
+  background: #fff !important;
+  color: #1e3a8a !important;
+  border-color: #fff !important;
+}
+
+.kgb-hero .btn-danger,
+.kgb-hero .danger-clear-button {
+  background: #fff !important;
+  color: #dc2626 !important;
+  border-color: #fff !important;
+}
+
+.kgb-hero button:disabled {
+  opacity: .55 !important;
+}
+
+/* Status-Pillen im Kopfbereich */
+.kgb-hero .kg-pill,
+.kgb-hero .call-status,
+.kgb-hero .saved-status {
+  background: rgba(255, 255, 255, .14) !important;
+  color: #fff !important;
+  border: 1px solid rgba(255, 255, 255, .28) !important;
+}
+
+.kgb-hero .call-status * {
+  color: #fff !important;
+}
+
+/* Kennzahlen im Kopfbereich: weiße Kacheln */
+.kgb-hero .summary-grid,
+.kgb-hero .kg-grid-4 {
+  margin-bottom: 0 !important;
+}
+
+.kgb-hero .summary-card,
+.kgb-hero .kg-stat {
+  background: #fff !important;
+  border: 0 !important;
+  border-radius: 18px !important;
+  box-shadow: none !important;
+  padding: 18px 22px !important;
+}
+
+.kgb-hero .summary-card span,
+.kgb-hero .kg-stat span {
+  color: #2563eb !important;
+  font-size: 11px !important;
+  font-weight: 900 !important;
+  text-transform: uppercase !important;
+  letter-spacing: .7px !important;
+}
+
+.kgb-hero .summary-card strong,
+.kgb-hero .kg-stat strong {
+  color: #1e3a8a !important;
+  font-size: 24px !important;
+  font-weight: 900 !important;
+  font-variant-numeric: tabular-nums;
+}
+
+.kgb-hero .kg-stat::before {
+  display: none !important;
+}
+
+/* Seiten ohne Innenabstand (Gesprächsdetail) */
+.card-flush > .kgb-hero {
+  margin: 24px 32px 0 !important;
+}
+
+/* ---------- Inhalt unter dem Kopfbereich ---------- */
+
+/* Hauptaktionen in Tabellen/Listen grün statt blau */
+.business-portal-card .btn-primary:not(:disabled) {
+  background: #2563eb !important;
+  border-color: #2563eb !important;
+  color: #fff !important;
+}
+
+/* „Als Kunde“ neben „Anrufen“ hell absetzen */
+.business-portal-card .actions .btn-success {
+  background: #eff6ff !important;
+  color: #2563eb !important;
+  border: 1px solid #bfdbfe !important;
+  box-shadow: none !important;
+}
+
+@media (max-width: 760px) {
+  .kgb-hero {
+    padding: 18px !important;
+    border-radius: 18px !important;
+  }
+
+  .kgb-hero h1,
+  .kgb-hero .page-title {
+    font-size: 24px !important;
+  }
+}
+
+/* Telefon: Eingabefelder mind. 16px, sonst vergrößert das iPhone die Seite beim Antippen */
+@media (max-width: 768px) {
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]),
+  select,
+  select.kg-select,
+  textarea {
+    font-size: 16px !important;
+  }
+}
+
+/* Tablet: breite Tabellen seitlich scrollbar statt abgeschnitten */
+.kg-table-card {
+  overflow-x: auto !important;
+}
+
+/* Lesbarkeit: 10px-Schrift in Tabellen und Status-Etiketten auf 11px */
+.kg-table th,
+table thead th,
+td .status,
+td .mini-badge,
+td .kg-badge,
+td > small,
+.kg-setting-row > .kg-status,
+.action-row .score,
+#summaryWrap .score-badge,
+.card .card-head > span {
+  font-size: 11px !important;
+}

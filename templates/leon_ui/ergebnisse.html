@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ergebnisse | KG Gebäudereinigung Voice Portal</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0}
+.app{display:grid;grid-template-columns:235px minmax(0,1fr);min-height:100vh}
+.metric-note{font-size:11px;color:#64748b;line-height:1.45;margin-top:8px}
+.cost-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
+.cost-card{padding:17px}
+.cost-card span{display:block;color:#64748b;font-size:11px;font-weight:800}
+.cost-card strong{display:block;margin-top:7px;font-size:25px}
+@media(max-width:1000px){.cost-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:760px){.cost-grid{grid-template-columns:1fr}}
+</style>
+<link rel="stylesheet" href="{{ url_for('static', filename='leon/kg_portal.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='leon/kg_shell_override.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='leon/kg_page_theme.css') }}">
+
+<style id="kg-crm-frame">
+  /* Im KG CRM eingebettet: ohne eigene Sidebar, volle Breite */
+  .business-portal-sidebar{display:none!important}
+  .business-portal-main{width:100%!important;margin-left:0!important;padding:18px!important}
+  body{background:#f8fafc!important}
+</style>
+</head>
+<body>
+<div class="kg-business-shell">
+
+<main class="business-portal-main"><section class="business-portal-card kg-page">
+<section class="kgb-hero">
+<div class="kg-page-head">
+  <div>
+    <h1>Ergebnisse</h1>
+    <p>Gesprächsergebnisse, Branchenleistung, Qualität und laufende Kosten.</p>
+  </div>
+  <div class="kg-pill">✓ Live aus Anrufen & Leads</div>
+</div>
+
+<div class="kg-grid-4">
+  <div class="kg-card kg-stat"><span>Gespräche</span><strong id="eTotal">0</strong></div>
+  <div class="kg-card kg-stat"><span>Interessiert</span><strong id="eInterested">0</strong></div>
+  <div class="kg-card kg-stat"><span>Rückruf</span><strong id="eCallback">0</strong></div>
+  <div class="kg-card kg-stat"><span>Ø Score</span><strong id="eScore">—</strong></div>
+</div>
+</section>
+
+
+<div class="kg-split">
+  <section class="kg-card kg-section">
+    <h2>Ergebnisverteilung</h2>
+    <div id="bars"></div>
+  </section>
+  <section class="kg-card kg-section">
+    <h2>Qualität & Betrieb</h2>
+    <div id="quality"></div>
+  </section>
+</div>
+
+<section class="kg-card kg-section" style="margin-top:16px">
+  <h2>Kostenübersicht</h2>
+  <div class="cost-grid">
+    <div class="kg-card cost-card"><span>OpenAI Gesamt</span><strong id="costOpenAI">€0,00</strong></div>
+    <div class="kg-card cost-card"><span>Twilio Gesamt</span><strong id="costTwilio">€0,00</strong></div>
+    <div class="kg-card cost-card"><span>Provider Gesamt</span><strong id="costCombined">€0,00</strong></div>
+    <div class="kg-card cost-card"><span>Gesprächszeit</span><strong id="costMinutes">0 Min.</strong></div>
+  </div>
+  <div id="costNote" class="metric-note"></div>
+</section>
+
+<section class="kg-card kg-section" style="margin-top:16px">
+  <h2>Branchenvergleich</h2>
+  <div class="kg-table-card">
+    <table class="kg-table">
+      <thead>
+        <tr>
+          <th>Branche</th>
+          <th>Anrufe</th>
+          <th>Interessiert</th>
+          <th>Rückruf</th>
+          <th>Besichtigung</th>
+          <th>Kein Interesse</th>
+          <th>AB</th>
+          <th>Ø Score</th>
+        </tr>
+      </thead>
+      <tbody id="branchRows"></tbody>
+    </table>
+  </div>
+</section>
+
+<section class="kg-card kg-section" style="margin-top:16px">
+  <h2>Letzte ausgewertete Gespräche</h2>
+  <div class="kg-table-card">
+    <table class="kg-table">
+      <thead>
+        <tr>
+          <th>Kontakt</th>
+          <th>Ergebnis</th>
+          <th>Score</th>
+          <th>Kosten</th>
+          <th>Zusammenfassung</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="recent"></tbody>
+    </table>
+  </div>
+</section>
+</section></main>
+</div>
+
+<script>
+const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]));
+let dashboardFx=0.85;
+const eur=v=>new Intl.NumberFormat("de-DE",{style:"currency",currency:"EUR",minimumFractionDigits:2,maximumFractionDigits:2}).format(Number(v||0));
+const toEur=(value,currency)=>{
+  const amount=Math.abs(Number(value||0));
+  return String(currency||"").toUpperCase()==="EUR" ? amount : amount*dashboardFx;
+};
+
+function resultBadge(result){
+  const value=String(result||"Offen");
+  let cls="";
+  if(value==="Interessiert"||value==="Rückruf") cls="green";
+  if(value==="Kein Interesse"||value==="Gesperrt") cls="red";
+  if(value==="Rechnung") cls="yellow";
+  return '<span class="kg-badge '+cls+'">'+esc(value)+'</span>';
+}
+
+async function loadCalls(){
+  const r=await fetch("/leon-api/calls");
+  const d=await r.json();
+  const calls=d.calls||[];
+  const results={};
+
+  calls.forEach(x=>{
+    const k=x.result||"Offen";
+    results[k]=(results[k]||0)+1;
+  });
+
+  eTotal.textContent=calls.length;
+  eInterested.textContent=calls.filter(x=>String(x.result||"").toLowerCase().includes("interessiert")).length;
+  eCallback.textContent=calls.filter(x=>String(x.result||"").toLowerCase().includes("rückruf")).length;
+
+  const scored=calls.filter(x=>x.score!=null);
+  eScore.textContent=scored.length
+    ?(scored.reduce((a,x)=>a+Number(x.score||0),0)/scored.length).toFixed(1)+"/10"
+    :"—";
+
+  const max=Math.max(1,...Object.values(results));
+  bars.innerHTML=Object.entries(results)
+    .sort((a,b)=>b[1]-a[1])
+    .map(([k,v])=>'<div class="kg-bar-row"><span>'+esc(k)+'</span><div class="kg-bar-track"><div class="kg-bar-fill" style="width:'+Math.round(v/max*100)+'%"></div></div><strong>'+v+'</strong></div>')
+    .join("")||'<div class="kg-empty">Noch keine Ergebnisdaten.</div>';
+
+  const withSummary=calls.filter(x=>x.summary).length;
+  const withTranscript=calls.filter(x=>x.transcript).length;
+  const withRecording=calls.filter(x=>x.recording_url||x.recording_sid).length;
+  const voicemail=calls.filter(x=>x.status==="Anrufbeantworter").length;
+
+  quality.innerHTML=
+    '<div class="kg-setting-row"><div><strong>Zusammenfassungen</strong><small>Gespräche mit Auswertung</small></div><span class="kg-status ok">'+withSummary+'/'+calls.length+'</span></div>'+
+    '<div class="kg-setting-row"><div><strong>Transkripte</strong><small>Gespräche mit Text</small></div><span class="kg-status ok">'+withTranscript+'/'+calls.length+'</span></div>'+
+    '<div class="kg-setting-row"><div><strong>Aufnahmen</strong><small>Gespräche mit Recording</small></div><span class="kg-status '+(withRecording?"ok":"warn")+'">'+withRecording+'/'+calls.length+'</span></div>'+
+    '<div class="kg-setting-row"><div><strong>Anrufbeantworter</strong><small>Von Twilio AMD erkannt</small></div><span class="kg-status '+(voicemail?"warn":"ok")+'">'+voicemail+'</span></div>';
+
+  recent.innerHTML=calls
+    .filter(x=>x.result||x.summary||x.score!=null)
+    .slice(0,20)
+    .map(x=>{
+      const openai=toEur(Number(x.openai_live_cost_usd||0),"USD");
+      const twilio=x.twilio_price==null?"—":eur(toEur(x.twilio_price,x.twilio_price_unit||"USD"));
+      return '<tr>'+
+        '<td>'+esc(x.firma||x.phone_number||"Unbekannt")+'</td>'+
+        '<td>'+resultBadge(x.result)+'</td>'+
+        '<td>'+(x.score==null?"—":esc(x.score)+"/10")+'</td>'+
+        '<td><strong>'+eur(openai)+'</strong><br><small>Twilio: '+twilio+'</small></td>'+
+        '<td>'+esc((x.summary||"").slice(0,170))+'</td>'+
+        '<td><a class="kg-link" href="/leon-ui/gespraech/'+Number(x.id)+'">Details →</a></td>'+
+      '</tr>';
+    }).join("")||'<tr><td colspan="6" class="kg-empty">Noch keine ausgewerteten Gespräche.</td></tr>';
+}
+
+async function loadBranches(){
+  const r=await fetch("/leon-api/analytics/branches");
+  const d=await r.json();
+  const rows=d.branches||[];
+
+  branchRows.innerHTML=rows.map(x=>
+    '<tr>'+
+      '<td><strong>'+esc(x.branche)+'</strong></td>'+
+      '<td>'+Number(x.calls||0)+'</td>'+
+      '<td>'+Number(x.interested||0)+'</td>'+
+      '<td>'+Number(x.callbacks||0)+'</td>'+
+      '<td>'+Number(x.invoices||0)+'</td>'+
+      '<td>'+Number(x.no_interest||0)+'</td>'+
+      '<td>'+Number(x.voicemail||0)+'</td>'+
+      '<td>'+(x.avg_score==null?"—":Number(x.avg_score).toFixed(1)+"/10")+'</td>'+
+    '</tr>'
+  ).join("")||'<tr><td colspan="8" class="kg-empty">Noch keine Branchendaten.</td></tr>';
+}
+
+async function loadCosts(){
+  const [providerResponse,localResponse]=await Promise.all([
+    fetch("/leon-api/dashboard/provider-costs"),
+    fetch("/leon-api/analytics/costs")
+  ]);
+
+  const provider=await providerResponse.json();
+  const local=await localResponse.json();
+  const s=local.summary||{};
+
+  if(!providerResponse.ok||!provider.success){
+    throw new Error(provider.error||"Provider-Kosten konnten nicht geladen werden.");
+  }
+
+  dashboardFx=Number(provider.fx?.eur_per_usd||0.85);
+
+  const openai=Number(provider.openai?.total_eur||0);
+  const twilio=Number(provider.twilio?.total_eur||0);
+
+  costOpenAI.textContent=eur(openai);
+  costTwilio.textContent=eur(twilio);
+  costCombined.textContent=eur(openai+twilio);
+  costMinutes.textContent=(Number(s.duration_seconds||0)/60).toFixed(1)+" Min.";
+
+  const sources=[
+    provider.openai?.source||"OpenAI",
+    provider.twilio?.source||"Twilio",
+    "FX: "+(provider.fx?.source||"Fallback")
+  ];
+
+  costNote.textContent=sources.join(" · ")+(provider.warnings?.length ? " · "+provider.warnings.join(" · ") : "");
+}
+
+async function load(){
+  await Promise.all([
+    loadCalls(),
+    loadBranches(),
+    loadCosts()
+  ]);
+}
+
+load().catch(error=>{
+  console.error(error);
+  bars.innerHTML='<div class="kg-empty">Daten konnten nicht geladen werden.</div>';
+});
+</script>
+</body>
+</html>

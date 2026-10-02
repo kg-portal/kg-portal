@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Einstellungen | KG Gebäudereinigung Voice Portal</title>
+<style>*{box-sizing:border-box}body{margin:0;font-family:Inter,Arial,Helvetica,sans-serif;background:#f3f6f9;color:#20303b}button,input,select{font:inherit}.app{display:grid;grid-template-columns:235px minmax(0,1fr);min-height:100vh}</style>
+<link rel="stylesheet" href="{{ url_for('static', filename='leon/kg_portal.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='leon/kg_shell_override.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='leon/kg_page_theme.css') }}">
+<style>@media(max-width:640px){.kgb-calling-grid{grid-template-columns:1fr!important}.kgb-calling-grid input,.kgb-calling-grid select{width:100%;min-width:0}}</style>
+
+<style id="kg-crm-frame">
+  /* Im KG CRM eingebettet: ohne eigene Sidebar, volle Breite */
+  .business-portal-sidebar{display:none!important}
+  .business-portal-main{width:100%!important;margin-left:0!important;padding:18px!important}
+  body{background:#f8fafc!important}
+</style>
+</head>
+<body>
+<div class="kg-business-shell">
+
+<main class="business-portal-main"><section class="business-portal-card kg-page">
+<section class="kgb-hero">
+<div class="kg-page-head">
+  <div><h1>Einstellungen</h1><p>Systemstatus, Agent-Konfiguration und Telefonie-Verbindungen an einem Ort.</p></div>
+  <button class="kg-action" onclick="window.top.location.href='/leon/agent'">Agent konfigurieren</button>
+</div>
+</section>
+
+<div class="kg-split">
+<section class="kg-card kg-section"><h2>System & Telefonie</h2>
+  <div class="kg-setting-row"><div><strong>OpenAI</strong><small>API-Verbindung für Live Voice</small></div><span id="sOpenAI" class="kg-status">Prüfe ...</span></div>
+  <div class="kg-setting-row"><div><strong>Twilio</strong><small>Telefonie-Anbieter</small></div><span id="sTwilio" class="kg-status">Prüfe ...</span></div>
+  <div class="kg-setting-row"><div><strong>Public URL</strong><small>Webhook-Erreichbarkeit</small></div><span id="sPublic" class="kg-status">Prüfe ...</span></div>
+  <div class="kg-setting-row"><div><strong>Gesamtsystem</strong><small>Bereitschaft für Telefonanrufe</small></div><span id="sReady" class="kg-status">Prüfe ...</span></div>
+</section>
+<section class="kg-card kg-section"><h2>Agent</h2>
+  <div class="kg-setting-row"><div><strong>Name</strong><small>Aktiver Voice Agent</small></div><span id="aName" class="kg-status">—</span></div>
+  <div class="kg-setting-row"><div><strong>Modell</strong><small>OpenAI Live Modell</small></div><span id="aModel" class="kg-status">—</span></div>
+  <div class="kg-setting-row"><div><strong>Stimme</strong><small>Aktive Voice</small></div><span id="aVoice" class="kg-status">—</span></div>
+  <div class="kg-setting-row"><div><strong>Tempo</strong><small>Gesprächsgeschwindigkeit</small></div><span id="aSpeed" class="kg-status">—</span></div>
+</section>
+</div>
+<div class="kg-card kg-section" style="margin-top:16px">
+<h2>Anrufzeiten</h2>
+<p class="metric-note" style="margin:0 0 14px;color:#64748b;font-size:12px">Außerhalb dieses Fensters startet eine aktive Kampagne keinen neuen Lead-Anruf.</p>
+<div class="kgb-calling-grid" style="display:grid;grid-template-columns:180px 1fr 1fr;gap:12px;align-items:end">
+  <div>
+    <label for="callingEnabled" style="display:block;margin-bottom:7px;font-weight:800;font-size:11px">Schutz</label>
+    <select id="callingEnabled" class="kg-select">
+      <option value="1">Aktiv</option>
+      <option value="0">Aus</option>
+    </select>
+  </div>
+  <div>
+    <label for="callingStart" style="display:block;margin-bottom:7px;font-weight:800;font-size:11px">Von</label>
+    <input id="callingStart" class="kg-input" type="time" value="09:00">
+  </div>
+  <div>
+    <label for="callingEnd" style="display:block;margin-bottom:7px;font-weight:800;font-size:11px">Bis</label>
+    <input id="callingEnd" class="kg-input" type="time" value="18:00">
+  </div>
+</div>
+<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:14px" id="callingDays">
+  <label><input type="checkbox" value="0" checked> Mo</label>
+  <label><input type="checkbox" value="1" checked> Di</label>
+  <label><input type="checkbox" value="2" checked> Mi</label>
+  <label><input type="checkbox" value="3" checked> Do</label>
+  <label><input type="checkbox" value="4" checked> Fr</label>
+  <label><input type="checkbox" value="5"> Sa</label>
+  <label><input type="checkbox" value="6"> So</label>
+</div>
+<div style="margin-top:14px;display:flex;align-items:center;gap:10px">
+  <button class="kg-action" type="button" onclick="saveCallingHours()">Anrufzeiten speichern</button>
+  <span id="callingSaved" class="kg-status" style="display:none">Gespeichert</span>
+</div>
+</div>
+
+<div class="kg-card kg-section" style="margin-top:16px">
+<h2>Kostenberechnung</h2>
+<p style="margin:0 0 14px;color:#64748b;font-size:12px">Das Dashboard versucht zuerst die echten Provider-Kosten zu laden. OpenAI benötigt dafür OPENAI_ADMIN_KEY; ohne Admin-Key wird transparent auf die lokal erfassten Anrufkosten zurückgefallen.</p>
+<div class="kg-setting-row">
+  <div><strong>OpenAI Costs API</strong><small>Organisation / Projektkosten</small></div>
+  <span id="costApiOpenAI" class="kg-status">Prüfe ...</span>
+</div>
+<div class="kg-setting-row">
+  <div><strong>Twilio Usage API</strong><small>Today / ThisMonth / AllTime</small></div>
+  <span id="costApiTwilio" class="kg-status">Prüfe ...</span>
+</div>
+<p style="margin:16px 0 12px;color:#64748b;font-size:12px">Der folgende Minutenpreis wird nur für den lokalen OpenAI-Fallback verwendet.</p>
+<div style="display:grid;grid-template-columns:minmax(220px,320px) auto;gap:12px;align-items:end">
+  <div>
+    <label for="openaiRate" style="display:block;margin-bottom:7px;font-weight:800;font-size:11px">OpenAI Live USD / Minute</label>
+    <input id="openaiRate" class="kg-input" type="number" min="0" step="0.0001" value="0.05">
+  </div>
+  <button class="kg-action" type="button" onclick="saveCostSettings()">Preis speichern</button>
+</div>
+<div style="margin-top:10px"><span id="costSaved" class="kg-status" style="display:none">Gespeichert</span></div>
+</div>
+
+<div class="kg-card kg-section" style="margin-top:16px"><h2>Portal</h2><div class="kg-setting-row"><div><strong>Design</strong><small>Einheitliches KG Gebäudereinigung Blue + Green System</small></div><span class="kg-status ok">Aktiv</span></div><div class="kg-setting-row"><div><strong>Navigation</strong><small>Dashboard, Gesprächsübersicht, Agent, Leads, Kampagnen, Live Call, Anrufe, Ergebnisse</small></div><span class="kg-status ok">Verbunden</span></div></div>
+<script>
+function setStatus(id,ok,text){const el=document.getElementById(id);el.textContent=text;el.className='kg-status '+(ok?'ok':'warn')}
+
+async function loadCallingHours(){
+  try{
+    const r=await fetch('/leon-api/system/calling-hours');
+    const d=await r.json();
+    if(!r.ok||!d.success)return;
+    document.getElementById('callingEnabled').value=d.enabled?'1':'0';
+    document.getElementById('callingStart').value=d.start||'09:00';
+    document.getElementById('callingEnd').value=d.end||'18:00';
+    const active=new Set(String(d.days||'0,1,2,3,4').split(','));
+    document.querySelectorAll('#callingDays input[type="checkbox"]').forEach(x=>{x.checked=active.has(x.value)});
+  }catch(e){console.error(e)}
+}
+
+async function saveCallingHours(){
+  const days=[...document.querySelectorAll('#callingDays input[type="checkbox"]:checked')].map(x=>x.value).join(',');
+  const r=await fetch('/leon-api/system/calling-hours',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({
+      enabled:document.getElementById('callingEnabled').value==='1',
+      days,
+      start:document.getElementById('callingStart').value,
+      end:document.getElementById('callingEnd').value
+    })
+  });
+  const d=await r.json();
+  if(!r.ok||!d.success){alert(d.error||'Anrufzeiten konnten nicht gespeichert werden.');return}
+  const s=document.getElementById('callingSaved');
+  s.style.display='inline-flex';
+  s.className='kg-status ok';
+  setTimeout(()=>{s.style.display='none'},1800);
+}
+
+async function loadProviderCostStatus(){
+  try{
+    const r=await fetch('/leon-api/dashboard/provider-costs');
+    const d=await r.json();
+
+    if(!r.ok||!d.success){
+      throw new Error(d.error||'Kostenstatus konnte nicht geladen werden.');
+    }
+
+    const openaiLive=String(d.openai?.source||'').includes('API');
+    const twilioLive=String(d.twilio?.source||'').includes('API');
+
+    setStatus(
+      'costApiOpenAI',
+      openaiLive,
+      openaiLive ? 'Verbunden' : 'Lokal Fallback'
+    );
+
+    setStatus(
+      'costApiTwilio',
+      twilioLive,
+      twilioLive ? 'Verbunden' : 'Lokal Fallback'
+    );
+  }catch(e){
+    setStatus('costApiOpenAI',false,'Nicht verfügbar');
+    setStatus('costApiTwilio',false,'Nicht verfügbar');
+  }
+}
+
+async function loadCostSettings(){
+  try{
+    const r=await fetch('/leon-api/system/cost-settings');
+    const d=await r.json();
+    if(!r.ok||!d.success)return;
+    document.getElementById('openaiRate').value=Number(d.openai_live_cost_per_minute_usd||0).toFixed(4);
+  }catch(e){console.error(e)}
+}
+
+async function saveCostSettings(){
+  const rate=Number(document.getElementById('openaiRate').value);
+  if(!Number.isFinite(rate)||rate<0){alert('Ungültiger Minutenpreis.');return}
+  const r=await fetch('/leon-api/system/cost-settings',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({openai_live_cost_per_minute_usd:rate})
+  });
+  const d=await r.json();
+  if(!r.ok||!d.success){alert(d.error||'Kosten-Einstellung konnte nicht gespeichert werden.');return}
+  const s=document.getElementById('costSaved');
+  s.style.display='inline-flex';
+  s.className='kg-status ok';
+  setTimeout(()=>{s.style.display='none'},1800);
+}
+
+async function load(){try{const r=await fetch('/leon-api/telephony/status');const d=await r.json();const s=d.status||d;setStatus('sOpenAI',!!(s.openai_api_key||s.openai||s.openai_ready), (s.openai_api_key||s.openai||s.openai_ready)?'Bereit':'Prüfen');setStatus('sTwilio',!!(s.twilio_account_sid||s.twilio||s.twilio_ready), (s.twilio_account_sid||s.twilio||s.twilio_ready)?'Bereit':'Prüfen');setStatus('sPublic',!!(s.public_base_url||s.public_url), (s.public_base_url||s.public_url)?'Bereit':'Prüfen');setStatus('sReady',!!(s.ready||s.telephony_ready), (s.ready||s.telephony_ready)?'Bereit':'Konfiguration prüfen')}catch(e){['sOpenAI','sTwilio','sPublic','sReady'].forEach(id=>setStatus(id,false,'Nicht geprüft'))}try{const r=await fetch('/leon-api/agent/settings');const d=await r.json();const a=d.settings||d.agent||d;document.getElementById('aName').textContent=a.agent_name||'Leon';document.getElementById('aModel').textContent=a.model||'—';document.getElementById('aVoice').textContent=a.voice||'—';document.getElementById('aSpeed').textContent=a.speed||'—';['aName','aModel','aVoice','aSpeed'].forEach(id=>document.getElementById(id).classList.add('ok'))}catch(e){}}
+load();
+loadCallingHours();
+loadCostSettings();
+loadProviderCostStatus();
+</script>
+</section></main>
+</div>
+</body>
+</html>

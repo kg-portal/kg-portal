@@ -1,0 +1,957 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Anrufe | KG Gebäudereinigung Voice Portal</title>
+
+<style>
+*{box-sizing:border-box}
+
+body{
+    margin:0;
+    font-family:Inter,Arial,Helvetica,sans-serif;
+    background:#f3f6f9;
+    color:#20303b;
+}
+
+button,input,select{font:inherit}
+
+.app{
+    display:grid;
+    grid-template-columns:235px minmax(0,1fr);
+    min-height:100vh;
+}
+
+.call-status{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    padding:5px 10px;
+    border-radius:999px;
+    font-size:11px;
+    font-weight:800;
+    white-space:nowrap;
+}
+
+.call-status::before{
+    content:"";
+    width:7px;
+    height:7px;
+    border-radius:50%;
+}
+
+/* Aranıyor */
+.call-status.calling{
+    background:#fff4dc;
+    color:#946200;
+}
+
+.call-status.calling::before{
+    background:#f4a423;
+}
+
+/* Canlı görüşme */
+.call-status.live{
+    background:#e2f8f1;
+    color:#137555;
+}
+
+.call-status.live::before{
+    background:#20bf8f;
+    animation:pulse 1.2s infinite;
+}
+
+/* Bitti */
+.call-status.ended{
+    background:#edf1f4;
+    color:#62717b;
+}
+
+.call-status.ended::before{
+    background:#8b9aa4;
+}
+
+/* Cevapsız / meşgul */
+.call-status.failed{
+    background:#fdeaea;
+    color:#b13c43;
+}
+
+.call-status.failed::before{
+    background:#ef5c62;
+}
+
+/* Diğer */
+.call-status.other{
+    background:#edf5f9;
+    color:#40677c;
+}
+
+.call-status.other::before{
+    background:#5d8da6;
+}
+
+.live-row{
+    background:#fbfffd;
+}
+
+.live-row td:first-child{
+    box-shadow:inset 3px 0 0 #20bf8f;
+}
+
+.live-duration{
+    color:#15946c;
+    font-weight:800;
+}
+
+@keyframes pulse{
+    0%{box-shadow:0 0 0 0 rgba(32,191,143,.35)}
+    70%{box-shadow:0 0 0 6px rgba(32,191,143,0)}
+    100%{box-shadow:0 0 0 0 rgba(32,191,143,0)}
+}
+.call-result-pills{display:flex;gap:5px;flex-wrap:wrap;min-width:260px}
+.call-result-pill{display:inline-flex;align-items:center;padding:5px 8px;border-radius:999px;border:1px solid #e2e8f0;background:#f8fafc;color:#64748b;font-size:11px;font-weight:800;white-space:nowrap;opacity:1}
+.call-result-pill.active{opacity:1}
+.call-result-pill.interested.active{background:#eff6ff;border-color:#93c5fd;color:#2563eb}
+.call-result-pill.callback.active{background:#eff6ff;border-color:#93c5fd;color:#1e40af}
+.call-result-pill.invoice.active{background:#fffbeb;border-color:#fcd34d;color:#b45309}
+.call-result-pill.no-interest.active{background:#fef2f2;border-color:#fca5a5;color:#b91c1c}
+</style>
+
+<link rel="stylesheet" href="{{ url_for('static', filename='leon/kg_portal.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='leon/kg_shell_override.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='leon/kg_page_theme.css') }}">
+
+<style id="kg-crm-frame">
+  /* Im KG CRM eingebettet: ohne eigene Sidebar, volle Breite */
+  .business-portal-sidebar{display:none!important}
+  .business-portal-main{width:100%!important;margin-left:0!important;padding:18px!important}
+  body{background:#f8fafc!important}
+</style>
+</head>
+
+<body>
+
+<div class="kg-business-shell">
+
+
+
+<main class="business-portal-main"><section class="business-portal-card kg-page">
+
+<section class="kgb-hero">
+<div class="kg-page-head">
+    <div>
+        <h1>Anrufe</h1>
+        <p>Alle Telefonate durchsuchen, filtern und direkt ins Gesprächsdetail springen.</p>
+    </div>
+
+    <div class="kg-pill">
+        ● Live-Daten aus /api/calls
+    </div>
+</div>
+
+
+<div class="kg-grid-4">
+
+    <div class="kg-card kg-stat">
+        <span>Anrufe gesamt</span>
+        <strong id="mTotal">0</strong>
+    </div>
+
+    <div class="kg-card kg-stat">
+        <span>Mit Ergebnis</span>
+        <strong id="mResult">0</strong>
+    </div>
+
+    <div class="kg-card kg-stat">
+        <span>Rückruf</span>
+        <strong id="mCallback">0</strong>
+    </div>
+
+    <div class="kg-card kg-stat">
+        <span>Ø Dauer</span>
+        <strong id="mDuration">0:00</strong>
+    </div>
+
+</div>
+</section>
+
+
+
+<div class="kg-card kg-toolbar">
+
+    <input
+        id="qInput"
+        class="kg-input"
+        placeholder="Firma, Telefonnummer, Zusammenfassung ..."
+    >
+
+    <select id="statusFilter" class="kg-select">
+        <option value="">Alle Status</option>
+    </select>
+
+    <select id="resultFilter" class="kg-select">
+        <option value="">Alle Ergebnisse</option>
+    </select>
+
+</div>
+
+
+<div class="kg-card kg-table-card">
+
+<table class="kg-table">
+
+<thead>
+<tr>
+    <th>Datum</th>
+    <th>Kontakt</th>
+    <th>Telefon</th>
+    <th>Status</th>
+    <th>Ergebnis</th>
+    <th>Dauer</th>
+    <th>Score</th>
+    <th></th>
+</tr>
+</thead>
+
+<tbody id="rows"></tbody>
+
+</table>
+
+<div id="empty" class="kg-empty" style="display:none">
+    Keine Anrufe vorhanden.
+</div>
+
+</div>
+
+</section></main>
+
+</div>
+
+
+<script>
+
+let calls = [];
+
+
+const qInput =
+    document.getElementById("qInput");
+
+const statusFilter =
+    document.getElementById("statusFilter");
+
+const resultFilter =
+    document.getElementById("resultFilter");
+
+const rows =
+    document.getElementById("rows");
+
+const empty =
+    document.getElementById("empty");
+
+const mTotal =
+    document.getElementById("mTotal");
+
+const mResult =
+    document.getElementById("mResult");
+
+const mCallback =
+    document.getElementById("mCallback");
+
+const mDuration =
+    document.getElementById("mDuration");
+
+
+const ACTIVE_STATUSES = new Set([
+    "OpenAI wird vorbereitet",
+    "OpenAI wird verbunden",
+    "Kunde wird angerufen",
+    "Gestartet",
+    "Klingelt",
+    "Verbunden",
+    "Warteschlange",
+    "Vorbereitet"
+]);
+
+
+function esc(value){
+
+    return String(value ?? "")
+        .replace(
+            /[&<>"']/g,
+            c => ({
+                "&":"&amp;",
+                "<":"&lt;",
+                ">":"&gt;",
+                '"':"&quot;",
+                "'":"&#039;"
+            }[c])
+        );
+}
+
+
+function parseDate(value){
+
+    if(!value){
+        return null;
+    }
+
+    const raw =
+        String(value).trim();
+
+    let date;
+
+    if(
+        raw.includes("T")
+        ||
+        raw.endsWith("Z")
+    ){
+        date = new Date(raw);
+    }else{
+        date = new Date(
+            raw.replace(" ","T") + "Z"
+        );
+    }
+
+    if(
+        isNaN(date.getTime())
+    ){
+        return null;
+    }
+
+    return date;
+}
+
+
+function fmtDate(value){
+
+    const date =
+        parseDate(value);
+
+    if(!date){
+        return esc(value || "—");
+    }
+
+    return date.toLocaleString(
+        "de-DE",
+        {
+            dateStyle:"short",
+            timeStyle:"short"
+        }
+    );
+}
+
+
+function fmtSec(value){
+
+    let seconds =
+        Number(value || 0);
+
+    seconds =
+        Math.max(
+            0,
+            Math.floor(seconds)
+        );
+
+    const minutes =
+        Math.floor(seconds / 60);
+
+    const rest =
+        seconds % 60;
+
+    return (
+        minutes
+        + ":"
+        + String(rest).padStart(2,"0")
+    );
+}
+
+
+function isActive(call){
+
+    return ACTIVE_STATUSES.has(
+        String(call.status || "")
+    );
+}
+
+
+function getDuration(call){
+
+    const stored =
+        Number(
+            call.duration_seconds
+            ||
+            call.recording_duration_seconds
+            ||
+            0
+        );
+
+    if(
+        stored > 0
+        ||
+        !isActive(call)
+    ){
+        return stored;
+    }
+
+    const start =
+        parseDate(
+            call.started_at
+            ||
+            call.created_at
+        );
+
+    if(!start){
+        return 0;
+    }
+
+    return Math.max(
+        0,
+        Math.floor(
+            (
+                Date.now()
+                -
+                start.getTime()
+            )
+            / 1000
+        )
+    );
+}
+
+
+function getStatusInfo(status){
+
+    status =
+        String(status || "");
+
+
+    if(
+        status === "Verbunden"
+        ||
+        status === "Gestartet"
+    ){
+        return {
+            css:"live",
+            text:"Im Gespräch"
+        };
+    }
+
+
+    if(
+        status === "Klingelt"
+    ){
+        return {
+            css:"calling",
+            text:"Klingelt"
+        };
+    }
+
+
+    if(
+        status === "Kunde wird angerufen"
+    ){
+        return {
+            css:"calling",
+            text:"Wird angerufen"
+        };
+    }
+
+
+    if(
+        status === "OpenAI wird vorbereitet"
+        ||
+        status === "OpenAI wird verbunden"
+        ||
+        status === "Vorbereitet"
+    ){
+        return {
+            css:"calling",
+            text:"Wird vorbereitet"
+        };
+    }
+
+
+    if(
+        status === "Warteschlange"
+    ){
+        return {
+            css:"calling",
+            text:"Warteschlange"
+        };
+    }
+
+
+    if(
+        status === "Beendet"
+    ){
+        return {
+            css:"ended",
+            text:"Beendet"
+        };
+    }
+
+
+    if(
+        status === "Nicht erreichbar"
+    ){
+        return {
+            css:"failed",
+            text:"Nicht erreichbar"
+        };
+    }
+
+
+    if(
+        status === "Besetzt"
+    ){
+        return {
+            css:"failed",
+            text:"Besetzt"
+        };
+    }
+
+
+    if(
+        status === "Fehler"
+        ||
+        status === "OpenAI Fehler"
+        ||
+        status === "Abgebrochen"
+    ){
+        return {
+            css:"failed",
+            text:status
+        };
+    }
+
+
+    return {
+        css:"other",
+        text:status || "—"
+    };
+}
+
+
+function createStatusBadge(call){
+
+    const info =
+        getStatusInfo(
+            call.status
+        );
+
+    return `
+        <span class="call-status ${info.css}">
+            ${esc(info.text)}
+        </span>
+    `;
+}
+
+
+function resultPill(name,currentResult){
+    const normalized = currentResult === "Gesperrt" ? "Kein Interesse" : String(currentResult || "");
+    const active = normalized === name;
+    const cssMap = {"Interessiert":"interested","Rückruf":"callback","Rechnung":"invoice","Kein Interesse":"no-interest"};
+    return '<span class="call-result-pill ' + cssMap[name] + (active ? ' active' : '') + '">' + esc(name === 'Rechnung' ? 'Besichtigung' : name) + '</span>';
+}
+
+function updateMetrics(){
+
+    mTotal.textContent =
+        calls.length;
+
+
+    mResult.textContent =
+        calls.filter(
+            call => call.result
+        ).length;
+
+
+    mCallback.textContent =
+        calls.filter(
+            call =>
+                String(
+                    call.result || ""
+                )
+                .toLowerCase()
+                .includes("rückruf")
+        ).length;
+
+
+    const completed =
+        calls.filter(
+            call =>
+                !isActive(call)
+                &&
+                getDuration(call) > 0
+        );
+
+
+    let average = 0;
+
+
+    if(completed.length){
+
+        const total =
+            completed.reduce(
+                (sum,call) =>
+                    sum + getDuration(call),
+                0
+            );
+
+        average =
+            Math.round(
+                total / completed.length
+            );
+    }
+
+
+    mDuration.textContent =
+        fmtSec(average);
+}
+
+
+function updateFilters(){
+
+    const selectedStatus =
+        statusFilter.value;
+
+    const selectedResult =
+        resultFilter.value;
+
+
+    const statuses =
+        [
+            ...new Set(
+                calls
+                    .map(call => call.status)
+                    .filter(Boolean)
+            )
+        ].sort();
+
+
+    const results =
+        [
+            ...new Set(
+                calls
+                    .map(call => call.result)
+                    .filter(Boolean)
+            )
+        ].sort();
+
+
+    statusFilter.innerHTML =
+        '<option value="">Alle Status</option>'
+        +
+        statuses.map(
+            value =>
+                `<option value="${esc(value)}">${esc(getStatusInfo(value).text)}</option>`
+        ).join("");
+
+
+    resultFilter.innerHTML =
+        '<option value="">Alle Ergebnisse</option>'
+        +
+        results.map(
+            value =>
+                `<option value="${esc(value)}">${esc(value)}</option>`
+        ).join("");
+
+
+    if(
+        statuses.includes(
+            selectedStatus
+        )
+    ){
+        statusFilter.value =
+            selectedStatus;
+    }
+
+
+    if(
+        results.includes(
+            selectedResult
+        )
+    ){
+        resultFilter.value =
+            selectedResult;
+    }
+}
+
+
+function render(){
+
+    const search =
+        qInput.value
+            .trim()
+            .toLowerCase();
+
+
+    const selectedStatus =
+        statusFilter.value;
+
+
+    const selectedResult =
+        resultFilter.value;
+
+
+    let list =
+        calls.filter(
+            call => {
+
+                if(
+                    selectedStatus
+                    &&
+                    call.status !== selectedStatus
+                ){
+                    return false;
+                }
+
+
+                if(
+                    selectedResult
+                    &&
+                    call.result !== selectedResult
+                ){
+                    return false;
+                }
+
+
+                if(search){
+
+                    const haystack = [
+                        call.firma,
+                        call.ansprechpartner,
+                        call.phone_number,
+                        call.summary
+                    ]
+                    .map(
+                        value =>
+                            String(value || "")
+                                .toLowerCase()
+                    )
+                    .join(" ");
+
+
+                    if(
+                        !haystack.includes(search)
+                    ){
+                        return false;
+                    }
+                }
+
+
+                return true;
+            }
+        );
+
+
+    list.sort(
+        (a,b) =>
+            Number(b.id || 0)
+            -
+            Number(a.id || 0)
+    );
+
+
+    rows.innerHTML =
+        list.map(
+            call => {
+
+                const active =
+                    isActive(call);
+
+                const duration =
+                    getDuration(call);
+
+
+                return `
+                    <tr class="${active ? "live-row" : ""}">
+
+                        <td>
+                            ${fmtDate(call.created_at)}
+                        </td>
+
+                        <td>
+                            <strong>
+                                ${esc(call.firma || "Unbekannter Kontakt")}
+                            </strong>
+
+                            <br>
+
+                            <small>
+                                ${esc(call.ansprechpartner || "")}
+                            </small>
+                        </td>
+
+                        <td>
+                            ${esc(call.phone_number || "—")}
+                        </td>
+
+                        <td>
+                            ${createStatusBadge(call)}
+                        </td>
+
+                        <td>
+                            <div class="call-result-pills">
+                                ${resultPill("Interessiert", call.result)}
+                                ${resultPill("Rückruf", call.result)}
+                                ${resultPill("Rechnung", call.result)}
+                                ${resultPill("Kein Interesse", call.result)}
+                            </div>
+                        </td>
+
+                        <td class="${active ? "live-duration" : ""}">
+                            ${fmtSec(duration)}
+                        </td>
+
+                        <td>
+                            ${
+                                call.score == null
+                                ?
+                                "—"
+                                :
+                                esc(call.score) + "/10"
+                            }
+                        </td>
+
+                        <td>
+                            <a
+                                class="kg-link"
+                                href="/leon-ui/gespraech/${call.id}"
+                            >
+                                Öffnen →
+                            </a>
+                        </td>
+
+                    </tr>
+                `;
+            }
+        ).join("");
+
+
+    if(list.length){
+
+        empty.style.display =
+            "none";
+
+    }else{
+
+        empty.style.display =
+            "block";
+
+        empty.textContent =
+            "Keine Anrufe vorhanden.";
+    }
+}
+
+
+async function loadCalls(){
+
+    try{
+
+        const response =
+            await fetch(
+                "/leon-api/calls",
+                {
+                    cache:"no-store"
+                }
+            );
+
+
+        const data =
+            await response.json();
+
+
+        if(
+            !data.success
+        ){
+            throw new Error(
+                data.error || "Unbekannter Fehler"
+            );
+        }
+
+
+        calls =
+            Array.isArray(data.calls)
+            ?
+            data.calls
+            :
+            [];
+
+
+        updateMetrics();
+
+        updateFilters();
+
+        render();
+
+
+    }catch(error){
+
+        console.error(
+            "Anrufe Fehler:",
+            error
+        );
+
+
+        empty.style.display =
+            "block";
+
+
+        empty.textContent =
+            "Anrufe konnten nicht geladen werden: "
+            +
+            error.message;
+    }
+}
+
+
+qInput.addEventListener(
+    "input",
+    render
+);
+
+
+statusFilter.addEventListener(
+    "change",
+    render
+);
+
+
+resultFilter.addEventListener(
+    "change",
+    render
+);
+
+
+/* İlk yükleme */
+loadCalls();
+
+
+/* Backend'i her 2 saniyede yeniden oku */
+setInterval(
+    loadCalls,
+    2000
+);
+
+
+/* Aktif görüşmenin süresini her saniye ilerlet */
+setInterval(
+    () => {
+
+        if(
+            calls.some(isActive)
+        ){
+            render();
+        }
+
+    },
+    1000
+);
+
+</script>
+
+</body>
+</html>

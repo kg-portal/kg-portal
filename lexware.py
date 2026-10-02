@@ -551,9 +551,9 @@ def sync_lexware_customers_to_db():
                 """, (firma, sehir, sokak, posta, email, telefon, lexware_id))
             else:
                 cur.execute("""
-                    INSERT INTO kunden (firma, ort, strasse, plz, rechnung_email, telefon, lexware_id, vertragsstatus, created_at)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, 'Aktiv', CURRENT_TIMESTAMP)
-                """, (firma, sehir, sokak, posta, email, telefon, lexware_id))
+                    INSERT INTO kunden (firma, ort, monat, strasse, plz, rechnung_email, telefon, lexware_id, vertragsstatus, created_at)
+                    VALUES (?, ?, 0, ?, ?, ?, ?, ?, 'Aktiv', CURRENT_TIMESTAMP)
+                """, (firma, sehir or "", sokak, posta, email, telefon, lexware_id))
 
         page += 1
 
