@@ -306,9 +306,14 @@ button.primary,
 }
 
 /* Result butonları */
-.result-btn[data-result="Interessiert"],
 .result-btn[data-result="Rückruf"] {
     background:linear-gradient(135deg,var(--kg-green-700),var(--kg-green-500)) !important;
+    color:#fff !important;
+}
+
+/* Interessiert: Orange wie in der Datenbank */
+.result-btn[data-result="Interessiert"] {
+    background:linear-gradient(135deg,#c2410c,#f97316) !important;
     color:#fff !important;
 }
 
