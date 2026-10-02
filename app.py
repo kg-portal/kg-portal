@@ -874,6 +874,10 @@ import leon_routes as _leon_routes_mod
 from stundenzettel_auto import register_stundenzettel_auto, monat_gesperrt as _stz_monat_gesperrt
 register_stundenzettel_auto(app, login_required, get_db_connection, lambda: _leon_routes_mod.leon_client)
 
+# Leon Auto-Kampagne: jeden Morgen die besten Firmen aus gewählten Datenbanken (Standard: aus)
+from leon_auto_kampagne import register_leon_auto_kampagne
+register_leon_auto_kampagne(app, login_required, get_db_connection, lambda: _leon_routes_mod.leon_client)
+
 
 # =====================================================
 # Bölüm 4-GİRİŞ VE ÇIKIŞ İŞLEMLERİ (BURAYA GELDİ)

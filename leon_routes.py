@@ -189,6 +189,7 @@ LEON_TABS = [
     ("uebersicht", "/leon", "Übersicht"),
     ("live", "/leon/live", "Live Call"),
     ("datenbank", "/leon/datenbank", "Aus Datenbank"),
+    ("auto", "/leon/auto", "Auto-Kampagne"),
     ("kampagnen", "/leon/kampagnen", "Kampagnen"),
     ("leads", "/leon/leads", "Leads"),
     ("gespraeche", "/leon/gespraeche", "Gespräche"),

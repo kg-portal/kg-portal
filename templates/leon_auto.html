@@ -1,0 +1,214 @@
+{% extends "base.html" %}
+{% block content %}
+<style>
+    .lau { font-family: Arial, Helvetica, sans-serif; display: flex; flex-direction: column; gap: 18px; }
+    .lau-head { background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 60%, #3b82f6 100%); color: #fff; border-radius: 22px; padding: 22px 26px; }
+    .lau-head h1 { margin: 0; font-size: 24px; font-weight: 800; }
+    .lau-head p { margin: 6px 0 0; font-size: 14px; line-height: 1.55; max-width: 900px; }
+    .lau-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 20px; padding: 20px 22px; }
+    .lau-card h2 { margin: 0 0 12px; font-size: 17px; font-weight: 800; color: #1e3a8a; }
+    .lau-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+    .lau-grid label, .lau-label { display: block; font-size: 12px; font-weight: 800; color: #475569; margin-bottom: 6px; }
+    .lau-input { width: 100%; box-sizing: border-box; padding: 10px 12px; border-radius: 12px; border: 2px solid #e2e8f0; background: #f8fafc; font-size: 16px; font-family: inherit; }
+    .lau-branchen { display: flex; flex-wrap: wrap; gap: 8px; }
+    .lau-chip { display: inline-flex; align-items: center; gap: 8px; padding: 9px 12px; border-radius: 999px; border: 2px solid #e2e8f0; background: #f8fafc; font-weight: 700; font-size: 14px; cursor: pointer; min-height: 40px; }
+    .lau-chip.on { border-color: #2563eb; background: #dbeafe; color: #1e3a8a; }
+    .lau-chip b { background: #2563eb; color: #fff; border-radius: 999px; min-width: 22px; height: 22px; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; }
+    .lau-aktiv { display: flex; align-items: center; gap: 12px; font-weight: 800; font-size: 15px; color: #0f172a; margin-top: 4px; }
+    .lau-aktiv input { width: 22px; height: 22px; }
+    .lau-btns { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
+    .lau-btn { border: none; border-radius: 12px; padding: 11px 16px; min-height: 42px; font-weight: 800; font-size: 14px; cursor: pointer; color: #fff; background: #2563eb; font-family: inherit; }
+    .lau-btn.green { background: #15803d; } .lau-btn.purple { background: #7c3aed; } .lau-btn.grey { background: #475569; }
+    .lau-btn:disabled { opacity: .55; cursor: wait; }
+    .lau-msg { margin-top: 10px; font-size: 14px; font-weight: 700; }
+    .lau-msg.ok { color: #15803d; } .lau-msg.err { color: #b91c1c; }
+    .lau-table-wrap { max-height: 520px; overflow: auto; border: 1px solid #f1f5f9; border-radius: 14px; }
+    .lau-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    .lau-table th { position: sticky; top: 0; background: #f8fafc; text-align: left; font-size: 12px; color: #475569; padding: 10px 8px; border-bottom: 2px solid #eef2f7; }
+    .lau-table td { padding: 9px 8px; border-bottom: 1px solid #f1f5f9; }
+    .lau-pill { display: inline-block; padding: 3px 9px; border-radius: 999px; font-size: 12px; font-weight: 800; background: #e2e8f0; color: #334155; }
+    .lau-pill.r2 { background: #ffedd5; color: #9a3412; }
+    .lau-rules { font-size: 14px; color: #334155; line-height: 1.6; margin: 0; padding-left: 20px; }
+    .lau-stat { font-size: 14px; color: #334155; margin-bottom: 10px; line-height: 1.5; }
+    @media (max-width: 900px) { .lau-grid { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 560px) { .lau-grid { grid-template-columns: 1fr; } .lau-head h1 { font-size: 20px; } }
+</style>
+
+{% include "_leon_tabs.html" %}
+
+<div class="lau">
+    <div class="lau-head">
+        <h1>🤖 Leon Auto-Kampagne</h1>
+        <p>Jeden Morgen (Mo–Fr) sucht das CRM die besten Firmen aus deinen ausgewählten Datenbanken im Umkreis,
+           übergibt sie an Leon und startet die Kampagne. Standard: <b>aus</b> – zum Testen erst „Vorschau“, dann „Jetzt ausführen“.</p>
+    </div>
+
+    <div class="lau-card">
+        <h2>Einstellungen</h2>
+        <label class="lau-aktiv"><input type="checkbox" id="lauAktiv"> Automatisch jeden Morgen ausführen</label>
+        <div style="margin-top:14px;">
+            <span class="lau-label">Datenbanken (Branchen) – Reihenfolge = Priorität, am besten 3–4</span>
+            <div class="lau-branchen" id="lauBranchen"><span class="lau-stat">Lade …</span></div>
+        </div>
+        <div class="lau-grid" style="margin-top:14px;">
+            <div><label for="lauQuelle">Quelle</label>
+                <select id="lauQuelle" class="lau-input"><option value="leads">Datenbank (Leads)</option><option value="tagesliste">Tagesliste</option></select></div>
+            <div><label for="lauPlz">Zentrum (PLZ)</label><input id="lauPlz" class="lau-input" inputmode="numeric" maxlength="5" placeholder="47055"></div>
+            <div><label for="lauRadius">Umkreis (km)</label><input id="lauRadius" class="lau-input" type="number" min="1" max="150"></div>
+            <div><label for="lauLimit">Firmen pro Tag</label><input id="lauLimit" class="lau-input" type="number" min="1" max="300"></div>
+            <div><label for="lauStunde">Start ab (Uhr)</label><input id="lauStunde" class="lau-input" type="number" min="6" max="18"></div>
+            <div style="grid-column: span 2;"><label for="lauName">Name der Leon-Kampagne</label><input id="lauName" class="lau-input"></div>
+        </div>
+        <div class="lau-btns">
+            <button class="lau-btn green" id="lauSave">Einstellungen speichern</button>
+            <button class="lau-btn" id="lauPreview">Vorschau</button>
+            <button class="lau-btn purple" id="lauRun">Jetzt ausführen</button>
+        </div>
+        <div class="lau-msg" id="lauMsg"></div>
+    </div>
+
+    <div class="lau-card" id="lauPreviewCard" hidden>
+        <h2>Vorschau – diese Firmen würde Leon heute bekommen</h2>
+        <div class="lau-stat" id="lauStat"></div>
+        <div class="lau-table-wrap">
+            <table class="lau-table">
+                <thead><tr><th>#</th><th>Firma</th><th>Datenbank</th><th>Ort</th><th>km</th><th>Punkte</th><th>Runde</th></tr></thead>
+                <tbody id="lauRows"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="lau-card">
+        <h2>Letzte Ausführung</h2>
+        <div class="lau-stat" id="lauLast">—</div>
+    </div>
+
+    <div class="lau-card">
+        <h2>Regeln</h2>
+        <ul class="lau-rules">
+            <li>Nur Firmen mit Telefonnummer aus den gewählten Datenbanken und im Umkreis (Entfernung über die PLZ).</li>
+            <li>Punkte: Priorität der Datenbank (bis 30), Nähe (bis 30), noch nie angerufen (+15), zweite Runde (+10), Website / E-Mail / Ansprechpartner (je +5).</li>
+            <li>Tag 1: Leon versucht bis zu 3-mal. Nicht erreicht → am nächsten Tag eine zweite Runde. Danach 3 Wochen Pause.</li>
+            <li>Nie wieder automatisch: Besichtigung, Interessiert, Rückruf, Kein Interesse, Nicht anrufen, verloren, Angebot.</li>
+            <li>Im Leon-Motor kann nur eine Kampagne gleichzeitig laufen. Läuft eine andere, wartet die Auto-Kampagne.</li>
+        </ul>
+    </div>
+</div>
+
+<script>
+(function () {
+    const $ = (id) => document.getElementById(id);
+    const esc = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+    let gewaehlt = [];
+
+    async function api(url, body) {
+        const opt = body === undefined ? {} : { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) };
+        const r = await fetch(url, opt);
+        let d = {};
+        try { d = await r.json(); } catch (e) { d = { success: false, error: "HTTP " + r.status }; }
+        if (!r.ok || d.success === false) throw new Error(d.error || ("HTTP " + r.status));
+        return d;
+    }
+    function msg(text, ok) { $("lauMsg").className = "lau-msg " + (ok ? "ok" : "err"); $("lauMsg").textContent = text; }
+
+    function chips(alle) {
+        const box = $("lauBranchen");
+        const namen = Array.from(new Set(alle.concat(gewaehlt)));
+        box.innerHTML = namen.length ? "" : '<span class="lau-stat">Keine Branchen in der Datenbank gefunden.</span>';
+        namen.forEach((b) => {
+            const i = gewaehlt.indexOf(b);
+            const el = document.createElement("button");
+            el.type = "button";
+            el.className = "lau-chip" + (i >= 0 ? " on" : "");
+            el.innerHTML = (i >= 0 ? `<b>${i + 1}</b>` : "") + esc(b);
+            el.onclick = () => {
+                const k = gewaehlt.indexOf(b);
+                if (k >= 0) gewaehlt.splice(k, 1);
+                else if (gewaehlt.length < 6) gewaehlt.push(b);
+                chips(alle);
+            };
+            box.append(el);
+        });
+    }
+
+    function bericht(b, wann) {
+        if (!b) return "Noch nie ausgeführt.";
+        let t = `${esc((wann || b.zeit || "").replace("T", " ").slice(0, 16))}: ${b.uebergeben || 0} Firmen an Leon übergeben`;
+        if (b.gestartet) t += ", Kampagne gestartet";
+        t += ".";
+        const s = b.statistik || {};
+        t += `<br>Geprüft ${s.gesamt || 0}, möglich ${s.moeglich || 0}, zu weit ${s.zu_weit || 0}, ohne Ort ${s.ohne_ort || 0}, erledigt ${s.erledigt || 0}, in Pause ${s.pause || 0}.`;
+        if ((b.hinweise || []).length) t += "<br><b>Hinweise:</b> " + b.hinweise.map(esc).join("; ");
+        return t;
+    }
+
+    function form(e) {
+        $("lauAktiv").checked = !!e.aktiv;
+        $("lauQuelle").value = e.quelle || "leads";
+        $("lauPlz").value = e.zentrum_plz || "47055";
+        $("lauRadius").value = e.radius_km || 30;
+        $("lauLimit").value = e.tageslimit || 50;
+        $("lauStunde").value = e.startstunde || 8;
+        $("lauName").value = e.kampagne_name || "Leon Auto-Kampagne";
+        gewaehlt = (e.branchen || []).slice();
+        $("lauLast").innerHTML = bericht(e.letzter_bericht, e.letzte_ausfuehrung);
+    }
+
+    async function speichern() {
+        const d = await api("/api/leon/auto/einstellungen", {
+            aktiv: $("lauAktiv").checked, quelle: $("lauQuelle").value, branchen: gewaehlt,
+            zentrum_plz: $("lauPlz").value.trim(), radius_km: $("lauRadius").value, tageslimit: $("lauLimit").value,
+            startstunde: $("lauStunde").value, kampagne_name: $("lauName").value.trim(),
+        });
+        form(d.einstellungen);
+        return d;
+    }
+
+    $("lauSave").onclick = async (ev) => {
+        ev.target.disabled = true;
+        try { await speichern(); msg("Gespeichert." + ($("lauAktiv").checked ? " Läuft ab morgen früh automatisch (Mo–Fr)." : " Automatik ist aus."), true); }
+        catch (e) { msg(e.message, false); }
+        ev.target.disabled = false;
+    };
+
+    $("lauPreview").onclick = async (ev) => {
+        ev.target.disabled = true;
+        try {
+            await speichern();
+            const d = await api("/api/leon/auto/vorschau");
+            const s = d.statistik || {};
+            $("lauStat").innerHTML = s.hinweis ? esc(s.hinweis) :
+                `Geprüft ${s.gesamt}, möglich ${s.moeglich} – zu weit ${s.zu_weit}, ohne Ort ${s.ohne_ort}, erledigt ${s.erledigt}, in Pause ${s.pause}, heute schon ${s.heute_schon}.` +
+                (d.weitere ? ` (${d.weitere} weitere über dem Tageslimit)` : "");
+            $("lauRows").innerHTML = (d.auswahl || []).map((r, i) => `<tr><td>${i + 1}</td><td>${esc(r.firma)}</td><td>${esc(r.branche)}</td>
+                <td>${esc(r.plz)} ${esc(r.ort)}</td><td>${r.entfernung_km}</td><td>${r.punkte}</td>
+                <td><span class="lau-pill ${r.runde === 2 ? "r2" : ""}">${r.runde === 2 ? "2. Runde" : "neu"}</span></td></tr>`).join("") ||
+                '<tr><td colspan="7">Keine passenden Firmen.</td></tr>';
+            $("lauPreviewCard").hidden = false;
+            msg("Vorschau aktualisiert – noch nichts an Leon übergeben.", true);
+        } catch (e) { msg(e.message, false); }
+        ev.target.disabled = false;
+    };
+
+    $("lauRun").onclick = async (ev) => {
+        if (!confirm("Jetzt die Firmen aus der Vorschau an Leon übergeben und die Kampagne starten? Leon ruft dann an.")) return;
+        ev.target.disabled = true;
+        try {
+            await speichern();
+            const d = await api("/api/leon/auto/ausfuehren", {});
+            $("lauLast").innerHTML = bericht(d.bericht);
+            msg(`${d.bericht.uebergeben || 0} Firmen an Leon übergeben.`, true);
+        } catch (e) { msg(e.message, false); }
+        ev.target.disabled = false;
+    };
+
+    (async () => {
+        try {
+            const [e, b] = await Promise.all([api("/api/leon/auto/einstellungen"), api("/api/leon/datenbank/branchen")]);
+            form(e.einstellungen);
+            chips(b.branchen || []);
+        } catch (err) { msg(err.message, false); }
+    })();
+})();
+</script>
+{% endblock %}
