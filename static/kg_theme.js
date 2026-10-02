@@ -152,6 +152,52 @@
     return id;
   }
 
+  // :hover/:focus/:active-Farben aus den Stylesheets – beim Scan nicht sichtbar,
+  // sonst bleibt z. B. eine überfahrene Tabellenzeile im Dunkelmodus hell.
+  var stateSeen = Object.create(null);
+  function namedColor(c) {
+    return c === "white" ? "rgb(255, 255, 255)" : c === "black" ? "rgb(0, 0, 0)" : c;
+  }
+  function stateRules() {
+    var neu = [];
+    function visit(list) {
+      for (var i = 0; i < list.length; i++) {
+        var r = list[i];
+        if (!r.selectorText) {
+          if (r.cssRules) { try { visit(r.cssRules); } catch (e) {} }
+          continue;
+        }
+        var sel = r.selectorText;
+        if (!/:(hover|focus|focus-within|active)\b/.test(sel) || sel.indexOf("kgx") >= 0 || sel.indexOf("kg-theme") >= 0) continue;
+        var st = r.style, body = "";
+        var bg = mapBg(parse(namedColor(st.backgroundColor)));
+        if (bg) body += "background-color:" + bg + "!important;";
+        var gr = mapGradient(st.backgroundImage);
+        if (gr) body += "background-image:" + gr + "!important;";
+        var fg = mapFg(parse(namedColor(st.color)));
+        if (fg) body += "color:" + fg + "!important;";
+        var bc = mapBorder(parse(namedColor(st.borderTopColor || st.borderColor)));
+        if (bc) body += "border-color:" + bc + "!important;";
+        if (!body) continue;
+        var parts = sel.split(",").map(function (x) {
+          x = x.trim();
+          return /^(html|:root)\b/.test(x) ? "" : 'html[data-kg-x="on"] ' + x;
+        }).filter(Boolean);
+        if (!parts.length) continue;
+        var txt = "@media screen{" + parts.join(",") + "{" + body + "}}";
+        if (!stateSeen[txt]) { stateSeen[txt] = 1; neu.push(txt); }
+      }
+    }
+    for (var k = 0; k < document.styleSheets.length; k++) {
+      var sh = document.styleSheets[k];
+      if (sh.ownerNode && (sh.ownerNode.id === "kg-theme-rules" || sh.ownerNode.id === "kg-theme-base")) continue;
+      try { visit(sh.cssRules); } catch (e) {} // fremde Stylesheets (CDN) sind nicht lesbar
+    }
+    if (!neu.length) return;
+    var target = ensureSheet();
+    neu.forEach(function (t) { try { target.insertRule(t, target.cssRules.length); } catch (e) {} });
+  }
+
   var SKIP = { SCRIPT: 1, STYLE: 1, LINK: 1, META: 1, HEAD: 1, TITLE: 1, NOSCRIPT: 1, BR: 1, IMG: 1, VIDEO: 1, CANVAS: 1, IFRAME: 1, svg: 1, SVG: 1, PICTURE: 1, SOURCE: 1, OPTION: 0 };
   var info = new WeakMap(); // Element → {effDark: bool, fg: string, fgChanged: bool}
 
@@ -241,6 +287,7 @@
         root.classList.add("kgx-scan");
         root.setAttribute("data-kg-x", "off");
         walk(document.body);
+        stateRules();
         root.classList.remove("kgx-scan");
         processed = true;
       }
