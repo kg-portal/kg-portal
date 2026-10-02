@@ -318,7 +318,7 @@ button.primary,
 }
 
 .result-btn[data-result="Rechnung"] {
-    background:linear-gradient(135deg,#c2410c,#f97316) !important;
+    background:linear-gradient(135deg,#15803d,#22c55e) !important; /* Besichtigung: Grün wie in der Datenbank */
     color:#fff !important;
 }
 
