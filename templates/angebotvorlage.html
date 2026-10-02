@@ -33,6 +33,13 @@ body {
     width: 100%;
 }
 
+/* Telefon/Tablet: A4-Seite seitlich wischbar statt abgeschnitten (Druck bleibt unverändert) */
+@media screen and (max-width: 860px) {
+    .document {
+        overflow-x: auto;
+    }
+}
+
 .page {
     width: 210mm;
     height: 297mm;

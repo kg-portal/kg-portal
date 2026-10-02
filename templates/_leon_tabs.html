@@ -6,9 +6,25 @@
     }
     .leon-tab:hover { border-color: #93c5fd; }
     .leon-tab.active { background: #2563eb; border-color: #2563eb; color: #fff; }
+    /* Telefon: Reiter in einer Zeile, seitlich wischbar */
+    @media (max-width: 640px) {
+        .leon-tabs { flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 4px; scrollbar-width: none; }
+        .leon-tabs::-webkit-scrollbar { display: none; }
+        .leon-tab { flex: 0 0 auto; white-space: nowrap; }
+    }
 </style>
 <nav class="leon-tabs" aria-label="Leon Bereiche">
     {% for key, href, label in leon_tabs %}
     <a class="leon-tab {% if key == leon_tab %}active{% endif %}" href="{{ href }}">{{ label }}</a>
     {% endfor %}
 </nav>
+<script>
+// aktiven Reiter in den sichtbaren Bereich schieben (nur wenn die Leiste seitlich scrollt)
+(function () {
+    var nav = document.querySelector('.leon-tabs');
+    var aktiv = nav && nav.querySelector('.leon-tab.active');
+    if (nav && aktiv && nav.scrollWidth > nav.clientWidth) {
+        nav.scrollLeft = aktiv.offsetLeft - nav.offsetLeft - (nav.clientWidth - aktiv.offsetWidth) / 2;
+    }
+})();
+</script>

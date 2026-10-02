@@ -189,3 +189,32 @@
     font-size: 24px !important;
   }
 }
+
+/* Telefon: Eingabefelder mind. 16px, sonst vergrößert das iPhone die Seite beim Antippen */
+@media (max-width: 768px) {
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]),
+  select,
+  select.kg-select,
+  textarea {
+    font-size: 16px !important;
+  }
+}
+
+/* Tablet: breite Tabellen seitlich scrollbar statt abgeschnitten */
+.kg-table-card {
+  overflow-x: auto !important;
+}
+
+/* Lesbarkeit: 10px-Schrift in Tabellen und Status-Etiketten auf 11px */
+.kg-table th,
+table thead th,
+td .status,
+td .mini-badge,
+td .kg-badge,
+td > small,
+.kg-setting-row > .kg-status,
+.action-row .score,
+#summaryWrap .score-badge,
+.card .card-head > span {
+  font-size: 11px !important;
+}

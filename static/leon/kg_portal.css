@@ -209,7 +209,7 @@ button.primary,
 /* Sarı aksiyon */
 .btn-warning,
 .warning-btn {
-    background:linear-gradient(135deg,var(--kg-yellow-600),var(--kg-yellow-500)) !important;
+    background:linear-gradient(135deg,#b45309,#a16207) !important;
     color:#fff !important;
 }
 
@@ -313,7 +313,7 @@ button.primary,
 }
 
 .result-btn[data-result="Rechnung"] {
-    background:linear-gradient(135deg,var(--kg-yellow-600),var(--kg-yellow-500)) !important;
+    background:linear-gradient(135deg,#b45309,#a16207) !important;
     color:#fff !important;
 }
 
@@ -695,7 +695,7 @@ table td {
 
 /* Tarih arasındaki 'von / bis' */
 .filter-word {
-    color:var(--kg-muted) !important;
+    color:#5b6b78 !important;
 }
 
 /* Tablo başlığı */

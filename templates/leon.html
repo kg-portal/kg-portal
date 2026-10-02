@@ -32,7 +32,7 @@
     .leon-btn:hover { background: #1d4ed8; }
     .leon-btn:disabled { opacity: .6; cursor: wait; }
     .leon-btn.grey { background: #e2e8f0; color: #1e293b; }
-    .leon-btn.green { background: #16a34a; }
+    .leon-btn.green { background: #15803d; }
     .leon-btn.small { padding: 7px 12px; font-size: 12px; border-radius: 10px; }
     .leon-msg { margin-top: 10px; font-size: 14px; font-weight: 700; }
     .leon-msg.ok { color: #16a34a; } .leon-msg.err { color: #dc2626; }
@@ -47,7 +47,7 @@
     .leon-status.bad { background: #fee2e2; color: #b91c1c; }
     .leon-summary { color: #334155; font-size: 13px; line-height: 1.45; max-width: 520px; }
     .leon-transcript { white-space: pre-wrap; background: #f8fafc; border-radius: 10px; padding: 10px; margin-top: 8px; font-size: 12px; color: #475569; max-height: 260px; overflow: auto; }
-    .leon-empty { color: #94a3b8; font-weight: 600; padding: 12px 4px; }
+    .leon-empty { color: #64748b; font-weight: 600; padding: 12px 4px; }
     .leon-settings-grid { display: grid; grid-template-columns: 1fr 2fr; gap: 12px; margin-bottom: 12px; }
     .leon-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 12px; }
     details.leon-details summary { cursor: pointer; list-style: none; }
@@ -197,7 +197,7 @@
                 <td>${fmtDate(a.erstellt_am)}</td>
                 <td><b>${esc(a.firma)}</b></td>
                 <td>${esc(a.telefon)}</td>
-                <td><span class="leon-status ${statusClass(a)}">${esc(statusText(a))}</span>${a.dauer_sekunden ? '<br><span style="color:#94a3b8;font-size:12px">' + Math.round(a.dauer_sekunden) + ' s</span>' : ''}</td>
+                <td><span class="leon-status ${statusClass(a)}">${esc(statusText(a))}</span>${a.dauer_sekunden ? '<br><span style="color:#64748b;font-size:12px">' + Math.round(a.dauer_sekunden) + ' s</span>' : ''}</td>
                 <td class="leon-summary">${a.fehler ? '<span style="color:#dc2626">' + esc(a.fehler) + '</span>' : esc(a.zusammenfassung || '')}
                     ${a.transkript ? '<details><summary style="cursor:pointer;color:#2563eb;font-weight:700;margin-top:6px">Gespräch anzeigen</summary><div class="leon-transcript">' + esc(a.transkript) + '</div></details>' : ''}
                 </td>

@@ -24,7 +24,11 @@
             border-bottom: 1px solid #dfe7ec;
         }
 
-        .topbar-left { display: flex; align-items: center; gap: 16px; }
+        .topbar-left { display: flex; align-items: center; gap: 16px; min-width: 0; }
+        /* Telefon: lange Firmennamen umbrechen statt abschneiden */
+        .topbar-left > div { min-width: 0; }
+        .topbar-left .back-btn { flex-shrink: 0; }
+        #pageTitle, #pageMeta { overflow-wrap: anywhere; }
 
         .back-btn {
             width: 38px;
@@ -80,7 +84,7 @@
             font-weight: 800;
             letter-spacing: 0.4px;
             text-transform: uppercase;
-            color: #81929d;
+            color: #64748b;
             margin-bottom: 5px;
         }
 
@@ -112,7 +116,7 @@
 
         .side-note {
             font-size: 12px;
-            color: #9aa7b1;
+            color: #64748b;
             margin-top: 14px;
             line-height: 1.5;
         }
@@ -127,7 +131,7 @@
 
         .info-row:last-child { border-bottom: none; }
 
-        .info-label { color: #81929d; }
+        .info-label { color: #64748b; }
         .info-value { font-weight: 700; text-align: right; }
 
         .score-badge {
@@ -144,7 +148,7 @@
         .score-badge.mid { background: #fff6e0; color: #f4a423; }
 
         .empty-note {
-            color: #9aa7b1;
+            color: #64748b;
             font-size: 13.5px;
             padding: 20px 0;
             text-align: center;

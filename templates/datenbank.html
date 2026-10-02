@@ -96,7 +96,7 @@ body {
 
 .db-title-row {
     display: grid;
-    grid-template-columns: minmax(330px, 1fr) minmax(260px, 1fr) minmax(360px, 1fr);
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 18px;
     align-items: flex-start;
     margin-bottom: 26px;
@@ -131,7 +131,8 @@ body {
 
 .live-date-box {
     margin-top: 0;
-    width: 260px;
+    width: 100%;
+    max-width: 260px; /* schmale Bildschirme: schrumpft statt abgeschnitten */
     display: grid;
     grid-template-columns: 1fr;
     align-items: center;
@@ -178,7 +179,7 @@ body {
     grid-column: 3 / 4;
     display: flex;
     gap: 10px;
-    flex-wrap: nowrap;
+    flex-wrap: wrap;
     justify-content: flex-end;
     align-items: flex-start;
 }
@@ -1025,7 +1026,7 @@ body {
     font-size: 12px;
     line-height: 1.35;
     font-weight: 800;
-    color: rgba(255,255,255,0.9);
+    color: rgba(255,255,255,0.97);
 }
 
 .status-blue { background: linear-gradient(135deg, #1e40af 0%, #2563eb 100%); }
@@ -1069,7 +1070,7 @@ body {
 
 /* TAM BOYALI KUTU RENKLERİ */
 .card-blue-full { background: linear-gradient(135deg, #1e40af 0%, #2563eb 100%); }
-.card-orange-full { background: linear-gradient(135deg, #d97706 0%, #f59e0b 100%); }
+.card-orange-full { background: linear-gradient(135deg, #b45309 0%, #a16207 100%); }
 .card-red-full { background: linear-gradient(135deg, #b91c1c 0%, #ef4444 100%); }
 .card-green-full { background: linear-gradient(135deg, #15803d 0%, #22c55e 100%); }
 
@@ -1084,7 +1085,7 @@ body {
 .card-orange-full .workflow-text,
 .card-red-full .workflow-text,
 .card-green-full .workflow-text {
-    color: rgba(255, 255, 255, 0.88);
+    color: rgba(255, 255, 255, 0.96);
 }
 
 .card-blue-full .workflow-count,
@@ -1097,7 +1098,7 @@ body {
 }
 
 .card-blue-full .workflow-btn { background: #ffffff; color: #1e40af; border-color: #ffffff; }
-.card-orange-full .workflow-btn { background: #ffffff; color: #d97706; border-color: #ffffff; }
+.card-orange-full .workflow-btn { background: #ffffff; color: #b45309; border-color: #ffffff; }
 .card-red-full .workflow-btn { background: #ffffff; color: #b91c1c; border-color: #ffffff; }
 .card-green-full .workflow-btn { background: #ffffff; color: #15803d; border-color: #ffffff; }
 
@@ -1182,7 +1183,7 @@ body {
     }
 
     .db-title-row {
-        grid-template-columns: 1fr 1fr;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     }
 
     .db-title,
@@ -1229,6 +1230,13 @@ body {
 
     .branchen-master.compact {
         grid-template-columns: repeat(2, minmax(220px, 1fr));
+    }
+}
+
+/* Telefon: Kopfbereich einspaltig */
+@media (max-width: 640px) {
+    .db-title-row {
+        grid-template-columns: minmax(0, 1fr);
     }
 }
 

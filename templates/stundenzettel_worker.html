@@ -611,6 +611,15 @@ function buildMonthSidebar() {
             </button>
         `;
     });
+
+    // gewählten Monat in den sichtbaren Bereich schieben (die Leiste beginnt bei April 2026)
+    const aktivBtn = sidebar.children[selectedMonthIndex];
+    if (aktivBtn) {
+        sidebar.scrollLeft = aktivBtn.offsetLeft - sidebar.offsetLeft - (sidebar.clientWidth - aktivBtn.offsetWidth) / 2;
+        if (sidebar.scrollHeight > sidebar.clientHeight) {
+            sidebar.scrollTop = aktivBtn.offsetTop - sidebar.offsetTop - (sidebar.clientHeight - aktivBtn.offsetHeight) / 2;
+        }
+    }
 }
 
 function renderMonthRows() {
