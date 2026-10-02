@@ -869,6 +869,11 @@ register_leon_routes(app, login_required, get_db_connection)
 from agent_read_routes import register_agent_read_routes
 register_agent_read_routes(app, login_required, DB_PATH)
 
+# Stundenzettel-Automatik: feste Zeiten, Monat ausfüllen, Leon-Kontrolle, Monatssperre
+import leon_routes as _leon_routes_mod
+from stundenzettel_auto import register_stundenzettel_auto, monat_gesperrt as _stz_monat_gesperrt
+register_stundenzettel_auto(app, login_required, get_db_connection, lambda: _leon_routes_mod.leon_client)
+
 
 # =====================================================
 # Bölüm 4-GİRİŞ VE ÇIKIŞ İŞLEMLERİ (BURAYA GELDİ)
@@ -2392,6 +2397,10 @@ def save_stundenzettel():
         return jsonify({"success": False, "error": "Zugriff verweigert"}), 403
 
     conn = get_db_connection()
+    # Bestätigter Monat: Mitarbeiter-Link darf nichts mehr ändern (Chef schon)
+    if 'logged_in' not in session and any(_stz_monat_gesperrt(conn, worker_id, e.get('date')) for e in entries):
+        conn.close()
+        return jsonify({"success": False, "error": "Dieser Monat ist bestätigt und gesperrt."}), 423
     try:
         for e in entries:
             # Vorheriger Eintrag dieses Tages – für die Urlaubsrechnung
@@ -2446,6 +2455,10 @@ def delete_stundenzettel():
         return jsonify({"success": False, "error": "Zugriff verweigert"}), 403
 
     conn = get_db_connection()
+    # Bestätigter Monat: Mitarbeiter-Link darf nichts mehr löschen (Chef schon)
+    if 'logged_in' not in session and _stz_monat_gesperrt(conn, worker_id, date):
+        conn.close()
+        return jsonify({"success": False, "error": "Dieser Monat ist bestätigt und gesperrt."}), 423
     try:
         vorher = conn.execute(
             "SELECT place FROM work_logs WHERE worker_id = ? AND datum = ?",

@@ -366,6 +366,8 @@
     '@media screen{html[data-kg-x="on"] .kg-theme-toggle{color:' + (TO_DARK ? "#e2e8f0" : "#1e293b") + ";border-color:rgba(148,163,184,.35);background:" + (TO_DARK ? "rgba(255,255,255,.05)" : "rgba(15,23,42,.05)") + "}}" +
     ".kg-theme-float{position:fixed;right:14px;bottom:14px;z-index:2147483000;background:rgba(255,255,255,.92);color:#1e293b;box-shadow:0 6px 20px rgba(15,23,42,.18)}" +
     '@media screen{html[data-kg-x="on"] .kg-theme-float{background:' + (TO_DARK ? "rgba(17,24,39,.92)" : "rgba(255,255,255,.92)") + "}}" +
+    // Dunkle Logos (z. B. KG-BUSINESS) auf dunklem Grund aufhellen
+    (TO_DARK ? '@media screen{html[data-kg-x="on"] img[src*="business_logo"]{filter:brightness(2.1) saturate(.9)}}' : "") +
     "@media print{.kg-theme-toggle{display:none!important}}";
   (document.head || root).appendChild(css);
 
