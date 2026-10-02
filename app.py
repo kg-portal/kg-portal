@@ -882,6 +882,10 @@ register_leon_auto_kampagne(app, login_required, get_db_connection, lambda: _leo
 from vertrag_vertretung import register_vertrag_vertretung
 register_vertrag_vertretung(app, login_required, get_db_connection)
 
+# Lohnabrechnungen: Sammel-PDF aufteilen, mit Passwort schützen, nach Klick senden
+from lohnabrechnung import register_lohnabrechnung
+register_lohnabrechnung(app, login_required, get_db_connection)
+
 
 # =====================================================
 # Bölüm 4-GİRİŞ VE ÇIKIŞ İŞLEMLERİ (BURAYA GELDİ)
