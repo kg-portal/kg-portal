@@ -865,6 +865,10 @@ run_db_migration()
 register_kg_todo_routes(app, login_required, get_db_connection)
 register_leon_routes(app, login_required, get_db_connection)
 
+# KG Agent (Süper Program): nur lesender Zugriff, ändert nichts
+from agent_read_routes import register_agent_read_routes
+register_agent_read_routes(app, login_required, DB_PATH)
+
 
 # =====================================================
 # Bölüm 4-GİRİŞ VE ÇIKIŞ İŞLEMLERİ (BURAYA GELDİ)
