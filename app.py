@@ -878,6 +878,10 @@ register_stundenzettel_auto(app, login_required, get_db_connection, lambda: _leo
 from leon_auto_kampagne import register_leon_auto_kampagne
 register_leon_auto_kampagne(app, login_required, get_db_connection, lambda: _leon_routes_mod.leon_client)
 
+# Menüpunkte „Vertrag“ (Kunden-Reinigungsvertrag) und „Vertretung“ (Personal)
+from vertrag_vertretung import register_vertrag_vertretung
+register_vertrag_vertretung(app, login_required, get_db_connection)
+
 
 # =====================================================
 # Bölüm 4-GİRİŞ VE ÇIKIŞ İŞLEMLERİ (BURAYA GELDİ)

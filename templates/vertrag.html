@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+{% block content %}
+<style>
+  .vt-wrap { max-width: 1100px; margin: 0 auto; padding: 24px 18px 60px; font-family: Arial, Helvetica, sans-serif; }
+  .vt-head { background: linear-gradient(135deg, #15803d, #22c55e); color: #fff; border-radius: 22px; padding: 22px 24px; }
+  .vt-head h1 { margin: 0; font-size: 26px; }
+  .vt-head p { margin: 6px 0 0; font-size: 14px; line-height: 1.5; }
+  .vt-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 18px; padding: 18px 20px; margin-top: 16px; }
+  .vt-card h2 { margin: 0 0 12px; font-size: 17px; color: #14532d; }
+  .vt-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+  .vt-grid .w2 { grid-column: span 2; } .vt-grid .w3 { grid-column: 1 / -1; }
+  .vt-grid label { display: block; font-size: 12px; font-weight: 800; color: #475569; margin-bottom: 5px; }
+  .vt-in { width: 100%; box-sizing: border-box; padding: 10px 12px; border: 2px solid #e2e8f0; border-radius: 12px; background: #f8fafc; font-size: 16px; font-family: inherit; }
+  textarea.vt-in { min-height: 90px; resize: vertical; }
+  .vt-btn { border: 0; border-radius: 12px; padding: 12px 18px; min-height: 44px; font-weight: 800; font-size: 15px; color: #fff; background: #15803d; cursor: pointer; }
+  .vt-hint { font-size: 13px; color: #475569; line-height: 1.55; }
+  @media (max-width: 800px) { .vt-grid { grid-template-columns: 1fr; } .vt-grid .w2 { grid-column: auto; } }
+</style>
+
+<div class="vt-wrap">
+  <div class="vt-head">
+    <h1>📄 Reinigungsvertrag erstellen</h1>
+    <p>Kunde oder Angebot wählen – die Felder werden ausgefüllt. Dann „Vertrag erstellen“: Der Vertrag öffnet sich druckfertig
+       (im Browser „Drucken“ → „Als PDF speichern“).</p>
+  </div>
+
+  <div class="vt-card">
+    <h2>1. Daten übernehmen</h2>
+    <div class="vt-grid">
+      <div><label for="vtKunde">Bestehender Kunde</label>
+        <select id="vtKunde" class="vt-in"><option value="">– auswählen –</option>
+          {% for k in kunden %}<option value="{{ loop.index0 }}">{{ k.firma }}{% if k.ort %} · {{ k.ort }}{% endif %}</option>{% endfor %}
+        </select></div>
+      <div><label for="vtAngebot">oder aus Angebot</label>
+        <select id="vtAngebot" class="vt-in"><option value="">– auswählen –</option>
+          {% for a in angebote %}<option value="{{ loop.index0 }}">{{ a.firma }} · {{ a.reinigungsart or '' }} ({{ (a.created_at or '')[:10] }})</option>{% endfor %}
+        </select></div>
+    </div>
+  </div>
+
+  <form class="vt-card" method="post" action="/vertrag/erstellen" target="_blank">
+    <h2>2. Vertragsdaten</h2>
+    <div class="vt-grid">
+      <div class="w2"><label for="firma">Auftraggeber (Firma)</label><input id="firma" name="firma" class="vt-in" required></div>
+      <div><label for="kundennummer">Kundennummer</label><input id="kundennummer" name="kundennummer" class="vt-in"></div>
+      <div class="w2"><label for="strasse">Straße</label><input id="strasse" name="strasse" class="vt-in"></div>
+      <div><label for="ansprechpartner">Ansprechpartner</label><input id="ansprechpartner" name="ansprechpartner" class="vt-in"></div>
+      <div><label for="plz">PLZ</label><input id="plz" name="plz" class="vt-in" inputmode="numeric"></div>
+      <div><label for="ort">Ort</label><input id="ort" name="ort" class="vt-in"></div>
+      <div><label for="email">E-Mail</label><input id="email" name="email" class="vt-in" type="email"></div>
+      <div class="w3"><label for="objekt">Reinigungsobjekt (Adresse, falls abweichend)</label><input id="objekt" name="objekt" class="vt-in"></div>
+      <div><label for="leistung">Leistung</label><input id="leistung" name="leistung" class="vt-in" placeholder="z. B. Unterhaltsreinigung"></div>
+      <div><label for="haeufigkeit">Häufigkeit</label><input id="haeufigkeit" name="haeufigkeit" class="vt-in" placeholder="z. B. 2x pro Woche"></div>
+      <div><label for="flaeche">Fläche (m²)</label><input id="flaeche" name="flaeche" class="vt-in" inputmode="decimal"></div>
+      <div class="w2"><label for="zeiten">Reinigungszeiten</label><input id="zeiten" name="zeiten" class="vt-in" placeholder="z. B. Mo und Do ab 18 Uhr, nach Absprache"></div>
+      <div><label for="netto">Monatliche Vergütung netto (€)</label><input id="netto" name="netto" class="vt-in" inputmode="decimal" required></div>
+      <div><label for="beginn">Vertragsbeginn</label><input id="beginn" name="beginn" class="vt-in" type="date" required></div>
+      <div><label for="laufzeit">Laufzeit (Monate)</label><input id="laufzeit" name="laufzeit" class="vt-in" type="number" min="1" value="12"></div>
+      <div><label for="kuendigung">Kündigungsfrist (Monate)</label><input id="kuendigung" name="kuendigung" class="vt-in" type="number" min="1" value="3"></div>
+      <div><label for="verlaengerung">Verlängerung (Monate)</label><input id="verlaengerung" name="verlaengerung" class="vt-in" type="number" min="1" value="12"></div>
+      <div><label for="zahlungsziel">Zahlungsziel (Tage)</label><input id="zahlungsziel" name="zahlungsziel" class="vt-in" type="number" min="0" value="14"></div>
+      <div><label for="material">Reinigungsmittel / Geräte</label>
+        <select id="material" name="material" class="vt-in"><option value="kg">stellt KG-Gebäudereinigung</option><option value="kunde">stellt der Auftraggeber</option></select></div>
+      <div class="w3"><label for="besonderes">Besondere Vereinbarungen (optional)</label><textarea id="besonderes" name="besonderes" class="vt-in"></textarea></div>
+    </div>
+    <p class="vt-hint">Hinweis: Die Vorlage enthält übliche Regelungen für Reinigungsverträge. Vor der ersten Unterschrift einmal prüfen (lassen)
+      und ggf. Text anpassen.</p>
+    <button class="vt-btn" type="submit">Vertrag erstellen</button>
+  </form>
+</div>
+
+<script>
+(function () {
+  const KUNDEN = {{ kunden | tojson }};
+  const ANGEBOTE = {{ angebote | tojson }};
+  const set = (id, v) => { const el = document.getElementById(id); if (el && v != null && v !== "") el.value = v; };
+  document.getElementById("beginn").value = new Date(new Date().getFullYear(), new Date().getMonth() + 1, 1).toISOString().slice(0, 10);
+  document.getElementById("vtKunde").onchange = (e) => {
+    const k = KUNDEN[e.target.value]; if (!k) return;
+    set("firma", k.firma); set("strasse", k.strasse); set("plz", k.plz); set("ort", k.ort); set("ansprechpartner", k.ansprechpartner_name);
+    set("email", k.email); set("kundennummer", k.kundennummer); set("haeufigkeit", k.haeufigkeit);
+    if (k.monat) set("netto", String(k.monat).replace(".", ","));
+    if (k.vertrag_beginn) set("beginn", String(k.vertrag_beginn).slice(0, 10));
+    if (k.vertragslaufzeit && /^\d+/.test(k.vertragslaufzeit)) set("laufzeit", parseInt(k.vertragslaufzeit, 10));
+  };
+  document.getElementById("vtAngebot").onchange = (e) => {
+    const a = ANGEBOTE[e.target.value]; if (!a) return;
+    set("firma", a.firma); set("strasse", a.strasse); set("plz", a.plz); set("ort", a.ort); set("ansprechpartner", a.ansprechpartner);
+    set("leistung", a.reinigungsart); set("haeufigkeit", a.haeufigkeit); if (a.m2) set("flaeche", a.m2);
+  };
+})();
+</script>
+{% endblock %}

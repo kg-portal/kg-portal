@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reinigungsvertrag – {{ kunde.firma }}</title>
+<style>
+  @page { size: A4; margin: 18mm 18mm 20mm; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #e5e7eb; font-family: Arial, Helvetica, sans-serif; color: #111827; font-size: 10.5pt; line-height: 1.5; }
+  .seite { width: 210mm; min-height: 297mm; margin: 12px auto; background: #fff; padding: 18mm; box-shadow: 0 6px 24px rgba(0,0,0,.12); }
+  .kopf { display: flex; justify-content: space-between; gap: 20px; border-bottom: 2px solid #1d4ed8; padding-bottom: 10px; margin-bottom: 18px; }
+  .kopf .logo { font-size: 18pt; font-weight: 800; color: #1d4ed8; letter-spacing: .5px; }
+  .kopf .absender { font-size: 9pt; text-align: right; color: #374151; }
+  h1 { font-size: 17pt; margin: 6px 0 4px; }
+  .sub { color: #374151; margin: 0 0 16px; }
+  .parteien { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 14px; }
+  .partei { border: 1px solid #d1d5db; border-radius: 8px; padding: 10px 12px; }
+  .partei b { display: block; font-size: 9pt; color: #374151; text-transform: uppercase; letter-spacing: .5px; margin-bottom: 3px; }
+  h2 { font-size: 11pt; margin: 14px 0 4px; }
+  p { margin: 0 0 6px; }
+  table.eckdaten { width: 100%; border-collapse: collapse; margin: 6px 0 10px; }
+  table.eckdaten td { border: 1px solid #d1d5db; padding: 6px 8px; vertical-align: top; }
+  table.eckdaten td:first-child { width: 38%; background: #f3f4f6; font-weight: 700; }
+  .unterschriften { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-top: 34px; }
+  .linie { border-top: 1px solid #111827; padding-top: 4px; font-size: 9pt; color: #374151; margin-top: 40px; }
+  .fuss { margin-top: 24px; border-top: 1px solid #d1d5db; padding-top: 8px; font-size: 8pt; color: #4b5563; display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+  .aktionen { position: fixed; right: 16px; bottom: 16px; display: flex; gap: 8px; }
+  .aktionen button { border: 0; border-radius: 10px; padding: 12px 16px; font-weight: 800; font-size: 14px; cursor: pointer; background: #1d4ed8; color: #fff; }
+  @media print { body { background: #fff; } .seite { margin: 0; box-shadow: none; padding: 0; width: auto; min-height: 0; } .aktionen { display: none; } }
+  @media screen and (max-width: 820px) { .seite { width: auto; margin: 0; padding: 16px; } .parteien, .unterschriften, .fuss { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<div class="seite">
+  <div class="kopf">
+    <div class="logo">KG-Gebäudereinigung</div>
+    <div class="absender">{{ firma.name }} · {{ firma.strasse }} · {{ firma.ort }}<br>Tel. {{ firma.telefon }} · {{ firma.email }}</div>
+  </div>
+
+  <h1>Reinigungsvertrag</h1>
+  <p class="sub">Dienstleistungsvertrag über die Gebäudereinigung</p>
+
+  <div class="parteien">
+    <div class="partei"><b>Auftraggeber</b>
+      {{ kunde.firma }}<br>{% if kunde.ansprechpartner %}z. Hd. {{ kunde.ansprechpartner }}<br>{% endif %}
+      {{ kunde.strasse }}<br>{{ kunde.ort }}{% if kunde.kundennummer %}<br>Kunden-Nr. {{ kunde.kundennummer }}{% endif %}
+    </div>
+    <div class="partei"><b>Auftragnehmer</b>
+      {{ firma.name }}<br>Inhaberin {{ firma.inhaber }}<br>{{ firma.strasse }}<br>{{ firma.ort }}
+    </div>
+  </div>
+
+  <h2>§ 1 Vertragsgegenstand</h2>
+  <p>Der Auftragnehmer übernimmt die Reinigung des folgenden Objekts: <b>{{ objekt }}</b>.
+     Art, Umfang und Häufigkeit der Leistungen ergeben sich aus diesem Vertrag und dem zugehörigen Angebot bzw. Leistungsverzeichnis,
+     das Bestandteil dieses Vertrags ist.</p>
+
+  <table class="eckdaten">
+    <tr><td>Leistung</td><td>{{ leistung or "Unterhaltsreinigung" }}</td></tr>
+    <tr><td>Häufigkeit</td><td>{{ haeufigkeit or "nach Leistungsverzeichnis" }}</td></tr>
+    {% if flaeche %}<tr><td>Fläche</td><td>ca. {{ flaeche }} m²</td></tr>{% endif %}
+    <tr><td>Reinigungszeiten</td><td>{{ zeiten or "nach Absprache mit dem Auftraggeber" }}</td></tr>
+    <tr><td>Monatliche Vergütung</td><td>{{ netto }} netto zzgl. 19 % USt. ({{ ust }}) = <b>{{ brutto }}</b></td></tr>
+    <tr><td>Vertragsbeginn</td><td>{{ beginn }}</td></tr>
+    <tr><td>Erste Laufzeit</td><td>{{ laufzeit }} Monate (bis {{ ende }})</td></tr>
+  </table>
+
+  <h2>§ 2 Ausführung der Leistungen</h2>
+  <p>Der Auftragnehmer führt die Reinigung mit eigenem, eingewiesenem Personal fachgerecht und sorgfältig aus.
+     {% if material %}Reinigungsmittel, Geräte und Maschinen stellt der Auftragnehmer.{% else %}Reinigungsmittel und Verbrauchsmaterial stellt der Auftraggeber; Geräte stellt der Auftragnehmer.{% endif %}
+     Wasser und Strom für die Reinigung stellt der Auftraggeber unentgeltlich zur Verfügung. Ein abschließbarer Raum für Material wird nach Möglichkeit bereitgestellt.</p>
+
+  <h2>§ 3 Vergütung und Zahlung</h2>
+  <p>Die Vergütung wird als monatliche Pauschale berechnet und monatlich in Rechnung gestellt. Rechnungen sind innerhalb von
+     {{ zahlungsziel }} Tagen nach Rechnungsdatum ohne Abzug auf das unten genannte Konto zu zahlen. Ändern sich die gesetzlichen
+     bzw. tariflichen Mindestlöhne im Gebäudereiniger-Handwerk, kann der Auftragnehmer die Vergütung nach schriftlicher Ankündigung
+     im gleichen Verhältnis anpassen. Zusätzliche Leistungen werden gesondert vereinbart und berechnet.</p>
+
+  <h2>§ 4 Vertragsdauer und Kündigung</h2>
+  <p>Der Vertrag beginnt am {{ beginn }} und läuft zunächst {{ laufzeit }} Monate. Er verlängert sich jeweils um
+     {{ verlaengerung }} Monate, wenn er nicht mit einer Frist von {{ kuendigung }} Monaten zum Ende der jeweiligen Laufzeit gekündigt wird.
+     Die Kündigung bedarf der Textform. Das Recht zur außerordentlichen Kündigung aus wichtigem Grund bleibt unberührt.</p>
+
+  <h2>§ 5 Beanstandungen</h2>
+  <p>Beanstandungen sind dem Auftragnehmer unverzüglich, spätestens am folgenden Werktag, mitzuteilen, damit eine kostenlose
+     Nachbesserung erfolgen kann. Später gemeldete Mängel können nicht mehr berücksichtigt werden.</p>
+
+  <h2>§ 6 Schlüssel und Zugang</h2>
+  <p>Für den Zugang übergebene Schlüssel, Karten oder Codes werden gegen Quittung ausgehändigt und sorgfältig verwahrt.
+     Ein Verlust wird dem Auftraggeber unverzüglich gemeldet. Bei Vertragsende werden alle Zugangsmittel zurückgegeben.</p>
+
+  <h2>§ 7 Haftung und Versicherung</h2>
+  <p>Der Auftragnehmer unterhält eine Betriebshaftpflichtversicherung. Er haftet für Schäden, die er oder seine Mitarbeiter bei
+     der Ausführung vorsätzlich oder fahrlässig verursachen, nach den gesetzlichen Bestimmungen. Bei leichter Fahrlässigkeit ist die
+     Haftung – außer bei Verletzung von Leben, Körper oder Gesundheit – auf den vorhersehbaren, vertragstypischen Schaden begrenzt.
+     Schäden sind unverzüglich zu melden.</p>
+
+  <h2>§ 8 Personal, Datenschutz und Verschwiegenheit</h2>
+  <p>Der Auftragnehmer setzt ordnungsgemäß angemeldetes Personal ein und zahlt mindestens den geltenden Mindestlohn.
+     Beide Seiten behandeln vertrauliche Informationen und personenbezogene Daten, die ihnen bei der Durchführung bekannt werden,
+     vertraulich und nach den geltenden Datenschutzvorschriften.</p>
+
+  {% if besonderes %}<h2>§ 9 Besondere Vereinbarungen</h2><p>{{ besonderes }}</p>{% endif %}
+
+  <h2>§ {{ 10 if besonderes else 9 }} Schlussbestimmungen</h2>
+  <p>Änderungen und Ergänzungen bedürfen der Textform. Sollte eine Bestimmung unwirksam sein, bleibt die Wirksamkeit der übrigen
+     Bestimmungen unberührt. Gerichtsstand ist, soweit gesetzlich zulässig, Duisburg.</p>
+
+  <div class="unterschriften">
+    <div><div class="linie">Duisburg, den {{ datum }} – {{ firma.name }} ({{ firma.inhaber }})</div></div>
+    <div><div class="linie">Ort, Datum – {{ kunde.firma }}{% if kunde.ansprechpartner %} ({{ kunde.ansprechpartner }}){% endif %}</div></div>
+  </div>
+
+  <div class="fuss">
+    <div>{{ firma.name }}<br>{{ firma.strasse }}<br>{{ firma.ort }}</div>
+    <div>Tel. {{ firma.telefon }}<br>{{ firma.email }}<br>{{ firma.web }}</div>
+    <div>Inhaberin: {{ firma.inhaber }}<br>USt.-ID: {{ firma.ustid }}<br>Steuer-Nr.: {{ firma.steuernr }}</div>
+    <div>{{ firma.bank }}<br>IBAN: {{ firma.iban }}<br>BIC: {{ firma.bic }}</div>
+  </div>
+</div>
+<div class="aktionen"><button onclick="window.print()">Drucken / als PDF speichern</button></div>
+</body>
+</html>
