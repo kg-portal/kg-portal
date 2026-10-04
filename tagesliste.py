@@ -22,7 +22,7 @@ import os
 import re
 import threading
 import time
-from datetime import date, datetime, timedelta
+from datetime import datetime, timedelta
 
 import requests
 from flask import jsonify, render_template, request

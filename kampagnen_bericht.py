@@ -17,7 +17,7 @@ import os
 import sqlite3
 import threading
 import time
-from datetime import date, datetime, timezone
+from datetime import datetime, timezone
 
 from flask import jsonify, render_template, request
 
