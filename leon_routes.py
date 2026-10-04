@@ -187,15 +187,17 @@ LEON_PAGES = {
 
 LEON_TABS = [
     ("uebersicht", "/leon", "Übersicht"),
-    ("live", "/leon/live", "Live Call"),
-    ("datenbank", "/leon/datenbank", "Aus Datenbank"),
-    ("auto", "/leon/auto", "Auto-Kampagne"),
+    # gleiche Reiter und Reihenfolge wie Leon in KG Business
+    ("gespraeche", "/leon/gespraeche", "Telefonakquise"),
     ("kampagnen", "/leon/kampagnen", "Kampagnen"),
-    ("leads", "/leon/leads", "Leads"),
-    ("gespraeche", "/leon/gespraeche", "Gespräche"),
-    ("archiv", "/leon/archiv", "Archiv"),
+    ("auto", "/leon/auto", "Auto-Kampagne"),
+    ("live", "/leon/live", "Live Call"),
     ("anrufe", "/leon/anrufe", "Anrufe"),
     ("ergebnisse", "/leon/ergebnisse", "Ergebnisse"),
+    ("archiv", "/leon/archiv", "Archiv"),
+    # nur im CRM
+    ("datenbank", "/leon/datenbank", "Aus Datenbank"),
+    ("leads", "/leon/leads", "Leads"),
     ("agent", "/leon/agent", "Leon Einstellungen"),
     ("system", "/leon/system", "Anrufzeiten & Kosten"),
 ]
@@ -425,6 +427,27 @@ def register_leon_routes(app, login_required, get_db_connection):
         if page not in LEON_PAGES:
             abort(404)
         return render_template("leon_frame.html", leon_tab=page, leon_tabs=LEON_TABS, frame_src=f"/leon-ui/{page}")
+
+    @app.route("/rueckrufe")
+    @login_required
+    def leon_rueckrufe():
+        # Rückrufe aus dem Leon-Motor – dieselbe Seite wie „Rückrufe“ in KG Business
+        daten, fehler = {}, ""
+        try:
+            code, daten = leon_client.request("GET", "/api/rueckrufe/liste", timeout=20)
+            if code != 200 or not isinstance(daten, dict) or not daten.get("success"):
+                fehler = (daten.get("error") if isinstance(daten, dict) else "") or f"HTTP {code}"
+        except LeonError as exc:
+            fehler = str(exc)
+        if fehler or not isinstance(daten, dict):
+            daten = {}
+        return render_template(
+            "rueckrufe.html",
+            rueckrufe=daten.get("rueckrufe") or [],
+            stats=daten.get("stats") or {"ueberfaellig": 0, "heute": 0, "woche": 0, "gesamt": 0},
+            heute=daten.get("heute") or datetime.now().strftime("%d.%m.%Y"),
+            fehler=fehler,
+        )
 
     @app.route("/leon/gespraech/<int:call_id>")
     @login_required

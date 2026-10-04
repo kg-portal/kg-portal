@@ -835,7 +835,12 @@
             </a>
 
             <a class="portal-nav-item {% if request.path.startswith('/leon') %}active{% endif %}" href="/leon" data-nav-key="leon">
-                <span class="portal-nav-content"><i class="fa-solid fa-phone-volume icon-blue"></i> Leon</span>
+                <span class="portal-nav-content"><i class="fa-solid fa-headset icon-orange"></i> Leon</span>
+                <i class="fa-solid fa-grip-vertical portal-drag-handle"></i>
+            </a>
+
+            <a class="portal-nav-item {% if request.path.startswith('/rueckrufe') %}active{% endif %}" href="/rueckrufe" data-nav-key="rueckrufe">
+                <span class="portal-nav-content"><i class="fa-solid fa-phone-volume icon-teal"></i> Rückrufe</span>
                 <i class="fa-solid fa-grip-vertical portal-drag-handle"></i>
             </a>
 
@@ -927,6 +932,7 @@ document.addEventListener('DOMContentLoaded', function () {
         'whatsapp-inbox',
         'datenbank',
         'leon',
+        'rueckrufe',
         'besichtigung',
         'angebot',
         'leistungsverzeichnis',

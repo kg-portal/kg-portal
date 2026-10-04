@@ -1,0 +1,391 @@
+{% extends "base.html" %}
+{% block content %}
+<!-- Rückrufe (Leon Reinigung) – gleiche Seite wie in KG Business, Daten vom Leon-Motor -->
+<style>
+  .rr-page { width:100%; max-width:1900px; margin:0 auto; background:#fff; border-radius:24px; box-shadow:0 18px 50px rgba(15,23,42,.08); border:1px solid #dbe3f0; overflow:hidden; font-family:Arial, Helvetica, sans-serif; color:#0f172a; }
+
+  .rr-hero { background:linear-gradient(135deg,#1e3a8a 0%,#2563eb 55%,#3b82f6 100%); color:#fff; padding:28px 30px; }
+  .rr-hero-row { display:flex; justify-content:space-between; align-items:flex-start; gap:18px; flex-wrap:wrap; margin-bottom:24px; }
+  .rr-hero h1 { margin:0; font-size:30px; line-height:1.1; font-weight:900; letter-spacing:-.4px; color:#fff; }
+  .rr-hero p { margin:8px 0 0; font-size:13px; font-weight:700; opacity:.88; max-width:62ch; }
+  .rr-today { background:rgba(255,255,255,.13); border:1px solid rgba(255,255,255,.2); border-radius:18px; padding:12px 18px; font-weight:900; font-size:14px; }
+
+  .rr-stat-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:18px; }
+  .rr-stat { background:#fff; border-radius:18px; padding:18px 22px; border:none; text-align:left; cursor:pointer; font-family:inherit; }
+  .rr-stat.active { outline:3px solid #fde68a; }
+  .rr-stat-label { font-size:11px; text-transform:uppercase; letter-spacing:.7px; font-weight:900; color:#2563eb; margin-bottom:7px; }
+  .rr-stat-value { font-size:24px; font-weight:900; color:#1e3a8a; font-variant-numeric:tabular-nums; }
+  .rr-stat-value.red { color:#dc2626; }
+  .rr-stat-value.orange { color:#ea580c; }
+  .rr-stat-sub { margin-top:6px; font-size:11px; font-weight:800; color:#2563eb; }
+
+  .rr-body { background:linear-gradient(180deg,#f8fafc 0%,#f1f5f9 100%); padding:28px 30px 32px; }
+  .rr-head { display:flex; justify-content:space-between; align-items:flex-end; gap:16px; margin-bottom:16px; padding-bottom:14px; border-bottom:1px solid #e2e8f0; flex-wrap:wrap; }
+  .rr-head h2 { margin:0; font-size:24px; font-weight:900; }
+  .rr-head p { margin:6px 0 0; font-size:13px; font-weight:700; color:#64748b; }
+  .rr-search { padding:11px 14px; border:1.5px solid #e2e8f0; border-radius:12px; font-size:13px; min-width:280px; font-family:inherit; }
+  .rr-search:focus { outline:none; border-color:#3b82f6; }
+
+  .rr-toast { display:none; margin:0 0 14px; padding:12px 16px; border-radius:12px; font-size:13px; font-weight:800; }
+  .rr-toast.ok { display:block; background:#eff6ff; color:#2563eb; border:1px solid #bfdbfe; }
+  .rr-toast.err { display:block; background:#fef2f2; color:#b91c1c; border:1px solid #fecaca; }
+
+  .rr-empty { background:#fff; border:1px dashed #bfdbfe; border-radius:20px; padding:34px 20px; text-align:center; color:#64748b; font-weight:800; line-height:1.6; }
+
+  .rr-list { display:flex; flex-direction:column; gap:12px; }
+  .rr-card { position:relative; background:#fff; border:1px solid #dbe3f0; border-radius:20px; padding:16px 18px 16px 24px; box-shadow:0 10px 24px rgba(15,23,42,.04); }
+  .rr-card::before { content:""; position:absolute; left:0; top:12px; bottom:12px; width:5px; border-radius:0 999px 999px 0; background:#94a3b8; }
+  .rr-card.ueberfaellig::before { background:#dc2626; }
+  .rr-card.ueberfaellig { border-color:#fecaca; }
+  .rr-card.heute::before { background:#f59e0b; }
+  .rr-card.heute { border-color:#fde68a; }
+  .rr-card.woche::before { background:#3b82f6; }
+
+  .rr-grid { display:grid; grid-template-columns:minmax(240px,1.3fr) minmax(170px,.7fr) minmax(240px,1fr) auto; gap:18px; align-items:start; }
+  .rr-firma { font-size:18px; font-weight:900; letter-spacing:-.2px; }
+  .rr-adresse { margin-top:6px; font-size:13px; font-weight:800; color:#64748b; }
+  .rr-tags { display:flex; gap:6px; flex-wrap:wrap; margin-top:9px; }
+  .rr-tag { display:inline-flex; align-items:center; gap:5px; border-radius:999px; padding:5px 9px; font-size:11px; font-weight:900; border:1px solid #e2e8f0; background:#f8fafc; color:#475569; }
+
+  .rr-label { font-size:10px; text-transform:uppercase; letter-spacing:.6px; font-weight:900; color:#64748b; margin-bottom:6px; }
+  .rr-datum { font-size:15px; font-weight:900; font-variant-numeric:tabular-nums; }
+  .rr-zeit { font-size:22px; font-weight:900; color:#1e3a8a; font-variant-numeric:tabular-nums; margin-top:2px; }
+  .rr-badge { display:inline-flex; margin-top:7px; border-radius:999px; padding:5px 9px; font-size:11px; font-weight:900; }
+  .rr-badge.ueberfaellig { background:#fef2f2; color:#dc2626; border:1px solid #fecaca; }
+  .rr-badge.heute { background:#fffbeb; color:#b45309; border:1px solid #fde68a; }
+  .rr-badge.woche { background:#eff6ff; color:#2563eb; border:1px solid #bfdbfe; }
+
+  .rr-kontakt { display:flex; flex-direction:column; gap:6px; font-size:13px; font-weight:800; min-width:0; }
+  .rr-kontakt div { display:flex; align-items:center; gap:8px; min-width:0; }
+  .rr-kontakt i { width:16px; color:#3b82f6; text-align:center; }
+  .rr-kontakt span { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .rr-muted { color:#94a3b8; font-weight:700; }
+
+  .rr-actions { display:flex; flex-direction:column; gap:8px; align-items:stretch; }
+  .rr-btn { border:none; border-radius:12px; padding:11px 14px; font-weight:800; font-size:13px; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; gap:7px; text-decoration:none; white-space:nowrap; font-family:inherit; }
+  .rr-btn.call { background:#2563eb; color:#fff; }
+  .rr-btn.done { background:#eff6ff; color:#2563eb; border:1px solid #bfdbfe; }
+  .rr-btn.link { background:#f8fafc; color:#475569; border:1px solid #e2e8f0; }
+  .rr-btn:disabled { opacity:.5; cursor:not-allowed; }
+  .rr-btn.undo { background:#fff7ed; color:#9a3412; border:1px solid #fed7aa; }
+  .rr-card.erledigt { opacity:.6; }
+  .rr-card.erledigt .rr-firma { text-decoration:line-through; }
+  .rr-firma-row { display:flex; align-items:center; gap:10px; }
+  .rr-sel { width:22px; height:22px; margin:0; flex:0 0 auto; accent-color:#2563eb; cursor:pointer; }
+  .rr-card.sel { border-color:#3b82f6; box-shadow:0 0 0 2px #bfdbfe; }
+  .rr-auswahl { display:flex; align-items:center; gap:14px; flex-wrap:wrap; margin:0 0 12px; padding:10px 14px; background:#fff; border:1px solid #dbe3f0; border-radius:14px; font-size:13px; font-weight:800; }
+  .rr-alle { display:inline-flex; align-items:center; gap:8px; cursor:pointer; }
+  #rrAnzahl { color:#64748b; }
+  .rr-btn.loeschen { background:#fef2f2; color:#b91c1c; border:1px solid #fecaca; }
+
+  .rr-notiz { margin-top:14px; padding:12px 14px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:14px; font-size:13px; font-weight:700; line-height:1.5; color:#334155; display:flex; flex-direction:column; gap:6px; }
+  .rr-notiz strong { color:#0f172a; }
+
+  @media (max-width:1200px) {
+    .rr-grid { grid-template-columns:minmax(0,1fr) minmax(0,1fr); }
+    .rr-actions { flex-direction:row; flex-wrap:wrap; grid-column:1 / -1; }
+  }
+  @media (max-width:760px) {
+    .rr-hero, .rr-body { padding:18px; }
+    .rr-stat-grid { grid-template-columns:1fr 1fr; }
+    .rr-grid { grid-template-columns:1fr; }
+    .rr-search { min-width:0; width:100%; }
+  }
+</style>
+
+<div class="rr-page">
+  <section class="rr-hero">
+    <div class="rr-hero-row">
+      <div>
+        <h1><i class="fa-solid fa-phone-volume"></i> Rückrufe</h1>
+        <p>Alle geplanten Rückrufe an einem Ort – von Leon aus dem Gespräch übernommen oder in der Datenbank eingetragen. Im Kalender stehen dieselben Termine.</p>
+      </div>
+      <div class="rr-today">Heute: {{ heute }}</div>
+    </div>
+
+    <div class="rr-stat-grid" role="group" aria-label="Filter">
+      <button type="button" class="rr-stat" data-filter="ueberfaellig">
+        <div class="rr-stat-label">Überfällig</div>
+        <div class="rr-stat-value {% if stats.ueberfaellig %}red{% endif %}">{{ stats.ueberfaellig }}</div>
+        <div class="rr-stat-sub">Termin verpasst</div>
+      </button>
+      <button type="button" class="rr-stat" data-filter="heute">
+        <div class="rr-stat-label">Heute</div>
+        <div class="rr-stat-value {% if stats.heute %}orange{% endif %}">{{ stats.heute }}</div>
+        <div class="rr-stat-sub">heute anrufen</div>
+      </button>
+      <button type="button" class="rr-stat" data-filter="woche">
+        <div class="rr-stat-label">Diese Woche</div>
+        <div class="rr-stat-value">{{ stats.woche }}</div>
+        <div class="rr-stat-sub">bis Sonntag</div>
+      </button>
+      <button type="button" class="rr-stat active" data-filter="">
+        <div class="rr-stat-label">Alle Rückrufe</div>
+        <div class="rr-stat-value">{{ stats.gesamt }}</div>
+        <div class="rr-stat-sub">offen</div>
+      </button>
+    </div>
+  </section>
+
+  <div class="rr-body">
+    <div class="rr-head">
+      <div>
+        <h2>Rückrufliste</h2>
+        <p>Sortiert nach Termin, der nächste zuerst.</p>
+      </div>
+      <input type="search" id="rrSearch" class="rr-search" placeholder="Suche nach Firma, Person, Ort, Telefon …" aria-label="Rückrufe durchsuchen">
+    </div>
+
+    <div class="rr-toast" id="rrToast" role="status"></div>
+    {% if fehler %}
+    <div class="rr-toast err" style="display:block">Rückrufe konnten nicht vom Leon-Motor geladen werden: {{ fehler }}</div>
+    {% endif %}
+
+    {% if rueckrufe %}
+    <div class="rr-auswahl">
+      <label class="rr-alle"><input type="checkbox" id="rrAlle" class="rr-sel" onchange="alleAuswaehlen(this.checked)"> Alle auswählen</label>
+      <span id="rrAnzahl">0 ausgewählt</span>
+      <button type="button" class="rr-btn done" id="rrAuswahlErledigt" onclick="auswahlErledigt()" disabled><i class="fa-solid fa-check"></i> Ausgewählte erledigt</button>
+      <button type="button" class="rr-btn loeschen" id="rrAuswahlLoeschen" onclick="auswahlLoeschen()" disabled><i class="fa-solid fa-trash"></i> Ausgewählte löschen</button>
+    </div>
+    {% endif %}
+
+    {% if not rueckrufe %}
+    <div class="rr-empty">
+      Keine offenen Rückrufe.<br>
+      Sobald Leon in einem Gespräch einen Rückruf vereinbart oder du in der Datenbank „Rückruf“ planst, erscheint er hier.
+    </div>
+    {% endif %}
+
+    <div class="rr-list" id="rrList">
+      {% for r in rueckrufe %}
+      <article class="rr-card {{ r.lage }}" data-lage="{{ r.lage }}"
+               data-search="{{ [r.firma, r.kontaktperson, r.entscheider_extra, r.stadt, r.telefon, r.email, r.callback_note] | select | join(' ') | lower }}">
+        <div class="rr-grid">
+          <div style="min-width:0">
+            <div class="rr-firma-row">
+              <input type="checkbox" class="rr-sel" value="{{ r.id }}" aria-label="Rückruf auswählen" onchange="auswahlGeaendert(this)">
+              <div class="rr-firma">{{ r.firma or "Ohne Firmenname" }}</div>
+            </div>
+            {% if r.adresse %}<div class="rr-adresse"><i class="fa-solid fa-location-dot"></i> {{ r.adresse }}</div>{% endif %}
+            <div class="rr-tags">
+              {% if r.branche %}<span class="rr-tag">{{ r.branche }}</span>{% endif %}
+              {% if r.status %}<span class="rr-tag">{{ r.status }}</span>{% endif %}
+              {% if r.stromanbieter %}<span class="rr-tag"><i class="fa-solid fa-bolt"></i> {{ r.stromanbieter }}</span>{% endif %}
+            </div>
+          </div>
+
+          <div>
+            <div class="rr-label">Rückruf</div>
+            <div class="rr-datum">{{ r.datum_fmt }}</div>
+            {% if r.zeit_fmt %}<div class="rr-zeit">{{ r.zeit_fmt }} Uhr</div>{% endif %}
+            {% if r.lage == "ueberfaellig" %}<span class="rr-badge ueberfaellig">überfällig</span>
+            {% elif r.lage == "heute" %}<span class="rr-badge heute">heute</span>
+            {% elif r.lage == "woche" %}<span class="rr-badge woche">diese Woche</span>{% endif %}
+          </div>
+
+          <div class="rr-kontakt">
+            <div class="rr-label" style="margin:0">Kontakt</div>
+            <div><i class="fa-solid fa-user"></i>
+              {% if r.kontaktperson %}<span>{{ r.kontaktperson }}{% if r.entscheider_extra %} · Entscheider: {{ r.entscheider_extra }}{% endif %}</span>
+              {% else %}<span class="rr-muted">kein Ansprechpartner</span>{% endif %}
+            </div>
+            <div><i class="fa-solid fa-phone"></i>
+              {% if r.telefon %}<span>{{ r.telefon }}</span>{% else %}<span class="rr-muted">keine Telefonnummer</span>{% endif %}
+            </div>
+            <div><i class="fa-solid fa-envelope"></i>
+              {% if r.email %}<span>{{ r.email }}</span>{% else %}<span class="rr-muted">keine E-Mail</span>{% endif %}
+            </div>
+          </div>
+
+          <div class="rr-actions">
+            <button type="button" class="rr-btn call" {% if not r.telefon %}disabled title="Keine Telefonnummer"{% endif %}
+                    onclick='anrufen({{ r.lead_json | tojson }})'><i class="fa-solid fa-phone"></i> Anrufen</button>
+            <button type="button" class="rr-btn done" onclick="erledigt({{ r.id }}, this)"><i class="fa-solid fa-check"></i> Erledigt</button>
+            {% if r.letzter_call_id %}
+            <a class="rr-btn link" href="/leon/gespraech/{{ r.letzter_call_id }}"><i class="fa-solid fa-headset"></i> Gespräch</a>
+            {% endif %}
+          </div>
+        </div>
+
+        {% if r.callback_note or r.letzte_zusammenfassung %}
+        <div class="rr-notiz">
+          {%- if r.callback_note %}<div><strong>Notiz:</strong> {{ r.callback_note }}</div>{% endif -%}
+          {%- if r.letzte_zusammenfassung %}<div><strong>Letztes Gespräch:</strong> {{ r.letzte_zusammenfassung }}</div>{% endif -%}
+        </div>
+        {% endif %}
+      </article>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+<script>
+let activeFilter = '';
+
+function applyFilter() {
+  const q = document.getElementById('rrSearch').value.trim().toLowerCase();
+  document.querySelectorAll('#rrList .rr-card').forEach(card => {
+    const lageOk = !activeFilter || card.dataset.lage === activeFilter;
+    const textOk = !q || card.dataset.search.includes(q);
+    card.style.display = lageOk && textOk ? '' : 'none';
+  });
+  auswahlZaehlen();
+}
+
+document.querySelectorAll('.rr-stat').forEach(btn => btn.addEventListener('click', function () {
+  document.querySelectorAll('.rr-stat').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  activeFilter = btn.dataset.filter;
+  applyFilter();
+}));
+document.getElementById('rrSearch').addEventListener('input', applyFilter);
+
+function toast(text, ok) {
+  const el = document.getElementById('rrToast');
+  el.textContent = text;
+  el.className = 'rr-toast ' + (ok ? 'ok' : 'err');
+}
+
+function anrufen(lead) {
+  // Gleiche Übergabe an Live Call wie in der Datenbank
+  sessionStorage.setItem('kg_live_lead', JSON.stringify({
+    lead: lead,
+    campaign_id: null,
+    campaign_name: null,
+    auto_start_call: false
+  }));
+  window.location.href = '/leon/live';
+}
+
+async function erledigt(leadId, btn) {
+  const card = btn.closest('.rr-card');
+  const firma = (card.querySelector('.rr-firma') || {}).textContent || 'diesen Kontakt';
+  // Nicht mehr sofort löschen: erst nachfragen.
+  if (!confirm('Rückruf bei „' + firma.trim() + '“ als erledigt markieren?\n\nDer Kalendertermin bleibt bestehen. Du kannst es danach mit „Rückgängig“ zurücknehmen.')) return;
+  const ok = await alsErledigt(leadId, btn);
+  if (ok) toast('Rückruf als erledigt markiert. Der Kalendertermin bleibt bestehen.', true);
+}
+
+async function alsErledigt(leadId, btn) {
+  const card = btn.closest('.rr-card');
+  btn.disabled = true;
+  try {
+    const res = await fetch('/leon-api/rueckrufe/' + leadId + '/erledigt', { method: 'POST' });
+    const data = await res.json();
+    if (!data.success) throw new Error(data.error || 'Fehler');
+    // Karte bleibt sichtbar (durchgestrichen) – mit „Rückgängig“ statt „Erledigt“.
+    card._vorher = data.vorher || {};
+    card.classList.add('erledigt');
+    btn.className = 'rr-btn undo';
+    btn.innerHTML = '<i class="fa-solid fa-rotate-left"></i> Rückgängig';
+    btn.onclick = function () { rueckgaengig(leadId, btn); };
+    btn.disabled = false;
+    const box = card.querySelector('.rr-sel');
+    box.checked = false; box.disabled = true;
+    card.classList.remove('sel');
+    auswahlZaehlen();
+    return true;
+  } catch (err) {
+    btn.disabled = false;
+    toast('Konnte nicht gespeichert werden: ' + err.message, false);
+    return false;
+  }
+}
+
+// Kästchen wählen nur aus – gelöscht/erledigt wird erst über „Ausgewählte erledigt“ mit Nachfrage.
+function auswahlKaestchen() {
+  return Array.from(document.querySelectorAll('#rrList .rr-card .rr-sel'))
+    .filter(box => !box.disabled && box.closest('.rr-card').style.display !== 'none');
+}
+
+function auswahlZaehlen() {
+  const gewaehlt = auswahlKaestchen().filter(box => box.checked).length;
+  const anzahl = document.getElementById('rrAnzahl');
+  if (!anzahl) return;
+  anzahl.textContent = gewaehlt + ' ausgewählt';
+  document.getElementById('rrAuswahlErledigt').disabled = !gewaehlt;
+  document.getElementById('rrAuswahlLoeschen').disabled = !gewaehlt;
+  const alle = auswahlKaestchen();
+  document.getElementById('rrAlle').checked = alle.length > 0 && gewaehlt === alle.length;
+  // Zahlen oben (Überfällig/Heute/…) nach Löschen/Erledigt mitziehen
+  const offen = Array.from(document.querySelectorAll('#rrList .rr-card:not(.erledigt)'));
+  document.querySelectorAll('.rr-stat').forEach(st => {
+    const n = offen.filter(k => !st.dataset.filter || k.dataset.lage === st.dataset.filter).length;
+    const wert = st.querySelector('.rr-stat-value');
+    wert.textContent = n;
+    if (!n) wert.classList.remove('red', 'orange');
+  });
+}
+
+function auswahlGeaendert(box) {
+  box.closest('.rr-card').classList.toggle('sel', box.checked);
+  auswahlZaehlen();
+}
+
+function alleAuswaehlen(an) {
+  auswahlKaestchen().forEach(box => { box.checked = an; box.closest('.rr-card').classList.toggle('sel', an); });
+  auswahlZaehlen();
+}
+
+async function auswahlErledigt() {
+  const gewaehlt = auswahlKaestchen().filter(box => box.checked);
+  if (!gewaehlt.length) return;
+  if (!confirm(gewaehlt.length + ' ausgewählte Rückrufe als erledigt markieren?\n\nDie Kalendertermine bleiben bestehen. Jeder lässt sich danach mit „Rückgängig“ zurücknehmen.')) return;
+  let ok = 0;
+  for (const box of gewaehlt) {
+    const btn = box.closest('.rr-card').querySelector('.rr-btn.done');
+    if (btn && await alsErledigt(Number(box.value), btn)) ok += 1;
+  }
+  if (ok === gewaehlt.length) toast(ok + ' Rückrufe als erledigt markiert. Die Kalendertermine bleiben bestehen.', true);
+}
+
+async function auswahlLoeschen() {
+  const gewaehlt = auswahlKaestchen().filter(box => box.checked);
+  if (!gewaehlt.length) return;
+  if (!confirm(gewaehlt.length + ' ausgewählte Rückrufe löschen?\n\nNur der Rückruf wird gelöscht – die Firma bleibt in der Datenbank, der Kalendertermin bleibt bestehen.')) return;
+  const knopf = document.getElementById('rrAuswahlLoeschen');
+  knopf.disabled = true;
+  try {
+    const res = await fetch('/leon-api/rueckrufe/loeschen', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ids: gewaehlt.map(box => Number(box.value)) })
+    });
+    const data = await res.json();
+    if (!data.success) throw new Error(data.error || 'Fehler');
+    gewaehlt.forEach(box => box.closest('.rr-card').remove());
+    auswahlZaehlen();
+    toast(data.geloescht + ' Rückrufe gelöscht. Die Firmen bleiben in der Datenbank.', true);
+  } catch (err) {
+    auswahlZaehlen();
+    toast('Konnte nicht gelöscht werden: ' + err.message, false);
+  }
+}
+
+async function rueckgaengig(leadId, btn) {
+  const card = btn.closest('.rr-card');
+  btn.disabled = true;
+  try {
+    const res = await fetch('/leon-api/rueckrufe/' + leadId + '/rueckgaengig', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(card._vorher || {})
+    });
+    const data = await res.json();
+    if (!data.success) throw new Error(data.error || 'Fehler');
+    card.classList.remove('erledigt');
+    btn.className = 'rr-btn done';
+    btn.innerHTML = '<i class="fa-solid fa-check"></i> Erledigt';
+    btn.onclick = function () { erledigt(leadId, btn); };
+    btn.disabled = false;
+    card.querySelector('.rr-sel').disabled = false;
+    auswahlZaehlen();
+    toast('Rückgängig gemacht – der Rückruf ist wieder offen.', true);
+  } catch (err) {
+    btn.disabled = false;
+    toast('Konnte nicht zurückgenommen werden: ' + err.message, false);
+  }
+}
+</script>
+{% endblock %}
