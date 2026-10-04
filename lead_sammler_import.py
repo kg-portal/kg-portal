@@ -2,7 +2,7 @@
 # LEAD-SAMMLER → KG CRM
 # Der Lead-Sammler (läuft auf dem PC) schickt geprüfte Firmen aus dem
 # Umkreis hierher. Sie landen in der Datenbank (Tabelle leads) unter der
-# passenden Branche, Quelle „Lead-Sammler“, Status „Neu“.
+# passenden Branche (einer der 12 Kästen), Quelle „Lead-Sammler“, Status „Neu“.
 #
 # - Nur nach Anmeldung (gleiches Login wie das CRM).
 # - Nie doppelt: gleiche Pool-ID, gleiche Telefonnummer (nur Ziffern)
@@ -13,13 +13,10 @@ import re
 
 from flask import jsonify, request
 
+from kg_kaesten import KASTEN_NAME
+
 MAX_FIRMEN = 1000
-CRM_BRANCHEN = {
-    "1": "Büro & Verwaltung", "2": "Medizin & Gesundheit", "3": "Pflege & Soziales", "4": "Bildung & Betreuung",
-    "5": "Einzelhandel & Verkaufsflächen", "6": "Fitness, Sport & Freizeit", "7": "Industrie & Produktion",
-    "8": "Lager, Logistik & Großhandel", "9": "Immobilien & Hausverwaltung", "10": "Finanzen, Versicherung & Beratung",
-    "11": "Handwerk, Technik & Service", "12": "Sonstige Gewerbe & Dienstleister",
-}
+CRM_BRANCHEN = KASTEN_NAME  # die 12 Kästen der Datenbank (branche_id → Name)
 SPALTEN = {
     "branche_id": "TEXT", "branche_name": "TEXT", "suchwort": "TEXT", "ansprechpartner": "TEXT",
     "sort_order": "INTEGER DEFAULT 0", "unique_key": "TEXT", "erstellt_am": "TEXT",

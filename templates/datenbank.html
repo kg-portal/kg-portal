@@ -2980,89 +2980,16 @@ body {
 ............................................................. -->
 
             <section class="branchen-master compact view-hidden" id="branchenSortable">
-                <div class="branche-block main-category">
-                    <div class="card-top"><div class="category-number">1</div><div class="drag-handle"><span>↕</span><span>↔</span></div></div>
-                    <div class="branche-head">Büro & Verwaltung</div>
-                    <div class="branche-text">Bürogebäude, Verwaltungsbüro, Kanzlei, Rechtsanwalt, Steuerberater, Wirtschaftsprüfer, Notar, Immobilienbüro, Unternehmensberatung, Architekturbüro, Ingenieurbüro, Callcenter, Coworking Space, Versicherungsbüro, Verwaltungsstandort</div>
-                    <div class="branche-count">Büro- und Verwaltungsflächen</div>
+                {# Die 12 Kästen kommen aus kg_kaesten.py – gleiche Liste wie in der Branchen-Detailseite #}
+                {% for k in kaesten %}
+                <div class="branche-block main-category" data-slug="{{ k.slug }}">
+                    <div class="card-top"><div class="category-number">{{ k.nr }}</div><div class="drag-handle"><span>↕</span><span>↔</span></div></div>
+                    <div class="branche-head">{{ k.title }}</div>
+                    <div class="branche-text">{{ k.text }}</div>
+                    <div class="branche-count">{{ k.count }}</div>
                 </div>
 
-                <div class="branche-block main-category">
-                    <div class="card-top"><div class="category-number">2</div><div class="drag-handle"><span>↕</span><span>↔</span></div></div>
-                    <div class="branche-head">Medizin & Gesundheit</div>
-                    <div class="branche-text">Arztpraxis, Zahnarztpraxis, Facharztpraxis, Gemeinschaftspraxis, Medizinisches Versorgungszentrum, Physiotherapie, Ergotherapie, Logopädie, Psychotherapie, Radiologie, Labor, Dialysezentrum, Apotheke, Sanitätshaus, Heilpraktikerpraxis</div>
-                    <div class="branche-count">Praxis- und Gesundheitsflächen</div>
-                </div>
-
-                <div class="branche-block main-category">
-                    <div class="card-top"><div class="category-number">3</div><div class="drag-handle"><span>↕</span><span>↔</span></div></div>
-                    <div class="branche-head">Pflege & Soziales</div>
-                    <div class="branche-text">Pflegedienst, Tagespflege, Seniorenbetreuung, Pflegeheim, Seniorenheim, Betreutes Wohnen, Sozialstation, Wohngruppe, Behindertenhilfe, Jugendhilfe, Familienhilfe, Beratungsstelle, Hilfsorganisation, Caritas, Diakonie, AWO</div>
-                    <div class="branche-count">Pflege- und Sozialflächen</div>
-                </div>
-
-                <div class="branche-block main-category">
-                    <div class="card-top"><div class="category-number">4</div><div class="drag-handle"><span>↕</span><span>↔</span></div></div>
-                    <div class="branche-head">Bildung & Betreuung</div>
-                    <div class="branche-text">Kindergarten, Kita, Kindertagespflege, Schule, Privatschule, Nachhilfeinstitut, Sprachschule, Musikschule, Fahrschule, Berufsschule, Weiterbildungsträger, Schulungszentrum, Akademie, Seminarraum Anbieter, Hochschule / Universität Bereich</div>
-                    <div class="branche-count">Bildungs- und Betreuungsflächen</div>
-                </div>
-
-                <div class="branche-block main-category">
-                    <div class="card-top"><div class="category-number">5</div><div class="drag-handle"><span>↕</span><span>↔</span></div></div>
-                    <div class="branche-head">Einzelhandel & Verkaufsflächen</div>
-                    <div class="branche-text">Drogerie, Modegeschäft, Schuhgeschäft, Möbelhaus, Elektronikgeschäft, Optiker, Hörgeräteakustiker, Blumenladen, Buchhandlung, Juwelier, Sanitätshaus Verkaufsfläche, Telekommunikationsshop, Handyshop, Matratzenstudio, Küchenstudio, Showroom, Verkaufsfläche allgemein</div>
-                    <div class="branche-count">Kunden- und Verkaufsflächen</div>
-                </div>
-
-                <div class="branche-block main-category">
-                    <div class="card-top"><div class="category-number">6</div><div class="drag-handle"><span>↕</span><span>↔</span></div></div>
-                    <div class="branche-head">Fitness, Sport & Freizeit</div>
-                    <div class="branche-text">Fitnessstudio, EMS Studio, Yoga Studio, Pilates Studio, Tanzschule, Kampfsportschule, Sportverein Gebäude, Tennisclub, Sporthalle, Schwimmschule, Freizeitcenter, Bowlingcenter, Indoor-Spielplatz, Kletterhalle, Reha-Sport Zentrum</div>
-                    <div class="branche-count">Sport- und Freizeitflächen</div>
-                </div>
-
-                <div class="branche-block main-category">
-                    <div class="card-top"><div class="category-number">7</div><div class="drag-handle"><span>↕</span><span>↔</span></div></div>
-                    <div class="branche-head">Industrie & Produktion</div>
-                    <div class="branche-text">Produktionshalle, Maschinenbau, Metallverarbeitung, Kunststoffverarbeitung, Elektrotechnik Produktion, Verpackungsproduktion, Druckerei, Textilproduktion, Möbelproduktion, Montagebetrieb, Fertigungsbetrieb, Werkhalle, Industrieunternehmen, Produktionsstandort, Technischer Betrieb</div>
-                    <div class="branche-count">Produktions- und Industrieflächen</div>
-                </div>
-
-                <div class="branche-block main-category">
-                    <div class="card-top"><div class="category-number">8</div><div class="drag-handle"><span>↕</span><span>↔</span></div></div>
-                    <div class="branche-head">Lager, Logistik & Großhandel</div>
-                    <div class="branche-text">Lagerhalle, Versandlager, Logistikzentrum, Spedition, Paketdienst Standort, Großhandel, Baustoffhandel, Technikgroßhandel, Elektrogroßhandel, Sanitärgroßhandel, Werkzeughandel, Import / Export Betrieb, Umschlaglager, Warenlager, Fulfillment Standort</div>
-                    <div class="branche-count">Lager- und Logistikflächen</div>
-                </div>
-
-                <div class="branche-block main-category">
-                    <div class="card-top"><div class="category-number">9</div><div class="drag-handle"><span>↕</span><span>↔</span></div></div>
-                    <div class="branche-head">Immobilien & Hausverwaltung</div>
-                    <div class="branche-text">Hausverwaltung, WEG-Verwaltung, Mietverwaltung, Immobilienverwaltung, Wohnungsbaugesellschaft, Bauträger, Projektentwickler, Immobilienmakler, Gewerbeobjekt Verwaltung, Bürokomplex Verwaltung, Ärztehaus Verwaltung, Wohnanlage, Tiefgarage, Gemeinschaftsflächen, Objektverwaltung</div>
-                    <div class="branche-count">Objekt- und Verwaltungsflächen</div>
-                </div>
-
-                <div class="branche-block main-category">
-                    <div class="card-top"><div class="category-number">10</div><div class="drag-handle"><span>↕</span><span>↔</span></div></div>
-                    <div class="branche-head">Finanzen, Versicherung & Beratung</div>
-                    <div class="branche-text">Bankfiliale, Versicherung, Versicherungsmakler, Finanzberater, Kreditvermittler, Buchhaltungsbüro, Lohnbüro, Unternehmensberatung, Inkassobüro, Wirtschaftsberatung, Vermögensberatung, Finanzdienstleister, Steuerkanzlei, Beratungsbüro allgemein</div>
-                    <div class="branche-count">Beratungs- und Finanzbüros</div>
-                </div>
-
-                <div class="branche-block main-category">
-                    <div class="card-top"><div class="category-number">11</div><div class="drag-handle"><span>↕</span><span>↔</span></div></div>
-                    <div class="branche-head">IT, Medien & Kommunikation</div>
-                    <div class="branche-text">IT Dienstleister, Softwarefirma, Webagentur, Marketingagentur, Werbeagentur, Medienbüro, Verlag, Fotostudio, Videoproduktion, Telekommunikationsanbieter, Designagentur, Grafikbüro, App Entwicklung, Online Marketing Büro, Kommunikationsagentur</div>
-                    <div class="branche-count">IT-, Medien- und Agenturflächen</div>
-                </div>
-
-                    <div class="branche-block main-category">
-                    <div class="card-top"><div class="category-number">12</div><div class="drag-handle"><span>↕</span><span>↔</span></div></div>
-                    <div class="branche-head">Sonstige / Nicht zugeordnet</div>
-                    <div class="branche-text">Unklare Firma, keine eindeutige Branche, gemischter Betrieb, sonstiger Dienstleister, Verein ohne klare Kategorie, Stiftung ohne klare Kategorie, privatähnlicher Eintrag, nur Adresse ohne Branche, nur Telefonnummer ohne Branche, fehlende Firmendaten, mehrere Tätigkeiten gleichzeitig, manuell prüfen</div>
-                    <div class="branche-count">Restgruppe / manuell prüfen</div>
-                </div>
+                {% endfor %}
             </section>
 
                         <section class="action-history-section">
@@ -6871,20 +6798,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 });
 
-const KG_BRANCH_DETAIL_SLUGS = [
-    "buero-verwaltung",
-    "medizin-gesundheit",
-    "pflege-soziales",
-    "bildung-betreuung",
-    "einzelhandel-verkaufsflaechen",
-    "fitness-sport-freizeit",
-    "industrie-produktion",
-    "lager-logistik-grosshandel",
-    "immobilien-hausverwaltung",
-    "finanzen-versicherung-beratung",
-    "handwerk-technik-service",
-    "sonstige-gewerbe-dienstleister"
-];
+const KG_BRANCH_DETAIL_SLUGS = {{ kaesten|map(attribute='slug')|list|tojson }};
 
 function kgBindBrancheDetailOpen(){
     const cards = document.querySelectorAll("#branchenSortable .branche-block.main-category");
@@ -6895,7 +6809,7 @@ function kgBindBrancheDetailOpen(){
                 return;
             }
 
-            const slug = KG_BRANCH_DETAIL_SLUGS[index];
+            const slug = card.dataset.slug || KG_BRANCH_DETAIL_SLUGS[index];
             if(!slug) return;
 
             window.location.href = "/branche-detail?branche=" + encodeURIComponent(slug);
