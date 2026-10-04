@@ -77,6 +77,12 @@ def ensure_tables(conn):
         except Exception:
             pass  # ein anderer Prozess war schneller
     conn.execute("INSERT OR IGNORE INTO leon_auto_einstellungen (id) VALUES (1)")
+    # Punkte aus dem Lead-Sammler (0–100): beste Firmen zuerst
+    if "ls_punkte" not in {r[1] for r in conn.execute("PRAGMA table_info(leads)")}:
+        try:
+            conn.execute("ALTER TABLE leads ADD COLUMN ls_punkte INTEGER")
+        except Exception:
+            pass  # ein anderer Prozess war schneller
     conn.execute("""
         CREATE TABLE IF NOT EXISTS leon_auto_runden (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -166,7 +172,7 @@ def kandidaten(conn, e, heute=None, online=True):
     if quelle == "leads":
         rows = conn.execute(f"""
             SELECT l.id, l.firma, l.branche_name AS branche, '' AS ansprechpartner, l.plz, l.stadt AS ort,
-                   l.telefon, l.email, l.website, l.status AS crm_status,
+                   l.telefon, l.email, l.website, l.status AS crm_status, l.ls_punkte,
                    k.letztes_ergebnis, k.letzter_status, k.aktualisiert_am AS leon_am
             FROM leads l
             LEFT JOIN leon_links k ON k.quelle = 'leads' AND k.crm_id = l.id
@@ -179,7 +185,8 @@ def kandidaten(conn, e, heute=None, online=True):
     else:
         rows = conn.execute(f"""
             SELECT t.id, t.firma, t.branche, t.ansprechpartner, t.plz, t.ort, t.telefon, t.email, t.website,
-                   t.status AS crm_status, k.letztes_ergebnis, k.letzter_status, k.aktualisiert_am AS leon_am
+                   t.status AS crm_status, k.letztes_ergebnis, k.letzter_status, k.aktualisiert_am AS leon_am,
+                   (SELECT x.ls_punkte FROM leads x WHERE x.id = t.source_lead_id) AS ls_punkte
             FROM tagesliste_leads t
             LEFT JOIN leon_links k ON k.tagesliste_id = t.id
             WHERE COALESCE(TRIM(t.telefon), '') <> '' AND TRIM(t.branche) IN ({marks})
@@ -231,6 +238,7 @@ def kandidaten(conn, e, heute=None, online=True):
         punkte += 5 if r.get("website") else 0
         punkte += 5 if r.get("email") else 0
         punkte += 5 if r.get("ansprechpartner") else 0
+        punkte += int(r.get("ls_punkte") or 0) / 2  # Lead-Sammler-Punkte: halbe Punkte dazu
         r.update(runde=runde, entfernung_km=round(km, 1), punkte=round(punkte, 1))
         ergebnis.append(r)
     ergebnis.sort(key=lambda x: (-x["punkte"], x["entfernung_km"]))

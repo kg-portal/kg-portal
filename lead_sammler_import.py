@@ -20,12 +20,19 @@ CRM_BRANCHEN = KASTEN_NAME  # die 12 Kästen der Datenbank (branche_id → Name)
 SPALTEN = {
     "branche_id": "TEXT", "branche_name": "TEXT", "suchwort": "TEXT", "ansprechpartner": "TEXT",
     "sort_order": "INTEGER DEFAULT 0", "unique_key": "TEXT", "erstellt_am": "TEXT",
-    "email": "TEXT", "quelle": "TEXT", "status": "TEXT",
+    "email": "TEXT", "quelle": "TEXT", "status": "TEXT", "ls_punkte": "INTEGER",
 }
 
 
 def _text(wert, laenge=200):
     return re.sub(r"\s+", " ", str(wert or "")).strip()[:laenge]
+
+
+def _punkte(wert):
+    try:
+        return max(0, min(100, int(float(wert))))
+    except (TypeError, ValueError):
+        return None
 
 
 def _ziffern(telefon):
@@ -87,11 +94,13 @@ def register_lead_sammler_import(app, login_required, get_db_connection):
                 sort = conn.execute("SELECT COALESCE(MAX(sort_order), 0) FROM leads WHERE branche_id = ?", (bid,)).fetchone()[0]
                 conn.execute("""
                     INSERT INTO leads (unique_key, branche_id, branche_name, suchwort, firma, strasse, plz, stadt,
-                                       telefon, email, website, ansprechpartner, quelle, status, sort_order, erstellt_am)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Lead-Sammler', 'Neu', ?, CURRENT_TIMESTAMP)
+                                       telefon, email, website, ansprechpartner, quelle, status, sort_order, erstellt_am,
+                                       ls_punkte)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Lead-Sammler', 'Neu', ?, CURRENT_TIMESTAMP, ?)
                 """, (key or None, bid, CRM_BRANCHEN[bid], _text(f.get("suchwort"), 80), firma,
                       _text(f.get("strasse"), 120), _text(f.get("plz"), 5), _text(f.get("stadt"), 80), telefon,
-                      _text(f.get("email"), 120), website, _text(f.get("ansprechpartner"), 120), int(sort or 0) + 1))
+                      _text(f.get("email"), 120), website, _text(f.get("ansprechpartner"), 120), int(sort or 0) + 1,
+                      _punkte(f.get("punkte"))))
                 telefone.add(_ziffern(telefon))
                 if key:
                     schluessel.add(key)
