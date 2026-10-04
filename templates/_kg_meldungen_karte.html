@@ -1,0 +1,64 @@
+{# WhatsApp an den Chef: Kampagnen-Berichte, Arbeitsliste, Agent antwortet – Einstellungen (KG CRM) #}
+<style>
+  .kgm { font-family: Inter, Arial, Helvetica, sans-serif; max-width: 1240px; margin: 14px auto 0; background: #fff; border: 1px solid #e2e8f0; border-radius: 18px; padding: 16px 18px; color: #0f172a; }
+  .kgm h2 { margin: 0 0 4px; font-size: 16px; font-weight: 900; }
+  .kgm p { margin: 0 0 12px; font-size: 13px; font-weight: 700; color: #64748b; line-height: 1.5; }
+  .kgm-zeile { display: flex; flex-wrap: wrap; gap: 10px 18px; align-items: center; margin-top: 10px; }
+  .kgm label { display: inline-flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 800; color: #1e293b; }
+  .kgm input[type=checkbox] { width: 20px; height: 20px; }
+  .kgm input[type=text], .kgm input[type=time] { font-size: 16px; padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 10px; }
+  .kgm input[type=text] { width: 230px; }
+  .kgm button { border: 0; border-radius: 11px; padding: 9px 14px; min-height: 40px; font-weight: 800; font-size: 13px; cursor: pointer; color: #fff; background: #15803d; }
+  .kgm button.grau { background: #475569; }
+  .kgm-msg { margin-top: 10px; font-size: 13px; font-weight: 800; }
+  .kgm-msg.ok { color: #15803d; } .kgm-msg.err { color: #b91c1c; }
+</style>
+<section class="kgm" id="kgm">
+  <h2>📱 WhatsApp an dich</h2>
+  <p>Kampagnen-Berichte und die Arbeitsliste kommen zusätzlich als kurze WhatsApp – über den WhatsApp-Connector des CRM.
+     Schreibst du von dieser Nummer zurück, antwortet der Agent (z. B. „heute“, „berichte“, „rückrufe“, „hilfe“). Ohne Nummer wird nichts gesendet.</p>
+  <div class="kgm-zeile">
+    <label>Deine Handynummer <input type="text" id="kgmNummer" placeholder="z. B. 0176 1234567" autocomplete="tel"></label>
+  </div>
+  <div class="kgm-zeile">
+    <label><input type="checkbox" id="kgmBericht"> Kampagnen-Berichte per WhatsApp</label>
+    <label><input type="checkbox" id="kgmListe"> Arbeitsliste jeden Werktag um <input type="time" id="kgmUhr" min="05:00" max="11:59"></label>
+    <label><input type="checkbox" id="kgmListeWa"> Arbeitsliste auch per WhatsApp</label>
+    <label><input type="checkbox" id="kgmAgent"> Agent antwortet auf deine Nachrichten</label>
+  </div>
+  <div class="kgm-zeile">
+    <button type="button" id="kgmSpeichern">Speichern</button>
+    <button type="button" class="grau" id="kgmTest">Test-Nachricht senden</button>
+    <a href="/heute" style="font-weight:800;font-size:13px;color:#2563eb">📋 Arbeitsliste für heute ansehen</a>
+  </div>
+  <div class="kgm-msg" id="kgmMsg"></div>
+</section>
+<script>
+(function () {
+  const $ = (id) => document.getElementById(id);
+  const msg = (t, ok) => { $("kgmMsg").className = "kgm-msg " + (ok ? "ok" : "err"); $("kgmMsg").textContent = t; };
+  function zeigen(e) {
+    $("kgmNummer").value = e.whatsapp_nummer || ""; $("kgmBericht").checked = !!e.bericht_whatsapp;
+    $("kgmListe").checked = !!e.tagesliste_an; $("kgmUhr").value = e.tagesliste_uhrzeit || "07:30";
+    $("kgmListeWa").checked = !!e.tagesliste_whatsapp; $("kgmAgent").checked = !!e.agent_antwortet;
+  }
+  async function api(url, body) {
+    const r = await fetch(url, body === undefined ? {} : { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+    const d = await r.json().catch(() => ({ success: false, error: "HTTP " + r.status }));
+    if (!r.ok || !d.success) throw new Error(d.error || ("HTTP " + r.status));
+    return d;
+  }
+  api("/api/kg-meldungen").then(d => zeigen(d.einstellungen)).catch(e => msg(e.message, false));
+  $("kgmSpeichern").addEventListener("click", async () => {
+    try {
+      const d = await api("/api/kg-meldungen", { whatsapp_nummer: $("kgmNummer").value, bericht_whatsapp: $("kgmBericht").checked,
+        tagesliste_an: $("kgmListe").checked, tagesliste_uhrzeit: $("kgmUhr").value, tagesliste_whatsapp: $("kgmListeWa").checked,
+        agent_antwortet: $("kgmAgent").checked });
+      zeigen(d.einstellungen); msg("Gespeichert.", true);
+    } catch (e) { msg(e.message, false); }
+  });
+  $("kgmTest").addEventListener("click", async () => {
+    try { await api("/api/kg-meldungen/test", {}); msg("Test-Nachricht ist in der WhatsApp-Warteschlange.", true); } catch (e) { msg(e.message, false); }
+  });
+})();
+</script>

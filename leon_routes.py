@@ -193,6 +193,7 @@ LEON_TABS = [
     ("live", "/leon/live", "Live Call"),
     ("anrufe", "/leon/anrufe", "Anrufe"),
     ("ergebnisse", "/leon/ergebnisse", "Ergebnisse"),
+    ("berichte", "/leon/berichte", "Berichte"),
     ("archiv", "/leon/archiv", "Archiv"),
     ("leads", "/leon/leads", "Leads"),
     ("agent", "/leon/agent", "Leon Einstellungen"),

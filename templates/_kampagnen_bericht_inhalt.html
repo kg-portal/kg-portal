@@ -1,0 +1,264 @@
+{# Kampagnen-Bericht – gleicher Inhalt in KG CRM und KG Business.
+   Erwartet: b (Bericht), kategorien, info, gespraech_link, aufnahme_link, akzent, akzent2 #}
+<style>
+  .kb { --a: {{ akzent }}; --a2: {{ akzent2 }}; font-family: Inter, Arial, Helvetica, sans-serif; color: #0f172a; max-width: 1240px; margin: 0 auto; }
+  .kb * { box-sizing: border-box; }
+  .kb-hero { position: relative; overflow: hidden; border-radius: 26px; padding: 26px 28px; color: #fff;
+             background: radial-gradient(1200px 300px at 110% -20%, rgba(255,255,255,.22), transparent 60%), linear-gradient(135deg, var(--a2), var(--a)); }
+  .kb-hero::after { content: ""; position: absolute; right: -40px; bottom: -60px; width: 260px; height: 260px; border-radius: 50%; background: rgba(255,255,255,.08); }
+  .kb-hero small { display: block; font-size: 13px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; opacity: .85; }
+  .kb-hero h1 { margin: 6px 0 4px; font-size: 30px; line-height: 1.15; font-weight: 900; }
+  .kb-hero .kb-zeit { font-size: 15px; opacity: .95; }
+  .kb-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; position: relative; z-index: 1; }
+  .kb-chip { background: rgba(255,255,255,.18); border: 1px solid rgba(255,255,255,.28); border-radius: 999px; padding: 6px 12px; font-size: 13px; font-weight: 800; }
+  .kb-hero-btns { position: absolute; top: 22px; right: 24px; display: flex; gap: 8px; z-index: 1; }
+  .kb-hero-btns a, .kb-hero-btns button { background: rgba(255,255,255,.95); color: #0f172a; border: 0; border-radius: 12px; padding: 9px 13px; font-weight: 800; font-size: 13px; text-decoration: none; cursor: pointer; }
+
+  .kb-kpis { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 12px; margin-top: 16px; }
+  .kb-kpi { background: #fff; border: 1px solid #e2e8f0; border-radius: 18px; padding: 14px 16px; border-top: 5px solid var(--f, var(--a)); }
+  .kb-kpi b { display: block; font-size: 34px; line-height: 1.05; font-weight: 900; color: var(--f, #0f172a); font-variant-numeric: tabular-nums; }
+  .kb-kpi span { display: block; margin-top: 4px; font-size: 13px; font-weight: 800; color: #475569; }
+  .kb-kpi em { font-style: normal; font-size: 12px; font-weight: 800; color: #64748b; }
+
+  .kb-zwei { display: grid; grid-template-columns: 1.15fr .85fr; gap: 14px; margin-top: 14px; }
+  .kb-karte { background: #fff; border: 1px solid #e2e8f0; border-radius: 20px; padding: 18px 20px; }
+  .kb-karte h2 { margin: 0 0 14px; font-size: 17px; font-weight: 900; color: #0f172a; display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+  .kb-trichter { display: grid; gap: 10px; }
+  .kb-stufe { display: grid; grid-template-columns: 120px 1fr 92px; gap: 12px; align-items: center; }
+  .kb-stufe label { font-size: 14px; font-weight: 800; color: #334155; }
+  .kb-bahn { height: 34px; background: #f1f5f9; border-radius: 10px; overflow: hidden; }
+  .kb-balken { height: 100%; width: 0; border-radius: 10px; display: flex; align-items: center; padding-left: 12px; color: #fff; font-weight: 900; font-size: 14px;
+               transition: width 1s cubic-bezier(.2,.8,.2,1); white-space: nowrap; }
+  .kb-stufe .kb-pz { font-size: 13px; font-weight: 800; color: #475569; text-align: right; }
+  .kb-verteilung { display: flex; height: 18px; border-radius: 999px; overflow: hidden; background: #f1f5f9; }
+  .kb-verteilung i { display: block; height: 100%; }
+  .kb-legende { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 14px; margin-top: 14px; }
+  .kb-legende div { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 700; color: #334155; }
+  .kb-legende i { width: 12px; height: 12px; border-radius: 4px; flex: 0 0 12px; }
+  .kb-legende b { margin-left: auto; font-variant-numeric: tabular-nums; }
+
+  .kb-fortschritt { display: flex; align-items: center; gap: 10px; font-size: 13px; font-weight: 800; color: #475569; }
+  .kb-fortschritt .kb-bahn { width: 160px; height: 10px; }
+  .kb-fortschritt .kb-balken { background: #16a34a; padding: 0; }
+  .kb-aktionen { display: grid; grid-template-columns: repeat(auto-fill, minmax(330px, 1fr)); gap: 12px; }
+  .kb-fall { position: relative; border: 1px solid #e2e8f0; border-left: 6px solid var(--f); border-radius: 16px; padding: 14px 16px; background: #fff; transition: opacity .25s, transform .25s; }
+  .kb-fall.erledigt { opacity: .55; }
+  .kb-fall.erledigt .kb-fall-name { text-decoration: line-through; }
+  .kb-badge { display: inline-flex; align-items: center; gap: 5px; border-radius: 999px; padding: 4px 10px; font-size: 12px; font-weight: 900; color: #fff; background: var(--f); }
+  .kb-fall-name { margin: 8px 0 2px; font-size: 17px; font-weight: 900; color: #0f172a; }
+  .kb-fall-sub { font-size: 13px; font-weight: 700; color: #475569; }
+  .kb-rr { display: inline-block; margin-top: 8px; background: #e0f2fe; color: #075985; border-radius: 10px; padding: 5px 10px; font-size: 13px; font-weight: 900; }
+  .kb-sum { margin-top: 10px; font-size: 14px; line-height: 1.5; color: #1e293b; background: #f8fafc; border-radius: 12px; padding: 10px 12px;
+            display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; cursor: pointer; }
+  .kb-sum.auf { -webkit-line-clamp: unset; display: block; }
+  .kb-knoepfe { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+  .kb-k { display: inline-flex; align-items: center; gap: 6px; border: 1px solid #cbd5e1; background: #fff; color: #0f172a; border-radius: 11px; padding: 8px 12px;
+          min-height: 40px; font-size: 13px; font-weight: 800; text-decoration: none; cursor: pointer; }
+  .kb-k:hover { border-color: var(--a); color: var(--a); }
+  .kb-k.haupt { background: var(--a); border-color: var(--a); color: #fff; }
+  .kb-k.ok { background: #16a34a; border-color: #16a34a; color: #fff; }
+  .kb-fall audio { width: 100%; margin-top: 10px; }
+  .kb-leer { padding: 18px; border-radius: 14px; background: #f8fafc; color: #475569; font-weight: 700; font-size: 14px; }
+
+  .kb-filter { display: flex; flex-wrap: wrap; gap: 8px; }
+  .kb-filter button { border: 1px solid #cbd5e1; background: #fff; border-radius: 999px; padding: 7px 12px; font-size: 13px; font-weight: 800; color: #334155; cursor: pointer; min-height: 36px; }
+  .kb-filter button.on { background: #0f172a; border-color: #0f172a; color: #fff; }
+  .kb-tabelle { width: 100%; border-collapse: collapse; margin-top: 12px; }
+  .kb-tabelle th { text-align: left; font-size: 12px; text-transform: uppercase; letter-spacing: .05em; color: #64748b; padding: 8px 10px; border-bottom: 2px solid #e2e8f0; }
+  .kb-tabelle td { padding: 10px; border-bottom: 1px solid #f1f5f9; font-size: 14px; vertical-align: top; }
+  .kb-tabelle td.kb-kurz { color: #475569; max-width: 420px; }
+  .kb-pille { display: inline-block; border-radius: 999px; padding: 3px 9px; font-size: 12px; font-weight: 900; color: #fff; background: var(--f); white-space: nowrap; }
+  .kb-tab-wrap { overflow-x: auto; }
+
+  @media (max-width: 1100px) { .kb-kpis { grid-template-columns: repeat(3, minmax(0, 1fr)); } .kb-zwei { grid-template-columns: 1fr; } }
+  @media (max-width: 640px) {
+    .kb-hero { padding: 18px; border-radius: 20px; } .kb-hero h1 { font-size: 23px; }
+    .kb-hero-btns { position: static; margin-top: 14px; }
+    .kb-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; } .kb-kpi b { font-size: 28px; }
+    .kb-stufe { grid-template-columns: 86px 1fr 64px; gap: 8px; } .kb-legende { grid-template-columns: 1fr; }
+    .kb-aktionen { grid-template-columns: 1fr; } .kb-karte { padding: 14px; }
+    .kb-tabelle th:nth-child(n+3), .kb-tabelle td:nth-child(n+3) { display: none; }
+  }
+  @media print {
+    .kb-hero-btns, .kb-knoepfe, .kb-filter, .kg-leon-tabs, nav, aside, .business-sidebar, .portal-sidebar { display: none !important; }
+    .kb-hero { color: #0f172a; background: #fff; border: 2px solid #0f172a; }
+    .kb-sum { -webkit-line-clamp: unset; display: block; }
+  }
+</style>
+
+{% set z = b.zahlen %}
+<div class="kb" id="kb" data-id="{{ b.id }}" data-aufnahme="{{ aufnahme_link }}">
+  <section class="kb-hero">
+    <small>📊 Kampagnen-Bericht{% if b.art == 'manuell' %} · ganze Kampagne{% endif %}</small>
+    <h1>{{ b.kampagne }}</h1>
+    <div class="kb-zeit">{{ b.von }}{% if b.bis and b.bis != b.von %} – {{ b.bis }}{% endif %} · erstellt {{ b.erstellt }}</div>
+    <div class="kb-chips">
+      <span class="kb-chip">{{ z.firmen }} Firmen</span>
+      <span class="kb-chip">{{ z.versuche }} Anrufversuche</span>
+      <span class="kb-chip">{{ z.minuten }} Gesprächsminuten</span>
+      <span class="kb-chip">{{ b.quote_erreicht }} % erreicht</span>
+    </div>
+    <div class="kb-hero-btns">
+      <a href="/leon/berichte">← Alle Berichte</a>
+      <button type="button" onclick="window.print()">🖨 Drucken</button>
+    </div>
+  </section>
+
+  <section class="kb-kpis">
+    <div class="kb-kpi" style="--f:#0f172a"><b data-zahl="{{ z.angerufen }}">{{ z.angerufen }}</b><span>Angerufen</span></div>
+    <div class="kb-kpi" style="--f:#0f766e"><b data-zahl="{{ z.erreicht }}">{{ z.erreicht }}</b><span>Erreicht <em>{{ b.quote_erreicht }} %</em></span></div>
+    <div class="kb-kpi" style="--f:{{ info.heiss.farbe }}"><b data-zahl="{{ z.heiss }}">{{ z.heiss }}</b><span>🔥 Interessiert</span></div>
+    <div class="kb-kpi" style="--f:{{ info.termin.farbe }}"><b data-zahl="{{ z.termin }}">{{ z.termin }}</b><span>📅 Termin</span></div>
+    <div class="kb-kpi" style="--f:{{ info.rueckruf.farbe }}"><b data-zahl="{{ z.rueckruf }}">{{ z.rueckruf }}</b><span>📞 Rückruf</span></div>
+    <div class="kb-kpi" style="--f:{{ info.kein.farbe }}"><b data-zahl="{{ z.kein }}">{{ z.kein }}</b><span>✋ Kein Interesse</span></div>
+  </section>
+
+  <div class="kb-zwei">
+    <section class="kb-karte">
+      <h2>Vom Anruf zum Termin</h2>
+      {% set basis = z.angerufen if z.angerufen else 1 %}
+      <div class="kb-trichter">
+        {% for name, wert, farbe, vorher in [("Angerufen", z.angerufen, "#334155", z.angerufen), ("Erreicht", z.erreicht, "#0f766e", z.angerufen), ("Positiv", z.positiv, info.heiss.farbe, z.erreicht), ("Termin", z.termin, info.termin.farbe, z.positiv)] %}
+        <div class="kb-stufe">
+          <label>{{ name }}</label>
+          <div class="kb-bahn"><div class="kb-balken" style="background:{{ farbe }}" data-breite="{{ [100 * wert / basis, 7 if wert else 0]|max }}">{{ wert }}</div></div>
+          <span class="kb-pz">{% if loop.first %}100 %{% elif vorher %}{{ (100 * wert / vorher)|round|int }} %{% else %}–{% endif %}</span>
+        </div>
+        {% endfor %}
+      </div>
+      <p style="margin:12px 0 0;font-size:12px;font-weight:700;color:#64748b">Positiv = interessiert, Rückruf oder Termin. Prozent jeweils von der Stufe davor.</p>
+    </section>
+
+    <section class="kb-karte">
+      <h2>Ergebnisse</h2>
+      <div class="kb-verteilung">
+        {% for k, name, symbol, farbe in kategorien %}{% if z[k] %}<i style="width:{{ 100 * z[k] / (z.firmen or 1) }}%;background:{{ farbe }}" title="{{ name }}: {{ z[k] }}"></i>{% endif %}{% endfor %}
+      </div>
+      <div class="kb-legende">
+        {% for k, name, symbol, farbe in kategorien %}
+        <div><i style="background:{{ farbe }}"></i>{{ symbol }} {{ name }}<b>{{ z[k] }}</b></div>
+        {% endfor %}
+      </div>
+    </section>
+  </div>
+
+  {% set faelle = b.firmen | selectattr("kategorie", "in", ["termin", "heiss", "rueckruf"]) | list %}
+  <section class="kb-karte" style="margin-top:14px">
+    <h2>
+      <span>✅ Was jetzt? <span style="font-weight:700;color:#64748b;font-size:14px">– Termine, Interessierte, Rückrufe</span></span>
+      {% if faelle %}
+      <span class="kb-fortschritt"><span id="kbFortschrittText">{{ faelle|length - b.offen }} von {{ faelle|length }} erledigt</span>
+        <span class="kb-bahn"><span class="kb-balken" id="kbFortschritt" data-breite="{{ 100 * (faelle|length - b.offen) / faelle|length }}"></span></span></span>
+      {% endif %}
+    </h2>
+    {% if faelle %}
+    <div class="kb-aktionen">
+      {% for f in faelle %}
+      {% set i = info[f.kategorie] %}
+      <article class="kb-fall{% if f.erledigt %} erledigt{% endif %}" style="--f:{{ i.farbe }}" data-lead="{{ f.lead_id }}" data-kat="{{ f.kategorie }}">
+        <span class="kb-badge">{{ i.symbol }} {{ i.name }}</span>
+        <div class="kb-fall-name">{{ f.firma }}</div>
+        <div class="kb-fall-sub">{{ [f.ansprechpartner, f.stadt]|select|join(" · ") }}{% if f.telefon %}{{ " · " if f.ansprechpartner or f.stadt else "" }}{{ f.telefon }}{% endif %}</div>
+        {% if f.kategorie == "rueckruf" and f.rueckruf_am %}<span class="kb-rr">⏰ Rückruf {{ f.rueckruf_am }}</span>{% endif %}
+        {% if f.zusammenfassung %}<div class="kb-sum" title="Klicken für ganzen Text">{{ f.zusammenfassung }}</div>{% endif %}
+        <div class="kb-knoepfe">
+          {% if f.telefon %}<a class="kb-k haupt" href="tel:{{ f.telefon|replace(' ', '') }}">📞 Anrufen</a>{% endif %}
+          {% if f.call_id %}<button type="button" class="kb-k kb-hoeren" data-call="{{ f.call_id }}">▶ Anhören</button>
+          <a class="kb-k" href="{{ gespraech_link }}{{ f.call_id }}">📄 Gespräch</a>{% endif %}
+          <button type="button" class="kb-k kb-ok{% if f.erledigt %} ok{% endif %}">{{ "✓ Erledigt" if f.erledigt else "☐ Erledigt" }}</button>
+        </div>
+      </article>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="kb-leer">In diesem Lauf gab es keine Termine, Interessierten oder Rückrufe. Die Ergebnisse aller Firmen stehen unten.</div>
+    {% endif %}
+  </section>
+
+  <section class="kb-karte" style="margin-top:14px">
+    <h2><span>Alle Firmen ({{ z.firmen }})</span>
+      <span class="kb-filter" id="kbFilter">
+        <button type="button" class="on" data-k="">Alle</button>
+        {% for k, name, symbol, farbe in kategorien %}{% if z[k] %}<button type="button" data-k="{{ k }}">{{ symbol }} {{ name }} {{ z[k] }}</button>{% endif %}{% endfor %}
+      </span>
+    </h2>
+    <div class="kb-tab-wrap">
+      <table class="kb-tabelle">
+        <thead><tr><th>Firma</th><th>Ergebnis</th><th>Versuche</th><th>Zuletzt</th><th>Leons Zusammenfassung</th></tr></thead>
+        <tbody>
+        {% for f in b.firmen %}
+          {% set i = info[f.kategorie] %}
+          <tr data-kat="{{ f.kategorie }}">
+            <td><b>{{ f.firma }}</b><br><span style="color:#64748b;font-size:13px">{{ [f.stadt, f.telefon]|select|join(" · ") }}</span></td>
+            <td><span class="kb-pille" style="--f:{{ i.farbe }}">{{ i.symbol }} {{ i.name }}</span>{% if f.ergebnis and f.ergebnis != i.name %}<br><span style="color:#64748b;font-size:12px">{{ f.ergebnis }}</span>{% endif %}</td>
+            <td>{{ f.versuche }}</td>
+            <td style="white-space:nowrap">{{ f.zeit }}</td>
+            <td class="kb-kurz">{{ f.zusammenfassung[:180] }}{% if f.zusammenfassung|length > 180 %} …{% endif %}{% if f.call_id %} <a href="{{ gespraech_link }}{{ f.call_id }}">öffnen</a>{% endif %}</td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+</div>
+
+<script>
+(function () {
+  const kb = document.getElementById("kb");
+  const id = kb.dataset.id;
+  // Balken und Zahlen beim Öffnen sanft füllen
+  requestAnimationFrame(() => kb.querySelectorAll(".kb-balken[data-breite]").forEach(el => { el.style.width = el.dataset.breite + "%"; }));
+  kb.querySelectorAll("[data-zahl]").forEach(el => {
+    const ziel = Number(el.dataset.zahl) || 0; if (!ziel || matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const t0 = performance.now();
+    const schritt = (t) => { const p = Math.min(1, (t - t0) / 900); el.textContent = Math.round(ziel * (1 - Math.pow(1 - p, 3))); if (p < 1) requestAnimationFrame(schritt); };
+    el.textContent = "0"; requestAnimationFrame(schritt);
+  });
+  // Zusammenfassung auf-/zuklappen
+  kb.querySelectorAll(".kb-sum").forEach(el => el.addEventListener("click", () => el.classList.toggle("auf")));
+  // Gespräch anhören (Aufnahme erst beim Klick laden)
+  kb.querySelectorAll(".kb-hoeren").forEach(btn => btn.addEventListener("click", () => {
+    const fall = btn.closest(".kb-fall");
+    let a = fall.querySelector("audio");
+    if (!a) {
+      a = document.createElement("audio");
+      a.controls = true; a.preload = "none";
+      a.src = kb.dataset.aufnahme.replace("{id}", btn.dataset.call);
+      a.addEventListener("error", () => { btn.textContent = "Keine Aufnahme"; btn.disabled = true; a.remove(); });
+      fall.appendChild(a);
+    }
+    a.play().catch(() => {});
+  }));
+  // Erledigt abhaken
+  const faelle = kb.querySelectorAll(".kb-fall");
+  function fortschritt(offen) {
+    const fertig = faelle.length - offen;
+    const txt = document.getElementById("kbFortschrittText"), bar = document.getElementById("kbFortschritt");
+    if (txt) txt.textContent = fertig + " von " + faelle.length + " erledigt";
+    if (bar) bar.style.width = (faelle.length ? 100 * fertig / faelle.length : 0) + "%";
+  }
+  kb.querySelectorAll(".kb-ok").forEach(btn => btn.addEventListener("click", async () => {
+    const fall = btn.closest(".kb-fall");
+    const neu = !fall.classList.contains("erledigt");
+    btn.disabled = true;
+    try {
+      const r = await fetch("/api/kampagnen-bericht/" + id + "/erledigt", { method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ lead_id: Number(fall.dataset.lead), erledigt: neu }) });
+      const d = await r.json();
+      if (!r.ok || !d.success) throw new Error(d.error || "Fehler");
+      fall.classList.toggle("erledigt", neu);
+      btn.classList.toggle("ok", neu);
+      btn.textContent = neu ? "✓ Erledigt" : "☐ Erledigt";
+      fortschritt(d.offen);
+    } catch (e) { alert("Konnte nicht speichern: " + e.message); }
+    btn.disabled = false;
+  }));
+  // Tabelle nach Ergebnis filtern
+  const filter = document.getElementById("kbFilter");
+  filter.addEventListener("click", (ev) => {
+    const b = ev.target.closest("button"); if (!b) return;
+    filter.querySelectorAll("button").forEach(x => x.classList.toggle("on", x === b));
+    kb.querySelectorAll(".kb-tabelle tbody tr").forEach(tr => { tr.style.display = !b.dataset.k || tr.dataset.kat === b.dataset.k ? "" : "none"; });
+  });
+})();
+</script>
