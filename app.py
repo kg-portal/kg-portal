@@ -886,6 +886,10 @@ register_vertrag_vertretung(app, login_required, get_db_connection)
 from lohnabrechnung import register_lohnabrechnung
 register_lohnabrechnung(app, login_required, get_db_connection)
 
+# Lead-Sammler (PC) → geprüfte Firmen aus dem Umkreis in die Datenbank (nur neue, nie doppelt)
+from lead_sammler_import import register_lead_sammler_import
+register_lead_sammler_import(app, login_required, get_db_connection)
+
 
 # =====================================================
 # Bölüm 4-GİRİŞ VE ÇIKIŞ İŞLEMLERİ (BURAYA GELDİ)
