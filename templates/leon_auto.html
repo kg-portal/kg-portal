@@ -64,6 +64,7 @@
         <div><label for="akRadius">Umkreis (km)</label><input id="akRadius" class="ak-in" type="number" min="1" max="150"></div>
         <div><label for="akLimit">Firmen pro Tag</label><input id="akLimit" class="ak-in" type="number" min="1" max="300" value="50"></div>
         <div><label for="akStunde">Start ab (Uhr, Mo–Fr)</label><input id="akStunde" class="ak-in" type="number" min="6" max="18" value="8"></div>
+        <div><label for="akAgent">Agent</label><select id="akAgent" class="ak-in"><option value="1">Leon</option></select></div>
         <div style="grid-column: span 2;"><label for="akName">Kampagnenname</label><input id="akName" class="ak-in" maxlength="120"></div>
       </div>
       <div class="ak-actions">
@@ -117,6 +118,8 @@
   const esc = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   let gewaehlt = [];
   let branchenListe = [];
+  let agentWahl = "1";
+  let anrufbar = {};
 
   async function api(url, body) {
     const opt = body === undefined ? {} : { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) };
@@ -148,9 +151,12 @@
     $("akBranchen").innerHTML = namen.map((b) => {
       const on = gewaehlt.includes(b);
       const nr = on ? (gewaehlt.indexOf(b) + 1) + ". " : "";
-      return `<label class="ak-chip ${on ? "on" : ""}"><input type="checkbox" value="${esc(b)}" ${on ? "checked" : ""}> ${nr}${esc(b)}</label>`;
+      const n = (anrufbar[$("akQuelle").value] || {})[b] || 0;
+      return `<label class="ak-chip ${on ? "on" : ""}"><input type="checkbox" value="${esc(b)}" ${on ? "checked" : ""}> ${nr}${esc(b)} <small>(${n} anrufbar)</small></label>`;
     }).join("");
   }
+
+  $("akQuelle").addEventListener("change", () => zeigeBranchen());
 
   $("akBranchen").addEventListener("change", (ev) => {
     const b = ev.target.value;
@@ -168,6 +174,8 @@
     $("akLimit").value = e.tageslimit || 50;
     $("akStunde").value = e.startstunde || 8;
     $("akName").value = e.kampagne_name || "Leon Auto-Kampagne";
+    agentWahl = String(e.agent_id || 1);
+    if ($("akAgent").querySelector(`option[value="${agentWahl}"]`)) $("akAgent").value = agentWahl;
     gewaehlt = (e.branchen || []).slice();
     zeigeZustand(e);
     zeigeBericht(e.letzter_bericht, e.letzte_ausfuehrung);
@@ -177,7 +185,7 @@
     const d = await api("/api/leon/auto/einstellungen", {
       aktiv: $("akAktiv").checked, quelle: $("akQuelle").value, branchen: gewaehlt,
       zentrum_plz: $("akPlz").value.trim(), radius_km: $("akRadius").value, tageslimit: $("akLimit").value,
-      startstunde: $("akStunde").value, kampagne_name: $("akName").value.trim(),
+      startstunde: $("akStunde").value, kampagne_name: $("akName").value.trim(), agent_id: $("akAgent").value,
     });
     form(d.einstellungen);
     zeigeBranchen();
@@ -227,9 +235,17 @@
     try {
       const [e, b] = await Promise.all([api("/api/leon/auto/einstellungen"), api("/api/leon/datenbank/branchen")]);
       branchenListe = b.branchen || [];
+      anrufbar = b.anrufbar || {};
       form(e.einstellungen);
       zeigeBranchen();
     } catch (err) { msg("akMsg", err.message, false); }
+    // Agenten aus dem Leon-Motor (wie in KG Business); ohne Antwort bleibt „Leon“
+    try {
+      const ag = await api("/leon-api/agents");
+      const opts = (ag.agents || []).map((a) => `<option value="${a.id}">${esc(a.agent_name || ("Agent " + a.id))}</option>`).join("");
+      if (opts) { $("akAgent").innerHTML = opts; }
+    } catch (err) { /* Standard-Agent bleibt */ }
+    if ($("akAgent").querySelector(`option[value="${agentWahl}"]`)) $("akAgent").value = agentWahl;
   })();
 })();
 </script>

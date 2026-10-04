@@ -70,6 +70,12 @@ def ensure_tables(conn):
             letzter_bericht TEXT
         )
     """)
+    # Agent wie in KG Business (Standard 1 = Leon, so wie bisher)
+    if "agent_id" not in {r[1] for r in conn.execute("PRAGMA table_info(leon_auto_einstellungen)")}:
+        try:
+            conn.execute("ALTER TABLE leon_auto_einstellungen ADD COLUMN agent_id INTEGER NOT NULL DEFAULT 1")
+        except Exception:
+            pass  # ein anderer Prozess war schneller
     conn.execute("INSERT OR IGNORE INTO leon_auto_einstellungen (id) VALUES (1)")
     conn.execute("""
         CREATE TABLE IF NOT EXISTS leon_auto_runden (
@@ -263,6 +269,17 @@ def ausfuehren(app, conn, leon_client, e, heute=None):
                     except Exception:
                         pass
 
+    # Neue Kampagne mit dem gewählten Agent anlegen (Agent 1 = Leon, wie bisher in der Übergabe-Route)
+    if not kampagne:
+        try:
+            _code, neu = leon_client.request("POST", "/api/campaigns",
+                                             {"name": e["kampagne_name"], "agent_id": int(e.get("agent_id") or 1)})
+            neu_id = (neu or {}).get("id") or ((neu or {}).get("campaign") or {}).get("id")
+            if neu_id:
+                kampagne = {"id": neu_id}
+        except Exception:
+            pass  # sonst legt die Übergabe-Route sie an (wie bisher)
+
     client = app.test_client()
     with client.session_transaction() as sess:
         sess["logged_in"] = True
@@ -329,14 +346,15 @@ def register_leon_auto_kampagne(app, login_required, get_db_connection, leon_cli
                     radius = max(1.0, min(150.0, float(d.get("radius_km") or 30)))
                     limit = max(1, min(300, int(d.get("tageslimit") or 50)))
                     stunde = max(6, min(18, int(d.get("startstunde") or 8)))
+                    agent_id = max(1, int(d.get("agent_id") or 1))
                 except (TypeError, ValueError):
                     return jsonify({"success": False, "error": "Zahlen prüfen (Radius, Tageslimit, Startstunde)."}), 400
                 conn.execute("""
                     UPDATE leon_auto_einstellungen SET aktiv = ?, quelle = ?, branchen_json = ?, zentrum_plz = ?,
-                        radius_km = ?, tageslimit = ?, startstunde = ?, kampagne_name = ? WHERE id = 1
+                        radius_km = ?, tageslimit = ?, startstunde = ?, kampagne_name = ?, agent_id = ? WHERE id = 1
                 """, (1 if d.get("aktiv") else 0, "tagesliste" if d.get("quelle") == "tagesliste" else "leads",
                       json.dumps(branchen, ensure_ascii=False), plz, radius, limit, stunde,
-                      (str(d.get("kampagne_name") or "Leon Auto-Kampagne").strip()[:120] or "Leon Auto-Kampagne")))
+                      (str(d.get("kampagne_name") or "Leon Auto-Kampagne").strip()[:120] or "Leon Auto-Kampagne"), agent_id))
                 conn.commit()
             return jsonify({"success": True, "einstellungen": einstellungen(conn)})
         finally:
