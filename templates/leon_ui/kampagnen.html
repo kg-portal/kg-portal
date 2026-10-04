@@ -534,7 +534,7 @@
             align-items: center;
             justify-content: center;
             padding: 20px;
-            z-index: 1000;
+            z-index: 10000;
         }
 
         .modal-backdrop.open {
@@ -772,7 +772,25 @@
   .business-portal-sidebar{display:none!important}
   .business-portal-main{width:100%!important;margin-left:0!important;padding:18px!important}
   body{background:#f8fafc!important}
+  /* Kampagnen wie in KG Business: nur EIN Rahmen um die Seite */
+  .business-portal-main{padding:0!important}
+  .business-portal-card{min-height:0!important}
+  /* Spalten wie in KG Business – nach der Breite des ganzen Fensters, nicht des CRM-Rahmens */
+  html.crm-breit .summary-grid{grid-template-columns:repeat(5,minmax(0,1fr))!important}
+  html.crm-breit .lead-layout{grid-template-columns:1fr 1fr!important}
 </style>
+<script>
+(function () {
+  function breite() {
+    var w = window.innerWidth;
+    try { if (window.parent && window.parent !== window) w = window.parent.innerWidth; } catch (e) {}
+    document.documentElement.classList.toggle('crm-breit', w > 1050);
+  }
+  breite();
+  window.addEventListener('resize', breite);
+  try { window.parent.addEventListener('resize', breite); } catch (e) {}
+})();
+</script>
 </head>
 
 <body>
