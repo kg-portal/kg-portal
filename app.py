@@ -890,6 +890,10 @@ register_lohnabrechnung(app, login_required, get_db_connection)
 from lead_sammler_import import register_lead_sammler_import
 register_lead_sammler_import(app, login_required, get_db_connection)
 
+# Reiter „Lead-Sammler“ unter Datenbank: dieselbe Übersicht wie in KG Business
+from lead_sammler_reiter import register_lead_sammler_reiter
+register_lead_sammler_reiter(app, login_required)
+
 
 # =====================================================
 # Bölüm 4-GİRİŞ VE ÇIKIŞ İŞLEMLERİ (BURAYA GELDİ)
