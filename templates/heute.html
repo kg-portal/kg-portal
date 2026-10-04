@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+{% block content %}
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&display=swap" rel="stylesheet">
+<style>
+  .hl { font-family: Inter, Arial, Helvetica, sans-serif; color: #0f172a; max-width: 1240px; margin: 0 auto; }
+  .hl * { box-sizing: border-box; }
+  .hl-hero { position: relative; overflow: hidden; border-radius: 26px; padding: 26px 28px; color: #fff;
+             background: radial-gradient(900px 260px at 105% -30%, rgba(253,224,71,.35), transparent 60%), linear-gradient(135deg, #1e3a8a, #2563eb 60%, #0ea5e9); }
+  .hl-hero small { font-size: 13px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; opacity: .85; }
+  .hl-hero h1 { margin: 6px 0 2px; font-size: 30px; font-weight: 900; }
+  .hl-hero p { margin: 0; font-size: 15px; opacity: .95; }
+  .hl-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+  .hl-chip { background: rgba(255,255,255,.18); border: 1px solid rgba(255,255,255,.3); border-radius: 999px; padding: 6px 12px; font-size: 13px; font-weight: 800; color: #fff; text-decoration: none; }
+  .hl-btns { position: absolute; top: 22px; right: 24px; display: flex; gap: 8px; }
+  .hl-btns button, .hl-btns a { background: rgba(255,255,255,.95); color: #0f172a; border: 0; border-radius: 12px; padding: 9px 13px; font-weight: 800; font-size: 13px; cursor: pointer; text-decoration: none; }
+  .hl-msg { margin-top: 8px; font-size: 13px; font-weight: 800; }
+  .hl-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; margin-top: 14px; }
+  .hl-karte { background: #fff; border: 1px solid #e2e8f0; border-radius: 20px; padding: 16px 18px; border-top: 5px solid var(--f); }
+  .hl-karte h2 { margin: 0 0 10px; font-size: 17px; font-weight: 900; display: flex; justify-content: space-between; align-items: center; }
+  .hl-karte h2 span { font-size: 13px; font-weight: 900; color: #fff; background: var(--f); border-radius: 999px; padding: 2px 10px; }
+  .hl-punkt { display: grid; grid-template-columns: 64px 1fr auto; gap: 10px; align-items: start; padding: 10px 0; border-top: 1px solid #f1f5f9; }
+  .hl-punkt:first-of-type { border-top: 0; }
+  .hl-punkt.weg { opacity: .45; }
+  .hl-punkt.weg .hl-titel { text-decoration: line-through; }
+  .hl-zeit { font-size: 13px; font-weight: 900; color: var(--f); padding-top: 2px; font-variant-numeric: tabular-nums; }
+  .hl-titel { font-size: 15px; font-weight: 800; color: #0f172a; }
+  .hl-titel a { color: inherit; text-decoration: none; }
+  .hl-sub { font-size: 13px; font-weight: 600; color: #64748b; margin-top: 2px; line-height: 1.45; }
+  .hl-sub.rot { color: #b91c1c; font-weight: 800; }
+  .hl-aktion { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+  .hl-k { display: inline-flex; align-items: center; gap: 5px; border: 1px solid #cbd5e1; background: #fff; color: #0f172a; border-radius: 10px; padding: 6px 10px;
+          min-height: 36px; font-size: 12px; font-weight: 800; text-decoration: none; cursor: pointer; white-space: nowrap; }
+  .hl-k.haupt { background: var(--f); border-color: var(--f); color: #fff; }
+  .hl-leer { font-size: 14px; font-weight: 700; color: #94a3b8; padding: 6px 0; }
+  .hl-breit { grid-column: 1 / -1; }
+  .hl-fehler { margin-top: 12px; font-size: 12px; font-weight: 700; color: #92400e; background: #fef3c7; border-radius: 12px; padding: 8px 12px; }
+  @media (max-width: 900px) { .hl-grid { grid-template-columns: 1fr; } }
+  @media (max-width: 640px) {
+    .hl-hero { padding: 18px; border-radius: 20px; } .hl-hero h1 { font-size: 23px; } .hl-btns { position: static; margin-top: 14px; }
+    .hl-punkt { grid-template-columns: 52px 1fr; } .hl-aktion { grid-column: 2; justify-content: flex-start; }
+  }
+  @media print { .hl-btns, .hl-aktion, .kgm { display: none !important; } .hl-hero { color: #0f172a; background: #fff; border: 2px solid #0f172a; } .hl-chip { color: #0f172a; } }
+</style>
+
+{% set farbe = {"termine": "#2563eb", "besichtigungen": "#7c3aed", "rueckrufe": "#0284c7", "todos": "#16a34a", "berichte": "#ea580c", "stundenzettel": "#0f766e"} %}
+<div class="hl">
+  <section class="hl-hero">
+    <small>{{ "☀️ Guten Morgen" if ist_heute else "📋 Arbeitsliste" }}</small>
+    <h1>{{ l.titel }}</h1>
+    <p>{% if l.anzahl %}{{ l.anzahl }} Punkte für heute – das Wichtigste zuerst.{% else %}Heute steht nichts Dringendes an. 👍{% endif %}</p>
+    <div class="hl-chips">
+      {% for key, titel in abschnitte %}{% if l[key] %}<a class="hl-chip" href="#{{ key }}">{{ titel }} {{ l[key]|length }}</a>{% endif %}{% endfor %}
+      {% if l.neue_firmen %}<a class="hl-chip" href="/lead-sammler">🆕 {{ l.neue_firmen }} neue Firmen</a>{% endif %}
+    </div>
+    <div class="hl-btns">
+      <button type="button" id="hlWa">📱 Per WhatsApp senden</button>
+      <button type="button" onclick="window.print()">🖨 Drucken</button>
+    </div>
+    <div class="hl-msg" id="hlMsg"></div>
+  </section>
+
+  <div class="hl-grid">
+    {% for key, titel in abschnitte %}
+    {% set f = farbe[key] %}
+    <section class="hl-karte{% if key in ('todos', 'berichte') and l[key]|length > 6 %} hl-breit{% endif %}" id="{{ key }}" style="--f:{{ f }}">
+      <h2>{{ titel }} <span>{{ l[key]|length }}</span></h2>
+      {% for e in l[key] %}
+      <div class="hl-punkt" {% if e.art %}data-art="{{ e.art }}" data-id="{{ e.id or '' }}" data-bericht="{{ e.bericht_id or '' }}" data-lead="{{ e.lead_id or '' }}"{% endif %}>
+        <div class="hl-zeit">{{ e.zeit or "—" }}</div>
+        <div>
+          <div class="hl-titel">{% if e.link %}<a href="{{ e.link }}">{{ e.titel }}</a>{% else %}{{ e.titel }}{% endif %}</div>
+          {% if e.sub %}<div class="hl-sub{% if e.ueberfaellig or (e.sub and e.sub.startswith('überfällig')) %} rot{% endif %}">{{ e.sub }}</div>{% endif %}
+        </div>
+        <div class="hl-aktion">
+          {% if e.telefon %}<a class="hl-k haupt" href="tel:{{ e.telefon|replace(' ', '') }}">📞 Anrufen</a>{% endif %}
+          {% if e.art in ('todo', 'bericht') %}<button type="button" class="hl-k hl-ok">☐ Erledigt</button>{% endif %}
+        </div>
+      </div>
+      {% else %}
+      <div class="hl-leer">Nichts für heute.</div>
+      {% endfor %}
+    </section>
+    {% endfor %}
+
+    {% if l.business %}
+    <section class="hl-karte hl-breit" style="--f:#047857">
+      <h2>⚡ KG Business <span>{{ l.business.rueckrufe|length + l.business.todos|length }}</span></h2>
+      {% for e in l.business.rueckrufe + l.business.todos %}
+      <div class="hl-punkt">
+        <div class="hl-zeit">{{ e.zeit or "—" }}</div>
+        <div><div class="hl-titel"><a href="{{ e.link }}" target="_blank" rel="noopener">{{ e.titel }}</a></div>{% if e.sub %}<div class="hl-sub">{{ e.sub }}</div>{% endif %}</div>
+        <div class="hl-aktion">{% if e.telefon %}<a class="hl-k haupt" href="tel:{{ e.telefon|replace(' ', '') }}">📞 Anrufen</a>{% endif %}</div>
+      </div>
+      {% else %}
+      <div class="hl-leer">Nichts Fälliges in KG Business.</div>
+      {% endfor %}
+    </section>
+    {% endif %}
+  </div>
+
+  {% if l.fehler %}<div class="hl-fehler">Nicht erreichbar: {{ l.fehler|join(" · ") }}</div>{% endif %}
+</div>
+
+{% include "_kg_meldungen_karte.html" %}
+
+<script>
+(function () {
+  const msg = (t, ok) => { const m = document.getElementById("hlMsg"); m.textContent = t; m.style.color = ok ? "#dcfce7" : "#fecaca"; };
+  document.getElementById("hlWa").addEventListener("click", async () => {
+    try {
+      const r = await fetch("/api/heute/jetzt-senden", { method: "POST" });
+      const d = await r.json();
+      if (!r.ok || !d.success) throw new Error(d.error || "Fehler");
+      msg("✓ Liste ist in der WhatsApp-Warteschlange.", true);
+    } catch (e) { msg(e.message, false); }
+  });
+  document.querySelectorAll(".hl-ok").forEach(btn => btn.addEventListener("click", async () => {
+    const p = btn.closest(".hl-punkt");
+    btn.disabled = true;
+    try {
+      const r = await fetch("/api/heute/erledigt", { method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ art: p.dataset.art, id: p.dataset.id, bericht_id: p.dataset.bericht, lead_id: p.dataset.lead }) });
+      const d = await r.json();
+      if (!r.ok || !d.success) throw new Error(d.error || "Fehler");
+      p.classList.add("weg"); btn.textContent = "✓ Erledigt";
+    } catch (e) { alert(e.message); btn.disabled = false; }
+  }));
+})();
+</script>
+{% endblock %}

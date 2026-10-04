@@ -882,6 +882,10 @@ register_leon_auto_kampagne(app, login_required, get_db_connection, lambda: _leo
 from kampagnen_bericht import register_kampagnen_bericht
 register_kampagnen_bericht(app, login_required, get_db_connection, lambda: _leon_routes_mod.leon_client)
 
+# Arbeitsliste für heute (/heute): jeden Werktag als To-Do-Karte (+ WhatsApp an den Chef); der Agent antwortet dem Chef per WhatsApp
+from tagesliste import register_tagesliste
+register_tagesliste(app, login_required, get_db_connection, lambda: _leon_routes_mod.leon_client)
+
 # Menüpunkte „Vertrag“ (Kunden-Reinigungsvertrag) und „Vertretung“ (Personal)
 from vertrag_vertretung import register_vertrag_vertretung
 register_vertrag_vertretung(app, login_required, get_db_connection)

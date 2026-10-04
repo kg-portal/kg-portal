@@ -812,7 +812,7 @@
                 <i class="fa-solid fa-grip-vertical portal-drag-handle"></i>
             </a>
 
-            <a class="portal-nav-item {% if request.path.startswith('/todo') %}active{% endif %}" href="/todo" data-nav-key="todo">
+            <a class="portal-nav-item {% if request.path.startswith('/todo') or request.path == '/heute' %}active{% endif %}" href="/todo" data-nav-key="todo">
                 <span class="portal-nav-content"><i class="fa-solid fa-clipboard-list icon-pink"></i> To Do Liste</span>
                 <i class="fa-solid fa-grip-vertical portal-drag-handle"></i>
             </a>
