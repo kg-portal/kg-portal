@@ -987,12 +987,18 @@ document.addEventListener('DOMContentLoaded', function () {
 
     const currentPath = window.location.pathname || '/';
     const navItems = Array.from(nav.querySelectorAll('.portal-nav-item'));
+    // Vom Server markierter Punkt (z. B. Leon für alle /leon/…-Seiten, auch wenn der Link auf /leon/gespraeche zeigt)
+    const serverAktiv = nav.querySelector('.portal-nav-item.active');
     navItems.forEach(function (item) {
         const href = item.getAttribute('href') || '';
         const isHome = currentPath === '/' && href === '/';
         const isSubPage = href !== '/' && currentPath.startsWith(href);
         item.classList.toggle('active', isHome || isSubPage);
     });
+
+    if (!nav.querySelector('.portal-nav-item.active') && serverAktiv) {
+        serverAktiv.classList.add('active');
+    }
 
     if (!nav.querySelector('.portal-nav-item.active') && navItems.length) {
         navItems[0].classList.add('active');
