@@ -15,7 +15,9 @@
 # =====================================================
 import json
 import os
-from datetime import date, datetime, timedelta
+import threading
+import time
+from datetime import date, datetime, timedelta, timezone
 
 from flask import jsonify, render_template, request, session
 
@@ -481,6 +483,256 @@ def leon_abbrechen(conn, client, worker_id, monat):
     return _monat_row(conn, worker_id, monat)
 
 
+# ----------------------------------------------------- Automatik
+# Läuft im CRM selbst (kein Render-Cron nötig), alle 10 Minuten:
+#  1. Ab Tag „fuell_tag“ (Standard 1.): Monat für alle aktiven Mitarbeiter mit
+#     festen Zeiten ausfüllen – je Mitarbeiter und Monat höchstens einmal.
+#  2. Ab Tag „anruf_tag“ (Standard 20., Mo–Fr, kein Feiertag, ab „anruf_stunde“
+#     bis 18 Uhr): Leon ruft jeden ausgefüllten Mitarbeiter an – je Monat
+#     höchstens einmal. Läuft gerade eine andere Leon-Kampagne, neuer Versuch
+#     nach 30 Minuten.
+#  3. Laufende Leon-Kontrollen nachhalten (Ergebnis holen, Kampagne pausieren,
+#     sobald niemand mehr wartet – sonst blockiert sie Verkaufskampagnen).
+# Standard: beides AUS. Bestätigte Monate, „Rückgängig“ und von Hand
+# gestartete Leon-Kontrollen werden nie überschrieben.
+# Für eine Umgebung ganz abschalten: STZ_AUTOMATIK_AUS=1.
+
+AUTOMATIK_STANDARD = {"fuellen_an": False, "fuell_tag": 1, "anruf_an": False, "anruf_tag": 20, "anruf_stunde": 10}
+ANRUF_BIS_STUNDE = 18
+TAKT_SEKUNDEN = 600
+ERNEUT_MINUTEN = 30
+_automatik_gestartet = False
+_automatik_lock = threading.Lock()
+
+
+def berlin_jetzt():
+    """Uhrzeit in Deutschland (der Server läuft in UTC)."""
+    try:
+        from zoneinfo import ZoneInfo
+        return datetime.now(ZoneInfo("Europe/Berlin")).replace(tzinfo=None)
+    except Exception:
+        utc = datetime.now(timezone.utc).replace(tzinfo=None)
+        # Sommerzeit: letzter Sonntag im März bis letzter Sonntag im Oktober, jeweils 01:00 UTC
+        maerz = datetime(utc.year, 3, 31, 1) - timedelta(days=(date(utc.year, 3, 31).weekday() + 1) % 7)
+        oktober = datetime(utc.year, 10, 31, 1) - timedelta(days=(date(utc.year, 10, 31).weekday() + 1) % 7)
+        return utc + timedelta(hours=2 if maerz <= utc < oktober else 1)
+
+
+def _automatik_tabellen(conn):
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS stundenzettel_automatik (
+            schluessel TEXT PRIMARY KEY,
+            wert TEXT
+        )
+    """)
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS stundenzettel_automatik_laeufe (
+            monat TEXT NOT NULL,
+            schritt TEXT NOT NULL,
+            worker_id INTEGER,
+            zeit TEXT,
+            bericht TEXT,
+            PRIMARY KEY (monat, schritt)
+        )
+    """)
+    conn.commit()
+
+
+def automatik_einstellungen(conn):
+    _automatik_tabellen(conn)
+    e = dict(AUTOMATIK_STANDARD)
+    row = conn.execute("SELECT wert FROM stundenzettel_automatik WHERE schluessel = 'einstellungen'").fetchone()
+    if row:
+        try:
+            e.update({k: v for k, v in json.loads(row["wert"]).items() if k in AUTOMATIK_STANDARD})
+        except (ValueError, TypeError, AttributeError):
+            pass
+    return e
+
+
+def automatik_speichern(conn, daten):
+    e = automatik_einstellungen(conn)
+    try:
+        neu = {
+            "fuellen_an": bool(daten.get("fuellen_an", e["fuellen_an"])),
+            "fuell_tag": max(1, min(28, int(daten.get("fuell_tag", e["fuell_tag"])))),
+            "anruf_an": bool(daten.get("anruf_an", e["anruf_an"])),
+            "anruf_tag": max(1, min(28, int(daten.get("anruf_tag", e["anruf_tag"])))),
+            "anruf_stunde": max(8, min(17, int(daten.get("anruf_stunde", e["anruf_stunde"])))),
+        }
+    except (TypeError, ValueError):
+        raise ValueError("Bitte Zahlen prüfen (Tag 1–28, Uhrzeit 8–17).")
+    conn.execute(
+        "INSERT INTO stundenzettel_automatik (schluessel, wert) VALUES ('einstellungen', ?) "
+        "ON CONFLICT(schluessel) DO UPDATE SET wert = excluded.wert",
+        (json.dumps(neu),),
+    )
+    conn.commit()
+    return neu
+
+
+def _schritt(conn, monat, schritt):
+    return conn.execute(
+        "SELECT * FROM stundenzettel_automatik_laeufe WHERE monat = ? AND schritt = ?", (monat, schritt)
+    ).fetchone()
+
+
+def _schritt_merken(conn, monat, schritt, worker_id, zeit, bericht):
+    conn.execute(
+        "INSERT OR REPLACE INTO stundenzettel_automatik_laeufe (monat, schritt, worker_id, zeit, bericht) VALUES (?, ?, ?, ?, ?)",
+        (monat, schritt, worker_id, zeit.isoformat(timespec="seconds"), str(bericht)[:500]),
+    )
+    conn.commit()
+
+
+def automatik_letzte(conn, anzahl=12):
+    """Letzte Schritte der Automatik (neueste zuerst) für die Übersicht."""
+    _automatik_tabellen(conn)
+    return [dict(r) for r in conn.execute(
+        "SELECT monat, schritt, worker_id, zeit, bericht FROM stundenzettel_automatik_laeufe ORDER BY zeit DESC LIMIT ?",
+        (anzahl,),
+    )]
+
+
+def _wert(conn, schluessel, standard="0"):
+    row = conn.execute("SELECT wert FROM stundenzettel_automatik WHERE schluessel = ?", (schluessel,)).fetchone()
+    return row["wert"] if row and row["wert"] is not None else standard
+
+
+def automatik_durchgang(conn, leon_client_factory, sofort=False):
+    """Ein Durchgang mit Sperre: nie zwei gleichzeitig (Render kann mehrere Prozesse
+    starten) und im Hintergrund höchstens einmal je Takt. → (gelaufen, aktionen)"""
+    _automatik_tabellen(conn)
+    jetzt = time.time()
+    if not sofort and jetzt - float(_wert(conn, "letzter_lauf")) < TAKT_SEKUNDEN - 120:
+        return False, []
+    conn.execute("INSERT OR IGNORE INTO stundenzettel_automatik (schluessel, wert) VALUES ('sperre_bis', '0')")
+    cur = conn.execute(
+        "UPDATE stundenzettel_automatik SET wert = ? WHERE schluessel = 'sperre_bis' AND CAST(wert AS REAL) < ?",
+        (str(jetzt + 300), jetzt),
+    )
+    conn.commit()
+    if cur.rowcount != 1:
+        return False, []
+    try:
+        return True, automatik_lauf(conn, leon_client_factory)
+    finally:
+        conn.execute(
+            "INSERT OR REPLACE INTO stundenzettel_automatik (schluessel, wert) VALUES ('letzter_lauf', ?)",
+            (str(time.time()),),
+        )
+        conn.execute("UPDATE stundenzettel_automatik SET wert = '0' WHERE schluessel = 'sperre_bis'")
+        conn.commit()
+
+
+def automatik_lauf(conn, leon_client_factory, jetzt=None):
+    """Ein Durchgang der Automatik. Gibt die erledigten Schritte als Texte zurück."""
+    ensure_tables(conn)
+    e = automatik_einstellungen(conn)
+    jetzt = jetzt or berlin_jetzt()
+    monat = f"{jetzt.year:04d}-{jetzt.month:02d}"
+    aktionen = []
+    if not (e["fuellen_an"] or e["anruf_an"]):
+        return aktionen
+    workers = [
+        w for w in conn.execute(
+            "SELECT m.id, m.vorname, m.nachname, m.telefon FROM mitarbeiter m "
+            "JOIN stundenzettel_vorlagen v ON v.worker_id = m.id WHERE m.status = 'aktiv' ORDER BY m.id"
+        ).fetchall()
+        if any(p["aktiv"] for p in _plan_laden(conn, w["id"]).values())
+    ]
+
+    def fuellen(w, zusatz=""):
+        if _schritt(conn, monat, f"fuellen:{w['id']}"):
+            return  # schon einmal ausgefüllt (oder danach zurückgenommen) – nicht noch einmal
+        try:
+            r = monat_fuellen(conn, w["id"], monat)
+            text = f"{_name(w)}: Monat ausgefüllt, {r['neu']} Tage eingetragen{zusatz}"
+        except ValueError as exc:
+            text = f"{_name(w)}: nicht ausgefüllt – {exc}"
+        _schritt_merken(conn, monat, f"fuellen:{w['id']}", w["id"], jetzt, text)
+        aktionen.append(text)
+
+    # 1. Monatsanfang: ausfüllen
+    if e["fuellen_an"] and jetzt.day >= e["fuell_tag"]:
+        for w in workers:
+            if _monat_row(conn, w["id"], monat).get("status") == "offen":
+                fuellen(w)
+
+    # 2. Leon-Kontrollanruf
+    werktag = jetzt.weekday() < 5 and jetzt.date() not in feiertage_nrw(jetzt.year)
+    client = None
+    if e["anruf_an"] and jetzt.day >= e["anruf_tag"] and werktag and e["anruf_stunde"] <= jetzt.hour < ANRUF_BIS_STUNDE:
+        for w in workers:
+            if _schritt(conn, monat, f"anruf:{w['id']}"):
+                continue
+            if _monat_row(conn, w["id"], monat).get("status") == "offen":
+                fuellen(w, " (vor dem Leon-Anruf)")
+            row = _monat_row(conn, w["id"], monat)
+            if row.get("status") != "ausgefuellt" or row.get("leon_lead_id"):
+                continue  # bestätigt, zurückgenommen oder Leon schon von Hand beauftragt
+            versuch = _schritt(conn, monat, f"anruf_versuch:{w['id']}")
+            if versuch and str(versuch["zeit"]) > (jetzt - timedelta(minutes=ERNEUT_MINUTEN)).isoformat(timespec="seconds"):
+                continue
+            try:
+                client = client or leon_client_factory()
+                leon_anruf_starten(conn, client, w["id"], monat)
+                text = f"{_name(w)}: Leon-Kontrollanruf gestartet"
+                _schritt_merken(conn, monat, f"anruf:{w['id']}", w["id"], jetzt, text)
+            except Exception as exc:  # andere Kampagne aktiv, Leon nicht erreichbar, …
+                text = f"{_name(w)}: Leon-Anruf noch nicht möglich – {exc}"
+                _monat_speichern(conn, w["id"], monat, leon_info=("Automatik: " + str(exc))[:500])
+                conn.commit()
+                _schritt_merken(conn, monat, f"anruf_versuch:{w['id']}", w["id"], jetzt, text)
+            aktionen.append(text)
+
+    # 3. Laufende Leon-Kontrollen nachhalten
+    if e["anruf_an"]:
+        wartend = conn.execute(
+            "SELECT worker_id, monat FROM stundenzettel_monate WHERE status = 'leon_wartet' ORDER BY monat, worker_id"
+        ).fetchall()
+        for r in wartend:
+            try:
+                client = client or leon_client_factory()
+                neu = leon_status_aktualisieren(conn, client, r["worker_id"], r["monat"])
+            except Exception:
+                continue  # Leon gerade nicht erreichbar – nächster Takt
+            if neu.get("status") == "leon_fertig":
+                w = _worker(conn, r["worker_id"])
+                text = f"{_name(w) if w else r['worker_id']}: Leon-Gespräch beendet – bitte prüfen und bestätigen"
+                _schritt_merken(conn, r["monat"], f"leon_fertig:{r['worker_id']}", r["worker_id"], jetzt, text)
+                aktionen.append(text)
+    return aktionen
+
+
+def automatik_starten(get_db_connection, leon_client_factory):
+    """Hintergrund-Takt einmal je Prozess starten."""
+    global _automatik_gestartet
+    if os.getenv("STZ_AUTOMATIK_AUS", "").strip() == "1":
+        return
+    with _automatik_lock:
+        if _automatik_gestartet:
+            return
+        _automatik_gestartet = True
+
+    def schleife():
+        time.sleep(90)
+        while True:
+            try:
+                conn = get_db_connection()
+                try:
+                    _gelaufen, aktionen = automatik_durchgang(conn, leon_client_factory)
+                    for text in aktionen:
+                        print("STUNDENZETTEL-AUTOMATIK:", text)
+                finally:
+                    conn.close()
+            except Exception as exc:
+                print("STUNDENZETTEL-AUTOMATIK FEHLER:", exc)
+            time.sleep(TAKT_SEKUNDEN)
+
+    threading.Thread(target=schleife, name="stundenzettel-automatik", daemon=True).start()
+
+
 # ----------------------------------------------------- Routen
 
 def register_stundenzettel_auto(app, login_required, get_db_connection, leon_client_factory):
@@ -500,6 +752,43 @@ def register_stundenzettel_auto(app, login_required, get_db_connection, leon_cli
     @login_required
     def stundenzettel_automatik_seite():
         return render_template("stundenzettel_auto.html")
+
+    @app.route("/api/stz-auto/automatik", methods=["GET", "POST"])
+    @login_required
+    def stz_auto_automatik():
+        conn = _conn()
+        try:
+            if request.method == "POST":
+                try:
+                    automatik_speichern(conn, _json())
+                except ValueError as exc:
+                    return _fehler(exc)
+            jetzt = berlin_jetzt()
+            return jsonify({
+                "success": True,
+                "einstellungen": automatik_einstellungen(conn),
+                "letzte": automatik_letzte(conn),
+                "jetzt": jetzt.isoformat(timespec="minutes"),
+                "laeuft": _automatik_gestartet,
+            })
+        finally:
+            conn.close()
+
+    @app.route("/api/stz-auto/automatik/jetzt", methods=["POST"])
+    @login_required
+    def stz_auto_automatik_jetzt():
+        conn = _conn()
+        try:
+            gelaufen, aktionen = automatik_durchgang(conn, leon_client_factory, sofort=True)
+            if not gelaufen:
+                return jsonify({"success": True, "aktionen": [], "info": "Die Automatik arbeitet gerade – bitte gleich noch einmal."})
+            return jsonify({"success": True, "aktionen": aktionen})
+        except Exception as exc:
+            return _fehler(exc, 502)
+        finally:
+            conn.close()
+
+    automatik_starten(get_db_connection, leon_client_factory)
 
     @app.route("/api/stz-auto/uebersicht")
     @login_required

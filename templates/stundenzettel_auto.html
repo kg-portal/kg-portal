@@ -37,6 +37,14 @@
   .sza-msg { margin-top: 10px; font-size: 13px; font-weight: 700; }
   .sza-msg.ok { color: #15803d; } .sza-msg.err { color: #b91c1c; }
   .sza-help { font-size: 13px; color: #475569; line-height: 1.55; }
+  .sza-auto { border: 2px solid #bfdbfe; }
+  .sza-auto-opt { display: flex; gap: 10px; align-items: flex-start; margin-top: 10px; font-size: 15px; font-weight: 700; color: #0f172a; line-height: 2.5; }
+  .sza-auto-opt input[type=checkbox] { width: 22px; height: 22px; flex: 0 0 22px; margin-top: 10px; }
+  .sza-auto-opt input[type=number] { font-size: 16px; padding: 6px 8px; border: 1px solid #cbd5e1; border-radius: 9px; width: 70px; }
+  .sza-auto-opt select { font-size: 16px; padding: 6px 8px; border: 1px solid #cbd5e1; border-radius: 9px; width: 96px; }
+  .sza-auto-log { margin-top: 12px; font-size: 13px; color: #334155; line-height: 1.6; }
+  .sza-auto-log div { border-top: 1px solid #f1f5f9; padding: 4px 0; }
+  .b-an { background: #dcfce7; color: #166534; } .b-aus { background: #e2e8f0; color: #334155; }
   @media (max-width: 700px) {
     .sza-wrap { padding: 12px 10px 40px; }
     .sza-head h1 { font-size: 21px; }
@@ -63,6 +71,25 @@
     2. „Monat ausfüllen“. 3. „Leon anrufen lassen“ (Leon liest die Zusammenfassung vor und fragt nach Abweichungen).
     4. Ergebnis lesen, Stunden ggf. im Stundenzettel korrigieren, dann „Bestätigen &amp; sperren“.
     „Rückgängig“ löscht nur automatisch eingetragene Tage, die niemand verändert hat.
+  </div>
+
+  <div class="sza-card sza-auto" id="szaAuto">
+    <div class="sza-row">
+      <div class="sza-name">🤖 Automatik</div>
+      <span class="sza-badge b-aus" id="aBadge">…</span>
+    </div>
+    <label class="sza-auto-opt"><input type="checkbox" id="aFuellen"><span>Monat automatisch ausfüllen – ab dem
+      <input type="number" id="aFuellTag" min="1" max="28" aria-label="Tag ausfüllen"> . des Monats</span></label>
+    <label class="sza-auto-opt"><input type="checkbox" id="aAnruf"><span>Leon ruft alle an – ab dem
+      <input type="number" id="aAnrufTag" min="1" max="28" aria-label="Tag Leon-Anruf"> . um
+      <select id="aAnrufStunde" aria-label="Uhrzeit Leon-Anruf"></select> Uhr (Mo–Fr, nicht an Feiertagen)</span></label>
+    <div class="sza-sub" style="margin-top:10px;">Je Mitarbeiter und Monat nur einmal. Bestätigte Monate, „Rückgängig“ und von Hand gestartete Leon-Anrufe bleiben unberührt.</div>
+    <div class="sza-btns">
+      <button class="sza-btn c-green" id="aSave">Automatik speichern</button>
+      <button class="sza-btn c-slate" id="aJetzt">Jetzt prüfen</button>
+    </div>
+    <div class="sza-msg" id="aMsg"></div>
+    <div class="sza-auto-log" id="aLog"></div>
   </div>
 
   <div id="szaList"></div>
@@ -238,12 +265,58 @@
 
   monatInput.addEventListener("change", laden);
 
+  // Automatik (Monatsanfang ausfüllen, Leon-Anruf ab dem 20.)
+  const aEl = (id) => document.getElementById(id);
+  for (let h = 8; h <= 17; h++) { const o = document.createElement("option"); o.value = h; o.textContent = h + ":00"; aEl("aAnrufStunde").append(o); }
+  function autoZeigen(d) {
+    const e = d.einstellungen || {};
+    aEl("aFuellen").checked = !!e.fuellen_an;
+    aEl("aFuellTag").value = e.fuell_tag;
+    aEl("aAnruf").checked = !!e.anruf_an;
+    aEl("aAnrufTag").value = e.anruf_tag;
+    aEl("aAnrufStunde").value = e.anruf_stunde;
+    const an = e.fuellen_an || e.anruf_an;
+    aEl("aBadge").className = "sza-badge " + (an ? "b-an" : "b-aus");
+    aEl("aBadge").textContent = an ? "eingeschaltet" : "ausgeschaltet";
+    const letzte = d.letzte || [];
+    aEl("aLog").innerHTML = letzte.length ? "<b>Zuletzt:</b>" + letzte.map((l) =>
+      `<div>${esc(String(l.zeit || "").replace("T", " ").slice(0, 16))} · ${esc(l.bericht)}</div>`).join("") : "";
+  }
+  function autoMsg(text, ok) { const m = aEl("aMsg"); m.className = "sza-msg " + (ok ? "ok" : "err"); m.textContent = text; }
+  async function autoLaden() {
+    try { autoZeigen(await api("/api/stz-auto/automatik")); } catch (e) { autoMsg(e.message, false); }
+  }
+  aEl("aSave").addEventListener("click", async () => {
+    const btn = aEl("aSave");
+    btn.disabled = true;
+    try {
+      autoZeigen(await api("/api/stz-auto/automatik", {
+        fuellen_an: aEl("aFuellen").checked, fuell_tag: aEl("aFuellTag").value,
+        anruf_an: aEl("aAnruf").checked, anruf_tag: aEl("aAnrufTag").value, anruf_stunde: aEl("aAnrufStunde").value,
+      }));
+      autoMsg("Gespeichert.", true);
+    } catch (e) { autoMsg(e.message, false); }
+    btn.disabled = false;
+  });
+  aEl("aJetzt").addEventListener("click", async () => {
+    const btn = aEl("aJetzt");
+    btn.disabled = true;
+    try {
+      const r = await api("/api/stz-auto/automatik/jetzt", {});
+      autoMsg(r.info || (r.aktionen.length ? r.aktionen.join(" · ") : "Geprüft – gerade nichts zu tun."), true);
+      await autoLaden();
+      await laden();
+    } catch (e) { autoMsg(e.message, false); }
+    btn.disabled = false;
+  });
+
   // Objekte = Kundenliste (nur lesen)
   fetch("/api/agent-read/table/kunden?limit=500&order=firma&desc=0").then((r) => r.json()).then((d) => {
     const dl = document.getElementById("szaObjekte");
     (d.rows || []).forEach((k) => { const o = document.createElement("option"); o.value = k.firma || ""; dl.append(o); });
   }).catch(() => {});
 
+  autoLaden();
   laden();
 })();
 </script>
