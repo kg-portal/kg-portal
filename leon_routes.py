@@ -186,7 +186,6 @@ LEON_PAGES = {
 }
 
 LEON_TABS = [
-    ("uebersicht", "/leon", "Übersicht"),
     # gleiche Reiter und Reihenfolge wie Leon in KG Business
     ("gespraeche", "/leon/gespraeche", "Telefonakquise"),
     ("kampagnen", "/leon/kampagnen", "Kampagnen"),
@@ -195,11 +194,12 @@ LEON_TABS = [
     ("anrufe", "/leon/anrufe", "Anrufe"),
     ("ergebnisse", "/leon/ergebnisse", "Ergebnisse"),
     ("archiv", "/leon/archiv", "Archiv"),
-    # nur im CRM
-    ("datenbank", "/leon/datenbank", "Aus Datenbank"),
     ("leads", "/leon/leads", "Leads"),
     ("agent", "/leon/agent", "Leon Einstellungen"),
     ("system", "/leon/system", "Anrufzeiten & Kosten"),
+    # nur im CRM (hängen an der CRM-Datenbank)
+    ("uebersicht", "/leon", "Übersicht"),
+    ("datenbank", "/leon/datenbank", "Aus Datenbank"),
 ]
 
 
