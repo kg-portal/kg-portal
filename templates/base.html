@@ -785,13 +785,24 @@
             }
         }
         }
+    
+    </style>
+    <style>
+        /* Logo statt Schrift oben links – wie im KG Business Portal */
+        .portal-sidebar-title.kg-logo-titel{height:auto !important;flex-shrink:0;padding:22px 18px 26px;background:#ffffff;border:2px solid #2563eb;box-shadow:0 16px 30px rgba(37,99,235,0.16), inset 0 1px 0 rgba(255,255,255,0.95);color:#1b2a6b}
+        .portal-sidebar-title.kg-logo-titel::before{display:none}
+        .portal-sidebar-title.kg-logo-titel::after{background:linear-gradient(90deg,transparent,#183a91,#2563eb,transparent)}
+        .portal-title-logo{position:relative;z-index:3;display:block;width:100%;max-height:120px;object-fit:contain}
+        .kg-logo-titel .portal-title-sub{margin-top:10px}
+        .kg-logo-titel .portal-title-sub{color:#1d4ed8;background:transparent;border:0;box-shadow:none}
+        @media (max-width:1024px){.portal-title-logo{width:auto;max-height:30px}.kg-logo-titel .portal-title-sub{margin-top:0}.portal-sidebar-title.kg-logo-titel{flex-direction:row;gap:8px;padding:10px 14px}}
     </style>
 </head>
 <body class="kg-portal-body">
 <div class="kg-portal-shell">
 
     <aside class="portal-sidebar">
-        <a class="portal-sidebar-title" href="/"><span class="portal-title-main">KG CRM</span><span class="portal-title-sub">PORTAL</span></a>
+        <a class="portal-sidebar-title kg-logo-titel" href="/"><img class="portal-title-logo" src="/static/kg_logo_portal.png" alt="KG Gebäudereinigung"><span class="portal-title-sub">PORTAL</span></a>
         <div data-kg-theme-slot style="padding:0 18px 12px;"></div>
 
         <nav id="portalNavSortable" class="portal-nav-list">
