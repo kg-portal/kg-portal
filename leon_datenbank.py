@@ -172,9 +172,21 @@ def register_leon_datenbank(app, login_required, get_db_connection, leon_client,
                 ORDER BY b COLLATE NOCASE
                 """
             ).fetchall()
+            # wie in KG Business: je Branche, wie viele Firmen eine Telefonnummer haben (nur Anzeige)
+            anrufbar = {
+                "leads": {r["b"]: r["n"] for r in conn.execute(
+                    """SELECT TRIM(branche_name) AS b, COUNT(*) AS n FROM leads
+                       WHERE COALESCE(TRIM(telefon), '') <> '' AND COALESCE(TRIM(branche_name), '') <> ''
+                       GROUP BY TRIM(branche_name)""")},
+                "tagesliste": {r["b"]: r["n"] for r in conn.execute(
+                    """SELECT TRIM(branche) AS b, COUNT(*) AS n FROM tagesliste_leads
+                       WHERE COALESCE(TRIM(telefon), '') <> '' AND COALESCE(TRIM(branche), '') <> ''
+                         AND COALESCE(status, 'offen') IN ('offen', 'neu', 'angerufen')
+                       GROUP BY TRIM(branche)""")},
+            }
         finally:
             conn.close()
-        return jsonify({"success": True, "branchen": [r["b"] for r in rows]})
+        return jsonify({"success": True, "branchen": [r["b"] for r in rows], "anrufbar": anrufbar})
 
     @app.route("/api/leon/datenbank/kandidaten")
     @login_required

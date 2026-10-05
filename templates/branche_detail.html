@@ -406,6 +406,50 @@ body{
     outline:none;
 }
 
+.kg-filter-form{
+    grid-template-columns:minmax(0,2fr) minmax(0,1.3fr) minmax(0,1fr) auto;
+}
+
+.kg-filter-btn{
+    border:0;
+    border-radius:18px;
+    padding:0 22px;
+    min-height:50px;
+    background:#0f766e;
+    color:#ffffff;
+    font-size:14px;
+    font-weight:900;
+    cursor:pointer;
+}
+
+.kg-filter-reset{
+    display:inline-block;
+    margin-top:10px;
+    font-size:13px;
+    font-weight:800;
+    color:#0f766e;
+}
+
+.kg-seiten{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:12px;
+    margin:18px 0 6px;
+    font-size:14px;
+    font-weight:800;
+    color:#475569;
+}
+
+.kg-seiten a{
+    padding:10px 16px;
+    border-radius:14px;
+    background:#ffffff;
+    border:1px solid #dbe3ef;
+    color:#0f172a;
+    text-decoration:none;
+}
+
 .detail-filter-row input::placeholder{
     color:#64748b;
 }
@@ -812,12 +856,29 @@ body{
             </div>
 
             <section class="detail-filter-card">
-                <div class="detail-filter-row" style="grid-template-columns: 1fr;">
-                    <input type="text" id="searchInput" placeholder="Firma, Ansprechpartner, Straße, Stadt oder PLZ suchen..." oninput="filterCompanies()">
-                </div>
+                <form class="detail-filter-row kg-filter-form" method="get" action="/branche-detail">
+                    <input type="hidden" name="branche" value="{{ branche }}">
+                    <input type="text" id="searchInput" name="q" value="{{ filter_q }}" placeholder="Firma, Ansprechpartner, Straße, Telefon suchen … (Enter = alle Seiten)" oninput="filterCompanies()">
+                    <select name="beruf" onchange="this.form.submit()">
+                        <option value="">Alle Berufe</option>
+                        {% for b in berufe %}<option value="{{ b.beruf }}" {% if b.beruf == filter_beruf %}selected{% endif %}>{{ b.beruf }} ({{ b.n }})</option>{% endfor %}
+                    </select>
+                    <input type="text" name="ort" value="{{ filter_ort }}" placeholder="Stadt oder PLZ">
+                    <button type="submit" class="kg-filter-btn">Filtern</button>
+                </form>
+                {% if filter_q or filter_beruf or filter_ort %}<a class="kg-filter-reset" href="/branche-detail?branche={{ branche }}">Filter zurücksetzen</a>{% endif %}
             </section>
 
             <section class="company-list" id="companyList"></section>
+
+            {% if seiten > 1 %}
+            <nav class="kg-seiten">
+                {% set filter_url = "&q=" ~ (filter_q|urlencode) ~ "&beruf=" ~ (filter_beruf|urlencode) ~ "&ort=" ~ (filter_ort|urlencode) %}
+                {% if seite > 1 %}<a href="/branche-detail?branche={{ branche }}&seite={{ seite - 1 }}{{ filter_url }}">‹ zurück</a>{% else %}<span></span>{% endif %}
+                <span>Seite {{ seite }} von {{ seiten }} · {{ gesamt }} Firmen</span>
+                {% if seite < seiten %}<a href="/branche-detail?branche={{ branche }}&seite={{ seite + 1 }}{{ filter_url }}">weiter ›</a>{% else %}<span></span>{% endif %}
+            </nav>
+            {% endif %}
 
             <div class="empty-state" id="emptyState">
                 <strong>Keine passenden Firmen gefunden.</strong>
@@ -860,20 +921,7 @@ body{
 </div>
 
 <script>
-const branchen = [
-    {nr:1,slug:"buero-verwaltung",title:"Büro & Verwaltung",text:"Bürogebäude, Verwaltungsbüro, Kanzlei, Rechtsanwalt, Steuerberater, Wirtschaftsprüfer, Notar, Immobilienbüro, Unternehmensberatung, Architekturbüro, Ingenieurbüro, Callcenter, Coworking Space, Versicherungsbüro, Verwaltungsstandort",count:"Büro- und Verwaltungsflächen"},
-    {nr:2,slug:"medizin-gesundheit",title:"Medizin & Gesundheit",text:"Arztpraxis, Zahnarztpraxis, Facharztpraxis, Gemeinschaftspraxis, Medizinisches Versorgungszentrum, Physiotherapie, Ergotherapie, Logopädie, Psychotherapie, Radiologie, Labor, Dialysezentrum, Apotheke, Sanitätshaus, Heilpraktikerpraxis",count:"Praxis- und Gesundheitsflächen"},
-    {nr:3,slug:"pflege-soziales",title:"Pflege & Soziales",text:"Pflegedienst, Tagespflege, Seniorenbetreuung, Pflegeheim, Seniorenheim, Betreutes Wohnen, Sozialstation, Wohngruppe, Behindertenhilfe, Jugendhilfe, Familienhilfe, Beratungsstelle, Hilfsorganisation, Caritas, Diakonie, AWO",count:"Pflege- und Sozialflächen"},
-    {nr:4,slug:"bildung-betreuung",title:"Bildung & Betreuung",text:"Kindergarten, Kita, Kindertagespflege, Schule, Privatschule, Nachhilfeinstitut, Sprachschule, Musikschule, Fahrschule, Berufsschule, Weiterbildungsträger, Schulungszentrum, Akademie, Seminarraum Anbieter, Hochschule / Universität Bereich",count:"Bildungs- und Betreuungsflächen"},
-    {nr:5,slug:"einzelhandel-verkaufsflaechen",title:"Einzelhandel & Verkaufsflächen",text:"Drogerie, Modegeschäft, Schuhgeschäft, Möbelhaus, Elektronikgeschäft, Optiker, Hörgeräteakustiker, Blumenladen, Buchhandlung, Juwelier, Sanitätshaus Verkaufsfläche, Telekommunikationsshop, Handyshop, Matratzenstudio, Küchenstudio, Showroom, Verkaufsfläche allgemein",count:"Kunden- und Verkaufsflächen"},
-    {nr:6,slug:"fitness-sport-freizeit",title:"Fitness, Sport & Freizeit",text:"Fitnessstudio, EMS Studio, Yoga Studio, Pilates Studio, Tanzschule, Kampfsportschule, Sportverein Gebäude, Tennisclub, Sporthalle, Schwimmschule, Freizeitcenter, Bowlingcenter, Indoor-Spielplatz, Kletterhalle, Reha-Sport Zentrum",count:"Sport- und Freizeitflächen"},
-    {nr:7,slug:"industrie-produktion",title:"Industrie & Produktion",text:"Produktionshalle, Maschinenbau, Metallverarbeitung, Kunststoffverarbeitung, Elektrotechnik Produktion, Verpackungsproduktion, Druckerei, Textilproduktion, Möbelproduktion, Montagebetrieb, Fertigungsbetrieb, Werkhalle, Industrieunternehmen, Produktionsstandort, Technischer Betrieb",count:"Produktions- und Industrieflächen"},
-    {nr:8,slug:"lager-logistik-grosshandel",title:"Lager, Logistik & Großhandel",text:"Lagerhalle, Versandlager, Logistikzentrum, Spedition, Paketdienst Standort, Großhandel, Baustoffhandel, Technikgroßhandel, Elektrogroßhandel, Sanitärgroßhandel, Werkzeughandel, Import / Export Betrieb, Umschlaglager, Warenlager, Fulfillment Standort",count:"Lager- und Logistikflächen"},
-    {nr:9,slug:"immobilien-hausverwaltung",title:"Immobilien & Hausverwaltung",text:"Hausverwaltung, WEG-Verwaltung, Mietverwaltung, Immobilienverwaltung, Wohnungsbaugesellschaft, Bauträger, Projektentwickler, Immobilienmakler, Gewerbeobjekt Verwaltung, Bürokomplex Verwaltung, Ärztehaus Verwaltung, Wohnanlage, Tiefgarage, Gemeinschaftsflächen, Objektverwaltung",count:"Objekt- und Verwaltungsflächen"},
-    {nr:10,slug:"finanzen-versicherung-beratung",title:"Finanzen, Versicherung & Beratung",text:"Bankfiliale, Versicherung, Versicherungsmakler, Finanzberatung, Kreditvermittlung, Vermögensberatung, Buchhaltung, Lohnbüro, Unternehmensberatung, Personalberatung, Coaching Büro, Maklerbüro, Beratungsagentur",count:"Finanz- und Beratungsflächen"},
-    {nr:11,slug:"handwerk-technik-service",title:"Handwerk, Technik & Service",text:"Elektrobetrieb, SHK Betrieb, Malerbetrieb, Dachdecker, Schreinerei, Tischlerei, Kfz Werkstatt, Autowerkstatt, Reifenservice, Gebäudetechnik, Sicherheitstechnik, IT Service, Reparaturbetrieb, Wartungsbetrieb, Servicebüro",count:"Werkstatt- und Serviceflächen"},
-    {nr:12,slug:"sonstige-gewerbe-dienstleister",title:"Sonstige Gewerbe & Dienstleister",text:"Agentur, Fotostudio, Kosmetikstudio, Friseur, Kanzleiähnlicher Dienstleister, Verein, Verband, Büroähnliche Dienstleister, nicht eindeutig zugeordnete Firmen, gemischte Gewerbeflächen, sonstige gewerbliche Objekte",count:"Sonstige gewerbliche Flächen"}
-];
+const branchen = {{ kaesten|tojson }};
 
 let currentBranch = null;
 let sortableCompanyList = null;
@@ -921,7 +969,7 @@ function getCompanySamples(branch){
     }));
 }
 function openBranch(slug){
-    const currentUrlBranch = new URLSearchParams(window.location.search).get("branche") || "";
+    const currentUrlBranch = {{ branche|tojson }};
 
     if(currentUrlBranch !== slug){
         window.location.href = "/branche-detail?branche=" + encodeURIComponent(slug);
@@ -936,9 +984,7 @@ function openBranch(slug){
     document.getElementById("mainView").classList.add("view-hidden");
     document.getElementById("detailView").classList.remove("view-hidden");
     document.getElementById("detailTitle").textContent = branch.title;
-    document.getElementById("detailSub").textContent = branch.count + " · Firmen können hier sortiert und aufgeklappt werden.";
-
-    document.getElementById("searchInput").value = "";
+    document.getElementById("detailSub").textContent = branch.count + " · {{ gesamt }} Firmen{% if seiten > 1 %} · Seite {{ seite }} von {{ seiten }}{% endif %}";
 
     renderCompanyList(branch);
     activateSortableCompanies();
@@ -1238,7 +1284,8 @@ async function saveCompanyOrder(){
                 "Content-Type":"application/json"
             },
             body:JSON.stringify({
-                ids:ids
+                ids:ids,
+                start:{{ sort_start|default(0) }}
             })
         });
     }catch(err){
@@ -1268,8 +1315,7 @@ function filterCompanies(){
 
 renderBranchen();
 
-const urlParams = new URLSearchParams(window.location.search);
-const urlBranch = urlParams.get("branche");
+const urlBranch = {{ branche|tojson }};
 
 if(urlBranch){
     setTimeout(() => {

@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>KG Portal V2</title>
+    <script src="/static/kg_theme.js"></script>
     <link rel="manifest" href="/static/manifest.json">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -791,6 +792,7 @@
 
     <aside class="portal-sidebar">
         <a class="portal-sidebar-title" href="/"><span class="portal-title-main">KG CRM</span><span class="portal-title-sub">PORTAL</span></a>
+        <div data-kg-theme-slot style="padding:0 18px 12px;"></div>
 
         <nav id="portalNavSortable" class="portal-nav-list">
             <a class="portal-nav-item {% if request.path == '/' %}active{% endif %}" href="/" data-nav-key="startseite">
@@ -810,7 +812,7 @@
                 <i class="fa-solid fa-grip-vertical portal-drag-handle"></i>
             </a>
 
-            <a class="portal-nav-item {% if request.path.startswith('/todo') %}active{% endif %}" href="/todo" data-nav-key="todo">
+            <a class="portal-nav-item {% if request.path.startswith('/todo') or request.path == '/heute' %}active{% endif %}" href="/todo" data-nav-key="todo">
                 <span class="portal-nav-content"><i class="fa-solid fa-clipboard-list icon-pink"></i> To Do Liste</span>
                 <i class="fa-solid fa-grip-vertical portal-drag-handle"></i>
             </a>
@@ -832,8 +834,18 @@
                 <i class="fa-solid fa-grip-vertical portal-drag-handle"></i>
             </a>
 
-            <a class="portal-nav-item {% if request.path.startswith('/leon') %}active{% endif %}" href="/leon" data-nav-key="leon">
-                <span class="portal-nav-content"><i class="fa-solid fa-phone-volume icon-blue"></i> Leon</span>
+            <a class="portal-nav-item {% if request.path.startswith('/lead-sammler') %}active{% endif %}" href="/lead-sammler" data-nav-key="lead-sammler">
+                <span class="portal-nav-content"><i class="fa-solid fa-magnifying-glass-location icon-teal"></i> Lead-Sammler</span>
+                <i class="fa-solid fa-grip-vertical portal-drag-handle"></i>
+            </a>
+
+            <a class="portal-nav-item {% if request.path.startswith('/leon') %}active{% endif %}" href="/leon/gespraeche" data-nav-key="leon">
+                <span class="portal-nav-content"><i class="fa-solid fa-headset icon-orange"></i> Leon</span>
+                <i class="fa-solid fa-grip-vertical portal-drag-handle"></i>
+            </a>
+
+            <a class="portal-nav-item {% if request.path.startswith('/rueckrufe') %}active{% endif %}" href="/rueckrufe" data-nav-key="rueckrufe">
+                <span class="portal-nav-content"><i class="fa-solid fa-phone-volume icon-teal"></i> Rückrufe</span>
                 <i class="fa-solid fa-grip-vertical portal-drag-handle"></i>
             </a>
 
@@ -924,7 +936,9 @@ document.addEventListener('DOMContentLoaded', function () {
         'kg-ai',
         'whatsapp-inbox',
         'datenbank',
+        'lead-sammler',
         'leon',
+        'rueckrufe',
         'besichtigung',
         'angebot',
         'leistungsverzeichnis',
@@ -973,12 +987,18 @@ document.addEventListener('DOMContentLoaded', function () {
 
     const currentPath = window.location.pathname || '/';
     const navItems = Array.from(nav.querySelectorAll('.portal-nav-item'));
+    // Vom Server markierter Punkt (z. B. Leon für alle /leon/…-Seiten, auch wenn der Link auf /leon/gespraeche zeigt)
+    const serverAktiv = nav.querySelector('.portal-nav-item.active');
     navItems.forEach(function (item) {
         const href = item.getAttribute('href') || '';
         const isHome = currentPath === '/' && href === '/';
         const isSubPage = href !== '/' && currentPath.startsWith(href);
         item.classList.toggle('active', isHome || isSubPage);
     });
+
+    if (!nav.querySelector('.portal-nav-item.active') && serverAktiv) {
+        serverAktiv.classList.add('active');
+    }
 
     if (!nav.querySelector('.portal-nav-item.active') && navItems.length) {
         navItems[0].classList.add('active');

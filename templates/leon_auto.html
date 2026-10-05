@@ -1,0 +1,252 @@
+{% extends "base.html" %}
+{% block content %}
+<!-- Gleiches Aussehen wie „Auto-Kampagne“ in KG Business; Logik und Daten bleiben die des CRM -->
+<style>
+  .ak-page { width:100%; max-width:1900px; margin:0 auto; background:#fff; border-radius:24px; box-shadow:0 18px 50px rgba(15,23,42,.08); border:1px solid #dbe3f0; overflow:hidden; font-family:Arial, Helvetica, sans-serif; color:#0f172a; }
+  .ak-hero { background:linear-gradient(135deg,#1e3a8a 0%,#2563eb 55%,#3b82f6 100%); color:#fff; padding:26px 30px; display:flex; justify-content:space-between; gap:18px; flex-wrap:wrap; align-items:flex-start; }
+  .ak-hero h1 { margin:0; font-size:28px; line-height:1.15; font-weight:900; color:#fff; }
+  .ak-hero p { margin:8px 0 0; font-size:14px; font-weight:700; max-width:70ch; line-height:1.5; }
+  .ak-state { background:rgba(255,255,255,.14); border:1px solid rgba(255,255,255,.25); border-radius:16px; padding:12px 18px; font-weight:900; font-size:15px; }
+  .ak-body { background:linear-gradient(180deg,#f8fafc 0%,#f1f5f9 100%); padding:24px 30px 32px; display:grid; grid-template-columns:minmax(0,1fr); gap:18px; }
+  .ak-card { min-width:0; background:#fff; border:1px solid #dbe3f0; border-radius:18px; padding:18px 20px; }
+  .ak-card h2 { margin:0 0 12px; font-size:18px; font-weight:900; color:#1e3a8a; }
+  .ak-grid { display:grid; grid-template-columns:repeat(4, minmax(0,1fr)); gap:14px; align-items:end; }
+  .ak-grid label, .ak-label { display:block; font-size:12px; font-weight:900; color:#334155; margin-bottom:6px; text-transform:uppercase; letter-spacing:.4px; }
+  .ak-in { width:100%; box-sizing:border-box; padding:10px 12px; border:2px solid #dbe3f0; border-radius:12px; background:#f8fafc; font-size:16px; font-family:inherit; color:#0f172a; }
+  .ak-branchen { display:flex; flex-wrap:wrap; gap:8px; margin-top:4px; }
+  .ak-chip { display:inline-flex; align-items:center; gap:7px; border:2px solid #dbe3f0; border-radius:999px; padding:7px 12px; font-size:14px; font-weight:800; cursor:pointer; background:#fff; color:#0f172a; }
+  .ak-chip input { width:16px; height:16px; }
+  .ak-chip.on { border-color:#2563eb; background:#eff6ff; }
+  .ak-chip small { color:#475569; font-weight:700; }
+  .ak-switch { display:flex; align-items:center; gap:10px; font-weight:900; font-size:15px; }
+  .ak-switch input { width:22px; height:22px; }
+  .ak-actions { display:flex; gap:10px; flex-wrap:wrap; margin-top:14px; }
+  .ak-btn { border:0; border-radius:12px; padding:11px 16px; min-height:44px; font-weight:900; font-size:14px; color:#fff; background:#2563eb; cursor:pointer; font-family:inherit; }
+  .ak-btn.blue { background:#1d4ed8; } .ak-btn.grey { background:#475569; }
+  .ak-btn:disabled { opacity:.55; cursor:wait; }
+  .ak-msg { margin-top:10px; font-size:14px; font-weight:800; }
+  .ak-msg.ok { color:#15803d; } .ak-msg.err { color:#b91c1c; }
+  .ak-hint { font-size:13px; color:#334155; line-height:1.55; margin:0; }
+  .ak-stats { display:flex; flex-wrap:wrap; gap:8px; margin:6px 0 12px; }
+  .ak-stat { background:#f1f5f9; border-radius:999px; padding:6px 12px; font-size:13px; font-weight:800; color:#1e293b; }
+  .ak-tablewrap { overflow-x:auto; }
+  .ak-table { width:100%; border-collapse:collapse; font-size:14px; }
+  .ak-table th { text-align:left; font-size:12px; color:#334155; padding:8px; border-bottom:2px solid #e2e8f0; white-space:nowrap; }
+  .ak-table td { padding:9px 8px; border-bottom:1px solid #eef2f7; vertical-align:top; }
+  .ak-pill { display:inline-block; padding:2px 9px; border-radius:999px; font-size:12px; font-weight:900; background:#dbeafe; color:#1e3a8a; }
+  .ak-pill.r2 { background:#fef3c7; color:#78350f; }
+  .ak-rules { font-size:14px; color:#334155; line-height:1.6; margin:0; padding-left:20px; }
+  .ak-points { font-weight:900; color:#1e3a8a; font-variant-numeric:tabular-nums; }
+  @media (max-width:1100px) { .ak-grid { grid-template-columns:1fr 1fr; } }
+  @media (max-width:640px) { .ak-hero, .ak-body { padding:16px; } .ak-grid { grid-template-columns:1fr; } .ak-hero h1 { font-size:22px; } }
+</style>
+
+{% include "_leon_tabs.html" %}
+
+<div class="ak-page">
+  <section class="ak-hero">
+    <div>
+      <h1>🤖 Leon Auto-Kampagne</h1>
+      <p>Jeden Morgen (Mo–Fr) die besten Firmen aus deinen ausgewählten Datenbanken im Umkreis – an Leon übergeben und die Kampagne starten.
+         Nicht erreicht → am nächsten Tag 2. Runde, danach 3 Wochen Pause. Erreichte Firmen werden nie wieder automatisch angerufen.</p>
+    </div>
+    <div class="ak-state" id="akState">…</div>
+  </section>
+
+  <div class="ak-body">
+    <div class="ak-card">
+      <h2>1. Einstellungen</h2>
+      <span class="ak-label">Branchen (Datenbanken) – Reihenfolge = Priorität</span>
+      <div class="ak-branchen" id="akBranchen"><span class="ak-hint">Lade …</span></div>
+      <div class="ak-grid" style="margin-top:16px;">
+        <div><label for="akQuelle">Quelle</label><select id="akQuelle" class="ak-in"><option value="leads">Datenbank (Leads)</option><option value="tagesliste">Tagesliste</option></select></div>
+        <div><label for="akPlz">Zentrum (PLZ)</label><input id="akPlz" class="ak-in" inputmode="numeric" maxlength="5" placeholder="47055"></div>
+        <div><label for="akRadius">Umkreis (km)</label><input id="akRadius" class="ak-in" type="number" min="1" max="150"></div>
+        <div><label for="akLimit">Firmen pro Tag</label><input id="akLimit" class="ak-in" type="number" min="1" max="300" value="50"></div>
+        <div><label for="akStunde">Start ab (Uhr, Mo–Fr)</label><input id="akStunde" class="ak-in" type="number" min="6" max="18" value="8"></div>
+        <div><label for="akAgent">Agent</label><select id="akAgent" class="ak-in"><option value="1">Leon</option></select></div>
+        <div style="grid-column: span 2;"><label for="akName">Kampagnenname</label><input id="akName" class="ak-in" maxlength="120"></div>
+      </div>
+      <div class="ak-actions">
+        <label class="ak-switch"><input type="checkbox" id="akAktiv"> Täglich automatisch ausführen</label>
+      </div>
+      <div class="ak-actions">
+        <button class="ak-btn" id="akSave">Speichern</button>
+      </div>
+      <div class="ak-msg" id="akMsg"></div>
+    </div>
+
+    <div class="ak-card">
+      <h2>2. Vorschau – wer heute dran wäre</h2>
+      <p class="ak-hint">Die Vorschau ändert nichts an Leon. „Jetzt ausführen“ übergibt die Liste an Leon und startet die Kampagne
+        (nur wenn im Leon-Motor keine andere Kampagne läuft).</p>
+      <div class="ak-actions">
+        <button class="ak-btn blue" id="akVorschau">Vorschau laden</button>
+        <button class="ak-btn grey" id="akRun">Jetzt ausführen</button>
+      </div>
+      <div class="ak-stats" id="akStats"></div>
+      <div class="ak-tablewrap">
+        <table class="ak-table">
+          <thead><tr><th>#</th><th>Firma</th><th>Branche</th><th>Ort</th><th>Runde</th><th>Punkte</th><th>Warum</th></tr></thead>
+          <tbody id="akRows"><tr><td colspan="7">Noch keine Vorschau geladen.</td></tr></tbody>
+        </table>
+      </div>
+      <div class="ak-msg" id="akMsg2"></div>
+    </div>
+
+    <div class="ak-card">
+      <h2>3. Letzter Lauf</h2>
+      <div id="akBericht" class="ak-hint">Noch nicht ausgeführt.</div>
+    </div>
+
+    <div class="ak-card">
+      <h2>4. Regeln</h2>
+      <ul class="ak-rules">
+        <li>Nur Firmen mit Telefonnummer aus den gewählten Datenbanken und im Umkreis (Entfernung über die PLZ).</li>
+        <li>Punkte: Priorität der Datenbank (bis 30), Nähe (bis 30), noch nie angerufen (+15), zweite Runde (+10), Website / E-Mail / Ansprechpartner (je +5).</li>
+        <li>Tag 1: Leon versucht bis zu 3-mal. Nicht erreicht → am nächsten Tag eine zweite Runde. Danach 3 Wochen Pause.</li>
+        <li>Nie wieder automatisch: Besichtigung, Interessiert, Rückruf, Kein Interesse, Nicht anrufen, verloren, Angebot.</li>
+        <li>Im Leon-Motor kann nur eine Kampagne gleichzeitig laufen. Läuft eine andere, wartet die Auto-Kampagne.</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  const $ = (id) => document.getElementById(id);
+  const esc = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  let gewaehlt = [];
+  let branchenListe = [];
+  let agentWahl = "1";
+  let anrufbar = {};
+
+  async function api(url, body) {
+    const opt = body === undefined ? {} : { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) };
+    const r = await fetch(url, opt);
+    let d = {};
+    try { d = await r.json(); } catch (e) { d = { success: false, error: "HTTP " + r.status }; }
+    if (!r.ok || d.success === false) throw new Error(d.error || ("HTTP " + r.status));
+    return d;
+  }
+  const msg = (id, text, ok) => { $(id).className = "ak-msg " + (ok ? "ok" : "err"); $(id).textContent = text; };
+
+  function zeigeZustand(e) {
+    $("akState").textContent = e.aktiv ? "AN – täglich ab " + e.startstunde + " Uhr" : "AUS";
+  }
+
+  function zeigeBericht(b, wann) {
+    if (!b) { $("akBericht").textContent = "Noch nicht ausgeführt."; return; }
+    const st = b.statistik || {};
+    let html = `<b>${esc((wann || b.zeit || "").replace("T", " ").slice(0, 16))}</b> – ${b.uebergeben || 0} Firmen an Leon übergeben`
+      + (b.gestartet ? ", Kampagne gestartet." : ".")
+      + `<br>Geprüft: ${st.gesamt || 0} · möglich: ${st.moeglich || 0} · zu weit: ${st.zu_weit || 0} · ohne Ort: ${st.ohne_ort || 0} · erledigt: ${st.erledigt || 0} · in Pause: ${st.pause || 0}`;
+    (b.hinweise || []).forEach((h) => { html += `<br>⚠️ ${esc(h)}`; });
+    $("akBericht").innerHTML = html;
+  }
+
+  function zeigeBranchen() {
+    const namen = gewaehlt.concat(branchenListe.filter((b) => !gewaehlt.includes(b)));
+    if (!namen.length) { $("akBranchen").innerHTML = '<span class="ak-hint">Keine Branchen in der Datenbank gefunden.</span>'; return; }
+    $("akBranchen").innerHTML = namen.map((b) => {
+      const on = gewaehlt.includes(b);
+      const nr = on ? (gewaehlt.indexOf(b) + 1) + ". " : "";
+      const n = (anrufbar[$("akQuelle").value] || {})[b] || 0;
+      return `<label class="ak-chip ${on ? "on" : ""}"><input type="checkbox" value="${esc(b)}" ${on ? "checked" : ""}> ${nr}${esc(b)} <small>(${n} anrufbar)</small></label>`;
+    }).join("");
+  }
+
+  $("akQuelle").addEventListener("change", () => zeigeBranchen());
+
+  $("akBranchen").addEventListener("change", (ev) => {
+    const b = ev.target.value;
+    if (ev.target.checked) { if (!gewaehlt.includes(b)) gewaehlt.push(b); }
+    else gewaehlt = gewaehlt.filter((x) => x !== b);
+    if (gewaehlt.length > 6) { gewaehlt = gewaehlt.slice(0, 6); msg("akMsg", "Höchstens 6 Branchen.", false); }
+    zeigeBranchen();
+  });
+
+  function form(e) {
+    $("akAktiv").checked = !!e.aktiv;
+    $("akQuelle").value = e.quelle || "leads";
+    $("akPlz").value = e.zentrum_plz || "47055";
+    $("akRadius").value = e.radius_km || 30;
+    $("akLimit").value = e.tageslimit || 50;
+    $("akStunde").value = e.startstunde || 8;
+    $("akName").value = e.kampagne_name || "Leon Auto-Kampagne";
+    agentWahl = String(e.agent_id || 1);
+    if ($("akAgent").querySelector(`option[value="${agentWahl}"]`)) $("akAgent").value = agentWahl;
+    gewaehlt = (e.branchen || []).slice();
+    zeigeZustand(e);
+    zeigeBericht(e.letzter_bericht, e.letzte_ausfuehrung);
+  }
+
+  async function speichern() {
+    const d = await api("/api/leon/auto/einstellungen", {
+      aktiv: $("akAktiv").checked, quelle: $("akQuelle").value, branchen: gewaehlt,
+      zentrum_plz: $("akPlz").value.trim(), radius_km: $("akRadius").value, tageslimit: $("akLimit").value,
+      startstunde: $("akStunde").value, kampagne_name: $("akName").value.trim(), agent_id: $("akAgent").value,
+    });
+    form(d.einstellungen);
+    zeigeBranchen();
+    return d;
+  }
+
+  $("akSave").onclick = async (ev) => {
+    ev.target.disabled = true;
+    try { await speichern(); msg("akMsg", "Gespeichert." + ($("akAktiv").checked ? " Läuft ab morgen früh automatisch (Mo–Fr)." : " Automatik ist aus."), true); }
+    catch (e) { msg("akMsg", e.message, false); }
+    ev.target.disabled = false;
+  };
+
+  $("akVorschau").onclick = async (ev) => {
+    ev.target.disabled = true;
+    try {
+      await speichern();
+      const d = await api("/api/leon/auto/vorschau");
+      const st = d.statistik || {};
+      $("akStats").innerHTML = st.hinweis ? `<span class="ak-stat">${esc(st.hinweis)}</span>` :
+        [["Geprüft", st.gesamt], ["Möglich", st.moeglich], ["Zu weit", st.zu_weit], ["Ohne Ort", st.ohne_ort], ["Erledigt", st.erledigt], ["In Pause", st.pause], ["Heute schon", st.heute_schon]]
+          .map(([k, v]) => `<span class="ak-stat">${k}: ${v || 0}</span>`).join("") + (d.weitere ? `<span class="ak-stat">+${d.weitere} weitere über dem Tageslimit</span>` : "");
+      $("akRows").innerHTML = (d.auswahl || []).length ? d.auswahl.map((r, i) => {
+        const warum = [r.runde === 2 ? "2. Runde" : "noch nie angerufen", r.entfernung_km + " km",
+                       r.website ? "Website" : "", r.email ? "E-Mail" : "", r.ansprechpartner ? "Ansprechpartner" : ""].filter(Boolean).join(" · ");
+        return `<tr><td>${i + 1}</td><td><b>${esc(r.firma)}</b></td><td>${esc(r.branche)}</td><td>${esc([r.plz, r.ort].filter(Boolean).join(" "))}</td>
+          <td><span class="ak-pill ${r.runde === 2 ? "r2" : ""}">${r.runde}</span></td><td class="ak-points">${r.punkte}</td><td>${esc(warum)}</td></tr>`;
+      }).join("") : '<tr><td colspan="7">Heute ist niemand dran.</td></tr>';
+      msg("akMsg2", "Vorschau aktualisiert – noch nichts an Leon übergeben.", true);
+    } catch (e) { msg("akMsg2", e.message, false); }
+    ev.target.disabled = false;
+  };
+
+  $("akRun").onclick = async (ev) => {
+    if (!confirm("Jetzt die Firmen aus der Vorschau an Leon übergeben und die Kampagne starten? Leon ruft dann an.")) return;
+    ev.target.disabled = true;
+    try {
+      await speichern();
+      const d = await api("/api/leon/auto/ausfuehren", {});
+      zeigeBericht(d.bericht);
+      msg("akMsg2", `${d.bericht.uebergeben || 0} Firmen an Leon übergeben.`, (d.bericht.uebergeben || 0) > 0);
+    } catch (e) { msg("akMsg2", e.message, false); }
+    ev.target.disabled = false;
+  };
+
+  (async () => {
+    try {
+      const [e, b] = await Promise.all([api("/api/leon/auto/einstellungen"), api("/api/leon/datenbank/branchen")]);
+      branchenListe = b.branchen || [];
+      anrufbar = b.anrufbar || {};
+      form(e.einstellungen);
+      zeigeBranchen();
+    } catch (err) { msg("akMsg", err.message, false); }
+    // Agenten aus dem Leon-Motor (wie in KG Business); ohne Antwort bleibt „Leon“
+    try {
+      const ag = await api("/leon-api/agents");
+      const opts = (ag.agents || []).map((a) => `<option value="${a.id}">${esc(a.agent_name || ("Agent " + a.id))}</option>`).join("");
+      if (opts) { $("akAgent").innerHTML = opts; }
+    } catch (err) { /* Standard-Agent bleibt */ }
+    if ($("akAgent").querySelector(`option[value="${agentWahl}"]`)) $("akAgent").value = agentWahl;
+  })();
+})();
+</script>
+{% endblock %}

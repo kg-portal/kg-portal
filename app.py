@@ -865,6 +865,43 @@ run_db_migration()
 register_kg_todo_routes(app, login_required, get_db_connection)
 register_leon_routes(app, login_required, get_db_connection)
 
+# KG Agent (Süper Program): nur lesender Zugriff, ändert nichts
+from agent_read_routes import register_agent_read_routes
+register_agent_read_routes(app, login_required, DB_PATH)
+
+# Stundenzettel-Automatik: feste Zeiten, Monat ausfüllen, Leon-Kontrolle, Monatssperre
+import leon_routes as _leon_routes_mod
+from stundenzettel_auto import register_stundenzettel_auto, monat_gesperrt as _stz_monat_gesperrt
+register_stundenzettel_auto(app, login_required, get_db_connection, lambda: _leon_routes_mod.leon_client)
+
+# Leon Auto-Kampagne: jeden Morgen die besten Firmen aus gewählten Datenbanken (Standard: aus)
+from leon_auto_kampagne import register_leon_auto_kampagne
+register_leon_auto_kampagne(app, login_required, get_db_connection, lambda: _leon_routes_mod.leon_client)
+
+# Kampagnen-Bericht: nach jeder fertigen Leon-Kampagne Bericht + To-Do-Karte (+ WhatsApp an den Chef, wenn eingestellt)
+from kampagnen_bericht import register_kampagnen_bericht
+register_kampagnen_bericht(app, login_required, get_db_connection, lambda: _leon_routes_mod.leon_client)
+
+# Arbeitsliste für heute (/heute): jeden Werktag als To-Do-Karte (+ WhatsApp an den Chef); der Agent antwortet dem Chef per WhatsApp
+from tagesliste import register_tagesliste
+register_tagesliste(app, login_required, get_db_connection, lambda: _leon_routes_mod.leon_client)
+
+# Menüpunkte „Vertrag“ (Kunden-Reinigungsvertrag) und „Vertretung“ (Personal)
+from vertrag_vertretung import register_vertrag_vertretung
+register_vertrag_vertretung(app, login_required, get_db_connection)
+
+# Lohnabrechnungen: Sammel-PDF aufteilen, mit Passwort schützen, nach Klick senden
+from lohnabrechnung import register_lohnabrechnung
+register_lohnabrechnung(app, login_required, get_db_connection)
+
+# Lead-Sammler (PC) → geprüfte Firmen aus dem Umkreis in die Datenbank (nur neue, nie doppelt)
+from lead_sammler_import import register_lead_sammler_import
+register_lead_sammler_import(app, login_required, get_db_connection)
+
+# Reiter „Lead-Sammler“ unter Datenbank: dieselbe Übersicht wie in KG Business
+from lead_sammler_reiter import register_lead_sammler_reiter
+register_lead_sammler_reiter(app, login_required)
+
 
 # =====================================================
 # Bölüm 4-GİRİŞ VE ÇIKIŞ İŞLEMLERİ (BURAYA GELDİ)
@@ -2388,6 +2425,10 @@ def save_stundenzettel():
         return jsonify({"success": False, "error": "Zugriff verweigert"}), 403
 
     conn = get_db_connection()
+    # Bestätigter Monat: Mitarbeiter-Link darf nichts mehr ändern (Chef schon)
+    if 'logged_in' not in session and any(_stz_monat_gesperrt(conn, worker_id, e.get('date')) for e in entries):
+        conn.close()
+        return jsonify({"success": False, "error": "Dieser Monat ist bestätigt und gesperrt."}), 423
     try:
         for e in entries:
             # Vorheriger Eintrag dieses Tages – für die Urlaubsrechnung
@@ -2442,6 +2483,10 @@ def delete_stundenzettel():
         return jsonify({"success": False, "error": "Zugriff verweigert"}), 403
 
     conn = get_db_connection()
+    # Bestätigter Monat: Mitarbeiter-Link darf nichts mehr löschen (Chef schon)
+    if 'logged_in' not in session and _stz_monat_gesperrt(conn, worker_id, date):
+        conn.close()
+        return jsonify({"success": False, "error": "Dieser Monat ist bestätigt und gesperrt."}), 423
     try:
         vorher = conn.execute(
             "SELECT place FROM work_logs WHERE worker_id = ? AND datum = ?",

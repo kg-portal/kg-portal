@@ -1,0 +1,136 @@
+{% extends "base.html" %}
+{% block content %}
+<style>
+  .lo-wrap { max-width: 1100px; margin: 0 auto; padding: 24px 18px 60px; font-family: Arial, Helvetica, sans-serif; }
+  .lo-head { background: linear-gradient(135deg, #1d4ed8, #6366f1); color: #fff; border-radius: 22px; padding: 22px 24px; }
+  .lo-head h1 { margin: 0; font-size: 26px; }
+  .lo-head p { margin: 6px 0 0; font-size: 14px; line-height: 1.55; }
+  .lo-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 18px; padding: 18px 20px; margin-top: 16px; }
+  .lo-card h2 { margin: 0 0 12px; font-size: 17px; color: #1e3a8a; }
+  .lo-row { display: flex; flex-wrap: wrap; gap: 12px; align-items: end; }
+  .lo-row label { display: block; font-size: 12px; font-weight: 800; color: #475569; margin-bottom: 5px; }
+  .lo-in { padding: 10px 12px; border: 2px solid #e2e8f0; border-radius: 12px; background: #f8fafc; font-size: 16px; font-family: inherit; }
+  .lo-btn { border: 0; border-radius: 12px; padding: 11px 16px; min-height: 42px; font-weight: 800; font-size: 14px; color: #fff; background: #2563eb; cursor: pointer; }
+  .lo-btn.green { background: #15803d; } .lo-btn.grey { background: #475569; } .lo-btn.red { background: #b91c1c; }
+  .lo-btn:disabled { opacity: .55; cursor: wait; }
+  .lo-table { width: 100%; border-collapse: collapse; font-size: 14px; margin-top: 10px; }
+  .lo-table th { text-align: left; font-size: 12px; color: #475569; padding: 8px; border-bottom: 2px solid #eef2f7; }
+  .lo-table td { padding: 9px 8px; border-bottom: 1px solid #f1f5f9; vertical-align: middle; }
+  .lo-pill { display: inline-block; padding: 3px 9px; border-radius: 999px; font-size: 12px; font-weight: 800; }
+  .p-bereit { background: #dbeafe; color: #1e40af; } .p-gesendet { background: #dcfce7; color: #166534; }
+  .p-passwort_fehlt, .p-email_fehlt { background: #fee2e2; color: #991b1b; }
+  .lo-msg { margin-top: 10px; font-size: 14px; font-weight: 700; }
+  .lo-msg.ok { color: #15803d; } .lo-msg.err { color: #b91c1c; }
+  .lo-hint { font-size: 13px; color: #475569; line-height: 1.55; }
+  .lo-tablewrap { overflow-x: auto; }
+</style>
+
+<div class="lo-wrap">
+  <div class="lo-head">
+    <h1>💶 Lohnabrechnungen versenden</h1>
+    <p>Sammel-PDF hochladen → jede Seite wird über den Namen dem Mitarbeiter zugeordnet → jeder bekommt ein eigenes PDF mit Passwort
+       (Geburtsdatum TTMMJJJJ). Erst prüfen, dann senden. Nichts geht automatisch raus.</p>
+  </div>
+
+  <div class="lo-card">
+    <h2>1. Sammel-PDF hochladen</h2>
+    <form class="lo-row" id="loForm">
+      <div><label for="loMonat">Monat</label><input id="loMonat" name="monat" type="month" class="lo-in" required></div>
+      <div><label for="loPdf">PDF (alle Abrechnungen)</label><input id="loPdf" name="pdf" type="file" accept="application/pdf" class="lo-in" required></div>
+      <div><button class="lo-btn" type="submit">Hochladen &amp; aufteilen</button></div>
+    </form>
+    <div class="lo-msg" id="loMsg"></div>
+  </div>
+
+  <div class="lo-card">
+    <h2>2. Prüfen und senden</h2>
+    <p class="lo-hint">„PDF“ lädt die verschlüsselte Datei zur Kontrolle (Passwort: Geburtsdatum TTMMJJJJ). Fehlt das Geburtsdatum,
+      kann ein Passwort von Hand gesetzt werden – das teilst du dem Mitarbeiter dann selbst mit.</p>
+    <div class="lo-tablewrap">
+      <table class="lo-table">
+        <thead><tr><th><input type="checkbox" id="loAll" aria-label="Alle auswählen"></th><th>Mitarbeiter</th><th>Seiten</th><th>E-Mail</th><th>Passwort</th><th>Status</th><th></th></tr></thead>
+        <tbody id="loRows"><tr><td colspan="7">Noch nichts hochgeladen.</td></tr></tbody>
+      </table>
+    </div>
+    <div class="lo-row" style="margin-top:14px;">
+      <button class="lo-btn green" id="loSend">Ausgewählte senden</button>
+      <button class="lo-btn red" id="loDel">Dateien dieses Monats löschen</button>
+    </div>
+    <div class="lo-msg" id="loMsg2"></div>
+  </div>
+</div>
+
+<script>
+(function () {
+  const $ = (id) => document.getElementById(id);
+  const esc = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  const STATUS = { bereit: "bereit", gesendet: "gesendet", passwort_fehlt: "Passwort fehlt", email_fehlt: "E-Mail fehlt" };
+  const d0 = new Date(); d0.setMonth(d0.getMonth() - 1);
+  $("loMonat").value = d0.getFullYear() + "-" + String(d0.getMonth() + 1).padStart(2, "0");
+  const msg = (el, t, ok) => { $(el).className = "lo-msg " + (ok ? "ok" : "err"); $(el).textContent = t; };
+
+  async function liste() {
+    const r = await fetch("/api/lohn/liste?monat=" + $("loMonat").value);
+    const d = await r.json();
+    const rows = d.eintraege || [];
+    $("loRows").innerHTML = rows.length ? rows.map((e) => `<tr data-id="${e.worker_id}">
+      <td>${e.status === "bereit" ? '<input type="checkbox" class="lo-sel" aria-label="auswählen">' : ""}</td>
+      <td><b>${esc(e.name)}</b></td><td>${esc(e.seiten)}</td><td>${esc(e.email || "—")}</td>
+      <td>${e.status === "passwort_fehlt" ? '<input class="lo-in lo-pw" placeholder="Passwort" style="width:130px"> <button class="lo-btn grey lo-setpw">Setzen</button>' : esc(e.passwort_quelle || "")}</td>
+      <td><span class="lo-pill p-${e.status}">${STATUS[e.status] || esc(e.status)}</span>${e.gesendet_am ? "<br><small>" + esc(e.gesendet_am.replace("T", " ").slice(0, 16)) + "</small>" : ""}${e.fehler ? "<br><small style='color:#b91c1c'>" + esc(e.fehler) + "</small>" : ""}</td>
+      <td>${e.status !== "gesendet" ? `<a class="lo-btn grey" style="text-decoration:none;display:inline-block" href="/api/lohn/datei/${e.worker_id}?monat=${$("loMonat").value}">PDF</a>` : ""}</td>
+    </tr>`).join("") : '<tr><td colspan="7">Für diesen Monat nichts vorhanden.</td></tr>';
+  }
+
+  $("loMonat").onchange = liste;
+  $("loAll").onchange = (e) => document.querySelectorAll(".lo-sel").forEach((c) => (c.checked = e.target.checked));
+
+  $("loForm").onsubmit = async (ev) => {
+    ev.preventDefault();
+    const btn = ev.target.querySelector("button"); btn.disabled = true;
+    try {
+      const r = await fetch("/api/lohn/hochladen", { method: "POST", body: new FormData(ev.target) });
+      const d = await r.json();
+      if (!d.success) throw new Error(d.error);
+      msg("loMsg", `${d.seiten} Seiten gelesen, ${d.mitarbeiter} Mitarbeiter zugeordnet.` + (d.unklar.length ? ` Seiten ohne eindeutigen Namen: ${d.unklar.join(", ")} – bitte prüfen.` : ""), !d.unklar.length);
+      await liste();
+    } catch (e) { msg("loMsg", e.message, false); }
+    btn.disabled = false;
+  };
+
+  $("loRows").addEventListener("click", async (ev) => {
+    const b = ev.target.closest(".lo-setpw"); if (!b) return;
+    const tr = b.closest("tr");
+    try {
+      const r = await fetch("/api/lohn/passwort/" + tr.dataset.id, { method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ monat: $("loMonat").value, passwort: tr.querySelector(".lo-pw").value }) });
+      const d = await r.json(); if (!d.success) throw new Error(d.error);
+      await liste();
+    } catch (e) { msg("loMsg2", e.message, false); }
+  });
+
+  $("loSend").onclick = async (ev) => {
+    const ids = Array.from(document.querySelectorAll(".lo-sel:checked")).map((c) => c.closest("tr").dataset.id);
+    if (!ids.length) { msg("loMsg2", "Bitte Mitarbeiter auswählen.", false); return; }
+    if (!confirm(`${ids.length} Lohnabrechnung(en) jetzt per E-Mail senden?`)) return;
+    ev.target.disabled = true;
+    try {
+      const r = await fetch("/api/lohn/senden", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ monat: $("loMonat").value, worker_ids: ids }) });
+      const d = await r.json(); if (!d.success) throw new Error(d.error);
+      const ok = d.bericht.filter((x) => x.ok).length;
+      msg("loMsg2", `${ok} gesendet, ${d.bericht.length - ok} nicht gesendet.`, ok === d.bericht.length);
+      await liste();
+    } catch (e) { msg("loMsg2", e.message, false); }
+    ev.target.disabled = false;
+  };
+
+  $("loDel").onclick = async () => {
+    if (!confirm("Alle noch nicht gesendeten Dateien dieses Monats löschen?")) return;
+    await fetch("/api/lohn/loeschen", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ monat: $("loMonat").value }) });
+    msg("loMsg2", "Gelöscht.", true); liste();
+  };
+
+  liste();
+})();
+</script>
+{% endblock %}

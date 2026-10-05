@@ -743,6 +743,17 @@ def register_whatsapp_connector_routes(app, login_required):
 
         reply_target = phone
 
+        # Schreibt der Chef (Nummer unter Leon → Berichte gespeichert), antwortet der KG Agent.
+        # Ohne gespeicherte Nummer läuft alles wie bisher.
+        try:
+            from tagesliste import chef_nachricht_beantworten
+            conn.commit()  # Eingang speichern, damit der Agent schreiben kann (SQLite sperrt sonst)
+            if chef_nachricht_beantworten(phone, raw_from, body):
+                conn.close()
+                return jsonify({"ok": True, "stored": True, "handled": True, "reason": "kg_agent_chef"})
+        except Exception as chef_fehler:
+            print("[KG-AGENT WHATSAPP] Fehler:", chef_fehler)
+
         if is_known_worker:
             full_ai_title = True
 

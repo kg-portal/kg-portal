@@ -1,0 +1,83 @@
+{# Liste der Kampagnen-Berichte – gleicher Inhalt in KG CRM und KG Business. Erwartet: akzent, akzent2, fehler (optional) #}
+<style>
+  .kbl { --a: {{ akzent }}; --a2: {{ akzent2 }}; font-family: Inter, Arial, Helvetica, sans-serif; color: #0f172a; max-width: 1240px; margin: 0 auto; }
+  .kbl * { box-sizing: border-box; }
+  .kbl-hero { border-radius: 24px; padding: 22px 26px; color: #fff; background: linear-gradient(135deg, var(--a2), var(--a)); }
+  .kbl-hero h1 { margin: 0; font-size: 26px; font-weight: 900; }
+  .kbl-hero p { margin: 6px 0 0; font-size: 14px; line-height: 1.5; opacity: .95; max-width: 760px; }
+  .kbl-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 12px; margin-top: 14px; }
+  .kbl-karte { display: block; background: #fff; border: 1px solid #e2e8f0; border-radius: 18px; padding: 16px 18px; color: inherit; text-decoration: none; transition: transform .15s, box-shadow .15s; }
+  .kbl-karte:hover { transform: translateY(-2px); box-shadow: 0 10px 24px rgba(15,23,42,.08); border-color: var(--a); }
+  .kbl-kopf { display: flex; justify-content: space-between; gap: 10px; align-items: flex-start; }
+  .kbl-name { font-size: 17px; font-weight: 900; }
+  .kbl-zeit { font-size: 13px; font-weight: 700; color: #64748b; margin-top: 3px; }
+  .kbl-offen { flex: 0 0 auto; border-radius: 999px; padding: 4px 10px; font-size: 12px; font-weight: 900; background: #fef3c7; color: #92400e; white-space: nowrap; }
+  .kbl-offen.fertig { background: #dcfce7; color: #166534; }
+  .kbl-zahlen { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-top: 12px; }
+  .kbl-zahlen div { background: #f8fafc; border-radius: 12px; padding: 8px 6px; text-align: center; }
+  .kbl-zahlen b { display: block; font-size: 20px; font-weight: 900; }
+  .kbl-zahlen span { font-size: 11px; font-weight: 800; color: #64748b; }
+  .kbl-bar { display: flex; height: 8px; border-radius: 999px; overflow: hidden; background: #f1f5f9; margin-top: 12px; }
+  .kbl-bar i { display: block; height: 100%; }
+  .kbl-box { background: #fff; border: 1px solid #e2e8f0; border-radius: 18px; padding: 16px 18px; margin-top: 14px; }
+  .kbl-box h2 { margin: 0 0 10px; font-size: 16px; font-weight: 900; }
+  .kbl-row { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 10px 0; border-top: 1px solid #f1f5f9; flex-wrap: wrap; }
+  .kbl-row:first-of-type { border-top: 0; }
+  .kbl-btn { border: 0; border-radius: 11px; background: var(--a); color: #fff; font-weight: 800; font-size: 13px; padding: 9px 13px; min-height: 40px; cursor: pointer; }
+  .kbl-btn:disabled { opacity: .5; cursor: not-allowed; }
+  .kbl-muted { color: #64748b; font-size: 13px; font-weight: 700; }
+  .kbl-leer { margin-top: 14px; padding: 22px; border-radius: 18px; background: #fff; border: 1px dashed #cbd5e1; color: #475569; font-weight: 700; }
+  @media (max-width: 640px) { .kbl-hero { padding: 18px; } .kbl-hero h1 { font-size: 22px; } .kbl-grid { grid-template-columns: 1fr; } }
+</style>
+<div class="kbl">
+  <section class="kbl-hero">
+    <h1>📊 Kampagnen-Berichte</h1>
+    <p>Sobald eine Leon-Kampagne fertig ist, entsteht hier automatisch ein Bericht – und eine To-Do-Karte mit den wichtigsten Firmen.
+       Jeder Lauf bekommt einen eigenen Bericht (die Auto-Kampagne also einen pro Tag).</p>
+  </section>
+  {% if fehler %}<div class="kbl-leer">{{ fehler }}</div>{% endif %}
+  <div id="kblListe" class="kbl-grid"></div>
+  <div class="kbl-box">
+    <h2>Bericht über eine ganze Kampagne</h2>
+    <div class="kbl-muted" style="margin-bottom:6px">Fasst alle bisher fertig angerufenen Firmen einer Kampagne zusammen – auch ältere Kampagnen.</div>
+    <div id="kblKampagnen"><span class="kbl-muted">Lade …</span></div>
+  </div>
+</div>
+<script>
+(function () {
+  const FARBEN = { termin: "#7c3aed", heiss: "#ea580c", rueckruf: "#0284c7", gesprochen: "#0f766e", kein: "#dc2626", nicht: "#94a3b8" };
+  const esc = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  async function laden() {
+    let d;
+    try { d = await (await fetch("/api/kampagnen-berichte")).json(); } catch (e) { d = { success: false }; }
+    const liste = document.getElementById("kblListe"), kamp = document.getElementById("kblKampagnen");
+    if (!d.success) { liste.innerHTML = '<div class="kbl-leer">Berichte konnten nicht geladen werden.</div>'; kamp.innerHTML = ""; return; }
+    liste.innerHTML = d.berichte.length ? d.berichte.map(b => {
+      const z = b.zahlen, firmen = z.firmen || 1;
+      const bar = Object.keys(FARBEN).filter(k => z[k]).map(k => `<i style="width:${100 * z[k] / firmen}%;background:${FARBEN[k]}"></i>`).join("");
+      const offen = b.offen ? `<span class="kbl-offen">${b.offen} offen</span>` : '<span class="kbl-offen fertig">✓ alles erledigt</span>';
+      return `<a class="kbl-karte" href="/leon/bericht/${b.id}">
+        <div class="kbl-kopf"><div><div class="kbl-name">${esc(b.kampagne)}</div>
+          <div class="kbl-zeit">${esc(b.von)}${b.bis && b.bis !== b.von ? " – " + esc(b.bis) : ""}${b.art === "manuell" ? " · ganze Kampagne" : ""}</div></div>${offen}</div>
+        <div class="kbl-zahlen"><div><b>${z.angerufen}</b><span>angerufen</span></div><div><b>${z.erreicht}</b><span>erreicht</span></div>
+          <div><b style="color:${FARBEN.heiss}">${z.heiss + z.termin}</b><span>🔥/📅</span></div><div><b style="color:${FARBEN.rueckruf}">${z.rueckruf}</b><span>Rückruf</span></div></div>
+        <div class="kbl-bar">${bar}</div></a>`;
+    }).join("") : '<div class="kbl-leer" style="grid-column:1/-1">Noch kein Bericht. Der erste entsteht, sobald eine Kampagne fertig ist – oder unten per Knopf.</div>';
+    kamp.innerHTML = d.kampagnen.length ? d.kampagnen.map(k => `<div class="kbl-row">
+        <div><b>${esc(k.name)}</b> <span class="kbl-muted">· ${esc(k.status || "")} · ${k.fertig || 0} fertig${k.offen ? ", " + k.offen + " warten noch" : ""}</span></div>
+        <button class="kbl-btn" data-id="${k.id}" ${k.fertig ? "" : "disabled"}>Bericht erstellen</button></div>`).join("")
+      : '<span class="kbl-muted">Noch keine Kampagnen.</span>';
+  }
+  document.getElementById("kblKampagnen").addEventListener("click", async (ev) => {
+    const btn = ev.target.closest("button[data-id]"); if (!btn) return;
+    btn.disabled = true; btn.textContent = "Erstelle …";
+    try {
+      const r = await fetch("/api/kampagnen-berichte/erstellen", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ kampagne_id: Number(btn.dataset.id) }) });
+      const d = await r.json();
+      if (!r.ok || !d.success) throw new Error(d.error || "Fehler");
+      location.href = "/leon/bericht/" + d.id;
+    } catch (e) { alert(e.message); btn.disabled = false; btn.textContent = "Bericht erstellen"; }
+  });
+  laden();
+})();
+</script>

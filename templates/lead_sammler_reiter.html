@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block content %}
+<style>
+    /* Gleiche Übersicht wie in KG Business unter Datenbank → Lead-Sammler */
+    .ls-rahmen { display: flex; flex-direction: column; gap: 10px; padding: 4px 0; }
+    .ls-zeile { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+    .ls-zeile p { margin: 0; font-size: 13px; font-weight: 700; color: #64748b; }
+    .ls-zeile a { font-size: 13px; font-weight: 800; color: #0f766e; text-decoration: none; white-space: nowrap; }
+    .ls-rahmen iframe { width: 100%; height: calc(100vh - 120px); min-height: 640px; border: 1px solid #dbe3ef; border-radius: 18px; background: #f4f7f5; }
+</style>
+<div class="ls-rahmen">
+    <div class="ls-zeile">
+        <p>Läuft auf dem Server von KG Business (9–18 Uhr). Beim ersten Öffnen ggf. einmal mit dem KG-Business-Zugang anmelden.</p>
+        <a href="{{ lead_sammler_url }}" target="_blank" rel="noopener"><i class="fa-solid fa-up-right-from-square"></i> In eigenem Fenster öffnen</a>
+    </div>
+    <iframe src="{{ lead_sammler_url }}" title="Lead-Sammler"></iframe>
+</div>
+{% endblock %}

@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+{% block content %}
+<style>
+  .vr-wrap { max-width: 1180px; margin: 0 auto; padding: 24px 18px 60px; font-family: Arial, Helvetica, sans-serif; }
+  .vr-head { background: linear-gradient(135deg, #0f766e, #14b8a6); color: #fff; border-radius: 22px; padding: 22px 24px; display: flex; flex-wrap: wrap; gap: 14px; justify-content: space-between; align-items: center; }
+  .vr-head h1 { margin: 0; font-size: 26px; }
+  .vr-head p { margin: 6px 0 0; font-size: 14px; line-height: 1.5; max-width: 640px; }
+  .vr-nav { display: flex; gap: 8px; align-items: center; font-weight: 800; }
+  .vr-nav button, .vr-btn { border: 0; border-radius: 10px; padding: 10px 14px; min-height: 40px; font-weight: 800; font-size: 14px; cursor: pointer; color: #fff; background: #0f766e; }
+  .vr-nav button { background: rgba(255,255,255,.2); }
+  .vr-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 18px; padding: 16px 18px; margin-top: 14px; }
+  .vr-card h2 { margin: 0 0 10px; font-size: 17px; color: #134e4a; }
+  .vr-days { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-top: 14px; }
+  .vr-day { background: #fff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 14px; }
+  .vr-day h3 { margin: 0 0 8px; font-size: 15px; color: #0f172a; }
+  .vr-item { border-radius: 12px; padding: 10px 12px; margin-top: 8px; font-size: 14px; line-height: 1.45; }
+  .vr-abw { background: #fef2f2; border: 1px solid #fecaca; color: #7f1d1d; }
+  .vr-ok { background: #f0fdf4; border: 1px solid #bbf7d0; color: #14532d; }
+  .vr-free { font-size: 13px; color: #334155; margin-top: 8px; }
+  .vr-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+  .vr-in { padding: 9px 10px; border: 2px solid #e2e8f0; border-radius: 10px; font-size: 16px; background: #f8fafc; font-family: inherit; }
+  .vr-msg { margin-top: 8px; font-size: 13px; font-weight: 700; }
+  .vr-msg.ok { color: #15803d; } .vr-msg.err { color: #b91c1c; }
+  .vr-grid { display: grid; grid-template-columns: 1.3fr 1fr 1fr 1fr auto; gap: 10px; align-items: end; }
+  .vr-grid label { display: block; font-size: 12px; font-weight: 800; color: #475569; margin-bottom: 5px; }
+  @media (max-width: 1000px) { .vr-days { grid-template-columns: 1fr 1fr; } .vr-grid { grid-template-columns: 1fr 1fr; } }
+  @media (max-width: 640px) { .vr-days, .vr-grid { grid-template-columns: 1fr; } .vr-head h1 { font-size: 21px; } }
+</style>
+
+<div class="vr-wrap">
+  <div class="vr-head">
+    <div>
+      <h1>🛡️ Vertretung</h1>
+      <p>Wer fehlt diese Woche (Urlaub/Krank), welche Objekte laut festen Zeiten betroffen sind und wer frei ist.
+         Vertretung mit einem Klick in deren Stundenzettel eintragen.</p>
+    </div>
+    <div class="vr-nav">
+      <button id="vrPrev" aria-label="Vorige Woche">◀</button>
+      <span id="vrWoche">…</span>
+      <button id="vrNext" aria-label="Nächste Woche">▶</button>
+    </div>
+  </div>
+
+  <div class="vr-card">
+    <h2>Abwesenheit eintragen</h2>
+    <div class="vr-grid">
+      <div><label for="abwWer">Mitarbeiter</label><select id="abwWer" class="vr-in" style="width:100%"></select></div>
+      <div><label for="abwGrund">Grund</label><select id="abwGrund" class="vr-in" style="width:100%"><option>Krank</option><option>Urlaub</option></select></div>
+      <div><label for="abwVon">Von</label><input id="abwVon" type="date" class="vr-in" style="width:100%"></div>
+      <div><label for="abwBis">Bis</label><input id="abwBis" type="date" class="vr-in" style="width:100%"></div>
+      <div><button class="vr-btn" id="abwSave">Eintragen</button></div>
+    </div>
+    <div class="vr-msg" id="abwMsg"></div>
+  </div>
+
+  <div class="vr-days" id="vrDays"></div>
+</div>
+
+<script>
+(function () {
+  const esc = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  let von = new Date(); let mitarbeiter = [];
+  const iso = (d) => new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+  async function api(url, body) {
+    const opt = body === undefined ? {} : { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) };
+    const r = await fetch(url, opt); let d = {};
+    try { d = await r.json(); } catch (e) { d = { success: false, error: "HTTP " + r.status }; }
+    if (!r.ok || d.success === false) throw new Error(d.error || ("HTTP " + r.status));
+    return d;
+  }
+
+  function dayCard(t) {
+    let html = `<div class="vr-day" data-datum="${t.datum}"><h3>${esc(t.label)}</h3>`;
+    if (!t.abwesend.length) html += `<div class="vr-item vr-ok">Niemand fehlt.</div>`;
+    t.abwesend.forEach((a) => {
+      html += `<div class="vr-item vr-abw"><b>${esc(a.name)}</b> – ${esc(a.grund)}`;
+      if (a.einsatz) {
+        html += `<br>Objekt: ${esc(a.einsatz.objekt)} · ${esc(a.einsatz.start)}–${esc(a.einsatz.ende)}`;
+        if (a.einsatz.vertretung) html += `<br>✅ Vertretung: ${esc(a.einsatz.vertretung)}`;
+        else {
+          const opts = t.frei.map((f) => `<option value="${f.id}">${esc(f.name)}</option>`).join("");
+          html += opts ? `<div class="vr-row"><select class="vr-in vr-wer">${opts}</select>
+              <button class="vr-btn vr-set" data-abw="${a.id}" data-objekt="${esc(a.einsatz.objekt)}" data-start="${esc(a.einsatz.start)}" data-ende="${esc(a.einsatz.ende)}">Vertretung eintragen</button></div>`
+            : `<br>⚠️ Niemand ist an diesem Tag frei.`;
+        }
+      } else html += `<br>Keine festen Zeiten an diesem Tag hinterlegt.`;
+      html += `<div class="vr-msg"></div></div>`;
+    });
+    html += `<div class="vr-free"><b>Frei:</b> ${t.frei.length ? t.frei.map((f) => esc(f.name)).join(", ") : "niemand"}</div></div>`;
+    return html;
+  }
+
+  async function laden() {
+    try {
+      const d = await api("/api/vertretung/woche?von=" + iso(von));
+      const start = new Date(d.von + "T12:00:00");
+      const ende = new Date(start); ende.setDate(ende.getDate() + 5);
+      document.getElementById("vrWoche").textContent = start.toLocaleDateString("de-DE") + " – " + ende.toLocaleDateString("de-DE");
+      document.getElementById("vrDays").innerHTML = d.tage.map(dayCard).join("");
+      if (!mitarbeiter.length) {
+        mitarbeiter = d.mitarbeiter;
+        document.getElementById("abwWer").innerHTML = mitarbeiter.map((m) => `<option value="${m.id}">${esc(m.name)}</option>`).join("");
+      }
+    } catch (e) {
+      document.getElementById("vrDays").innerHTML = `<div class="vr-card vr-msg err">${esc(e.message)}</div>`;
+    }
+  }
+
+  document.getElementById("vrPrev").onclick = () => { von.setDate(von.getDate() - 7); laden(); };
+  document.getElementById("vrNext").onclick = () => { von.setDate(von.getDate() + 7); laden(); };
+  document.getElementById("abwVon").value = iso(new Date());
+  document.getElementById("abwBis").value = iso(new Date());
+
+  document.getElementById("abwSave").onclick = async (ev) => {
+    const msg = document.getElementById("abwMsg"); ev.target.disabled = true;
+    try {
+      const r = await api("/api/vertretung/abwesenheit", { worker_id: document.getElementById("abwWer").value,
+        grund: document.getElementById("abwGrund").value, von: document.getElementById("abwVon").value, bis: document.getElementById("abwBis").value });
+      msg.className = "vr-msg ok"; msg.textContent = `${r.tage} Tage eingetragen.`; laden();
+    } catch (e) { msg.className = "vr-msg err"; msg.textContent = e.message; }
+    ev.target.disabled = false;
+  };
+
+  document.getElementById("vrDays").addEventListener("click", async (ev) => {
+    const b = ev.target.closest(".vr-set"); if (!b) return;
+    const box = b.closest(".vr-item"); const msg = box.querySelector(".vr-msg");
+    b.disabled = true;
+    try {
+      await api("/api/vertretung/eintragen", { vertreter_id: box.querySelector(".vr-wer").value, abwesend_id: b.dataset.abw,
+        datum: b.closest(".vr-day").dataset.datum, objekt: b.dataset.objekt, start: b.dataset.start, ende: b.dataset.ende });
+      laden();
+    } catch (e) { msg.className = "vr-msg err"; msg.textContent = e.message; b.disabled = false; }
+  });
+
+  laden();
+})();
+</script>
+{% endblock %}

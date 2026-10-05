@@ -1,0 +1,323 @@
+{% extends "base.html" %}
+{% block content %}
+<style>
+  .sza-wrap { max-width: 1180px; margin: 0 auto; padding: 24px 18px 60px; }
+  .sza-head { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; justify-content: space-between;
+              background: linear-gradient(135deg, #1d4ed8, #3b82f6); color: #fff; border-radius: 22px; padding: 22px 24px; }
+  .sza-head h1 { margin: 0; font-size: 26px; }
+  .sza-head p { margin: 6px 0 0; opacity: .95; font-size: 14px; max-width: 640px; line-height: 1.5; }
+  .sza-head .sza-month { display: flex; gap: 8px; align-items: center; font-weight: 700; }
+  .sza-head input[type=month] { font-size: 16px; padding: 8px 10px; border-radius: 10px; border: 0; }
+  .sza-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 18px; padding: 18px; margin-top: 16px; }
+  .sza-row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between; }
+  .sza-name { font-size: 18px; font-weight: 800; color: #0f172a; }
+  .sza-sub { font-size: 13px; color: #475569; margin-top: 3px; }
+  .sza-badge { display: inline-block; padding: 5px 10px; border-radius: 999px; font-size: 12px; font-weight: 800; }
+  .b-offen { background: #e2e8f0; color: #334155; }
+  .b-ausgefuellt { background: #dbeafe; color: #1e40af; }
+  .b-leon_wartet { background: #ffedd5; color: #9a3412; }
+  .b-leon_fertig { background: #ede9fe; color: #5b21b6; }
+  .b-bestaetigt { background: #dcfce7; color: #166534; }
+  .sza-btns { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+  .sza-btn { border: 0; border-radius: 10px; padding: 10px 14px; min-height: 40px; font-weight: 800; font-size: 13px; cursor: pointer; color: #fff; }
+  .sza-btn:disabled { opacity: .5; cursor: not-allowed; }
+  .c-blue { background: #2563eb; } .c-green { background: #15803d; } .c-orange { background: #f97316; }
+  .c-slate { background: #475569; } .c-purple { background: #7c3aed; } .c-red { background: #dc2626; }
+  .sza-summary { margin-top: 12px; font-size: 14px; color: #1e293b; line-height: 1.55; background: #f8fafc; border-radius: 12px; padding: 12px 14px; }
+  .sza-plan { margin-top: 14px; display: none; }
+  .sza-plan.open { display: block; }
+  .sza-plan table { width: 100%; border-collapse: collapse; }
+  .sza-plan th { text-align: left; font-size: 12px; color: #475569; padding: 6px; }
+  .sza-plan td { padding: 6px; border-top: 1px solid #f1f5f9; }
+  .sza-plan input[type=time], .sza-plan input[type=text] { font-size: 16px; padding: 7px 9px; border: 1px solid #cbd5e1; border-radius: 9px; width: 100%; }
+  .sza-plan input[type=checkbox] { width: 20px; height: 20px; }
+  .sza-leon { margin-top: 12px; border-left: 4px solid #7c3aed; padding: 10px 14px; background: #faf5ff; border-radius: 10px; font-size: 14px; color: #1e293b; }
+  .sza-leon details { margin-top: 8px; }
+  .sza-leon pre { white-space: pre-wrap; font-family: inherit; font-size: 13px; color: #334155; margin: 6px 0 0; }
+  .sza-msg { margin-top: 10px; font-size: 13px; font-weight: 700; }
+  .sza-msg.ok { color: #15803d; } .sza-msg.err { color: #b91c1c; }
+  .sza-help { font-size: 13px; color: #475569; line-height: 1.55; }
+  .sza-auto { border: 2px solid #bfdbfe; }
+  .sza-auto-opt { display: flex; gap: 10px; align-items: flex-start; margin-top: 10px; font-size: 15px; font-weight: 700; color: #0f172a; line-height: 2.5; }
+  .sza-auto-opt input[type=checkbox] { width: 22px; height: 22px; flex: 0 0 22px; margin-top: 10px; }
+  .sza-auto-opt input[type=number] { font-size: 16px; padding: 6px 8px; border: 1px solid #cbd5e1; border-radius: 9px; width: 70px; }
+  .sza-auto-opt select { font-size: 16px; padding: 6px 8px; border: 1px solid #cbd5e1; border-radius: 9px; width: 96px; }
+  .sza-auto-log { margin-top: 12px; font-size: 13px; color: #334155; line-height: 1.6; }
+  .sza-auto-log div { border-top: 1px solid #f1f5f9; padding: 4px 0; }
+  .b-an { background: #dcfce7; color: #166534; } .b-aus { background: #e2e8f0; color: #334155; }
+  @media (max-width: 700px) {
+    .sza-wrap { padding: 12px 10px 40px; }
+    .sza-head h1 { font-size: 21px; }
+    .sza-plan th:nth-child(4), .sza-plan td:nth-child(4) { min-width: 140px; }
+    .sza-plan { overflow-x: auto; }
+  }
+</style>
+
+<div class="sza-wrap">
+  <div class="sza-head">
+    <div>
+      <h1>⏱ Feste Zeiten &amp; Leon-Kontrolle</h1>
+      <p>Feste Arbeitszeiten je Mitarbeiter speichern → ganzen Monat ausfüllen (nur leere Tage, ohne Feiertage) →
+         Leon ruft an und fragt, ob etwas fehlt → bestätigen, dann ist der Monat gesperrt.</p>
+    </div>
+    <div class="sza-month">
+      <label for="szaMonat">Monat</label>
+      <input type="month" id="szaMonat">
+    </div>
+  </div>
+
+  <div class="sza-card sza-help">
+    <b>So geht's:</b> 1. „Feste Zeiten“ öffnen, Wochentage anhaken, Beginn/Ende/Objekt eintragen, speichern.
+    2. „Monat ausfüllen“. 3. „Leon anrufen lassen“ (Leon liest die Zusammenfassung vor und fragt nach Abweichungen).
+    4. Ergebnis lesen, Stunden ggf. im Stundenzettel korrigieren, dann „Bestätigen &amp; sperren“.
+    „Rückgängig“ löscht nur automatisch eingetragene Tage, die niemand verändert hat.
+  </div>
+
+  <div class="sza-card sza-auto" id="szaAuto">
+    <div class="sza-row">
+      <div class="sza-name">🤖 Automatik</div>
+      <span class="sza-badge b-aus" id="aBadge">…</span>
+    </div>
+    <label class="sza-auto-opt"><input type="checkbox" id="aFuellen"><span>Monat automatisch ausfüllen – ab dem
+      <input type="number" id="aFuellTag" min="1" max="28" aria-label="Tag ausfüllen"> . des Monats</span></label>
+    <label class="sza-auto-opt"><input type="checkbox" id="aAnruf"><span>Leon ruft alle an – ab dem
+      <input type="number" id="aAnrufTag" min="1" max="28" aria-label="Tag Leon-Anruf"> . um
+      <select id="aAnrufStunde" aria-label="Uhrzeit Leon-Anruf"></select> Uhr (Mo–Fr, nicht an Feiertagen)</span></label>
+    <div class="sza-sub" style="margin-top:10px;">Je Mitarbeiter und Monat nur einmal. Bestätigte Monate, „Rückgängig“ und von Hand gestartete Leon-Anrufe bleiben unberührt.</div>
+    <div class="sza-btns">
+      <button class="sza-btn c-green" id="aSave">Automatik speichern</button>
+      <button class="sza-btn c-slate" id="aJetzt">Jetzt prüfen</button>
+    </div>
+    <div class="sza-msg" id="aMsg"></div>
+    <div class="sza-auto-log" id="aLog"></div>
+  </div>
+
+  <div id="szaList"></div>
+  <datalist id="szaObjekte"></datalist>
+</div>
+
+<script>
+(function () {
+  const TAGE = [["mo","Montag"],["di","Dienstag"],["mi","Mittwoch"],["do","Donnerstag"],["fr","Freitag"],["sa","Samstag"],["so","Sonntag"]];
+  const STATUS = { offen: "offen", ausgefuellt: "ausgefüllt", leon_wartet: "Leon ruft an", leon_fertig: "Leon fertig", bestaetigt: "bestätigt · gesperrt" };
+  const monatInput = document.getElementById("szaMonat");
+  const now = new Date();
+  monatInput.value = now.getFullYear() + "-" + String(now.getMonth() + 1).padStart(2, "0");
+  const esc = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+
+  async function api(url, body) {
+    const opt = body === undefined ? {} : { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) };
+    const r = await fetch(url, opt);
+    let data = {};
+    try { data = await r.json(); } catch (e) { data = { success: false, error: "HTTP " + r.status }; }
+    if (!r.ok || data.success === false) throw new Error(data.error || ("HTTP " + r.status));
+    return data;
+  }
+
+  function planRows(m) {
+    return TAGE.map(([k, label]) => {
+      const p = (m.plan || {})[k] || {};
+      return `<tr data-tag="${k}">
+        <td><label style="display:flex;gap:8px;align-items:center;font-weight:700;"><input type="checkbox" class="p-aktiv" ${p.aktiv ? "checked" : ""}> ${label}</label></td>
+        <td><input type="time" class="p-start" value="${esc(p.start)}" aria-label="${label} Beginn"></td>
+        <td><input type="time" class="p-ende" value="${esc(p.ende)}" aria-label="${label} Ende"></td>
+        <td><input type="text" class="p-ort" list="szaObjekte" value="${esc(p.ort)}" placeholder="Objekt / Kunde" aria-label="${label} Objekt"></td>
+      </tr>`;
+    }).join("");
+  }
+
+  function leonBlock(row) {
+    if (!row.leon_lead_id && !row.leon_status) return "";
+    let html = `<div class="sza-leon"><b>Leon:</b> ${esc(row.leon_status || "—")}`;
+    if (row.angerufen_am) html += ` · gestartet ${esc(String(row.angerufen_am).replace("T", " ").slice(0, 16))}`;
+    if (row.leon_info) html += `<br>${esc(row.leon_info)}`;
+    if (row.leon_ergebnis) html += `<br><b>Ergebnis:</b> ${esc(row.leon_ergebnis)}`;
+    if (row.leon_zusammenfassung) html += `<br><b>Zusammenfassung:</b> ${esc(row.leon_zusammenfassung)}`;
+    if (row.leon_transkript) html += `<details><summary>Transkript anzeigen</summary><pre>${esc(row.leon_transkript)}</pre></details>`;
+    if (row.leon_fehler) html += `<br><span style="color:#b91c1c">${esc(row.leon_fehler)}</span>`;
+    return html + "</div>";
+  }
+
+  function card(m) {
+    const row = m.monat || {};
+    const st = row.status || "offen";
+    const locked = st === "bestaetigt";
+    return `<div class="sza-card" data-id="${m.id}">
+      <div class="sza-row">
+        <div>
+          <div class="sza-name">${esc(m.name)}</div>
+          <div class="sza-sub">${m.telefon ? "📞 " + esc(m.telefon) : "⚠️ keine Telefonnummer gespeichert"} · ${m.stunden.toLocaleString("de-DE")} Std. im Monat</div>
+        </div>
+        <span class="sza-badge b-${st}">${STATUS[st] || st}</span>
+      </div>
+      <div class="sza-summary">${esc(m.zusammenfassung)}${row.notiz ? "<br><b>Notiz:</b> " + esc(row.notiz) : ""}</div>
+      ${leonBlock(row)}
+      <div class="sza-btns">
+        <button class="sza-btn c-slate a-plan">Feste Zeiten</button>
+        <button class="sza-btn c-blue a-fill" ${locked ? "disabled" : ""}>Monat ausfüllen</button>
+        <button class="sza-btn c-slate a-undo" ${locked ? "disabled" : ""}>Rückgängig</button>
+        <button class="sza-btn c-purple a-leon" ${locked || !m.telefon ? "disabled" : ""}>Leon anrufen lassen</button>
+        ${row.leon_lead_id ? '<button class="sza-btn c-slate a-status">Leon-Status aktualisieren</button>' : ""}
+        ${st === "leon_wartet" ? '<button class="sza-btn c-red a-stop">Leon-Kontrolle abbrechen</button>' : ""}
+        ${locked ? '<button class="sza-btn c-red a-unlock">Entsperren</button>' : '<button class="sza-btn c-green a-ok">Bestätigen &amp; sperren</button>'}
+      </div>
+      <div class="sza-plan">
+        <table><thead><tr><th>Tag</th><th>Beginn</th><th>Ende</th><th>Objekt</th></tr></thead>
+        <tbody>${planRows(m)}</tbody></table>
+        <div class="sza-btns"><button class="sza-btn c-green a-save">Feste Zeiten speichern</button></div>
+      </div>
+      <div class="sza-msg"></div>
+    </div>`;
+  }
+
+  async function laden() {
+    const list = document.getElementById("szaList");
+    try {
+      const data = await api("/api/stz-auto/uebersicht?monat=" + encodeURIComponent(monatInput.value));
+      list.innerHTML = data.mitarbeiter.length ? data.mitarbeiter.map(card).join("") :
+        '<div class="sza-card">Keine aktiven Mitarbeiter.</div>';
+    } catch (e) {
+      list.innerHTML = `<div class="sza-card sza-msg err">${esc(e.message)}</div>`;
+    }
+  }
+
+  function msg(cardEl, text, ok) {
+    const el = cardEl.querySelector(".sza-msg");
+    el.className = "sza-msg " + (ok ? "ok" : "err");
+    el.textContent = text;
+  }
+
+  document.getElementById("szaList").addEventListener("click", async (ev) => {
+    const btn = ev.target.closest("button");
+    if (!btn) return;
+    const c = btn.closest(".sza-card");
+    const id = c.dataset.id;
+    const monat = monatInput.value;
+    try {
+      if (btn.classList.contains("a-plan")) {
+        c.querySelector(".sza-plan").classList.toggle("open");
+        return;
+      }
+      btn.disabled = true;
+      if (btn.classList.contains("a-save")) {
+        const plan = {};
+        c.querySelectorAll("tr[data-tag]").forEach((tr) => {
+          plan[tr.dataset.tag] = {
+            aktiv: tr.querySelector(".p-aktiv").checked,
+            start: tr.querySelector(".p-start").value,
+            ende: tr.querySelector(".p-ende").value,
+            ort: tr.querySelector(".p-ort").value.trim(),
+          };
+        });
+        await api("/api/stz-auto/plan/" + id, { plan });
+        msg(c, "Feste Zeiten gespeichert.", true);
+        btn.disabled = false;
+        return;
+      }
+      if (btn.classList.contains("a-fill")) {
+        const r = await api("/api/stz-auto/fuellen/" + id, { monat });
+        await laden();
+        const nc = document.querySelector(`.sza-card[data-id="${id}"]`);
+        msg(nc, `${r.neu} Tage eingetragen.` + (r.uebersprungen.length ? " Übersprungen: " + r.uebersprungen.join(", ") : ""), true);
+        return;
+      }
+      if (btn.classList.contains("a-undo")) {
+        if (!confirm("Automatisch eingetragene, unveränderte Tage dieses Monats löschen?")) { btn.disabled = false; return; }
+        const r = await api("/api/stz-auto/rueckgaengig/" + id, { monat });
+        await laden();
+        msg(document.querySelector(`.sza-card[data-id="${id}"]`), `${r.geloescht} Tage gelöscht, ${r.behalten} geänderte Tage behalten.`, true);
+        return;
+      }
+      if (btn.classList.contains("a-leon")) {
+        if (!confirm("Leon ruft diesen Mitarbeiter jetzt an und fragt, ob der Stundenzettel stimmt. Starten?")) { btn.disabled = false; return; }
+        await api("/api/stz-auto/leon/" + id, { monat });
+        await laden();
+        msg(document.querySelector(`.sza-card[data-id="${id}"]`), "Leon ist beauftragt. Nach dem Gespräch „Leon-Status aktualisieren“.", true);
+        return;
+      }
+      if (btn.classList.contains("a-status")) {
+        await api("/api/stz-auto/leon-status/" + id + "?monat=" + encodeURIComponent(monat));
+        await laden();
+        return;
+      }
+      if (btn.classList.contains("a-stop")) {
+        await api("/api/stz-auto/leon-stopp/" + id, { monat });
+        await laden();
+        return;
+      }
+      if (btn.classList.contains("a-ok")) {
+        const notiz = prompt("Optional: Notiz zur Bestätigung (z. B. Korrekturen)", "") ;
+        if (notiz === null) { btn.disabled = false; return; }
+        await api("/api/stz-auto/bestaetigen/" + id, { monat, notiz });
+        await laden();
+        return;
+      }
+      if (btn.classList.contains("a-unlock")) {
+        await api("/api/stz-auto/entsperren/" + id, { monat });
+        await laden();
+        return;
+      }
+    } catch (e) {
+      msg(c, e.message, false);
+      btn.disabled = false;
+    }
+  });
+
+  monatInput.addEventListener("change", laden);
+
+  // Automatik (Monatsanfang ausfüllen, Leon-Anruf ab dem 20.)
+  const aEl = (id) => document.getElementById(id);
+  for (let h = 8; h <= 17; h++) { const o = document.createElement("option"); o.value = h; o.textContent = h + ":00"; aEl("aAnrufStunde").append(o); }
+  function autoZeigen(d) {
+    const e = d.einstellungen || {};
+    aEl("aFuellen").checked = !!e.fuellen_an;
+    aEl("aFuellTag").value = e.fuell_tag;
+    aEl("aAnruf").checked = !!e.anruf_an;
+    aEl("aAnrufTag").value = e.anruf_tag;
+    aEl("aAnrufStunde").value = e.anruf_stunde;
+    const an = e.fuellen_an || e.anruf_an;
+    aEl("aBadge").className = "sza-badge " + (an ? "b-an" : "b-aus");
+    aEl("aBadge").textContent = an ? "eingeschaltet" : "ausgeschaltet";
+    const letzte = d.letzte || [];
+    aEl("aLog").innerHTML = letzte.length ? "<b>Zuletzt:</b>" + letzte.map((l) =>
+      `<div>${esc(String(l.zeit || "").replace("T", " ").slice(0, 16))} · ${esc(l.bericht)}</div>`).join("") : "";
+  }
+  function autoMsg(text, ok) { const m = aEl("aMsg"); m.className = "sza-msg " + (ok ? "ok" : "err"); m.textContent = text; }
+  async function autoLaden() {
+    try { autoZeigen(await api("/api/stz-auto/automatik")); } catch (e) { autoMsg(e.message, false); }
+  }
+  aEl("aSave").addEventListener("click", async () => {
+    const btn = aEl("aSave");
+    btn.disabled = true;
+    try {
+      autoZeigen(await api("/api/stz-auto/automatik", {
+        fuellen_an: aEl("aFuellen").checked, fuell_tag: aEl("aFuellTag").value,
+        anruf_an: aEl("aAnruf").checked, anruf_tag: aEl("aAnrufTag").value, anruf_stunde: aEl("aAnrufStunde").value,
+      }));
+      autoMsg("Gespeichert.", true);
+    } catch (e) { autoMsg(e.message, false); }
+    btn.disabled = false;
+  });
+  aEl("aJetzt").addEventListener("click", async () => {
+    const btn = aEl("aJetzt");
+    btn.disabled = true;
+    try {
+      const r = await api("/api/stz-auto/automatik/jetzt", {});
+      autoMsg(r.info || (r.aktionen.length ? r.aktionen.join(" · ") : "Geprüft – gerade nichts zu tun."), true);
+      await autoLaden();
+      await laden();
+    } catch (e) { autoMsg(e.message, false); }
+    btn.disabled = false;
+  });
+
+  // Objekte = Kundenliste (nur lesen)
+  fetch("/api/agent-read/table/kunden?limit=500&order=firma&desc=0").then((r) => r.json()).then((d) => {
+    const dl = document.getElementById("szaObjekte");
+    (d.rows || []).forEach((k) => { const o = document.createElement("option"); o.value = k.firma || ""; dl.append(o); });
+  }).catch(() => {});
+
+  autoLaden();
+  laden();
+})();
+</script>
+{% endblock %}

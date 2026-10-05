@@ -2410,10 +2410,13 @@ www.kg-reinigung.de
 
         conn.close()
 
+        from kg_kaesten import KAESTEN
+
         return render_template(
             "datenbank.html",
             tagesliste_leads=tagesliste_leads,
-            datenbank_stats=datenbank_stats
+            datenbank_stats=datenbank_stats,
+            kaesten=KAESTEN
         )
 
 # =====================================================
@@ -3735,24 +3738,22 @@ www.kg-reinigung.de
     @app.route("/branche-detail.html")
     @login_required
     def app2_branche_detail():
+        from kg_kaesten import KAESTEN, kasten_fuer_slug
+
         branche = request.args.get("branche", "").strip()
+        kasten = kasten_fuer_slug(branche)
+        if kasten:
+            branche = kasten["slug"]
+        branche_id = kasten["id"] if kasten else ""
 
-        branche_map = {
-            "buero-verwaltung": "1",
-            "medizin-gesundheit": "2",
-            "pflege-soziales": "3",
-            "bildung-betreuung": "4",
-            "einzelhandel-verkaufsflaechen": "5",
-            "fitness-sport-freizeit": "6",
-            "industrie-produktion": "7",
-            "lager-logistik-grosshandel": "8",
-            "immobilien-hausverwaltung": "9",
-            "finanzen-versicherung-beratung": "10",
-            "it-medien-kommunikation": "11",
-            "sonstige": "12"
-        }
-
-        branche_id = branche_map.get(branche, "")
+        suche = request.args.get("q", "").strip()
+        beruf = request.args.get("beruf", "").strip()
+        ort = request.args.get("ort", "").strip()
+        try:
+            seite = max(1, int(request.args.get("seite") or 1))
+        except ValueError:
+            seite = 1
+        pro_seite = 200
 
         conn = sqlite3.connect(DB_PATH)
         conn.row_factory = sqlite3.Row
@@ -3762,33 +3763,51 @@ www.kg-reinigung.de
             conn.commit()
         except Exception:
             pass
+        spalten = {r[1] for r in conn.execute("PRAGMA table_info(leads)")}
 
-        if branche_id:
-            leads = conn.execute("""
-                SELECT *
-                FROM leads
-                WHERE branche_id = ?
-                AND (status IS NULL OR status != 'Tagesliste')
-                ORDER BY
-                    CASE WHEN sort_order IS NULL OR sort_order = 0 THEN 1 ELSE 0 END,
-                    sort_order ASC,
-                    CASE WHEN plz IS NULL OR plz = '' THEN 1 ELSE 0 END,
-                    plz ASC,
-                    firma ASC
-            """, (branche_id,)).fetchall()
-        else:
-            leads = conn.execute("""
-                SELECT *
-                FROM leads
-                WHERE status IS NULL OR status != 'Tagesliste'
-                ORDER BY
-                    CASE WHEN sort_order IS NULL OR sort_order = 0 THEN 1 ELSE 0 END,
-                    sort_order ASC,
-                    CASE WHEN plz IS NULL OR plz = '' THEN 1 ELSE 0 END,
-                    plz ASC,
-                    firma ASC
-            """).fetchall()
+        # Kasten: alle branche_id, die dazugehören (alte Einträge inklusive)
+        wo = ["(status IS NULL OR status != 'Tagesliste')"]
+        params = []
+        if kasten:
+            wo.append("branche_id IN (" + ",".join("?" * len(kasten["ids"])) + ")")
+            params += kasten["ids"]
+        basis_wo, basis_params = list(wo), list(params)
+
+        if beruf:
+            wo.append("TRIM(COALESCE(suchwort, '')) = ?")
+            params.append(beruf)
+        if ort:
+            wo.append("(stadt LIKE ? OR plz LIKE ?)")
+            params += [f"%{ort}%", f"{ort}%"]
+        if suche:
+            felder = [f for f in ("firma", "ansprechpartner", "strasse", "telefon", "email", "website") if f in spalten]
+            wo.append("(" + " OR ".join(f"{f} LIKE ?" for f in felder) + ")")
+            params += [f"%{suche}%"] * len(felder)
+
+        where = " WHERE " + " AND ".join(wo)
+        gesamt = conn.execute("SELECT COUNT(*) FROM leads" + where, params).fetchone()[0]
+        seiten = max(1, (gesamt + pro_seite - 1) // pro_seite)
+        seite = min(seite, seiten)
+
+        leads = conn.execute("""
+            SELECT *
+            FROM leads""" + where + """
+            ORDER BY
+                CASE WHEN sort_order IS NULL OR sort_order = 0 THEN 1 ELSE 0 END,
+                sort_order ASC,
+                CASE WHEN plz IS NULL OR plz = '' THEN 1 ELSE 0 END,
+                plz ASC,
+                firma ASC
+            LIMIT ? OFFSET ?
+        """, params + [pro_seite, (seite - 1) * pro_seite]).fetchall()
         leads = [dict(row) for row in leads]
+
+        # Berufe in diesem Kasten (für den Filter)
+        berufe = [dict(r) for r in conn.execute(
+            "SELECT TRIM(suchwort) AS beruf, COUNT(*) AS n FROM leads WHERE " + " AND ".join(basis_wo) +
+            " AND COALESCE(TRIM(suchwort), '') <> '' GROUP BY TRIM(suchwort) ORDER BY n DESC, beruf LIMIT 100",
+            basis_params
+        ).fetchall()]
 
         conn.close()
 
@@ -3796,7 +3815,16 @@ www.kg-reinigung.de
             "branche_detail.html",
             leads=leads,
             branche=branche,
-            branche_id=branche_id
+            branche_id=branche_id,
+            kaesten=KAESTEN,
+            gesamt=gesamt,
+            seite=seite,
+            seiten=seiten,
+            sort_start=(seite - 1) * pro_seite,
+            filter_q=suche,
+            filter_beruf=beruf,
+            filter_ort=ort,
+            berufe=berufe
         )
 
 # =====================================================
@@ -3823,7 +3851,12 @@ www.kg-reinigung.de
         except Exception:
             pass
 
-        for index, lead_id in enumerate(ids, start=1):
+        try:
+            start = max(0, int(data.get("start") or 0))
+        except (TypeError, ValueError):
+            start = 0
+
+        for index, lead_id in enumerate(ids, start=1 + start):
             try:
                 cursor.execute("""
                     UPDATE leads
