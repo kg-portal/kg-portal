@@ -915,7 +915,7 @@
             <div class="dashboard-stat-item red">Nicht bestätigt<span>0</span></div>
         </div>
     </div>
-    <div class="chart-box"><canvas id="chart5"></canvas></div>
+    <div class="chart-box"><div class="chart-title">Angebot Status</div><div style="position:relative;height:180px"><canvas id="chart5"></canvas></div></div>
 </div>
 
     <div class="module-container">
@@ -1286,7 +1286,7 @@ new Chart(document.getElementById('chart4'), {
         }
     }
 });
-    new Chart(document.getElementById('chart5'), { type: 'doughnut', data: { labels: ['Bestätigt', 'Wartend', 'Nicht bestätigt'], datasets: [{ data: [1, 1, 1], backgroundColor: ['#059669', '#6366f1', '#dc2626'], cutout: '50%' }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 10, weight: 'bold' } } } } } });
+    new Chart(document.getElementById('chart5'), { type: 'doughnut', data: { labels: ['Bestätigt', 'Wartend', 'Nicht bestätigt'], datasets: [{ data: [1, 1, 1], backgroundColor: ['#10b981', '#6366f1', '#dc2626'] }] }, options: { responsive: true, maintainAspectRatio: false, animation: { animateRotate: true, animateScale: true, duration: 1400, easing: 'easeOutQuart' } } });
     new Chart(document.getElementById('chart6'), {
         type: 'bar',
         data: {
