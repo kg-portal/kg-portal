@@ -957,7 +957,7 @@
 <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-    // ✨ Açılış efekti (KG Business ile aynı): çubuk/çizgi grafikler sıfırdan başlayıp 1,4 sn'de yumuşakça dolar.
+    // ✨ Açılış efekti (KG Business ile aynı): çubuk/çizgi grafikler sıfırdan başlayıp 1,4 sn'de yumuşakça dolar; halka (Angebot) saat yönünde dolar.
     // Veriye, renklere ve düzene dokunmaz; sadece ilk çizimde çalışır.
     if (window.Chart) {
         Chart.defaults.animation.duration = 1400;
@@ -966,7 +966,7 @@
             id: 'kgGrowIn',
             beforeInit(chart) {
                 const type = chart.config.type;
-                if (type !== 'bar' && type !== 'line') return;
+                if (type !== 'bar' && type !== 'line' && type !== 'doughnut') return;
                 const sets = chart.data && chart.data.datasets;
                 if (!sets || !sets.every(ds => Array.isArray(ds.data) && ds.data.every(v => typeof v === 'number' || v === null))) return;
                 chart.$kgGrow = sets.map(ds => {
