@@ -138,8 +138,9 @@ def _sicherung_bauen(paket=False):
                 if os.path.isdir(GEHEIM_DIR):
                     for name in sorted(os.listdir(GEHEIM_DIR)):
                         voll = os.path.join(GEHEIM_DIR, name)
-                        if os.path.isfile(voll):
-                            tar.add(voll, arcname="umzug/secrets/" + name)
+                        if os.path.isfile(voll) and not name.startswith(".."):
+                            # Render legt die Dateien als Verknüpfung an: Inhalt mitnehmen, nicht den Link
+                            tar.add(os.path.realpath(voll), arcname="umzug/secrets/" + name)
                             info["geheime_dateien"] += 1
             info_pfad = os.path.join(arbeit, "umzug_info.json")
             with open(info_pfad, "w", encoding="utf-8") as f:

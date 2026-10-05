@@ -81,6 +81,9 @@ if [ -d "$TMP/umzug/secrets" ]; then
     cp -a "$TMP/umzug/secrets/." "$DIR/geheim/secrets/"
     chmod 600 "$DIR"/geheim/secrets/* 2>/dev/null
 fi
+for f in "$DIR"/geheim/secrets/*; do
+    [ -L "$f" ] && warnung "$(basename "$f") ist nur eine Verknüpfung ohne Inhalt – Datei von Hand nachliefern"
+done
 ok "geheime Dateien: $(ls "$DIR/geheim/secrets" | tr '\n' ' ')"
 
 [ -f "$DIR/tokenlar.env" ] && mv "$DIR/tokenlar.env" "$DIR/tokenlar.env.test_alt_$JETZT"
