@@ -1286,7 +1286,7 @@ new Chart(document.getElementById('chart4'), {
         }
     }
 });
-    new Chart(document.getElementById('chart5'), { type: 'doughnut', data: { labels: ['Bestätigt', 'Wartend', 'Nicht bestätigt'], datasets: [{ data: [1, 1, 1], backgroundColor: ['#10b981', '#6366f1', '#dc2626'] }] }, options: { responsive: true, maintainAspectRatio: false, animation: { animateRotate: true, animateScale: true, duration: 1400, easing: 'easeOutQuart' } } });
+    new Chart(document.getElementById('chart5'), { type: 'doughnut', data: { labels: ['Bestätigt', 'Wartend', 'Nicht bestätigt'], datasets: [{ data: [1, 1, 1], backgroundColor: ['#10b981', '#6366f1', '#dc2626'] }] }, options: { responsive: true, maintainAspectRatio: false, animation: { animateRotate: true, animateScale: true, duration: 1400, easing: 'easeOutQuart' }, plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11, weight: 'bold' } } } } } });
     new Chart(document.getElementById('chart6'), {
         type: 'bar',
         data: {
