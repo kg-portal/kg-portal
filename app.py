@@ -35,6 +35,7 @@ from whatsapp_connector_routes import register_whatsapp_connector_routes
 from kg_ai_routes import register_kg_ai_routes, run_due_quality_campaigns
 from kg_todo_routes import register_kg_todo_routes
 from leon_routes import register_leon_routes
+from umzug import register_umzug
 
 
 try:
@@ -97,6 +98,7 @@ def auto_login_check():
     return redirect(url_for('login'))
 register_app2_routes(app, login_required)
 register_whatsapp_connector_routes(app, login_required)
+register_umzug(app, login_required)
 # =====================================================
 # INTERNAL NIGHTLY CRM JOB
 # Render Cron burayı çağırır.
