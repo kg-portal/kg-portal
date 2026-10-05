@@ -5,7 +5,9 @@
 # 2) /admin/datensicherung: kompletter data/-Ordner als eine Datei (nur nach Login).
 #    Die Datei wird im Hintergrund gebaut und in kleinen Teilen geladen,
 #    damit keine Anfrage lange dauert.
+#    Umzugspaket: zusätzlich die Einstellungen (Umgebung) und /etc/secrets – nur für den Umzug.
 # 3) KG_SERVER_HINWEIS: kleines Schild auf der Stundenzettel-Seite (nur auf dem Testserver gesetzt).
+# 4) KG_HINTER_PROXY=1: hinter Caddy (Hetzner) – Links mit https und richtigem Namen.
 # =====================================================
 
 import hashlib
@@ -27,6 +29,16 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = os.path.join(BASE_DIR, "data")
 SICHERUNG_DIR = os.path.join("/tmp", "kg_crm_sicherung")
 DATEI_NAME = "kg_crm_daten.tar.gz"
+GEHEIM_DIR = "/etc/secrets"
+# Einstellungen, die das CRM liest oder die in Render eingetragen sind (nur diese kommen ins Umzugspaket)
+UMZUG_ENV_NAMEN = (
+    "APIFY_TOKEN", "BLENDER_BIN", "CRM_CONNECTOR_TOKEN", "FINTS_PIN", "GMAPS_KEY", "GOOGLE_CALENDAR_ID",
+    "GOOGLE_DAILY_LIMIT", "INTERNAL_CRON_TOKEN", "KAMPAGNEN_BERICHT_LAUF", "KG_AI_SELF_CHAT_IDS",
+    "KG_BUSINESS_PASSWORD", "KG_BUSINESS_URL", "KG_BUSINESS_USER", "KG_INTERNAL_CRON_TOKEN",
+    "KG_PORTAL_PASSWORD", "KG_PORTAL_SECRET_KEY", "KG_PORTAL_USER", "KG_SCAN_API_TOKEN", "LEAD_SAMMLER_URL",
+    "LEON_AUTO_TOKEN", "LEON_PASSWORD", "LEON_STZ_KAMPAGNE", "LEON_URL", "LEON_USER", "LEXWARE_API_TOKEN",
+    "OPENAI_API_KEY", "OPENAI_MODEL", "STZ_AB_TAG", "STZ_AUTOMATIK_AUS", "STZ_CRON_TOKEN", "TAGESLISTE_LAUF",
+)
 TEIL_GROESSE = 16 * 1024 * 1024
 WORKER_PREFIX = "/stundenzettel/worker/"
 
@@ -82,7 +94,7 @@ def _tabellen_zaehlen(pfad):
         conn.close()
 
 
-def _sicherung_bauen():
+def _sicherung_bauen(paket=False):
     arbeit = os.path.join(SICHERUNG_DIR, "arbeit")
     ziel = os.path.join(SICHERUNG_DIR, DATEI_NAME)
     teil = ziel + ".teil"
@@ -115,6 +127,20 @@ def _sicherung_bauen():
                         info["bytes"] += os.path.getsize(voll)
                         tar.add(voll, arcname=rel)
                     info["dateien"] += 1
+            if paket:
+                env = {n: os.environ[n] for n in UMZUG_ENV_NAMEN if os.environ.get(n) is not None}
+                env_pfad = os.path.join(arbeit, "env.json")
+                with open(env_pfad, "w", encoding="utf-8") as f:
+                    json.dump(env, f, ensure_ascii=False)
+                tar.add(env_pfad, arcname="umzug/env.json")
+                info["einstellungen"] = len(env)
+                info["geheime_dateien"] = 0
+                if os.path.isdir(GEHEIM_DIR):
+                    for name in sorted(os.listdir(GEHEIM_DIR)):
+                        voll = os.path.join(GEHEIM_DIR, name)
+                        if os.path.isfile(voll):
+                            tar.add(voll, arcname="umzug/secrets/" + name)
+                            info["geheime_dateien"] += 1
             info_pfad = os.path.join(arbeit, "umzug_info.json")
             with open(info_pfad, "w", encoding="utf-8") as f:
                 json.dump(info, f, ensure_ascii=False, indent=1)
@@ -132,6 +158,9 @@ def _sicherung_bauen():
             "teile": max(1, -(-groesse // TEIL_GROESSE)),
             "sha256": sha.hexdigest(),
             "dateien": info["dateien"],
+            "paket": bool(paket),
+            "einstellungen": info.get("einstellungen", 0),
+            "geheime_dateien": info.get("geheime_dateien", 0),
         })
     except Exception as exc:
         _status_schreiben({"zustand": "fehler", "fehler": str(exc)[:300]})
@@ -154,17 +183,20 @@ button:disabled{opacity:.5;cursor:default}.bar{height:10px;background:#e2e8f0;bo
 <body><div class="k"><h1>Datensicherung (data-Ordner)</h1>
 <p>Erstellt eine Kopie aller CRM-Daten als <b>kg_crm_daten.tar.gz</b> und lädt sie herunter.
 Es wird nichts verändert oder gelöscht.</p>
-<button id="b" onclick="los()">Sicherung erstellen und herunterladen</button>
+<button id="b" onclick="los(false)">Sicherung erstellen und herunterladen</button>
+<p style="margin-top:18px">Nur für den Umzug auf den eigenen Server: zusätzlich alle Zugangsdaten
+(Einstellungen + geheime Dateien). Datei danach nicht weitergeben.</p>
+<button id="u" onclick="los(true)" style="background:#047857">Umzugspaket herunterladen</button>
 <div class="bar"><div id="f"></div></div><div id="t"></div></div>
 <script>
-const t=document.getElementById('t'),f=document.getElementById('f'),b=document.getElementById('b');
+const t=document.getElementById('t'),f=document.getElementById('f'),b=document.getElementById('b'),u=document.getElementById('u');
 const warte=ms=>new Promise(r=>setTimeout(r,ms));
 async function json(u,o){const r=await fetch(u,Object.assign({cache:'no-store',credentials:'same-origin'},o||{}));
  if(!r.ok)throw new Error('HTTP '+r.status);return r.json();}
-async function los(){
- b.disabled=true;f.style.width='0';t.textContent='Sicherung wird erstellt …';
+async function los(paket){
+ b.disabled=true;u.disabled=true;f.style.width='0';t.textContent='Sicherung wird erstellt …';
  try{
-  let s=await json('/admin/datensicherung/start',{method:'POST'});
+  let s=await json('/admin/datensicherung/start',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({paket:!!paket})});
   while(s.zustand==='laeuft'){await warte(2000);s=await json('/admin/datensicherung/status');}
   if(s.zustand!=='fertig')throw new Error(s.fehler||'Sicherung fehlgeschlagen');
   const teile=[];
@@ -177,16 +209,23 @@ async function los(){
   }
   const blob=new Blob(teile,{type:'application/gzip'});
   if(blob.size!==s.groesse)throw new Error('Größe stimmt nicht ('+blob.size+' statt '+s.groesse+')');
-  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='kg_crm_daten.tar.gz';
+  const name=s.paket?'kg_crm_umzug.tar.gz':'kg_crm_daten.tar.gz';
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;
   document.body.appendChild(a);a.click();a.remove();
-  t.textContent='Fertig: kg_crm_daten.tar.gz ('+(s.groesse/1048576).toFixed(1)+' MB, '+s.dateien+' Dateien, Stand '+s.erstellt_utc+' UTC)';
+  await fetch('/admin/datensicherung/aufraeumen',{method:'POST',credentials:'same-origin'});
+  t.textContent='Fertig: '+name+' ('+(s.groesse/1048576).toFixed(1)+' MB, '+s.dateien+' Dateien'
+   +(s.paket?', '+s.einstellungen+' Einstellungen, '+s.geheime_dateien+' geheime Dateien':'')+', Stand '+s.erstellt_utc+' UTC)';
  }catch(e){t.textContent='Fehler: '+e.message;}
- b.disabled=false;
+ b.disabled=false;u.disabled=false;
 }
 </script></body></html>"""
 
 
 def register_umzug(app, login_required):
+
+    if (os.getenv("KG_HINTER_PROXY") or "").strip() == "1":
+        from werkzeug.middleware.proxy_fix import ProxyFix
+        app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1)
 
     @app.before_request
     def umzug_weiterleitung():
@@ -234,15 +273,29 @@ def register_umzug(app, login_required):
             s = _status_lesen()
             if s.get("zustand") == "laeuft" and time.time() - s.get("seit", 0) < 1800:
                 return jsonify(s)
-            s = {"zustand": "laeuft", "seit": time.time()}
+            paket = bool((request.get_json(silent=True) or {}).get("paket"))
+            s = {"zustand": "laeuft", "seit": time.time(), "paket": paket}
             _status_schreiben(s)
-            threading.Thread(target=_sicherung_bauen, daemon=True, name="kg-datensicherung").start()
+            threading.Thread(target=_sicherung_bauen, args=(paket,), daemon=True, name="kg-datensicherung").start()
         return jsonify(s)
 
     @app.route("/admin/datensicherung/status")
     @login_required
     def umzug_datensicherung_status():
         return jsonify(_status_lesen())
+
+    @app.route("/admin/datensicherung/aufraeumen", methods=["POST"])
+    @login_required
+    def umzug_datensicherung_aufraeumen():
+        # Nach dem Herunterladen: Datei (evtl. mit Zugangsdaten) vom Server löschen
+        s = _status_lesen()
+        if s.get("zustand") == "fertig":
+            try:
+                os.remove(os.path.join(SICHERUNG_DIR, DATEI_NAME))
+            except OSError:
+                pass
+            _status_schreiben({"zustand": "leer"})
+        return jsonify({"success": True})
 
     @app.route("/admin/datensicherung/teil/<int:nr>")
     @login_required

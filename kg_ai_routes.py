@@ -2,6 +2,10 @@
 
 from flask import request, jsonify, render_template
 from openai_client import ai_test, analyze_worker_message, kg_ai_chat
+import os
+
+# Adresse für Links in Qualitäts-Mails (Abbestellen, Feedback); auf Hetzner per Umgebung gesetzt
+KG_PORTAL_BASE_URL = os.getenv("KG_PORTAL_BASE_URL", "https://kg-portal.onrender.com").rstrip("/")
 
 
 def run_due_quality_campaigns(get_db_connection, base_url=None, only_customer_ids=None):
@@ -11,7 +15,7 @@ def run_due_quality_campaigns(get_db_connection, base_url=None, only_customer_id
     from datetime import datetime
     from app2 import send_gmail_message_direct
 
-    base_url = "https://kg-portal.onrender.com"
+    base_url = KG_PORTAL_BASE_URL
 
     conn = get_db_connection()
     conn.execute("""
@@ -895,7 +899,7 @@ www.kg-reinigung.de
 
         result = run_due_quality_campaigns(
             get_db_connection,
-            base_url="https://kg-portal.onrender.com",
+            base_url=KG_PORTAL_BASE_URL,
             only_customer_ids=valid_ids
         )
 
@@ -1000,7 +1004,7 @@ www.kg-reinigung.de
 
             unsubscribe_token = kundenpflege_new_token()
             survey_token = kundenpflege_new_token()
-            base_url = "https://kg-portal.onrender.com"
+            base_url = KG_PORTAL_BASE_URL
             unsubscribe_url = base_url + "/qualitaetsmail/abbestellen/" + unsubscribe_token
             survey_url = base_url + "/kundenfeedback/" + survey_token
 
