@@ -29,7 +29,7 @@
   .sza-plan table { width: 100%; border-collapse: collapse; }
   .sza-plan th { text-align: left; font-size: 12px; color: #475569; padding: 6px; }
   .sza-plan td { padding: 6px; border-top: 1px solid #f1f5f9; }
-  .sza-plan input[type=time], .sza-plan input[type=text] { font-size: 16px; padding: 7px 9px; border: 1px solid #cbd5e1; border-radius: 9px; width: 100%; }
+  .sza-plan input[type=time], .sza-plan input[type=text], .sza-plan select { font-size: 16px; padding: 7px 9px; border: 1px solid #cbd5e1; border-radius: 9px; width: 100%; }
   .sza-plan input[type=checkbox] { width: 20px; height: 20px; }
   .sza-leon { margin-top: 12px; border-left: 4px solid #7c3aed; padding: 10px 14px; background: #faf5ff; border-radius: 10px; font-size: 14px; color: #1e293b; }
   .sza-leon details { margin-top: 8px; }
@@ -67,7 +67,7 @@
   </div>
 
   <div class="sza-card sza-help">
-    <b>So geht's:</b> 1. „Feste Zeiten“ öffnen, Wochentage anhaken, Beginn/Ende/Objekt eintragen, speichern.
+    <b>So geht's:</b> 1. „Feste Zeiten“ öffnen, Wochentage anhaken, Beginn/Ende/Ort wählen, speichern.
     2. „Monat ausfüllen“. 3. „Leon anrufen lassen“ (Leon liest die Zusammenfassung vor und fragt nach Abweichungen).
     4. Ergebnis lesen, Stunden ggf. im Stundenzettel korrigieren, dann „Bestätigen &amp; sperren“.
     „Rückgängig“ löscht nur automatisch eingetragene Tage, die niemand verändert hat.
@@ -93,12 +93,16 @@
   </div>
 
   <div id="szaList"></div>
-  <datalist id="szaObjekte"></datalist>
 </div>
 
 <script>
 (function () {
   const TAGE = [["mo","Montag"],["di","Dienstag"],["mi","Mittwoch"],["do","Donnerstag"],["fr","Freitag"],["sa","Samstag"],["so","Sonntag"]];
+  // gleiche Auswahl wie im Stundenzettel der Mitarbeiter (stundenzettel_worker.html)
+  const ORTE = ["Duisburg", "Walsum", "Hamborn", "Meiderich / Beeck", "Ruhrort", "Rheinhausen", "Duisburg Mitte",
+    "Duisburg Süd", "Großenbaum", "Neudorf", "Wanheimerort", "Neuenkamp", "Grundreinigung", "Düsseldorf", "Moers",
+    "Neukirchen-Vluyn", "Oberhausen", "Essen", "Feiertag", "Krank", "Urlaub"];
+  const STANDARD_START = "17:00", STANDARD_ENDE = "19:00";
   const STATUS = { offen: "offen", ausgefuellt: "ausgefüllt", leon_wartet: "Leon ruft an", leon_fertig: "Leon fertig", bestaetigt: "bestätigt · gesperrt" };
   const monatInput = document.getElementById("szaMonat");
   const now = new Date();
@@ -114,14 +118,36 @@
     return data;
   }
 
+  function ortOptionen(gewaehlt) {
+    const liste = ORTE.slice();
+    // früher frei eingetragener Ort (z. B. ein Kundenname) bleibt sichtbar, bis er geändert wird
+    if (gewaehlt && !liste.includes(gewaehlt)) liste.unshift(gewaehlt);
+    return '<option value="">-- Bitte wählen --</option>' + liste.map((o) =>
+      `<option value="${esc(o)}"${o === gewaehlt ? " selected" : ""}>${esc(o)}${ORTE.includes(o) ? "" : " (alt – bitte ändern)"}</option>`).join("");
+  }
+
+  // Tag angehakt → Zeiten und Ort vom Tag darüber übernehmen (sonst 17–19 Uhr)
+  document.addEventListener("change", (ev) => {
+    const box = ev.target.closest && ev.target.closest(".p-aktiv");
+    if (!box || !box.checked) return;
+    const tr = box.closest("tr");
+    let vorher = tr.previousElementSibling;
+    while (vorher && !vorher.querySelector(".p-aktiv")?.checked) vorher = vorher.previousElementSibling;
+    if (vorher) {
+      tr.querySelector(".p-start").value = vorher.querySelector(".p-start").value || STANDARD_START;
+      tr.querySelector(".p-ende").value = vorher.querySelector(".p-ende").value || STANDARD_ENDE;
+      if (!tr.querySelector(".p-ort").value) tr.querySelector(".p-ort").value = vorher.querySelector(".p-ort").value;
+    }
+  });
+
   function planRows(m) {
     return TAGE.map(([k, label]) => {
       const p = (m.plan || {})[k] || {};
       return `<tr data-tag="${k}">
         <td><label style="display:flex;gap:8px;align-items:center;font-weight:700;"><input type="checkbox" class="p-aktiv" ${p.aktiv ? "checked" : ""}> ${label}</label></td>
-        <td><input type="time" class="p-start" value="${esc(p.start)}" aria-label="${label} Beginn"></td>
-        <td><input type="time" class="p-ende" value="${esc(p.ende)}" aria-label="${label} Ende"></td>
-        <td><input type="text" class="p-ort" list="szaObjekte" value="${esc(p.ort)}" placeholder="Objekt / Kunde" aria-label="${label} Objekt"></td>
+        <td><input type="time" class="p-start" step="300" value="${esc(p.start || STANDARD_START)}" aria-label="${label} Beginn"></td>
+        <td><input type="time" class="p-ende" step="300" value="${esc(p.ende || STANDARD_ENDE)}" aria-label="${label} Ende"></td>
+        <td><select class="p-ort" aria-label="${label} Ort">${ortOptionen(p.ort)}</select></td>
       </tr>`;
     }).join("");
   }
@@ -162,7 +188,7 @@
         ${locked ? '<button class="sza-btn c-red a-unlock">Entsperren</button>' : '<button class="sza-btn c-green a-ok">Bestätigen &amp; sperren</button>'}
       </div>
       <div class="sza-plan">
-        <table><thead><tr><th>Tag</th><th>Beginn</th><th>Ende</th><th>Objekt</th></tr></thead>
+        <table><thead><tr><th>Tag</th><th>Beginn</th><th>Ende</th><th>Ort</th></tr></thead>
         <tbody>${planRows(m)}</tbody></table>
         <div class="sza-btns"><button class="sza-btn c-green a-save">Feste Zeiten speichern</button></div>
       </div>
@@ -309,12 +335,6 @@
     } catch (e) { autoMsg(e.message, false); }
     btn.disabled = false;
   });
-
-  // Objekte = Kundenliste (nur lesen)
-  fetch("/api/agent-read/table/kunden?limit=500&order=firma&desc=0").then((r) => r.json()).then((d) => {
-    const dl = document.getElementById("szaObjekte");
-    (d.rows || []).forEach((k) => { const o = document.createElement("option"); o.value = k.firma || ""; dl.append(o); });
-  }).catch(() => {});
 
   autoLaden();
   laden();
