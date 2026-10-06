@@ -71,7 +71,8 @@ Systeme (Parameter "system"):
   campaigns, campaign_leads.
 - business = KG Business (Strom/Gas-Vertrieb). Gleicher Aufbau wie reinigung (leads, calls, campaigns, campaign_leads).
 
-Werkzeuge: Für häufige Fragen zuerst kg_heute, rueckrufe, leon_anrufe, firma_suchen benutzen.
+Werkzeuge: Für häufige Fragen zuerst kg_heute, todo_brett, rueckrufe, leon_anrufe, firma_suchen benutzen.
+todo_brett = derselbe To-Do-Kasten, den Murat im Süper Program sieht (heute / woche / monat).
 Für alles andere: erst schema(system), dann sql_lesen(system, SELECT ...). Du kannst frei SELECT-Abfragen schreiben
 (auch JOIN, GROUP BY, WITH). Ändern ist nicht möglich.
 Zeiten: calls.created_at und andere *_at mit CURRENT_TIMESTAMP sind UTC – für den Nutzer in Berliner Zeit umrechnen.
@@ -391,6 +392,179 @@ def w_kg_heute():
     return ergebnis
 
 
+WT_KURZ = ("Mo", "Di", "Mi", "Do", "Fr", "Sa", "So")
+WICHTIG = ("termin", "heiss", "rueckruf")
+
+
+def w_todo_brett(zeitraum="heute"):
+    """Gleicher Inhalt wie der To-Do-Kasten im Süper Program (unten, ganze Breite):
+    Rückrufe, Besichtigungen, Kampagnen, Zahlungen, Stunden der Mitarbeiter, Aufgaben – CRM und KG Business."""
+    zeitraum = zeitraum if zeitraum in ("heute", "woche", "monat") else "heute"
+    heute = jetzt_berlin().date()
+    bis = heute + timedelta(days={"heute": 0, "woche": 6, "monat": 30}[zeitraum])
+    stunden_von = {"heute": heute, "woche": heute - timedelta(days=heute.weekday()),
+                   "monat": heute.replace(day=1)}[zeitraum]
+    spalten = {k: [] for k in ("rueckrufe", "besichtigungen", "kampagnen", "zahlungen", "stunden", "aufgaben")}
+    fehler = []
+
+    def tag(d):
+        if d == heute:
+            return "heute"
+        if d == heute + timedelta(days=1):
+            return "morgen"
+        return f"{WT_KURZ[d.weekday()]} {d:%d.%m.}"
+
+    def datum(wert):
+        t = rueckruf_zeit(wert)
+        return t.date() if t else None
+
+    def add(spalte, text, d=None, uhr="", quelle="CRM", hot=None, wann=None):
+        if hot is None:
+            hot = bool(d and d < heute)
+        if wann is None:
+            wann = "überfällig" if hot and d else ((tag(d) if d else "") + (" " + uhr if uhr else "")).strip()
+        spalten[spalte].append({"text": text, "wann": wann, "quelle": quelle, "dringend": hot,
+                                "_s": f"{0 if hot else 1}{d.isoformat() if d else '9'}{uhr}"})
+
+    def berichte(conn, quelle, anzahl):
+        try:
+            zeilen = conn.execute("SELECT id, daten_json, erledigt_json FROM kampagnen_berichte ORDER BY id DESC LIMIT ?",
+                                  (anzahl,)).fetchall()
+        except sqlite3.Error as exc:  # Berichte fehlen → die anderen Spalten trotzdem zeigen
+            fehler.append(f"{quelle} Kampagnen-Berichte: {exc}")
+            return
+        for r in zeilen:
+            try:
+                b = json.loads(r["daten_json"] or "{}")
+                erledigt = set(json.loads(r["erledigt_json"] or "[]"))
+            except (TypeError, ValueError):
+                continue
+            offen = [f for f in b.get("firmen", []) if f.get("kategorie") in WICHTIG and f.get("lead_id") not in erledigt]
+            z = b.get("zahlen") or {}
+            add("kampagnen", f"{b.get('kampagne') or 'Kampagne'}: {z.get('angerufen', 0)} angerufen, "
+                             f"{z.get('termin', 0)} Termin, {z.get('heiss', 0)} interessiert, {len(offen)} offen",
+                datum(b.get("bis") or b.get("von")), quelle=quelle, hot=False)
+            for f in offen[:8]:
+                art = {"termin": "Termin", "heiss": "interessiert", "rueckruf": "Rückruf"}.get(f.get("kategorie"), "")
+                add("kampagnen", f"{f.get('firma') or '—'} ({art})", quelle=quelle, hot=False,
+                    wann=str(f.get("rueckruf_am") or "offen")[:16])
+
+    bis_text = bis.isoformat()
+    # ---------------- CRM
+    try:
+        conn = verbinden("crm")
+        try:
+            for r in conn.execute("SELECT * FROM todos WHERE COALESCE(done, 0) = 0 AND COALESCE(deadline, '') != '' "
+                                  "AND substr(deadline, 1, 10) <= ? ORDER BY deadline", (bis_text,)).fetchall():
+                r = dict(r)
+                if str(r.get("status") or "").lower() in {"done", "erledigt"}:
+                    continue
+                d = datum(r.get("deadline"))
+                text = r.get("task") or "—"
+                if r.get("amount_text"):
+                    text += f" ({r['amount_text']})"
+                spalte = "zahlungen" if r.get("amount") else (
+                    "kampagnen" if r.get("source") == "kampagnen-bericht" else "aufgaben")
+                add(spalte, text, d)
+            for r in conn.execute("SELECT firma, ansprechpartner, rueckruf_am FROM leon_anrufe WHERE COALESCE(erledigt, 0) = 0 "
+                                  "AND COALESCE(rueckruf_am, '') != '' AND substr(rueckruf_am, 1, 10) <= ?", (bis_text,)).fetchall():
+                add("rueckrufe", f"{r['firma']} – {r['ansprechpartner'] or ''}".strip(" –"), datum(r["rueckruf_am"]),
+                    str(r["rueckruf_am"])[11:16])
+            for r in conn.execute("SELECT firma, ort, termin_datum, termin_uhrzeit FROM besichtigungen "
+                                  "WHERE termin_datum BETWEEN ? AND ? ORDER BY termin_datum, termin_uhrzeit",
+                                  (heute.isoformat(), bis_text)).fetchall():
+                add("besichtigungen", f"{r['firma']} – {r['ort'] or ''}".strip(" –"), datum(r["termin_datum"]),
+                    r["termin_uhrzeit"] or "", hot=False)
+            import calendar
+            for r in conn.execute("SELECT kreditname, monatliche_rate, rest_raten, beginn FROM ratenzahlungen").fetchall():
+                try:
+                    if int(r["rest_raten"] or 0) <= 0:
+                        continue
+                    tag_im_monat = int(str(r["beginn"] or "")[8:10])
+                except ValueError:
+                    continue
+                jahr, monat = heute.year, heute.month
+                for _ in range(2):
+                    faellig = date(jahr, monat, min(tag_im_monat, calendar.monthrange(jahr, monat)[1]))
+                    if faellig >= heute:
+                        break
+                    jahr, monat = (jahr + 1, 1) if monat == 12 else (jahr, monat + 1)
+                if faellig <= bis:
+                    add("zahlungen", f"Rate {r['kreditname'] or ''}: {r['monatliche_rate']} € (noch {r['rest_raten']} Raten)",
+                        faellig, hot=False)
+            # Stunden der Mitarbeiter
+            namen = {r["id"]: f"{r['vorname'] or ''} {r['nachname'] or ''}".strip()
+                     for r in conn.execute("SELECT id, vorname, nachname FROM mitarbeiter").fetchall()}
+            je = {}
+            for r in conn.execute("SELECT worker_id, start_time, end_time FROM work_logs WHERE datum BETWEEN ? AND ?",
+                                  (stunden_von.isoformat(), heute.isoformat())).fetchall():
+                try:
+                    h1, m1 = (int(x) for x in str(r["start_time"])[:5].split(":"))
+                    h2, m2 = (int(x) for x in str(r["end_time"])[:5].split(":"))
+                    minuten = (h2 * 60 + m2) - (h1 * 60 + m1)
+                except ValueError:
+                    minuten = 0
+                x = je.setdefault(r["worker_id"], [0.0, 0])
+                x[0] += (minuten + 1440 if minuten < 0 else minuten) / 60
+                x[1] += 1
+            add("stunden", f"Gesamt {sum(v[0] for v in je.values()):.1f} Stunden, {len(je)} Mitarbeiter", hot=False,
+                wann="heute" if zeitraum == "heute" else f"seit {stunden_von:%d.%m.}")
+            try:
+                for r in conn.execute("SELECT worker_id, monat FROM stundenzettel_monate WHERE status = 'leon_fertig'").fetchall():
+                    add("stunden", f"Leon-Kontrolle fertig, bitte bestätigen: {namen.get(r['worker_id'], '')} ({r['monat']})".replace(":  (", ": ("),
+                        hot=True, wann="prüfen")
+            except sqlite3.Error:
+                pass  # Tabelle gibt es erst nach dem ersten Öffnen der Stundenzettel-Automatik
+            if zeitraum != "heute":
+                frueher = {r[0] for r in conn.execute(
+                    "SELECT DISTINCT worker_id FROM work_logs WHERE datum BETWEEN ? AND ?",
+                    ((stunden_von - timedelta(days=30)).isoformat(), (stunden_von - timedelta(days=1)).isoformat())).fetchall()}
+                for wid in sorted(frueher - set(je), key=lambda w: namen.get(w, "")):
+                    add("stunden", f"{namen.get(wid, '#' + str(wid))}: kein Eintrag", hot=True, wann="fehlt")
+            for wid, (h, tage) in sorted(je.items(), key=lambda kv: -kv[1][0]):
+                add("stunden", f"{namen.get(wid, '#' + str(wid))}: {h:.1f} Stunden", hot=False,
+                    wann=f"{tage} Tag{'e' if tage != 1 else ''}")
+            berichte(conn, "CRM", 2 if zeitraum == "heute" else 4)
+        finally:
+            conn.close()
+    except (Fehler, sqlite3.Error) as exc:
+        fehler.append(f"CRM: {exc}")
+
+    # ---------------- KG Business
+    try:
+        conn = verbinden("business")
+        try:
+            for r in conn.execute("SELECT title, due_date, due_time, auto_type FROM todo_tasks "
+                                  "WHERE deleted = 0 AND status != 'erledigt' AND due_date != '' AND substr(due_date, 1, 10) <= ?",
+                                  (bis_text,)).fetchall():
+                add("kampagnen" if r["auto_type"] == "kampagnenbericht" else "aufgaben", r["title"] or "—",
+                    datum(r["due_date"]), r["due_time"] or "", "Business")
+            berichte(conn, "Business", 2 if zeitraum == "heute" else 4)
+        finally:
+            conn.close()
+        for x in w_rueckrufe("business", "alle")["rueckrufe"]:
+            t = rueckruf_zeit(x.get("wann"))
+            d = t.date() if t else None
+            if x.get("lage") != "ueberfaellig" and not (d and d <= bis):
+                continue
+            add("rueckrufe", " – ".join(v for v in (x.get("firma"), x.get("kontakt")) if v) or "—", d,
+                t.strftime("%H:%M") if t and t.strftime("%H:%M") != "00:00" else "", "Business",
+                hot=x.get("lage") == "ueberfaellig")
+    except (Fehler, sqlite3.Error) as exc:
+        fehler.append(f"Business: {exc}")
+
+    for k in ("rueckrufe", "besichtigungen", "zahlungen", "aufgaben"):
+        spalten[k].sort(key=lambda i: i["_s"])
+    for liste in spalten.values():
+        for i in liste:
+            i.pop("_s", None)
+    return {"zeitraum": {"heute": "heute", "woche": "nächste 7 Tage", "monat": "nächste 31 Tage"}[zeitraum],
+            "stand": jetzt_berlin().strftime("%d.%m.%Y %H:%M"),
+            "anzahl": {k: len(v) for k, v in spalten.items()},
+            "ueberfaellig": sum(1 for v in spalten.values() for i in v if i["wann"] == "überfällig"),
+            "spalten": spalten, "fehler": fehler}
+
+
 def w_schema(system):
     conn = verbinden(system)
     try:
@@ -445,6 +619,19 @@ WERKZEUGE = {
                        "Besichtigungen der nächsten 7 Tage, fällige To-Dos, Arbeitsstunden heute. "
                        "Für Fragen wie 'was steht heute an', 'wie läuft der Tag', 'bugün neler var'.",
         "schema": {"type": "object", "properties": {}, "additionalProperties": False},
+    },
+    "todo_brett": {
+        "fn": lambda a: w_todo_brett(a.get("zeitraum", "heute")),
+        "title": "To-Do-Brett (Süper Program)",
+        "description": "Genau der To-Do-Kasten aus Murats Süper Program: alles Offene aus KG CRM und KG Business in 6 Spalten – "
+                       "Rückrufe, Besichtigungen, Kampagnen (Ergebnisse + offene Firmen), Zahlungen (Zahlungs-To-Dos + Kreditraten), "
+                       "Stunden der Mitarbeiter (Summe, je Mitarbeiter, wer nichts eingetragen hat, Leon-Kontrolle), Aufgaben. "
+                       "Überfälliges ist markiert (dringend). Für Fragen wie 'To-Do'da ne var', 'was steht an', "
+                       "'bu hafta ne var', 'wer hat keine Stunden eingetragen', 'welche Zahlungen sind fällig'.",
+        "schema": {"type": "object", "properties": {
+            "zeitraum": {"type": "string", "enum": ["heute", "woche", "monat"],
+                         "description": "heute (Standard, inkl. Überfälliges), woche = nächste 7 Tage, monat = nächste 31 Tage"},
+        }, "additionalProperties": False},
     },
     "rueckrufe": {
         "fn": lambda a: w_rueckrufe(a.get("system", "reinigung"), a.get("zeitraum", "faellig")),
