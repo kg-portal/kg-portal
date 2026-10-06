@@ -50,8 +50,14 @@ PLZ_BEREICH = {
 }
 
 
+def _berlin():
+    # Der Server läuft in UTC – Startstunde, „heute“ und Wochenende gelten in deutscher Zeit
+    from zoneinfo import ZoneInfo
+    return datetime.now(ZoneInfo("Europe/Berlin")).replace(tzinfo=None)
+
+
 def _jetzt():
-    return datetime.now().isoformat(timespec="seconds")
+    return _berlin().isoformat(timespec="seconds")
 
 
 def ensure_tables(conn):
@@ -163,7 +169,7 @@ def _letzte_runde(conn, quelle, crm_id):
 
 def kandidaten(conn, e, heute=None, online=True):
     """Bewertete Kandidatenliste (ohne Seiteneffekte außer PLZ-Cache)."""
-    heute = heute or date.today()
+    heute = heute or _berlin().date()
     branchen = [b for b in e["branchen"] if b][:6]
     if not branchen:
         return [], {"hinweis": "Bitte zuerst 3–4 Datenbanken (Branchen) auswählen."}
@@ -249,7 +255,7 @@ def kandidaten(conn, e, heute=None, online=True):
 # ----------------------------------------------------- Ausführen
 
 def ausfuehren(app, conn, leon_client, e, heute=None):
-    heute = heute or date.today()
+    heute = heute or _berlin().date()
     quelle = "tagesliste" if e["quelle"] == "tagesliste" else "leads"
     liste, stat = kandidaten(conn, e, heute)
     auswahl = liste[: int(e["tageslimit"] or 50)]
@@ -408,7 +414,7 @@ def register_leon_auto_kampagne(app, login_required, get_db_connection, leon_cli
         conn = _conn()
         try:
             e = einstellungen(conn)
-            jetzt = datetime.now()
+            jetzt = _berlin()
             if not e["aktiv"]:
                 return jsonify({"success": True, "info": "Auto-Kampagne ist ausgeschaltet."})
             if jetzt.weekday() >= 5:
