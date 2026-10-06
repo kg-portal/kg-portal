@@ -9,7 +9,6 @@ DB_PATH = os.path.join(BASE_DIR, "data", "kg_portal.db")
 
 WORKER_WHATSAPP_FILE = os.path.join(BASE_DIR, "data", "worker_whatsapp_numbers.txt")
 
-WHATSAPP_CONNECTOR_ENABLED = True
 
 def wa_clean_id(value):
     phone = "".join(ch for ch in str(value or "") if ch.isdigit())
@@ -574,6 +573,32 @@ def wa_save_active_job_context(text):
     conn.close()
 
 
+# Schalter „Automatische Antworten“ (WhatsApp Inbox, AN/AUS). Steht in der Datenbank, damit er einen
+# CRM-Neustart übersteht; ohne Eintrag AUS. Er schaltet nur die automatischen KI-Antworten –
+# was bewusst gesendet wird (KG AI an Mitarbeiter, Arbeitsliste, Kampagnen-Bericht, Agent) geht immer raus.
+def wa_connector_aktiv():
+    try:
+        conn = wa_conn()
+        row = conn.execute("SELECT value FROM whatsapp_ai_state WHERE key = 'connector_enabled'").fetchone()
+        conn.close()
+    except sqlite3.Error:
+        return False
+    return bool(row) and str(row["value"]) == "1"
+
+
+def wa_connector_setzen(aktiv):
+    conn = wa_conn()
+    conn.execute('''
+        INSERT INTO whatsapp_ai_state (key, value, updated_at)
+        VALUES ('connector_enabled', ?, CURRENT_TIMESTAMP)
+        ON CONFLICT(key) DO UPDATE SET
+            value = excluded.value,
+            updated_at = CURRENT_TIMESTAMP
+    ''', ("1" if aktiv else "0",))
+    conn.commit()
+    conn.close()
+
+
 def wa_get_active_job_context():
     conn = wa_conn()
     row = conn.execute("""
@@ -597,19 +622,18 @@ def register_whatsapp_connector_routes(app, login_required):
     def whatsapp_connector_status():
         return jsonify({
             "ok": True,
-            "enabled": WHATSAPP_CONNECTOR_ENABLED
+            "enabled": wa_connector_aktiv()
         })
 
     @app.route("/whatsapp/api/connector-toggle", methods=["POST"])
     @login_required
     def whatsapp_connector_toggle():
-        global WHATSAPP_CONNECTOR_ENABLED
-
-        WHATSAPP_CONNECTOR_ENABLED = not WHATSAPP_CONNECTOR_ENABLED
+        aktiv = not wa_connector_aktiv()
+        wa_connector_setzen(aktiv)
 
         return jsonify({
             "ok": True,
-            "enabled": WHATSAPP_CONNECTOR_ENABLED
+            "enabled": aktiv
         })
 
     @app.route("/api/whatsapp-connector/incoming", methods=["POST"])
@@ -640,9 +664,11 @@ def register_whatsapp_connector_routes(app, login_required):
             or str(data.get("is_from_me") or "").lower() == "true"
         )
 
+        aktiv = wa_connector_aktiv()
+
         # Damla kendi WhatsApp sayfasına yazarsa burası KG AI ana pencere gibi çalışır.
         # Bu pencereye yazılan her mesaj aktif iş ilanı bilgisi olarak kaydedilir.
-        if WHATSAPP_CONNECTOR_ENABLED and from_me and wa_is_ai_self_window(from_me, raw_from=raw_from, to_id=to_id, phone=phone):
+        if aktiv and from_me and wa_is_ai_self_window(from_me, raw_from=raw_from, to_id=to_id, phone=phone):
             if body:
                 wa_save_active_job_context(body)
 
@@ -704,7 +730,7 @@ def register_whatsapp_connector_routes(app, login_required):
         # Sesli mesaj / boş içerik gelirse AI çözmeye çalışmasın.
         # Kayıtlı işçiyse yazılı mesaj istemek için kısa cevap kuyruğa ekle.
         if not body:
-            if WHATSAPP_CONNECTOR_ENABLED and is_known_worker:
+            if aktiv and is_known_worker:
                 reply_target = phone
 
                 conn = wa_conn()
@@ -731,7 +757,7 @@ def register_whatsapp_connector_routes(app, login_required):
             VALUES (?, ?, ?, ?, ?, ?, ?)
         ''', (wa_message_id, phone, name, body, msg_type, raw_from, wa_timestamp))
 
-        if not WHATSAPP_CONNECTOR_ENABLED:
+        if not aktiv:
             conn.commit()
             conn.close()
             return jsonify({
@@ -881,13 +907,7 @@ def register_whatsapp_connector_routes(app, login_required):
 
     @app.route("/api/whatsapp-connector/outbox", methods=["GET"])
     def whatsapp_connector_outbox():
-
-        if not WHATSAPP_CONNECTOR_ENABLED:
-            return jsonify({
-                "ok": True,
-                "items": [],
-                "disabled": True
-            })
+        # Gesendet wird unabhängig vom Schalter; Einträge älter als 1 Tag gehen nicht mehr automatisch raus
         if not wa_token_ok():
             return jsonify({"ok": False, "message": "Unauthorized"}), 403
 
@@ -902,6 +922,7 @@ def register_whatsapp_connector_routes(app, login_required):
             SELECT id, phone, text
             FROM whatsapp_outbox
             WHERE status = 'pending'
+              AND created_at >= datetime('now', '-1 day')
             ORDER BY id ASC
             LIMIT ?
         ''', (limit,)).fetchall()
