@@ -911,6 +911,117 @@ www.kg-reinigung.de
             "run": result
         })
 
+    # Zeitplan auf Hetzner (kg-crm-qualitaet.timer, täglich): fällige Qualitätsmails senden – nur diese
+    # Kampagne, keine Tagesliste. War etwas fällig, geht danach ein Bericht an info@kg-reinigung.de.
+    @app.route("/internal/qualitaet-mails", methods=["POST"])
+    def kg_ai_qualitaet_cron():
+        from datetime import datetime
+        from app2 import send_gmail_message_direct
+
+        token = (os.getenv("LEON_AUTO_TOKEN") or os.getenv("INTERNAL_CRON_TOKEN") or "").strip()
+        given = (request.headers.get("X-Cron-Token") or "").strip()
+        if not token or given != token:
+            return jsonify({"ok": False, "error": "Zugriff verweigert"}), 403
+
+        ensure_kundenpflege_tables()
+        conn = get_db_connection()
+        vorher = conn.execute("SELECT COALESCE(MAX(id), 0) FROM kunden_quality_mail").fetchone()[0]
+        faellig = conn.execute("""
+            SELECT c.kunde_id, k.firma, k.email,
+                   COALESCE(k.vertragsstatus, 'aktuell') AS vertragsstatus,
+                   p.enabled AS quality_enabled, p.unsubscribed_at
+            FROM kunden_quality_campaign c
+            JOIN kunden k ON k.id = c.kunde_id
+            LEFT JOIN kunden_quality_pref p ON p.kunde_id = c.kunde_id
+            WHERE c.active = 1
+              AND (c.next_run_at IS NULL OR datetime(c.next_run_at) <= datetime('now', 'localtime'))
+        """).fetchall()
+        conn.close()
+        if not faellig:
+            return jsonify({"ok": True, "faellig": 0, "bericht": False})
+
+        result = run_due_quality_campaigns(get_db_connection, base_url=KG_PORTAL_BASE_URL)
+
+        conn = get_db_connection()
+        mails = {r["kunde_id"]: r for r in conn.execute("""
+            SELECT kunde_id, recipient, status FROM kunden_quality_mail WHERE id > ?
+        """, (vorher,)).fetchall()}
+        abbestellt = conn.execute("""
+            SELECT k.firma, p.unsubscribed_at
+            FROM kunden_quality_pref p
+            JOIN kunden k ON k.id = p.kunde_id
+            WHERE p.unsubscribed_at IS NOT NULL OR p.enabled = 0
+            ORDER BY k.firma COLLATE NOCASE
+        """).fetchall()
+        nicht_dabei = conn.execute("""
+            SELECT k.firma, k.email
+            FROM kunden k
+            LEFT JOIN kunden_quality_campaign c ON c.kunde_id = k.id
+            LEFT JOIN kunden_quality_pref p ON p.kunde_id = k.id
+            WHERE (c.kunde_id IS NULL OR c.active = 0)
+              AND p.unsubscribed_at IS NULL AND COALESCE(p.enabled, 1) = 1
+            ORDER BY k.firma COLLATE NOCASE
+        """).fetchall()
+        naechste = conn.execute(
+            "SELECT MIN(next_run_at) FROM kunden_quality_campaign WHERE active = 1").fetchone()[0]
+        conn.close()
+
+        def datum(wert):
+            s = str(wert or "")
+            return f"{s[8:10]}.{s[5:7]}.{s[0:4]}" if len(s) >= 10 else "-"
+
+        gesendet, fehler, ohne_mail, gekuendigt = [], [], [], []
+        for r in sorted(faellig, key=lambda x: str(x["firma"] or "").lower()):
+            firma = str(r["firma"] or "-").strip()
+            m = mails.get(r["kunde_id"])
+            if m is not None and m["status"] == "sent":
+                gesendet.append(f"- {firma} – {m['recipient']}")
+            elif m is not None:
+                fehler.append(f"- {firma} – {m['recipient']} (Gmail-Fehler, wird morgen erneut versucht)")
+            elif str(r["vertragsstatus"] or "").strip().lower() == "gekuendigt":
+                gekuendigt.append(f"- {firma}")
+            elif r["unsubscribed_at"] or (r["quality_enabled"] is not None and not r["quality_enabled"]):
+                pass  # steht unten bei „abbestellt“
+            else:
+                ohne_mail.append(f"- {firma} (keine E-Mail-Adresse im Kunden – bitte eintragen)")
+
+        teile = [f"Bericht Qualitätsabfrage – {datetime.now():%d.%m.%Y %H:%M}", ""]
+        teile += [f"Gesendet ({len(gesendet)}):"] + (gesendet or ["- keine"]) + [""]
+        if fehler:
+            teile += [f"Nicht gesendet – Fehler ({len(fehler)}):"] + fehler + [""]
+        if ohne_mail:
+            teile += [f"Nicht gesendet – keine E-Mail ({len(ohne_mail)}):"] + ohne_mail + [""]
+        if gekuendigt:
+            teile += [f"Nicht gesendet – gekündigt ({len(gekuendigt)}):"] + gekuendigt + [""]
+        teile += [f"Nicht gesendet – abbestellt ({len(abbestellt)}):"]
+        teile += [f"- {r['firma']} (abbestellt am {datum(r['unsubscribed_at'])})" for r in abbestellt] or ["- keine"]
+        teile += ["", f"Nicht in der Kampagne – von dir nicht ausgewählt ({len(nicht_dabei)}):"]
+        teile += [f"- {r['firma']}" + ("" if str(r["email"] or "").strip() not in ("", "-") else " (keine E-Mail)")
+                  for r in nicht_dabei] or ["- keine"]
+        teile += ["", f"Nächste Runde: {datum(naechste)}", "",
+                  "Kunden aufnehmen oder herausnehmen: KG CRM → KG AI → Kundenpflege."]
+
+        # Nur noch dieselben Fehler wie gestern (nichts gesendet, nichts neu abbestellt): Bericht nur montags,
+        # sonst käme jeden Tag dieselbe Mail
+        if not gesendet and not result.get("skipped") and datetime.now().weekday() != 0:
+            return jsonify({"ok": True, "faellig": len(faellig), "run": result, "bericht": False})
+
+        empfaenger = (os.getenv("KG_QUALITAET_BERICHT_AN") or "info@kg-reinigung.de").strip()
+        bericht = True
+        try:
+            send_gmail_message_direct(
+                empfaenger,
+                f"Qualitätsmails {datetime.now():%d.%m.%Y}: {len(gesendet)} gesendet",
+                "\n".join(teile),
+                from_email="info@kg-reinigung.de",
+                from_name="KG CRM",
+            )
+        except Exception as exc:
+            print("QUALITY CAMPAIGN REPORT ERROR:", str(exc))
+            bericht = False
+
+        return jsonify({"ok": True, "faellig": len(faellig), "run": result, "bericht": bericht})
+
     @app.route("/api/ai/kundenpflege/campaign/status")
     @login_required
     def kg_ai_kundenpflege_campaign_status():
