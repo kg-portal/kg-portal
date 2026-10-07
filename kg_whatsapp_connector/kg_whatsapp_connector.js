@@ -291,15 +291,36 @@ setInterval(pollOutbox, 3000);
 
 // KI-Antwort erst, wenn Damla eine Nachricht nach X Minuten (CRM: WA_KI_WARTEN_MIN) nicht gelesen hat.
 // Das CRM sagt, welche Nachrichten fällig sind; hier wird nur geprüft, ob der Chat noch ungelesen ist.
-// getChatById scheitert bei manchen @lid-Chats (Fehler „r“) → dann in der Chatliste suchen
+// Ungelesen-Zähler direkt aus dem WhatsApp-Web-Speicher lesen. getChatById/getChats scheitern bei
+// diesem Konto mit „r“ (Umwandlung des Chats); hier wird nur chat.unreadCount gelesen.
 async function kiChatFinden(chatId) {
+    let fehler1 = '';
+
+    try {
+        const r = await client.pupPage.evaluate((id) => {
+            let chat = null;
+            try { chat = window.Store.Chat.get(id); } catch (e) {}
+            if (!chat) {
+                try { chat = window.Store.Chat.get(window.Store.WidFactory.createWid(id)); } catch (e) {}
+            }
+            if (!chat) {
+                const alle = window.Store.Chat.getModelsArray ? window.Store.Chat.getModelsArray() : (window.Store.Chat.models || []);
+                chat = alle.find(c => c.id && (c.id._serialized === id || String(c.id) === id)) || null;
+            }
+            if (!chat || typeof chat.unreadCount !== 'number') return { gefunden: false };
+            return { gefunden: true, unreadCount: chat.unreadCount };
+        }, chatId);
+
+        if (r && r.gefunden) return { unreadCount: r.unreadCount };
+        fehler1 = 'nicht im Speicher';
+    } catch (e) {
+        fehler1 = e.message;
+    }
+
     try {
         return await client.getChatById(chatId);
     } catch (err) {
-        const chats = await client.getChats();
-        const chat = chats.find(c => c.id && c.id._serialized === chatId);
-        if (!chat) throw new Error('Chat nicht gefunden: ' + chatId + ' (' + err.message + ')');
-        return chat;
+        throw new Error('Chat nicht lesbar: ' + chatId + ' (' + fehler1 + ' / ' + err.message + ')');
     }
 }
 
