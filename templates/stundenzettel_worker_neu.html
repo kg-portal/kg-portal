@@ -513,6 +513,11 @@ function toast(text) {
     toast._t = setTimeout(() => el.classList.remove("an"), 1800);
 }
 
+// Im CRM (Seitenfenster der Stundenzettel-Liste) die Zahlen dort sofort neu laden lassen
+function aenderungMelden() {
+    try { if (window.parent && window.parent !== window) window.parent.postMessage({ typ: "stz-geaendert" }, window.location.origin); } catch (e) {}
+}
+
 function resturlaubAnpassen(vorher, nachher) {
     if (RESTURLAUB === null || RESTURLAUB === undefined) return;
     if (nachher === "Urlaub" && vorher !== "Urlaub") RESTURLAUB = Math.max(0, RESTURLAUB - 1);
@@ -542,6 +547,7 @@ function tagSpeichern() {
             const vorher = (SAVED_LOGS[key] || {}).place || "";
             SAVED_LOGS[key] = { start: start, end: end, place: entry.place, signed: 1 };
             resturlaubAnpassen(vorher, entry.place);
+            aenderungMelden();
             tagZu();
             zeichnen();
             toast(T().gespeichert);
@@ -576,6 +582,7 @@ function tagLoeschen() {
         const vorher = (SAVED_LOGS[key] || {}).place || "";
         delete SAVED_LOGS[key];
         resturlaubAnpassen(vorher, "");
+        aenderungMelden();
         tagZu();
         zeichnen();
         toast(T().geloescht);

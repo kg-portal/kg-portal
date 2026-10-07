@@ -225,7 +225,7 @@
         if (offenId !== null) kopfSetzen(DATEN.mitarbeiter.find(m => m.id === offenId));
     }
 
-    function laden(monat) {
+    function laden(monat, leise) {
         return fetch("/stundenzettel/uebersicht?monat=" + encodeURIComponent(monat), { cache: "no-store" })
             .then(r => r.json())
             .then(d => {
@@ -235,7 +235,7 @@
                 window.history.replaceState({}, "", url);
                 zeichnen();
             })
-            .catch(() => alert("⚠️ Übersicht konnte nicht geladen werden."));
+            .catch(() => { if (!leise) alert("⚠️ Übersicht konnte nicht geladen werden."); });
     }
 
     function monatSchieben(delta) {
@@ -302,6 +302,12 @@
     $("dNach").addEventListener("click", () => blaettern(1));
     $("dKopie").addEventListener("click", function () { const m = DATEN.mitarbeiter.find(x => x.id === offenId); if (m) kopieren(m.link, this); });
     document.addEventListener("keydown", ev => { if (ev.key === "Escape") schliessen(); });
+    // Zahlen aktuell halten: sofort nach Speichern/Löschen im Seitenfenster, beim Zurückkehren zur Seite und jede Minute
+    window.addEventListener("message", ev => {
+        if (ev.origin === window.location.origin && ev.data && ev.data.typ === "stz-geaendert") laden(DATEN.monat, true);
+    });
+    document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") laden(DATEN.monat, true); });
+    setInterval(() => { if (document.visibilityState === "visible") laden(DATEN.monat, true); }, 60000);
 
     zeichnen();
 })();
