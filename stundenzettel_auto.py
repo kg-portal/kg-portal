@@ -168,6 +168,13 @@ def ensure_tables(conn):
         if spalte not in spalten:
             conn.execute(f"ALTER TABLE stundenzettel_monate ADD COLUMN {spalte} {art}")
     conn.execute("""
+        CREATE TABLE IF NOT EXISTS stundenzettel_feiertag_regel (
+            worker_id INTEGER PRIMARY KEY,
+            arbeitet INTEGER NOT NULL DEFAULT 0,
+            aktualisiert_am TEXT
+        )
+    """)
+    conn.execute("""
         CREATE TABLE IF NOT EXISTS stundenzettel_wa_sprache (
             worker_id INTEGER PRIMARY KEY,
             sprache TEXT NOT NULL,
@@ -210,6 +217,12 @@ def _plan_laden(conn, worker_id):
         return _plan_pruefen(json.loads(row["plan_json"]))
     except (ValueError, TypeError):
         return _leerer_plan()
+
+
+def feiertag_regel(conn, worker_id):
+    """1 = arbeitet an Feiertagen (normal eintragen), 0 = nein (Standard: als „Feiertag“ eintragen)."""
+    row = conn.execute("SELECT arbeitet FROM stundenzettel_feiertag_regel WHERE worker_id = ?", (worker_id,)).fetchone()
+    return int(row["arbeitet"]) if row else 0
 
 
 def _monat_row(conn, worker_id, monat):
@@ -259,7 +272,9 @@ def monat_zusammenfassung(conn, worker_id, monat):
     for l in logs:
         if (l["place"] or "") in SONDER_ORTE:
             sonder.setdefault(l["place"], []).append(date.fromisoformat(l["datum"]).strftime("%d.%m."))
-    feiertage = [f"{d.strftime('%d.%m.')} {n}" for d, n in sorted(feiertage_nrw(start.year).items()) if start <= d < ende]
+    mit_eintrag = {l["datum"] for l in logs}
+    feiertage = [f"{d.strftime('%d.%m.')} {n}" for d, n in sorted(feiertage_nrw(start.year).items())
+                 if start <= d < ende and d.isoformat() not in mit_eintrag]
     text = (f"Stundenzettel {MONATE[start.month - 1]} {start.year} für {_name(w) if w else worker_id}: "
             f"{len({l['datum'] for l in arbeit})} Arbeitstage, zusammen {_hhmm(stunden)} Stunden.")
     if teile:
@@ -295,6 +310,7 @@ def monat_fuellen(conn, worker_id, monat):
             (worker_id, start.isoformat(), ende.isoformat()),
         )
     }
+    arbeitet_an_feiertagen = feiertag_regel(conn, worker_id)
     neu, uebersprungen = [], []
     tag = start
     while tag < ende:
@@ -303,19 +319,20 @@ def monat_fuellen(conn, worker_id, monat):
         if p["aktiv"]:
             if iso in vorhanden:
                 uebersprungen.append(f"{tag.strftime('%d.%m.')} schon eingetragen")
-            elif tag in feiertage:
-                uebersprungen.append(f"{tag.strftime('%d.%m.')} {feiertage[tag]}")
             elif eintritt and tag < eintritt:
                 uebersprungen.append(f"{tag.strftime('%d.%m.')} vor Eintritt")
             else:
+                # Feiertag an einem Arbeitstag: als „Feiertag“ mit den Stunden des Tages (wird bezahlt wie
+                # Krank/Urlaub) – außer der Mitarbeiter arbeitet laut Mitarbeiterdaten an Feiertagen
+                ort = "Feiertag" if tag in feiertage and not arbeitet_an_feiertagen else p["ort"]
                 conn.execute(
-                    # gleich unterschrieben (✓) – die Bestätigung holt die WhatsApp „1 = Ja / 2 = Nein“ ein
+                    # gleich unterschrieben (✓) – die Bestätigung holt die WhatsApp des KG Agent ein
                     "INSERT INTO work_logs (worker_id, datum, start_time, end_time, place, signed) VALUES (?, ?, ?, ?, ?, 1)",
-                    (worker_id, iso, p["start"], p["ende"], p["ort"]),
+                    (worker_id, iso, p["start"], p["ende"], ort),
                 )
                 conn.execute(
                     "INSERT OR REPLACE INTO stundenzettel_auto_eintraege (worker_id, datum, monat, start_time, end_time, place) VALUES (?, ?, ?, ?, ?, ?)",
-                    (worker_id, iso, monat, p["start"], p["ende"], p["ort"]),
+                    (worker_id, iso, monat, p["start"], p["ende"], ort),
                 )
                 neu.append(iso)
         tag += timedelta(days=1)
@@ -1453,6 +1470,46 @@ def register_stundenzettel_auto(app, login_required, get_db_connection, leon_cli
             )
             conn.commit()
             return jsonify({"success": True, "plan": plan})
+        finally:
+            conn.close()
+
+    # Mitarbeiter-Formular („Arbeitstage und Stundenverteilung“ wie Lexware): gleiche festen Zeiten
+    # wie „Feste Zeiten“ auf der Stundenzettel-Seite, dazu „Arbeitet der Mitarbeiter an Feiertagen?“
+    @app.route("/api/stz-auto/plan-lesen/<int:worker_id>")
+    @login_required
+    def stz_auto_plan_lesen(worker_id):
+        conn = _conn()
+        try:
+            return jsonify({"success": True, "plan": _plan_laden(conn, worker_id),
+                            "feiertag_arbeitet": feiertag_regel(conn, worker_id)})
+        finally:
+            conn.close()
+
+    @app.route("/api/stz-auto/arbeitstage/<int:worker_id>", methods=["POST"])
+    @login_required
+    def stz_auto_arbeitstage(worker_id):
+        data = _json()
+        try:
+            plan = _plan_pruefen(data.get("plan"))
+        except ValueError as exc:
+            return _fehler(exc)
+        conn = _conn()
+        try:
+            if not _worker(conn, worker_id):
+                return _fehler("Mitarbeiter nicht gefunden – bitte zuerst speichern.", 404)
+            jetzt = datetime.now().isoformat(timespec="seconds")
+            conn.execute(
+                "INSERT INTO stundenzettel_vorlagen (worker_id, plan_json, aktualisiert_am) VALUES (?, ?, ?) "
+                "ON CONFLICT(worker_id) DO UPDATE SET plan_json = excluded.plan_json, aktualisiert_am = excluded.aktualisiert_am",
+                (worker_id, json.dumps(plan, ensure_ascii=False), jetzt),
+            )
+            conn.execute(
+                "INSERT INTO stundenzettel_feiertag_regel (worker_id, arbeitet, aktualisiert_am) VALUES (?, ?, ?) "
+                "ON CONFLICT(worker_id) DO UPDATE SET arbeitet = excluded.arbeitet, aktualisiert_am = excluded.aktualisiert_am",
+                (worker_id, 1 if str(data.get("feiertag_arbeitet")) in ("1", "true", "True") else 0, jetzt),
+            )
+            conn.commit()
+            return jsonify({"success": True, "plan": plan, "feiertag_arbeitet": feiertag_regel(conn, worker_id)})
         finally:
             conn.close()
 

@@ -539,6 +539,47 @@ function toggleWeitere(){
 }
 </script>
 
+<!-- 🗓 Arbeitstage und Stundenverteilung (wie Lexware) – eigener Speichern-Knopf, gehört nicht zum Formular
+     (Felder ohne name). Gleiche Daten wie „Feste Zeiten“ auf der Stundenzettel-Seite. -->
+<div id="atBox" style="margin-top:25px; border-top:1px solid #e2e8f0; padding-top:20px;">
+  <div style="display:flex; flex-wrap:wrap; gap:12px; align-items:center;">
+    <button type="button" id="atToggle" style="background:#0f766e; color:#fff; padding:10px 16px; border:none; border-radius:10px; font-weight:700; cursor:pointer;">🗓 Arbeitstage und Stundenverteilung</button>
+    <span id="atKurz" style="font-weight:600; color:#334155;"></span>
+  </div>
+  <div id="atPanel" style="display:none; margin-top:15px;">
+    <div id="atNeu" style="display:none; padding:12px 14px; border-radius:10px; background:#fff7ed; color:#9a3412; font-weight:600;">
+      Bitte zuerst den Mitarbeiter speichern – dann über „Bearbeiten“ die Arbeitstage eintragen.
+    </div>
+    <div id="atInhalt">
+      <div style="overflow-x:auto;">
+        <table style="width:100%; border-collapse:collapse; min-width:560px;">
+          <thead><tr>
+            <th style="text-align:left; padding:6px; font-size:13px; color:#475569;">Tag</th>
+            <th style="text-align:left; padding:6px; font-size:13px; color:#475569;">Beginn</th>
+            <th style="text-align:left; padding:6px; font-size:13px; color:#475569;">Ende</th>
+            <th style="text-align:left; padding:6px; font-size:13px; color:#475569;">Stunden</th>
+            <th style="text-align:left; padding:6px; font-size:13px; color:#475569;">Ort</th>
+          </tr></thead>
+          <tbody id="atZeilen"></tbody>
+        </table>
+      </div>
+      <div style="margin-top:12px; font-size:15px;">Wöchentliche Arbeitszeit: <b id="atSumme">0</b> Stunden · Arbeitstage: <b id="atTage">–</b></div>
+      <div style="margin-top:14px;">
+        <label style="display:block; margin-bottom:5px; font-weight:600;">Arbeitet der Mitarbeiter an Feiertagen?</label>
+        <select id="atFeiertag" style="width:100%; max-width:420px; padding:10px; border-radius:8px; border:1.5px solid #e2e8f0;">
+          <option value="0">Nein, in der Regel nicht</option>
+          <option value="1">Ja</option>
+        </select>
+        <div style="margin-top:6px; font-size:13px; color:#475569;">„Nein“: Fällt ein Feiertag auf einen Arbeitstag, wird er als „Feiertag“ mit den Stunden dieses Tages eingetragen (bezahlt wie Krank/Urlaub).</div>
+      </div>
+      <div style="margin-top:14px; display:flex; flex-wrap:wrap; gap:12px; align-items:center;">
+        <button type="button" id="atSpeichern" style="background:#15803d; color:#fff; padding:10px 18px; border:none; border-radius:10px; font-weight:700; cursor:pointer;">Arbeitstage speichern</button>
+        <span id="atMsg" style="font-weight:700;"></span>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div style="margin-top: 30px; text-align: right;">
     <button type="button" onclick="closeModal()" style="background:#f1f5f9; padding:10px 20px; border:none; border-radius:8px; cursor:pointer;">Abbrechen</button>
     <button type="submit" style="background:#2563eb; color:#fff; padding:12px 40px; border:none; border-radius:10px; font-weight:700; cursor:pointer;">Speichern</button>
@@ -1834,5 +1875,138 @@ function printSelectedMitarbeiterFields() {
     closeMitarbeiterPrintModal();
 }
 
+</script>
+<script>
+// 🗓 Arbeitstage und Stundenverteilung im Mitarbeiter-Formular (wie Lexware).
+// Ändert keine bestehende Funktion: editMitarbeiter / openNewMitarbeiterModal werden nur ergänzt.
+(function () {
+  const TAGE = [["mo", "Montag", "Mo"], ["di", "Dienstag", "Di"], ["mi", "Mittwoch", "Mi"], ["do", "Donnerstag", "Do"],
+                ["fr", "Freitag", "Fr"], ["sa", "Samstag", "Sa"], ["so", "Sonntag", "So"]];
+  // gleiche Orte wie im Stundenzettel (ohne Feiertag/Krank/Urlaub – das sind keine festen Arbeitsorte)
+  const ORTE = ["Duisburg", "Walsum", "Hamborn", "Meiderich / Beeck", "Ruhrort", "Rheinhausen", "Duisburg Mitte",
+    "Duisburg Süd", "Großenbaum", "Neudorf", "Wanheimerort", "Neuenkamp", "Grundreinigung", "Düsseldorf", "Moers",
+    "Neukirchen-Vluyn", "Oberhausen", "Essen"];
+  const el = (id) => document.getElementById(id);
+  const esc = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  if (!el("atBox")) return;
+  let atId = null, geaendert = false;
+  const feld = "padding:8px; border-radius:8px; border:1.5px solid #e2e8f0; font-size:16px;";
+
+  function ortOptionen(gewaehlt) {
+    const liste = ORTE.slice();
+    if (gewaehlt && !liste.includes(gewaehlt)) liste.unshift(gewaehlt);
+    return '<option value="">-- Bitte wählen --</option>' + liste.map((o) =>
+      `<option value="${esc(o)}"${o === gewaehlt ? " selected" : ""}>${esc(o)}</option>`).join("");
+  }
+  function zeilen(plan) {
+    el("atZeilen").innerHTML = TAGE.map(([k, name]) => {
+      const p = (plan || {})[k] || {};
+      return `<tr data-tag="${k}" style="border-top:1px solid #f1f5f9;">
+        <td style="padding:6px;"><label style="display:flex; gap:8px; align-items:center; font-weight:700;">
+          <input type="checkbox" class="at-aktiv" style="width:20px; height:20px;" ${p.aktiv ? "checked" : ""}> ${name}</label></td>
+        <td style="padding:6px;"><input type="time" class="at-start" step="300" value="${esc(p.start || "17:00")}" style="${feld}" aria-label="${name} Beginn"></td>
+        <td style="padding:6px;"><input type="time" class="at-ende" step="300" value="${esc(p.ende || "19:00")}" style="${feld}" aria-label="${name} Ende"></td>
+        <td style="padding:6px; font-weight:700;" class="at-std"></td>
+        <td style="padding:6px;"><select class="at-ort" style="${feld} width:100%;" aria-label="${name} Ort">${ortOptionen(p.ort)}</select></td>
+      </tr>`;
+    }).join("");
+    rechnen();
+  }
+  function std(a, b) {
+    const [h1, m1] = String(a || "").split(":").map(Number), [h2, m2] = String(b || "").split(":").map(Number);
+    if ([h1, m1, h2, m2].some(isNaN)) return 0;
+    let d = (h2 * 60 + m2) - (h1 * 60 + m1);
+    if (d < 0) d += 1440;
+    return d / 60;
+  }
+  const zahl = (x) => x.toFixed(2).replace(/\.?0+$/, "").replace(".", ",");
+  function lesen() {
+    const plan = {};
+    el("atZeilen").querySelectorAll("tr[data-tag]").forEach((tr) => {
+      plan[tr.dataset.tag] = { aktiv: tr.querySelector(".at-aktiv").checked, start: tr.querySelector(".at-start").value,
+                               ende: tr.querySelector(".at-ende").value, ort: tr.querySelector(".at-ort").value };
+    });
+    return plan;
+  }
+  function rechnen() {
+    let summe = 0;
+    const tage = [];
+    el("atZeilen").querySelectorAll("tr[data-tag]").forEach((tr, i) => {
+      const an = tr.querySelector(".at-aktiv").checked;
+      const h = an ? std(tr.querySelector(".at-start").value, tr.querySelector(".at-ende").value) : 0;
+      tr.querySelector(".at-std").textContent = an ? zahl(h) : "";
+      tr.style.opacity = an ? "1" : "0.55";
+      if (an) { summe += h; tage.push(TAGE[i][2]); }
+    });
+    el("atSumme").textContent = zahl(summe);
+    el("atTage").textContent = tage.join(", ") || "–";
+    el("atKurz").textContent = atId ? (tage.length ? `${zahl(summe)} Std./Woche · ${tage.join(", ")}` : "noch keine Arbeitstage") : "";
+  }
+  el("atZeilen").addEventListener("input", () => { geaendert = true; rechnen(); });
+  el("atZeilen").addEventListener("change", (ev) => {
+    geaendert = true;
+    const box = ev.target.closest(".at-aktiv");
+    if (box && box.checked) {  // Tag angehakt → Zeiten und Ort vom Tag darüber übernehmen
+      const tr = box.closest("tr");
+      let v = tr.previousElementSibling;
+      while (v && !v.querySelector(".at-aktiv").checked) v = v.previousElementSibling;
+      if (v) {
+        tr.querySelector(".at-start").value = v.querySelector(".at-start").value;
+        tr.querySelector(".at-ende").value = v.querySelector(".at-ende").value;
+        if (!tr.querySelector(".at-ort").value) tr.querySelector(".at-ort").value = v.querySelector(".at-ort").value;
+      }
+    }
+    rechnen();
+  });
+  el("atFeiertag").addEventListener("change", () => { geaendert = true; });
+  el("atToggle").addEventListener("click", () => {
+    const p = el("atPanel");
+    p.style.display = p.style.display === "none" ? "block" : "none";
+  });
+  function meldung(text, ok) { el("atMsg").textContent = text; el("atMsg").style.color = ok ? "#15803d" : "#b91c1c"; }
+
+  async function laden(id) {
+    atId = id; geaendert = false;
+    el("atNeu").style.display = "none"; el("atInhalt").style.display = "block"; meldung("", true);
+    zeilen({}); el("atFeiertag").value = "0";
+    try {
+      const r = await fetch("/api/stz-auto/plan-lesen/" + id);
+      const d = await r.json();
+      if (!r.ok || d.success === false) throw new Error(d.error || ("HTTP " + r.status));
+      zeilen(d.plan); el("atFeiertag").value = String(d.feiertag_arbeitet || 0);
+    } catch (e) { meldung("Arbeitstage konnten nicht geladen werden: " + e.message, false); }
+  }
+  function neu() {
+    atId = null; geaendert = false;
+    el("atNeu").style.display = "block"; el("atInhalt").style.display = "none"; el("atKurz").textContent = ""; meldung("", true);
+  }
+  async function speichern(still) {
+    if (!atId) return;
+    const r = await fetch("/api/stz-auto/arbeitstage/" + atId, {
+      method: "POST", headers: { "Content-Type": "application/json" }, keepalive: !!still,
+      body: JSON.stringify({ plan: lesen(), feiertag_arbeitet: el("atFeiertag").value }),
+    });
+    const d = await r.json().catch(() => ({}));
+    if (!r.ok || d.success === false) throw new Error(d.error || ("HTTP " + r.status));
+    geaendert = false;
+  }
+  el("atSpeichern").addEventListener("click", async () => {
+    el("atSpeichern").disabled = true;
+    try { await speichern(false); meldung("Arbeitstage gespeichert ✓", true); } catch (e) { meldung(e.message, false); }
+    el("atSpeichern").disabled = false;
+  });
+  // Haupt-„Speichern“ des Formulars: geänderte Arbeitstage gleich mitspeichern (das Formular selbst läuft unverändert)
+  const form = el("mitarbeiterForm");
+  if (form) form.addEventListener("submit", () => {
+    if (atId && geaendert) speichern(true).catch(() => {});
+  });
+
+  // bestehende Funktionen nur ergänzen, nicht ändern
+  const altEdit = window.editMitarbeiter;
+  if (typeof altEdit === "function") window.editMitarbeiter = function (id) { const r = altEdit.apply(this, arguments); laden(id); return r; };
+  const altNeu = window.openNewMitarbeiterModal;
+  if (typeof altNeu === "function") window.openNewMitarbeiterModal = function () { const r = altNeu.apply(this, arguments); neu(); return r; };
+  neu();
+})();
 </script>
 {% endblock %}
