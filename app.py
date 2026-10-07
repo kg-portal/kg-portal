@@ -2125,7 +2125,56 @@ def stundenzettel():
         if not os.path.exists(worker_path):
             os.makedirs(worker_path)
 
-    return render_template("stundenzettel.html", mitarbeiter_liste=mitarbeiter_liste)
+    # Bisherige Ansicht bleibt unter /stundenzettel?alt=1 erreichbar
+    if request.args.get("alt") == "1":
+        return render_template("stundenzettel.html", mitarbeiter_liste=mitarbeiter_liste)
+    return render_template("stundenzettel_liste_neu.html", uebersicht=_stz_uebersicht(request.args.get("monat")))
+
+
+def _stz_uebersicht(monat=None):
+    """Monatsübersicht für die Stundenzettel-Liste: je aktivem Mitarbeiter Stunden, Lohn, Tage und Stand.
+    Rechnet wie der Lohnabrechnungs-Bericht (stundenzettel_auto.monat_rechnung)."""
+    from stundenzettel_auto import _monat_param, monat_rechnung, ensure_tables as _stz_tabellen, MONATE as _STZ_MONATE
+    start, ende, monat = _monat_param(monat)
+    basis = request.host_url.rstrip('/')
+    conn = get_db_connection()
+    try:
+        _stz_tabellen(conn)
+        spalten = {r[1] for r in conn.execute("PRAGMA table_info(mitarbeiter)")}
+        lohn_spalte = ", stundenlohn" if "stundenlohn" in spalten else ""
+        workers = conn.execute(
+            f"SELECT id, vorname, nachname, access_code{lohn_spalte} FROM mitarbeiter WHERE status = 'aktiv'"
+        ).fetchall()
+        stand = {r["worker_id"]: r["status"] for r in conn.execute(
+            "SELECT worker_id, status FROM stundenzettel_monate WHERE monat = ?", (monat,))}
+        tage = {r["worker_id"]: r["n"] for r in conn.execute(
+            "SELECT worker_id, COUNT(*) AS n FROM work_logs WHERE datum >= ? AND datum < ? GROUP BY worker_id",
+            (start.isoformat(), ende.isoformat()))}
+        liste = []
+        for w in workers:
+            r = monat_rechnung(conn, w["id"], monat, w["stundenlohn"] if lohn_spalte else None)
+            vorname, nachname = (w["vorname"] or "").strip(), (w["nachname"] or "").strip()
+            liste.append({
+                "id": w["id"],
+                "name": f"{vorname} {nachname}".strip(),
+                "kuerzel": ((vorname[:1] + nachname[:1]) or "?").upper(),
+                "link": f"{basis}/stundenzettel/worker/{w['access_code']}" if w["access_code"] else "",
+                "stunden": round(r["gesamt"], 2),
+                "lohn": round(r["gesamt_eur"], 2),
+                "krank": round(r["krank"], 2),
+                "urlaub": round(r["urlaub"], 2),
+                "extra": round(r["extra"], 2),
+                "tage": tage.get(w["id"], 0),
+                "status": stand.get(w["id"]) or "offen",
+            })
+    finally:
+        conn.close()
+    return {"monat": monat, "titel": f"{_STZ_MONATE[start.month - 1]} {start.year}", "mitarbeiter": liste}
+
+
+@app.route("/stundenzettel/uebersicht")
+def stundenzettel_uebersicht():
+    return jsonify(_stz_uebersicht(request.args.get("monat")))
 
 # =====================================================
 # Bölüm 17- STUNDENZETTEL DETAY (İşçiye Özel Sayfa)

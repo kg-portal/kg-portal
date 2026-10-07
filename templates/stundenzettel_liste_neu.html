@@ -1,0 +1,309 @@
+{% extends "base.html" %}
+{% block content %}
+<!-- Neue Stundenzettel-Liste (Karten + Monatszahlen + Seitenfenster). Bisherige Ansicht: /stundenzettel?alt=1 -->
+<style>
+.stz2,.stz2-drawer{--b1:#071a44;--b2:#123a8f;--b3:#2563eb;--rand:#e2e8f0;--leise:#64748b;--text:#0f172a}
+.stz2-hero{border-radius:24px;padding:24px 26px;color:#fff;background:linear-gradient(135deg,var(--b1) 0%,var(--b2) 45%,var(--b3) 100%);box-shadow:0 18px 40px rgba(18,58,143,.25);position:relative;overflow:hidden;margin-bottom:18px}
+.stz2-hero:after{content:"";position:absolute;right:-60px;top:-80px;width:260px;height:260px;border-radius:50%;background:rgba(255,255,255,.08);pointer-events:none}
+.stz2-hero-oben{display:flex;align-items:center;justify-content:space-between;gap:18px;flex-wrap:wrap;position:relative;z-index:1}
+.stz2-titel{display:flex;align-items:center;gap:16px}
+.stz2-icon{width:56px;height:56px;border-radius:18px;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.3);display:flex;align-items:center;justify-content:center;font-size:24px}
+.stz2-titel h2{margin:0;font-size:30px;font-weight:900;letter-spacing:-.5px;color:#fff}
+.stz2-titel p{margin:4px 0 0;font-size:14px;font-weight:700;opacity:.85;color:#fff}
+.stz2-monat{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);border-radius:16px;padding:6px}
+.stz2-monat button{width:38px;height:38px;border-radius:12px;border:0;background:rgba(255,255,255,.16);color:#fff;font-size:22px;font-weight:900;line-height:1;cursor:pointer}
+.stz2-monat button:hover{background:rgba(255,255,255,.28)}
+.stz2-monat b{min-width:150px;text-align:center;font-size:17px;color:#fff}
+.stz2-links{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px;position:relative;z-index:1}
+.stz2-links a{display:inline-flex;align-items:center;gap:8px;background:#fff;color:#123a8f;font-weight:800;font-size:14px;text-decoration:none;padding:10px 15px;border-radius:12px;box-shadow:0 4px 12px rgba(7,26,68,.18)}
+.stz2-links a:hover{background:#eff6ff}
+.stz2-kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:16px}
+.stz2-kpi{background:#fff;border:1px solid var(--rand);border-radius:18px;padding:14px 16px;box-shadow:0 8px 20px rgba(15,23,42,.05)}
+.stz2-kpi small{display:block;font-size:12px;font-weight:800;color:var(--leise);letter-spacing:.4px;text-transform:uppercase}
+.stz2-kpi b{display:block;font-size:24px;font-weight:900;color:var(--text);margin-top:4px}
+.stz2-kpi span{font-size:13px;font-weight:700;color:var(--leise)}
+.stz2-werkzeug{display:flex;gap:10px;align-items:center;margin-bottom:14px}
+.stz2-suche{flex:1;display:flex;align-items:center;gap:10px;background:#fff;border:1px solid var(--rand);border-radius:14px;padding:0 14px;box-shadow:0 4px 12px rgba(15,23,42,.04)}
+.stz2-suche i{color:#94a3b8}
+.stz2-suche input{flex:1;border:0;outline:0;background:transparent;font-size:15px;padding:12px 0;color:var(--text)}
+.stz2-anzahl{font-size:13px;font-weight:800;color:var(--leise);white-space:nowrap}
+.stz2-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:14px}
+.stz2-karte{min-width:0;background:#fff;border:1px solid var(--rand);border-radius:20px;padding:16px;box-shadow:0 8px 22px rgba(15,23,42,.06);display:flex;flex-direction:column;gap:12px;transition:transform .15s,box-shadow .15s}
+.stz2-karte:hover{transform:translateY(-2px);box-shadow:0 14px 30px rgba(18,58,143,.12)}
+.stz2-kopf{display:flex;align-items:center;gap:12px}
+.stz2-av{width:46px;height:46px;flex:none;border-radius:15px;background:linear-gradient(135deg,#dbeafe,#eff6ff);color:#123a8f;font-weight:900;font-size:15px;display:flex;align-items:center;justify-content:center}
+.stz2-nm{flex:1;min-width:0}
+.stz2-nm b{display:block;font-size:16px;font-weight:900;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.stz2-badge{display:inline-block;margin-top:4px;font-size:11.5px;font-weight:800;border-radius:999px;padding:3px 9px}
+.st-offen{background:#f1f5f9;color:#475569}
+.st-ausgefuellt{background:#dbeafe;color:#1e40af}
+.st-wa_wartet{background:#fef3c7;color:#92400e}
+.st-wa_ja{background:#dcfce7;color:#166534}
+.st-wa_korrigiert{background:#e0e7ff;color:#3730a3}
+.st-wa_unklar,.st-wa_nein{background:#fee2e2;color:#b91c1c}
+.st-bestaetigt{background:#166534;color:#fff}
+.stz2-archiv{width:34px;height:34px;flex:none;border-radius:10px;border:0;background:transparent;color:#cbd5e1;cursor:pointer;font-size:14px}
+.stz2-archiv:hover{background:#fef2f2;color:#dc2626}
+.stz2-zahlen{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1.2fr) minmax(0,.8fr);gap:8px}
+.stz2-zahlen div{background:#f8fafc;border-radius:12px;padding:8px 10px}
+.stz2-zahlen b{display:block;font-size:17px;font-weight:900;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.stz2-zahlen small{font-size:11.5px;font-weight:700;color:var(--leise)}
+.stz2-bar{height:7px;border-radius:9px;background:#e2e8f0;overflow:hidden}
+.stz2-bar i{display:block;height:100%;border-radius:9px;background:linear-gradient(90deg,#123a8f,#60a5fa)}
+.stz2-tags{display:flex;gap:6px;flex-wrap:wrap;min-height:0}
+.stz2-tags span{font-size:11.5px;font-weight:800;border-radius:999px;padding:3px 9px}
+.tg-kr{background:#ffedd5;color:#c2410c}
+.tg-ur{background:#ccfbf1;color:#0f766e}
+.tg-ex{background:#f3e8ff;color:#7e22ce}
+.tg-leer{background:#f1f5f9;color:#64748b}
+.stz2-fuss{display:flex;gap:8px;margin-top:auto}
+.stz2-oeffnen{flex:1;border:0;border-radius:12px;padding:11px 14px;font-weight:900;font-size:14px;color:#fff;cursor:pointer;background:linear-gradient(135deg,#123a8f,#2563eb);box-shadow:0 6px 14px rgba(18,58,143,.28)}
+.stz2-oeffnen:hover{filter:brightness(1.08)}
+.stz2-klein{width:42px;flex:none;border-radius:12px;border:1px solid #bfdbfe;background:#fff;color:#1d4ed8;cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;text-decoration:none}
+.stz2-klein:hover{background:#eff6ff}
+.stz2-klein.ok{background:#dcfce7;border-color:#86efac;color:#166534}
+.stz2-leer{grid-column:1/-1;text-align:center;color:var(--leise);font-weight:700;padding:30px}
+.stz2-alt{margin-top:18px;text-align:right;font-size:13px}
+.stz2-alt a{color:#64748b;font-weight:700}
+/* Seitenfenster */
+.stz2-dim{position:fixed;inset:0;background:rgba(7,26,68,.45);z-index:10040;opacity:0;pointer-events:none;transition:opacity .2s}
+.stz2-dim.an{opacity:1;pointer-events:auto}
+.stz2-drawer{position:fixed;top:0;right:0;bottom:0;width:min(540px,100vw);background:#f6f8fd;z-index:10050;box-shadow:-20px 0 50px rgba(7,26,68,.3);display:flex;flex-direction:column;transform:translateX(105%);transition:transform .25s ease;visibility:hidden}
+.stz2-drawer.an{transform:none;visibility:visible}
+.stz2-dkopf{background:linear-gradient(135deg,var(--b1) 0%,var(--b2) 45%,var(--b3) 100%);color:#fff;padding:14px 16px;display:flex;align-items:center;gap:12px;flex:none}
+.stz2-dkopf .stz2-av{background:rgba(255,255,255,.16);color:#fff;width:42px;height:42px}
+.stz2-dkopf .stz2-nm b{color:#fff}
+.stz2-dkopf .stz2-nm small{display:block;font-size:12.5px;font-weight:700;opacity:.85;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.stz2-dbtn{width:38px;height:38px;flex:none;border-radius:11px;border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.14);color:#fff;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;text-decoration:none}
+.stz2-dbtn:hover{background:rgba(255,255,255,.26)}
+.stz2-dbtn.ok{background:#22c55e;border-color:#22c55e}
+.stz2-drawer iframe{flex:1;width:100%;border:0;background:#f6f8fd}
+@media (max-width:1100px){.stz2-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:640px){
+  .stz2-hero{padding:18px}
+  .stz2-titel h2{font-size:24px}
+  .stz2-monat{width:100%;justify-content:space-between}
+  .stz2-links a{flex:1;justify-content:center}
+  .stz2-grid{grid-template-columns:minmax(0,1fr)}
+  .stz2-dkopf{gap:8px;padding:12px}
+  .stz2-dkopf .stz2-av,#dVor,#dNach{display:none}
+  .stz2-dbtn{width:36px;height:36px}
+}
+</style>
+
+<div class="stz2">
+    <section class="stz2-hero">
+        <div class="stz2-hero-oben">
+            <div class="stz2-titel">
+                <div class="stz2-icon"><i class="fa-solid fa-clock-rotate-left"></i></div>
+                <div>
+                    <h2>Stundenzettel</h2>
+                    <p>Monatsübersicht aller Mitarbeiter</p>
+                </div>
+            </div>
+            <div class="stz2-monat">
+                <button type="button" id="stzVor" title="Vormonat">‹</button>
+                <b id="stzMonat">{{ uebersicht.titel }}</b>
+                <button type="button" id="stzNach" title="Nächster Monat">›</button>
+            </div>
+        </div>
+        <div class="stz2-links">
+            <a href="/stundenzettel/automatik">⏱ Feste Zeiten &amp; WhatsApp-Bestätigung</a>
+            <a href="/mitarbeiter/lohnabrechnung">💶 Lohnabrechnungen</a>
+        </div>
+    </section>
+
+    <div class="stz2-kpis">
+        <div class="stz2-kpi"><small>Mitarbeiter</small><b id="kpiMa">0</b><span>aktiv</span></div>
+        <div class="stz2-kpi"><small>Stunden</small><b id="kpiStd">0,00</b><span id="kpiExtra">Std im Monat</span></div>
+        <div class="stz2-kpi"><small>Lohn</small><b id="kpiLohn">0,00 €</b><span>bis 600 € je Mitarbeiter</span></div>
+        <div class="stz2-kpi"><small>Bestätigt</small><b id="kpiOk">0 / 0</b><span id="kpiLeer">–</span></div>
+    </div>
+
+    <div class="stz2-werkzeug">
+        <label class="stz2-suche"><i class="fa-solid fa-magnifying-glass"></i><input type="search" id="stzSuche" placeholder="Mitarbeiter suchen …" autocomplete="off"></label>
+        <span class="stz2-anzahl" id="stzAnzahl"></span>
+    </div>
+
+    <div class="stz2-grid" id="stzGrid"></div>
+
+    <div class="stz2-alt"><a href="/stundenzettel?alt=1">Alte Ansicht</a></div>
+</div>
+
+<div class="stz2-dim" id="stzDim"></div>
+<aside class="stz2-drawer" id="stzDrawer" aria-hidden="true">
+    <div class="stz2-dkopf">
+        <div class="stz2-av" id="dAv"></div>
+        <div class="stz2-nm"><b id="dName"></b><small id="dInfo"></small></div>
+        <button type="button" class="stz2-dbtn" id="dVor" title="Vorheriger Mitarbeiter"><i class="fa-solid fa-chevron-up"></i></button>
+        <button type="button" class="stz2-dbtn" id="dNach" title="Nächster Mitarbeiter"><i class="fa-solid fa-chevron-down"></i></button>
+        <button type="button" class="stz2-dbtn" id="dKopie" title="Link kopieren"><i class="fa-regular fa-copy"></i></button>
+        <a class="stz2-dbtn" id="dNeu" href="#" target="_blank" rel="noopener" title="In neuem Fenster öffnen"><i class="fa-solid fa-arrow-up-right-from-square"></i></a>
+        <button type="button" class="stz2-dbtn" id="dZu" title="Schließen"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <iframe id="dFrame" title="Stundenzettel"></iframe>
+</aside>
+
+<script>
+(function () {
+    let DATEN = {{ uebersicht | tojson }};
+    const STATUS = {
+        offen: "Offen", ausgefuellt: "Ausgefüllt", wa_wartet: "WhatsApp gesendet", wa_ja: "✓ Ja per WhatsApp",
+        wa_korrigiert: "✏ Korrigiert", wa_unklar: "⚠ Unklar – prüfen", wa_nein: "⚠ Unklar – prüfen", bestaetigt: "🔒 Bestätigt"
+    };
+    let sichtbar = [];
+    let offenId = null;
+
+    const $ = id => document.getElementById(id);
+    const zahl = n => Number(n || 0).toLocaleString("de-DE", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    const esc = s => String(s || "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+    const norm = s => String(s || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/ı/g, "i");
+
+    function kopieren(text, btn) {
+        const fertig = () => { btn.classList.add("ok"); setTimeout(() => btn.classList.remove("ok"), 1400); };
+        if (navigator.clipboard && window.isSecureContext) {
+            navigator.clipboard.writeText(text).then(fertig).catch(() => alt());
+        } else alt();
+        function alt() {
+            const t = document.createElement("textarea");
+            t.value = text; t.style.position = "fixed"; t.style.opacity = "0";
+            document.body.appendChild(t); t.select();
+            try { document.execCommand("copy"); fertig(); } catch (e) { prompt("Link:", text); }
+            t.remove();
+        }
+    }
+
+    function kpis() {
+        const ma = DATEN.mitarbeiter;
+        const std = ma.reduce((s, m) => s + m.stunden, 0);
+        const extra = ma.reduce((s, m) => s + m.extra, 0);
+        const lohn = ma.reduce((s, m) => s + m.lohn, 0);
+        const ok = ma.filter(m => m.status === "bestaetigt" || m.status === "wa_ja").length;
+        const leer = ma.filter(m => !m.tage).length;
+        $("kpiMa").textContent = ma.length;
+        $("kpiStd").textContent = zahl(std);
+        $("kpiExtra").textContent = extra ? `Std · dazu ${zahl(extra)} Std Extra` : "Std im Monat";
+        $("kpiLohn").textContent = `${zahl(lohn)} €`;
+        $("kpiOk").textContent = `${ok} / ${ma.length}`;
+        $("kpiLeer").textContent = leer ? `${leer} ohne Einträge` : "alle haben Einträge";
+    }
+
+    function karte(m) {
+        const tags = [];
+        if (!m.tage) tags.push(`<span class="tg-leer">Keine Einträge</span>`);
+        if (m.krank) tags.push(`<span class="tg-kr">🤒 Krank ${zahl(m.krank)} Std</span>`);
+        if (m.urlaub) tags.push(`<span class="tg-ur">🌴 Urlaub ${zahl(m.urlaub)} Std</span>`);
+        if (m.extra) tags.push(`<span class="tg-ex">+ ${zahl(m.extra)} Std Extra</span>`);
+        const breite = Math.min(100, m.stunden / 40 * 100);
+        return `<div class="stz2-karte" data-id="${m.id}">
+            <div class="stz2-kopf">
+                <div class="stz2-av">${esc(m.kuerzel)}</div>
+                <div class="stz2-nm"><b title="${esc(m.name)}">${esc(m.name)}</b><span class="stz2-badge st-${esc(m.status)}">${esc(STATUS[m.status] || m.status)}</span></div>
+                <button type="button" class="stz2-archiv" data-archiv="${m.id}" title="Mitarbeiter archivieren"><i class="fa-solid fa-trash-can"></i></button>
+            </div>
+            <div class="stz2-zahlen">
+                <div><b>${zahl(m.stunden)}</b><small>Std</small></div>
+                <div><b>${zahl(m.lohn)} €</b><small>Lohn</small></div>
+                <div><b>${m.tage}</b><small>Tage</small></div>
+            </div>
+            <div class="stz2-bar" title="${zahl(m.stunden)} von 40 Std"><i style="width:${breite}%"></i></div>
+            ${tags.length ? `<div class="stz2-tags">${tags.join("")}</div>` : ""}
+            <div class="stz2-fuss">
+                <button type="button" class="stz2-oeffnen" data-oeffnen="${m.id}" ${m.link ? "" : "disabled"}><i class="fa-solid fa-arrow-up-right-from-square"></i> Öffnen</button>
+                <button type="button" class="stz2-klein" data-kopie="${m.id}" title="Link kopieren" ${m.link ? "" : "disabled"}><i class="fa-regular fa-copy"></i></button>
+            </div>
+        </div>`;
+    }
+
+    function zeichnen() {
+        $("stzMonat").textContent = DATEN.titel;
+        kpis();
+        const q = norm($("stzSuche").value.trim());
+        sichtbar = DATEN.mitarbeiter.filter(m => !q || norm(m.name).includes(q));
+        $("stzGrid").innerHTML = sichtbar.length ? sichtbar.map(karte).join("") : `<div class="stz2-leer">Kein Mitarbeiter gefunden.</div>`;
+        $("stzAnzahl").textContent = `${sichtbar.length} von ${DATEN.mitarbeiter.length}`;
+        if (offenId !== null) kopfSetzen(DATEN.mitarbeiter.find(m => m.id === offenId));
+    }
+
+    function laden(monat) {
+        return fetch("/stundenzettel/uebersicht?monat=" + encodeURIComponent(monat), { cache: "no-store" })
+            .then(r => r.json())
+            .then(d => {
+                DATEN = d;
+                const url = new URL(window.location.href);
+                url.searchParams.set("monat", d.monat);
+                window.history.replaceState({}, "", url);
+                zeichnen();
+            })
+            .catch(() => alert("⚠️ Übersicht konnte nicht geladen werden."));
+    }
+
+    function monatSchieben(delta) {
+        const [j, m] = DATEN.monat.split("-").map(Number);
+        const d = new Date(j, m - 1 + delta, 1);
+        laden(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`);
+    }
+
+    /* ---------- Seitenfenster ---------- */
+    function kopfSetzen(m) {
+        if (!m) return;
+        $("dAv").textContent = m.kuerzel;
+        $("dName").textContent = m.name;
+        $("dInfo").textContent = `${STATUS[m.status] || m.status} · ${zahl(m.stunden)} Std · ${zahl(m.lohn)} €`;
+        $("dNeu").href = m.link;
+        const i = sichtbar.findIndex(x => x.id === m.id);
+        $("dVor").disabled = i <= 0;
+        $("dNach").disabled = i < 0 || i >= sichtbar.length - 1;
+        $("dVor").style.opacity = $("dVor").disabled ? ".4" : "1";
+        $("dNach").style.opacity = $("dNach").disabled ? ".4" : "1";
+    }
+
+    function oeffnen(id) {
+        const m = DATEN.mitarbeiter.find(x => x.id === id);
+        if (!m || !m.link) return;
+        offenId = id;
+        kopfSetzen(m);
+        $("dFrame").src = m.link;
+        $("stzDim").classList.add("an");
+        $("stzDrawer").classList.add("an");
+        $("stzDrawer").setAttribute("aria-hidden", "false");
+    }
+
+    function schliessen() {
+        if (offenId === null) return;
+        offenId = null;
+        $("stzDim").classList.remove("an");
+        $("stzDrawer").classList.remove("an");
+        $("stzDrawer").setAttribute("aria-hidden", "true");
+        setTimeout(() => { if (offenId === null) $("dFrame").src = "about:blank"; }, 260);
+        laden(DATEN.monat);   // geänderte Stunden sofort in der Liste zeigen
+    }
+
+    function blaettern(delta) {
+        const i = sichtbar.findIndex(x => x.id === offenId);
+        const n = sichtbar[i + delta];
+        if (n) oeffnen(n.id);
+    }
+
+    $("stzGrid").addEventListener("click", ev => {
+        const o = ev.target.closest("[data-oeffnen]");
+        if (o) return oeffnen(Number(o.dataset.oeffnen));
+        const k = ev.target.closest("[data-kopie]");
+        if (k) { const m = DATEN.mitarbeiter.find(x => x.id === Number(k.dataset.kopie)); if (m) kopieren(m.link, k); return; }
+        const a = ev.target.closest("[data-archiv]");
+        if (a && confirm("Mitarbeiter archivieren?")) window.location.href = "/mitarbeiter/delete/" + Number(a.dataset.archiv);
+    });
+    $("stzSuche").addEventListener("input", zeichnen);
+    $("stzVor").addEventListener("click", () => monatSchieben(-1));
+    $("stzNach").addEventListener("click", () => monatSchieben(1));
+    $("stzDim").addEventListener("click", schliessen);
+    $("dZu").addEventListener("click", schliessen);
+    $("dVor").addEventListener("click", () => blaettern(-1));
+    $("dNach").addEventListener("click", () => blaettern(1));
+    $("dKopie").addEventListener("click", function () { const m = DATEN.mitarbeiter.find(x => x.id === offenId); if (m) kopieren(m.link, this); });
+    document.addEventListener("keydown", ev => { if (ev.key === "Escape") schliessen(); });
+
+    zeichnen();
+})();
+</script>
+{% endblock %}
