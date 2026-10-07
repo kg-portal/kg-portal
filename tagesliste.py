@@ -3,7 +3,7 @@
 # Jeden Werktag (Mo–Fr, kein Feiertag in NRW) zur eingestellten Uhrzeit
 # (Standard 07:30) entsteht die Arbeitsliste des Tages:
 #   Termine (Google Kalender), Besichtigungen, Rückrufe (Leon), fällige To-Dos,
-#   offene Fälle aus Kampagnen-Berichten, Stundenzettel zum Anrufen (WhatsApp ohne Ja),
+#   offene Fälle aus Kampagnen-Berichten, Stundenzettel mit unklarer WhatsApp-Antwort,
 #   neue Firmen vom Lead-Sammler – optional auch KG Business (To-Dos, Rückrufe).
 # Sie kommt als To-Do-Karte („Liste öffnen“ → /heute) und – wenn eine Nummer
 # gespeichert ist – als WhatsApp an den Chef.
@@ -162,21 +162,19 @@ def _berichte(conn):
 
 
 def _stundenzettel(conn):
-    # WhatsApp-Bestätigung: „Nein“ / anderer Text oder 2 Tage keine Antwort → anrufen
+    # WhatsApp-Antwort, die der KG Agent nicht sicher verstanden hat → Büro prüft / ruft an
     try:
-        from stundenzettel_auto import berlin_jetzt, WA_FRIST_TAGE
-        frist = (berlin_jetzt() - timedelta(days=WA_FRIST_TAGE)).isoformat(timespec="seconds")
         rows = conn.execute("""
-            SELECT m.worker_id, m.monat, m.status, w.vorname, w.nachname, w.telefon FROM stundenzettel_monate m
+            SELECT m.worker_id, m.monat, m.wa_antwort, w.vorname, w.nachname, w.telefon FROM stundenzettel_monate m
             JOIN mitarbeiter w ON w.id = m.worker_id
-            WHERE m.status = 'wa_nein' OR (m.status = 'wa_wartet' AND m.wa_gesendet_am <= ?)
+            WHERE m.status IN ('wa_unklar', 'wa_nein')
             ORDER BY m.monat, w.vorname
-        """, (frist,)).fetchall()
+        """).fetchall()
     except Exception:
         return []
     return [{"titel": f"{r['vorname'] or ''} {r['nachname'] or ''}".strip(), "zeit": "",
-             "sub": f"Stundenzettel {r['monat']}: " + ("Antwort ist kein Ja – bitte anrufen" if r["status"] == "wa_nein"
-                                                       else f"seit {WA_FRIST_TAGE} Tagen keine Antwort – bitte anrufen"),
+             "sub": f"Stundenzettel {r['monat']}: Antwort unklar – bitte prüfen/anrufen"
+                    + (f" („{str(r['wa_antwort'] or '').strip()[-80:]}“)" if r["wa_antwort"] else ""),
              "telefon": r["telefon"] or "", "link": "/stundenzettel/automatik"} for r in rows]
 
 
@@ -234,7 +232,7 @@ def liste_bauen(app, conn, leon_client_factory, tag=None):
 
 ABSCHNITTE = [
     ("termine", "📅 Termine"), ("besichtigungen", "🏢 Besichtigungen"), ("rueckrufe", "📞 Rückrufe"),
-    ("todos", "✅ Aufgaben"), ("berichte", "🔥 Aus Kampagnen"), ("stundenzettel", "⏱ Stundenzettel – bitte anrufen"),
+    ("todos", "✅ Aufgaben"), ("berichte", "🔥 Aus Kampagnen"), ("stundenzettel", "⏱ Stundenzettel – bitte prüfen"),
 ]
 
 

@@ -18,7 +18,8 @@
   .b-leon_wartet, .b-leon_fertig { background: #dbeafe; color: #1e40af; }
   .b-wa_wartet { background: #ffedd5; color: #9a3412; }
   .b-wa_ja { background: #ccfbf1; color: #115e59; }
-  .b-wa_nein, .b-rot { background: #fee2e2; color: #b91c1c; }
+  .b-wa_korrigiert { background: #e0e7ff; color: #3730a3; }
+  .b-wa_nein, .b-wa_unklar { background: #fee2e2; color: #b91c1c; }
   .b-bestaetigt { background: #dcfce7; color: #166534; }
   .sza-btns { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
   .sza-btn { border: 0; border-radius: 10px; padding: 10px 14px; min-height: 40px; font-weight: 800; font-size: 13px; cursor: pointer; color: #fff; }
@@ -26,6 +27,10 @@
   .c-blue { background: #2563eb; } .c-green { background: #15803d; } .c-orange { background: #f97316; }
   .c-slate { background: #475569; } .c-purple { background: #7c3aed; } .c-red { background: #dc2626; }
   .c-wa { background: #0f766e; }
+  .sza-termine { margin-top: 10px; font-size: 14px; color: #0f172a; line-height: 1.7; background: #f8fafc; border-radius: 12px; padding: 10px 14px; }
+  .sza-info-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 12px; padding-top: 12px; border-top: 1px solid #e2e8f0; }
+  .sza-info-row select, .sza-sprache { font-size: 16px; padding: 7px 9px; border: 1px solid #cbd5e1; border-radius: 9px; }
+  .sza-bericht { white-space: pre-wrap; font-size: 13px; line-height: 1.5; background: #f8fafc; border-radius: 12px; padding: 12px 14px; margin-top: 10px; max-height: 420px; overflow: auto; }
   .sza-summary { margin-top: 12px; font-size: 14px; color: #1e293b; line-height: 1.55; background: #f8fafc; border-radius: 12px; padding: 12px 14px; }
   .sza-plan { margin-top: 14px; display: none; }
   .sza-plan.open { display: block; }
@@ -63,7 +68,7 @@
     <div>
       <h1>⏱ Feste Zeiten &amp; WhatsApp-Bestätigung</h1>
       <p>Feste Arbeitszeiten je Mitarbeiter speichern → ganzen Monat ausfüllen (nur leere Tage, ohne Feiertage) →
-         WhatsApp an den Mitarbeiter („1 = Ja, 2 = Nein“) → bestätigen, dann ist der Monat gesperrt.</p>
+         der KG Agent schickt jedem seinen Monat per WhatsApp → „Ja“ oder Korrektur → zur Frist wird gesperrt und der Bericht kommt per Mail.</p>
     </div>
     <div class="sza-month">
       <label for="szaMonat">Monat</label>
@@ -73,9 +78,10 @@
 
   <div class="sza-card sza-help">
     <b>So geht's:</b> 1. „Feste Zeiten“ öffnen, Wochentage anhaken, Beginn/Ende/Ort wählen, speichern.
-    2. „Monat ausfüllen“. 3. „WhatsApp senden“ (kurze Übersicht auf Deutsch und Türkisch, geht von Damlas Diensthandy raus).
-    4. Antwort „1“ → <b>✓ Ja</b>. Antwort „2“, anderer Text oder 2 Tage keine Antwort → <b style="color:#b91c1c">rot</b>: Mitarbeiter anrufen,
-    Stunden ggf. im Stundenzettel korrigieren. 5. „Bestätigen &amp; sperren“.
+    2. „Monat ausfüllen“. 3. „WhatsApp senden“ – jeder Tag mit Datum, von Damlas Diensthandy, Deutsch/Türkisch.
+    4. Antwort „Ja“ → <b>✓ Ja</b>. Korrektur („15.10. krank“) → der KG Agent trägt sie ein (<b>✏️ korrigiert</b>).
+    Nicht verstanden → <b style="color:#b91c1c">⚠ unklar</b>: bitte prüfen/anrufen.
+    5. Frist 12:00 Uhr: alle Monate gesperrt, Bericht an info@ (keine Antwort = so übernommen).
     „Rückgängig“ löscht nur automatisch eingetragene Tage, die niemand verändert hat.
   </div>
 
@@ -86,15 +92,26 @@
     </div>
     <label class="sza-auto-opt"><input type="checkbox" id="aFuellen"><span>Monat automatisch ausfüllen – ab dem
       <input type="number" id="aFuellTag" min="1" max="28" aria-label="Tag ausfüllen"> . des Monats</span></label>
-    <label class="sza-auto-opt"><input type="checkbox" id="aAnruf"><span>WhatsApp an alle – ab dem
-      <input type="number" id="aAnrufTag" min="1" max="28" aria-label="Tag WhatsApp"> . um
-      <select id="aAnrufStunde" aria-label="Uhrzeit WhatsApp"></select> Uhr (Mo–Fr, nicht an Feiertagen)</span></label>
+    <label class="sza-auto-opt"><input type="checkbox" id="aAnruf"><span>WhatsApp an alle, Frist, Sperre und Bericht automatisch –
+      Termine nach der Minijob-Frist, WhatsApp um
+      <select id="aAnrufStunde" aria-label="Uhrzeit WhatsApp"></select> Uhr</span></label>
+    <div class="sza-termine" id="aTermine"></div>
     <div class="sza-sub" style="margin-top:10px;">Je Mitarbeiter und Monat nur einmal. Bestätigte Monate, „Rückgängig“ und schon von Hand gesendete WhatsApps bleiben unberührt.</div>
     <div class="sza-btns">
       <button class="sza-btn c-green" id="aSave">Automatik speichern</button>
       <button class="sza-btn c-slate" id="aJetzt">Jetzt prüfen</button>
+      <button class="sza-btn c-wa" id="aAlle">Gewählten Monat jetzt an alle senden</button>
+      <button class="sza-btn c-slate" id="aBericht">Bericht ansehen</button>
+      <button class="sza-btn c-slate" id="aBerichtMail">Bericht als Test-Mail</button>
+    </div>
+    <div class="sza-info-row">
+      <b>Info-Nachricht (KG Agent stellt sich vor):</b>
+      <select id="aInfoWer" aria-label="Test-Empfänger"></select>
+      <button class="sza-btn c-slate" id="aInfoTest">Test an Ausgewählten</button>
+      <button class="sza-btn c-wa" id="aInfoAlle">An alle senden</button>
     </div>
     <div class="sza-msg" id="aMsg"></div>
+    <div class="sza-bericht" id="aBerichtText" hidden></div>
     <div class="sza-auto-log" id="aLog"></div>
   </div>
 
@@ -103,6 +120,7 @@
 
 <script>
 (function () {
+  const aEl = (id) => document.getElementById(id);
   const TAGE = [["mo","Montag"],["di","Dienstag"],["mi","Mittwoch"],["do","Donnerstag"],["fr","Freitag"],["sa","Samstag"],["so","Sonntag"]];
   // gleiche Auswahl wie im Stundenzettel der Mitarbeiter (stundenzettel_worker.html)
   const ORTE = ["Duisburg", "Walsum", "Hamborn", "Meiderich / Beeck", "Ruhrort", "Rheinhausen", "Duisburg Mitte",
@@ -110,7 +128,12 @@
     "Neukirchen-Vluyn", "Oberhausen", "Essen", "Feiertag", "Krank", "Urlaub"];
   const STANDARD_START = "17:00", STANDARD_ENDE = "19:00";
   const STATUS = { offen: "offen", ausgefuellt: "ausgefüllt", leon_wartet: "ausgefüllt", leon_fertig: "ausgefüllt",
-    wa_wartet: "WhatsApp gesendet – wartet", wa_ja: "✓ Ja (Mitarbeiter)", wa_nein: "✗ kein Ja – bitte anrufen", bestaetigt: "bestätigt · gesperrt" };
+    wa_wartet: "WhatsApp gesendet – wartet", wa_ja: "✓ Ja (Mitarbeiter)", wa_korrigiert: "✏️ korrigiert",
+    wa_unklar: "⚠ unklar – bitte prüfen", wa_nein: "⚠ unklar – bitte prüfen", bestaetigt: "bestätigt · gesperrt" };
+  const TAGE_K = ["So", "Mo", "Di", "Mi", "Do", "Fr", "Sa"];
+  const tagZeit = (iso, mitZeit) => { const d = new Date(iso); return TAGE_K[d.getDay()] + " " + String(d.getDate()).padStart(2, "0") + "."
+    + String(d.getMonth() + 1).padStart(2, "0") + "." + (mitZeit ? " " + String(d.getHours()).padStart(2, "0") + ":" + String(d.getMinutes()).padStart(2, "0") : ""); };
+  let mitarbeiterListe = [];
   const zeit = (v) => { const t = String(v || "").replace("T", " "); return t.slice(8, 10) + "." + t.slice(5, 7) + ". " + t.slice(11, 16); };
   const monatInput = document.getElementById("szaMonat");
   const now = new Date();
@@ -162,12 +185,14 @@
 
   function waBlock(row, wa) {
     if (!wa) return "";
-    const rot = row.status === "wa_nein" || wa.ueberfaellig;
+    const rot = row.status === "wa_nein" || row.status === "wa_unklar";
     let html = `<div class="sza-wa${rot ? " rot" : ""}"><b>WhatsApp:</b> gesendet ${esc(zeit(row.wa_gesendet_am))}`;
     if (wa.versand) html += ` · ${esc(wa.versand)}`;
-    if (row.wa_antwort) html += `<br><b>Antwort</b> (${esc(zeit(row.wa_antwort_am))}): „${esc(row.wa_antwort)}“`;
-    if (row.status === "wa_nein") html += `<br><span class="warn">Kein Ja – bitte Mitarbeiter anrufen.</span>`;
-    if (wa.ueberfaellig) html += `<br><span class="warn">Seit 2 Tagen keine Antwort – bitte Mitarbeiter anrufen.</span>`;
+    if (row.wa_antwort) html += `<br><b>Antworten:</b><pre>${esc(row.wa_antwort)}</pre>`;
+    else if (row.status === "wa_wartet") html += `<br>Noch keine Antwort (bis zur Frist; danach so übernommen).`;
+    if ((wa.korrekturen || []).length) html += `<br><b>Vom KG Agent eingetragen:</b><br>` + wa.korrekturen.map((k) =>
+      `${esc(tagZeit(k.datum))}: ${esc(k.vorher)} → <b>${esc(k.nachher)}</b>`).join("<br>");
+    if (rot) html += `<br><span class="warn">Nicht sicher verstanden – bitte prüfen bzw. Mitarbeiter anrufen.</span>`;
     if (wa.text) html += `<details><summary>Nachricht anzeigen</summary><pre>${esc(wa.text)}</pre></details>`;
     return html + "</div>";
   }
@@ -176,12 +201,15 @@
     const row = m.monat || {};
     const st = row.status || "offen";
     const locked = st === "bestaetigt";
-    const badge = m.wa && m.wa.ueberfaellig ? ["rot", "✗ keine Antwort – bitte anrufen"] : [st, STATUS[st] || st];
+    const badge = [st, STATUS[st] || st];
     return `<div class="sza-card" data-id="${m.id}">
       <div class="sza-row">
         <div>
           <div class="sza-name">${esc(m.name)}</div>
-          <div class="sza-sub">${m.telefon ? "📞 " + esc(m.telefon) : "⚠️ keine Telefonnummer gespeichert"} · ${m.stunden.toLocaleString("de-DE")} Std. im Monat</div>
+          <div class="sza-sub">${m.telefon ? "📞 " + esc(m.telefon) : "⚠️ keine Telefonnummer gespeichert"} · ${m.stunden.toLocaleString("de-DE")} Std. im Monat ·
+            <label>Sprache <select class="sza-sprache a-sprache" aria-label="Sprache WhatsApp">
+              ${[["", "beide"], ["de", "Deutsch"], ["tr", "Türkçe"]].map(([v, t]) => `<option value="${v}"${(m.sprache || "") === v ? " selected" : ""}>${t}</option>`).join("")}
+            </select></label></div>
         </div>
         <span class="sza-badge b-${badge[0]}">${esc(badge[1])}</span>
       </div>
@@ -207,6 +235,10 @@
     const list = document.getElementById("szaList");
     try {
       const data = await api("/api/stz-auto/uebersicht?monat=" + encodeURIComponent(monatInput.value));
+      mitarbeiterListe = data.mitarbeiter;
+      const wer = aEl("aInfoWer"), alt = wer.value;
+      wer.innerHTML = data.mitarbeiter.map((m) => `<option value="${m.id}">${esc(m.name)}${m.telefon ? "" : " (ohne Nummer)"}</option>`).join("");
+      if (alt) wer.value = alt;
       list.innerHTML = data.mitarbeiter.length ? data.mitarbeiter.map(card).join("") :
         '<div class="sza-card">Keine aktiven Mitarbeiter.</div>';
     } catch (e) {
@@ -219,6 +251,17 @@
     el.className = "sza-msg " + (ok ? "ok" : "err");
     el.textContent = text;
   }
+
+  // Sprache je Mitarbeiter (wie „Deutsch“ / „Türkçe“ per WhatsApp)
+  document.getElementById("szaList").addEventListener("change", async (ev) => {
+    const sel = ev.target.closest(".a-sprache");
+    if (!sel) return;
+    const c = sel.closest(".sza-card");
+    try {
+      await api("/api/stz-auto/sprache/" + c.dataset.id, { sprache: sel.value });
+      msg(c, "Sprache gespeichert.", true);
+    } catch (e) { msg(c, e.message, false); }
+  });
 
   document.getElementById("szaList").addEventListener("click", async (ev) => {
     const btn = ev.target.closest("button");
@@ -289,16 +332,20 @@
 
   monatInput.addEventListener("change", laden);
 
-  // Automatik (Monatsanfang ausfüllen, WhatsApp ab dem 20.)
-  const aEl = (id) => document.getElementById(id);
+  // Automatik (Monatsanfang ausfüllen, WhatsApp/Frist/Bericht nach der Minijob-Frist)
   for (let h = 8; h <= 17; h++) { const o = document.createElement("option"); o.value = h; o.textContent = h + ":00"; aEl("aAnrufStunde").append(o); }
   function autoZeigen(d) {
     const e = d.einstellungen || {};
     aEl("aFuellen").checked = !!e.fuellen_an;
     aEl("aFuellTag").value = e.fuell_tag;
     aEl("aAnruf").checked = !!e.anruf_an;
-    aEl("aAnrufTag").value = e.anruf_tag;
     aEl("aAnrufStunde").value = e.anruf_stunde;
+    const MON = ["Januar", "Februar", "März", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober", "November", "Dezember"];
+    aEl("aTermine").innerHTML = (d.termine || []).map((t) => {
+      const [j, m] = t.monat.split("-").map(Number);
+      return `<b>${MON[m - 1]} ${j}:</b> WhatsApp ${esc(tagZeit(t.senden, true))} · Frist, Sperre + Bericht ${esc(tagZeit(t.frist, true))}
+        · Lohn/Meldung ${esc(tagZeit(t.lohn_tag))} (Minijob-Zentrale spätestens ${esc(tagZeit(t.meldung_bis))} 24 Uhr)`;
+    }).join("<br>");
     const an = e.fuellen_an || e.anruf_an;
     aEl("aBadge").className = "sza-badge " + (an ? "b-an" : "b-aus");
     aEl("aBadge").textContent = an ? "eingeschaltet" : "ausgeschaltet";
@@ -316,7 +363,7 @@
     try {
       autoZeigen(await api("/api/stz-auto/automatik", {
         fuellen_an: aEl("aFuellen").checked, fuell_tag: aEl("aFuellTag").value,
-        anruf_an: aEl("aAnruf").checked, anruf_tag: aEl("aAnrufTag").value, anruf_stunde: aEl("aAnrufStunde").value,
+        anruf_an: aEl("aAnruf").checked, anruf_stunde: aEl("aAnrufStunde").value,
       }));
       autoMsg("Gespeichert.", true);
     } catch (e) { autoMsg(e.message, false); }
@@ -333,6 +380,43 @@
     } catch (e) { autoMsg(e.message, false); }
     btn.disabled = false;
   });
+
+  async function knopf(id, arbeit) {
+    const btn = aEl(id);
+    btn.disabled = true;
+    try { await arbeit(); } catch (e) { autoMsg(e.message, false); }
+    btn.disabled = false;
+  }
+  aEl("aAlle").addEventListener("click", () => knopf("aAlle", async () => {
+    const offen = mitarbeiterListe.filter((m) => !(m.monat || {}).wa_gesendet_am && (m.monat || {}).status !== "bestaetigt");
+    if (!confirm(`Stundenzettel ${monatInput.value} jetzt per WhatsApp an alle schicken, die ihn noch nicht bekommen haben (bis zu ${offen.length})?`)) return;
+    const r = await api("/api/stz-auto/whatsapp-alle", { monat: monatInput.value });
+    autoMsg(`Gesendet an ${r.gesendet.length}: ${r.gesendet.join(", ") || "–"}` + (r.nicht.length ? ` · Nicht gesendet: ${r.nicht.join("; ")}` : ""), true);
+    await laden();
+  }));
+  aEl("aBericht").addEventListener("click", () => knopf("aBericht", async () => {
+    const r = await api("/api/stz-auto/bericht?monat=" + encodeURIComponent(monatInput.value));
+    const box = aEl("aBerichtText");
+    box.hidden = false;
+    box.textContent = r.text;
+  }));
+  aEl("aBerichtMail").addEventListener("click", () => knopf("aBerichtMail", async () => {
+    if (!confirm("Bericht für " + monatInput.value + " als Test-Mail an info@kg-reinigung.de schicken? (Es wird nichts gesperrt.)")) return;
+    const r = await api("/api/stz-auto/bericht", { monat: monatInput.value });
+    aEl("aBerichtText").hidden = false;
+    aEl("aBerichtText").textContent = r.text;
+    autoMsg("Test-Mail gesendet.", true);
+  }));
+  async function info(alle) {
+    const v = await api("/api/stz-auto/info");
+    const wer = alle ? "ALLE aktiven Mitarbeiter" : aEl("aInfoWer").selectedOptions[0].textContent;
+    if (!confirm(`Diese Info-Nachricht an ${wer} schicken?\n\n${v.text}`)) return;
+    const r = await api("/api/stz-auto/info", alle ? { alle: true } : { worker_ids: [Number(aEl("aInfoWer").value)] });
+    autoMsg(`Info-Nachricht gesendet an ${r.gesendet.length}: ${r.gesendet.join(", ") || "–"}`
+      + (r.ohne_nummer.length ? ` · Ohne Nummer: ${r.ohne_nummer.join(", ")}` : ""), true);
+  }
+  aEl("aInfoTest").addEventListener("click", () => knopf("aInfoTest", () => info(false)));
+  aEl("aInfoAlle").addEventListener("click", () => knopf("aInfoAlle", () => info(true)));
 
   autoLaden();
   laden();
