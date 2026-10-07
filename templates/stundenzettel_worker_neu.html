@@ -1,0 +1,711 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#123a8f">
+<title>KG-Portal Arbeitszeit</title>
+<!-- Neue Mitarbeiter-Ansicht (Modell A, KG-Blau). Gleiche Daten und Endpunkte wie stundenzettel_worker.html:
+     /api/stundenzettel/save, /api/stundenzettel/delete, /api/stundenzettel/<id>?code=… -->
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{width:100%;overflow-x:hidden}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;color:#0f172a;min-height:100vh;
+ background:radial-gradient(120% 40% at 100% 0%,#e0e7ff 0%,rgba(224,231,255,0) 60%),radial-gradient(100% 35% at 0% 20%,#cffafe 0%,rgba(207,250,254,0) 55%),#f6f8fd}
+button{font-family:inherit;cursor:pointer;border:0;background:none;color:inherit}
+.app{max-width:480px;margin:0 auto;padding:14px 16px calc(28px + env(safe-area-inset-bottom))}
+.kopf{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:4px 0 14px}
+.nm{display:flex;gap:11px;align-items:center;min-width:0}
+.kg{width:42px;height:42px;flex:none;border-radius:14px;background:linear-gradient(135deg,#123a8f,#2563eb);color:#fff;font-weight:900;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 14px rgba(18,58,143,.35)}
+.nm small{display:block;color:#1d4ed8;font-size:11.5px;font-weight:800;letter-spacing:.6px}
+.nm b{display:block;font-size:17px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.spr{display:flex;flex:none;background:#fff;border-radius:999px;padding:3px;box-shadow:0 2px 8px rgba(15,23,42,.08)}
+.spr button{padding:7px 10px;border-radius:999px;font-weight:800;font-size:12.5px;color:#64748b}
+.spr button.an{background:#1d4ed8;color:#fff}
+.mon{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.mon button{width:42px;height:42px;border-radius:14px;background:#fff;color:#1d4ed8;font-weight:900;font-size:20px;box-shadow:0 3px 10px rgba(15,23,42,.08)}
+.mon button:disabled{opacity:.35;cursor:default}
+.mon b{font-size:19px;color:#123a8f}
+.held{border-radius:26px;padding:16px 16px 14px;color:#fff;background:linear-gradient(135deg,#071a44 0%,#123a8f 44%,#2563eb 100%);box-shadow:0 14px 30px rgba(18,58,143,.38);position:relative;overflow:hidden}
+.held:after{content:"";position:absolute;right:-40px;top:-40px;width:150px;height:150px;border-radius:50%;background:rgba(255,255,255,.12);pointer-events:none}
+.held small{font-size:12px;font-weight:800;opacity:.9;letter-spacing:.5px}
+.held .z{display:flex;align-items:baseline;justify-content:space-between;gap:8px}
+.held .z b{font-size:38px;letter-spacing:-1px}
+.held .z span{font-size:16px;font-weight:800;background:rgba(255,255,255,.18);border-radius:999px;padding:4px 10px;white-space:nowrap;position:relative;z-index:1}
+.bar{height:8px;background:rgba(255,255,255,.22);border-radius:9px;margin:10px 0 4px;overflow:hidden}
+.bar i{display:block;height:100%;width:0;border-radius:9px;background:linear-gradient(90deg,#93c5fd,#fff);transition:width .3s}
+.barT{font-size:11.5px;opacity:.85;font-weight:700}
+.det{margin-top:10px;background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.28);border-radius:999px;padding:7px 15px;font-weight:800;font-size:13.5px;color:#fff;position:relative;z-index:1}
+.det.an{background:#fff;color:#123a8f}
+.detliste{margin-top:10px;background:rgba(255,255,255,.12);border-radius:16px;padding:4px 12px}
+.detliste div{display:flex;justify-content:space-between;gap:8px;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.15);font-size:13.5px}
+.detliste div:last-child{border-bottom:0}
+.detliste span{opacity:.85;font-weight:700}
+.titel{display:flex;justify-content:space-between;font-size:12.5px;font-weight:800;color:#64748b;letter-spacing:.5px;margin:16px 4px 7px}
+.t{display:flex;width:100%;text-align:left;align-items:center;gap:11px;background:#fff;border-radius:16px;padding:9px 11px 9px 9px;margin-bottom:7px;box-shadow:0 2px 10px rgba(15,23,42,.06);position:relative;overflow:hidden}
+.t:before{content:"";position:absolute;left:0;top:0;bottom:0;width:5px;background:linear-gradient(180deg,#1d4ed8,#60a5fa)}
+.t:active{transform:scale(.99)}
+.dt{width:46px;height:46px;flex:none;border-radius:13px;display:flex;flex-direction:column;align-items:center;justify-content:center;background:linear-gradient(135deg,#dbeafe,#eff6ff);color:#123a8f;margin-left:4px}
+.dt b{font-size:18px;line-height:1}
+.dt span{font-size:10.5px;font-weight:800;margin-top:2px}
+.inf{flex:1;min-width:0;font-weight:800;font-size:15px}
+.inf small{display:block;font-weight:700;color:#64748b;font-size:12.5px;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.std{flex:none;font-weight:800;font-size:12.5px;color:#1e40af;background:#eff6ff;border-radius:999px;padding:4px 9px}
+.hak{width:24px;height:24px;flex:none;border-radius:50%;background:linear-gradient(135deg,#22c55e,#16a34a);color:#fff;font-size:13px;font-weight:900;display:flex;align-items:center;justify-content:center;box-shadow:0 3px 8px rgba(22,163,74,.35)}
+.hak.nein{background:#fff;border:2px solid #cbd5e1;box-shadow:none}
+.pill{display:table;margin-top:4px;font-size:11.5px;font-weight:800;border-radius:999px;padding:2px 8px}
+.p-ft{color:#123a8f;background:#e0e7ff}
+.p-kr{color:#fff;background:linear-gradient(135deg,#f59e0b,#f97316)}
+.p-ur{color:#0f766e;background:#ccfbf1}
+.p-un{color:#b45309;background:#fef3c7}
+.t.kr:before{background:linear-gradient(180deg,#f59e0b,#f97316)}
+.t.kr .dt{background:linear-gradient(135deg,#fef3c7,#ffedd5);color:#b45309}
+.t.ur:before{background:linear-gradient(180deg,#14b8a6,#5eead4)}
+.t.ur .dt{background:linear-gradient(135deg,#ccfbf1,#f0fdfa);color:#0f766e}
+.t.l{background:rgba(255,255,255,.55);box-shadow:none;border:1.5px dashed #cbd5e1}
+.t.l:before{display:none}
+.t.l .dt{background:#eef2f7;color:#94a3b8}
+.t.l .inf{color:#94a3b8;font-weight:700}
+.plus{width:26px;height:26px;flex:none;border-radius:9px;background:#eff6ff;color:#1d4ed8;font-weight:900;display:flex;align-items:center;justify-content:center}
+.druck{display:none;margin:14px auto 0;background:#fff;color:#123a8f;font-weight:800;font-size:14px;border-radius:12px;padding:10px 16px;box-shadow:0 2px 8px rgba(15,23,42,.08)}
+@media (min-width:769px){.druck{display:block}}
+/* Fenster */
+.dim{position:fixed;inset:0;background:rgba(7,26,68,.5);z-index:50;opacity:0;pointer-events:none;transition:opacity .2s}
+.dim.an{opacity:1;pointer-events:auto}
+.sheet,.liste{position:fixed;left:0;right:0;bottom:0;margin:0 auto;max-width:480px;background:#fff;border-radius:28px 28px 0 0;overflow:hidden;box-shadow:0 -10px 30px rgba(15,23,42,.25);z-index:60;transform:translateY(105%);transition:transform .25s ease;visibility:hidden}
+.sheet.an,.liste.an{transform:none;visibility:visible}
+.liste{z-index:70;top:56px;display:flex;flex-direction:column}
+.skopf{background:linear-gradient(135deg,#071a44 0%,#123a8f 44%,#2563eb 100%);color:#fff;padding:12px 18px 14px;position:relative}
+.grf{width:42px;height:5px;background:rgba(255,255,255,.55);border-radius:9px;margin:0 auto 10px}
+.skopf small{font-size:12px;font-weight:800;opacity:.85;letter-spacing:.5px}
+.skopf h3{font-size:21px;margin-top:1px}
+.zu{position:absolute;right:12px;top:14px;width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,.18);color:#fff;font-size:20px;font-weight:700;line-height:1}
+.skoerper{padding:12px 16px calc(18px + env(safe-area-inset-bottom))}
+.zeit{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.zeit label{display:block;border-radius:16px;padding:9px 12px;background:linear-gradient(#fff,#fff) padding-box,linear-gradient(135deg,#123a8f,#60a5fa) border-box;border:2px solid transparent}
+.zeit small{font-size:11.5px;color:#1d4ed8;font-weight:800}
+.zeit input{display:block;width:100%;border:0;outline:0;background:transparent;font-family:inherit;font-size:26px;font-weight:800;color:#0f172a;padding:0;min-height:34px;-webkit-appearance:none;appearance:none}
+.zeit label{min-width:0}
+.zeit input{min-width:0;font-size:24px}
+.zeit input::-webkit-calendar-picker-indicator{width:16px;height:16px;margin-left:2px;padding:0;opacity:.55}
+.zeit input::-webkit-date-and-time-value{text-align:left}
+.lbl{font-size:12px;font-weight:800;color:#64748b;margin:12px 0 7px;letter-spacing:.5px}
+.wahl{display:flex;width:100%;justify-content:space-between;align-items:center;gap:8px;border-radius:16px;padding:12px 14px;font-size:18px;font-weight:800;color:#0f172a;background:linear-gradient(#fff,#fff) padding-box,linear-gradient(135deg,#123a8f,#60a5fa) border-box;border:2px solid transparent;text-align:left}
+.wahl.leer span{color:#94a3b8}
+.wahl i{font-style:normal;flex:none;color:#1d4ed8;font-size:15px;background:#eff6ff;border-radius:10px;padding:4px 9px}
+.ok{display:flex;width:100%;gap:12px;align-items:center;margin-top:14px;border-radius:16px;padding:11px 13px;background:#fff;border:2px solid #cbd5e1;text-align:left}
+.ok .box{width:30px;height:30px;flex:none;border-radius:9px;border:2px solid #94a3b8;background:#fff;color:transparent;font-weight:900;font-size:18px;display:flex;align-items:center;justify-content:center}
+.ok b{display:block;font-size:15.5px;color:#334155}
+.ok small{display:block;font-size:12px;color:#64748b;font-weight:700}
+.ok.an{background:#f0fdf4;border-color:#22c55e}
+.ok.an .box{border:0;background:linear-gradient(135deg,#22c55e,#16a34a);color:#fff;box-shadow:0 4px 10px rgba(22,163,74,.35)}
+.ok.an b{color:#14532d}
+.ok.an small{color:#15803d}
+.kn{display:grid;grid-template-columns:1fr 2fr;gap:10px;margin-top:14px}
+.kn button{white-space:nowrap;border-radius:16px;padding:14px 8px;text-align:center;font-weight:800;font-size:16px}
+.kn button:disabled{opacity:.6}
+.del{background:#fff1f2;color:#e11d48;border:1.5px solid #fecdd3 !important}
+.save{background:linear-gradient(135deg,#123a8f,#2563eb);color:#fff;box-shadow:0 8px 18px rgba(18,58,143,.35)}
+.hint{font-size:11.5px;color:#64748b;text-align:center;margin-top:8px}
+.lkopf{background:linear-gradient(135deg,#071a44 0%,#123a8f 44%,#2563eb 100%);color:#fff;padding:10px 18px 12px;position:relative;flex:none}
+.lkopf b{font-size:18px}
+.liste ul{list-style:none;padding:4px 14px calc(16px + env(safe-area-inset-bottom));overflow-y:auto;-webkit-overflow-scrolling:touch;flex:1}
+.liste li button{display:flex;width:100%;justify-content:space-between;align-items:center;padding:10px 8px;font-size:16px;font-weight:700;border-bottom:1px solid #f1f5f9;color:#0f172a;text-align:left}
+.liste li button.sel{background:#eff6ff;border-radius:10px;color:#123a8f;font-weight:900;border-bottom-color:transparent}
+.liste li button.sel span{color:#fff;background:#1d4ed8;border-radius:50%;width:22px;height:22px;font-size:12px;display:flex;align-items:center;justify-content:center}
+.liste .trenn{font-size:11.5px;font-weight:800;color:#94a3b8;letter-spacing:.5px;padding:12px 8px 3px}
+.liste li button.leise{color:#64748b}
+.toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom));transform:translate(-50%,20px);background:#14532d;color:#fff;font-weight:800;font-size:15px;border-radius:999px;padding:10px 18px;opacity:0;transition:all .25s;z-index:90;pointer-events:none}
+.toast.an{opacity:1;transform:translate(-50%,0)}
+/* Hinweis am 19. (wie bisher, nur mit ?reminder=1) */
+.erinn{position:fixed;inset:0;background:rgba(7,26,68,.85);z-index:100;display:none;align-items:center;justify-content:center;padding:16px}
+.erinn.an{display:flex}
+.erinn .karte{width:100%;max-width:560px;background:#fff;border-radius:24px;padding:22px;border-top:6px solid #123a8f;max-height:90vh;overflow-y:auto}
+.erinn h3{color:#dc2626;font-size:24px;font-weight:900;text-align:center;margin-bottom:14px}
+.erinn .txt{font-size:15px;line-height:1.75;color:#1e293b;margin-bottom:16px}
+.erinn .fuss{display:flex;gap:10px;align-items:center;justify-content:space-between;border-top:1px solid #e2e8f0;padding-top:16px;flex-wrap:wrap}
+.erinn .fuss .spr button{font-size:14px}
+.erinn .okbtn{flex:1;min-width:180px;background:linear-gradient(135deg,#123a8f,#2563eb);color:#fff;border-radius:14px;padding:14px 20px;font-weight:900;font-size:16px}
+</style>
+</head>
+<body>
+
+<div class="app">
+    <header class="kopf">
+        <div class="nm">
+            <div class="kg">KG</div>
+            <div><small>STUNDENZETTEL</small><b>{{ worker.vorname }} {{ worker.nachname }}</b></div>
+        </div>
+        <div class="spr" id="sprache">
+            <button type="button" data-l="de">🇩🇪 DE</button>
+            <button type="button" data-l="tr">🇹🇷 TR</button>
+        </div>
+    </header>
+
+    <div class="mon">
+        <button type="button" id="monVor" aria-label="zurück">‹</button>
+        <b id="monTitel"></b>
+        <button type="button" id="monNach" aria-label="weiter">›</button>
+    </div>
+
+    <section class="held">
+        <small data-t="gesamt"></small>
+        <div class="z"><b id="sumStd">0,00 Std</b><span id="sumEur">0,00 €</span></div>
+        <div class="bar"><i id="sumBar"></i></div>
+        <div class="barT" id="sumBarT"></div>
+        <button type="button" class="det" id="detBtn"></button>
+        <div class="detliste" id="detListe" hidden>
+            <div><span data-t="arbeit"></span><b id="dArbeit"></b></div>
+            <div><span data-t="urlaub"></span><b id="dUrlaub"></b></div>
+            <div><span data-t="krank"></span><b id="dKrank"></b></div>
+            <div><span data-t="extra"></span><b id="dExtra"></b></div>
+            <div><span data-t="resturlaub"></span><b id="dRest"></b></div>
+        </div>
+    </section>
+
+    <div class="titel"><span data-t="meineTage"></span><span id="anzahl"></span></div>
+    <div id="tage"></div>
+
+    <button type="button" class="druck" id="druckBtn" onclick="createPrintView()"></button>
+</div>
+
+<!-- Tag bearbeiten -->
+<div class="dim" id="dim"></div>
+<div class="sheet" id="sheet" role="dialog" aria-modal="true">
+    <div class="skopf">
+        <div class="grf"></div>
+        <small data-t="tagBearbeiten"></small>
+        <h3 id="sheetTitel"></h3>
+        <button type="button" class="zu" onclick="tagZu()" aria-label="schließen">×</button>
+    </div>
+    <div class="skoerper">
+        <div class="zeit">
+            <label><small>🕐 <span data-t="beginn"></span></small><input type="time" id="popupStart"></label>
+            <label><small>🕖 <span data-t="ende"></span></small><input type="time" id="popupEnd"></label>
+        </div>
+        <div class="lbl">📍 <span data-t="einsatzort"></span></div>
+        <button type="button" class="wahl" id="ortBtn" onclick="listeAuf()"><span id="ortText"></span><i data-t="aendern"></i></button>
+        <button type="button" class="ok" id="okBtn" onclick="hakenUmschalten()">
+            <div class="box">✓</div>
+            <div><b data-t="bestaetige"></b><small data-t="ersetzt"></small></div>
+        </button>
+        <div class="kn">
+            <button type="button" class="del" id="delBtn" onclick="tagLoeschen()">🗑 <span data-t="loeschen"></span></button>
+            <button type="button" class="save" id="saveBtn" onclick="tagSpeichern()">✓ <span data-t="speichern"></span></button>
+        </div>
+        <div class="hint" data-t="hinweis"></div>
+    </div>
+</div>
+
+<!-- Einsatzort-Liste -->
+<div class="liste" id="liste" role="dialog" aria-modal="true">
+    <div class="lkopf">
+        <div class="grf"></div>
+        <b data-t="ortWaehlen"></b>
+        <button type="button" class="zu" onclick="listeZu()" aria-label="schließen">×</button>
+    </div>
+    <ul id="ortListe"></ul>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- Hinweis am 19. (gleicher Text wie bisher) -->
+<div class="erinn" id="stundenReminderBox">
+    <div class="karte">
+        <h3 id="reminderTitle">⚠️ ACHTUNG</h3>
+        <div class="txt" id="reminderTextDE">
+            <strong>Bitte tragen Sie Ihre Arbeitszeiten vollständig ein:</strong><br><br>
+            • Stunden prüfen, nichts offen lassen.<br>
+            • <span style="color:#2563eb; font-weight:700;">Urlaub</span> /
+              <span style="color:#7c3aed; font-weight:700;">Vertretung</span> /
+              <span style="color:#dc2626; font-weight:700;">Feiertag</span> markieren.<br>
+            • <span style="color:#dc2626; font-weight:700;">Feiertag:</span> gearbeitet = eintragen, nicht gearbeitet = leer lassen. Bitte prüfen, ob es Ihr Arbeitstag ist.<br>
+            • <span style="color:#f97316; font-weight:800;">Krank</span> markieren, wenn Sie einen Krankenschein haben.<br>
+            • Sie sind für fehlende Stunden selbst verantwortlich.<br>
+            • Stunden werden nicht erneut kontrolliert.<br>
+            • Vergessen Sie nicht, statt Ihrer Unterschrift mit ✅ zu bestätigen.
+        </div>
+        <div class="txt" id="reminderTextTR" style="display:none;">
+            <strong>Lütfen çalışma saatlerinizi eksiksiz giriniz:</strong><br><br>
+            • Saatlerinizi kontrol edin, eksik bırakmayın.<br>
+            • <span style="color:#2563eb; font-weight:700;">Urlaub</span> /
+              <span style="color:#7c3aed; font-weight:700;">Vertretung</span> /
+              <span style="color:#dc2626; font-weight:700;">Feiertag</span> varsa işaretleyin.<br>
+            • <span style="color:#dc2626; font-weight:700;">Feiertag:</span> çalıştıysanız = yazın, çalışmadıysanız = boş bırakın. Lütfen bunun iş gününüze denk gelip gelmediğini kontrol edin.<br>
+            • <span style="color:#f97316; font-weight:800;">Krank</span> aldıysanız işaretleyin.<br>
+            • Eksik girilen saatlerden siz sorumlusunuz.<br>
+            • Saatler tekrar kontrol edilmeyecektir.<br>
+            • İmzanız yerine ✅ ile onay vermeyi unutmayın.
+        </div>
+        <div class="fuss">
+            <div class="spr">
+                <button type="button" onclick="switchReminderLang('de')">🇩🇪 DE</button>
+                <button type="button" onclick="switchReminderLang('tr')">🇹🇷 TR</button>
+            </div>
+            <button type="button" class="okbtn" id="confirmReminderBtn">✔ OK / GELESEN</button>
+        </div>
+    </div>
+</div>
+
+<script>
+const SAVED_LOGS = {{ saved_logs | safe if saved_logs else '{}' }};
+const WORKER_ID = {{ worker.id }};
+const WORKER_NAME = {{ (worker.vorname ~ ' ' ~ worker.nachname) | tojson }};
+// Objekt laut „Feste Zeiten“ je Wochentag (0 = Montag) – für die Anzeige an Feiertagen
+const PLAN_ORTE = {{ plan_orte | tojson }};
+let RESTURLAUB = {{ resturlaub | tojson }};
+const CODE = decodeURIComponent(window.location.pathname.split("/").filter(Boolean).pop() || "");
+
+// gleiche Liste wie auf der bisherigen Seite
+const locations = [
+    "Duisburg", "Walsum", "Hamborn", "Meiderich / Beeck", "Ruhrort", "Rheinhausen", "Duisburg Mitte",
+    "Duisburg Süd", "Großenbaum", "Neudorf", "Wanheimerort", "Neuenkamp",
+    "Grundreinigung",
+    "Düsseldorf", "Moers", "Neukirchen-Vluyn", "Oberhausen", "Essen"
+];
+const SONDER = ["Feiertag", "Krank", "Urlaub"];
+
+const TEXT = {
+    de: {
+        gesamt: "STUNDEN INSGESAMT", von: (a, b) => `${a} von ${b} Std`, details: "Details",
+        arbeit: "Arbeit", urlaub: "Urlaub", krank: "Krank", extra: "Extra", resturlaub: "Resturlaub", tage: "Tage",
+        meineTage: "MEINE TAGE", arbeitstage: "Arbeitstage", eintragen: "Eintragen", unvollstaendig: "Unvollständig",
+        tagBearbeiten: "TAG BEARBEITEN", beginn: "BEGINN", ende: "ENDE", einsatzort: "EINSATZORT",
+        bitteWaehlen: "Bitte wählen", aendern: "ändern ▾", bestaetige: "Ich bestätige diese Eingabe",
+        ersetzt: "✍ ersetzt meine Unterschrift", loeschen: "Löschen", speichern: "Speichern",
+        hinweis: "Speichern geht erst mit Häkchen ✓", ortWaehlen: "Einsatzort wählen", nichtGearbeitet: "NICHT GEARBEITET",
+        fehlt: "Bitte füllen Sie Beginn, Ende, Einsatzort und Bestätigung vollständig aus.",
+        loeschFrage: "Wirklich löschen?", keineVerbindung: "⚠️ Nicht gespeichert – keine Verbindung. Bitte nochmal speichern.",
+        loeschFehler: "⚠️ Löschfehler: ", speicherFehler: "⚠️ Fehler beim Speichern: ", verbindung: "⚠️ Verbindung fehlgeschlagen.",
+        gespeichert: "✓ Gespeichert", geloescht: "✓ Gelöscht", drucken: "🖨 Drucken",
+        sonder: { Feiertag: "Feiertag", Krank: "Krank", Urlaub: "Urlaub" },
+        monate: ["Januar", "Februar", "März", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober", "November", "Dezember"],
+        wt: ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"],
+        wtLang: ["Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag", "Sonntag"]
+    },
+    tr: {
+        gesamt: "TOPLAM SAAT", von: (a, b) => `${a} / ${b} Std`, details: "Detaylar",
+        arbeit: "Çalışma", urlaub: "İzin (Urlaub)", krank: "Hasta (Krank)", extra: "Ekstra", resturlaub: "Kalan izin", tage: "gün",
+        meineTage: "GÜNLERİM", arbeitstage: "iş günü", eintragen: "Saat gir", unvollstaendig: "Eksik",
+        tagBearbeiten: "GÜNÜ DÜZENLE", beginn: "BAŞLANGIÇ", ende: "BİTİŞ", einsatzort: "ÇALIŞMA YERİ",
+        bitteWaehlen: "Lütfen seçin", aendern: "değiştir ▾", bestaetige: "Bu girişi onaylıyorum",
+        ersetzt: "✍ imzamın yerine geçer", loeschen: "Sil", speichern: "Kaydet",
+        hinweis: "Kaydetmek için önce ✓ işaretleyin", ortWaehlen: "Çalışma yeri seçin", nichtGearbeitet: "ÇALIŞILMADI",
+        fehlt: "Lütfen başlangıç, bitiş, çalışma yeri ve onayı eksiksiz doldurun.",
+        loeschFrage: "Gerçekten silinsin mi?", keineVerbindung: "⚠️ Kaydedilmedi – bağlantı yok. Lütfen tekrar kaydedin.",
+        loeschFehler: "⚠️ Silme hatası: ", speicherFehler: "⚠️ Kayıt hatası: ", verbindung: "⚠️ Bağlantı kurulamadı.",
+        gespeichert: "✓ Kaydedildi", geloescht: "✓ Silindi", drucken: "🖨 Yazdır",
+        sonder: { Feiertag: "Feiertag / resmi tatil", Krank: "Krank / hasta", Urlaub: "Urlaub / izin" },
+        monate: ["Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"],
+        wt: ["Pzt", "Sal", "Çar", "Per", "Cum", "Cmt", "Paz"],
+        wtLang: ["Pazartesi", "Salı", "Çarşamba", "Perşembe", "Cuma", "Cumartesi", "Pazar"]
+    }
+};
+
+let SPRACHE = {{ sprache | tojson }} === "tr" ? "tr" : "de";
+try { const s = localStorage.getItem("stz_sprache"); if (s === "de" || s === "tr") SPRACHE = s; } catch (e) {}
+const T = () => TEXT[SPRACHE];
+
+// Ab April 2026 bis fünf Monate nach dem aktuellen Monat (wie bisher)
+const monthList = (function () {
+    const liste = [];
+    const jetzt = new Date();
+    const ende = new Date(jetzt.getFullYear(), jetzt.getMonth() + 5, 1);
+    for (let d = new Date(2026, 3, 1); d <= ende; d = new Date(d.getFullYear(), d.getMonth() + 1, 1)) {
+        liste.push({ month: d.getMonth() + 1, year: d.getFullYear() });
+    }
+    return liste;
+})();
+let selectedMonthIndex = Math.max(0, monthList.findIndex(m => m.month === new Date().getMonth() + 1 && m.year === new Date().getFullYear()));
+let detailsOffen = false;
+let aktuellerTag = null;   // "YYYY-MM-DD"
+let ortGewaehlt = "";
+let haken = false;
+
+function pad(n) { return n < 10 ? "0" + n : "" + n; }
+function zahl(n) { return n.toFixed(2).replace(".", ","); }
+function esc(s) { return String(s || "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])); }
+function stunden(start, end) {
+    if (!start || !end || !start.includes(":") || !end.includes(":")) return 0;
+    const [sH, sM] = start.split(":").map(Number);
+    const [eH, eM] = end.split(":").map(Number);
+    if (isNaN(sH) || isNaN(eH)) return 0;
+    let diff = (eH + eM / 60) - (sH + sM / 60);
+    if (diff < 0) diff += 24;
+    return diff;
+}
+function stdKurz(h) {
+    const r = Math.round(h * 100) / 100;
+    return (Number.isInteger(r) ? String(r) : String(r).replace(".", ",")) + " Std";
+}
+function wochentag(jahr, monat, tag) { return (new Date(jahr, monat - 1, tag).getDay() + 6) % 7; }
+
+function monatsTage() {
+    const m = monthList[selectedMonthIndex];
+    const anzahl = new Date(m.year, m.month, 0).getDate();
+    const tage = [];
+    for (let d = 1; d <= anzahl; d++) {
+        const key = `${m.year}-${pad(m.month)}-${pad(d)}`;
+        tage.push({ d, key, wt: wochentag(m.year, m.month, d), e: SAVED_LOGS[key] || null });
+    }
+    return tage;
+}
+
+// gleiche Rechnung wie updateCalculations() auf der bisherigen Seite
+function berechnen(tage) {
+    const hourlyWage = 15.00, grundreinigungWage = 17.00, hourLimit = 40.00, moneyLimit = 600.00;
+    let rawArbeit = 0, rawKrank = 0, rawUrlaub = 0, rawGrund = 0;
+    tage.forEach(t => {
+        if (!t.e) return;
+        const diff = stunden(t.e.start, t.e.end);
+        if (!diff) return;
+        const status = t.e.place;
+        if (status === "Krank") rawKrank += diff;
+        else if (status === "Urlaub") rawUrlaub += diff;
+        else if (status === "Grundreinigung") { rawArbeit += diff; rawGrund += diff; }
+        else rawArbeit += diff;
+    });
+    const krankInBase = Math.min(rawKrank, hourLimit);
+    const urlaubInBase = Math.min(rawUrlaub, Math.max(0, hourLimit - krankInBase));
+    const arbeitInBase = Math.min(rawArbeit, Math.max(0, hourLimit - krankInBase - urlaubInBase));
+    const rawTotal = rawArbeit + rawKrank + rawUrlaub;
+    const grandTotalStd = Math.min(hourLimit, rawTotal);
+    const totalExtra = Math.max(0, rawTotal - hourLimit);
+    const grundInBase = Math.min(rawGrund, arbeitInBase);
+    const normalArbeitInBase = Math.max(0, arbeitInBase - grundInBase);
+    const basePay = (normalArbeitInBase * hourlyWage) + (grundInBase * grundreinigungWage) + (krankInBase * hourlyWage) + (urlaubInBase * hourlyWage);
+    return {
+        hourLimit, grandTotalStd, totalPay: basePay > moneyLimit ? moneyLimit : basePay,
+        arbeit: arbeitInBase, arbeitEur: (normalArbeitInBase * hourlyWage) + (grundInBase * grundreinigungWage),
+        urlaub: urlaubInBase, urlaubEur: urlaubInBase * hourlyWage,
+        krank: krankInBase, krankEur: krankInBase * hourlyWage,
+        extra: totalExtra, extraEur: totalExtra * hourlyWage
+    };
+}
+
+function texteSetzen() {
+    document.documentElement.lang = SPRACHE;
+    document.querySelectorAll("[data-t]").forEach(el => { el.textContent = T()[el.dataset.t]; });
+    document.querySelectorAll("#sprache button").forEach(b => b.classList.toggle("an", b.dataset.l === SPRACHE));
+    document.getElementById("druckBtn").textContent = T().drucken;
+}
+
+function zeichnen() {
+    const m = monthList[selectedMonthIndex];
+    const tage = monatsTage();
+    const r = berechnen(tage);
+
+    document.getElementById("monTitel").textContent = `${T().monate[m.month - 1]} ${m.year}`;
+    document.getElementById("monVor").disabled = selectedMonthIndex <= 0;
+    document.getElementById("monNach").disabled = selectedMonthIndex >= monthList.length - 1;
+
+    document.getElementById("sumStd").textContent = `${zahl(r.grandTotalStd)} Std`;
+    document.getElementById("sumEur").textContent = `${zahl(r.totalPay)} €`;
+    document.getElementById("sumBar").style.width = Math.min(100, r.grandTotalStd / r.hourLimit * 100) + "%";
+    document.getElementById("sumBarT").textContent = T().von(stdKurz(r.grandTotalStd).replace(" Std", ""), r.hourLimit);
+    const detBtn = document.getElementById("detBtn");
+    detBtn.textContent = `${T().details} ${detailsOffen ? "▴" : "▾"}`;
+    detBtn.classList.toggle("an", detailsOffen);
+    document.getElementById("detListe").hidden = !detailsOffen;
+    document.getElementById("dArbeit").textContent = `${zahl(r.arbeit)} Std · ${zahl(r.arbeitEur)} €`;
+    document.getElementById("dUrlaub").textContent = `${zahl(r.urlaub)} Std · ${zahl(r.urlaubEur)} €`;
+    document.getElementById("dKrank").textContent = `${zahl(r.krank)} Std · ${zahl(r.krankEur)} €`;
+    document.getElementById("dExtra").textContent = `${zahl(r.extra)} Std · ${zahl(r.extraEur)} €`;
+    document.getElementById("dRest").textContent = `${RESTURLAUB ?? 0} ${T().tage}`;
+
+    let arbeitstage = 0;
+    const html = tage.map(t => {
+        const datum = `<div class="dt"><b>${pad(t.d)}</b><span>${T().wt[t.wt]}</span></div>`;
+        const e = t.e;
+        if (!e || !(e.start || e.end || e.place || e.signed)) {
+            return `<button type="button" class="t l" onclick="tagAuf('${t.key}')">${datum}<div class="inf">${T().eintragen}</div><div class="plus">+</div></button>`;
+        }
+        const h = stunden(e.start, e.end);
+        const zeiten = e.start && e.end ? `${esc(e.start)} – ${esc(e.end)}` : "";
+        const hak = `<div class="hak${e.signed ? "" : " nein"}">${e.signed ? "✓" : ""}</div>`;
+        const std = h ? `<span class="std">${stdKurz(h)}</span>` : "";
+        const sonder = SONDER.includes(e.place);
+        const vollstaendig = sonder ? !!e.place : !!(e.start && e.end && e.place);
+        let klasse = "", zeile2 = "";
+        if (e.place === "Krank") { klasse = " kr"; zeile2 = `<span class="pill p-kr">🤒 ${esc(T().sonder.Krank)}</span>`; }
+        else if (e.place === "Urlaub") { klasse = " ur"; zeile2 = `<span class="pill p-ur">🌴 ${esc(T().sonder.Urlaub)}</span>`; }
+        else if (e.place === "Feiertag") {
+            const ort = PLAN_ORTE[String(t.wt)] || "";
+            zeile2 = (ort ? `<small>📍 ${esc(ort)}</small>` : "") + `<span class="pill p-ft">🎉 ${esc(T().sonder.Feiertag)}</span>`;
+        } else if (e.place) {
+            zeile2 = `<small>📍 ${esc(e.place)}</small>`;
+        }
+        if (!vollstaendig) zeile2 += `<span class="pill p-un">${T().unvollstaendig}</span>`;
+        if (e.place && e.place !== "Krank" && e.place !== "Urlaub") arbeitstage++;
+        const zeile1 = zeiten || (e.place && sonder ? "" : "&nbsp;");
+        return `<button type="button" class="t${klasse}" onclick="tagAuf('${t.key}')">${datum}<div class="inf">${zeile1}${zeile2}</div>${std}${hak}</button>`;
+    }).join("");
+    document.getElementById("tage").innerHTML = html;
+    document.getElementById("anzahl").textContent = `${arbeitstage} ${T().arbeitstage}`;
+}
+
+/* ---------- Tag-Fenster ---------- */
+function koerperSperren(an) { document.body.style.overflow = an ? "hidden" : ""; }
+
+function tagAuf(key) {
+    aktuellerTag = key;
+    const e = SAVED_LOGS[key] || {};
+    const [j, mo, d] = key.split("-").map(Number);
+    document.getElementById("sheetTitel").textContent = `${T().wtLang[wochentag(j, mo, d)]}, ${pad(d)}.${pad(mo)}.${j}`;
+    // wie bisher: leere Tage starten mit 17:00 – 19:00
+    document.getElementById("popupStart").value = e.start || "17:00";
+    document.getElementById("popupEnd").value = e.end || "19:00";
+    ortGewaehlt = e.place || "";
+    haken = !!e.signed;
+    ortAnzeigen();
+    hakenAnzeigen();
+    document.getElementById("dim").classList.add("an");
+    document.getElementById("sheet").classList.add("an");
+    koerperSperren(true);
+}
+
+function tagZu() {
+    listeZu();
+    document.getElementById("sheet").classList.remove("an");
+    document.getElementById("dim").classList.remove("an");
+    koerperSperren(false);
+    aktuellerTag = null;
+}
+
+function ortAnzeigen() {
+    const btn = document.getElementById("ortBtn");
+    btn.classList.toggle("leer", !ortGewaehlt);
+    document.getElementById("ortText").textContent = ortGewaehlt ? (T().sonder[ortGewaehlt] || ortGewaehlt) : T().bitteWaehlen;
+}
+
+function hakenAnzeigen() { document.getElementById("okBtn").classList.toggle("an", haken); }
+function hakenUmschalten() { haken = !haken; hakenAnzeigen(); }
+
+function listeAuf() {
+    const eintrag = (name, leise) => {
+        const sel = name === ortGewaehlt;
+        return `<li><button type="button" class="${sel ? "sel" : ""}${leise ? " leise" : ""}" data-ort="${esc(name)}">${esc(T().sonder[name] || name)}${sel ? "<span>✓</span>" : ""}</button></li>`;
+    };
+    let html = locations.map(n => eintrag(n, false)).join("");
+    if (ortGewaehlt && !locations.includes(ortGewaehlt) && !SONDER.includes(ortGewaehlt)) html = eintrag(ortGewaehlt, false) + html;
+    html += `<li class="trenn">${T().nichtGearbeitet}</li>` + SONDER.map(n => eintrag(n, true)).join("");
+    const ul = document.getElementById("ortListe");
+    ul.innerHTML = html;
+    ul.scrollTop = 0;
+    document.getElementById("liste").classList.add("an");
+}
+
+function listeZu() { document.getElementById("liste").classList.remove("an"); }
+
+document.getElementById("ortListe").addEventListener("click", ev => {
+    const b = ev.target.closest("button[data-ort]");
+    if (!b) return;
+    ortGewaehlt = b.dataset.ort;
+    ortAnzeigen();
+    listeZu();
+});
+
+function toast(text) {
+    const el = document.getElementById("toast");
+    el.textContent = text;
+    el.classList.add("an");
+    clearTimeout(toast._t);
+    toast._t = setTimeout(() => el.classList.remove("an"), 1800);
+}
+
+function resturlaubAnpassen(vorher, nachher) {
+    if (RESTURLAUB === null || RESTURLAUB === undefined) return;
+    if (nachher === "Urlaub" && vorher !== "Urlaub") RESTURLAUB = Math.max(0, RESTURLAUB - 1);
+    else if (vorher === "Urlaub" && nachher !== "Urlaub") RESTURLAUB = RESTURLAUB + 1;
+}
+
+function tagSpeichern() {
+    if (!aktuellerTag) return;
+    const start = document.getElementById("popupStart").value || "";
+    const end = document.getElementById("popupEnd").value || "";
+    if (!start || !end || !ortGewaehlt || !haken) {
+        alert(T().fehlt);
+        return;
+    }
+    const key = aktuellerTag;
+    const entry = { date: key, start: start, end: end, place: ortGewaehlt, signed: true };
+    const btn = document.getElementById("saveBtn");
+    btn.disabled = true;
+    fetch(window.location.origin + "/api/stundenzettel/save", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ worker_id: WORKER_ID, code: CODE, entries: [entry] })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            const vorher = (SAVED_LOGS[key] || {}).place || "";
+            SAVED_LOGS[key] = { start: start, end: end, place: entry.place, signed: 1 };
+            resturlaubAnpassen(vorher, entry.place);
+            tagZu();
+            zeichnen();
+            toast(T().gespeichert);
+        } else {
+            alert(T().speicherFehler + data.error);
+        }
+    })
+    .catch(err => {
+        console.error("Bağlantı kesildi:", err);
+        alert(T().keineVerbindung);
+    })
+    .finally(() => { btn.disabled = false; });
+}
+
+function tagLoeschen() {
+    if (!aktuellerTag) return;
+    if (!confirm(T().loeschFrage)) return;
+    const key = aktuellerTag;
+    const btn = document.getElementById("delBtn");
+    btn.disabled = true;
+    fetch(window.location.origin + "/api/stundenzettel/delete", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ worker_id: WORKER_ID, code: CODE, date: key })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (!data.success) {
+            alert(T().loeschFehler + data.error);
+            return;
+        }
+        const vorher = (SAVED_LOGS[key] || {}).place || "";
+        delete SAVED_LOGS[key];
+        resturlaubAnpassen(vorher, "");
+        tagZu();
+        zeichnen();
+        toast(T().geloescht);
+    })
+    .catch(err => {
+        console.error("Löschfehler:", err);
+        alert(T().verbindung);
+    })
+    .finally(() => { btn.disabled = false; });
+}
+
+/* ---------- Bedienung ---------- */
+document.getElementById("dim").addEventListener("click", () => {
+    if (document.getElementById("liste").classList.contains("an")) listeZu(); else tagZu();
+});
+document.getElementById("monVor").addEventListener("click", () => { if (selectedMonthIndex > 0) { selectedMonthIndex--; zeichnen(); } });
+document.getElementById("monNach").addEventListener("click", () => { if (selectedMonthIndex < monthList.length - 1) { selectedMonthIndex++; zeichnen(); } });
+document.getElementById("detBtn").addEventListener("click", () => { detailsOffen = !detailsOffen; zeichnen(); });
+document.querySelectorAll("#sprache button").forEach(b => b.addEventListener("click", () => {
+    SPRACHE = b.dataset.l;
+    try { localStorage.setItem("stz_sprache", SPRACHE); } catch (e) {}
+    texteSetzen();
+    zeichnen();
+    if (aktuellerTag) { const k = aktuellerTag; tagAuf(k); }
+}));
+
+// 🔄 Telefonda uygulamaya geri dönülünce saatleri sunucudan sessizce yeniden al (wie bisher).
+let lastLogsReload = 0;
+function reloadSavedLogs() {
+    const now = Date.now();
+    if (now - lastLogsReload < 5000) return;
+    lastLogsReload = now;
+    fetch(window.location.origin + "/api/stundenzettel/" + WORKER_ID + "?code=" + encodeURIComponent(CODE), { cache: "no-store" })
+        .then(res => res.json())
+        .then(data => {
+            if (!data || !data.success || !Array.isArray(data.entries)) return;
+            const fresh = {};
+            data.entries.forEach(e => { fresh[e.date] = { start: e.start, end: e.end, place: e.place, signed: e.signed ? 1 : 0 }; });
+            const norm = obj => JSON.stringify(Object.keys(obj).sort().map(k => [k,
+                obj[k].start || "", obj[k].end || "", obj[k].place || "", obj[k].signed ? 1 : 0]));
+            if (norm(fresh) === norm(SAVED_LOGS)) return;
+            Object.keys(SAVED_LOGS).forEach(k => delete SAVED_LOGS[k]);
+            Object.assign(SAVED_LOGS, fresh);
+            if (!aktuellerTag) zeichnen();
+        })
+        .catch(() => {});
+}
+document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") reloadSavedLogs(); });
+window.addEventListener("pageshow", e => { if (e.persisted) reloadSavedLogs(); });
+
+/* ---------- Hinweis am 19. (wie bisher) ---------- */
+function switchReminderLang(lang) {
+    const de = document.getElementById("reminderTextDE");
+    const tr = document.getElementById("reminderTextTR");
+    const btn = document.getElementById("confirmReminderBtn");
+    const title = document.getElementById("reminderTitle");
+    if (lang === "de") {
+        de.style.display = "block"; tr.style.display = "none";
+        btn.innerText = "✔ OK, GELESEN"; title.innerText = "⚠️ ACHTUNG";
+    } else {
+        de.style.display = "none"; tr.style.display = "block";
+        btn.innerText = "✔ OK, ANLADIM"; title.innerText = "⚠️ DİKKAT";
+    }
+}
+document.getElementById("confirmReminderBtn").addEventListener("click", function () {
+    document.getElementById("stundenReminderBox").classList.remove("an");
+    window.history.replaceState({}, document.title, window.location.pathname);
+});
+if (new Date().getDate() === 19 && new URLSearchParams(window.location.search).get("reminder") === "1") {
+    document.getElementById("stundenReminderBox").classList.add("an");
+    if (SPRACHE === "tr") switchReminderLang("tr");
+}
+
+/* ---------- Drucken (nur PC, wie bisher) ---------- */
+function createPrintView() {
+    const m = monthList[selectedMonthIndex];
+    const monthNameOnly = `${TEXT.de.monate[m.month - 1]} ${m.year}`;
+    const daysInMonth = new Date(m.year, m.month, 0).getDate();
+    const hourlyWage = 15;
+    let totalHours = 0;
+    let tableRows = "";
+    for (let d = 1; d <= daysInMonth; d++) {
+        const data = SAVED_LOGS[`${m.year}-${pad(m.month)}-${pad(d)}`] || {};
+        totalHours += stunden(data.start, data.end);
+        tableRows += `
+        <tr>
+            <td>${pad(d)}.${pad(m.month)}.${m.year}</td>
+            <td>${monthNameOnly}</td>
+            <td>${esc(data.start)}</td>
+            <td>${esc(data.end)}</td>
+            <td>${esc(data.place)}</td>
+            <td style="text-align:center;">${data.signed ? "☑" : ""}</td>
+            <td style="text-align:center;">${data.signed ? "✔ ersetzt meine Unterschrift" : ""}</td>
+        </tr>`;
+    }
+    const totalWage = totalHours * hourlyWage;
+    const printWindow = window.open("", "_blank");
+    printWindow.document.write(`
+    <html><head><meta charset="UTF-8"><title>${esc(WORKER_NAME)}</title>
+    <style>
+        @page { size: A4; margin: 10mm; }
+        body { font-family: Arial, sans-serif; margin: 0; padding: 10px; color: #000; }
+        table { width: 100%; border-collapse: collapse; table-layout: fixed; font-size: 11px; }
+        th, td { border: 1px solid #000; padding: 6px 4px; word-wrap: break-word; text-align: left; }
+        th { background: #f2f2f2; }
+        .top { display: flex; justify-content: space-between; margin-bottom: 15px; font-weight: 700; font-size: 14px; }
+        h2 { margin-top: 0; margin-bottom: 5px; }
+    </style></head>
+    <body>
+        <h2>Stundenzettel: ${esc(WORKER_NAME)}</h2>
+        <div style="margin-bottom:10px;">${monthNameOnly} - Arbeitszeitnachweis</div>
+        <div class="top">
+            <div>Stunde Insgesamt: ${zahl(totalHours)} Std</div>
+            <div>Lohn Insgesamt: ${zahl(totalWage)} €</div>
+        </div>
+        <table>
+            <thead><tr>
+                <th style="width:12%;">Datum</th><th style="width:15%;">Monat</th><th style="width:10%;">Beginn</th>
+                <th style="width:10%;">Ende</th><th style="width:18%;">Ort</th><th style="width:10%;">Unterschrift</th>
+                <th style="width:25%;">Unterschriftsbestätigung</th>
+            </tr></thead>
+            <tbody>${tableRows}</tbody>
+        </table>
+    </body></html>`);
+    printWindow.document.close();
+    setTimeout(() => { printWindow.focus(); printWindow.print(); }, 250);
+}
+
+texteSetzen();
+zeichnen();
+</script>
+</body>
+</html>

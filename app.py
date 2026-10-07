@@ -2171,6 +2171,32 @@ def worker_stundenzettel(code):
             "signed": log["signed"]
         }
 
+    # Neue Ansicht (Modell A, KG-Blau) – vorerst nur für Test-Mitarbeiter (STZ_NEU_IDS, Standard: 2 = Özdes Murat Kicci).
+    # Alle anderen bekommen unverändert die bisherige Seite.
+    stz_neu_ids = {i.strip() for i in os.getenv("STZ_NEU_IDS", "2").split(",") if i.strip()}
+    if str(worker["id"]) in stz_neu_ids:
+        plan_orte, sprache = {}, ""
+        try:
+            from stundenzettel_auto import _plan_laden, sprache_laden, ensure_tables as _stz_tabellen, WOCHENTAGE as _STZ_WT
+            conn = get_db_connection()
+            try:
+                _stz_tabellen(conn)
+                plan = _plan_laden(conn, worker["id"])
+                plan_orte = {str(i): plan[t]["ort"] for i, t in enumerate(_STZ_WT) if plan[t]["aktiv"] and plan[t]["ort"]}
+                sprache = sprache_laden(conn, worker["id"])
+            finally:
+                conn.close()
+        except Exception as ex:
+            print(f"⚠️ Stundenzettel neue Ansicht: Zusatzdaten nicht geladen: {ex}")
+        return render_template(
+            "stundenzettel_worker_neu.html",
+            worker=worker,
+            saved_logs=json.dumps(saved_logs),
+            plan_orte=plan_orte,
+            sprache=sprache,
+            resturlaub=worker["resturlaub"] if "resturlaub" in worker.keys() else None
+        )
+
     # Her şey doğruysa menüsüz işçi sayfasını açar
     return render_template(
         "stundenzettel_worker.html",
