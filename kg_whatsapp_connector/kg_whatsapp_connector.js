@@ -291,6 +291,18 @@ setInterval(pollOutbox, 3000);
 
 // KI-Antwort erst, wenn Damla eine Nachricht nach X Minuten (CRM: WA_KI_WARTEN_MIN) nicht gelesen hat.
 // Das CRM sagt, welche Nachrichten fällig sind; hier wird nur geprüft, ob der Chat noch ungelesen ist.
+// getChatById scheitert bei manchen @lid-Chats (Fehler „r“) → dann in der Chatliste suchen
+async function kiChatFinden(chatId) {
+    try {
+        return await client.getChatById(chatId);
+    } catch (err) {
+        const chats = await client.getChats();
+        const chat = chats.find(c => c.id && c.id._serialized === chatId);
+        if (!chat) throw new Error('Chat nicht gefunden: ' + chatId + ' (' + err.message + ')');
+        return chat;
+    }
+}
+
 let kiPruefungLaeuft = false;
 
 async function pollKiWarten() {
@@ -311,7 +323,7 @@ async function pollKiWarten() {
             let fehler = '';
 
             try {
-                const chat = await client.getChatById(item.chat_id);
+                const chat = await kiChatFinden(item.chat_id);
                 gelesen = chat.unreadCount === 0;
             } catch (chatErr) {
                 fehler = chatErr.message;
