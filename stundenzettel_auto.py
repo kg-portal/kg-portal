@@ -1,17 +1,15 @@
 # =====================================================
 # STUNDENZETTEL-AUTOMATIK
 # Feste Arbeitszeiten je Mitarbeiter → ganzen Monat ausfüllen →
-# Leon ruft den Mitarbeiter an („Stimmt das? Fehlt etwas?“) →
+# WhatsApp an den Mitarbeiter („Stimmt das? 1 = Ja, 2 = Nein“) →
 # Chef bestätigt → Monat gesperrt (Mitarbeiter-Link kann nichts mehr ändern).
 #
 # Bestehende Stundenzettel-Funktionen bleiben unverändert. Ausgefüllt wird
 # nur an Tagen OHNE Eintrag (gleich unterschrieben ✓); automatisch angelegte
 # Tage sind gemerkt und lassen sich zurücknehmen, solange sie nicht verändert wurden.
 #
-# Leon: eigenes Profil „Leon Stundenzettel“ und Kampagne
-# „Stundenzettel-Kontrolle“ im Leon-Motor (einmalig einrichten mit
-# tools/stundenzettel_agent.py im Leon-Repo). Name änderbar über
-# LEON_STZ_KAMPAGNE in tokenlar.env / Render Environment.
+# WhatsApp geht über den WhatsApp-Connector (whatsapp_outbox, Damlas Diensthandy).
+# Leon ruft für den Stundenzettel nicht mehr an (leon_*-Spalten bleiben nur als alte Daten).
 # =====================================================
 import json
 import os
@@ -165,6 +163,9 @@ def ensure_tables(conn):
     spalten = {r[1] for r in conn.execute("PRAGMA table_info(stundenzettel_monate)")}
     if "leon_info" not in spalten:
         conn.execute("ALTER TABLE stundenzettel_monate ADD COLUMN leon_info TEXT")
+    for spalte, art in (("wa_gesendet_am", "TEXT"), ("wa_outbox_id", "INTEGER"), ("wa_antwort", "TEXT"), ("wa_antwort_am", "TEXT")):
+        if spalte not in spalten:
+            conn.execute(f"ALTER TABLE stundenzettel_monate ADD COLUMN {spalte} {art}")
     conn.commit()
 
 
@@ -216,7 +217,7 @@ def _name(w):
 
 
 def monat_zusammenfassung(conn, worker_id, monat):
-    """Kurzer deutscher Text über den Monat – für Chef-Ansicht und Leon."""
+    """Kurzer deutscher Text über den Monat – für die Chef-Ansicht."""
     start, ende, monat = _monat_param(monat)
     w = _worker(conn, worker_id)
     logs = conn.execute(
@@ -288,7 +289,7 @@ def monat_fuellen(conn, worker_id, monat):
                 uebersprungen.append(f"{tag.strftime('%d.%m.')} vor Eintritt")
             else:
                 conn.execute(
-                    # gleich unterschrieben (✓) – die Bestätigung holt Leon beim Kontrollanruf ein
+                    # gleich unterschrieben (✓) – die Bestätigung holt die WhatsApp „1 = Ja / 2 = Nein“ ein
                     "INSERT INTO work_logs (worker_id, datum, start_time, end_time, place, signed) VALUES (?, ?, ?, ?, ?, 1)",
                     (worker_id, iso, p["start"], p["ende"], p["ort"]),
                 )
@@ -333,156 +334,218 @@ def monat_rueckgaengig(conn, worker_id, monat):
     return {"geloescht": geloescht, "behalten": geaendert}
 
 
-# ----------------------------------------------------- Leon
+# ----------------------------------------------------- WhatsApp-Bestätigung
+# Kurze Nachricht (Deutsch + Türkisch) über den WhatsApp-Connector (Damlas Diensthandy).
+# Antwort 1 = Ja → „✓ Ja“. 2, anderer Text oder 2 Tage keine Antwort → rot, das Büro ruft an.
+# Antworten erkennt der WhatsApp-Eingang – auch wenn „Automatische Antworten“ AUS ist.
 
-def _leon_kampagne(client):
-    name = (os.getenv("LEON_STZ_KAMPAGNE") or "Stundenzettel-Kontrolle").strip()
-    _code, data = client.request("GET", "/api/campaigns")
-    for c in (data or {}).get("campaigns", []):
-        if (c.get("name") or "").strip().lower() == name.lower():
-            return c
-    return None
+MONATE_TR = ["Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", "Temmuz", "Ağustos",
+             "Eylül", "Ekim", "Kasım", "Aralık"]
+TAGE_KURZ = ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"]
+WA_FRIST_TAGE = 2      # so lange auf Antwort warten, dann rot
+WA_ANTWORT_TAGE = 10   # so lange nach dem Senden werden Antworten zugeordnet
+# „Ja“ nur, wenn die Antwort ein Ja enthält und sonst nur Füllwörter – alles andere geht ans Büro
+WA_JA = {"1", "ja", "jo", "jap", "evet", "ok", "okay", "okey", "oke", "tamam", "tamamdır", "tamamdir",
+         "stimmt", "richtig", "passt", "doğru", "dogru", "👍", "👌", "✅"}
+WA_FUELLWORT = {"alles", "gut", "danke", "dankeschön", "vielen", "teşekkürler", "tesekkurler", "teşekkür",
+                "tesekkur", "ederim", "sağol", "sagol", "sağolun", "sagolun", "abla", "abi", "hocam", "frau",
+                "kicci", "damla", "hanım", "hanim", "das", "es", "ist", "yes", "çok", "cok", "her", "şey", "sey"}
 
 
-def leon_anruf_starten(conn, client, worker_id, monat):
-    _s, _e, monat = _monat_param(monat)
+def _jetzt_text():
+    return berlin_jetzt().isoformat(timespec="seconds")
+
+
+def _tel_schluessel(value):
+    """Nummer vergleichbar machen: nur Ziffern, ohne 00 / 49 / 0 vorne."""
+    t = "".join(ch for ch in str(value or "") if ch.isdigit())
+    if t.startswith("00"):
+        t = t[2:]
+    if t.startswith("49"):
+        t = t[2:]
+    return t.lstrip("0")
+
+
+def _tel_whatsapp(value):
+    """Wie normalize_phone_for_whatsapp im CRM: Ziffern mit Ländervorwahl (0163… → 49163…)."""
+    t = "".join(ch for ch in str(value or "") if ch.isdigit())
+    if t.startswith("00"):
+        t = t[2:]
+    if t.startswith("0"):
+        t = "49" + t[1:]
+    if t.startswith("490"):  # +49 (0) 163…
+        t = "49" + t[3:]
+    return t
+
+
+def _wa_woerter(text):
+    t = str(text or "").lower()
+    for zeichen in ["\ufe0f", "\u20e3"] + [chr(c) for c in range(0x1F3FB, 0x1F400)]:  # Emoji-Varianten, Hautfarben
+        t = t.replace(zeichen, "")
+    for zeichen in ".,;:!?()[]-–_*\"'+/":
+        t = t.replace(zeichen, " ")
+    woerter = []
+    for w in t.split():
+        if set(w) <= {"👍", "👌", "✅"}:
+            w = "👍"
+        kurz = "".join(ch for i, ch in enumerate(w) if i == 0 or ch != w[i - 1])  # jaaa → ja, 11 → 1
+        woerter.append(w if w in WA_JA or w in WA_FUELLWORT else kurz)
+    return woerter
+
+
+def wa_ist_ja(text):
+    woerter = _wa_woerter(text)
+    return any(w in WA_JA for w in woerter) and all(w in WA_JA or w in WA_FUELLWORT for w in woerter)
+
+
+def _zeit_kurz(value):
+    t = str(value or "")[:5]
+    return t[:2] if t.endswith(":00") else t
+
+
+def _zahl(x):
+    return f"{x:.2f}".rstrip("0").rstrip(".").replace(".", ",")
+
+
+def wa_nachricht(conn, worker_id, monat):
+    """Kurze WhatsApp-Nachricht über den Monat (Deutsch + Türkisch, Antwort 1 / 2)."""
+    start, ende, monat = _monat_param(monat)
+    w = _worker(conn, worker_id)
+    logs = conn.execute(
+        "SELECT datum, start_time, end_time, place FROM work_logs WHERE worker_id = ? AND datum >= ? AND datum < ? ORDER BY datum",
+        (worker_id, start.isoformat(), ende.isoformat()),
+    ).fetchall()
+    arbeit = [l for l in logs if (l["place"] or "") not in SONDER_ORTE]
+    stunden = sum(_stunden(l["start_time"], l["end_time"]) for l in arbeit)
+    tage = len({l["datum"] for l in arbeit})
+    muster = {}
+    for l in arbeit:
+        key = (l["start_time"], l["end_time"], (l["place"] or "").strip())
+        muster.setdefault(key, []).append(date.fromisoformat(l["datum"]))
+    zeilen = []
+    for (s, e, ort), daten in sorted(muster.items(), key=lambda x: (-len(x[1]), x[1][0])):
+        if len(daten) <= 2:  # einzelne Tage mit Datum, sonst Wochentage
+            wann = ", ".join(d.strftime("%d.%m.") for d in daten)
+        else:
+            wann = ", ".join(TAGE_KURZ[i] for i in sorted({d.weekday() for d in daten}))
+        zeilen.append(f"({wann} {_zeit_kurz(s)}–{_zeit_kurz(e)} Uhr" + (f", {ort})" if ort else ")"))
+    sonder = {}
+    for l in logs:
+        if (l["place"] or "") in SONDER_ORTE:
+            sonder.setdefault(l["place"], []).append(date.fromisoformat(l["datum"]).strftime("%d.%m."))
+    for ort, daten in sonder.items():
+        zeilen.append(f"{ort}: {', '.join(daten)}")
+    vorname = ((w["vorname"] or "").strip() or _name(w)) if w else str(worker_id)
+    text = (f"🤖 KG – Stundenzettel {MONATE[start.month - 1]}\n\n"
+            f"{vorname}: {tage} {'Tag' if tage == 1 else 'Tage'}, {_zahl(stunden)} {'Stunde' if stunden == 1 else 'Stunden'}")
+    if zeilen:
+        text += "\n" + "\n".join(zeilen)
+    return text + "\n\nStimmt das?  1 = Ja   2 = Nein\nDoğru mu?   1 = Evet   2 = Hayır"
+
+
+def whatsapp_senden(conn, worker_id, monat):
+    """Monatsübersicht per WhatsApp an den Mitarbeiter (über die Outbox des Connectors)."""
+    start, ende, monat = _monat_param(monat)
     ensure_tables(conn)
     w = _worker(conn, worker_id)
     if not w:
         raise ValueError("Mitarbeiter nicht gefunden.")
-    if not (w["telefon"] or "").strip():
-        raise ValueError("Für diesen Mitarbeiter ist keine Telefonnummer gespeichert.")
-    kampagne = _leon_kampagne(client)
-    if not kampagne:
-        raise ValueError("Im Leon-Motor fehlt die Kampagne „Stundenzettel-Kontrolle“. "
-                         "Einmalig tools/stundenzettel_agent.py im Leon-Repo ausführen.")
-    text, _stunden = monat_zusammenfassung(conn, worker_id, monat)
-    lead = {
-        "firma": f"KG Mitarbeiter {_name(w)}",
-        "ansprechpartner": _name(w),
-        "telefon": w["telefon"],
-        "branche": text[:900],
-    }
-    code, resp = client.request("POST", "/api/leads", lead, timeout=30)
-    lead_id = None
-    if code == 409 and resp.get("duplicate_id"):
-        lead_id = resp["duplicate_id"]
-        client.request("PUT", f"/api/leads/{lead_id}", lead, timeout=30)
-    elif resp.get("success"):
-        lead_id = (resp.get("lead") or {}).get("id") or resp.get("id") or resp.get("lead_id")
-    if not lead_id:
-        raise ValueError(resp.get("error") or "Leon konnte den Mitarbeiter nicht anlegen.")
-    cid = kampagne["id"]
-    # Vom Vormonat noch in der Kampagne? Herausnehmen und neu einreihen.
+    if _monat_row(conn, worker_id, monat).get("status") == "bestaetigt":
+        raise ValueError("Monat ist bereits bestätigt und gesperrt.")
+    nummer = _tel_whatsapp(w["telefon"])
+    if len(nummer) < 9:
+        raise ValueError("Für diesen Mitarbeiter ist keine gültige Telefonnummer gespeichert.")
+    if not conn.execute("SELECT 1 FROM work_logs WHERE worker_id = ? AND datum >= ? AND datum < ? LIMIT 1",
+                        (worker_id, start.isoformat(), ende.isoformat())).fetchone():
+        raise ValueError("Im Monat ist noch nichts eingetragen – zuerst „Monat ausfüllen“.")
+    text = wa_nachricht(conn, worker_id, monat)
+    cur = conn.execute(
+        "INSERT INTO whatsapp_outbox (phone, text, status, source) VALUES (?, ?, 'pending', 'stundenzettel')",
+        (nummer, text),
+    )
+    zusammenfassung, _stunden_summe = monat_zusammenfassung(conn, worker_id, monat)
+    _monat_speichern(conn, worker_id, monat, status="wa_wartet", wa_gesendet_am=_jetzt_text(), wa_outbox_id=cur.lastrowid,
+                     wa_antwort=None, wa_antwort_am=None, zusammenfassung=zusammenfassung)
+    conn.commit()
+    return {"nummer": nummer, "text": text}
+
+
+def whatsapp_antwort(conn, phone, raw_from, body):
+    """Antwort eines Mitarbeiters zuordnen. True = Antwort auf die Stundenzettel-WhatsApp (keine KI-Antwort mehr)."""
+    text = str(body or "").strip()
+    absender = str(raw_from or "")
+    schluessel = {_tel_schluessel(phone)}
+    if absender.endswith("@c.us") or "@" not in absender:
+        schluessel.add(_tel_schluessel(absender.split("@")[0]))
+    schluessel = {k for k in schluessel if len(k) >= 6}
+    if not text or not schluessel:
+        return False
+    ensure_tables(conn)
+    jetzt = berlin_jetzt()
+    rows = conn.execute(
+        "SELECT m.worker_id, m.monat, m.status, m.wa_antwort, m.wa_antwort_am, w.telefon FROM stundenzettel_monate m "
+        "JOIN mitarbeiter w ON w.id = m.worker_id "
+        "WHERE (m.status = 'wa_wartet' AND m.wa_gesendet_am >= ?) OR (m.status = 'wa_nein' AND m.wa_antwort_am >= ?) "
+        "ORDER BY m.status DESC, m.monat DESC",  # zuerst die wartenden (wa_wartet), davon der neueste Monat
+        ((jetzt - timedelta(days=WA_ANTWORT_TAGE)).isoformat(timespec="seconds"),
+         (jetzt - timedelta(days=WA_FRIST_TAGE)).isoformat(timespec="seconds")),
+    ).fetchall()
+    treffer = [r for r in rows if _tel_schluessel(r["telefon"]) in schluessel]
+    if not treffer:
+        return False
+    r = treffer[0]
+    if r["status"] == "wa_nein":
+        # Nachtrag nach einem Nein („am 15. war ich krank“) – fürs Büro dazuschreiben, keine neue Quittung.
+        # False: die Nachricht läuft danach normal weiter (z. B. der Chef schreibt dem KG Agent).
+        _monat_speichern(conn, r["worker_id"], r["monat"], wa_antwort=(f"{r['wa_antwort'] or ''}\n{text}").strip()[:2000])
+        conn.commit()
+        return False
+    ja = wa_ist_ja(text)
+    _monat_speichern(conn, r["worker_id"], r["monat"], status="wa_ja" if ja else "wa_nein",
+                     wa_antwort=text[:2000], wa_antwort_am=jetzt.isoformat(timespec="seconds"))
+    m = _monat_param(r["monat"])[0].month - 1
+    if ja:
+        quittung = (f"🤖 KG – Danke! Stundenzettel {MONATE[m]} ist bestätigt ✓\n"
+                    f"Teşekkürler! {MONATE_TR[m]} saatleri onaylandı ✓")
+    else:
+        quittung = "🤖 KG – Danke. Das Büro ruft Sie an.\nTeşekkürler. Büro sizi arayacak."
+    conn.execute(
+        "INSERT INTO whatsapp_outbox (phone, text, status, source) VALUES (?, ?, 'pending', 'stundenzettel')",
+        (_tel_whatsapp(phone) or _tel_whatsapp(r["telefon"]), quittung),
+    )
+    conn.commit()
+    return True
+
+
+def wa_info(conn, row):
+    """Stand der WhatsApp für die Übersicht: Versand, Nachricht, „keine Antwort seit 2 Tagen“."""
+    if not row.get("wa_gesendet_am"):
+        return None
+    info = {"versand": "", "text": "", "ueberfaellig": False}
     try:
-        client.request("DELETE", f"/api/campaigns/{cid}/leads/{lead_id}", timeout=30)
-    except Exception:  # war nicht in der Kampagne – egal
-        pass
-    code, resp = client.request("POST", f"/api/campaigns/{cid}/leads", {"lead_ids": [lead_id]}, timeout=30)
-    if not resp.get("success", code < 400):
-        raise ValueError(resp.get("error") or "Mitarbeiter konnte nicht in die Kampagne.")
-    if kampagne.get("status") != "Aktiv":
-        code, resp = client.request("POST", f"/api/campaigns/{cid}/control", {"action": "start"}, timeout=30)
-        if code == 409 and resp.get("active_campaign_id"):
-            raise ValueError("Im Leon-Motor läuft gerade eine andere Kampagne. "
-                             "Bitte diese kurz pausieren, dann erneut „Leon anrufen lassen“.")
-        if code >= 400 and not resp.get("success"):
-            raise ValueError(resp.get("error") or "Kampagne konnte nicht gestartet werden.")
-    _monat_speichern(conn, worker_id, monat, status="leon_wartet", leon_lead_id=lead_id, leon_call_id=None,
-                     leon_status="Wartet auf Anruf", leon_ergebnis=None, leon_zusammenfassung=None,
-                     leon_transkript=None, leon_fehler=None, angerufen_am=datetime.now().isoformat(timespec="seconds"),
-                     zusammenfassung=text)
-    conn.commit()
-    return {"lead_id": lead_id, "kampagne_id": cid}
-
-
-def leon_status_aktualisieren(conn, client, worker_id, monat):
-    """Stand des Leon-Kontrollanrufs aus dem Motor holen und speichern."""
-    _s, _e, monat = _monat_param(monat)
-    row = _monat_row(conn, worker_id, monat)
-    lead_id = row.get("leon_lead_id")
-    if not lead_id or row.get("status") not in ("leon_wartet", "leon_fertig"):
-        return row
-    lead_id = int(lead_id)
-    kampagne = _leon_kampagne(client)
-    felder = {}
-    eintrag = None
-    if kampagne:
-        _code, data = client.request("GET", f"/api/campaigns/{kampagne['id']}/leads")
-        for cl in (data or {}).get("selected_leads", []):
-            if int(cl.get("lead_id") or 0) == lead_id:
-                eintrag = cl
-                break
-    # neuester Anruf dieses Mitarbeiters seit dem Auftrag
-    seit = str(row.get("angerufen_am") or "").replace("T", " ")[:19]
-    _code, data = client.request("GET", "/api/calls")
-    anrufe = [c for c in (data or {}).get("calls", []) if int(c.get("lead_id") or 0) == lead_id
-              and str(c.get("created_at") or "")[:19] >= seit[:19]]
-    anrufe.sort(key=lambda c: int(c.get("id") or 0), reverse=True)
-    if anrufe:
-        call_id = anrufe[0]["id"]
-        _code, detail = client.request("GET", f"/api/calls/{call_id}")
-        call = (detail or {}).get("call") or anrufe[0]
-        felder.update(leon_call_id=call_id, leon_status=call.get("status"), leon_ergebnis=call.get("result"),
-                      leon_zusammenfassung=call.get("summary"), leon_transkript=call.get("transcript"))
-    ende_status = {"Beendet", "Nicht erreicht", "Gesperrt"}
-    if eintrag:
-        st = eintrag.get("campaign_status") or "Wartet"
-        info = f"Kampagne: {st}"
-        if eintrag.get("attempt_count"):
-            info += f", Versuch {eintrag['attempt_count']}"
-        if st == "Wartet" and eintrag.get("next_attempt_at"):
-            info += f", nächster Versuch {str(eintrag['next_attempt_at'])[:16]}"
-        felder["leon_info"] = info
-        if not anrufe:
-            felder["leon_status"] = "Wartet auf Anruf"
-        if st in ende_status:
-            felder["status"] = "leon_fertig"
-        elif (st == "Wartet" and kampagne.get("status") != "Aktiv"
-              and int(eintrag.get("attempt_count") or 0) < int(kampagne.get("max_attempts") or 3)
-              and str(eintrag.get("next_attempt_at") or "")[:19] <= datetime.now().strftime("%Y-%m-%d %H:%M:%S")):
-            # Motor pausiert die Kampagne, wenn gerade niemand fällig ist –
-            # ist der nächste Versuch fällig, Kampagne wieder starten.
-            code, resp = client.request("POST", f"/api/campaigns/{kampagne['id']}/control", {"action": "start"}, timeout=30)
-            if code == 409 and resp.get("active_campaign_id"):
-                felder["leon_info"] = info + " – wartet, bis die laufende Verkaufskampagne pausiert ist"
-            elif resp.get("success"):
-                felder["leon_info"] = info + " – nächster Versuch gestartet"
-    elif anrufe and felder.get("leon_status") in {"Beendet", "Fehler", "Nicht erreichbar", "Besetzt", "Abgebrochen", "Anrufbeantworter"}:
-        felder["status"] = "leon_fertig"
-    if felder:
-        _monat_speichern(conn, worker_id, monat, **felder)
-    # Kampagne pausieren, sobald niemand mehr wartet – sonst blockiert sie
-    # Verkaufskampagnen (im Motor darf nur eine Kampagne aktiv sein).
-    if kampagne:
-        _code, prog = client.request("GET", f"/api/campaigns/{kampagne['id']}/progress")
-        prog = prog or {}
-        offen = sum(int(prog.get(k) or 0) for k in ("waiting", "reserved", "running", "retry_waiting", "active_call_count"))
-        if prog.get("success") and prog.get("status") == "Aktiv" and offen == 0:
-            client.request("POST", f"/api/campaigns/{kampagne['id']}/control", {"action": "pause"}, timeout=30)
-    conn.commit()
-    return _monat_row(conn, worker_id, monat)
-
-
-def leon_abbrechen(conn, client, worker_id, monat):
-    """Mitarbeiter aus der Stundenzettel-Kampagne nehmen und Kampagne pausieren, wenn leer."""
-    _s, _e, monat = _monat_param(monat)
-    row = _monat_row(conn, worker_id, monat)
-    kampagne = _leon_kampagne(client)
-    if kampagne and row.get("leon_lead_id"):
+        o = conn.execute(
+            "SELECT status, text, error, created_at < datetime('now', '-1 day') AS alt FROM whatsapp_outbox WHERE id = ?",
+            (row.get("wa_outbox_id"),),
+        ).fetchone()
+    except Exception:
+        o = None
+    if o:
+        info["text"] = o["text"]
+        if o["status"] == "sent":
+            info["versand"] = "gesendet ✓"
+        elif o["status"] == "error":
+            info["versand"] = "Fehler beim Senden: " + str(o["error"] or "")[:200]
+        elif o["alt"]:
+            info["versand"] = "nicht gesendet (Handy/Connector war aus) – bitte erneut senden"
+        else:
+            info["versand"] = "wartet auf Damlas Handy"
+    if row.get("status") == "wa_wartet":
         try:
-            client.request("DELETE", f"/api/campaigns/{kampagne['id']}/leads/{int(row['leon_lead_id'])}", timeout=30)
-        except Exception:
+            gesendet = datetime.fromisoformat(str(row["wa_gesendet_am"]))
+            info["ueberfaellig"] = berlin_jetzt() - gesendet > timedelta(days=WA_FRIST_TAGE)
+        except ValueError:
             pass
-        _code, prog = client.request("GET", f"/api/campaigns/{kampagne['id']}/progress")
-        prog = prog or {}
-        offen = sum(int(prog.get(k) or 0) for k in ("waiting", "reserved", "running", "retry_waiting", "active_call_count"))
-        if prog.get("status") == "Aktiv" and offen == 0:
-            client.request("POST", f"/api/campaigns/{kampagne['id']}/control", {"action": "pause"}, timeout=30)
-    neuer_status = "ausgefuellt" if row.get("gefuellt_am") else "offen"
-    _monat_speichern(conn, worker_id, monat, status=neuer_status, leon_info="Leon-Kontrolle abgebrochen")
-    conn.commit()
-    return _monat_row(conn, worker_id, monat)
+    return info
 
 
 # ----------------------------------------------------- Automatik
@@ -490,19 +553,16 @@ def leon_abbrechen(conn, client, worker_id, monat):
 #  1. Ab Tag „fuell_tag“ (Standard 1.): Monat für alle aktiven Mitarbeiter mit
 #     festen Zeiten ausfüllen – je Mitarbeiter und Monat höchstens einmal.
 #  2. Ab Tag „anruf_tag“ (Standard 20., Mo–Fr, kein Feiertag, ab „anruf_stunde“
-#     bis 18 Uhr): Leon ruft jeden ausgefüllten Mitarbeiter an – je Monat
-#     höchstens einmal. Läuft gerade eine andere Leon-Kampagne, neuer Versuch
-#     nach 30 Minuten.
-#  3. Laufende Leon-Kontrollen nachhalten (Ergebnis holen, Kampagne pausieren,
-#     sobald niemand mehr wartet – sonst blockiert sie Verkaufskampagnen).
+#     bis 18 Uhr): WhatsApp an jeden ausgefüllten Mitarbeiter („1 = Ja, 2 = Nein“)
+#     – je Monat höchstens einmal. (Schlüssel heißen weiter „anruf_…“, damit
+#     gespeicherte Einstellungen bleiben.)
 # Standard: beides AUS. Bestätigte Monate, „Rückgängig“ und von Hand
-# gestartete Leon-Kontrollen werden nie überschrieben.
+# gesendete WhatsApps werden nie überschrieben.
 # Für eine Umgebung ganz abschalten: STZ_AUTOMATIK_AUS=1.
 
 AUTOMATIK_STANDARD = {"fuellen_an": False, "fuell_tag": 1, "anruf_an": False, "anruf_tag": 20, "anruf_stunde": 10}
 ANRUF_BIS_STUNDE = 18
 TAKT_SEKUNDEN = 600
-ERNEUT_MINUTEN = 30
 _automatik_gestartet = False
 _automatik_lock = threading.Lock()
 
@@ -661,49 +721,27 @@ def automatik_lauf(conn, leon_client_factory, jetzt=None):
             if _monat_row(conn, w["id"], monat).get("status") == "offen":
                 fuellen(w)
 
-    # 2. Leon-Kontrollanruf
+    # 2. WhatsApp-Bestätigung
     werktag = jetzt.weekday() < 5 and jetzt.date() not in feiertage_nrw(jetzt.year)
-    client = None
     if e["anruf_an"] and jetzt.day >= e["anruf_tag"] and werktag and e["anruf_stunde"] <= jetzt.hour < ANRUF_BIS_STUNDE:
         for w in workers:
-            if _schritt(conn, monat, f"anruf:{w['id']}"):
+            if _schritt(conn, monat, f"whatsapp:{w['id']}"):
                 continue
             if _monat_row(conn, w["id"], monat).get("status") == "offen":
-                fuellen(w, " (vor dem Leon-Anruf)")
+                fuellen(w, " (vor der WhatsApp)")
             row = _monat_row(conn, w["id"], monat)
-            if row.get("status") != "ausgefuellt" or row.get("leon_lead_id"):
-                continue  # bestätigt, zurückgenommen oder Leon schon von Hand beauftragt
-            versuch = _schritt(conn, monat, f"anruf_versuch:{w['id']}")
-            if versuch and str(versuch["zeit"]) > (jetzt - timedelta(minutes=ERNEUT_MINUTEN)).isoformat(timespec="seconds"):
+            if row.get("status") not in ("ausgefuellt", "leon_wartet", "leon_fertig") or row.get("wa_gesendet_am"):
+                continue  # bestätigt, zurückgenommen oder schon von Hand gesendet
+            try:
+                whatsapp_senden(conn, w["id"], monat)
+                text = f"{_name(w)}: WhatsApp zur Bestätigung gesendet"
+            except ValueError as exc:  # keine Nummer, nichts eingetragen – nicht jedes Mal neu versuchen
+                text = f"{_name(w)}: keine WhatsApp – {exc}"
+            except Exception as exc:  # z. B. Datenbank kurz gesperrt – nächster Takt
+                aktionen.append(f"{_name(w)}: WhatsApp noch nicht möglich – {exc}")
                 continue
-            try:
-                client = client or leon_client_factory()
-                leon_anruf_starten(conn, client, w["id"], monat)
-                text = f"{_name(w)}: Leon-Kontrollanruf gestartet"
-                _schritt_merken(conn, monat, f"anruf:{w['id']}", w["id"], jetzt, text)
-            except Exception as exc:  # andere Kampagne aktiv, Leon nicht erreichbar, …
-                text = f"{_name(w)}: Leon-Anruf noch nicht möglich – {exc}"
-                _monat_speichern(conn, w["id"], monat, leon_info=("Automatik: " + str(exc))[:500])
-                conn.commit()
-                _schritt_merken(conn, monat, f"anruf_versuch:{w['id']}", w["id"], jetzt, text)
+            _schritt_merken(conn, monat, f"whatsapp:{w['id']}", w["id"], jetzt, text)
             aktionen.append(text)
-
-    # 3. Laufende Leon-Kontrollen nachhalten
-    if e["anruf_an"]:
-        wartend = conn.execute(
-            "SELECT worker_id, monat FROM stundenzettel_monate WHERE status = 'leon_wartet' ORDER BY monat, worker_id"
-        ).fetchall()
-        for r in wartend:
-            try:
-                client = client or leon_client_factory()
-                neu = leon_status_aktualisieren(conn, client, r["worker_id"], r["monat"])
-            except Exception:
-                continue  # Leon gerade nicht erreichbar – nächster Takt
-            if neu.get("status") == "leon_fertig":
-                w = _worker(conn, r["worker_id"])
-                text = f"{_name(w) if w else r['worker_id']}: Leon-Gespräch beendet – bitte prüfen und bestätigen"
-                _schritt_merken(conn, r["monat"], f"leon_fertig:{r['worker_id']}", r["worker_id"], jetzt, text)
-                aktionen.append(text)
     return aktionen
 
 
@@ -738,6 +776,7 @@ def automatik_starten(get_db_connection, leon_client_factory):
 # ----------------------------------------------------- Routen
 
 def register_stundenzettel_auto(app, login_required, get_db_connection, leon_client_factory):
+    # leon_client_factory wird nicht mehr gebraucht (Leon ruft nicht mehr an) – bleibt, damit app.py unverändert bleibt
 
     def _conn():
         conn = get_db_connection()
@@ -808,6 +847,7 @@ def register_stundenzettel_auto(app, login_required, get_db_connection, leon_cli
                 out.append({
                     "id": w["id"], "name": _name(w), "telefon": w["telefon"] or "",
                     "plan": _plan_laden(conn, w["id"]), "monat": row, "zusammenfassung": text, "stunden": stunden,
+                    "wa": wa_info(conn, row),
                 })
             return jsonify({"success": True, "monat": monat, "mitarbeiter": out})
         finally:
@@ -881,45 +921,25 @@ def register_stundenzettel_auto(app, login_required, get_db_connection, leon_cli
         finally:
             conn.close()
 
-    @app.route("/api/stz-auto/leon/<int:worker_id>", methods=["POST"])
+    @app.route("/api/stz-auto/whatsapp/<int:worker_id>", methods=["GET", "POST"])
     @login_required
-    def stz_auto_leon(worker_id):
+    def stz_auto_whatsapp(worker_id):
+        """GET = Vorschau der Nachricht, POST = senden."""
         conn = _conn()
         try:
-            client = leon_client_factory()
-            return jsonify({"success": True, **leon_anruf_starten(conn, client, worker_id, _json().get("monat"))})
+            if request.method == "GET":
+                _s, _e, monat = _monat_param(request.args.get("monat"))
+                if not _worker(conn, worker_id):
+                    return _fehler("Mitarbeiter nicht gefunden.", 404)
+                return jsonify({"success": True, "text": wa_nachricht(conn, worker_id, monat)})
+            return jsonify({"success": True, **whatsapp_senden(conn, worker_id, _json().get("monat"))})
         except ValueError as exc:
             return _fehler(exc)
-        except Exception as exc:  # LeonError, Netzwerk
-            return _fehler(exc, 502)
         finally:
             conn.close()
 
-    @app.route("/api/stz-auto/leon-status/<int:worker_id>")
-    @login_required
-    def stz_auto_leon_status(worker_id):
-        conn = _conn()
-        try:
-            client = leon_client_factory()
-            return jsonify({"success": True, "monat": leon_status_aktualisieren(conn, client, worker_id, request.args.get("monat"))})
-        except Exception as exc:
-            return _fehler(exc, 502)
-        finally:
-            conn.close()
-
-    @app.route("/api/stz-auto/leon-stopp/<int:worker_id>", methods=["POST"])
-    @login_required
-    def stz_auto_leon_stopp(worker_id):
-        conn = _conn()
-        try:
-            return jsonify({"success": True, "monat": leon_abbrechen(conn, leon_client_factory(), worker_id, _json().get("monat"))})
-        except Exception as exc:
-            return _fehler(exc, 502)
-        finally:
-            conn.close()
-
-    # Für Render Cron (z. B. täglich 7:00): ab dem 20. den laufenden Monat für
-    # alle Mitarbeiter mit festen Zeiten ausfüllen; mit &leon=1 auch anrufen.
+    # Für einen Cron (z. B. täglich 7:00): ab dem 20. den laufenden Monat für
+    # alle Mitarbeiter mit festen Zeiten ausfüllen; mit &whatsapp=1 auch die WhatsApp senden.
     @app.route("/internal/stundenzettel-auto", methods=["GET", "POST"])
     def stz_auto_cron():
         token = (os.getenv("STZ_CRON_TOKEN") or os.getenv("INTERNAL_CRON_TOKEN") or "").strip()
@@ -941,9 +961,9 @@ def register_stundenzettel_auto(app, login_required, get_db_connection, leon_cli
                 try:
                     r = monat_fuellen(conn, wid, monat)
                     eintrag = {"worker_id": wid, "neu": r["neu"]}
-                    if request.args.get("leon") == "1":
-                        leon_anruf_starten(conn, leon_client_factory(), wid, monat)
-                        eintrag["leon"] = "gestartet"
+                    if request.args.get("whatsapp") == "1":
+                        whatsapp_senden(conn, wid, monat)
+                        eintrag["whatsapp"] = "gesendet"
                     bericht.append(eintrag)
                 except Exception as exc:
                     bericht.append({"worker_id": wid, "fehler": str(exc)})

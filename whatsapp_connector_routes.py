@@ -751,11 +751,28 @@ def register_whatsapp_connector_routes(app, login_required):
             })
 
         conn = wa_conn()
-        conn.execute('''
+        eingang = conn.execute('''
             INSERT OR IGNORE INTO whatsapp_inbox
                 (wa_message_id, phone, name, body, msg_type, raw_from, wa_timestamp)
             VALUES (?, ?, ?, ?, ?, ?, ?)
         ''', (wa_message_id, phone, name, body, msg_type, raw_from, wa_timestamp))
+
+        # Antwort auf die Stundenzettel-WhatsApp (1 = Ja / 2 = Nein) – auch wenn der Schalter AUS ist.
+        # Gleiche Nachricht doppelt vom Connector → nur einmal verarbeiten.
+        if eingang.rowcount == 1 or not wa_message_id:
+            try:
+                from stundenzettel_auto import whatsapp_antwort as stz_whatsapp_antwort
+                conn.commit()  # Eingang speichern, damit geschrieben werden kann (SQLite sperrt sonst)
+                stz = wa_conn()
+                try:
+                    stz_erkannt = stz_whatsapp_antwort(stz, phone, raw_from, body)
+                finally:
+                    stz.close()
+                if stz_erkannt:
+                    conn.close()
+                    return jsonify({"ok": True, "stored": True, "handled": True, "reason": "stundenzettel_antwort"})
+            except Exception as stz_fehler:
+                print("[STUNDENZETTEL WHATSAPP] Fehler:", stz_fehler)
 
         if not aktiv:
             conn.commit()

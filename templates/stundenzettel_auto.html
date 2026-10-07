@@ -15,14 +15,17 @@
   .sza-badge { display: inline-block; padding: 5px 10px; border-radius: 999px; font-size: 12px; font-weight: 800; }
   .b-offen { background: #e2e8f0; color: #334155; }
   .b-ausgefuellt { background: #dbeafe; color: #1e40af; }
-  .b-leon_wartet { background: #ffedd5; color: #9a3412; }
-  .b-leon_fertig { background: #ede9fe; color: #5b21b6; }
+  .b-leon_wartet, .b-leon_fertig { background: #dbeafe; color: #1e40af; }
+  .b-wa_wartet { background: #ffedd5; color: #9a3412; }
+  .b-wa_ja { background: #ccfbf1; color: #115e59; }
+  .b-wa_nein, .b-rot { background: #fee2e2; color: #b91c1c; }
   .b-bestaetigt { background: #dcfce7; color: #166534; }
   .sza-btns { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
   .sza-btn { border: 0; border-radius: 10px; padding: 10px 14px; min-height: 40px; font-weight: 800; font-size: 13px; cursor: pointer; color: #fff; }
   .sza-btn:disabled { opacity: .5; cursor: not-allowed; }
   .c-blue { background: #2563eb; } .c-green { background: #15803d; } .c-orange { background: #f97316; }
   .c-slate { background: #475569; } .c-purple { background: #7c3aed; } .c-red { background: #dc2626; }
+  .c-wa { background: #0f766e; }
   .sza-summary { margin-top: 12px; font-size: 14px; color: #1e293b; line-height: 1.55; background: #f8fafc; border-radius: 12px; padding: 12px 14px; }
   .sza-plan { margin-top: 14px; display: none; }
   .sza-plan.open { display: block; }
@@ -31,9 +34,11 @@
   .sza-plan td { padding: 6px; border-top: 1px solid #f1f5f9; }
   .sza-plan input[type=time], .sza-plan input[type=text], .sza-plan select { font-size: 16px; padding: 7px 9px; border: 1px solid #cbd5e1; border-radius: 9px; width: 100%; }
   .sza-plan input[type=checkbox] { width: 20px; height: 20px; }
-  .sza-leon { margin-top: 12px; border-left: 4px solid #7c3aed; padding: 10px 14px; background: #faf5ff; border-radius: 10px; font-size: 14px; color: #1e293b; }
-  .sza-leon details { margin-top: 8px; }
-  .sza-leon pre { white-space: pre-wrap; font-family: inherit; font-size: 13px; color: #334155; margin: 6px 0 0; }
+  .sza-wa { margin-top: 12px; border-left: 4px solid #0f766e; padding: 10px 14px; background: #f0fdfa; border-radius: 10px; font-size: 14px; color: #1e293b; line-height: 1.55; }
+  .sza-wa.rot { border-left-color: #dc2626; background: #fef2f2; }
+  .sza-wa details { margin-top: 8px; }
+  .sza-wa pre { white-space: pre-wrap; font-family: inherit; font-size: 13px; color: #334155; margin: 6px 0 0; }
+  .sza-wa .warn { color: #b91c1c; font-weight: 800; }
   .sza-msg { margin-top: 10px; font-size: 13px; font-weight: 700; }
   .sza-msg.ok { color: #15803d; } .sza-msg.err { color: #b91c1c; }
   .sza-help { font-size: 13px; color: #475569; line-height: 1.55; }
@@ -56,9 +61,9 @@
 <div class="sza-wrap">
   <div class="sza-head">
     <div>
-      <h1>⏱ Feste Zeiten &amp; Leon-Kontrolle</h1>
+      <h1>⏱ Feste Zeiten &amp; WhatsApp-Bestätigung</h1>
       <p>Feste Arbeitszeiten je Mitarbeiter speichern → ganzen Monat ausfüllen (nur leere Tage, ohne Feiertage) →
-         Leon ruft an und fragt, ob etwas fehlt → bestätigen, dann ist der Monat gesperrt.</p>
+         WhatsApp an den Mitarbeiter („1 = Ja, 2 = Nein“) → bestätigen, dann ist der Monat gesperrt.</p>
     </div>
     <div class="sza-month">
       <label for="szaMonat">Monat</label>
@@ -68,8 +73,9 @@
 
   <div class="sza-card sza-help">
     <b>So geht's:</b> 1. „Feste Zeiten“ öffnen, Wochentage anhaken, Beginn/Ende/Ort wählen, speichern.
-    2. „Monat ausfüllen“. 3. „Leon anrufen lassen“ (Leon liest die Zusammenfassung vor und fragt nach Abweichungen).
-    4. Ergebnis lesen, Stunden ggf. im Stundenzettel korrigieren, dann „Bestätigen &amp; sperren“.
+    2. „Monat ausfüllen“. 3. „WhatsApp senden“ (kurze Übersicht auf Deutsch und Türkisch, geht von Damlas Diensthandy raus).
+    4. Antwort „1“ → <b>✓ Ja</b>. Antwort „2“, anderer Text oder 2 Tage keine Antwort → <b style="color:#b91c1c">rot</b>: Mitarbeiter anrufen,
+    Stunden ggf. im Stundenzettel korrigieren. 5. „Bestätigen &amp; sperren“.
     „Rückgängig“ löscht nur automatisch eingetragene Tage, die niemand verändert hat.
   </div>
 
@@ -80,10 +86,10 @@
     </div>
     <label class="sza-auto-opt"><input type="checkbox" id="aFuellen"><span>Monat automatisch ausfüllen – ab dem
       <input type="number" id="aFuellTag" min="1" max="28" aria-label="Tag ausfüllen"> . des Monats</span></label>
-    <label class="sza-auto-opt"><input type="checkbox" id="aAnruf"><span>Leon ruft alle an – ab dem
-      <input type="number" id="aAnrufTag" min="1" max="28" aria-label="Tag Leon-Anruf"> . um
-      <select id="aAnrufStunde" aria-label="Uhrzeit Leon-Anruf"></select> Uhr (Mo–Fr, nicht an Feiertagen)</span></label>
-    <div class="sza-sub" style="margin-top:10px;">Je Mitarbeiter und Monat nur einmal. Bestätigte Monate, „Rückgängig“ und von Hand gestartete Leon-Anrufe bleiben unberührt.</div>
+    <label class="sza-auto-opt"><input type="checkbox" id="aAnruf"><span>WhatsApp an alle – ab dem
+      <input type="number" id="aAnrufTag" min="1" max="28" aria-label="Tag WhatsApp"> . um
+      <select id="aAnrufStunde" aria-label="Uhrzeit WhatsApp"></select> Uhr (Mo–Fr, nicht an Feiertagen)</span></label>
+    <div class="sza-sub" style="margin-top:10px;">Je Mitarbeiter und Monat nur einmal. Bestätigte Monate, „Rückgängig“ und schon von Hand gesendete WhatsApps bleiben unberührt.</div>
     <div class="sza-btns">
       <button class="sza-btn c-green" id="aSave">Automatik speichern</button>
       <button class="sza-btn c-slate" id="aJetzt">Jetzt prüfen</button>
@@ -103,7 +109,9 @@
     "Duisburg Süd", "Großenbaum", "Neudorf", "Wanheimerort", "Neuenkamp", "Grundreinigung", "Düsseldorf", "Moers",
     "Neukirchen-Vluyn", "Oberhausen", "Essen", "Feiertag", "Krank", "Urlaub"];
   const STANDARD_START = "17:00", STANDARD_ENDE = "19:00";
-  const STATUS = { offen: "offen", ausgefuellt: "ausgefüllt", leon_wartet: "Leon ruft an", leon_fertig: "Leon fertig", bestaetigt: "bestätigt · gesperrt" };
+  const STATUS = { offen: "offen", ausgefuellt: "ausgefüllt", leon_wartet: "ausgefüllt", leon_fertig: "ausgefüllt",
+    wa_wartet: "WhatsApp gesendet – wartet", wa_ja: "✓ Ja (Mitarbeiter)", wa_nein: "✗ kein Ja – bitte anrufen", bestaetigt: "bestätigt · gesperrt" };
+  const zeit = (v) => { const t = String(v || "").replace("T", " "); return t.slice(8, 10) + "." + t.slice(5, 7) + ". " + t.slice(11, 16); };
   const monatInput = document.getElementById("szaMonat");
   const now = new Date();
   monatInput.value = now.getFullYear() + "-" + String(now.getMonth() + 1).padStart(2, "0");
@@ -152,15 +160,15 @@
     }).join("");
   }
 
-  function leonBlock(row) {
-    if (!row.leon_lead_id && !row.leon_status) return "";
-    let html = `<div class="sza-leon"><b>Leon:</b> ${esc(row.leon_status || "—")}`;
-    if (row.angerufen_am) html += ` · gestartet ${esc(String(row.angerufen_am).replace("T", " ").slice(0, 16))}`;
-    if (row.leon_info) html += `<br>${esc(row.leon_info)}`;
-    if (row.leon_ergebnis) html += `<br><b>Ergebnis:</b> ${esc(row.leon_ergebnis)}`;
-    if (row.leon_zusammenfassung) html += `<br><b>Zusammenfassung:</b> ${esc(row.leon_zusammenfassung)}`;
-    if (row.leon_transkript) html += `<details><summary>Transkript anzeigen</summary><pre>${esc(row.leon_transkript)}</pre></details>`;
-    if (row.leon_fehler) html += `<br><span style="color:#b91c1c">${esc(row.leon_fehler)}</span>`;
+  function waBlock(row, wa) {
+    if (!wa) return "";
+    const rot = row.status === "wa_nein" || wa.ueberfaellig;
+    let html = `<div class="sza-wa${rot ? " rot" : ""}"><b>WhatsApp:</b> gesendet ${esc(zeit(row.wa_gesendet_am))}`;
+    if (wa.versand) html += ` · ${esc(wa.versand)}`;
+    if (row.wa_antwort) html += `<br><b>Antwort</b> (${esc(zeit(row.wa_antwort_am))}): „${esc(row.wa_antwort)}“`;
+    if (row.status === "wa_nein") html += `<br><span class="warn">Kein Ja – bitte Mitarbeiter anrufen.</span>`;
+    if (wa.ueberfaellig) html += `<br><span class="warn">Seit 2 Tagen keine Antwort – bitte Mitarbeiter anrufen.</span>`;
+    if (wa.text) html += `<details><summary>Nachricht anzeigen</summary><pre>${esc(wa.text)}</pre></details>`;
     return html + "</div>";
   }
 
@@ -168,23 +176,22 @@
     const row = m.monat || {};
     const st = row.status || "offen";
     const locked = st === "bestaetigt";
+    const badge = m.wa && m.wa.ueberfaellig ? ["rot", "✗ keine Antwort – bitte anrufen"] : [st, STATUS[st] || st];
     return `<div class="sza-card" data-id="${m.id}">
       <div class="sza-row">
         <div>
           <div class="sza-name">${esc(m.name)}</div>
           <div class="sza-sub">${m.telefon ? "📞 " + esc(m.telefon) : "⚠️ keine Telefonnummer gespeichert"} · ${m.stunden.toLocaleString("de-DE")} Std. im Monat</div>
         </div>
-        <span class="sza-badge b-${st}">${STATUS[st] || st}</span>
+        <span class="sza-badge b-${badge[0]}">${esc(badge[1])}</span>
       </div>
       <div class="sza-summary">${esc(m.zusammenfassung)}${row.notiz ? "<br><b>Notiz:</b> " + esc(row.notiz) : ""}</div>
-      ${leonBlock(row)}
+      ${waBlock(row, m.wa)}
       <div class="sza-btns">
         <button class="sza-btn c-slate a-plan">Feste Zeiten</button>
         <button class="sza-btn c-blue a-fill" ${locked ? "disabled" : ""}>Monat ausfüllen</button>
         <button class="sza-btn c-slate a-undo" ${locked ? "disabled" : ""}>Rückgängig</button>
-        <button class="sza-btn c-purple a-leon" ${locked || !m.telefon ? "disabled" : ""}>Leon anrufen lassen</button>
-        ${row.leon_lead_id ? '<button class="sza-btn c-slate a-status">Leon-Status aktualisieren</button>' : ""}
-        ${st === "leon_wartet" ? '<button class="sza-btn c-red a-stop">Leon-Kontrolle abbrechen</button>' : ""}
+        <button class="sza-btn c-wa a-wa" ${locked || !m.telefon ? "disabled" : ""}>${row.wa_gesendet_am ? "WhatsApp erneut senden" : "WhatsApp senden"}</button>
         ${locked ? '<button class="sza-btn c-red a-unlock">Entsperren</button>' : '<button class="sza-btn c-green a-ok">Bestätigen &amp; sperren</button>'}
       </div>
       <div class="sza-plan">
@@ -254,21 +261,12 @@
         msg(document.querySelector(`.sza-card[data-id="${id}"]`), `${r.geloescht} Tage gelöscht, ${r.behalten} geänderte Tage behalten.`, true);
         return;
       }
-      if (btn.classList.contains("a-leon")) {
-        if (!confirm("Leon ruft diesen Mitarbeiter jetzt an und fragt, ob der Stundenzettel stimmt. Starten?")) { btn.disabled = false; return; }
-        await api("/api/stz-auto/leon/" + id, { monat });
+      if (btn.classList.contains("a-wa")) {
+        const v = await api("/api/stz-auto/whatsapp/" + id + "?monat=" + encodeURIComponent(monat));
+        if (!confirm("Diese WhatsApp an " + c.querySelector(".sza-name").textContent + " senden?\n\n" + v.text)) { btn.disabled = false; return; }
+        await api("/api/stz-auto/whatsapp/" + id, { monat });
         await laden();
-        msg(document.querySelector(`.sza-card[data-id="${id}"]`), "Leon ist beauftragt. Nach dem Gespräch „Leon-Status aktualisieren“.", true);
-        return;
-      }
-      if (btn.classList.contains("a-status")) {
-        await api("/api/stz-auto/leon-status/" + id + "?monat=" + encodeURIComponent(monat));
-        await laden();
-        return;
-      }
-      if (btn.classList.contains("a-stop")) {
-        await api("/api/stz-auto/leon-stopp/" + id, { monat });
-        await laden();
+        msg(document.querySelector(`.sza-card[data-id="${id}"]`), "WhatsApp ist unterwegs (Damlas Handy schickt sie in ca. 1 Minute).", true);
         return;
       }
       if (btn.classList.contains("a-ok")) {
@@ -291,7 +289,7 @@
 
   monatInput.addEventListener("change", laden);
 
-  // Automatik (Monatsanfang ausfüllen, Leon-Anruf ab dem 20.)
+  // Automatik (Monatsanfang ausfüllen, WhatsApp ab dem 20.)
   const aEl = (id) => document.getElementById(id);
   for (let h = 8; h <= 17; h++) { const o = document.createElement("option"); o.value = h; o.textContent = h + ":00"; aEl("aAnrufStunde").append(o); }
   function autoZeigen(d) {
