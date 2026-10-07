@@ -225,6 +225,7 @@
       <div class="sza-plan">
         <table><thead><tr><th>Tag</th><th>Beginn</th><th>Ende</th><th>Ort</th></tr></thead>
         <tbody>${planRows(m)}</tbody></table>
+        ${(m.extras || []).length ? `<div class="sza-sub" style="margin-top:8px"><b>Ayda bir / monatlich:</b> ${m.extras.map((x) => esc(`+ ${String(x.stunden).replace(".", ",")} Std. ${x.regel === "samstag_mitte" ? "am Samstag in der Monatsmitte" : "am ersten Arbeitstag"}`)).join(" · ")}</div>` : ""}
         <div class="sza-btns"><button class="sza-btn c-green a-save">Feste Zeiten speichern</button></div>
       </div>
       <div class="sza-msg"></div>

@@ -193,6 +193,19 @@ def ensure_tables(conn):
             zeit TEXT
         )
     """)
+    # Monatliche Extras („ayda bir“), z. B. 0,5 Std. am ersten Arbeitstag oder 3 Std. am Samstag in der Monatsmitte
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS stundenzettel_extras (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            worker_id INTEGER NOT NULL,
+            regel TEXT NOT NULL,
+            stunden REAL NOT NULL,
+            start TEXT,
+            ort TEXT,
+            aktiv INTEGER NOT NULL DEFAULT 1,
+            notiz TEXT
+        )
+    """)
     conn.commit()
 
 
@@ -217,6 +230,34 @@ def _plan_laden(conn, worker_id):
         return _plan_pruefen(json.loads(row["plan_json"]))
     except (ValueError, TypeError):
         return _leerer_plan()
+
+
+# ----------------------------------------------------- Monatliche Extras
+# Kommen beim Ausfüllen des Monats zu einem Tag dazu (nur an Tagen, die gerade automatisch
+# eingetragen werden – Einträge des Mitarbeiters bleiben unberührt):
+#  - "erster_arbeitstag": Stunden an das Ende des ersten Arbeitstags im Monat anhängen
+#  - "samstag_mitte": am Samstag, der dem 15. am nächsten liegt – an den Tag anhängen;
+#    ist dort kein fester Arbeitstag, ab „start“ am „ort“ neu eintragen
+EXTRA_REGELN = {"erster_arbeitstag": "am ersten Arbeitstag", "samstag_mitte": "am Samstag in der Monatsmitte"}
+
+
+def extras_laden(conn, worker_id):
+    return [dict(r) for r in conn.execute(
+        "SELECT id, regel, stunden, start, ort, notiz FROM stundenzettel_extras WHERE worker_id = ? AND aktiv = 1 ORDER BY id",
+        (worker_id,),
+    )]
+
+
+def _samstag_mitte(monatsanfang):
+    mitte = monatsanfang.replace(day=15)
+    samstage = [mitte + timedelta(days=d) for d in range(-6, 7) if (mitte + timedelta(days=d)).weekday() == 5]
+    return min(samstage, key=lambda t: abs((t - mitte).days))
+
+
+def _zeit_plus(hhmm, stunden):
+    h, m = [int(x) for x in str(hhmm).split(":")[:2]]
+    minuten = (h * 60 + m + round(float(stunden) * 60)) % (24 * 60)
+    return f"{minuten // 60:02d}:{minuten % 60:02d}"
 
 
 def feiertag_regel(conn, worker_id):
@@ -336,11 +377,52 @@ def monat_fuellen(conn, worker_id, monat):
                 )
                 neu.append(iso)
         tag += timedelta(days=1)
+    _extras_eintragen(conn, worker_id, monat, start, neu, vorhanden, feiertage, eintritt, uebersprungen)
     text, stunden = monat_zusammenfassung(conn, worker_id, monat)
     _monat_speichern(conn, worker_id, monat, status="ausgefuellt", gefuellt_am=datetime.now().isoformat(timespec="seconds"),
                      zusammenfassung=text)
     conn.commit()
     return {"neu": len(neu), "uebersprungen": uebersprungen, "zusammenfassung": text, "stunden": stunden}
+
+
+def _extras_eintragen(conn, worker_id, monat, monatsanfang, neu, vorhanden, feiertage, eintritt, uebersprungen):
+    """Monatliche Extras an die gerade automatisch eingetragenen Tage anhängen (siehe EXTRA_REGELN)."""
+    for x in extras_laden(conn, worker_id):
+        text = f"Extra {_hhmm(x['stunden'])} Std. {EXTRA_REGELN.get(x['regel'], x['regel'])}"
+        ziel = None
+        if x["regel"] == "erster_arbeitstag":
+            ziel = next((d for d in neu if date.fromisoformat(d) not in feiertage), None)
+        elif x["regel"] == "samstag_mitte":
+            ziel = _samstag_mitte(monatsanfang).isoformat()
+        if not ziel:
+            uebersprungen.append(f"{text}: kein passender Tag")
+            continue
+        tag = date.fromisoformat(ziel)
+        if ziel in neu:
+            log = conn.execute("SELECT end_time, place FROM work_logs WHERE worker_id = ? AND datum = ?",
+                               (worker_id, ziel)).fetchone()
+            if not log or log["place"] == "Feiertag" or not _zeit_ok(log["end_time"]):
+                uebersprungen.append(f"{text}: {tag.strftime('%d.%m.')} ist Feiertag")
+                continue
+            ende = _zeit_plus(log["end_time"], x["stunden"])
+            conn.execute("UPDATE work_logs SET end_time = ? WHERE worker_id = ? AND datum = ?", (ende, worker_id, ziel))
+            conn.execute("UPDATE stundenzettel_auto_eintraege SET end_time = ? WHERE worker_id = ? AND datum = ?",
+                         (ende, worker_id, ziel))
+        elif ziel in vorhanden:
+            uebersprungen.append(f"{text}: {tag.strftime('%d.%m.')} schon eingetragen")
+        elif tag in feiertage or (eintritt and tag < eintritt) or not (_zeit_ok(x["start"]) and x["ort"]):
+            uebersprungen.append(f"{text}: {tag.strftime('%d.%m.')} nicht möglich")
+        else:
+            ende = _zeit_plus(x["start"], x["stunden"])
+            conn.execute(
+                "INSERT INTO work_logs (worker_id, datum, start_time, end_time, place, signed) VALUES (?, ?, ?, ?, ?, 1)",
+                (worker_id, ziel, x["start"], ende, x["ort"]),
+            )
+            conn.execute(
+                "INSERT OR REPLACE INTO stundenzettel_auto_eintraege (worker_id, datum, monat, start_time, end_time, place) VALUES (?, ?, ?, ?, ?, ?)",
+                (worker_id, ziel, monat, x["start"], ende, x["ort"]),
+            )
+            neu.append(ziel)
 
 
 def monat_rueckgaengig(conn, worker_id, monat):
@@ -1451,7 +1533,8 @@ def register_stundenzettel_auto(app, login_required, get_db_connection, leon_cli
                 text, stunden = monat_zusammenfassung(conn, w["id"], monat)
                 out.append({
                     "id": w["id"], "name": _name(w), "telefon": w["telefon"] or "",
-                    "plan": _plan_laden(conn, w["id"]), "monat": row, "zusammenfassung": text, "stunden": stunden,
+                    "plan": _plan_laden(conn, w["id"]), "extras": extras_laden(conn, w["id"]),
+                    "monat": row, "zusammenfassung": text, "stunden": stunden,
                     "wa": wa_info(conn, row), "sprache": sprache_laden(conn, w["id"]),
                 })
             return jsonify({"success": True, "monat": monat, "mitarbeiter": out,
