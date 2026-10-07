@@ -5,8 +5,8 @@
 # Chef bestätigt → Monat gesperrt (Mitarbeiter-Link kann nichts mehr ändern).
 #
 # Bestehende Stundenzettel-Funktionen bleiben unverändert. Ausgefüllt wird
-# nur an Tagen OHNE Eintrag; automatisch angelegte Tage sind gemerkt und
-# lassen sich zurücknehmen, solange sie nicht verändert wurden.
+# nur an Tagen OHNE Eintrag (gleich unterschrieben ✓); automatisch angelegte
+# Tage sind gemerkt und lassen sich zurücknehmen, solange sie nicht verändert wurden.
 #
 # Leon: eigenes Profil „Leon Stundenzettel“ und Kampagne
 # „Stundenzettel-Kontrolle“ im Leon-Motor (einmalig einrichten mit
@@ -288,7 +288,8 @@ def monat_fuellen(conn, worker_id, monat):
                 uebersprungen.append(f"{tag.strftime('%d.%m.')} vor Eintritt")
             else:
                 conn.execute(
-                    "INSERT INTO work_logs (worker_id, datum, start_time, end_time, place, signed) VALUES (?, ?, ?, ?, ?, 0)",
+                    # gleich unterschrieben (✓) – die Bestätigung holt Leon beim Kontrollanruf ein
+                    "INSERT INTO work_logs (worker_id, datum, start_time, end_time, place, signed) VALUES (?, ?, ?, ?, ?, 1)",
                     (worker_id, iso, p["start"], p["ende"], p["ort"]),
                 )
                 conn.execute(
@@ -320,7 +321,8 @@ def monat_rueckgaengig(conn, worker_id, monat):
             "SELECT start_time, end_time, place, signed FROM work_logs WHERE worker_id = ? AND datum = ?",
             (worker_id, a["datum"]),
         ).fetchone()
-        if log and (log["start_time"], log["end_time"], log["place"]) == (a["start_time"], a["end_time"], a["place"]) and not log["signed"]:
+        # unverändert = gleiche Zeiten und gleicher Ort (automatische Tage sind ohnehin unterschrieben)
+        if log and (log["start_time"], log["end_time"], log["place"]) == (a["start_time"], a["end_time"], a["place"]):
             conn.execute("DELETE FROM work_logs WHERE worker_id = ? AND datum = ?", (worker_id, a["datum"]))
             geloescht += 1
         else:
