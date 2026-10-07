@@ -2164,6 +2164,7 @@ def _stz_uebersicht(monat=None):
                 "krank": round(r["krank"], 2),
                 "urlaub": round(r["urlaub"], 2),
                 "extra": round(r["extra"], 2),
+                "extra_eur": round(r["extra_eur"], 2),
                 "tage": tage.get(w["id"], 0),
                 "status": stand.get(w["id"]) or "offen",
             })

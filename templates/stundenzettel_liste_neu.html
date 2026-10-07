@@ -116,7 +116,7 @@
     <div class="stz2-kpis">
         <div class="stz2-kpi"><small>Mitarbeiter</small><b id="kpiMa">0</b><span>aktiv</span></div>
         <div class="stz2-kpi"><small>Stunden</small><b id="kpiStd">0,00</b><span id="kpiExtra">Std im Monat</span></div>
-        <div class="stz2-kpi"><small>Lohn</small><b id="kpiLohn">0,00 €</b><span>bis 600 € je Mitarbeiter</span></div>
+        <div class="stz2-kpi"><small>Lohn</small><b id="kpiLohn">0,00 €</b><span id="kpiLohnTeile">Lohn 0,00 € / Extra 0,00 €</span></div>
         <div class="stz2-kpi"><small>Bestätigt</small><b id="kpiOk">0 / 0</b><span id="kpiLeer">–</span></div>
     </div>
 
@@ -178,12 +178,14 @@
         const std = ma.reduce((s, m) => s + m.stunden, 0);
         const extra = ma.reduce((s, m) => s + m.extra, 0);
         const lohn = ma.reduce((s, m) => s + m.lohn, 0);
+        const extraEur = ma.reduce((s, m) => s + (m.extra_eur || 0), 0);
         const ok = ma.filter(m => m.status === "bestaetigt" || m.status === "wa_ja").length;
         const leer = ma.filter(m => !m.tage).length;
         $("kpiMa").textContent = ma.length;
         $("kpiStd").textContent = zahl(std);
         $("kpiExtra").textContent = extra ? `Std · dazu ${zahl(extra)} Std Extra` : "Std im Monat";
-        $("kpiLohn").textContent = `${zahl(lohn)} €`;
+        $("kpiLohn").textContent = `${zahl(lohn + extraEur)} €`;
+        $("kpiLohnTeile").textContent = `Lohn ${zahl(lohn)} € / Extra ${zahl(extraEur)} €`;
         $("kpiOk").textContent = `${ok} / ${ma.length}`;
         $("kpiLeer").textContent = leer ? `${leer} ohne Einträge` : "alle haben Einträge";
     }
