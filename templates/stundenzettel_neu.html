@@ -1,0 +1,307 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1d4ed8">
+<title>KG Stundenzettel</title>
+<style>
+:root{--blau:#1d4ed8;--hell:#eff4ff;--gruen:#16a34a;--gruen-h:#dcfce7;--gelb:#fef3c7;--gelb-t:#b45309;--grau:#64748b;--linie:#e2e8f0;--text:#0f172a;--bg:#f1f5f9}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Liberation Sans",Arial,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+.seite{max-width:520px;margin:0 auto;padding:max(12px,env(safe-area-inset-top)) 16px 40px}
+.kopf{display:flex;align-items:center;justify-content:space-between;margin:6px 0 12px}
+.logo{display:flex;align-items:center;gap:10px}
+.kg{width:42px;height:42px;border-radius:13px;background:var(--blau);color:#fff;font-weight:900;display:flex;align-items:center;justify-content:center;font-size:17px}
+.hallo{font-size:13px;color:var(--grau)}.name{font-size:18px;font-weight:800}
+.sprache{display:flex;background:#fff;border-radius:999px;padding:3px;border:1px solid var(--linie)}
+.sprache button{border:0;background:none;padding:7px 12px;border-radius:999px;font-size:14px;font-weight:800;color:var(--grau)}
+.sprache button.an{background:var(--blau);color:#fff}
+.monate{display:flex;align-items:center;justify-content:space-between;margin:2px 0 10px}
+.monate button{border:0;background:#fff;border:1px solid var(--linie);border-radius:12px;width:44px;height:38px;font-size:20px;color:var(--blau);font-weight:800}
+.monate span{font-weight:800;color:#334155}
+.held{background:linear-gradient(135deg,#1d4ed8,#3b82f6);border-radius:24px;color:#fff;padding:18px;box-shadow:0 10px 24px rgba(37,99,235,.3)}
+.held.ok{background:linear-gradient(135deg,#15803d,#22c55e);box-shadow:0 10px 24px rgba(22,163,74,.3)}
+.held.zu{background:linear-gradient(135deg,#475569,#64748b);box-shadow:none}
+.held .monat{font-size:15px;opacity:.92;font-weight:700}
+.held .gross{font-size:46px;font-weight:900;letter-spacing:-1px;margin:2px 0}
+.held .klein{font-size:15px;opacity:.95}
+.frist{margin-top:12px;background:rgba(255,255,255,.18);border-radius:14px;padding:10px 12px;font-size:14px;line-height:1.35}
+.frist b{font-size:15px}
+.knopf{display:flex;align-items:center;gap:12px;width:100%;border-radius:18px;padding:15px 16px;margin-top:12px;font-weight:800;font-size:18px;text-align:left;border:0;cursor:pointer}
+.knopf small{display:block;font-weight:600;font-size:13px;opacity:.85;margin-top:1px}
+.knopf .ico{font-size:26px}
+.ja{background:var(--gruen);color:#fff;box-shadow:0 6px 16px rgba(22,163,74,.3)}
+.nein{background:#fff;color:var(--text);border:2px solid var(--linie)}
+.zahlen{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:14px 0 6px}
+.zahl{background:#fff;border-radius:14px;padding:9px 4px;text-align:center;border:1px solid var(--linie)}
+.zahl b{display:block;font-size:17px}.zahl span{font-size:12px;color:var(--grau);font-weight:700}
+.titel{font-size:13px;font-weight:800;color:var(--grau);letter-spacing:.5px;margin:16px 4px 8px}
+.tag{display:flex;align-items:center;gap:12px;background:#fff;border-radius:16px;padding:11px 12px;margin-bottom:8px;border:1px solid var(--linie);cursor:pointer;width:100%;text-align:left;font:inherit;color:inherit}
+.tag.frei{background:transparent;border-style:dashed;padding:7px 12px;opacity:.75}
+.tag.blink{animation:blink 1s ease 2}
+@keyframes blink{50%{border-color:#f59e0b;box-shadow:0 0 0 3px #fde68a}}
+.datum{width:50px;flex:0 0 50px;text-align:center;border-radius:12px;background:var(--hell);padding:5px 0;color:var(--blau)}
+.datum b{display:block;font-size:18px;line-height:1.1}.datum span{font-size:11px;font-weight:800}
+.tag.frei .datum{background:#e2e8f0;color:#64748b}
+.tinfo{flex:1;min-width:0}.tinfo b{font-size:15px}.tinfo div{font-size:13px;color:var(--grau);margin-top:2px}
+.std{font-weight:800;font-size:14px;color:#334155;white-space:nowrap}
+.pfeil{color:#94a3b8;font-size:20px}
+.badge{display:inline-block;font-size:11.5px;font-weight:800;border-radius:999px;padding:2px 8px;margin-left:4px}
+.b-krank{background:var(--gelb);color:var(--gelb-t)}.b-urlaub{background:#e0f2fe;color:#0369a1}.b-feiertag{background:#ede9fe;color:#6d28d9}
+.krank .datum{background:var(--gelb);color:var(--gelb-t)}.urlaub .datum{background:#e0f2fe;color:#0369a1}
+/* Blatt */
+.dunkel{position:fixed;inset:0;background:rgba(15,23,42,.45);display:none;z-index:10}
+.blatt{position:fixed;left:0;right:0;bottom:0;background:#fff;border-radius:26px 26px 0 0;padding:12px 18px max(22px,env(safe-area-inset-bottom));z-index:11;transform:translateY(105%);transition:transform .22s ease;max-width:520px;margin:0 auto;max-height:92vh;overflow:auto}
+.blatt.offen{transform:none}
+.griff{width:44px;height:5px;border-radius:9px;background:#cbd5e1;margin:0 auto 12px}
+.blatt h3{font-size:22px}.blatt .geplant{color:var(--grau);font-size:14px;margin:3px 0 4px}
+.frage{font-size:15px;font-weight:700;margin:12px 0 10px}
+.raster{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.wahl{border:2px solid var(--linie);border-radius:18px;padding:13px 8px;text-align:center;font-weight:800;font-size:15.5px;background:#fff;cursor:pointer;color:var(--text);font-family:inherit}
+.wahl .ico{font-size:30px;display:block;margin-bottom:4px}
+.wahl small{display:block;font-size:12.5px;color:var(--grau);font-weight:700;margin-top:1px}
+.wahl.breit{grid-column:1 / span 2}
+.wahl.ok{background:var(--gruen-h);border-color:#86efac;color:#166534}
+.wahl:active{transform:scale(.98)}
+.hinweis{font-size:12.5px;color:var(--grau);text-align:center;margin-top:12px}
+.feld{margin-top:10px}.feld label{display:block;font-weight:800;font-size:14px;margin-bottom:6px;color:#334155}
+.feld input,.feld select{width:100%;font-size:18px;padding:12px;border:2px solid var(--linie);border-radius:14px;background:#fff;color:var(--text);font-family:inherit}
+.zwei{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.speichern{margin-top:14px;width:100%;border:0;border-radius:16px;padding:15px;font-size:18px;font-weight:800;background:var(--blau);color:#fff}
+.zurueck{margin-top:8px;width:100%;border:0;background:none;color:var(--grau);font-weight:800;font-size:15px;padding:8px}
+.plus{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+/* Danke */
+.danke{position:fixed;inset:0;background:var(--bg);z-index:20;display:none;overflow:auto}
+.danke .innen{max-width:520px;margin:0 auto;padding:60px 18px 30px;text-align:center}
+.kreis{width:112px;height:112px;border-radius:50%;background:var(--gruen);color:#fff;font-size:62px;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;box-shadow:0 0 0 12px var(--gruen-h)}
+.danke h2{font-size:28px}.danke .tr{color:var(--grau);font-size:15px;margin-top:4px}
+.karte{background:#fff;border-radius:20px;padding:12px 16px;margin-top:18px;text-align:left;border:1px solid var(--linie)}
+.zeile{display:flex;justify-content:space-between;padding:8px 0;font-size:15px;border-bottom:1px solid #f1f5f9}
+.zeile:last-child{border-bottom:0}.zeile b{font-weight:800}
+.leise{background:#fff;border:2px solid var(--linie);border-radius:16px;padding:13px;font-weight:800;font-size:15px;margin-top:14px;width:100%;color:var(--text)}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#0f172a;color:#fff;padding:12px 18px;border-radius:14px;font-weight:700;font-size:15px;z-index:30;display:none;max-width:90vw;text-align:center}
+.laden{text-align:center;color:var(--grau);padding:40px 0}
+.fuss{text-align:center;color:#94a3b8;font-size:12px;margin-top:24px}
+</style>
+</head>
+<body>
+<div class="seite">
+  <div class="kopf">
+    <div class="logo"><div class="kg">KG</div><div><div class="hallo" data-t="hallo"></div><div class="name">{{ vorname or name }}</div></div></div>
+    <div class="sprache"><button data-l="de">DE</button><button data-l="tr">TR</button></div>
+  </div>
+  <div class="monate"><button id="mVor" aria-label="zurück">‹</button><span id="mName"></span><button id="mNach" aria-label="weiter">›</button></div>
+  <div id="inhalt"><div class="laden">…</div></div>
+  <div class="fuss">KG Gebäudereinigung</div>
+</div>
+
+<div class="dunkel" id="dunkel"></div>
+<div class="blatt" id="blatt"></div>
+<div class="danke" id="danke"></div>
+<div class="toast" id="toast"></div>
+
+<script>
+const CODE = {{ code|tojson }};
+const VORNAME = {{ (vorname or name)|tojson }};
+const T = {
+ de:{hallo:"Hallo 👋", tage:"Arbeitstage", std:"Std", bitte:"Bitte prüfen und bestätigen bis", ja:"Alles richtig", ja2:"Alle Tage stimmen – bestätigen",
+     nein:"Etwas stimmt nicht", nein2:"Einen Tag antippen und ändern", arbeit:"Arbeit", krank:"Krank", urlaub:"Urlaub", extra:"Extra",
+     liste:"MEINE TAGE IM", frei:"frei", geplant:"Geplant", eingetragen:"Eingetragen", keinTag:"Kein Arbeitstag", was:"Was war an diesem Tag?",
+     krankB:"Krank", urlaubB:"Urlaub", frei_B:"Nicht gearbeitet", zeitB:"Andere Zeit", extraB:"Extra-Arbeit", stimmt:"Stimmt so", doch:"Doch gearbeitet – Zeit eintragen",
+     von:"Von", bis:"Bis", ort:"Ort", speichern:"Speichern", zurueck:"Zurück", wieviel:"Wie viele Stunden mehr?", aenderbar:"Änderungen möglich bis",
+     gespeichert:"Gespeichert ✓", tippen:"Tippen Sie auf den Tag, der nicht stimmt.", danke:"Danke", bestaetigt:"ist bestätigt", am:"am",
+     gesamt:"Gesamt", nochAendern:"Noch etwas ändern", zu:"Monat abgeschlossen – keine Änderungen mehr möglich.", okHeld:"Bestätigt",
+     fehler:"Das ging nicht. Bitte noch einmal versuchen.", gesperrt:"Dieser Monat ist schon abgeschlossen.", resturlaub:"Resturlaub", tageKurz:"Tage",
+     feiertag:"Feiertag", wt:["Mo","Di","Mi","Do","Fr","Sa","So"], wtLang:["Montag","Dienstag","Mittwoch","Donnerstag","Freitag","Samstag","Sonntag"]},
+ tr:{hallo:"Merhaba 👋", tage:"iş günü", std:"saat", bitte:"Lütfen kontrol edip onaylayın, son gün:", ja:"Hepsi doğru", ja2:"Bütün günler doğru – onayla",
+     nein:"Düzeltme var", nein2:"Yanlış olan güne dokunun", arbeit:"Çalışma", krank:"Hasta", urlaub:"İzin", extra:"Ekstra",
+     liste:"GÜNLERİM –", frei:"boş", geplant:"Plan", eingetragen:"Kayıtlı", keinTag:"Çalışma günü değil", was:"Bu gün ne oldu?",
+     krankB:"Hasta", urlaubB:"İzin", frei_B:"Çalışmadım", zeitB:"Başka saat", extraB:"Ekstra iş", stimmt:"Doğru", doch:"Çalıştım – saat gir",
+     von:"Başlangıç", bis:"Bitiş", ort:"Yer", speichern:"Kaydet", zurueck:"Geri", wieviel:"Kaç saat fazla?", aenderbar:"Değişiklik son günü:",
+     gespeichert:"Kaydedildi ✓", tippen:"Yanlış olan güne dokunun.", danke:"Teşekkürler", bestaetigt:"onaylandı", am:"",
+     gesamt:"Toplam", nochAendern:"Bir şey daha değiştir", zu:"Bu ay kapandı – artık değişiklik yapılamaz.", okHeld:"Onaylandı",
+     fehler:"Olmadı. Lütfen tekrar deneyin.", gesperrt:"Bu ay kapandı.", resturlaub:"Kalan izin", tageKurz:"gün",
+     feiertag:"Resmi tatil", wt:["Pzt","Sal","Çar","Per","Cum","Cmt","Paz"], wtLang:["Pazartesi","Salı","Çarşamba","Perşembe","Cuma","Cumartesi","Pazar"]}
+};
+let L = "de";
+try { L = localStorage.getItem("kgStzSprache") || {{ sprache|tojson }}; } catch (e) { L = {{ sprache|tojson }}; }
+let monat = null, daten = null, aktTag = null;
+
+function t(k){ return (T[L] || T.de)[k]; }
+function zahl(x){ return (Math.round(x * 100) / 100).toLocaleString("de-DE", {minimumFractionDigits: 0, maximumFractionDigits: 2}); }
+function euro(x){ return x.toLocaleString("de-DE", {minimumFractionDigits: 2, maximumFractionDigits: 2}) + " €"; }
+function std(a, b){ if(!a || !b) return 0; const [h1,m1] = a.split(":").map(Number), [h2,m2] = b.split(":").map(Number); let d = (h2 + m2/60) - (h1 + m1/60); if (d < 0) d += 24; return d; }
+function esc(s){ return String(s == null ? "" : s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
+function toast(text){ const el = document.getElementById("toast"); el.textContent = text; el.style.display = "block"; clearTimeout(el._t); el._t = setTimeout(() => el.style.display = "none", 2600); }
+
+// Gleiche Rechnung wie die bisherige Stundenzettel-Seite (40 Std, 600 €, Grundreinigung 17 €)
+function rechnung(){
+  const lohn = 15, grundLohn = 17, grenze = 40, geld = 600;
+  let arb = 0, kr = 0, url = 0, grund = 0, arbTage = 0;
+  daten.tage.forEach(d => { const e = d.eintrag; if (!e || !e.start || !e.ende) return; const h = std(e.start, e.ende);
+    if (e.ort === "Krank") kr += h; else if (e.ort === "Urlaub") url += h; else { arb += h; arbTage++; if (e.ort === "Grundreinigung") grund += h; } });
+  const krB = Math.min(kr, grenze), urlB = Math.min(url, Math.max(0, grenze - krB)), arbB = Math.min(arb, Math.max(0, grenze - krB - urlB));
+  const roh = arb + kr + url, gesamt = Math.min(grenze, roh), extra = Math.max(0, roh - grenze);
+  const grundB = Math.min(grund, arbB), normal = Math.max(0, arbB - grundB);
+  const pay = Math.min(geld, normal * lohn + grundB * grundLohn + krB * lohn + urlB * lohn);
+  return {arbeit: arbB, krank: krB, urlaub: urlB, gesamt, extra, pay, arbTage};
+}
+
+function tagZeile(d){
+  const dt = new Date(d.datum + "T12:00:00"), e = d.eintrag;
+  const nr = String(dt.getDate()).padStart(2, "0"), wt = t("wt")[d.wt];
+  if (!e) {
+    const fei = d.feiertag ? ` <span class="badge b-feiertag">${esc(t("feiertag"))}</span>` : "";
+    return `<button class="tag frei" data-d="${d.datum}"><div class="datum"><b>${nr}</b><span>${wt}</span></div><div class="tinfo"><b style="font-weight:600;color:#64748b">${esc(t("frei"))}</b>${fei}</div><div class="pfeil">›</div></button>`;
+  }
+  const h = std(e.start, e.ende), kl = e.ort === "Krank" ? "krank" : e.ort === "Urlaub" ? "urlaub" : "";
+  const badge = e.ort === "Krank" ? `<span class="badge b-krank">${esc(t("krank"))}</span>` : e.ort === "Urlaub" ? `<span class="badge b-urlaub">${esc(t("urlaub"))}</span>` : "";
+  const ort = (e.ort === "Krank" || e.ort === "Urlaub") ? "" : esc(e.ort);
+  return `<button class="tag ${kl}" data-d="${d.datum}"><div class="datum"><b>${nr}</b><span>${wt}</span></div><div class="tinfo"><b>${esc(e.start)} – ${esc(e.ende)}</b>${badge}<div>${ort}${d.feiertag ? " · " + esc(d.feiertag) : ""}</div></div><div class="std">${zahl(h)} ${esc(t("std"))}</div><div class="pfeil">›</div></button>`;
+}
+
+function zeichnen(){
+  document.querySelectorAll(".sprache button").forEach(b => b.classList.toggle("an", b.dataset.l === L));
+  document.querySelectorAll("[data-t]").forEach(el => el.textContent = t(el.dataset.t));
+  if (!daten) return;
+  document.getElementById("mName").textContent = L === "tr" ? daten.monat_tr : daten.monat_de;
+  const r = rechnung(), frist = L === "tr" ? daten.frist_tr : daten.frist_de, zu = daten.gesperrt, ok = !!daten.bestaetigt_am;
+  const extra = r.extra > 0 ? ` · +${zahl(r.extra)} ${t("std")} ${t("extra")}` : "";
+  let kopf = zu ? `<div class="frist">🔒 ${esc(t("zu"))}</div>`
+           : ok ? `<div class="frist">✓ <b>${esc(t("okHeld"))} ${esc(t("am"))} ${esc(datumKurz(daten.bestaetigt_am))}</b><br>${esc(t("aenderbar"))} ${esc(frist)}</div>`
+           : `<div class="frist">⏰ ${esc(t("bitte"))}<br><b>${esc(frist)}</b></div>`;
+  let html = `<div class="held ${zu ? "zu" : ok ? "ok" : ""}"><div class="monat">Stundenzettel ${esc(L === "tr" ? daten.monat_tr : daten.monat_de)}</div>
+    <div class="gross">${zahl(r.gesamt)} ${esc(t("std"))}</div><div class="klein">${r.arbTage} ${esc(t("tage"))} · ${euro(r.pay)}${extra}</div>${kopf}</div>`;
+  if (!zu && !ok) {
+    html += `<button class="knopf ja" id="kJa"><span class="ico">✅</span><div>${esc(t("ja"))}<small>${esc(t("ja2"))}</small></div></button>
+             <button class="knopf nein" id="kNein"><span class="ico">✏️</span><div>${esc(t("nein"))}<small>${esc(t("nein2"))}</small></div></button>`;
+  }
+  html += `<div class="zahlen"><div class="zahl"><b>${zahl(r.arbeit)}</b><span>${esc(t("arbeit"))}</span></div><div class="zahl"><b>${zahl(r.krank)}</b><span>${esc(t("krank"))}</span></div>
+    <div class="zahl"><b>${zahl(r.urlaub)}</b><span>${esc(t("urlaub"))}</span></div><div class="zahl"><b>${zahl(r.extra)}</b><span>${esc(t("extra"))}</span></div></div>`;
+  if (daten.resturlaub != null) html += `<div class="hinweis" style="margin-top:4px">${esc(t("resturlaub"))}: <b>${esc(daten.resturlaub)}</b> ${esc(t("tageKurz"))}</div>`;
+  html += `<div class="titel">${esc(t("liste"))} ${esc((L === "tr" ? daten.monat_tr : daten.monat_de).split(" ")[0].toUpperCase())}</div>`;
+  html += daten.tage.map(tagZeile).join("");
+  document.getElementById("inhalt").innerHTML = html;
+  const kJa = document.getElementById("kJa"), kNein = document.getElementById("kNein");
+  if (kJa) kJa.onclick = bestaetigen;
+  if (kNein) kNein.onclick = () => { const erste = document.querySelector(".tag:not(.frei)") || document.querySelector(".tag"); if (erste) { erste.scrollIntoView({behavior: "smooth", block: "center"}); document.querySelectorAll(".tag:not(.frei)").forEach(x => { x.classList.remove("blink"); void x.offsetWidth; x.classList.add("blink"); }); } toast(t("tippen")); };
+  document.querySelectorAll(".tag").forEach(b => b.onclick = () => blattOeffnen(b.dataset.d));
+}
+
+function datumKurz(iso){ const d = new Date(iso); if (isNaN(d)) return iso; return String(d.getDate()).padStart(2, "0") + "." + String(d.getMonth() + 1).padStart(2, "0") + ". " + String(d.getHours()).padStart(2, "0") + ":" + String(d.getMinutes()).padStart(2, "0"); }
+
+async function laden(m){
+  const res = await fetch(`/api/stundenzettel/neu/${encodeURIComponent(CODE)}/monat` + (m ? `?m=${m}` : ""));
+  const j = await res.json();
+  if (!j.ok) { document.getElementById("inhalt").innerHTML = `<div class="laden">${esc(t("fehler"))}</div>`; return; }
+  daten = j; monat = j.monat; zeichnen();
+}
+
+function monatSchieben(n){ const [y, mo] = monat.split("-").map(Number); const d = new Date(y, mo - 1 + n, 1); laden(d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0")); }
+
+function blattZu(){ document.getElementById("blatt").classList.remove("offen"); document.getElementById("dunkel").style.display = "none"; aktTag = null; }
+
+function blattOeffnen(iso){
+  const d = daten.tage.find(x => x.datum === iso); if (!d) return; aktTag = d;
+  if (daten.gesperrt) { toast(t("gesperrt")); return; }
+  const dt = new Date(iso + "T12:00:00"), e = d.eintrag, g = d.geplant;
+  const kopf = `${t("wtLang")[d.wt]}, ${String(dt.getDate()).padStart(2, "0")}.${String(dt.getMonth() + 1).padStart(2, "0")}.${dt.getFullYear()}`;
+  const info = e ? `${t("eingetragen")}: ${e.start} – ${e.ende}${e.ort ? " · " + e.ort : ""} · ${zahl(std(e.start, e.ende))} ${t("std")}`
+             : g ? `${t("geplant")}: ${g.start} – ${g.ende} · ${g.ort}` : t("keinTag");
+  let knoepfe;
+  if (e || g) {
+    knoepfe = `<button class="wahl" data-a="krank"><span class="ico">🤒</span>${esc(t("krankB"))}<small>${L === "tr" ? "Krank" : "Hasta"}</small></button>
+      <button class="wahl" data-a="urlaub"><span class="ico">🌴</span>${esc(t("urlaubB"))}<small>${L === "tr" ? "Urlaub" : "İzin"}</small></button>
+      <button class="wahl" data-a="frei"><span class="ico">❌</span>${esc(t("frei_B"))}<small>${L === "tr" ? "Nicht gearbeitet" : "Çalışmadım"}</small></button>
+      <button class="wahl" data-a="zeiten"><span class="ico">🕐</span>${esc(t("zeitB"))}<small>${L === "tr" ? "Andere Zeit" : "Başka saat"}</small></button>
+      <button class="wahl breit" data-a="extra"><span class="ico">➕</span>${esc(t("extraB"))}<small>${L === "tr" ? "Extra-Arbeit" : "Ekstra iş"}</small></button>
+      <button class="wahl breit ok" data-a="stimmt">✅ ${esc(t("stimmt"))}</button>`;
+  } else {
+    knoepfe = `<button class="wahl breit" data-a="zeiten"><span class="ico">🕐</span>${esc(t("doch"))}</button>
+      <button class="wahl breit ok" data-a="schliessen">✅ ${esc(t("stimmt"))} (${esc(t("frei"))})</button>`;
+  }
+  const blatt = document.getElementById("blatt");
+  blatt.innerHTML = `<div class="griff"></div><h3>${esc(kopf)}</h3><div class="geplant">${esc(info)}${d.feiertag ? " · " + esc(d.feiertag) : ""}</div>
+    <div class="frage">${esc(t("was"))}</div><div class="raster">${knoepfe}</div>
+    <div class="hinweis">${esc(t("aenderbar"))} ${esc(L === "tr" ? daten.frist_tr : daten.frist_de)}</div>`;
+  blatt.querySelectorAll(".wahl").forEach(b => b.onclick = () => wahl(b.dataset.a));
+  document.getElementById("dunkel").style.display = "block"; blatt.classList.add("offen");
+}
+
+function wahl(a){
+  if (a === "schliessen") return blattZu();
+  if (a === "zeiten") return zeitForm();
+  if (a === "extra") return extraForm();
+  senden({art: a});
+}
+
+function zeitForm(){
+  const d = aktTag, e = d.eintrag, g = d.geplant;
+  const start = (e && e.ort !== "Krank" && e.ort !== "Urlaub" ? e.start : (g ? g.start : "")) || "17:00";
+  const ende = (e && e.ort !== "Krank" && e.ort !== "Urlaub" ? e.ende : (g ? g.ende : "")) || "19:00";
+  const ortJetzt = (e && daten.orte.includes(e.ort)) ? e.ort : (g ? g.ort : daten.orte[0]);
+  const opts = daten.orte.map(o => `<option ${o === ortJetzt ? "selected" : ""}>${esc(o)}</option>`).join("");
+  const blatt = document.getElementById("blatt");
+  blatt.innerHTML = `<div class="griff"></div><h3>🕐 ${esc(t("zeitB"))}</h3>
+    <div class="zwei"><div class="feld"><label>${esc(t("von"))}</label><input type="time" id="fVon" value="${esc(start)}" step="300"></div>
+    <div class="feld"><label>${esc(t("bis"))}</label><input type="time" id="fBis" value="${esc(ende)}" step="300"></div></div>
+    <div class="feld"><label>${esc(t("ort"))}</label><select id="fOrt">${opts}</select></div>
+    <button class="speichern" id="fOk">${esc(t("speichern"))}</button><button class="zurueck" id="fZ">← ${esc(t("zurueck"))}</button>`;
+  document.getElementById("fOk").onclick = () => senden({art: "zeiten", beginn: document.getElementById("fVon").value, ende: document.getElementById("fBis").value, ort: document.getElementById("fOrt").value});
+  document.getElementById("fZ").onclick = () => blattOeffnen(aktTag.datum);
+}
+
+function extraForm(){
+  const blatt = document.getElementById("blatt");
+  blatt.innerHTML = `<div class="griff"></div><h3>➕ ${esc(t("extraB"))}</h3><div class="frage">${esc(t("wieviel"))}</div>
+    <div class="plus">${[0.5, 1, 1.5, 2, 2.5, 3].map(h => `<button class="wahl" data-h="${h}">+${zahl(h)}<small>${esc(t("std"))}</small></button>`).join("")}</div>
+    <button class="zurueck" id="fZ">← ${esc(t("zurueck"))}</button>`;
+  blatt.querySelectorAll("[data-h]").forEach(b => b.onclick = () => senden({art: "extra", stunden: b.dataset.h}));
+  document.getElementById("fZ").onclick = () => blattOeffnen(aktTag.datum);
+}
+
+async function senden(werte){
+  try {
+    const res = await fetch(`/api/stundenzettel/neu/${encodeURIComponent(CODE)}/tag`, {method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify(Object.assign({datum: aktTag.datum}, werte))});
+    const j = await res.json();
+    if (!j.ok) { toast(res.status === 423 ? t("gesperrt") : t("fehler")); return; }
+    blattZu(); toast(t("gespeichert")); await laden(monat);
+  } catch (e) { toast(t("fehler")); }
+}
+
+async function bestaetigen(){
+  try {
+    const res = await fetch(`/api/stundenzettel/neu/${encodeURIComponent(CODE)}/bestaetigen`, {method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({monat})});
+    const j = await res.json();
+    if (!j.ok) { toast(res.status === 423 ? t("gesperrt") : t("fehler")); return; }
+    await laden(monat); dankeZeigen();
+  } catch (e) { toast(t("fehler")); }
+}
+
+function dankeZeigen(){
+  const r = rechnung(), m = L === "tr" ? daten.monat_tr : daten.monat_de;
+  const krankTage = daten.tage.filter(d => d.eintrag && d.eintrag.ort === "Krank").map(d => d.datum.slice(8, 10) + "." + d.datum.slice(5, 7) + ".");
+  const urlTage = daten.tage.filter(d => d.eintrag && d.eintrag.ort === "Urlaub").map(d => d.datum.slice(8, 10) + "." + d.datum.slice(5, 7) + ".");
+  const el = document.getElementById("danke");
+  el.innerHTML = `<div class="innen"><div class="kreis">✓</div><h2>${esc(t("danke"))}, ${esc(VORNAME)}!</h2>
+    <div class="tr">${esc(m)} ${esc(t("bestaetigt"))}</div>
+    <div class="karte"><div class="zeile"><span>${esc(t("arbeit"))}</span><b>${zahl(r.arbeit)} ${esc(t("std"))}</b></div>
+    <div class="zeile"><span>${esc(t("krank"))}${krankTage.length ? ` <span class="badge b-krank">${esc(krankTage.join(", "))}</span>` : ""}</span><b>${zahl(r.krank)} ${esc(t("std"))}</b></div>
+    <div class="zeile"><span>${esc(t("urlaub"))}${urlTage.length ? ` <span class="badge b-urlaub">${esc(urlTage.join(", "))}</span>` : ""}</span><b>${zahl(r.urlaub)} ${esc(t("std"))}</b></div>
+    ${r.extra > 0 ? `<div class="zeile"><span>${esc(t("extra"))}</span><b>${zahl(r.extra)} ${esc(t("std"))}</b></div>` : ""}
+    <div class="zeile"><span>${esc(t("gesamt"))}</span><b>${zahl(r.gesamt)} ${esc(t("std"))} · ${euro(r.pay)}</b></div></div>
+    <button class="leise" id="dZu">✏️ ${esc(t("nochAendern"))}</button></div>`;
+  el.style.display = "block";
+  document.getElementById("dZu").onclick = () => { el.style.display = "none"; };
+}
+
+document.querySelectorAll(".sprache button").forEach(b => b.onclick = () => { L = b.dataset.l; try { localStorage.setItem("kgStzSprache", L); } catch (e) {} zeichnen(); });
+document.getElementById("mVor").onclick = () => monatSchieben(-1);
+document.getElementById("mNach").onclick = () => monatSchieben(1);
+document.getElementById("dunkel").onclick = blattZu;
+zeichnen();
+laden(null);
+</script>
+</body>
+</html>
