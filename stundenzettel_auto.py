@@ -381,7 +381,7 @@ def monat_rueckgaengig(conn, worker_id, monat):
 #    Beginn des fünftletzten Bankarbeitstags vorliegen. Am Werktag davor wird
 #    abgerechnet, am Werktag davor um 12 Uhr ist Antwortfrist (Monat sperren +
 #    Bericht an info@), zwei Werktage davor geht die WhatsApp raus.
-# Antworten erkennt der WhatsApp-Eingang – auch wenn „Automatische Antworten“ AUS ist.
+# Antworten erkennt der WhatsApp-Eingang – nur wenn „Automatische Antworten“ AN ist.
 
 MONATE_TR = ["Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", "Temmuz", "Ağustos",
              "Eylül", "Ekim", "Kasım", "Aralık"]
