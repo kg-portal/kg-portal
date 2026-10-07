@@ -70,7 +70,7 @@ button{font-family:inherit;cursor:pointer;border:0;background:none;color:inherit
 .druck{display:none;margin:14px auto 0;background:#fff;color:#123a8f;font-weight:800;font-size:14px;border-radius:12px;padding:10px 16px;box-shadow:0 2px 8px rgba(15,23,42,.08)}
 @media (min-width:769px){.druck{display:block}}
 /* Fenster */
-.dim{position:fixed;inset:0;background:rgba(7,26,68,.5);z-index:50;opacity:0;pointer-events:none;transition:opacity .2s}
+.dim{position:fixed;top:0;right:0;bottom:0;left:0;background:rgba(7,26,68,.5);z-index:50;opacity:0;pointer-events:none;transition:opacity .2s}
 .dim.an{opacity:1;pointer-events:auto}
 .sheet,.liste{position:fixed;left:0;right:0;bottom:0;margin:0 auto;max-width:480px;background:#fff;border-radius:28px 28px 0 0;overflow:hidden;box-shadow:0 -10px 30px rgba(15,23,42,.25);z-index:60;transform:translateY(105%);transition:transform .25s ease;visibility:hidden}
 .sheet.an,.liste.an{transform:none;visibility:visible}
@@ -118,7 +118,7 @@ button{font-family:inherit;cursor:pointer;border:0;background:none;color:inherit
 .toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom));transform:translate(-50%,20px);background:#14532d;color:#fff;font-weight:800;font-size:15px;border-radius:999px;padding:10px 18px;opacity:0;transition:all .25s;z-index:90;pointer-events:none}
 .toast.an{opacity:1;transform:translate(-50%,0)}
 /* Hinweis am 19. (wie bisher, nur mit ?reminder=1) */
-.erinn{position:fixed;inset:0;background:rgba(7,26,68,.85);z-index:100;display:none;align-items:center;justify-content:center;padding:16px}
+.erinn{position:fixed;top:0;right:0;bottom:0;left:0;background:rgba(7,26,68,.85);z-index:100;display:none;align-items:center;justify-content:center;padding:16px}
 .erinn.an{display:flex}
 .erinn .karte{width:100%;max-width:560px;background:#fff;border-radius:24px;padding:22px;border-top:6px solid #123a8f;max-height:90vh;overflow-y:auto}
 .erinn h3{color:#dc2626;font-size:24px;font-weight:900;text-align:center;margin-bottom:14px}
@@ -411,7 +411,7 @@ function zeichnen() {
     document.getElementById("dUrlaub").textContent = `${zahl(r.urlaub)} Std · ${zahl(r.urlaubEur)} €`;
     document.getElementById("dKrank").textContent = `${zahl(r.krank)} Std · ${zahl(r.krankEur)} €`;
     document.getElementById("dExtra").textContent = `${zahl(r.extra)} Std · ${zahl(r.extraEur)} €`;
-    document.getElementById("dRest").textContent = `${RESTURLAUB ?? 0} ${T().tage}`;
+    document.getElementById("dRest").textContent = `${RESTURLAUB === null || RESTURLAUB === undefined ? 0 : RESTURLAUB} ${T().tage}`;
 
     let arbeitstage = 0;
     const html = tage.map(t => {

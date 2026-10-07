@@ -2220,10 +2220,11 @@ def worker_stundenzettel(code):
             "signed": log["signed"]
         }
 
-    # Neue Ansicht (Modell A, KG-Blau) – vorerst nur für Test-Mitarbeiter (STZ_NEU_IDS, Standard: 2 = Özdes Murat Kicci).
-    # Alle anderen bekommen unverändert die bisherige Seite.
-    stz_neu_ids = {i.strip() for i in os.getenv("STZ_NEU_IDS", "2").split(",") if i.strip()}
-    if str(worker["id"]) in stz_neu_ids:
+    # Neue Ansicht (Modell A, KG-Blau) für alle Mitarbeiter. Mit STZ_NEU_IDS (z. B. "2" oder "2,5")
+    # lässt sie sich auf einzelne Mitarbeiter beschränken – alle anderen sehen dann die bisherige Seite.
+    stz_neu = os.getenv("STZ_NEU_IDS", "alle").strip() or "alle"
+    stz_neu_ids = {i.strip() for i in stz_neu.split(",") if i.strip()}
+    if stz_neu == "alle" or str(worker["id"]) in stz_neu_ids:
         plan_orte, sprache = {}, ""
         try:
             from stundenzettel_auto import _plan_laden, sprache_laden, ensure_tables as _stz_tabellen, WOCHENTAGE as _STZ_WT
