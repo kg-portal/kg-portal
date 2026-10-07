@@ -1,5 +1,6 @@
 from flask import request, jsonify
 import os
+import re
 import sqlite3
 
 from openai_client import whatsapp_worker_auto_reply
@@ -112,6 +113,21 @@ def wa_ensure_tables():
             key TEXT PRIMARY KEY,
             value TEXT,
             updated_at TEXT DEFAULT CURRENT_TIMESTAMP
+        )
+    ''')
+
+    conn.execute('''
+        CREATE TABLE IF NOT EXISTS whatsapp_ki_warten (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            phone TEXT,
+            raw_from TEXT,
+            name TEXT,
+            body TEXT,
+            status TEXT DEFAULT 'wartet',
+            faellig_am TEXT,
+            erstellt_am TEXT DEFAULT CURRENT_TIMESTAMP,
+            erledigt_am TEXT,
+            info TEXT
         )
     ''')
 
@@ -614,6 +630,187 @@ def wa_get_active_job_context():
     return str(row["value"] or "").strip()
 
 
+# ---------------------------------------------------------------- KI-Antwort erst nach X Minuten
+# „Automatische Antworten“ AN: Eine Nachricht wird nicht sofort beantwortet. Nach WA_KI_WARTEN_MIN Minuten
+# fragt der Connector, ob Damla den Chat gelesen hat (unreadCount). Gelesen → keine KI-Antwort.
+# Ungelesen → die bisherige Antwort (KG Agent für den Chef, KI für Mitarbeiter / Unbekannte).
+WA_KI_WARTEN_MIN = int(os.getenv("WA_KI_WARTEN_MIN", "10") or 10)
+WA_KI_MAX_ALTER_MIN = 120  # z. B. nach Connector-Ausfall: alte Nachrichten nicht mehr beantworten
+
+WA_NUR_BESTAETIGUNG = {
+    "ok", "okay", "oke", "okey", "okei", "tamam", "tamamdır", "tamamdir", "tmm", "tm", "peki", "olur",
+    "eyvallah", "sağol", "sagol", "sağolun", "sagolun", "teşekkürler", "tesekkurler", "teşekkür", "tesekkur",
+    "ederim", "ederiz", "çok", "cok", "danke", "dankeschön", "dankeschoen", "vielen", "lieben", "dank",
+    "super", "gut", "alles", "klar", "ja", "evet", "jo", "passt", "perfekt", "prima", "top", "merci",
+    "thanks", "thank", "you", "gerne", "abla", "abi", "hocam", "frau", "kicci", "damla", "hanım", "hanim",
+}
+
+
+def wa_nur_bestaetigung(text):
+    """„Tamam“, „Danke“, 👍 … – darauf braucht es keine Antwort (spart auch die KI)."""
+    t = str(text or "").strip().lower()
+    if not t or len(t) > 60:
+        return False
+    woerter = re.findall(r"[^\W_]+", t)
+    if not woerter:
+        return True  # nur Emojis / Satzzeichen
+    return all(w in WA_NUR_BESTAETIGUNG for w in woerter)
+
+
+def wa_keine_antwort(reply_text):
+    return "KEINE_ANTWORT" in str(reply_text or "").upper()
+
+
+def wa_ki_vormerken(conn, phone, raw_from, name, body):
+    """Nachricht für die KI-Antwort vormerken; frühere, noch wartende Nachrichten derselben Person zusammenfassen."""
+    conn.execute('''
+        UPDATE whatsapp_ki_warten
+        SET status = 'zusammengefasst', erledigt_am = CURRENT_TIMESTAMP
+        WHERE status = 'wartet' AND ((phone = ? AND phone != '') OR (raw_from = ? AND raw_from != ''))
+    ''', (phone, raw_from))
+    conn.execute('''
+        INSERT INTO whatsapp_ki_warten (phone, raw_from, name, body, status, faellig_am)
+        VALUES (?, ?, ?, ?, 'wartet', datetime('now', ?))
+    ''', (phone, raw_from, name, body, f"+{WA_KI_WARTEN_MIN} minutes"))
+
+
+def wa_ki_antwort_erstellen(phone, raw_from, body, name):
+    """Die bisherige automatische Antwort (vorher sofort im Eingang). Gibt das Ergebnis als Text zurück."""
+    conn = wa_conn()
+    ergebnis = "beantwortet"
+    is_known_worker = wa_is_known_worker(phone, raw_from)
+
+    # Sprachnachricht / leer (nur Mitarbeiter): um eine geschriebene Nachricht bitten – wie bisher
+    if not body:
+        if not is_known_worker:
+            conn.close()
+            return "still"
+        conn.execute('''
+            INSERT INTO whatsapp_outbox (phone, text, status, source)
+            VALUES (?, ?, 'pending', 'voice_request_text')
+        ''', (
+            phone,
+            "Sesli mesajları şu an otomatik okuyamıyorum. Lütfen mesajınızı kısa şekilde yazılı olarak gönderir misiniz?"
+        ))
+        conn.commit()
+        conn.close()
+        return ergebnis
+
+    reply_target = phone
+
+    # Schreibt der Chef (Nummer unter Leon → Berichte gespeichert), antwortet der KG Agent.
+    # Ohne gespeicherte Nummer läuft alles wie bisher.
+    try:
+        from tagesliste import chef_nachricht_beantworten
+        conn.commit()  # Eingang speichern, damit der Agent schreiben kann (SQLite sperrt sonst)
+        if chef_nachricht_beantworten(phone, raw_from, body):
+            conn.close()
+            return "kg_agent_chef"
+    except Exception as chef_fehler:
+        print("[KG-AGENT WHATSAPP] Fehler:", chef_fehler)
+
+    if is_known_worker:
+        full_ai_title = True
+
+        try:
+            recent_ai_reply = conn.execute('''
+                SELECT id
+                FROM whatsapp_outbox
+                WHERE phone = ?
+                  AND source = 'ai_auto_reply'
+                  AND datetime(created_at) >= datetime('now', '-24 hours')
+                ORDER BY id DESC
+                LIMIT 1
+            ''', (reply_target,)).fetchone()
+
+            full_ai_title = recent_ai_reply is None
+
+            ai_context = wa_build_ai_context(
+                phone=phone,
+                raw_from=raw_from,
+                body=body,
+                name=name
+            )
+
+            reply_text = whatsapp_worker_auto_reply(
+                name=name,
+                message=body,
+                context=ai_context,
+                full_ai_title=full_ai_title
+            ).get("answer")
+
+        except Exception as e:
+            print("AI WhatsApp cevap hatası:", str(e))
+
+            fallback_title = (
+                "KG-AI Yapay Zeka Asistanı:"
+                if full_ai_title
+                else "KG-AI:"
+            )
+
+            reply_text = (
+                f"{fallback_title} "
+                "Mesajınız alındı. Frau Kicci’ye iletilecek."
+            )
+
+        if wa_keine_antwort(reply_text):
+            ergebnis = "still"
+        else:
+            conn.execute('''
+                INSERT INTO whatsapp_outbox (phone, text, status, source)
+                VALUES (?, ?, 'pending', 'ai_auto_reply')
+            ''', (reply_target, reply_text))
+
+    else:
+        full_ai_title = True
+
+        try:
+            recent_ai_reply = conn.execute('''
+                SELECT id
+                FROM whatsapp_outbox
+                WHERE phone = ?
+                  AND source = 'ai_unknown_reply'
+                  AND datetime(created_at) >= datetime('now', '-24 hours')
+                ORDER BY id DESC
+                LIMIT 1
+            ''', (reply_target,)).fetchone()
+
+            full_ai_title = recent_ai_reply is None
+
+            ai_context = wa_build_ai_context(
+                phone=phone,
+                raw_from=raw_from,
+                body=body,
+                name=name
+            )
+
+            reply_text = whatsapp_worker_auto_reply(
+                name=name,
+                message=body,
+                context=ai_context,
+                full_ai_title=full_ai_title,
+                bekannt=False
+            ).get("answer")
+
+        except Exception as e:
+            print("Bilinmeyen numara AI cevap hatası:", str(e))
+            conn.close()
+            return "fehler_still"  # ohne KI nicht wissen, ob es geschäftlich ist → lieber nichts senden
+
+        if wa_keine_antwort(reply_text):
+            ergebnis = "still"
+        else:
+            conn.execute('''
+                INSERT INTO whatsapp_outbox (phone, text, status, source)
+                VALUES (?, ?, 'pending', 'ai_unknown_reply')
+            ''', (reply_target, reply_text))
+
+
+    conn.commit()
+    conn.close()
+    return ergebnis
+
+
 def register_whatsapp_connector_routes(app, login_required):
     wa_ensure_tables()
 
@@ -731,16 +928,9 @@ def register_whatsapp_connector_routes(app, login_required):
         # Kayıtlı işçiyse yazılı mesaj istemek için kısa cevap kuyruğa ekle.
         if not body:
             if aktiv and is_known_worker:
-                reply_target = phone
-
+                # Bitte um geschriebene Nachricht – erst wenn Damla nach WA_KI_WARTEN_MIN Minuten nicht gelesen hat
                 conn = wa_conn()
-                conn.execute('''
-                    INSERT INTO whatsapp_outbox (phone, text, status, source)
-                    VALUES (?, ?, 'pending', 'voice_request_text')
-                ''', (
-                    reply_target,
-                    "Sesli mesajları şu an otomatik okuyamıyorum. Lütfen mesajınızı kısa şekilde yazılı olarak gönderir misiniz?"
-                ))
+                wa_ki_vormerken(conn, phone, raw_from, name, "")
                 conn.commit()
                 conn.close()
 
@@ -785,121 +975,88 @@ def register_whatsapp_connector_routes(app, login_required):
                 "reason": "connector_disabled"
             })
 
-        reply_target = phone
+        # Nur eine Bestätigung („Tamam“, „Danke“, 👍) → keine Antwort nötig
+        if wa_nur_bestaetigung(body):
+            conn.commit()
+            conn.close()
+            return jsonify({"ok": True, "stored": True, "skipped": True, "reason": "nur_bestaetigung"})
 
-        # Schreibt der Chef (Nummer unter Leon → Berichte gespeichert), antwortet der KG Agent.
-        # Ohne gespeicherte Nummer läuft alles wie bisher.
-        try:
-            from tagesliste import chef_nachricht_beantworten
-            conn.commit()  # Eingang speichern, damit der Agent schreiben kann (SQLite sperrt sonst)
-            if chef_nachricht_beantworten(phone, raw_from, body):
-                conn.close()
-                return jsonify({"ok": True, "stored": True, "handled": True, "reason": "kg_agent_chef"})
-        except Exception as chef_fehler:
-            print("[KG-AGENT WHATSAPP] Fehler:", chef_fehler)
-
-        if is_known_worker:
-            full_ai_title = True
-
-            try:
-                recent_ai_reply = conn.execute('''
-                    SELECT id
-                    FROM whatsapp_outbox
-                    WHERE phone = ?
-                      AND source = 'ai_auto_reply'
-                      AND datetime(created_at) >= datetime('now', '-24 hours')
-                    ORDER BY id DESC
-                    LIMIT 1
-                ''', (reply_target,)).fetchone()
-
-                full_ai_title = recent_ai_reply is None
-
-                ai_context = wa_build_ai_context(
-                    phone=phone,
-                    raw_from=raw_from,
-                    body=body,
-                    name=name
-                )
-
-                reply_text = whatsapp_worker_auto_reply(
-                    name=name,
-                    message=body,
-                    context=ai_context,
-                    full_ai_title=full_ai_title
-                ).get("answer")
-
-            except Exception as e:
-                print("AI WhatsApp cevap hatası:", str(e))
-
-                fallback_title = (
-                    "KG-AI Yapay Zeka Asistanı:"
-                    if full_ai_title
-                    else "KG-AI:"
-                )
-
-                reply_text = (
-                    f"{fallback_title} "
-                    "Mesajınız alındı. Frau Kicci’ye iletilecek."
-                )
-
-            conn.execute('''
-                INSERT INTO whatsapp_outbox (phone, text, status, source)
-                VALUES (?, ?, 'pending', 'ai_auto_reply')
-            ''', (reply_target, reply_text))
-
-        else:
-            full_ai_title = True
-
-            try:
-                recent_ai_reply = conn.execute('''
-                    SELECT id
-                    FROM whatsapp_outbox
-                    WHERE phone = ?
-                      AND source = 'ai_unknown_reply'
-                      AND datetime(created_at) >= datetime('now', '-24 hours')
-                    ORDER BY id DESC
-                    LIMIT 1
-                ''', (reply_target,)).fetchone()
-
-                full_ai_title = recent_ai_reply is None
-
-                ai_context = wa_build_ai_context(
-                    phone=phone,
-                    raw_from=raw_from,
-                    body=body,
-                    name=name
-                )
-
-                reply_text = whatsapp_worker_auto_reply(
-                    name=name,
-                    message=body,
-                    context=ai_context,
-                    full_ai_title=full_ai_title
-                ).get("answer")
-
-            except Exception as e:
-                print("Bilinmeyen numara AI cevap hatası:", str(e))
-
-                fallback_title = (
-                    "KG-AI Yapay Zeka Asistanı:"
-                    if full_ai_title
-                    else "KG-AI:"
-                )
-
-                reply_text = (
-                    f"{fallback_title} "
-                    "Mesajınız alındı. Talebinizi Frau Kicci’ye iletiyorum. "
-                    "Size en kısa sürede geri dönüş yapılacaktır."
-                )
-
-            conn.execute('''
-                INSERT INTO whatsapp_outbox (phone, text, status, source)
-                VALUES (?, ?, 'pending', 'ai_unknown_reply')
-            ''', (reply_target, reply_text))
-
+        # Nicht sofort antworten: nach WA_KI_WARTEN_MIN Minuten prüft der Connector, ob Damla gelesen hat
+        if eingang.rowcount == 1 or not wa_message_id:
+            wa_ki_vormerken(conn, phone, raw_from, name, body)
         conn.commit()
         conn.close()
-        return jsonify({"ok": True})
+        return jsonify({"ok": True, "stored": True, "ki_wartet": True, "minuten": WA_KI_WARTEN_MIN})
+
+    @app.route("/api/whatsapp-connector/ki-faellig", methods=["GET"])
+    def whatsapp_connector_ki_faellig():
+        # Connector fragt jede Minute: welche Nachrichten warten seit WA_KI_WARTEN_MIN Minuten auf eine KI-Antwort?
+        if not wa_token_ok():
+            return jsonify({"ok": False, "message": "Unauthorized"}), 403
+        wa_ensure_tables()
+        conn = wa_conn()
+        conn.execute('''
+            UPDATE whatsapp_ki_warten SET status = 'verfallen', erledigt_am = CURRENT_TIMESTAMP
+            WHERE status = 'wartet' AND erstellt_am < datetime('now', ?)
+        ''', (f"-{WA_KI_MAX_ALTER_MIN} minutes",))
+        if not wa_connector_aktiv():
+            conn.execute("UPDATE whatsapp_ki_warten SET status = 'aus', erledigt_am = CURRENT_TIMESTAMP WHERE status = 'wartet'")
+            conn.commit()
+            conn.close()
+            return jsonify({"ok": True, "items": []})
+        rows = conn.execute('''
+            SELECT id, phone, raw_from FROM whatsapp_ki_warten
+            WHERE status = 'wartet' AND faellig_am <= datetime('now')
+            ORDER BY id ASC LIMIT 20
+        ''').fetchall()
+        conn.commit()
+        conn.close()
+        items = [{"id": r["id"], "chat_id": r["raw_from"] or (wa_clean_id(r["phone"]) + "@c.us")} for r in rows]
+        return jsonify({"ok": True, "items": items})
+
+    @app.route("/api/whatsapp-connector/ki-antwort", methods=["POST"])
+    def whatsapp_connector_ki_antwort():
+        # Connector meldet: hat Damla den Chat gelesen? Nur wenn nicht → bisherige automatische Antwort.
+        if not wa_token_ok():
+            return jsonify({"ok": False, "message": "Unauthorized"}), 403
+        data = request.get_json(silent=True) or {}
+        try:
+            eintrag_id = int(data.get("id"))
+        except Exception:
+            return jsonify({"ok": False, "message": "id fehlt"}), 400
+        gelesen = data.get("gelesen")
+        conn = wa_conn()
+        uebernommen = conn.execute(
+            "UPDATE whatsapp_ki_warten SET status = 'laeuft' WHERE id = ? AND status = 'wartet'", (eintrag_id,)
+        ).rowcount
+        row = conn.execute("SELECT * FROM whatsapp_ki_warten WHERE id = ?", (eintrag_id,)).fetchone()
+        conn.commit()
+        conn.close()
+        if not uebernommen or not row:
+            return jsonify({"ok": True, "skipped": True, "reason": "nicht_wartend"})
+
+        info = ""
+        if not wa_connector_aktiv():
+            ergebnis = "aus"
+        elif gelesen is True:
+            ergebnis = "gelesen"
+        elif gelesen is not False:
+            ergebnis, info = "fehler", str(data.get("fehler") or "")[:300]
+        else:
+            try:
+                ergebnis = wa_ki_antwort_erstellen(row["phone"], row["raw_from"], row["body"] or "", row["name"] or "")
+            except Exception as ki_fehler:
+                ergebnis, info = "fehler", str(ki_fehler)[:300]
+                print("[KI-ANTWORT] Fehler:", ki_fehler)
+
+        conn = wa_conn()
+        conn.execute(
+            "UPDATE whatsapp_ki_warten SET status = ?, info = ?, erledigt_am = CURRENT_TIMESTAMP WHERE id = ?",
+            (ergebnis, info, eintrag_id),
+        )
+        conn.commit()
+        conn.close()
+        return jsonify({"ok": True, "ergebnis": ergebnis})
 
     @app.route("/api/whatsapp-connector/learn-id", methods=["POST"])
     def whatsapp_connector_learn_id():

@@ -139,7 +139,8 @@ def whatsapp_worker_auto_reply(
     name,
     message,
     context="",
-    full_ai_title=True
+    full_ai_title=True,
+    bekannt=True
 ):
     name = str(name or "").strip()
     message = str(message or "").strip()
@@ -153,6 +154,14 @@ def whatsapp_worker_auto_reply(
         if full_ai_title
         else "KG-AI:"
     )
+
+    # Unbekannte Nummer (nicht in der Mitarbeiterliste): nur Bewerbung / Reinigungsanfrage beantworten
+    bilinmeyen_kurali = "" if bekannt else """
+BİLİNMEYEN NUMARA:
+- Bu numara kayıtlı çalışan listesinde yok.
+- Sadece mesaj açıkça iş başvurusu / iş arama ya da temizlik hizmeti talebi ise cevap ver.
+- Aile, arkadaş, özel sohbet, reklam, kargo/teslimat veya KG ile ilgisi belli olmayan mesajlarda SADECE KEINE_ANTWORT yaz.
+"""
 
     prompt = f"""
 
@@ -456,8 +465,15 @@ CEVAP STİLİ:
 
 Kısa, net ve doğal WhatsApp cevabı ver.
 
+CEVAP GEREKMİYORSA (PAPAĞAN GİBİ CEVAP VERME):
+- Mesaj cevap gerektirmiyorsa SADECE şu kelimeyi yaz: KEINE_ANTWORT
+- Örnekler: sadece teşekkür, onay ("tamam", "ok", "olur", "passt"), emoji, sticker, selamın karşılığı,
+  konuşmayı bitiren mesaj, Damla ile özel/aile sohbeti, KG işiyle ilgisi olmayan mesaj.
+- Emin değilsen ve kişi bir şey soruyor ya da bir şey bildiriyorsa (krank, malzeme, saat, iş, sorun) normal cevap ver.
+- KEINE_ANTWORT yazarsan başlık veya başka hiçbir şey yazma.
+{bilinmeyen_kurali}
 ÇOK ÖNEMLİ ÇIKTI KURALI:
-- Her cevap mutlaka tam olarak şu başlıkla başlasın:
+- Her cevap mutlaka tam olarak şu başlıkla başlasın (tek istisna: KEINE_ANTWORT):
   {ai_title}
 - Bu başlıktan sonra kişiye gönderilecek mesajı yaz.
 - Başlığı yalnızca bir kez yaz.

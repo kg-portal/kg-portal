@@ -760,8 +760,9 @@ def whatsapp_antwort(conn, phone, raw_from, body):
             return True
     if not offen:
         return False
-    if _ist_chef(conn, phone, raw_from) and not _sieht_aus_wie_antwort(text):
-        return False  # der Chef schreibt dem KG Agent (Arbeitsliste) – nur echte Stundenzettel-Antworten hier
+    if not _sieht_aus_wie_antwort(text):
+        # „test“, „Merhaba“ … ist keine Stundenzettel-Antwort → normaler WhatsApp-Eingang (Chef: KG Agent)
+        return False
     r, t = offen
     monat = r["monat"]
     m_start = _monat_param(monat)[0]
@@ -805,9 +806,13 @@ def _ist_chef(conn, phone, raw_from):
 
 def _sieht_aus_wie_antwort(text):
     t = str(text or "").lower()
-    return wa_ist_ja(text) or bool(re.search(r"\b\d{1,2}\.\d{0,2}", t)) or any(w in t for w in (
+    return wa_ist_ja(text) or bool(re.search(r"\b\d{1,2}\.\d{0,2}|\b\d{1,2}:\d{2}|\b\d{1,2}\s*[-–]\s*\d{1,2}\b", t)) or any(w in t for w in (
         "krank", "urlaub", "frei", "vertretung", "extra", "stunde", "std", "nein", "falsch", "fehlt",
-        "hasta", "izin", "rapor", "saat", "hayır", "hayir", "yanlış", "yanlis", "eksik"))
+        "hasta", "izin", "rapor", "saat", "hayır", "hayir", "yanlış", "yanlis", "eksik",
+        "feiertag", "gearbeitet", "nicht da", "uhr",
+        "montag", "dienstag", "mittwoch", "donnerstag", "samstag", "sonntag",
+        "pazartesi", "salı", "sali", "çarşamba", "carsamba", "perşembe", "persembe", "cuma", "pazar",
+        "tatil", "bayram", "gelmedim", "gitmedim", "çalışmadım", "calismadim", "yoktum"))
 
 
 def _ki_aenderungen(conn, worker_id, monat, text):

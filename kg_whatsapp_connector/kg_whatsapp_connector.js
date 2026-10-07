@@ -289,6 +289,56 @@ async function pollOutbox() {
 
 setInterval(pollOutbox, 3000);
 
+// KI-Antwort erst, wenn Damla eine Nachricht nach X Minuten (CRM: WA_KI_WARTEN_MIN) nicht gelesen hat.
+// Das CRM sagt, welche Nachrichten fällig sind; hier wird nur geprüft, ob der Chat noch ungelesen ist.
+let kiPruefungLaeuft = false;
+
+async function pollKiWarten() {
+    if (!isReady || kiPruefungLaeuft) return;
+
+    kiPruefungLaeuft = true;
+
+    try {
+        const response = await axios.get(
+            `${CRM_BASE_URL}/api/whatsapp-connector/ki-faellig`,
+            { headers: authHeaders(), timeout: 30000 }
+        );
+
+        const items = response.data && response.data.items ? response.data.items : [];
+
+        for (const item of items) {
+            let gelesen = null;
+            let fehler = '';
+
+            try {
+                const chat = await client.getChatById(item.chat_id);
+                gelesen = chat.unreadCount === 0;
+            } catch (chatErr) {
+                fehler = chatErr.message;
+            }
+
+            try {
+                const antwort = await axios.post(
+                    `${CRM_BASE_URL}/api/whatsapp-connector/ki-antwort`,
+                    { id: item.id, gelesen, fehler },
+                    { headers: authHeaders(), timeout: 120000 }
+                );
+
+                console.log('KI-PRUEFUNG:', item.chat_id, gelesen === true ? 'gelesen' : (gelesen === false ? 'ungelesen' : 'Fehler ' + fehler), '->', antwort.data && antwort.data.ergebnis);
+            } catch (postErr) {
+                console.log('KI-PRUEFUNG Fehler:', postErr.message);
+            }
+        }
+
+    } catch (err) {
+        // CRM nicht erreichbar oder noch ohne diese Funktion → nächste Minute erneut
+    } finally {
+        kiPruefungLaeuft = false;
+    }
+}
+
+setInterval(pollKiWarten, 60000);
+
 app.get('/qr', (req, res) => {
     if (isReady) {
         return res.send(`
