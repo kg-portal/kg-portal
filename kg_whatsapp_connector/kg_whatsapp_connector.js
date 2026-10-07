@@ -291,37 +291,41 @@ setInterval(pollOutbox, 3000);
 
 // KI-Antwort erst, wenn Damla eine Nachricht nach X Minuten (CRM: WA_KI_WARTEN_MIN) nicht gelesen hat.
 // Das CRM sagt, welche Nachrichten fällig sind; hier wird nur geprüft, ob der Chat noch ungelesen ist.
-// Ungelesen-Zähler direkt aus dem WhatsApp-Web-Speicher lesen. getChatById/getChats scheitern bei
-// diesem Konto mit „r“ (Umwandlung des Chats); hier wird nur chat.unreadCount gelesen.
-async function kiChatFinden(chatId) {
-    let fehler1 = '';
+// „Hat Damla schon selbst geantwortet?“ – der Ungelesen-Zähler ist bei diesem Konto nicht lesbar
+// (Fehler „r“ / Store fehlt). Deshalb: eingehende Nachrichten und Damlas eigene Nachrichten vom Telefon
+// pro Chat mit Zeit merken. Damla hat nach der letzten Nachricht geschrieben → keine KI-Antwort.
+const kiLetzteNachricht = new Map(); // Chat → Zeit der letzten eingehenden Nachricht
+const kiLetzteDamla = new Map();     // Chat → Zeit der letzten Nachricht, die Damla selbst geschrieben hat
+const kiLidZuTel = new Map();        // @lid-Chat → Telefonnummer (falls Damlas Antwort an die Nummer geht)
 
+client.on('message', async (msg) => {
     try {
-        const r = await client.pupPage.evaluate((id) => {
-            let chat = null;
-            try { chat = window.Store.Chat.get(id); } catch (e) {}
-            if (!chat) {
-                try { chat = window.Store.Chat.get(window.Store.WidFactory.createWid(id)); } catch (e) {}
-            }
-            if (!chat) {
-                const alle = window.Store.Chat.getModelsArray ? window.Store.Chat.getModelsArray() : (window.Store.Chat.models || []);
-                chat = alle.find(c => c.id && (c.id._serialized === id || String(c.id) === id)) || null;
-            }
-            if (!chat || typeof chat.unreadCount !== 'number') return { gefunden: false };
-            return { gefunden: true, unreadCount: chat.unreadCount };
-        }, chatId);
-
-        if (r && r.gefunden) return { unreadCount: r.unreadCount };
-        fehler1 = 'nicht im Speicher';
-    } catch (e) {
-        fehler1 = e.message;
-    }
-
-    try {
-        return await client.getChatById(chatId);
+        if (msg.fromMe || !msg.from) return;
+        const lid = cleanPhone(msg.from);
+        kiLetzteNachricht.set(lid, Date.now());
+        const contact = await msg.getContact();
+        const tel = cleanPhone(contact.number || (contact.id && contact.id.user) || '');
+        if (tel) {
+            kiLidZuTel.set(lid, tel);
+            kiLetzteNachricht.set(tel, Date.now());
+        }
     } catch (err) {
-        throw new Error('Chat nicht lesbar: ' + chatId + ' (' + fehler1 + ' / ' + err.message + ')');
+        // nur Merkhilfe – Fehler hier stören nichts
     }
+});
+
+client.on('message_create', (msg) => {
+    // nur echte eigene Nachrichten vom Telefon; vom Connector gesendete haben deviceType 'web'
+    if (!msg.fromMe || !msg.to || msg.deviceType === 'web') return;
+    kiLetzteDamla.set(cleanPhone(msg.to), Date.now());
+});
+
+function kiDamlaHatGeantwortet(chatId) {
+    const lid = cleanPhone(chatId);
+    const tel = kiLidZuTel.get(lid) || '';
+    const ein = Math.max(kiLetzteNachricht.get(lid) || 0, tel ? (kiLetzteNachricht.get(tel) || 0) : 0);
+    const damla = Math.max(kiLetzteDamla.get(lid) || 0, tel ? (kiLetzteDamla.get(tel) || 0) : 0);
+    return damla > 0 && damla >= ein;
 }
 
 let kiPruefungLaeuft = false;
@@ -344,8 +348,7 @@ async function pollKiWarten() {
             let fehler = '';
 
             try {
-                const chat = await kiChatFinden(item.chat_id);
-                gelesen = chat.unreadCount === 0;
+                gelesen = kiDamlaHatGeantwortet(item.chat_id);
             } catch (chatErr) {
                 fehler = chatErr.message;
             }
