@@ -751,11 +751,12 @@ def register_whatsapp_connector_routes(app, login_required):
             })
 
         conn = wa_conn()
+        # Ohne Nachrichten-ID NULL speichern: '' ist UNIQUE und würde jede weitere Nachricht ohne ID verwerfen.
         eingang = conn.execute('''
             INSERT OR IGNORE INTO whatsapp_inbox
                 (wa_message_id, phone, name, body, msg_type, raw_from, wa_timestamp)
             VALUES (?, ?, ?, ?, ?, ?, ?)
-        ''', (wa_message_id, phone, name, body, msg_type, raw_from, wa_timestamp))
+        ''', (wa_message_id or None, phone, name, body, msg_type, raw_from, wa_timestamp))
 
         # Antwort auf die Stundenzettel-WhatsApp (1 = Ja / 2 = Nein) – auch wenn der Schalter AUS ist.
         # Gleiche Nachricht doppelt vom Connector → nur einmal verarbeiten.
