@@ -206,6 +206,13 @@ def ensure_tables(conn):
             notiz TEXT
         )
     """)
+    # KG Agent per WhatsApp: wach nach „Stundenzettel“, schläft 30 Min. nach der letzten Nachricht wieder ein
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS stundenzettel_wa_sitzung (
+            worker_id INTEGER PRIMARY KEY,
+            letzte TEXT NOT NULL
+        )
+    """)
     if "tag" not in {r[1] for r in conn.execute("PRAGMA table_info(stundenzettel_extras)")}:
         conn.execute("ALTER TABLE stundenzettel_extras ADD COLUMN tag INTEGER")
     conn.commit()
@@ -890,6 +897,17 @@ def whatsapp_antwort(conn, phone, raw_from, body):
         return True
 
     sprache = sprache_laden(conn, w["id"])
+    # Der KG Agent schläft: wach wird er nur durch eine Nachricht, die genau „Stundenzettel“ lautet; danach
+    # bleibt er bis 30 Minuten nach der letzten Nachricht wach. Alles andere → normaler WhatsApp-Eingang.
+    stichwort = _ist_stichwort(text)
+    if not stichwort and not _sitzung_wach(conn, w["id"], jetzt):
+        return False
+    conn.execute(
+        "INSERT INTO stundenzettel_wa_sitzung (worker_id, letzte) VALUES (?, ?) "
+        "ON CONFLICT(worker_id) DO UPDATE SET letzte = excluded.letzte",
+        (w["id"], jetzt.isoformat(timespec="seconds")),
+    )
+    conn.commit()
     offen = None
     for r in conn.execute(
         "SELECT * FROM stundenzettel_monate WHERE worker_id = ? AND wa_gesendet_am IS NOT NULL ORDER BY monat DESC LIMIT 2",
@@ -910,17 +928,32 @@ def whatsapp_antwort(conn, phone, raw_from, body):
                 "Teşekkürler! Bu ay kapandı. Mesajınızı not ettim – düzeltme artık bir sonraki ay yapılabilir."))
             conn.commit()
             return True
-    if not offen:
-        return False
-    if not _sieht_aus_wie_antwort(text):
-        # „test“, „Merhaba“ … ist keine Stundenzettel-Antwort → normaler WhatsApp-Eingang (Chef: KG Agent)
-        return False
-    r, t = offen
-    monat = r["monat"]
+    if offen:
+        r, t = offen
+        monat = r["monat"]
+    else:
+        # ohne Monats-WhatsApp: der laufende Monat
+        monat = f"{jetzt.year}-{jetzt.month:02d}"
+        r = _monat_row(conn, w["id"], monat)
+        if r.get("status") == "bestaetigt":
+            _outbox(conn, ziel, "🤖 KG Agent – " + _sprach_text(
+                sprache, "Dieser Monat ist schon abgeschlossen – Korrekturen gehen erst im nächsten Monat.",
+                "Bu ay kapandı – düzeltme artık bir sonraki ay yapılabilir."))
+            conn.commit()
+            return True
     m_start = _monat_param(monat)[0]
+    if stichwort:
+        _outbox(conn, ziel, "🤖 KG Agent – " + _sprach_text(
+            sprache,
+            f"Hallo {w['vorname']}! 👋 Was möchten Sie zu Ihrem Stundenzettel {MONATE[m_start.month - 1]} wissen oder ändern?\n"
+            "z. B. „Wie viele Stunden habe ich?“ oder „15.10. krank“",
+            f"Merhaba {w['vorname']}! 👋 {MONATE_TR[m_start.month - 1]} Stundenzettel'iniz hakkında ne öğrenmek veya değiştirmek istersiniz?\n"
+            "Örnek: „Kaç saatim var?“ veya „15.10. hastaydım“"))
+        conn.commit()
+        return True
     antworten = (f"{r.get('wa_antwort') or ''}\n[{jetzt:%d.%m. %H:%M}] {text}").strip()[:4000]
 
-    if wa_ist_ja(text):
+    if offen and wa_ist_ja(text):
         neuer_status = "wa_korrigiert" if r["status"] == "wa_korrigiert" else "wa_ja"
         _monat_speichern(conn, w["id"], monat, status=neuer_status, wa_antwort=antworten, wa_antwort_am=jetzt.isoformat(timespec="seconds"))
         _outbox(conn, ziel, "🤖 KG Agent – " + _sprach_text(
@@ -956,15 +989,46 @@ def _ist_chef(conn, phone, raw_from):
         return False
 
 
-def _sieht_aus_wie_antwort(text):
-    t = str(text or "").lower()
-    return wa_ist_ja(text) or bool(re.search(r"\b\d{1,2}\.\d{0,2}|\b\d{1,2}:\d{2}|\b\d{1,2}\s*[-–]\s*\d{1,2}\b", t)) or any(w in t for w in (
-        "krank", "urlaub", "frei", "vertretung", "extra", "stunde", "std", "nein", "falsch", "fehlt",
-        "hasta", "izin", "rapor", "saat", "hayır", "hayir", "yanlış", "yanlis", "eksik",
-        "feiertag", "gearbeitet", "nicht da", "uhr",
-        "montag", "dienstag", "mittwoch", "donnerstag", "samstag", "sonntag",
-        "pazartesi", "salı", "sali", "çarşamba", "carsamba", "perşembe", "persembe", "cuma", "pazar",
-        "tatil", "bayram", "gelmedim", "gitmedim", "çalışmadım", "calismadim", "yoktum"))
+def _ist_stichwort(text):
+    """Nur eine Nachricht, die genau „Stundenzettel“ lautet, weckt den KG Agent."""
+    return re.sub(r"[\s.!?]+", "", str(text or "").lower()) == "stundenzettel"
+
+
+def _sitzung_wach(conn, worker_id, jetzt):
+    row = conn.execute("SELECT letzte FROM stundenzettel_wa_sitzung WHERE worker_id = ?", (worker_id,)).fetchone()
+    try:
+        return bool(row) and jetzt - datetime.fromisoformat(row["letzte"]) < timedelta(minutes=30)
+    except (TypeError, ValueError):
+        return False
+
+
+def monat_details(conn, worker_id, monat, sprache):
+    """Alle Tage des Monats mit Stunden – Antwort auf „Wie viele Stunden habe ich?“."""
+    start, _e, monat = _monat_param(monat)
+    tr = sprache == "tr"
+    zahl = lambda x: f"{x:.2f}".rstrip("0").rstrip(".").replace(".", ",")
+    sonder_tr = {"Krank": "Hasta", "Urlaub": "İzin", "Feiertag": "Resmi tatil"}
+    zeilen, arbeit, sonder = [], 0.0, 0.0
+    for l in _logs(conn, worker_id, monat):
+        d = date.fromisoformat(l["datum"])
+        h = _stunden(l["start_time"], l["end_time"])
+        ort = l["place"] or ""
+        if ort in SONDER_ORTE:
+            sonder += h
+            ort = sonder_tr[ort] if tr else ort
+        else:
+            arbeit += h
+        tag = (TAGE_KURZ_TR if tr else TAGE_KURZ)[d.weekday()]
+        zeilen.append(f"{d:%d.%m.} {tag} {str(l['start_time'] or '')[:5]}–{str(l['end_time'] or '')[:5]} {ort} ({zahl(h)})".replace("  ", " "))
+    liste = "\n".join(zeilen) or "–"
+    return _sprach_text(
+        sprache,
+        f"Ihr Stundenzettel {MONATE[start.month - 1]} {start.year}:\n{liste}\n"
+        f"Gearbeitet: {zahl(arbeit)} Std." + (f" · Krank/Urlaub/Feiertag: {zahl(sonder)} Std." if sonder else "")
+        + f"\nZusammen: {zahl(arbeit + sonder)} Std.",
+        (f"{MONATE_TR[start.month - 1]} {start.year} Stundenzettel'iniz:\n" + (f"{liste}\n" if tr else ""))
+        + f"Çalışılan: {zahl(arbeit)} saat" + (f" · Hasta/İzin/Resmi tatil: {zahl(sonder)} saat" if sonder else "")
+        + f"\nToplam: {zahl(arbeit + sonder)} saat")
 
 
 def _ki_aenderungen(conn, worker_id, monat, text):
@@ -985,9 +1049,11 @@ def _ki_aenderungen(conn, worker_id, monat, text):
         f"Aktuelle Einträge:\n{eintraege}\n"
         f"Feste Zeiten je Wochentag:\n{feste}\n"
         f"Erlaubte Orte: {', '.join(o for o in ORTE if o not in SONDER_ORTE)}\n\n"
-        'JSON-Form: {"aenderungen": [{"datum": "YYYY-MM-DD", "art": "krank|urlaub|feiertag|frei|zeiten|extra", '
+        'JSON-Form: {"frage": false, "aenderungen": [{"datum": "YYYY-MM-DD", "art": "krank|urlaub|feiertag|frei|zeiten|extra", '
         '"beginn": "HH:MM", "ende": "HH:MM", "ort": "", "stunden": 0}], "unklar": ""}\n'
         "Regeln:\n"
+        "- frage: true, wenn der Mitarbeiter nur etwas wissen will (z. B. „wie viele Stunden habe ich?“, "
+        "„kaç saat çalıştım?“, „zeig mir meine Tage“) und nichts ändern möchte – dann aenderungen leer und unklar leer.\n"
         "- krank / urlaub / feiertag: der ganze Tag; Zeiten weglassen (werden übernommen).\n"
         "- frei: an diesem Tag NICHT gearbeitet (Eintrag wird gelöscht).\n"
         "- zeiten: an diesem Tag andere Uhrzeit und/oder anderer Ort, auch ein zusätzlicher Arbeitstag "
@@ -1005,7 +1071,8 @@ def _ki_aenderungen(conn, worker_id, monat, text):
     antwort = get_openai_client().responses.create(model=get_openai_model(), input=prompt).output_text or ""
     a, b = antwort.find("{"), antwort.rfind("}")
     daten = json.loads(antwort[a:b + 1]) if a >= 0 and b > a else {}
-    return {"aenderungen": daten.get("aenderungen") or [], "unklar": str(daten.get("unklar") or "").strip()}
+    return {"aenderungen": daten.get("aenderungen") or [], "unklar": str(daten.get("unklar") or "").strip(),
+            "frage": bool(daten.get("frage"))}
 
 
 def _eintrag_text(l):
@@ -1111,6 +1178,11 @@ def korrektur_verarbeiten(conn, worker_id, monat, text, ziel):
         except Exception as exc:
             print("STUNDENZETTEL-KORREKTUR KI FEHLER:", exc)
             ki = {"aenderungen": [], "unklar": "KI nicht erreichbar – bitte selbst prüfen"}
+        if ki.get("frage") and not ki["aenderungen"]:
+            # nur eine Frage („Wie viele Stunden habe ich?“) → alle Tage mit Stunden schicken, nichts ändern
+            _outbox(conn, ziel, "🤖 KG Agent – " + monat_details(conn, worker_id, monat, sprache))
+            conn.commit()
+            return {"eingetragen": [], "unklar": "", "frage": True}
         eingetragen, nicht = aenderungen_anwenden(conn, worker_id, monat, ki["aenderungen"], text)
         unklar = "; ".join(x for x in [ki["unklar"]] + nicht if x)
         if not eingetragen and not unklar:
