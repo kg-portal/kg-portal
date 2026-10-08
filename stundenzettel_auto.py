@@ -1108,9 +1108,20 @@ def _zeit_im_text(zeit, text):
     return bool(re.search(rf"(?<!\d)0?{h}(?!\d)", str(text or "")))
 
 
+# So schreibt die Telefon-Abschrift deutsche Orte oft (türkische Aussprache / Hörfehler)
+ORT_ANDERS = {
+    "Moers": ("mörs", "mers"), "Meiderich / Beeck": ("mayderih", "meyderih", "mydelich", "mederich", "bek"),
+    "Neudorf": ("noydorf",), "Duisburg": ("düsburg", "düysburg", "diusburg"), "Ruhrort": ("rurort", "ruhort"),
+    "Rheinhausen": ("raynhauzen", "rainhausen", "raynhausen"), "Wanheimerort": ("vanhaymerort", "wanheimer"),
+    "Großenbaum": ("grosenbaum", "grossenbaum"), "Neuenkamp": ("noyenkamp",), "Walsum": ("valzum", "walzum"),
+    "Oberhausen": ("oberhauzen",), "Düsseldorf": ("düseldorf", "dusseldorf"), "Neukirchen-Vluyn": ("noykirhen",),
+}
+
+
 def _ort_im_text(ort, text):
     t = str(text or "").lower()
-    return any(teil.strip().lower() in t for teil in str(ort or "").split("/") if len(teil.strip()) >= 3)
+    teile = [teil.strip().lower() for teil in str(ort or "").split("/") if len(teil.strip()) >= 3]
+    return any(teil in t for teil in teile + list(ORT_ANDERS.get(str(ort or ""), ())))
 
 
 def aenderungen_anwenden(conn, worker_id, monat, aenderungen, quelle, fragen=None, annehmen=False):
