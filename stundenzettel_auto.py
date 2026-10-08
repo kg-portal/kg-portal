@@ -1803,6 +1803,9 @@ def anruf_status(conn, client, worker_id, monat):
                 felder["leon_info"] = info + " – wartet, bis Leon frei ist"
     elif call and call.get("status") in {"Beendet", "Fehler", "Nicht erreichbar", "Besetzt", "Abgebrochen", "Anrufbeantworter"}:
         fertig = True
+    # Das Gespräch selbst zählt: beendet und mit Inhalt → sofort auswerten (die Kampagne meldet „Beendet“ nicht immer)
+    if call and call.get("status") == "Beendet" and len(str(call.get("transcript") or "").strip()) > 40:
+        fertig = True
     if felder:
         _monat_speichern(conn, worker_id, monat, **felder)
         conn.commit()
@@ -1827,6 +1830,11 @@ def anruf_status(conn, client, worker_id, monat):
             _monat_speichern(conn, worker_id, monat, status="anruf_nicht_erreicht",
                              leon_info=(felder.get("leon_info") or "nicht erreicht")[:500])
             conn.commit()
+        if kampagne:  # erledigt → aus der Kampagne nehmen, damit sie Leon nicht blockiert
+            try:
+                client.request("DELETE", f"/api/campaigns/{kampagne['id']}/leads/{lead_id}", timeout=30)
+            except Exception:
+                pass
     if kampagne:
         _kampagne_pausieren_wenn_leer(client, kampagne)
     conn.commit()
