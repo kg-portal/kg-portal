@@ -1158,6 +1158,10 @@ def aenderungen_anwenden(conn, worker_id, monat, aenderungen, quelle, fragen=Non
         beginn, ende_z, ort = (alt["start_time"], alt["end_time"], alt["place"]) if alt else (
             (p["start"], p["ende"], p["ort"]) if p["aktiv"] else (None, None, None))
         if art in ("krank", "urlaub", "feiertag"):
+            # genannte Uhrzeit (z. B. „17 bis 20 krank“) gilt – sonst die des Tages
+            b, e = str(a.get("beginn") or "")[:5], str(a.get("ende") or "")[:5]
+            if _zeit_ok(b) and _zeit_ok(e) and (b == str(beginn or "")[:5] or _zeit_im_text(b, quelle)):
+                beginn, ende_z = b, e
             if not (beginn and ende_z):
                 nicht.append(f"{_datum_de(d)} {art}: keine Uhrzeit bekannt")
                 continue
@@ -1732,8 +1736,8 @@ def anruf_starten(conn, client, worker_id, monat):
     geld = f"Summe: {_std(r['gesamt'] + r['extra'])} Std., Lohn: {_zahl(r['gesamt_eur'])} €" + (
         f" (dazu Extra {_std(r['extra'])} Std. = {_zahl(r['extra_eur'])} €)" if r["extra"] else "")
     lead = {
-        "firma": f"KG Mitarbeiter {_name(w)}",
-        "ansprechpartner": _name(w),
+        "firma": f"KG Mitarbeiter {(w['vorname'] or '').strip() or _name(w)}",
+        "ansprechpartner": (w["vorname"] or "").strip() or _name(w),  # nur Vorname – Nachname nie nennen
         "telefon": w["telefon"],
         "branche": (f"Sprache: {SPRACHE_NAME.get(sprache_laden(conn, worker_id), SPRACHE_NAME[''])}\n{geld}\nKalender: {kalender}\n{text}")[:900],
     }
