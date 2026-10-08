@@ -1113,11 +1113,21 @@ def _ort_im_text(ort, text):
     return any(teil.strip().lower() in t for teil in str(ort or "").split("/") if len(teil.strip()) >= 3)
 
 
-def aenderungen_anwenden(conn, worker_id, monat, aenderungen, quelle, fragen=None):
+def aenderungen_anwenden(conn, worker_id, monat, aenderungen, quelle, fragen=None, annehmen=False):
     """Änderungen prüfen und eintragen. → (eingetragen: [Text], nicht_moeglich: [Text])"""
     start, ende, monat = _monat_param(monat)
     plan = _plan_laden(conn, worker_id)
     eingetragen, nicht = [], []
+    # Telefon (annehmen): fehlt Ort/Beginn, gilt der übliche Beginn und Ort des Mitarbeiters in diesem Monat
+    ueblich = None
+    if annehmen:
+        from collections import Counter
+        zaehler = Counter((str(l["start_time"] or "")[:5], l["place"]) for l in _logs(conn, worker_id, monat)
+                          if (l["place"] or "") not in SONDER_ORTE and l["place"] and _zeit_ok(str(l["start_time"] or "")[:5]))
+        if zaehler:
+            ueblich = zaehler.most_common(1)[0][0]
+        else:
+            ueblich = next(((x["start"], x["ort"]) for x in plan.values() if x["aktiv"]), None)
     for a in aenderungen if isinstance(aenderungen, list) else []:
         if not isinstance(a, dict):
             continue
@@ -1164,6 +1174,8 @@ def aenderungen_anwenden(conn, worker_id, monat, aenderungen, quelle, fragen=Non
                 ort = neuer_ort
             elif ort in SONDER_ORTE:
                 ort = p["ort"] if p["aktiv"] else ""
+            if not ort and ueblich:
+                ort = ueblich[1]
         elif (art == "extra" and not alt and _zeit_ok(str(a.get("beginn") or "")[:5]) and _zeit_ok(str(a.get("ende") or "")[:5])
               and (_zeit_im_text(a["beginn"], quelle) or str(a["beginn"])[:5] == str(beginn or "")[:5])):
             beginn, ende_z = str(a["beginn"])[:5], str(a["ende"])[:5]
@@ -1177,6 +1189,8 @@ def aenderungen_anwenden(conn, worker_id, monat, aenderungen, quelle, fragen=Non
             if 0 < plus <= 12 and not beginn and fragen is not None:
                 fragen.append(d)
                 continue
+            if 0 < plus <= 12 and not beginn and ueblich:
+                beginn, ort = ueblich  # Uhrzeit nicht genannt → üblicher Beginn und Ort
             if not (0 < plus <= 12) or not beginn:
                 nicht.append(f"{_datum_de(d)} Extra: Stunden oder Uhrzeit unklar")
                 continue
@@ -1746,7 +1760,8 @@ def _anruf_auswerten(conn, worker_id, monat, transkript):
         except Exception as exc:
             print("STUNDENZETTEL-ANRUF KI FEHLER:", exc)
             ki = {"aenderungen": [], "unklar": "KI nicht erreichbar – Gespräch bitte selbst lesen", "bestaetigt": False}
-        eingetragen, nicht = aenderungen_anwenden(conn, worker_id, monat, ki["aenderungen"], "Anruf: " + transkript)
+        eingetragen, nicht = aenderungen_anwenden(conn, worker_id, monat, ki["aenderungen"], "Anruf: " + transkript,
+                                                  annehmen=True)
         unklar = "; ".join(x for x in [ki["unklar"]] + nicht if x)
         if not eingetragen and not unklar and not ki.get("bestaetigt"):
             unklar = "nicht bestätigt – Gespräch bitte lesen"
