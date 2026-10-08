@@ -240,6 +240,7 @@
         <button class="sza-btn c-wa a-wa" ${locked || !m.telefon ? "disabled" : ""}>${row.wa_gesendet_am ? "WhatsApp erneut senden" : "WhatsApp senden"}</button>
         ${st === "anruf_wartet" ? '<button class="sza-btn c-red a-anruf-stopp">Anruf abbrechen</button>'
           : `<button class="sza-btn c-purple a-anruf" ${locked || !m.telefon ? "disabled" : ""}>📞 Anrufen</button>`}
+        ${row.leon_lead_id && row.angerufen_am && st !== "anruf_wartet" && !locked ? '<button class="sza-btn c-slate a-anruf-auswerten">Letztes Gespräch auswerten</button>' : ""}
         ${locked ? '<button class="sza-btn c-red a-unlock">Entsperren</button>' : '<button class="sza-btn c-green a-ok">Bestätigen &amp; sperren</button>'}
       </div>
       <div class="sza-plan">
@@ -338,6 +339,12 @@
         const r = await api("/api/stz-auto/anruf/" + id, { monat });
         await laden();
         msg(document.querySelector(`.sza-card[data-id="${id}"]`), "📞 " + r.info, true);
+        return;
+      }
+      if (btn.classList.contains("a-anruf-auswerten")) {
+        const r = await api("/api/stz-auto/anruf-auswerten/" + id, { monat });
+        await laden();
+        msg(document.querySelector(`.sza-card[data-id="${id}"]`), "📞 " + (r.monat.leon_info || "ausgewertet"), true);
         return;
       }
       if (btn.classList.contains("a-anruf-stopp")) {

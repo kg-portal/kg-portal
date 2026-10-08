@@ -1820,9 +1820,34 @@ def anruf_status(conn, client, worker_id, monat):
     return _monat_row(conn, worker_id, monat)
 
 
+def anruf_auswerten_nachholen(conn, client, worker_id, monat):
+    """Letztes KG-Agent-Gespräch dieses Monats (noch einmal) holen und auswerten."""
+    _s, _e, monat = _monat_param(monat)
+    row = _monat_row(conn, worker_id, monat)
+    if not row.get("leon_lead_id") or not row.get("angerufen_am"):
+        raise ValueError("Für diesen Monat gab es noch keinen KG-Agent-Anruf.")
+    if row.get("status") == "bestaetigt":
+        raise ValueError("Der Monat ist bestätigt und gesperrt.")
+    _monat_speichern(conn, worker_id, monat, status="anruf_wartet")
+    conn.commit()
+    neu = anruf_status(conn, client, worker_id, monat)
+    if neu.get("status") == "anruf_wartet":
+        # kein fertiges Gespräch gefunden → alten Stand zurück
+        _monat_speichern(conn, worker_id, monat, status=row.get("status") or "offen")
+        conn.commit()
+        raise ValueError("Kein fertiges Gespräch gefunden.")
+    return neu
+
+
 def anruf_abbrechen(conn, client, worker_id, monat):
     _s, _e, monat = _monat_param(monat)
     row = _monat_row(conn, worker_id, monat)
+    if row.get("status") == "anruf_wartet":
+        # Gespräch schon geführt? Dann zuerst auswerten statt verwerfen
+        neu = anruf_status(conn, client, worker_id, monat)
+        if neu.get("status") != "anruf_wartet":
+            return neu
+        row = neu
     kampagne = _anruf_kampagne(client)
     if kampagne and row.get("leon_lead_id"):
         try:
@@ -1979,6 +2004,17 @@ def register_stundenzettel_auto(app, login_required, get_db_connection, leon_cli
                 except Exception as exc:
                     fehler.append(f"{_name(w)}: {exc}")
             return jsonify({"success": True, "gestartet": gestartet, "fehler": fehler})
+        except Exception as exc:
+            return _fehler(exc)
+        finally:
+            conn.close()
+
+    @app.route("/api/stz-auto/anruf-auswerten/<int:worker_id>", methods=["POST"])
+    @login_required
+    def stz_auto_anruf_auswerten(worker_id):
+        conn = _conn()
+        try:
+            return jsonify({"success": True, "monat": anruf_auswerten_nachholen(conn, leon_client_factory(), worker_id, _json().get("monat"))})
         except Exception as exc:
             return _fehler(exc)
         finally:
