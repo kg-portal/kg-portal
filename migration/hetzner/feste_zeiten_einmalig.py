@@ -11,7 +11,7 @@ def t(start, ende, ort): return {"aktiv": True, "start": start, "ende": ende, "o
 LISTE = [
     # (id, Name zur Kontrolle, Plan, Extras [(regel, stunden, start, ort)])
     (37, "Atanas", {k: t("18:00", "19:45", D) for k in ("mo", "di", "mi", "do", "fr")}, []),
-    (34, "Seher", {"mi": t("17:00", "19:00", "Neuenkamp"), "sa": t("10:00", "14:00", "Neuenkamp")}, []),
+    (34, "Seher", {"mi": t("17:00", "19:00", "Rheinhausen"), "sa": t("10:00", "14:00", "Innenhafen / Rheinhausen")}, []),
     (32, "Valbone", {"mo": t("18:00", "19:00", "Düsseldorf"), "mi": t("18:00", "19:00", "Düsseldorf"), "fr": t("18:00", "19:30", "Düsseldorf")}, []),
     (33, "Yemen", {"do": t("14:00", "16:00", "Hamborn")}, []),
     (29, "Birgül", {"mi": t("17:00", "18:45", F), "sa": t("12:00", "14:00", F)}, []),
@@ -20,7 +20,7 @@ LISTE = [
         [("erster_arbeitstag", 0.75, None, None), ("samstag_mitte", 3, "12:00", F)]),
     (6, "Pedrie", {"mo": t("15:00", "17:00", D), "di": t("15:00", "17:00", D), "mi": t("15:00", "17:00", D),
                    "do": t("17:00", "19:00", D), "fr": t("15:00", "17:00", D)}, []),
-    (8, "Serpil", {"mi": t("15:30", "19:30", D), "fr": t("13:00", "17:30", D)}, []),
+    (8, "Serpil", {"mi": t("15:30", "19:30", D), "sa": t("12:00", "16:30", D)}, []),
     (9, "Semra", {"mi": t("17:00", "19:00", "Ruhrort")}, []),
     (10, "Tülay", {"fr": t("17:00", "19:00", M)}, []),
     (11, "Gülbahar", {"mo": t("13:00", "14:30", "Meiderich / Beeck"), "mi": t("13:00", "14:30", "Meiderich / Beeck"),
@@ -32,7 +32,7 @@ LISTE = [
     (17, "Adnan", {"mo": t("17:00", "19:00", D), "mi": t("17:00", "19:00", D), "fr": t("17:00", "19:00", D)}, []),
     (19, "Nilüfer", {"di": t("17:30", "21:00", M), "do": t("19:00", "21:00", M)}, [("erster_arbeitstag", 1, None, None)]),
     (20, "Marica", {"di": t("18:00", "21:30", M), "fr": t("16:30", "21:30", M)}, []),
-    (23, "Efsa", {"mi": t("17:00", "18:30", F), "fr": t("17:00", "21:00", F)}, []),
+    (23, "Efsa", {"mi": t("17:00", "18:30", F), "sa": t("09:00", "13:00", F)}, []),
     (26, "Emine", {k: t("18:00", "19:30", D) for k in ("mo", "di", "mi", "do", "fr")}, [("erster_arbeitstag", 0.5, None, None)]),
     # Kemal + Arzu: neue Arbeit Mo/Mi (2,5 Std.) geteilt – Kemal 1:00, Arzu 1:30; Kemals 2. Samstagsarbeit (1:45) am selben Tag
     (4, "Kemal", {"mo": t("17:00", "18:00", "Ruhrort"), "di": t("17:00", "18:45", "Rheinhausen"),

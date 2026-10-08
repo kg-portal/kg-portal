@@ -392,30 +392,57 @@ def monat_fuellen(conn, worker_id, monat):
         )
     }
     arbeitet_an_feiertagen = feiertag_regel(conn, worker_id)
+    # Nur 1–2 feste Tage pro Woche: fällt ein Feiertag auf einen Arbeitstag, wird die Arbeit auf den
+    # nächsten Tag (auch Sonntag) verschoben statt „Feiertag“ – ab 3 Tagen bleibt es beim „Feiertag“
+    verschieben = sum(1 for x in plan.values() if x["aktiv"]) <= 2
+    nachholen = {}  # Datum → Plan des Feiertags, der auf diesen Tag verschoben wurde
     neu, uebersprungen = [], []
+
+    def eintragen(iso, beginn, schluss, ort):
+        conn.execute(
+            # gleich unterschrieben (✓) – die Bestätigung holt die WhatsApp des KG Agent ein
+            "INSERT INTO work_logs (worker_id, datum, start_time, end_time, place, signed) VALUES (?, ?, ?, ?, ?, 1)",
+            (worker_id, iso, beginn, schluss, ort),
+        )
+        conn.execute(
+            "INSERT OR REPLACE INTO stundenzettel_auto_eintraege (worker_id, datum, monat, start_time, end_time, place) VALUES (?, ?, ?, ?, ?, ?)",
+            (worker_id, iso, monat, beginn, schluss, ort),
+        )
+        neu.append(iso)
+
     tag = start
     while tag < ende:
         p = plan[WOCHENTAGE[tag.weekday()]]
         iso = tag.isoformat()
+        nach = nachholen.pop(iso, None)
+        if nach and (iso in vorhanden or (eintritt and tag < eintritt)):
+            uebersprungen.append(f"{tag.strftime('%d.%m.')} verschobener Feiertag – schon eingetragen")
+            nach = None
         if p["aktiv"]:
             if iso in vorhanden:
                 uebersprungen.append(f"{tag.strftime('%d.%m.')} schon eingetragen")
             elif eintritt and tag < eintritt:
                 uebersprungen.append(f"{tag.strftime('%d.%m.')} vor Eintritt")
+            elif tag in feiertage and not arbeitet_an_feiertagen and verschieben:
+                ziel = tag + timedelta(days=1)
+                while ziel in feiertage or ziel.isoformat() in nachholen:
+                    ziel += timedelta(days=1)
+                if ziel < ende:
+                    nachholen[ziel.isoformat()] = p
+                else:
+                    uebersprungen.append(f"{tag.strftime('%d.%m.')} Feiertag – nächster Tag im Folgemonat")
             else:
                 # Feiertag an einem Arbeitstag: als „Feiertag“ mit den Stunden des Tages (wird bezahlt wie
                 # Krank/Urlaub) – außer der Mitarbeiter arbeitet laut Mitarbeiterdaten an Feiertagen
                 ort = "Feiertag" if tag in feiertage and not arbeitet_an_feiertagen else p["ort"]
-                conn.execute(
-                    # gleich unterschrieben (✓) – die Bestätigung holt die WhatsApp des KG Agent ein
-                    "INSERT INTO work_logs (worker_id, datum, start_time, end_time, place, signed) VALUES (?, ?, ?, ?, ?, 1)",
-                    (worker_id, iso, p["start"], p["ende"], ort),
-                )
-                conn.execute(
-                    "INSERT OR REPLACE INTO stundenzettel_auto_eintraege (worker_id, datum, monat, start_time, end_time, place) VALUES (?, ?, ?, ?, ?, ?)",
-                    (worker_id, iso, monat, p["start"], p["ende"], ort),
-                )
-                neu.append(iso)
+                # verschobener Feiertag auf einen festen Arbeitstag: Stunden hinten anhängen
+                schluss = _zeit_plus(p["ende"], _stunden(nach["start"], nach["ende"])) if nach and ort != "Feiertag" else p["ende"]
+                if nach and ort == "Feiertag":
+                    uebersprungen.append(f"{tag.strftime('%d.%m.')} verschobener Feiertag – Tag ist selbst Feiertag")
+                eintragen(iso, p["start"], schluss, ort)
+                nach = None
+        if nach:
+            eintragen(iso, nach["start"], nach["ende"], nach["ort"])
         tag += timedelta(days=1)
     _extras_eintragen(conn, worker_id, monat, start, neu, vorhanden, feiertage, eintritt, uebersprungen)
     text, stunden = monat_zusammenfassung(conn, worker_id, monat)
