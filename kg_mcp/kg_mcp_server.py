@@ -48,6 +48,12 @@ GEHEIME_SPALTE = re.compile(
     re.I,
 )
 GESPERRTE_TABELLE = re.compile(r"(setting|token|secret|oauth|credential|auth)", re.I)
+# Ausnahme: Leons Agenten-Einstellungen (Begrüßung, Prompts, Stimme, Modell) – enthalten keine Geheimnisse
+FREIGEGEBEN = {"agent_settings"}
+
+
+def _gesperrt(tabelle):
+    return bool(GESPERRTE_TABELLE.search(tabelle or "")) and (tabelle or "").lower() not in FREIGEGEBEN
 
 MAX_ZEILEN = 200
 MAX_TEXT = 500
@@ -115,7 +121,7 @@ def _authorizer(aktion, arg1, arg2, _db, _quelle):
         return _SQLITE_OK
     if aktion == _LESEN:
         tabelle, spalte = arg1 or "", arg2 or ""
-        if GESPERRTE_TABELLE.search(tabelle):
+        if _gesperrt(tabelle):
             return _SQLITE_DENY
         if GEHEIME_SPALTE.search(spalte):
             return _SQLITE_IGNORE  # Spalte kommt als NULL
@@ -570,7 +576,7 @@ def w_schema(system):
     try:
         aus = []
         for t in tabellen(conn):
-            if GESPERRTE_TABELLE.search(t):
+            if _gesperrt(t):
                 continue
             try:
                 anzahl = conn.execute(f'SELECT COUNT(*) FROM "{t}"').fetchone()[0]
@@ -603,6 +609,21 @@ def w_sql_lesen(system, sql):
     finally:
         conn.close()
     return {"system": system, "zeilen": zeilen, "anzahl": len(zeilen), "abgeschnitten": mehr}
+
+
+def w_leon_einstellungen(system="reinigung"):
+    """Alle Agenten-Profile des Leon-Motors mit vollständigen Texten (nicht gekürzt)."""
+    conn = verbinden(system)
+    try:
+        spalten_da = set(spalten(conn, "agent_settings"))
+        felder = [f for f in ("id", "agent_name", "model", "voice", "speed", "turn_detection", "vad_eagerness",
+                              "delegated_model", "reasoning_effort", "opening", "voice_prompt", "backend_prompt")
+                  if f in spalten_da]
+        profile = [dict(r) for r in conn.execute(f"SELECT {', '.join(felder)} FROM agent_settings ORDER BY id")]
+    finally:
+        conn.close()
+    return {"system": system, "profile": profile,
+            "hinweis": "Profil 1 = Verkaufs-Leon (Kundenanrufe). Weitere Profile z. B. KG-Agent (Stundenzettel-Anruf)."}
 
 
 SYSTEM_PARAM = {"type": "string", "enum": ["crm", "reinigung", "business"],
@@ -665,6 +686,16 @@ WERKZEUGE = {
         "schema": {"type": "object", "properties": {
             "name": {"type": "string", "description": "Firmenname oder Teil davon"},
         }, "required": ["name"], "additionalProperties": False},
+    },
+    "leon_einstellungen": {
+        "fn": lambda a: w_leon_einstellungen(a.get("system", "reinigung")),
+        "title": "Leon-Einstellungen",
+        "description": "Leons Agenten-Profile vollständig: Begrüßung (opening), Gesprächs-Prompt (voice_prompt), "
+                       "Hintergrund-Prompt (backend_prompt), Stimme, Modell, Tempo, Pausen-Erkennung.",
+        "schema": {"type": "object", "properties": {
+            "system": {"type": "string", "enum": ["reinigung", "business"],
+                       "description": "reinigung = Leon Reinigung/CRM (Standard), business = KG Business"},
+        }, "additionalProperties": False},
     },
     "schema": {
         "fn": lambda a: w_schema(a.get("system")),
