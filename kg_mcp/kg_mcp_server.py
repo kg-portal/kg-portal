@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""KG Daten – MCP-Connector für ChatGPT (nur lesen).
+"""KG Daten – MCP-Connector für ChatGPT (lesen + Leon-Kampagne als Entwurf anlegen).
 
 ChatGPT (auch im Sprachmodus) stellt hier Fragen zu KG CRM, Leon Reinigung und
 KG Business. Der Dienst liest die SQLite-Datenbanken ausschließlich im
@@ -11,6 +11,8 @@ Nur-Lese-Modus (mode=ro + PRAGMA query_only + SQLite-Authorizer):
 - Erreichbar nur unter einem geheimen Pfad: https://<domain>/<KG_MCP_PFAD>/mcp
 - Geheime Spalten (Passwörter, Tokens, IBAN, Steuer-ID, SV-Nummer, Zugangscodes)
   und Einstellungs-/Token-Tabellen werden nie ausgegeben.
+- Einzige schreibende Aktion: leon_kampagne legt über das CRM (Token KG_MCP_CRM_TOKEN,
+  /internal/mcp/leon-kampagne) eine Leon-Kampagne als ENTWURF an. Gestartet wird nie.
 
   python3 kg_mcp_server.py [env.json]     Server starten (Standard: /opt/kg-mcp-geheim/env.json)
 """
@@ -21,6 +23,8 @@ import re
 import sqlite3
 import sys
 import time
+import urllib.error
+import urllib.request
 from datetime import date, datetime, timedelta, timezone
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from zoneinfo import ZoneInfo
@@ -34,6 +38,7 @@ STANDARD = {
     "DB_CRM": "/opt/kg-crm/data/kg_portal.db",
     "DB_REINIGUNG": "/opt/leon-reinigung/data/kg_business_voice.db",
     "DB_BUSINESS": "/opt/kg-business/data/kg_business_voice.db",
+    "KG_CRM_URL": "http://127.0.0.1:8803",
 }
 
 SYSTEME = {
@@ -80,7 +85,10 @@ Systeme (Parameter "system"):
 Werkzeuge: Für häufige Fragen zuerst kg_heute, todo_brett, rueckrufe, leon_anrufe, firma_suchen benutzen.
 todo_brett = derselbe To-Do-Kasten, den Murat im Süper Program sieht (heute / woche / monat).
 Für alles andere: erst schema(system), dann sql_lesen(system, SELECT ...). Du kannst frei SELECT-Abfragen schreiben
-(auch JOIN, GROUP BY, WITH). Ändern ist nicht möglich.
+(auch JOIN, GROUP BY, WITH). Ändern ist nicht möglich – mit EINER Ausnahme:
+leon_kampagne legt eine Leon-Kampagne (Telefon-KI) als Entwurf an. Ablauf: aktion=branchen → staedte → vorschau
+(Liste dem Nutzer zeigen) → erst nach ausdrücklichem Ja des Nutzers aktion=anlegen mit Namen. Gestartet wird nie –
+das macht Murat selbst im CRM (Leon → Kampagnen).
 Zeiten: calls.created_at und andere *_at mit CURRENT_TIMESTAMP sind UTC – für den Nutzer in Berliner Zeit umrechnen.
 Geheime Felder (Passwörter, Tokens, IBAN, Steuer-ID, SV-Nummer) sind gesperrt und kommen als NULL.
 Erfinde nie Zahlen oder Namen: wenn ein Werkzeug nichts liefert, sag das.
@@ -626,6 +634,32 @@ def w_leon_einstellungen(system="reinigung"):
             "hinweis": "Profil 1 = Verkaufs-Leon (Kundenanrufe). Weitere Profile z. B. KG-Agent (Stundenzettel-Anruf)."}
 
 
+def w_leon_kampagne(a):
+    """Leon-Kampagne über das CRM: Branchen/Städte/Vorschlag ansehen oder als Entwurf anlegen."""
+    token = str(EINST.get("KG_MCP_CRM_TOKEN") or "").strip()
+    if not token:
+        raise Fehler("Kampagnen-Anlage ist noch nicht freigeschaltet (kg_mcp/kampagne_freischalten.sh).")
+    aktion = str(a.get("aktion") or "").strip()
+    if aktion not in ("branchen", "staedte", "vorschau", "anlegen"):
+        raise Fehler("aktion: branchen, staedte, vorschau oder anlegen")
+    body = {"aktion": aktion, "branchen": a.get("branchen") or [], "stadt": a.get("stadt") or "gemischt",
+            "anzahl": a.get("anzahl") or 10, "name": a.get("name") or ""}
+    url = str(EINST.get("KG_CRM_URL") or STANDARD["KG_CRM_URL"]).rstrip("/") + "/internal/mcp/leon-kampagne"
+    anfrage = urllib.request.Request(url, data=json.dumps(body).encode(), method="POST",
+                                     headers={"Content-Type": "application/json", "X-KG-MCP-Token": token})
+    try:
+        with urllib.request.urlopen(anfrage, timeout=120) as r:
+            return json.loads(r.read().decode() or "{}")
+    except urllib.error.HTTPError as exc:
+        try:
+            daten = json.loads(exc.read().decode() or "{}")
+        except ValueError:
+            daten = {}
+        raise Fehler(daten.get("error") or f"CRM antwortet mit HTTP {exc.code}")
+    except (urllib.error.URLError, OSError) as exc:
+        raise Fehler(f"CRM nicht erreichbar: {exc}")
+
+
 SYSTEM_PARAM = {"type": "string", "enum": ["crm", "reinigung", "business"],
                 "description": "crm = KG CRM (Gebäudereinigung), reinigung = Leon Reinigung (Telefon-KI), "
                                "business = KG Business (Strom/Gas)"}
@@ -697,6 +731,25 @@ WERKZEUGE = {
                        "description": "reinigung = Leon Reinigung/CRM (Standard), business = KG Business"},
         }, "additionalProperties": False},
     },
+    "leon_kampagne": {
+        "fn": w_leon_kampagne,
+        "title": "Leon-Kampagne anlegen (Entwurf)",
+        "description": "Legt eine Leon-Kampagne (Telefon-KI, Verkauf Gebäudereinigung) mit den besten Firmen aus der "
+                       "CRM-Datenbank an – nur als ENTWURF, gestartet wird nie. Schritte: aktion=branchen (alle Branchen "
+                       "mit Anzahl), aktion=staedte (Städte für die Branchen), aktion=vorschau (beste Firmen, dem Nutzer "
+                       "zeigen), aktion=anlegen (erst nach ausdrücklichem Ja des Nutzers, mit name). Bewertung ohne KI: "
+                       "Lead-Sammler-Punkte, Nähe zu Duisburg, Website, E-Mail. Ausgeschlossen: Kunden, verloren, "
+                       "Besichtigung/Angebot, Nicht anrufen/Kein Interesse, in den letzten 21 Tagen an Leon gegeben.",
+        "schema": {"type": "object", "properties": {
+            "aktion": {"type": "string", "enum": ["branchen", "staedte", "vorschau", "anlegen"]},
+            "branchen": {"type": "array", "items": {"type": "string"}, "maxItems": 10,
+                         "description": "Branchen genau wie bei aktion=branchen (für staedte, vorschau, anlegen)"},
+            "stadt": {"type": "string", "description": "Stadt genau wie bei aktion=staedte, oder 'gemischt' = 30 km um Duisburg (Standard)"},
+            "anzahl": {"type": "integer", "minimum": 1, "maximum": 100, "description": "Wie viele Firmen (Standard 10)"},
+            "name": {"type": "string", "description": "Name der neuen Kampagne (nur bei anlegen)"},
+        }, "required": ["aktion"], "additionalProperties": False},
+        "annotations": {"readOnlyHint": False, "destructiveHint": False, "idempotentHint": False, "openWorldHint": False},
+    },
     "schema": {
         "fn": lambda a: w_schema(a.get("system")),
         "title": "Tabellen anzeigen",
@@ -719,7 +772,7 @@ WERKZEUGE = {
 
 def werkzeug_liste():
     return [{"name": name, "title": w["title"], "description": w["description"],
-             "inputSchema": w["schema"], "annotations": dict(NUR_LESEN, title=w["title"])}
+             "inputSchema": w["schema"], "annotations": dict(w.get("annotations") or NUR_LESEN, title=w["title"])}
             for name, w in WERKZEUGE.items()]
 
 
