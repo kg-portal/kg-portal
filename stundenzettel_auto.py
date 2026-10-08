@@ -1003,7 +1003,7 @@ def _sitzung_wach(conn, worker_id, jetzt):
 def monat_details(conn, worker_id, monat, sprache):
     """Alle Tage des Monats mit Stunden – Antwort auf „Wie viele Stunden habe ich?“."""
     start, _e, monat = _monat_param(monat)
-    tr = sprache == "tr"
+    tr = sprache != "de"
     zahl = lambda x: f"{x:.2f}".rstrip("0").rstrip(".").replace(".", ",")
     sonder_tr = {"Krank": "Hasta", "Urlaub": "İzin", "Feiertag": "Resmi tatil"}
     zeilen, arbeit, sonder = [], 0.0, 0.0
@@ -1021,10 +1021,10 @@ def monat_details(conn, worker_id, monat, sprache):
     liste = "\n".join(zeilen) or "–"
     return _sprach_text(
         sprache,
-        f"Ihr Stundenzettel {MONATE[start.month - 1]} {start.year}:\n{liste}\n"
-        f"Gearbeitet: {zahl(arbeit)} Std." + (f" · Krank/Urlaub/Feiertag: {zahl(sonder)} Std." if sonder else "")
+        f"Ihr Stundenzettel {MONATE[start.month - 1]} {start.year}:\n" + (f"{liste}\n" if sprache == "de" else "")
+        + f"Gearbeitet: {zahl(arbeit)} Std." + (f" · Krank/Urlaub/Feiertag: {zahl(sonder)} Std." if sonder else "")
         + f"\nZusammen: {zahl(arbeit + sonder)} Std.",
-        (f"{MONATE_TR[start.month - 1]} {start.year} Stundenzettel'iniz:\n" + (f"{liste}\n" if tr else ""))
+        f"{MONATE_TR[start.month - 1]} {start.year} Stundenzettel'iniz:\n{liste}\n"
         + f"Çalışılan: {zahl(arbeit)} saat" + (f" · Hasta/İzin/Resmi tatil: {zahl(sonder)} saat" if sonder else "")
         + f"\nToplam: {zahl(arbeit + sonder)} saat")
 
@@ -1060,7 +1060,8 @@ def _ki_aenderungen(conn, worker_id, monat, text):
         "(z. B. Vertretung mit Uhrzeit). beginn und ende angeben, ort nur aus der Liste oder leer.\n"
         "- Datum mit Uhrzeit von–bis (z. B. „08.10. 17-20“, „08.10 da 17 20 arası 3 saatim daha var“, „am 8. von 17 bis 20 "
         "gearbeitet“) = art zeiten mit beginn/ende für diesen Tag – auch wenn noch kein Eintrag da ist. Fehlt der Ort, "
-        "ort leer lassen; das ist NICHT unklar.\n"
+        "ort leer lassen; das ist NICHT unklar. Mit Uhrzeit von–bis immer art zeiten – auch bei „ekle“, „daha“, „extra“, "
+        "„3 buçuk saat“ (17 den 20 30 a kadar = 17:00–20:30).\n"
         "- extra: zusätzliche Stunden ohne Uhrzeit („2 Std. extra“, „Vertretung 3 Stunden“) → stunden setzen.\n"
         "- Zeiträume („vom 12. bis 16. krank“) in einzelne Tage auflösen – nur Tage mit Eintrag oder festen Zeiten.\n"
         "- Datum ohne Monat gehört zum genannten Monat.\n"
@@ -1131,6 +1132,10 @@ def aenderungen_anwenden(conn, worker_id, monat, aenderungen, quelle):
                 ort = neuer_ort
             elif ort in SONDER_ORTE:
                 ort = p["ort"] if p["aktiv"] else ""
+        elif art == "extra" and not alt and _zeit_ok(str(a.get("beginn") or "")[:5]) and _zeit_ok(str(a.get("ende") or "")[:5]):
+            beginn, ende_z = str(a["beginn"])[:5], str(a["ende"])[:5]
+            neuer_ort = str(a.get("ort") or "").strip()
+            ort = neuer_ort if neuer_ort in ORTE else (p["ort"] if p["aktiv"] else "")
         elif art == "extra":
             try:
                 plus = float(str(a.get("stunden") or 0).replace(",", "."))
