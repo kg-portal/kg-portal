@@ -1052,6 +1052,8 @@ def _ki_aenderungen(conn, worker_id, monat, text):
         "Regeln:\n"
         "- frage: true, wenn der Mitarbeiter nur etwas wissen will (z. B. „wie viele Stunden habe ich?“, "
         "„kaç saat çalıştım?“, „zeig mir meine Tage“) und nichts ändern möchte – dann aenderungen leer und unklar leer.\n"
+        "- Hat die Nachricht nichts mit dem Stundenzettel zu tun (Begrüßung wie „Merhaba Damla Hanım“, private Nachricht, "
+        "anderes Thema), dann aenderungen leer, unklar leer, frage false.\n"
         "- krank / urlaub / feiertag: der ganze Tag; Zeiten weglassen (werden übernommen).\n"
         "- frei: an diesem Tag NICHT gearbeitet (Eintrag wird gelöscht).\n"
         "- zeiten: an diesem Tag andere Uhrzeit und/oder anderer Ort, auch ein zusätzlicher Arbeitstag "
@@ -1187,7 +1189,10 @@ def korrektur_verarbeiten(conn, worker_id, monat, text, ziel):
         eingetragen, nicht = aenderungen_anwenden(conn, worker_id, monat, ki["aenderungen"], text)
         unklar = "; ".join(x for x in [ki["unklar"]] + nicht if x)
         if not eingetragen and not unklar:
-            unklar = "keine Änderung erkannt"
+            # nichts zum Stundenzettel (z. B. „Merhaba Damla Hanım“) → keine Antwort, der Agent schläft wieder ein
+            conn.execute("DELETE FROM stundenzettel_wa_sitzung WHERE worker_id = ?", (worker_id,))
+            conn.commit()
+            return {"eingetragen": [], "unklar": "", "still": True}
         row = _monat_row(conn, worker_id, monat)
         notiz = row.get("notiz") or ""
         if unklar:
