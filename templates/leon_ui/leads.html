@@ -1843,8 +1843,23 @@
             }
 
 
-            leads =
+            // KG-Agent (Stundenzettel-Anrufe an eigene Mitarbeiter) hier nicht zeigen – das sind keine Verkaufs-Leads
+            const alleLeads =
                 data.leads || [];
+
+            leads =
+                alleLeads.filter(
+                    lead => !String(lead.firma || "").startsWith("KG Mitarbeiter ")
+                );
+
+            const ausgeblendet =
+                alleLeads.length - leads.length;
+
+            data.total =
+                Math.max(0, (data.total || 0) - ausgeblendet);
+
+            data.shown =
+                Math.max(0, (data.shown || 0) - ausgeblendet);
 
 
             renderLeads();

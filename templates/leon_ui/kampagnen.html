@@ -655,6 +655,89 @@
             overflow-y: auto;
         }
 
+        /* „Leads holen“: beste Firmen aus der Datenbank */
+        .holen-box {
+            margin: 0 0 16px;
+            border: 1px solid #e3e8f2;
+            border-radius: 14px;
+            padding: 12px 14px;
+            background: #f8fafc;
+        }
+
+        .holen-schritt {
+            margin-top: 12px;
+        }
+
+        .holen-titel {
+            font-weight: 800;
+            font-size: 13px;
+            margin-bottom: 6px;
+        }
+
+        .holen-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            max-height: 150px;
+            overflow-y: auto;
+        }
+
+        .holen-chip {
+            border: 1px solid #cbd5e1;
+            background: #fff;
+            border-radius: 999px;
+            padding: 6px 12px;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .holen-chip.aktiv {
+            background: #2563eb;
+            border-color: #2563eb;
+            color: #fff;
+        }
+
+        .holen-liste {
+            max-height: 260px;
+            overflow-y: auto;
+            background: #fff;
+            border: 1px solid #e3e8f2;
+            border-radius: 10px;
+        }
+
+        .holen-zeile {
+            display: flex;
+            justify-content: flex-start;
+            gap: 10px;
+            align-items: center;
+            padding: 8px 12px;
+            border-bottom: 1px solid #f1f5f9;
+            font-size: 13px;
+        }
+
+        .holen-zeile small {
+            color: #64748b;
+        }
+
+        .holen-zeile input {
+            width: auto;
+            flex: 0 0 auto;
+            margin: 0;
+        }
+
+        .holen-zeile .holen-text {
+            flex: 1;
+            text-align: left;
+        }
+
+        .holen-punkte {
+            margin-left: auto;
+            font-weight: 800;
+            color: #2563eb;
+            white-space: nowrap;
+        }
+
         .lead-item {
             display: flex;
             align-items: center;
@@ -1243,6 +1326,54 @@
 
         </div>
 
+        <div class="holen-box">
+
+            <button
+                class="btn-primary btn-small"
+                type="button"
+                onclick="holenUmschalten()"
+            >
+                ➕ Leads holen (beste Firmen aus der Datenbank)
+            </button>
+
+            <div id="holenPanel" style="display:none;">
+
+                <div class="holen-schritt">
+                    <div class="holen-titel">1. Wie viele Firmen?</div>
+                    <div class="holen-chips" id="holenAnzahl"></div>
+                </div>
+
+                <div class="holen-schritt" id="holenSchrittBranche" style="display:none;">
+                    <div class="holen-titel">2. Branche (mehrere möglich)</div>
+                    <div class="holen-chips" id="holenBranchen"></div>
+                </div>
+
+                <div class="holen-schritt" id="holenSchrittStadt" style="display:none;">
+                    <div class="holen-titel">3. Stadt</div>
+                    <div class="holen-chips" id="holenStaedte"></div>
+                </div>
+
+                <div class="holen-schritt" id="holenSchrittVorschau" style="display:none;">
+                    <div class="holen-titel" id="holenVorschauTitel">4. Vorschlag</div>
+                    <div class="holen-liste" id="holenVorschau"></div>
+                    <div style="display:flex;justify-content:flex-end;margin-top:10px;">
+                        <button
+                            class="btn-primary btn-small"
+                            type="button"
+                            id="holenHinzufuegenButton"
+                            onclick="holenHinzufuegen()"
+                        >
+                            Zur Kampagne hinzufügen
+                        </button>
+                    </div>
+                </div>
+
+                <div id="holenStatus" class="muted" style="margin-top:10px;font-size:12px;"></div>
+
+            </div>
+
+        </div>
+
         <div class="lead-layout">
 
             <section class="lead-box">
@@ -1320,6 +1451,11 @@
     let managingCampaignId = null;
 
     let availableLeads = [];
+
+    // KG-Agent (Stundenzettel-Anrufe an eigene Mitarbeiter) gehört nicht in Verkaufs-Kampagnen
+    function keinKgMitarbeiter(lead) {
+        return !String((lead && lead.firma) || "").startsWith("KG Mitarbeiter ");
+    }
     let selectedLeads = [];
 
     let runnerCampaignId = null;
@@ -3372,6 +3508,8 @@
         managingCampaignId =
             campaignId;
 
+        holenZuruecksetzen();
+
         try {
             const response =
                 await fetch(
@@ -3394,8 +3532,8 @@
             }
 
             availableLeads =
-                result.available_leads ||
-                [];
+                (result.available_leads ||
+                []).filter(keinKgMitarbeiter);
 
             selectedLeads =
                 result.selected_leads ||
@@ -3916,6 +4054,218 @@
     }
 
 
+    // ---------------- „Leads holen“: Anzahl → Branche → Stadt → beste Firmen ----------------
+    const HOLEN_ANZAHLEN = [10, 20, 30, 40, 50];
+    let holen = { anzahl: 0, branchen: [], stadt: "", auswahl: [] };
+
+    function holenZuruecksetzen() {
+        holen = { anzahl: 0, branchen: [], stadt: "", auswahl: [] };
+        document.getElementById("holenPanel").style.display = "none";
+        ["holenSchrittBranche", "holenSchrittStadt", "holenSchrittVorschau"].forEach(
+            id => document.getElementById(id).style.display = "none"
+        );
+        holenStatus("");
+    }
+
+    function holenAttr(value) {
+        return escapeHtml(value).replace(/"/g, "&quot;");
+    }
+
+    function holenStatus(text) {
+        document.getElementById("holenStatus").textContent = text || "";
+    }
+
+    function holenUmschalten() {
+        const panel = document.getElementById("holenPanel");
+        if (panel.style.display !== "none") {
+            holenZuruecksetzen();
+            return;
+        }
+        panel.style.display = "block";
+        holenAnzahlZeigen();
+    }
+
+    function holenAnzahlZeigen() {
+        const istMehr = holen.anzahl && !HOLEN_ANZAHLEN.includes(holen.anzahl);
+        document.getElementById("holenAnzahl").innerHTML =
+            HOLEN_ANZAHLEN.map(n => `
+                <button type="button" class="holen-chip ${holen.anzahl === n ? "aktiv" : ""}"
+                        onclick="holenAnzahlWaehlen(${n})">${n}</button>
+            `).join("") + `
+                <button type="button" class="holen-chip ${istMehr ? "aktiv" : ""}"
+                        onclick="holenMehr()">${istMehr ? holen.anzahl : "Mehr …"}</button>
+            `;
+    }
+
+    function holenMehr() {
+        const eingabe = prompt("Wie viele Firmen? (bis 500)", "100");
+        const n = parseInt(eingabe, 10);
+        if (!n || n < 1) {
+            return;
+        }
+        holenAnzahlWaehlen(Math.min(500, n));
+    }
+
+    async function holenAnzahlWaehlen(n) {
+        holen.anzahl = n;
+        holenAnzahlZeigen();
+        if (document.getElementById("holenSchrittBranche").style.display === "none") {
+            await holenBranchenLaden();
+        } else if (holen.stadt) {
+            await holenVorschauLaden();
+        }
+    }
+
+    async function holenBranchenLaden() {
+        holenStatus("Branchen werden geladen …");
+        try {
+            const response = await fetch("/api/leon/leads-holen/branchen");
+            const result = await response.json();
+            if (!response.ok || !result.success) {
+                throw new Error(result.error || "Branchen konnten nicht geladen werden.");
+            }
+            const liste = result.branchen || [];
+            document.getElementById("holenBranchen").innerHTML = liste.length
+                ? liste.map(b => `
+                    <button type="button" class="holen-chip ${holen.branchen.includes(b.name) ? "aktiv" : ""}"
+                            data-branche="${holenAttr(b.name)}"
+                            onclick="holenBrancheUmschalten(this)">${escapeHtml(b.name)} (${b.anzahl})</button>
+                  `).join("")
+                : `<span class="muted">Keine Branchen mit Telefonnummer in der Datenbank.</span>`;
+            document.getElementById("holenSchrittBranche").style.display = "block";
+            holenStatus("");
+        } catch (error) {
+            holenStatus(error.message);
+        }
+    }
+
+    async function holenBrancheUmschalten(button) {
+        const name = button.dataset.branche;
+        if (holen.branchen.includes(name)) {
+            holen.branchen = holen.branchen.filter(b => b !== name);
+            button.classList.remove("aktiv");
+        } else {
+            holen.branchen.push(name);
+            button.classList.add("aktiv");
+        }
+        holen.stadt = "";
+        document.getElementById("holenSchrittVorschau").style.display = "none";
+        if (!holen.branchen.length) {
+            document.getElementById("holenSchrittStadt").style.display = "none";
+            return;
+        }
+        await holenStaedteLaden();
+    }
+
+    function holenBranchenParameter() {
+        const params = new URLSearchParams();
+        holen.branchen.forEach(b => params.append("branche", b));
+        return params;
+    }
+
+    async function holenStaedteLaden() {
+        holenStatus("Städte werden geladen …");
+        try {
+            const response = await fetch("/api/leon/leads-holen/staedte?" + holenBranchenParameter().toString());
+            const result = await response.json();
+            if (!response.ok || !result.success) {
+                throw new Error(result.error || "Städte konnten nicht geladen werden.");
+            }
+            document.getElementById("holenStaedte").innerHTML =
+                (result.staedte || []).map(s => `
+                    <button type="button" class="holen-chip" data-stadt="${holenAttr(s.ort)}"
+                            onclick="holenStadtWaehlen(this)">${escapeHtml(s.ort)} (${s.anzahl})</button>
+                `).join("") + `
+                    <button type="button" class="holen-chip" data-stadt="gemischt"
+                            onclick="holenStadtWaehlen(this)">Gemischt (30 km um Duisburg)</button>
+                `;
+            document.getElementById("holenSchrittStadt").style.display = "block";
+            holenStatus("");
+        } catch (error) {
+            holenStatus(error.message);
+        }
+    }
+
+    async function holenStadtWaehlen(button) {
+        document.querySelectorAll("#holenStaedte .holen-chip").forEach(b => b.classList.remove("aktiv"));
+        button.classList.add("aktiv");
+        holen.stadt = button.dataset.stadt;
+        await holenVorschauLaden();
+    }
+
+    async function holenVorschauLaden() {
+        holenStatus("Beste Firmen werden gesucht …");
+        const params = holenBranchenParameter();
+        params.set("stadt", holen.stadt);
+        params.set("anzahl", String(holen.anzahl || 10));
+        try {
+            const response = await fetch("/api/leon/leads-holen/vorschau?" + params.toString());
+            const result = await response.json();
+            if (!response.ok || !result.success) {
+                throw new Error(result.error || "Vorschlag konnte nicht geladen werden.");
+            }
+            holen.auswahl = result.auswahl || [];
+            document.getElementById("holenVorschauTitel").textContent =
+                "4. Vorschlag: " + holen.auswahl.length + " beste von " + (result.moeglich || 0) + " möglichen Firmen";
+            document.getElementById("holenVorschau").innerHTML = holen.auswahl.length
+                ? holen.auswahl.map(f => `
+                    <label class="holen-zeile">
+                        <input type="checkbox" class="holen-checkbox" value="${f.id}" checked>
+                        <span class="holen-text">
+                            <strong>${escapeHtml(f.firma || "")}</strong><br>
+                            <small>${escapeHtml(f.branche || "")} · ${escapeHtml([f.plz, f.ort].filter(Boolean).join(" "))} · ${escapeHtml(f.telefon || "")}${f.entfernung_km !== null && f.entfernung_km !== undefined ? " · " + f.entfernung_km + " km" : ""}</small>
+                        </span>
+                        <span class="holen-punkte">${f.punkte} P.</span>
+                    </label>
+                  `).join("")
+                : `<div class="holen-zeile muted">Keine passenden Firmen gefunden.</div>`;
+            document.getElementById("holenSchrittVorschau").style.display = "block";
+            holenStatus("");
+        } catch (error) {
+            holenStatus(error.message);
+        }
+    }
+
+    async function holenHinzufuegen() {
+        const ids = Array.from(document.querySelectorAll(".holen-checkbox:checked")).map(c => Number(c.value));
+        if (!ids.length) {
+            holenStatus("Bitte mindestens eine Firma anhaken.");
+            return;
+        }
+        if (!managingCampaignId) {
+            holenStatus("Keine Kampagne geöffnet.");
+            return;
+        }
+        const button = document.getElementById("holenHinzufuegenButton");
+        button.disabled = true;
+        holenStatus(ids.length + " Firmen werden hinzugefügt …");
+        try {
+            const response = await fetch("/api/leon/datenbank/uebergeben", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ quelle: "leads", ids: ids, kampagne_id: managingCampaignId })
+            });
+            const result = await response.json();
+            if (!response.ok || !result.success) {
+                throw new Error(result.error || "Hinzufügen fehlgeschlagen.");
+            }
+            const hinweise = (result.hinweise || []).join(" · ");
+            showNotice((result.in_kampagne || 0) + " Lead(s) hinzugefügt.");
+            await refreshLeadManager();
+            await loadCampaigns();
+            await holenVorschauLaden();
+            holenStatus(
+                (result.in_kampagne || 0) + " Firmen in die Kampagne aufgenommen." +
+                (hinweise ? " Hinweise: " + hinweise : "")
+            );
+        } catch (error) {
+            holenStatus(error.message);
+        } finally {
+            button.disabled = false;
+        }
+    }
+
+
     async function refreshLeadManager() {
         const response =
             await fetch(
@@ -3938,8 +4288,8 @@
         }
 
         availableLeads =
-            result.available_leads ||
-            [];
+            (result.available_leads ||
+            []).filter(keinKgMitarbeiter);
 
         selectedLeads =
             result.selected_leads ||

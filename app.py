@@ -880,6 +880,10 @@ register_stundenzettel_auto(app, login_required, get_db_connection, lambda: _leo
 from leon_auto_kampagne import register_leon_auto_kampagne
 register_leon_auto_kampagne(app, login_required, get_db_connection, lambda: _leon_routes_mod.leon_client)
 
+# Leon Kampagne „Leads holen“: Anzahl → Branche → Stadt → beste Firmen vorschlagen (nur lesend)
+from leon_leads_holen import register_leon_leads_holen
+register_leon_leads_holen(app, login_required, get_db_connection)
+
 # Kampagnen-Bericht: nach jeder fertigen Leon-Kampagne Bericht + To-Do-Karte (+ WhatsApp an den Chef, wenn eingestellt)
 from kampagnen_bericht import register_kampagnen_bericht
 register_kampagnen_bericht(app, login_required, get_db_connection, lambda: _leon_routes_mod.leon_client)
