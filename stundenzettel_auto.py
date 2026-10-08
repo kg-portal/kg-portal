@@ -1111,7 +1111,7 @@ def _zeit_im_text(zeit, text):
 # So schreibt die Telefon-Abschrift deutsche Orte oft (türkische Aussprache / Hörfehler)
 ORT_ANDERS = {
     "Moers": ("mörs", "mers"), "Meiderich / Beeck": ("mayderih", "meyderih", "mydelich", "mederich", "bek"),
-    "Neudorf": ("noydorf",), "Duisburg": ("düsburg", "düysburg", "diusburg"), "Ruhrort": ("rurort", "ruhort"),
+    "Neudorf": ("noydorf",), "Hamborn": ("hamburg",), "Duisburg": ("düsburg", "düysburg", "diusburg"), "Ruhrort": ("rurort", "ruhort"),
     "Rheinhausen": ("raynhauzen", "rainhausen", "raynhausen"), "Wanheimerort": ("vanhaymerort", "wanheimer"),
     "Großenbaum": ("grosenbaum", "grossenbaum"), "Neuenkamp": ("noyenkamp",), "Walsum": ("valzum", "walzum"),
     "Oberhausen": ("oberhauzen",), "Düsseldorf": ("düseldorf", "dusseldorf"), "Neukirchen-Vluyn": ("noykirhen",),
