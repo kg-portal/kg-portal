@@ -1730,6 +1730,8 @@ def anruf_starten(conn, client, worker_id, monat):
         raise ValueError("Im Leon-Motor fehlt der KG-Agent. Einmalig im Leon-Ordner ausführen: "
                          "python tools/stundenzettel_agent.py --apply")
     text, _stunden = monat_zusammenfassung(conn, worker_id, monat)
+    # ohne Namen – sonst liest der Agent den Nachnamen vor (oder hält ihn für einen Ort)
+    text = re.sub(r"^(Stundenzettel [^:]*?) für [^:]*:", r"\1:", text)
     r = monat_rechnung(conn, worker_id, monat)
     m_start, m_ende, _m = _monat_param(monat)
     kalender = ", ".join(f"{(m_start + timedelta(days=i)).day} {TAGE_KURZ[(m_start + timedelta(days=i)).weekday()]}"
