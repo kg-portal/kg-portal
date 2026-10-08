@@ -686,11 +686,30 @@
     let dataChannel = null;
     let liveConnected = false;
 
+    // ?agent=<Profil>: anderes Profil (KG-Agent für den Stundenzettel-Anruf); ohne Angabe Leon wie bisher
+    const AGENT_PROFIL = new URLSearchParams(location.search).get("agent") || "";
+    const mitProfil = (url) => AGENT_PROFIL ? url + (url.includes("?") ? "&" : "?") + "agent=" + encodeURIComponent(AGENT_PROFIL) : url;
+    function profilAnsicht() {
+        if (!AGENT_PROFIL) return;
+        const h1 = document.querySelector(".topbar h1"), p = document.querySelector(".topbar p");
+        if (h1) h1.textContent = "Agent: KG-Agent";
+        if (p) p.textContent = "Stundenzettel-Anruf bei Mitarbeitern – eigenes Profil, Leon bleibt unverändert.";
+        // Wissensbasis, Funktionen und Browser-Test gehören zu Leon – hier ausblenden
+        const wissen = document.getElementById("knowledgeList");
+        if (wissen && wissen.closest(".card")) wissen.closest(".card").style.display = "none";
+        ["funktionen", "test"].forEach((t) => {
+            const b = document.querySelector('.tab[data-tab="' + t + '"]');
+            if (b) b.style.display = "none";
+        });
+    }
+    if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", profilAnsicht);
+    else profilAnsicht();
+
 
     async function loadAgentSettings() {
         const response =
             await fetch(
-                "/leon-api/agent/settings"
+                mitProfil("/leon-api/agent/settings")
             );
 
         const data =
@@ -999,7 +1018,7 @@
         try {
             const response =
                 await fetch(
-                    "/leon-api/agent/prompt-versions"
+                    mitProfil("/leon-api/agent/prompt-versions")
                 );
 
             const result =
@@ -1055,9 +1074,9 @@
 
         const response =
             await fetch(
-                "/leon-api/agent/prompt-versions/" +
+                mitProfil("/leon-api/agent/prompt-versions/" +
                 versionId +
-                "/restore",
+                "/restore"),
                 {
                     method: "POST"
                 }
@@ -1149,7 +1168,7 @@
 
         const response =
             await fetch(
-                "/leon-api/agent/settings",
+                mitProfil("/leon-api/agent/settings"),
                 {
                     method: "POST",
 
@@ -1265,7 +1284,7 @@
 
         const response =
             await fetch(
-                "/leon-api/agent/settings",
+                mitProfil("/leon-api/agent/settings"),
                 {
                     method: "POST",
 

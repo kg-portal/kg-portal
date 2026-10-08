@@ -167,7 +167,7 @@ def _stundenzettel(conn):
         rows = conn.execute("""
             SELECT m.worker_id, m.monat, m.wa_antwort, w.vorname, w.nachname, w.telefon FROM stundenzettel_monate m
             JOIN mitarbeiter w ON w.id = m.worker_id
-            WHERE m.status IN ('wa_unklar', 'wa_nein')
+            WHERE m.status IN ('wa_unklar', 'wa_nein', 'anruf_unklar', 'anruf_nicht_erreicht')
             ORDER BY m.monat, w.vorname
         """).fetchall()
     except Exception:

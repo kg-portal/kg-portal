@@ -41,6 +41,10 @@
 .st-wa_ja{background:#dcfce7;color:#166534}
 .st-wa_korrigiert{background:#e0e7ff;color:#3730a3}
 .st-wa_unklar,.st-wa_nein{background:#fee2e2;color:#b91c1c}
+.st-anruf_wartet{background:#fef3c7;color:#92400e}
+.st-anruf_ja{background:#dcfce7;color:#166534}
+.st-anruf_korrigiert{background:#e0e7ff;color:#3730a3}
+.st-anruf_unklar,.st-anruf_nicht_erreicht{background:#fee2e2;color:#b91c1c}
 .st-bestaetigt{background:#166534;color:#fff}
 .stz2-archiv{width:34px;height:34px;flex:none;border-radius:10px;border:0;background:transparent;color:#cbd5e1;cursor:pointer;font-size:14px}
 .stz2-archiv:hover{background:#fef2f2;color:#dc2626}
@@ -149,7 +153,9 @@
     let DATEN = {{ uebersicht | tojson }};
     const STATUS = {
         offen: "Offen", ausgefuellt: "Ausgefüllt", wa_wartet: "WhatsApp gesendet", wa_ja: "✓ Ja per WhatsApp",
-        wa_korrigiert: "✏ Korrigiert", wa_unklar: "⚠ Unklar – prüfen", wa_nein: "⚠ Unklar – prüfen", bestaetigt: "🔒 Bestätigt"
+        wa_korrigiert: "✏ Korrigiert", wa_unklar: "⚠ Unklar – prüfen", wa_nein: "⚠ Unklar – prüfen", bestaetigt: "🔒 Bestätigt",
+        anruf_wartet: "📞 KG-Agent ruft an", anruf_ja: "✓ Ja per Anruf", anruf_korrigiert: "✏ Korrigiert (Anruf)",
+        anruf_unklar: "⚠ Anruf unklar – prüfen", anruf_nicht_erreicht: "⚠ Nicht erreicht"
     };
     let sichtbar = [];
     let offenId = null;

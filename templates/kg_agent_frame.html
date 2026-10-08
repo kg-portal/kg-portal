@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div style="display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin-bottom:12px;">
+    <a href="/stundenzettel/automatik" style="text-decoration:none;font-weight:700;color:#1d4ed8;">← Feste Zeiten &amp; Bestätigung</a>
+    <span style="font-weight:800;font-size:18px;color:#0f172a;">📞 KG-Agent – Stundenzettel-Anruf</span>
+    <span style="font-size:13px;color:#475569;">Eigenes Profil im Leon-Motor – der Verkaufs-Leon bleibt unverändert.</span>
+</div>
+
+{% if fehler %}
+<div style="padding:14px 16px;border-radius:12px;background:#fff7ed;color:#9a3412;font-weight:600;">{{ fehler }}</div>
+{% else %}
+<iframe
+    id="kgAgentFrame"
+    src="/leon-ui/agent?agent={{ profil }}"
+    title="KG-Agent"
+    style="display:block;width:100%;height:calc(100vh - 150px);min-height:600px;border:0;border-radius:20px;background:#f8fafc;box-shadow:0 10px 25px rgba(0,0,0,.05);"
+></iframe>
+
+<script>
+    // Rahmenhöhe an das Fenster anpassen
+    (function () {
+        const frame = document.getElementById('kgAgentFrame');
+        function fit() {
+            const top = frame.getBoundingClientRect().top + window.scrollY;
+            frame.style.height = Math.max(600, window.innerHeight - top - 24) + 'px';
+        }
+        window.addEventListener('resize', fit);
+        fit();
+    })();
+</script>
+{% endif %}
+
+{% endblock %}

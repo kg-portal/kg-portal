@@ -1033,7 +1033,7 @@ def monat_details(conn, worker_id, monat, sprache):
         + f"\nToplam: {zahl(arbeit + sonder)} saat")
 
 
-def _ki_aenderungen(conn, worker_id, monat, text, rueckfrage="", zuletzt=""):
+def _ki_aenderungen(conn, worker_id, monat, text, rueckfrage="", zuletzt="", anruf=False):
     """Die KI liest aus der Antwort, was geändert werden soll. → dict(aenderungen=[...], unklar='')"""
     start, ende, monat = _monat_param(monat)
     plan = _plan_laden(conn, worker_id)
@@ -1044,8 +1044,12 @@ def _ki_aenderungen(conn, worker_id, monat, text, rueckfrage="", zuletzt=""):
     feste = "\n".join(f"{WOCHENTAGE_LANG[i]}: {p['start']}–{p['ende']}, Ort {p['ort']}"
                       for i, p in enumerate(plan[k] for k in WOCHENTAGE) if p["aktiv"]) or "(keine)"
     prompt = (
-        "Du liest die WhatsApp-Antwort eines Reinigungs-Mitarbeiters auf seinen Stundenzettel. "
-        "Finde die gewünschten Änderungen. Antworte NUR mit JSON, ohne weiteren Text.\n"
+        ("Du liest das Transkript eines Telefonats des KG-Agent (Assistent) mit einem Reinigungs-Mitarbeiter über "
+         "seinen Stundenzettel. Zählen darf nur, was der MITARBEITER sagt oder ausdrücklich bestätigt – was nur der "
+         "Assistent vorliest, ist keine Änderung. Setze zusätzlich \"bestaetigt\": true, wenn der Mitarbeiter sagt, "
+         "dass der Stundenzettel (ggf. mit den genannten Änderungen) stimmt.\n" if anruf else
+         "Du liest die WhatsApp-Antwort eines Reinigungs-Mitarbeiters auf seinen Stundenzettel. ")
+        + "Finde die gewünschten Änderungen. Antworte NUR mit JSON, ohne weiteren Text.\n"
         f"Monat: {MONATE[start.month - 1]} {start.year} (nur Tage von {start.isoformat()} bis {(ende - timedelta(days=1)).isoformat()}).\n"
         f"Heute: {berlin_jetzt():%Y-%m-%d}.\n"
         f"Aktuelle Einträge:\n{eintraege}\n"
@@ -1085,7 +1089,8 @@ def _ki_aenderungen(conn, worker_id, monat, text, rueckfrage="", zuletzt=""):
     a, b = antwort.find("{"), antwort.rfind("}")
     daten = json.loads(antwort[a:b + 1]) if a >= 0 and b > a else {}
     return {"aenderungen": daten.get("aenderungen") or [], "unklar": str(daten.get("unklar") or "").strip(),
-            "frage": bool(daten.get("frage")), "kein_stundenzettel": bool(daten.get("kein_stundenzettel"))}
+            "frage": bool(daten.get("frage")), "kein_stundenzettel": bool(daten.get("kein_stundenzettel")),
+            "bestaetigt": bool(daten.get("bestaetigt"))}
 
 
 def _eintrag_text(l):
@@ -1646,6 +1651,228 @@ def automatik_starten(get_db_connection, leon_client_factory):
     threading.Thread(target=schleife, name="stundenzettel-automatik", daemon=True).start()
 
 
+# ----------------------------------------------------- KG-Agent (Telefon)
+# Der KG-Agent ruft den Mitarbeiter über den Leon-Motor an (eigenes Profil „KG-Agent“ und eigene Kampagne
+# „Stundenzettel-Kontrolle“ – der Verkaufs-Leon bleibt unberührt). Nach dem Gespräch liest die KI das
+# Transkript und trägt die Änderungen ein, die der Mitarbeiter genannt hat.
+
+ANRUF_STATUS = ("anruf_wartet", "anruf_ja", "anruf_korrigiert", "anruf_unklar", "anruf_nicht_erreicht")
+SPRACHE_NAME = {"tr": "Türkisch", "de": "Deutsch", "": "beide (zuerst Türkisch)"}
+
+
+def _anruf_kampagne(client):
+    name = (os.getenv("LEON_STZ_KAMPAGNE") or "Stundenzettel-Kontrolle").strip()
+    _code, data = client.request("GET", "/api/campaigns")
+    for c in (data or {}).get("campaigns", []):
+        if (c.get("name") or "").strip().lower() == name.lower():
+            return c
+    return None
+
+
+def kg_agent_profil(client):
+    """Profil-Nr. des KG-Agent im Leon-Motor (über die Kampagne) – nie Profil 1 (Verkaufs-Leon)."""
+    k = _anruf_kampagne(client)
+    agent = int((k or {}).get("agent_id") or 0)
+    return agent if agent > 1 else None
+
+
+def _kampagne_pausieren_wenn_leer(client, kampagne):
+    # im Motor darf nur eine Kampagne aktiv sein – leer gleich pausieren, sonst blockiert sie Leon
+    _code, prog = client.request("GET", f"/api/campaigns/{kampagne['id']}/progress")
+    prog = prog or {}
+    offen = sum(int(prog.get(k) or 0) for k in ("waiting", "reserved", "running", "retry_waiting", "active_call_count"))
+    if prog.get("success") and prog.get("status") == "Aktiv" and offen == 0:
+        client.request("POST", f"/api/campaigns/{kampagne['id']}/control", {"action": "pause"}, timeout=30)
+
+
+def anruf_starten(conn, client, worker_id, monat):
+    _s, _e, monat = _monat_param(monat)
+    ensure_tables(conn)
+    w = _worker(conn, worker_id)
+    if not w:
+        raise ValueError("Mitarbeiter nicht gefunden.")
+    if not (w["telefon"] or "").strip():
+        raise ValueError("Für diesen Mitarbeiter ist keine Telefonnummer gespeichert.")
+    if _monat_row(conn, worker_id, monat).get("status") == "bestaetigt":
+        raise ValueError("Der Monat ist bestätigt und gesperrt.")
+    kampagne = _anruf_kampagne(client)
+    if not kampagne or not kg_agent_profil(client):
+        raise ValueError("Im Leon-Motor fehlt der KG-Agent. Einmalig im Leon-Ordner ausführen: "
+                         "python tools/stundenzettel_agent.py --apply")
+    text, _stunden = monat_zusammenfassung(conn, worker_id, monat)
+    lead = {
+        "firma": f"KG Mitarbeiter {_name(w)}",
+        "ansprechpartner": _name(w),
+        "telefon": w["telefon"],
+        "branche": (f"Sprache: {SPRACHE_NAME.get(sprache_laden(conn, worker_id), SPRACHE_NAME[''])}\n{text}")[:900],
+    }
+    code, resp = client.request("POST", "/api/leads", lead, timeout=30)
+    lead_id = None
+    if code == 409 and resp.get("duplicate_id"):
+        lead_id = resp["duplicate_id"]
+        client.request("PUT", f"/api/leads/{lead_id}", lead, timeout=30)
+    elif resp.get("success"):
+        lead_id = (resp.get("lead") or {}).get("id") or resp.get("id") or resp.get("lead_id")
+    if not lead_id:
+        raise ValueError(resp.get("error") or "Der Mitarbeiter konnte im Leon-Motor nicht angelegt werden.")
+    cid = kampagne["id"]
+    try:  # vom Vormonat noch in der Kampagne? herausnehmen und neu einreihen
+        client.request("DELETE", f"/api/campaigns/{cid}/leads/{lead_id}", timeout=30)
+    except Exception:
+        pass
+    code, resp = client.request("POST", f"/api/campaigns/{cid}/leads", {"lead_ids": [lead_id]}, timeout=30)
+    if not resp.get("success", code < 400):
+        raise ValueError(resp.get("error") or "Der Mitarbeiter konnte nicht in die Kampagne.")
+    info = "Anruf wird gestartet"
+    if kampagne.get("status") != "Aktiv":
+        code, resp = client.request("POST", f"/api/campaigns/{cid}/control", {"action": "start"}, timeout=30)
+        if code == 409 and resp.get("active_campaign_id"):
+            info = "wartet – Leon telefoniert gerade (Verkaufskampagne); startet danach automatisch"
+        elif code >= 400 and not resp.get("success"):
+            raise ValueError(resp.get("error") or "Die Kampagne konnte nicht gestartet werden.")
+    _monat_speichern(conn, worker_id, monat, status="anruf_wartet", leon_lead_id=lead_id, leon_call_id=None,
+                     leon_status="Wartet auf Anruf", leon_ergebnis=None, leon_zusammenfassung=None,
+                     leon_transkript=None, leon_fehler=None, leon_info=info,
+                     angerufen_am=datetime.now().isoformat(timespec="seconds"), zusammenfassung=text)
+    conn.commit()
+    return {"lead_id": lead_id, "info": info}
+
+
+def _anruf_auswerten(conn, worker_id, monat, transkript):
+    """Transkript → KI → Änderungen eintragen → Status. Nur einmal je Anruf."""
+    with _korrektur_lock:
+        try:
+            ki = _ki_aenderungen(conn, worker_id, monat, transkript, anruf=True)
+        except Exception as exc:
+            print("STUNDENZETTEL-ANRUF KI FEHLER:", exc)
+            ki = {"aenderungen": [], "unklar": "KI nicht erreichbar – Gespräch bitte selbst lesen", "bestaetigt": False}
+        eingetragen, nicht = aenderungen_anwenden(conn, worker_id, monat, ki["aenderungen"], "Anruf: " + transkript)
+        unklar = "; ".join(x for x in [ki["unklar"]] + nicht if x)
+        if not eingetragen and not unklar and not ki.get("bestaetigt"):
+            unklar = "nicht bestätigt – Gespräch bitte lesen"
+        status = "anruf_unklar" if unklar else ("anruf_korrigiert" if eingetragen else "anruf_ja")
+        row = _monat_row(conn, worker_id, monat)
+        notiz = row.get("notiz") or ""
+        if unklar:
+            notiz = (notiz + f"\n[{berlin_jetzt():%d.%m. %H:%M}] Anruf unklar: {unklar}").strip()[:2000]
+        info = "Anruf: " + ("; ".join(eingetragen) if eingetragen else "alles bestätigt" if status == "anruf_ja" else "unklar")
+        _monat_speichern(conn, worker_id, monat, status=status, notiz=notiz or None, leon_info=info[:500])
+        conn.commit()
+
+
+def anruf_status(conn, client, worker_id, monat):
+    """Stand des KG-Agent-Anrufs holen; fertiges Gespräch auswerten."""
+    _s, _e, monat = _monat_param(monat)
+    row = _monat_row(conn, worker_id, monat)
+    lead_id = row.get("leon_lead_id")
+    if not lead_id or row.get("status") != "anruf_wartet":
+        return row
+    lead_id = int(lead_id)
+    kampagne = _anruf_kampagne(client)
+    felder, eintrag = {}, None
+    if kampagne:
+        _code, data = client.request("GET", f"/api/campaigns/{kampagne['id']}/leads")
+        for cl in (data or {}).get("selected_leads", []):
+            if int(cl.get("lead_id") or 0) == lead_id:
+                eintrag = cl
+                break
+    seit = str(row.get("angerufen_am") or "").replace("T", " ")[:19]
+    _code, data = client.request("GET", "/api/calls")
+    anrufe = [c for c in (data or {}).get("calls", []) if int(c.get("lead_id") or 0) == lead_id
+              and str(c.get("created_at") or "")[:19] >= seit]
+    anrufe.sort(key=lambda c: int(c.get("id") or 0), reverse=True)
+    call = None
+    if anrufe:
+        _code, detail = client.request("GET", f"/api/calls/{anrufe[0]['id']}")
+        call = (detail or {}).get("call") or anrufe[0]
+        felder.update(leon_call_id=anrufe[0]["id"], leon_status=call.get("status"), leon_ergebnis=call.get("result"),
+                      leon_zusammenfassung=call.get("summary"), leon_transkript=call.get("transcript"))
+    fertig = False
+    if eintrag:
+        st = eintrag.get("campaign_status") or "Wartet"
+        info = f"Kampagne: {st}" + (f", Versuch {eintrag['attempt_count']}" if eintrag.get("attempt_count") else "")
+        if st == "Wartet" and eintrag.get("next_attempt_at"):
+            info += f", nächster Versuch {str(eintrag['next_attempt_at'])[:16]}"
+        felder["leon_info"] = info
+        fertig = st in {"Beendet", "Nicht erreicht", "Gesperrt"}
+        if (st == "Wartet" and kampagne.get("status") != "Aktiv"
+                and int(eintrag.get("attempt_count") or 0) < int(kampagne.get("max_attempts") or 3)
+                and str(eintrag.get("next_attempt_at") or "")[:19] <= datetime.now().strftime("%Y-%m-%d %H:%M:%S")):
+            code, resp = client.request("POST", f"/api/campaigns/{kampagne['id']}/control", {"action": "start"}, timeout=30)
+            if code == 409 and resp.get("active_campaign_id"):
+                felder["leon_info"] = info + " – wartet, bis Leon frei ist"
+    elif call and call.get("status") in {"Beendet", "Fehler", "Nicht erreichbar", "Besetzt", "Abgebrochen", "Anrufbeantworter"}:
+        fertig = True
+    if felder:
+        _monat_speichern(conn, worker_id, monat, **felder)
+        conn.commit()
+    if fertig:
+        transkript = str((call or {}).get("transcript") or "").strip()
+        if call and call.get("status") == "Beendet" and len(transkript) > 40:
+            _anruf_auswerten(conn, worker_id, monat, transkript)
+        else:
+            _monat_speichern(conn, worker_id, monat, status="anruf_nicht_erreicht",
+                             leon_info=(felder.get("leon_info") or "nicht erreicht")[:500])
+            conn.commit()
+    if kampagne:
+        _kampagne_pausieren_wenn_leer(client, kampagne)
+    conn.commit()
+    return _monat_row(conn, worker_id, monat)
+
+
+def anruf_abbrechen(conn, client, worker_id, monat):
+    _s, _e, monat = _monat_param(monat)
+    row = _monat_row(conn, worker_id, monat)
+    kampagne = _anruf_kampagne(client)
+    if kampagne and row.get("leon_lead_id"):
+        try:
+            client.request("DELETE", f"/api/campaigns/{kampagne['id']}/leads/{int(row['leon_lead_id'])}", timeout=30)
+        except Exception:
+            pass
+        _kampagne_pausieren_wenn_leer(client, kampagne)
+    neuer_status = "ausgefuellt" if row.get("gefuellt_am") else "offen"
+    _monat_speichern(conn, worker_id, monat, status=neuer_status, leon_info="Anruf abgebrochen")
+    conn.commit()
+    return _monat_row(conn, worker_id, monat)
+
+
+_anruf_takt_gestartet = False
+
+
+def anruf_takt_starten(get_db_connection, leon_client_factory):
+    """Jede Minute: laufende KG-Agent-Anrufe prüfen (nur wenn welche warten)."""
+    global _anruf_takt_gestartet
+    with _automatik_lock:
+        if _anruf_takt_gestartet:
+            return
+        _anruf_takt_gestartet = True
+
+    def schleife():
+        time.sleep(60)
+        while True:
+            try:
+                conn = get_db_connection()
+                try:
+                    ensure_tables(conn)
+                    wartend = conn.execute(
+                        "SELECT worker_id, monat FROM stundenzettel_monate WHERE status = 'anruf_wartet' ORDER BY monat, worker_id"
+                    ).fetchall()
+                    if wartend:
+                        client = leon_client_factory()
+                        for r in wartend:
+                            try:
+                                anruf_status(conn, client, r["worker_id"], r["monat"])
+                            except Exception as exc:
+                                print("STUNDENZETTEL-ANRUF FEHLER:", r["worker_id"], exc)
+                finally:
+                    conn.close()
+            except Exception as exc:
+                print("STUNDENZETTEL-ANRUF TAKT FEHLER:", exc)
+            time.sleep(60)
+
+    threading.Thread(target=schleife, name="stundenzettel-anruf", daemon=True).start()
+
+
 # ----------------------------------------------------- Routen
 
 def register_stundenzettel_auto(app, login_required, get_db_connection, leon_client_factory):
@@ -1720,6 +1947,67 @@ def register_stundenzettel_auto(app, login_required, get_db_connection, leon_cli
             conn.close()
 
     automatik_starten(get_db_connection, leon_client_factory)
+    anruf_takt_starten(get_db_connection, leon_client_factory)
+
+    @app.route("/api/stz-auto/anruf/<int:worker_id>", methods=["POST"])
+    @login_required
+    def stz_auto_anruf(worker_id):
+        conn = _conn()
+        try:
+            return jsonify({"success": True, **anruf_starten(conn, leon_client_factory(), worker_id, _json().get("monat"))})
+        except Exception as exc:
+            return _fehler(exc)
+        finally:
+            conn.close()
+
+    @app.route("/api/stz-auto/anruf-alle", methods=["POST"])
+    @login_required
+    def stz_auto_anruf_alle():
+        # alle aktiven Mitarbeiter mit Einträgen im Monat – bestätigte und schon wartende nicht
+        _s, _e, monat = _monat_param(_json().get("monat"))
+        conn = _conn()
+        try:
+            client = leon_client_factory()
+            gestartet, fehler = [], []
+            for w in conn.execute("SELECT id, vorname, nachname FROM mitarbeiter WHERE status = 'aktiv' ORDER BY id").fetchall():
+                row = _monat_row(conn, w["id"], monat)
+                if row.get("status") in ("bestaetigt", "anruf_wartet") or not _logs(conn, w["id"], monat):
+                    continue
+                try:
+                    anruf_starten(conn, client, w["id"], monat)
+                    gestartet.append(_name(w))
+                except Exception as exc:
+                    fehler.append(f"{_name(w)}: {exc}")
+            return jsonify({"success": True, "gestartet": gestartet, "fehler": fehler})
+        except Exception as exc:
+            return _fehler(exc)
+        finally:
+            conn.close()
+
+    @app.route("/api/stz-auto/anruf-stopp/<int:worker_id>", methods=["POST"])
+    @login_required
+    def stz_auto_anruf_stopp(worker_id):
+        conn = _conn()
+        try:
+            return jsonify({"success": True, "monat": anruf_abbrechen(conn, leon_client_factory(), worker_id, _json().get("monat"))})
+        except Exception as exc:
+            return _fehler(exc)
+        finally:
+            conn.close()
+
+    @app.route("/stundenzettel/kg-agent")
+    @login_required
+    def stz_kg_agent_seite():
+        # Einstellungen des KG-Agent (Begrüßung, Anweisung, Stimme) – Leons Einstellungsseite mit ?agent=<Profil>
+        profil, fehler = None, ""
+        try:
+            profil = kg_agent_profil(leon_client_factory())
+        except Exception as exc:
+            fehler = str(exc)
+        if not profil and not fehler:
+            fehler = ("Der KG-Agent ist im Leon-Motor noch nicht eingerichtet. Einmalig im Leon-Ordner ausführen: "
+                      "python tools/stundenzettel_agent.py --apply")
+        return render_template("kg_agent_frame.html", profil=profil, fehler=fehler)
 
     @app.route("/api/stz-auto/uebersicht")
     @login_required

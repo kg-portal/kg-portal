@@ -20,6 +20,10 @@
   .b-wa_ja { background: #ccfbf1; color: #115e59; }
   .b-wa_korrigiert { background: #e0e7ff; color: #3730a3; }
   .b-wa_nein, .b-wa_unklar { background: #fee2e2; color: #b91c1c; }
+  .b-anruf_wartet { background: #ffedd5; color: #9a3412; }
+  .b-anruf_ja { background: #ccfbf1; color: #115e59; }
+  .b-anruf_korrigiert { background: #e0e7ff; color: #3730a3; }
+  .b-anruf_unklar, .b-anruf_nicht_erreicht { background: #fee2e2; color: #b91c1c; }
   .b-bestaetigt { background: #dcfce7; color: #166534; }
   .sza-btns { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
   .sza-btn { border: 0; border-radius: 10px; padding: 10px 14px; min-height: 40px; font-weight: 800; font-size: 13px; cursor: pointer; color: #fff; }
@@ -101,6 +105,8 @@
       <button class="sza-btn c-green" id="aSave">Automatik speichern</button>
       <button class="sza-btn c-slate" id="aJetzt">Jetzt prüfen</button>
       <button class="sza-btn c-wa" id="aAlle">Gewählten Monat jetzt an alle senden</button>
+      <button class="sza-btn c-purple" id="aAnrufAlle">📞 Alle anrufen (KG-Agent)</button>
+      <a class="sza-btn c-slate" href="/stundenzettel/kg-agent" style="text-decoration:none">⚙️ KG-Agent Einstellungen</a>
       <button class="sza-btn c-slate" id="aBericht">Bericht ansehen</button>
       <button class="sza-btn c-slate" id="aBerichtMail">Bericht als Test-Mail</button>
     </div>
@@ -129,7 +135,9 @@
   const STANDARD_START = "17:00", STANDARD_ENDE = "19:00";
   const STATUS = { offen: "offen", ausgefuellt: "ausgefüllt", leon_wartet: "ausgefüllt", leon_fertig: "ausgefüllt",
     wa_wartet: "WhatsApp gesendet – wartet", wa_ja: "✓ Ja (Mitarbeiter)", wa_korrigiert: "✏️ korrigiert",
-    wa_unklar: "⚠ unklar – bitte prüfen", wa_nein: "⚠ unklar – bitte prüfen", bestaetigt: "bestätigt · gesperrt" };
+    wa_unklar: "⚠ unklar – bitte prüfen", wa_nein: "⚠ unklar – bitte prüfen", bestaetigt: "bestätigt · gesperrt",
+    anruf_wartet: "📞 KG-Agent ruft an …", anruf_ja: "✓ Ja (Anruf)", anruf_korrigiert: "✏️ korrigiert (Anruf)",
+    anruf_unklar: "⚠ Anruf unklar – bitte prüfen", anruf_nicht_erreicht: "⚠ nicht erreicht" };
   const TAGE_K = ["So", "Mo", "Di", "Mi", "Do", "Fr", "Sa"];
   const tagZeit = (iso, mitZeit) => { const d = new Date(iso); return TAGE_K[d.getDay()] + " " + String(d.getDate()).padStart(2, "0") + "."
     + String(d.getMonth() + 1).padStart(2, "0") + "." + (mitZeit ? " " + String(d.getHours()).padStart(2, "0") + ":" + String(d.getMinutes()).padStart(2, "0") : ""); };
@@ -197,6 +205,15 @@
     return html + "</div>";
   }
 
+  function anrufBlock(row) {
+    // KG-Agent-Anruf: Stand, Zusammenfassung und Gespräch
+    if (!String(row.status || "").startsWith("anruf_") && !row.leon_transkript) return "";
+    let html = '<div class="sza-sub" style="margin-top:8px"><b>📞 KG-Agent:</b> ' + esc(row.leon_info || row.leon_status || "");
+    if (row.leon_zusammenfassung) html += "<br>" + esc(row.leon_zusammenfassung);
+    if (row.leon_transkript) html += `<details><summary>Gespräch anzeigen</summary><pre>${esc(row.leon_transkript)}</pre></details>`;
+    return html + "</div>";
+  }
+
   function card(m) {
     const row = m.monat || {};
     const st = row.status || "offen";
@@ -215,11 +232,14 @@
       </div>
       <div class="sza-summary">${esc(m.zusammenfassung)}${row.notiz ? "<br><b>Notiz:</b> " + esc(row.notiz) : ""}</div>
       ${waBlock(row, m.wa)}
+      ${anrufBlock(row)}
       <div class="sza-btns">
         <button class="sza-btn c-slate a-plan">Feste Zeiten</button>
         <button class="sza-btn c-blue a-fill" ${locked ? "disabled" : ""}>Monat ausfüllen</button>
         <button class="sza-btn c-slate a-undo" ${locked ? "disabled" : ""}>Rückgängig</button>
         <button class="sza-btn c-wa a-wa" ${locked || !m.telefon ? "disabled" : ""}>${row.wa_gesendet_am ? "WhatsApp erneut senden" : "WhatsApp senden"}</button>
+        ${st === "anruf_wartet" ? '<button class="sza-btn c-red a-anruf-stopp">Anruf abbrechen</button>'
+          : `<button class="sza-btn c-purple a-anruf" ${locked || !m.telefon ? "disabled" : ""}>📞 Anrufen</button>`}
         ${locked ? '<button class="sza-btn c-red a-unlock">Entsperren</button>' : '<button class="sza-btn c-green a-ok">Bestätigen &amp; sperren</button>'}
       </div>
       <div class="sza-plan">
@@ -313,6 +333,18 @@
         msg(document.querySelector(`.sza-card[data-id="${id}"]`), "WhatsApp ist unterwegs (Damlas Handy schickt sie in ca. 1 Minute).", true);
         return;
       }
+      if (btn.classList.contains("a-anruf")) {
+        if (!confirm("KG-Agent soll " + c.querySelector(".sza-name").textContent + " jetzt anrufen?")) { btn.disabled = false; return; }
+        const r = await api("/api/stz-auto/anruf/" + id, { monat });
+        await laden();
+        msg(document.querySelector(`.sza-card[data-id="${id}"]`), "📞 " + r.info, true);
+        return;
+      }
+      if (btn.classList.contains("a-anruf-stopp")) {
+        await api("/api/stz-auto/anruf-stopp/" + id, { monat });
+        await laden();
+        return;
+      }
       if (btn.classList.contains("a-ok")) {
         const notiz = prompt("Optional: Notiz zur Bestätigung (z. B. Korrekturen)", "") ;
         if (notiz === null) { btn.disabled = false; return; }
@@ -393,6 +425,12 @@
     if (!confirm(`Stundenzettel ${monatInput.value} jetzt per WhatsApp an alle schicken, die ihn noch nicht bekommen haben (bis zu ${offen.length})?`)) return;
     const r = await api("/api/stz-auto/whatsapp-alle", { monat: monatInput.value });
     autoMsg(`Gesendet an ${r.gesendet.length}: ${r.gesendet.join(", ") || "–"}` + (r.nicht.length ? ` · Nicht gesendet: ${r.nicht.join("; ")}` : ""), true);
+    await laden();
+  }));
+  aEl("aAnrufAlle").addEventListener("click", () => knopf("aAnrufAlle", async () => {
+    if (!confirm(`KG-Agent soll jetzt alle Mitarbeiter für ${monatInput.value} anrufen (nacheinander, bestätigte Monate nicht)?`)) return;
+    const r = await api("/api/stz-auto/anruf-alle", { monat: monatInput.value });
+    autoMsg(`📞 Anrufe eingeplant: ${r.gestartet.length} (${r.gestartet.join(", ") || "–"})` + (r.fehler.length ? ` · Fehler: ${r.fehler.join("; ")}` : ""), !r.fehler.length);
     await laden();
   }));
   aEl("aBericht").addEventListener("click", () => knopf("aBericht", async () => {
