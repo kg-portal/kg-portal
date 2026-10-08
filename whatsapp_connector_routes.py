@@ -948,9 +948,9 @@ def register_whatsapp_connector_routes(app, login_required):
             VALUES (?, ?, ?, ?, ?, ?, ?)
         ''', (wa_message_id or None, phone, name, body, msg_type, raw_from, wa_timestamp))
 
-        # Antwort auf die Stundenzettel-WhatsApp – nur wenn „Automatische Antworten“ AN ist (AUS = gar keine Antwort).
+        # KG Agent (Stundenzettel) – auch wenn „Automatische Antworten“ AUS ist; er antwortet nur nach „Stundenzettel“.
         # Gleiche Nachricht doppelt vom Connector → nur einmal verarbeiten.
-        if aktiv and (eingang.rowcount == 1 or not wa_message_id):
+        if eingang.rowcount == 1 or not wa_message_id:
             try:
                 from stundenzettel_auto import whatsapp_antwort as stz_whatsapp_antwort
                 conn.commit()  # Eingang speichern, damit geschrieben werden kann (SQLite sperrt sonst)
