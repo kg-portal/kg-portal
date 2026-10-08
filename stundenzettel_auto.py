@@ -1715,13 +1715,16 @@ def anruf_starten(conn, client, worker_id, monat):
                          "python tools/stundenzettel_agent.py --apply")
     text, _stunden = monat_zusammenfassung(conn, worker_id, monat)
     r = monat_rechnung(conn, worker_id, monat)
+    m_start, m_ende, _m = _monat_param(monat)
+    kalender = ", ".join(f"{(m_start + timedelta(days=i)).day} {TAGE_KURZ[(m_start + timedelta(days=i)).weekday()]}"
+                         for i in range((m_ende - m_start).days))
     geld = f"Summe: {_std(r['gesamt'] + r['extra'])} Std., Lohn: {_zahl(r['gesamt_eur'])} €" + (
         f" (dazu Extra {_std(r['extra'])} Std. = {_zahl(r['extra_eur'])} €)" if r["extra"] else "")
     lead = {
         "firma": f"KG Mitarbeiter {_name(w)}",
         "ansprechpartner": _name(w),
         "telefon": w["telefon"],
-        "branche": (f"Sprache: {SPRACHE_NAME.get(sprache_laden(conn, worker_id), SPRACHE_NAME[''])}\n{geld}\n{text}")[:900],
+        "branche": (f"Sprache: {SPRACHE_NAME.get(sprache_laden(conn, worker_id), SPRACHE_NAME[''])}\n{geld}\nKalender: {kalender}\n{text}")[:900],
     }
     code, resp = client.request("POST", "/api/leads", lead, timeout=30)
     lead_id = None
