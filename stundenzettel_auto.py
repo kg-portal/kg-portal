@@ -206,6 +206,8 @@ def ensure_tables(conn):
             notiz TEXT
         )
     """)
+    if "tag" not in {r[1] for r in conn.execute("PRAGMA table_info(stundenzettel_extras)")}:
+        conn.execute("ALTER TABLE stundenzettel_extras ADD COLUMN tag INTEGER")
     conn.commit()
 
 
@@ -238,14 +240,52 @@ def _plan_laden(conn, worker_id):
 #  - "erster_arbeitstag": Stunden an das Ende des ersten Arbeitstags im Monat anhängen
 #  - "samstag_mitte": am Samstag, der dem 15. am nächsten liegt – an den Tag anhängen;
 #    ist dort kein fester Arbeitstag, ab „start“ am „ort“ neu eintragen
-EXTRA_REGELN = {"erster_arbeitstag": "am ersten Arbeitstag", "samstag_mitte": "am Samstag in der Monatsmitte"}
+#  - "monatstag": an einem festen Tag im Monat („tag“, z. B. 10.) – wie "samstag_mitte"
+EXTRA_REGELN = {"erster_arbeitstag": "am ersten Arbeitstag", "samstag_mitte": "am Samstag in der Monatsmitte",
+                "monatstag": "an einem festen Tag im Monat"}
 
 
 def extras_laden(conn, worker_id):
     return [dict(r) for r in conn.execute(
-        "SELECT id, regel, stunden, start, ort, notiz FROM stundenzettel_extras WHERE worker_id = ? AND aktiv = 1 ORDER BY id",
+        "SELECT id, regel, stunden, start, ort, tag, notiz FROM stundenzettel_extras WHERE worker_id = ? AND aktiv = 1 ORDER BY id",
         (worker_id,),
     )]
+
+
+def _extra_text(x):
+    if x["regel"] == "monatstag":
+        return f"am {x.get('tag')}. im Monat"
+    return EXTRA_REGELN.get(x["regel"], x["regel"])
+
+
+def _extras_pruefen(liste):
+    """„Extra 1x mtl.“ aus dem Mitarbeiter-Formular prüfen."""
+    sauber = []
+    for x in liste or []:
+        regel = str(x.get("regel") or "")
+        if regel not in EXTRA_REGELN:
+            raise ValueError("Extra 1x mtl.: unbekannter Tag.")
+        try:
+            stunden = round(float(str(x.get("stunden") or "0").replace(",", ".")), 2)
+        except ValueError:
+            stunden = 0
+        if not 0 < stunden <= 12:
+            raise ValueError("Extra 1x mtl.: Stunden zwischen 0,25 und 12 eintragen.")
+        start = str(x.get("start") or "").strip()[:5]
+        ort = str(x.get("ort") or "").strip()[:120]
+        tag = None
+        if regel == "monatstag":
+            try:
+                tag = int(x.get("tag"))
+            except (TypeError, ValueError):
+                tag = 0
+            if not 1 <= tag <= 31:
+                raise ValueError("Extra 1x mtl.: Tag im Monat (1–31) eintragen.")
+        if regel != "erster_arbeitstag" and (not _zeit_ok(start) or not ort):
+            raise ValueError("Extra 1x mtl.: Beginn und Ort ausfüllen.")
+        sauber.append({"regel": regel, "stunden": stunden, "start": start or None, "ort": ort or None, "tag": tag,
+                       "notiz": str(x.get("notiz") or "")[:200] or None})
+    return sauber
 
 
 def _samstag_mitte(monatsanfang):
@@ -337,7 +377,7 @@ def monat_fuellen(conn, worker_id, monat):
     if _monat_row(conn, worker_id, monat).get("status") == "bestaetigt":
         raise ValueError("Monat ist bereits bestätigt und gesperrt.")
     plan = _plan_laden(conn, worker_id)
-    if not any(p["aktiv"] for p in plan.values()):
+    if not any(p["aktiv"] for p in plan.values()) and not extras_laden(conn, worker_id):
         raise ValueError("Für diesen Mitarbeiter sind noch keine festen Zeiten gespeichert.")
     feiertage = feiertage_nrw(start.year)
     eintritt = None
@@ -388,12 +428,15 @@ def monat_fuellen(conn, worker_id, monat):
 def _extras_eintragen(conn, worker_id, monat, monatsanfang, neu, vorhanden, feiertage, eintritt, uebersprungen):
     """Monatliche Extras an die gerade automatisch eingetragenen Tage anhängen (siehe EXTRA_REGELN)."""
     for x in extras_laden(conn, worker_id):
-        text = f"Extra {_hhmm(x['stunden'])} Std. {EXTRA_REGELN.get(x['regel'], x['regel'])}"
+        text = f"Extra {_hhmm(x['stunden'])} Std. {_extra_text(x)}"
         ziel = None
         if x["regel"] == "erster_arbeitstag":
             ziel = next((d for d in neu if date.fromisoformat(d) not in feiertage), None)
         elif x["regel"] == "samstag_mitte":
             ziel = _samstag_mitte(monatsanfang).isoformat()
+        elif x["regel"] == "monatstag" and x.get("tag"):
+            letzter = ((monatsanfang.replace(day=28) + timedelta(days=4)).replace(day=1) - timedelta(days=1)).day
+            ziel = monatsanfang.replace(day=min(int(x["tag"]), letzter)).isoformat()
         if not ziel:
             uebersprungen.append(f"{text}: kein passender Tag")
             continue
@@ -1348,7 +1391,7 @@ def automatik_lauf(conn, leon_client_factory, jetzt=None):
             "SELECT m.id, m.vorname, m.nachname, m.telefon FROM mitarbeiter m "
             "JOIN stundenzettel_vorlagen v ON v.worker_id = m.id WHERE m.status = 'aktiv' ORDER BY m.id"
         ).fetchall()
-        if any(p["aktiv"] for p in _plan_laden(conn, w["id"]).values())
+        if any(p["aktiv"] for p in _plan_laden(conn, w["id"]).values()) or extras_laden(conn, w["id"])
     ]
 
     def fuellen(w, zusatz=""):
@@ -1568,8 +1611,10 @@ def register_stundenzettel_auto(app, login_required, get_db_connection, leon_cli
     def stz_auto_plan_lesen(worker_id):
         conn = _conn()
         try:
+            ensure_tables(conn)
             return jsonify({"success": True, "plan": _plan_laden(conn, worker_id),
-                            "feiertag_arbeitet": feiertag_regel(conn, worker_id)})
+                            "feiertag_arbeitet": feiertag_regel(conn, worker_id),
+                            "extras": extras_laden(conn, worker_id)})
         finally:
             conn.close()
 
@@ -1579,6 +1624,8 @@ def register_stundenzettel_auto(app, login_required, get_db_connection, leon_cli
         data = _json()
         try:
             plan = _plan_pruefen(data.get("plan"))
+            # „Extra 1x mtl.“ – nur ersetzen, wenn mitgeschickt
+            extras = _extras_pruefen(data.get("extras")) if "extras" in data else None
         except ValueError as exc:
             return _fehler(exc)
         conn = _conn()
@@ -1586,6 +1633,14 @@ def register_stundenzettel_auto(app, login_required, get_db_connection, leon_cli
             if not _worker(conn, worker_id):
                 return _fehler("Mitarbeiter nicht gefunden – bitte zuerst speichern.", 404)
             jetzt = datetime.now().isoformat(timespec="seconds")
+            if extras is not None:
+                ensure_tables(conn)
+                conn.execute("DELETE FROM stundenzettel_extras WHERE worker_id = ?", (worker_id,))
+                for x in extras:
+                    conn.execute(
+                        "INSERT INTO stundenzettel_extras (worker_id, regel, stunden, start, ort, tag, notiz) VALUES (?, ?, ?, ?, ?, ?, ?)",
+                        (worker_id, x["regel"], x["stunden"], x["start"], x["ort"], x["tag"], x["notiz"]),
+                    )
             conn.execute(
                 "INSERT INTO stundenzettel_vorlagen (worker_id, plan_json, aktualisiert_am) VALUES (?, ?, ?) "
                 "ON CONFLICT(worker_id) DO UPDATE SET plan_json = excluded.plan_json, aktualisiert_am = excluded.aktualisiert_am",

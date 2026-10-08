@@ -565,6 +565,12 @@ function toggleWeitere(){
       </div>
       <div style="margin-top:12px; font-size:15px;">Wöchentliche Arbeitszeit: <b id="atSumme">0</b> Stunden · Arbeitstage: <b id="atTage">–</b></div>
       <div style="margin-top:14px;">
+        <label style="display:block; margin-bottom:5px; font-weight:600;">Extra 1x mtl. (einmal im Monat)</label>
+        <div id="atExtras"></div>
+        <button type="button" id="atExtraNeu" style="background:#fff; color:#0f766e; padding:8px 14px; border:1.5px solid #0f766e; border-radius:10px; font-weight:700; cursor:pointer;">+ Extra 1x mtl.</button>
+        <div style="margin-top:6px; font-size:13px; color:#475569;">Wird beim Ausfüllen des Monats eingetragen. „Erster Arbeitstag“: Stunden werden an das Ende angehängt. Sonst: an diesem Tag ab Beginn – ist dort schon ein fester Arbeitstag, werden die Stunden angehängt.</div>
+      </div>
+      <div style="margin-top:14px;">
         <label style="display:block; margin-bottom:5px; font-weight:600;">Arbeitet der Mitarbeiter an Feiertagen?</label>
         <select id="atFeiertag" style="width:100%; max-width:420px; padding:10px; border-radius:8px; border:1.5px solid #e2e8f0;">
           <option value="0">Nein, in der Regel nicht</option>
@@ -1912,6 +1918,42 @@ function printSelectedMitarbeiterFields() {
     }).join("");
     rechnen();
   }
+  const EXTRA_TAGE = [["erster_arbeitstag", "Erster Arbeitstag im Monat"], ["samstag_mitte", "Samstag in der Monatsmitte"],
+                      ["monatstag", "Fester Tag im Monat"]];
+  function extraZeile(x) {
+    x = x || { regel: "monatstag", stunden: 3, start: "17:00", ort: "", tag: 1 };
+    const div = document.createElement("div");
+    div.className = "at-extra";
+    div.dataset.notiz = x.notiz || "";
+    div.style.cssText = "display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-bottom:8px;";
+    div.innerHTML = `<select class="ex-regel" style="${feld}" aria-label="Extra Tag">${EXTRA_TAGE.map(([k, n]) =>
+        `<option value="${k}"${k === x.regel ? " selected" : ""}>${n}</option>`).join("")}</select>
+      <label class="ex-tag-box" style="display:flex; gap:6px; align-items:center;">Tag
+        <input type="number" class="ex-tag" min="1" max="31" value="${esc(x.tag || 1)}" style="${feld} width:70px;"></label>
+      <label style="display:flex; gap:6px; align-items:center;">Beginn
+        <input type="time" class="ex-start" step="300" value="${esc(x.start || "")}" style="${feld}"></label>
+      <label style="display:flex; gap:6px; align-items:center;">Std.
+        <input type="number" class="ex-std" min="0.25" max="12" step="0.25" value="${esc(x.stunden)}" style="${feld} width:80px;"></label>
+      <select class="ex-ort" style="${feld} min-width:180px;" aria-label="Extra Ort">${ortOptionen(x.ort || "")}</select>
+      <button type="button" class="ex-weg" title="Entfernen" style="background:#fee2e2; color:#b91c1c; border:none; border-radius:8px; padding:8px 12px; font-weight:700; cursor:pointer;">✕</button>`;
+    el("atExtras").appendChild(div);
+    extraAnzeige(div);
+  }
+  function extraAnzeige(div) {
+    div.querySelector(".ex-tag-box").style.display = div.querySelector(".ex-regel").value === "monatstag" ? "flex" : "none";
+  }
+  function extrasZeichnen(liste) {
+    el("atExtras").innerHTML = "";
+    (liste || []).forEach(extraZeile);
+    rechnen();
+  }
+  function extrasLesen() {
+    return [...el("atExtras").querySelectorAll(".at-extra")].map((d) => ({
+      regel: d.querySelector(".ex-regel").value, tag: d.querySelector(".ex-tag").value,
+      start: d.querySelector(".ex-start").value, stunden: d.querySelector(".ex-std").value,
+      ort: d.querySelector(".ex-ort").value, notiz: d.dataset.notiz,
+    }));
+  }
   function std(a, b) {
     const [h1, m1] = String(a || "").split(":").map(Number), [h2, m2] = String(b || "").split(":").map(Number);
     if ([h1, m1, h2, m2].some(isNaN)) return 0;
@@ -1940,8 +1982,23 @@ function printSelectedMitarbeiterFields() {
     });
     el("atSumme").textContent = zahl(summe);
     el("atTage").textContent = tage.join(", ") || "–";
-    el("atKurz").textContent = atId ? (tage.length ? `${zahl(summe)} Std./Woche · ${tage.join(", ")}` : "noch keine Arbeitstage") : "";
+    const extra = el("atExtras").children.length ? "Extra 1x mtl." : "";
+    el("atKurz").textContent = atId ? (tage.length ? `${zahl(summe)} Std./Woche · ${tage.join(", ")}${extra ? " · " + extra : ""}`
+                                                     : (extra ? "nur " + extra : "noch keine Arbeitstage")) : "";
   }
+  el("atExtras").addEventListener("input", () => { geaendert = true; });
+  el("atExtras").addEventListener("change", (ev) => {
+    geaendert = true;
+    const d = ev.target.closest(".at-extra");
+    if (d) extraAnzeige(d);
+  });
+  el("atExtras").addEventListener("click", (ev) => {
+    const b = ev.target.closest(".ex-weg");
+    if (!b) return;
+    b.closest(".at-extra").remove();
+    geaendert = true; rechnen();
+  });
+  el("atExtraNeu").addEventListener("click", () => { extraZeile(); geaendert = true; rechnen(); });
   el("atZeilen").addEventListener("input", () => { geaendert = true; rechnen(); });
   el("atZeilen").addEventListener("change", (ev) => {
     geaendert = true;
@@ -1968,12 +2025,12 @@ function printSelectedMitarbeiterFields() {
   async function laden(id) {
     atId = id; geaendert = false;
     el("atNeu").style.display = "none"; el("atInhalt").style.display = "block"; meldung("", true);
-    zeilen({}); el("atFeiertag").value = "0";
+    zeilen({}); extrasZeichnen([]); el("atFeiertag").value = "0";
     try {
       const r = await fetch("/api/stz-auto/plan-lesen/" + id);
       const d = await r.json();
       if (!r.ok || d.success === false) throw new Error(d.error || ("HTTP " + r.status));
-      zeilen(d.plan); el("atFeiertag").value = String(d.feiertag_arbeitet || 0);
+      zeilen(d.plan); extrasZeichnen(d.extras); el("atFeiertag").value = String(d.feiertag_arbeitet || 0);
     } catch (e) { meldung("Arbeitstage konnten nicht geladen werden: " + e.message, false); }
   }
   function neu() {
@@ -1984,7 +2041,7 @@ function printSelectedMitarbeiterFields() {
     if (!atId) return;
     const r = await fetch("/api/stz-auto/arbeitstage/" + atId, {
       method: "POST", headers: { "Content-Type": "application/json" }, keepalive: !!still,
-      body: JSON.stringify({ plan: lesen(), feiertag_arbeitet: el("atFeiertag").value }),
+      body: JSON.stringify({ plan: lesen(), feiertag_arbeitet: el("atFeiertag").value, extras: extrasLesen() }),
     });
     const d = await r.json().catch(() => ({}));
     if (!r.ok || d.success === false) throw new Error(d.error || ("HTTP " + r.status));
