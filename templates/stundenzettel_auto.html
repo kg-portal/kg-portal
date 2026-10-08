@@ -253,6 +253,20 @@
     </div>`;
   }
 
+  // Läuft ein KG-Agent-Anruf: alle 15 s Stand holen, bis das Gespräch ausgewertet ist
+  let anrufTimer = null;
+  function anrufBeobachten() {
+    clearTimeout(anrufTimer);
+    const wartend = mitarbeiterListe.filter((m) => (m.monat || {}).status === "anruf_wartet");
+    if (!wartend.length) return;
+    anrufTimer = setTimeout(async () => {
+      for (const m of wartend) {
+        try { await api("/api/stz-auto/anruf-status/" + m.id + "?monat=" + encodeURIComponent(monatInput.value)); } catch (e) { /* nächster Versuch */ }
+      }
+      laden();
+    }, 15000);
+  }
+
   async function laden() {
     const list = document.getElementById("szaList");
     try {
@@ -263,6 +277,7 @@
       if (alt) wer.value = alt;
       list.innerHTML = data.mitarbeiter.length ? data.mitarbeiter.map(card).join("") :
         '<div class="sza-card">Keine aktiven Mitarbeiter.</div>';
+      anrufBeobachten();
     } catch (e) {
       list.innerHTML = `<div class="sza-card sza-msg err">${esc(e.message)}</div>`;
     }

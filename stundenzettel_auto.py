@@ -2009,6 +2009,17 @@ def register_stundenzettel_auto(app, login_required, get_db_connection, leon_cli
         finally:
             conn.close()
 
+    @app.route("/api/stz-auto/anruf-status/<int:worker_id>")
+    @login_required
+    def stz_auto_anruf_status(worker_id):
+        conn = _conn()
+        try:
+            return jsonify({"success": True, "monat": anruf_status(conn, leon_client_factory(), worker_id, request.args.get("monat"))})
+        except Exception as exc:
+            return _fehler(exc)
+        finally:
+            conn.close()
+
     @app.route("/api/stz-auto/anruf-auswerten/<int:worker_id>", methods=["POST"])
     @login_required
     def stz_auto_anruf_auswerten(worker_id):
