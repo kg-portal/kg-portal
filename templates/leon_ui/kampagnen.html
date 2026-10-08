@@ -1843,6 +1843,19 @@
                     }
 
 
+                    // Alle Gespräche der Kampagne (Transkript, Dauer, Bewertung …) als Textdatei
+                    runnerControls += `
+                        <button
+                            class="btn-secondary btn-small"
+                            type="button"
+                            title="Alle Gespräche dieser Kampagne als Textdatei herunterladen"
+                            onclick="window.location.href = '/leon-api/campaigns/${campaign.id}/export'"
+                        >
+                            Herunterladen
+                        </button>
+                    `;
+
+
                     return `
                         <tr>
 
