@@ -20,7 +20,7 @@
   .b-wa_ja { background: #ccfbf1; color: #115e59; }
   .b-wa_korrigiert { background: #e0e7ff; color: #3730a3; }
   .b-wa_nein, .b-wa_unklar { background: #fee2e2; color: #b91c1c; }
-  .b-anruf_wartet { background: #ffedd5; color: #9a3412; }
+  .b-anruf_wartet, .b-anruf_auswertung { background: #ffedd5; color: #9a3412; }
   .b-anruf_ja { background: #ccfbf1; color: #115e59; }
   .b-anruf_korrigiert { background: #e0e7ff; color: #3730a3; }
   .b-anruf_unklar, .b-anruf_nicht_erreicht { background: #fee2e2; color: #b91c1c; }
@@ -136,7 +136,7 @@
   const STATUS = { offen: "offen", ausgefuellt: "ausgefüllt", leon_wartet: "ausgefüllt", leon_fertig: "ausgefüllt",
     wa_wartet: "WhatsApp gesendet – wartet", wa_ja: "✓ Ja (Mitarbeiter)", wa_korrigiert: "✏️ korrigiert",
     wa_unklar: "⚠ unklar – bitte prüfen", wa_nein: "⚠ unklar – bitte prüfen", bestaetigt: "bestätigt · gesperrt",
-    anruf_wartet: "📞 KG-Agent ruft an …", anruf_ja: "✓ Ja (Anruf)", anruf_korrigiert: "✏️ korrigiert (Anruf)",
+    anruf_wartet: "📞 KG-Agent ruft an …", anruf_auswertung: "📞 wird ausgewertet …", anruf_ja: "✓ Ja (Anruf)", anruf_korrigiert: "✏️ korrigiert (Anruf)",
     anruf_unklar: "⚠ Anruf unklar – bitte prüfen", anruf_nicht_erreicht: "⚠ nicht erreicht" };
   const TAGE_K = ["So", "Mo", "Di", "Mi", "Do", "Fr", "Sa"];
   const tagZeit = (iso, mitZeit) => { const d = new Date(iso); return TAGE_K[d.getDay()] + " " + String(d.getDate()).padStart(2, "0") + "."
@@ -238,9 +238,9 @@
         <button class="sza-btn c-blue a-fill" ${locked ? "disabled" : ""}>Monat ausfüllen</button>
         <button class="sza-btn c-slate a-undo" ${locked ? "disabled" : ""}>Rückgängig</button>
         <button class="sza-btn c-wa a-wa" ${locked || !m.telefon ? "disabled" : ""}>${row.wa_gesendet_am ? "WhatsApp erneut senden" : "WhatsApp senden"}</button>
-        ${st === "anruf_wartet" ? '<button class="sza-btn c-red a-anruf-stopp">Anruf abbrechen</button>'
+        ${st === "anruf_auswertung" ? "" : st === "anruf_wartet" ? '<button class="sza-btn c-red a-anruf-stopp">Anruf abbrechen</button>'
           : `<button class="sza-btn c-purple a-anruf" ${locked || !m.telefon ? "disabled" : ""}>📞 Anrufen</button>`}
-        ${row.leon_lead_id && row.angerufen_am && st !== "anruf_wartet" && !locked ? '<button class="sza-btn c-slate a-anruf-auswerten">Letztes Gespräch auswerten</button>' : ""}
+        ${row.leon_lead_id && row.angerufen_am && !["anruf_wartet", "anruf_auswertung"].includes(st) && !locked ? '<button class="sza-btn c-slate a-anruf-auswerten">Letztes Gespräch auswerten</button>' : ""}
         ${locked ? '<button class="sza-btn c-red a-unlock">Entsperren</button>' : '<button class="sza-btn c-green a-ok">Bestätigen &amp; sperren</button>'}
       </div>
       <div class="sza-plan">
@@ -253,18 +253,18 @@
     </div>`;
   }
 
-  // Läuft ein KG-Agent-Anruf: alle 15 s Stand holen, bis das Gespräch ausgewertet ist
+  // Läuft ein KG-Agent-Anruf: alle 3 s Stand holen, bis das Gespräch ausgewertet ist
   let anrufTimer = null;
   function anrufBeobachten() {
     clearTimeout(anrufTimer);
-    const wartend = mitarbeiterListe.filter((m) => (m.monat || {}).status === "anruf_wartet");
+    const wartend = mitarbeiterListe.filter((m) => ["anruf_wartet", "anruf_auswertung"].includes((m.monat || {}).status));
     if (!wartend.length) return;
     anrufTimer = setTimeout(async () => {
       for (const m of wartend) {
         try { await api("/api/stz-auto/anruf-status/" + m.id + "?monat=" + encodeURIComponent(monatInput.value)); } catch (e) { /* nächster Versuch */ }
       }
       laden();
-    }, 15000);
+    }, 3000);
   }
 
   async function laden() {

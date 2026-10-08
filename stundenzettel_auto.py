@@ -1808,8 +1808,21 @@ def anruf_status(conn, client, worker_id, monat):
         conn.commit()
     if fertig:
         transkript = str((call or {}).get("transcript") or "").strip()
+        # nur einer wertet aus (Seite fragt alle 3 s, dazu der Minuten-Takt) – sonst doppelte Einträge
+        geholt = conn.execute(
+            "UPDATE stundenzettel_monate SET status = 'anruf_auswertung' WHERE worker_id = ? AND monat = ? AND status = 'anruf_wartet'",
+            (worker_id, monat),
+        ).rowcount == 1
+        conn.commit()
+        if not geholt:
+            return _monat_row(conn, worker_id, monat)
         if call and call.get("status") == "Beendet" and len(transkript) > 40:
-            _anruf_auswerten(conn, worker_id, monat, transkript)
+            try:
+                _anruf_auswerten(conn, worker_id, monat, transkript)
+            except Exception as exc:
+                print("STUNDENZETTEL-ANRUF AUSWERTUNG FEHLER:", exc)
+                _monat_speichern(conn, worker_id, monat, status="anruf_unklar", leon_info=f"Auswertung fehlgeschlagen: {exc}"[:500])
+                conn.commit()
         else:
             _monat_speichern(conn, worker_id, monat, status="anruf_nicht_erreicht",
                              leon_info=(felder.get("leon_info") or "nicht erreicht")[:500])
