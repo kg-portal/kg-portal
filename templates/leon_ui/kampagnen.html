@@ -942,6 +942,23 @@
             text-align: left;
         }
 
+        .einzeln-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .einzeln-grid input {
+            width: 100%;
+            min-height: 38px;
+            border: 1px solid #cbd5e1;
+            border-radius: 10px;
+            padding: 8px 10px;
+            font-size: 13px;
+            background: #ffffff;
+        }
+
         .holen-punkte {
             margin-left: auto;
             font-weight: 800;
@@ -1583,6 +1600,22 @@
 
             </div>
 
+        </div>
+
+        <div class="holen-box">
+            <div class="holen-titel">➕ Einzeln hinzufügen – eine Firma oder sich selbst zum Testen</div>
+            <div class="einzeln-grid">
+                <input id="einzelnFirma" type="text" placeholder="Firma *">
+                <input id="einzelnTelefon" type="tel" placeholder="Telefon *">
+                <input id="einzelnAnsprechpartner" type="text" placeholder="Ansprechpartner (z. B. Herr Kicci)">
+                <input id="einzelnStadt" type="text" placeholder="Stadt">
+            </div>
+            <div style="display:flex;justify-content:flex-end;margin-top:10px;">
+                <button class="btn-primary btn-small" type="button" id="einzelnButton" onclick="einzelnHinzufuegen()">
+                    Einmal hinzufügen
+                </button>
+            </div>
+            <div id="einzelnStatus" class="muted" style="margin-top:8px;font-size:12px;"></div>
         </div>
 
         <div class="lead-layout">
@@ -4267,6 +4300,76 @@
     }
 
 
+    // ---------------- Einzeln hinzufügen: eine Firma (oder sich selbst) direkt in diese Kampagne ----------------
+    async function einzelnHinzufuegen() {
+        const feld = id => document.getElementById(id);
+        const status = text => { feld("einzelnStatus").textContent = text || ""; };
+        const firma = feld("einzelnFirma").value.trim();
+        const telefon = feld("einzelnTelefon").value.trim();
+        if (!firma || !telefon) {
+            status("Bitte Firma und Telefon eintragen.");
+            return;
+        }
+        if (!managingCampaignId) {
+            status("Keine Kampagne geöffnet.");
+            return;
+        }
+        const button = feld("einzelnButton");
+        button.disabled = true;
+        status("Wird hinzugefügt …");
+        try {
+            let leadId = null;
+            let hinweis = "";
+            const response = await fetch("/leon-api/leads", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    firma: firma,
+                    telefon: telefon,
+                    ansprechpartner: feld("einzelnAnsprechpartner").value.trim(),
+                    stadt: feld("einzelnStadt").value.trim(),
+                    source: "Von Hand (Kampagne)"
+                })
+            });
+            const result = await response.json();
+            if (response.ok && result.success) {
+                leadId = result.id || (result.lead || {}).id;
+            } else if (response.status === 409 && result.duplicate_id) {
+                // Nummer gibt es schon: vorhandenen Lead nehmen – außer er gehört zum KG-Agent (Stundenzettel)
+                const vorhanden = await (await fetch("/leon-api/leads/" + result.duplicate_id)).json();
+                const vorhandeneFirma = String(((vorhanden || {}).lead || {}).firma || "");
+                if (vorhandeneFirma.startsWith("KG Mitarbeiter ")) {
+                    throw new Error("Diese Nummer gehört zum KG-Agent (Stundenzettel-Anruf). Bitte eine andere Nummer nehmen.");
+                }
+                leadId = result.duplicate_id;
+                hinweis = " (Nummer war schon vorhanden: " + (vorhandeneFirma || "Lead " + leadId) + ")";
+            } else {
+                throw new Error(result.error || "Lead konnte nicht angelegt werden.");
+            }
+            if (!leadId) {
+                throw new Error("Lead konnte nicht angelegt werden.");
+            }
+            const zuordnung = await fetch("/leon-api/campaigns/" + managingCampaignId + "/leads", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ lead_ids: [Number(leadId)] })
+            });
+            const ergebnis = await zuordnung.json();
+            if (!zuordnung.ok || !ergebnis.success) {
+                throw new Error(ergebnis.error || "Konnte nicht zur Kampagne hinzugefügt werden.");
+            }
+            ["einzelnFirma", "einzelnTelefon", "einzelnAnsprechpartner", "einzelnStadt"].forEach(id => { feld(id).value = ""; });
+            await refreshLeadManager();
+            await loadCampaigns();
+            status((Number(ergebnis.added) ? "Hinzugefügt" : "War schon in der Kampagne") + hinweis + ".");
+        } catch (error) {
+            status(error.message);
+        } finally {
+            button.disabled = false;
+        }
+    }
+
+
     // ---------------- Kampagnen-Bericht: Klick auf die Kampagne klappt den Bericht darunter auf ----------------
     const offeneBerichte = new Set();
     const berichtCache = {};
@@ -4443,6 +4546,10 @@
             id => document.getElementById(id).style.display = "none"
         );
         holenStatus("");
+        const einzelnStatus = document.getElementById("einzelnStatus");
+        if (einzelnStatus) {
+            einzelnStatus.textContent = "";
+        }
     }
 
     function holenAttr(value) {
