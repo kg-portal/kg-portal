@@ -465,6 +465,217 @@
             color: #64748b;
         }
 
+        /* Live = grün mit pulsierendem Punkt, Beendet = ruhiges Grau */
+        .status.aktiv {
+            background: #16a34a !important;
+            color: #ffffff !important;
+            gap: 6px;
+        }
+
+        .status.aktiv::before {
+            content: "";
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: #ffffff;
+            animation: liveDot 1.4s ease-in-out infinite;
+        }
+
+        @keyframes liveDot {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.25; }
+        }
+
+        .status.beendet {
+            background: #eef2f6 !important;
+            color: #64748b !important;
+        }
+
+        /* Kampagnen-Bericht (Aufklapp-Feld unter der Kampagne) */
+        tr.kampagne-zeile {
+            cursor: pointer;
+        }
+
+        tr.kampagne-zeile:hover td {
+            background: #f8fafc;
+        }
+
+        tr.kampagne-zeile.offen td {
+            background: #f1f5ff;
+        }
+
+        tr.bericht-zeile > td {
+            padding: 0 14px 18px !important;
+            background: #f8fafc;
+        }
+
+        .bericht {
+            border: 1px solid #e2e8f0;
+            border-radius: 18px;
+            background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+            padding: 18px 20px;
+            box-shadow: 0 10px 30px rgba(30, 64, 175, 0.06);
+        }
+
+        .bericht.neu {
+            animation: berichtAuf 0.25s ease-out;
+        }
+
+        @keyframes berichtAuf {
+            from { opacity: 0; transform: translateY(-6px); }
+            to { opacity: 1; transform: none; }
+        }
+
+        .bericht-titel {
+            font-size: 16px;
+            font-weight: 900;
+            color: #1e293b;
+        }
+
+        .bericht-unter {
+            font-size: 12px;
+            color: #64748b;
+            margin-top: 3px;
+        }
+
+        .bericht-kacheln {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+            gap: 10px;
+            margin: 16px 0 14px;
+        }
+
+        .bericht-kachel {
+            border-radius: 14px;
+            padding: 11px 13px;
+            background: var(--k-bg);
+            border: 1px solid var(--k-rand);
+        }
+
+        .bericht-kachel .zahl {
+            font-size: 22px;
+            font-weight: 900;
+            color: var(--k-text);
+            line-height: 1.1;
+        }
+
+        .bericht-kachel .name {
+            font-size: 11px;
+            font-weight: 800;
+            color: var(--k-text);
+            opacity: 0.8;
+            margin-top: 2px;
+        }
+
+        .k-besichtigung { --k-bg: #ecfdf5; --k-rand: #a7f3d0; --k-text: #047857; }
+        .k-rueckruf { --k-bg: #eff6ff; --k-rand: #bfdbfe; --k-text: #1d4ed8; }
+        .k-email { --k-bg: #f5f3ff; --k-rand: #ddd6fe; --k-text: #6d28d9; }
+        .k-interessiert { --k-bg: #f0fdfa; --k-rand: #99f6e4; --k-text: #0f766e; }
+        .k-kein_interesse { --k-bg: #f8fafc; --k-rand: #e2e8f0; --k-text: #475569; }
+        .k-gesperrt { --k-bg: #f1f5f9; --k-rand: #cbd5e1; --k-text: #334155; }
+        .k-gesprochen { --k-bg: #fffbeb; --k-rand: #fde68a; --k-text: #92400e; }
+        .k-nicht_erreicht { --k-bg: #fafaf9; --k-rand: #e7e5e4; --k-text: #78716c; }
+        .k-anrufbeantworter { --k-bg: #fafaf9; --k-rand: #e7e5e4; --k-text: #78716c; }
+        .k-anrufe { --k-bg: #f1f5ff; --k-rand: #c7d2fe; --k-text: #3730a3; }
+
+        .bericht-gruppe {
+            border: 1px solid var(--k-rand);
+            border-left: 5px solid var(--k-text);
+            border-radius: 14px;
+            background: #ffffff;
+            margin-top: 10px;
+            overflow: hidden;
+        }
+
+        .bericht-gruppe > summary {
+            list-style: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 11px 14px;
+            background: var(--k-bg);
+            color: var(--k-text);
+            font-weight: 900;
+            font-size: 13px;
+        }
+
+        .bericht-gruppe > summary::-webkit-details-marker {
+            display: none;
+        }
+
+        .bericht-gruppe > summary::after {
+            content: "▾";
+            margin-left: auto;
+            transition: transform 0.2s;
+        }
+
+        .bericht-gruppe:not([open]) > summary::after {
+            transform: rotate(-90deg);
+        }
+
+        .bericht-gruppe .anzahl {
+            background: #ffffff;
+            border: 1px solid var(--k-rand);
+            border-radius: 999px;
+            padding: 1px 9px;
+            font-size: 12px;
+        }
+
+        .bericht-eintrag {
+            padding: 11px 14px;
+            border-top: 1px solid #f1f5f9;
+        }
+
+        .be-kopf {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: baseline;
+            gap: 6px 12px;
+        }
+
+        .be-kopf strong {
+            font-size: 14px;
+            color: #0f172a;
+        }
+
+        .be-meta {
+            font-size: 12px;
+            color: #64748b;
+        }
+
+        .be-link {
+            margin-left: auto;
+            font-size: 12px;
+            font-weight: 800;
+            color: #2563eb;
+            text-decoration: none;
+        }
+
+        .be-aktionen {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 7px;
+        }
+
+        .be-chip {
+            border-radius: 999px;
+            padding: 4px 10px;
+            font-size: 12px;
+            font-weight: 800;
+            background: var(--k-bg);
+            color: var(--k-text);
+            border: 1px solid var(--k-rand);
+        }
+
+        .be-text {
+            margin-top: 6px;
+            font-size: 12.5px;
+            line-height: 1.5;
+            color: #475569;
+        }
+
         .actions {
             display: flex;
             gap: 7px;
@@ -1993,7 +2204,7 @@
 
 
                     return `
-                        <tr>
+                        <tr class="kampagne-zeile" data-kampagne-id="${campaign.id}" title="Klicken: Kampagnen-Bericht auf- und zuklappen">
 
                             ${campaignSelectionMode
                                 ? `
@@ -2181,6 +2392,8 @@
                     `;
                 }
             ).join("");
+
+        berichteWiederherstellen();
     }
 
 
@@ -4052,6 +4265,171 @@
             );
         }
     }
+
+
+    // ---------------- Kampagnen-Bericht: Klick auf die Kampagne klappt den Bericht darunter auf ----------------
+    const offeneBerichte = new Set();
+    const berichtCache = {};
+
+    const BERICHT_GRUPPEN = [
+        ["besichtigung", "Besichtigung eingetragen", true],
+        ["rueckruf", "Rückruf eingetragen", true],
+        ["interessiert", "Interessiert", true],
+        ["gesprochen", "Gesprochen, kein Ergebnis", false],
+        ["kein_interesse", "Kein Interesse", false],
+        ["gesperrt", "Nicht mehr anrufen", false],
+        ["anrufbeantworter", "Anrufbeantworter", false],
+        ["nicht_erreicht", "Nicht erreicht", false]
+    ];
+
+    function berichtZeit(wert) {
+        if (!wert) {
+            return "";
+        }
+        const datum = new Date(String(wert).replace(" ", "T") + "Z");
+        if (isNaN(datum.getTime())) {
+            return String(wert);
+        }
+        return datum.toLocaleString("de-DE", {
+            timeZone: "Europe/Berlin", day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit"
+        });
+    }
+
+    function berichtHtml(daten) {
+        const z = daten.zahlen || {};
+        const eintraege = daten.eintraege || [];
+        const kachel = (klasse, zahl, name) => `
+            <div class="bericht-kachel ${klasse}">
+                <div class="zahl">${Number(zahl || 0)}</div>
+                <div class="name">${name}</div>
+            </div>
+        `;
+        const kacheln = [
+            kachel("k-anrufe", z.anrufe, "Angerufen"),
+            kachel("k-interessiert", z.erreicht, "Erreicht"),
+            kachel("k-besichtigung", z.besichtigung, "Besichtigung"),
+            kachel("k-rueckruf", z.rueckruf, "Rückruf"),
+            kachel("k-email", z.email, "E-Mail verschickt"),
+            kachel("k-kein_interesse", z.kein_interesse, "Kein Interesse"),
+            kachel("k-nicht_erreicht", Number(z.nicht_erreicht || 0) + Number(z.anrufbeantworter || 0), "Nicht erreicht / AB")
+        ].join("");
+
+        const symbol = { besichtigung: "📅", rueckruf: "📞", email: "✉️", gesperrt: "⛔" };
+        const eintragHtml = e => `
+            <div class="bericht-eintrag">
+                <div class="be-kopf">
+                    <strong>${escapeHtml(e.firma)}</strong>
+                    <span class="be-meta">${escapeHtml([e.ansprechpartner, e.ort, berichtZeit(e.zeit), e.dauer,
+                        e.score !== null && e.score !== undefined ? "Bewertung " + e.score + "/10" : ""].filter(Boolean).join(" · "))}</span>
+                    <a class="be-link" href="/leon-ui/gespraech/${Number(e.call_id)}">Gespräch ansehen →</a>
+                </div>
+                ${(e.aktionen || []).length ? `
+                    <div class="be-aktionen">
+                        ${e.aktionen.map(a => `
+                            <span class="be-chip k-${a.art}">${symbol[a.art] || "•"} ${escapeHtml(a.text)}${a.ok ? " ✓" : " (unsicher)"}</span>
+                        `).join("")}
+                    </div>` : ""}
+                ${e.zusammenfassung ? `<div class="be-text">${escapeHtml(e.zusammenfassung)}</div>` : ""}
+            </div>
+        `;
+
+        const gruppen = BERICHT_GRUPPEN.map(([kat, titel, offen]) => {
+            const liste = eintraege.filter(e => e.kategorie === kat);
+            if (!liste.length) {
+                return "";
+            }
+            return `
+                <details class="bericht-gruppe k-${kat}" ${offen ? "open" : ""}>
+                    <summary>${titel} <span class="anzahl">${liste.length}</span></summary>
+                    ${liste.map(eintragHtml).join("")}
+                </details>
+            `;
+        }).join("");
+
+        return `
+            <div class="bericht">
+                <div class="bericht-titel">Kampagnen-Bericht</div>
+                <div class="bericht-unter">${escapeHtml((daten.kampagne || {}).name || "")} · ${Number(z.anrufe || 0)} Anrufe · ${Number(z.erreicht || 0)} erreicht</div>
+                <div class="bericht-kacheln">${kacheln}</div>
+                ${gruppen || `<div class="be-text">Noch keine Anrufe in dieser Kampagne.</div>`}
+            </div>
+        `;
+    }
+
+    function berichtZeileEinsetzen(id) {
+        const zeile = document.querySelector(`tr.kampagne-zeile[data-kampagne-id="${id}"]`);
+        if (!zeile) {
+            offeneBerichte.delete(id);
+            return null;
+        }
+        zeile.classList.add("offen");
+        let bericht = zeile.nextElementSibling;
+        if (!bericht || !bericht.classList.contains("bericht-zeile")) {
+            bericht = document.createElement("tr");
+            bericht.className = "bericht-zeile";
+            bericht.innerHTML = `<td colspan="${zeile.children.length}"></td>`;
+            zeile.after(bericht);
+        }
+        bericht.firstElementChild.innerHTML =
+            berichtCache[id] || `<div class="bericht"><div class="bericht-unter">Bericht wird geladen …</div></div>`;
+        return bericht;
+    }
+
+    async function berichtLaden(id) {
+        try {
+            const response = await fetch("/leon-api/campaigns/" + id + "/bericht");
+            const daten = await response.json();
+            if (!response.ok || !daten.success) {
+                throw new Error(daten.error || "Bericht konnte nicht geladen werden.");
+            }
+            berichtCache[id] = berichtHtml(daten);
+        } catch (error) {
+            berichtCache[id] = `<div class="bericht"><div class="bericht-unter">${escapeHtml(error.message)}</div></div>`;
+        }
+        if (offeneBerichte.has(id)) {
+            berichtZeileEinsetzen(id);
+        }
+    }
+
+    function berichtUmschalten(id) {
+        if (offeneBerichte.has(id)) {
+            offeneBerichte.delete(id);
+            const zeile = document.querySelector(`tr.kampagne-zeile[data-kampagne-id="${id}"]`);
+            if (zeile) {
+                zeile.classList.remove("offen");
+                const bericht = zeile.nextElementSibling;
+                if (bericht && bericht.classList.contains("bericht-zeile")) {
+                    bericht.remove();
+                }
+            }
+            return;
+        }
+        offeneBerichte.add(id);
+        const neu = berichtZeileEinsetzen(id);
+        const kasten = neu && neu.querySelector(".bericht");
+        if (kasten) {
+            kasten.classList.add("neu");
+        }
+        berichtLaden(id);
+    }
+
+    function berichteWiederherstellen() {
+        offeneBerichte.forEach(id => {
+            if (berichtZeileEinsetzen(id)) {
+                berichtLaden(id);
+            }
+        });
+    }
+
+    document.getElementById("campaignTableBody").addEventListener("click", event => {
+        if (event.target.closest("button, a, input, select, label, textarea")) {
+            return;
+        }
+        const zeile = event.target.closest("tr.kampagne-zeile");
+        if (zeile) {
+            berichtUmschalten(Number(zeile.dataset.kampagneId));
+        }
+    });
 
 
     // ---------------- „Leads holen“: Anzahl → Branche → Stadt → beste Firmen ----------------
