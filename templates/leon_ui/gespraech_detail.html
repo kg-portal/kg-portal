@@ -174,6 +174,25 @@
   .business-portal-main{padding:0!important}
   .business-portal-card{min-height:0!important}
 </style>
+<style id="kg-nachfassen">
+  /* Nachfassen per E-Mail: Portfolio / Besichtigungstermin über das KG-Mail-Fenster der Datenbank */
+  .nf-buttons{display:flex;flex-direction:column;gap:10px}
+  .nf-btn{display:flex;align-items:center;gap:10px;width:100%;border:1px solid var(--nf-rand);background:var(--nf-bg);
+    color:var(--nf-text);border-radius:14px;padding:12px 14px;font-size:14px;font-weight:800;cursor:pointer;text-align:left;
+    transition:transform .12s ease, box-shadow .12s ease}
+  .nf-btn:hover{transform:translateY(-1px);box-shadow:0 8px 20px rgba(30,64,175,.10)}
+  .nf-btn small{display:block;font-weight:600;font-size:12px;opacity:.75;margin-top:2px}
+  .nf-portfolio{--nf-bg:#f5f3ff;--nf-rand:#ddd6fe;--nf-text:#5b21b6}
+  .nf-termin{--nf-bg:#ecfdf5;--nf-rand:#a7f3d0;--nf-text:#047857}
+  .nf-status{margin-top:10px;font-size:12.5px;color:#64748b}
+  .nf-backdrop{position:fixed;inset:0;background:rgba(15,23,42,.45);display:none;align-items:center;justify-content:center;z-index:9999;padding:16px}
+  .nf-backdrop.open{display:flex}
+  .nf-box{background:#fff;border-radius:18px;width:min(980px,100%);height:min(92vh,1000px);display:flex;flex-direction:column;overflow:hidden;
+    box-shadow:0 30px 80px rgba(15,23,42,.35)}
+  .nf-head{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid #e2e8f0;font-weight:900;color:#1e293b}
+  .nf-head button{border:0;background:#f1f5f9;border-radius:10px;width:34px;height:34px;font-size:18px;cursor:pointer}
+  .nf-frame{flex:1;border:0;width:100%}
+</style>
 </head>
 <body>
 <div class="kg-business-shell">
@@ -218,6 +237,19 @@
     </div>
 
     <div>
+        <div class="panel" id="nachfassenPanel">
+            <h2>Nachfassen per E-Mail</h2>
+            <div class="nf-buttons">
+                <button type="button" class="nf-btn nf-portfolio" onclick="nachfassenOeffnen('portfolio')">
+                    <span>✉️</span><span>Unternehmensportfolio senden<small>Kontaktdaten + Flyer</small></span>
+                </button>
+                <button type="button" class="nf-btn nf-termin" onclick="nachfassenOeffnen('besichtigung')">
+                    <span>📅</span><span>Besichtigungstermin senden<small>Terminbestätigung</small></span>
+                </button>
+            </div>
+            <div class="nf-status" id="nachfassenStatus">Anrede (Damen und Herren / Herr / Frau) im nächsten Fenster wählen – wie in der Datenbank.</div>
+        </div>
+
         <div class="panel">
             <h2>Zusammenfassung</h2>
             <div id="summaryWrap">
@@ -459,6 +491,86 @@ async function loadCall() {
             `<div class="empty-note">${escapeHtml(error.message)}</div>`;
     }
 }
+
+// ---------------- Nachfassen per E-Mail (KG-Mail-Fenster der Datenbank) ----------------
+let nachfassenDaten = null;
+
+async function nachfassenLaden() {
+    try {
+        const response = await fetch("/leon-api/calls/" + callId + "/nachfassen");
+        const daten = await response.json();
+        if (response.ok && daten.success) {
+            nachfassenDaten = daten;
+        }
+    } catch (error) {
+        console.error(error);
+    }
+}
+
+function nachfassenFenster() {
+    let backdrop = document.getElementById("nfBackdrop");
+    if (!backdrop) {
+        backdrop = document.createElement("div");
+        backdrop.id = "nfBackdrop";
+        backdrop.className = "nf-backdrop";
+        backdrop.innerHTML = `
+            <div class="nf-box">
+                <div class="nf-head"><span id="nfTitel">KG Mail</span><button type="button" onclick="nachfassenSchliessen()">×</button></div>
+                <iframe id="nfFrame" class="nf-frame" title="KG Mail"></iframe>
+            </div>`;
+        document.body.appendChild(backdrop);
+    }
+    return backdrop;
+}
+
+async function nachfassenOeffnen(art) {
+    if (!nachfassenDaten) {
+        await nachfassenLaden();
+    }
+    const d = nachfassenDaten || {};
+    // Herr/Frau nur übernehmen, wenn es feststeht – sonst allgemeine Anrede (Damen und Herren)
+    const person = /^(herr|frau)\s/i.test(d.ansprechpartner || "") ? d.ansprechpartner : "";
+    const p = new URLSearchParams();
+    p.set("empfaenger", d.email || "");
+    p.set("firma", d.firma || "");
+    p.set("ansprechpartner", person);
+    p.set("telefon", d.telefon || "");
+    let titel = "KG Mail · Unternehmensportfolio";
+    if (art === "portfolio") {
+        p.set("modus", "kontaktformular");
+        p.set("adresse", d.adresse || "");
+        p.set("ort", d.ort || "");
+    } else {
+        const b = d.besichtigung || {};
+        p.set("datum", b.datum || "");
+        p.set("uhrzeit", b.uhrzeit || "");
+        p.set("adresse", b.adresse || "");
+        p.set("ort", b.ort || "");
+        titel = "KG Mail · Terminbestätigung Besichtigung";
+    }
+    const backdrop = nachfassenFenster();
+    document.getElementById("nfTitel").textContent = titel;
+    document.getElementById("nfFrame").setAttribute("src", "/datenbank/mail-mini?" + p.toString());
+    backdrop.classList.add("open");
+}
+
+function nachfassenSchliessen() {
+    const backdrop = document.getElementById("nfBackdrop");
+    if (!backdrop) {
+        return;
+    }
+    backdrop.classList.remove("open");
+    document.getElementById("nfFrame").setAttribute("src", "about:blank");
+}
+
+window.addEventListener("message", event => {
+    const typ = (event.data || {}).type;
+    if (typ === "kg-mail-mini-close") {
+        nachfassenSchliessen();
+    }
+});
+
+nachfassenLaden();
 
 loadCall();
 </script>
