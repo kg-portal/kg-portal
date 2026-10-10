@@ -875,8 +875,10 @@ WERKZEUGE = {
         "fn": lambda a: _crm(dict(a, aktion="leads_kampagne"), zeit=300),
         "title": "Leon-Reinigung-Kampagne als Entwurf (mit gewählten Firmen)",
         "description": "Legt eine Leon-Reinigung-Kampagne als ENTWURF an (name) oder ergänzt einen Entwurf (kampagne_id) "
-                       "mit gewählten Firmen: crm_lead_ids (KG CRM) und/oder leon_lead_ids (Leon Reinigung). Nach Murats Ja. "
-                       "Startet nie. Geschützte Firmen werden übersprungen. Antwort enthält die zurückgelesene Kampagne.",
+                       "mit gewählten Firmen: crm_lead_ids (KG CRM) und/oder leon_lead_ids (Leon Reinigung). Nur name ohne "
+                       "Firmen = leerer Entwurf (wie im CRM). Gibt es schon einen Entwurf mit genau diesem Namen, wird er "
+                       "verwendet statt doppelt angelegt. Nach Murats Ja. Startet nie. Geschützte Firmen werden "
+                       "übersprungen. Antwort enthält die zurückgelesene Kampagne.",
         "schema": {"type": "object", "properties": {
             "name": {"type": "string", "description": "Name der neuen Kampagne"},
             "kampagne_id": {"type": "integer", "description": "Bestehender Entwurf (statt name)"},
@@ -962,7 +964,7 @@ def bearbeiten(nachricht):
         return antwort(rid, {
             "protocolVersion": version,
             "capabilities": {"tools": {"listChanged": False}},
-            "serverInfo": {"name": "kg-daten", "title": "KG Daten", "version": "1.3.0"},
+            "serverInfo": {"name": "kg-daten", "title": "KG Daten", "version": "1.3.1"},
             "instructions": ANLEITUNG,
         })
     if methode == "ping":
