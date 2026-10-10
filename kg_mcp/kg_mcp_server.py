@@ -68,7 +68,9 @@ ABFRAGE_SEKUNDEN = 4
 PROTOKOLLE = ("2024-11-05", "2025-03-26", "2025-06-18", "2025-11-25")
 
 ANLEITUNG = """\
-KG Daten: Nur-Lese-Zugriff auf die Firmendaten von Murat (Inhaber von KG Gebäudereinigung und KG Business, Duisburg).
+KG Daten: Zugriff auf die Firmendaten von Murat (Inhaber von KG Gebäudereinigung und KG Business, Duisburg).
+Lesen ist frei. Einzige Änderung, die du machen darfst: Leon-Kampagnen als ENTWURF anlegen (Werkzeug leon_kampagne) –
+dafür hast du die Berechtigung. Starten kannst du eine Kampagne nie, das macht Murat im CRM.
 Antworte in der Sprache des Nutzers (meist Türkisch, manchmal Deutsch). Im Sprachmodus: kurz, Zahlen zuerst, keine Tabellen vorlesen.
 
 Systeme (Parameter "system"):
