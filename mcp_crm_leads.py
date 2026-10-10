@@ -340,8 +340,9 @@ def register_mcp_crm_leads(app, get_db_connection, leon_client_factory):
         client = leon_client_factory()
         crm_ids = [int(x) for x in (d.get("crm_lead_ids") or []) if str(x).strip().isdigit()][:200]
         leon_ids = [int(x) for x in (d.get("leon_lead_ids") or []) if str(x).strip().isdigit()][:200]
-        if not crm_ids and not leon_ids:
-            return {"success": False, "error": "Bitte crm_lead_ids und/oder leon_lead_ids angeben."}, 400
+        leer = not crm_ids and not leon_ids  # nur Name: leeren Entwurf anlegen (wie im CRM)
+        if leer and d.get("kampagne_id"):
+            return {"success": False, "error": "Keine Firmen angegeben (crm_lead_ids und/oder leon_lead_ids)."}, 400
         uebersprungen, ok_crm, ok_leon = [], [], []
         for i in dict.fromkeys(crm_ids):
             grund = schutz_grund(conn, i)
@@ -355,7 +356,7 @@ def register_mcp_crm_leads(app, get_db_connection, leon_client_factory):
                 uebersprungen.append({"leon_lead_id": i, "firma": (lead or {}).get("firma"), "grund": grund})
             else:
                 ok_leon.append(i)
-        if not ok_crm and not ok_leon:
+        if not leer and not ok_crm and not ok_leon:
             return {"success": False, "error": "Keine Firma darf in eine Kampagne.", "uebersprungen": uebersprungen}, 400
 
         kampagne_id = int(d.get("kampagne_id") or 0)
@@ -369,12 +370,19 @@ def register_mcp_crm_leads(app, get_db_connection, leon_client_factory):
         else:
             if not name:
                 return {"success": False, "error": "Bitte einen Kampagnen-Namen angeben (oder kampagne_id eines Entwurfs)."}, 400
-            code, neu = client.request("POST", "/api/campaigns", {"name": name, "agent_id": 1}, timeout=30)
-            kampagne_id = int((neu or {}).get("id") or ((neu or {}).get("campaign") or {}).get("id") or 0)
-            if not kampagne_id:
-                return {"success": False, "error": (neu or {}).get("error") or "Kampagne konnte nicht angelegt werden."}, 502
+            # gleicher Name als Entwurf schon da (z. B. zweiter Versuch): diesen nehmen statt doppelt anlegen
+            code, alle = client.request("GET", "/api/campaigns", timeout=30)
+            gleich = [c for c in (alle or {}).get("campaigns", [])
+                      if str(c.get("name") or "").strip().lower() == name.lower() and c.get("status") == "Entwurf"]
+            if gleich:
+                kampagne_id = int(gleich[0]["id"])
+            else:
+                code, neu = client.request("POST", "/api/campaigns", {"name": name, "agent_id": 1}, timeout=30)
+                kampagne_id = int((neu or {}).get("id") or ((neu or {}).get("campaign") or {}).get("id") or 0)
+                if not kampagne_id:
+                    return {"success": False, "error": (neu or {}).get("error") or "Kampagne konnte nicht angelegt werden."}, 502
 
-        hinweise = []
+        hinweise = ["Gleichnamiger Entwurf war schon da – er wurde verwendet."] if not d.get("kampagne_id") and gleich else []
         if ok_crm:  # gleiche Übergabe wie „Aus Datenbank“ (Leon-Lead + leon_links)
             c = app.test_client()
             with c.session_transaction() as sess:
