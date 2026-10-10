@@ -821,7 +821,7 @@ def bearbeiten(nachricht):
         return antwort(rid, {
             "protocolVersion": version,
             "capabilities": {"tools": {"listChanged": False}},
-            "serverInfo": {"name": "kg-daten", "title": "KG Daten", "version": "1.0.0"},
+            "serverInfo": {"name": "kg-daten", "title": "KG Daten", "version": "1.2.0"},
             "instructions": ANLEITUNG,
         })
     if methode == "ping":
