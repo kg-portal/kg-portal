@@ -11,9 +11,12 @@ Nur-Lese-Modus (mode=ro + PRAGMA query_only + SQLite-Authorizer):
 - Erreichbar nur unter einem geheimen Pfad: https://<domain>/<KG_MCP_PFAD>/mcp
 - Geheime Spalten (Passwörter, Tokens, IBAN, Steuer-ID, SV-Nummer, Zugangscodes)
   und Einstellungs-/Token-Tabellen werden nie ausgegeben.
-- Schreiben nur über das CRM (Token KG_MCP_CRM_TOKEN): leon_kampagne (/internal/mcp/leon-kampagne) und
-  Firmen/Kampagnen-Entwürfe (/internal/mcp/crm). Das CRM prüft Dubletten, Schutz (Kunde, Nicht anrufen …),
-  protokolliert jede Änderung und legt Kampagnen nur als ENTWURF an. Gestartet wird nie. KG Business: nie.
+- Schreiben nur über die Programme selbst, je mit eigenem Token – nie direkt in eine Datenbank:
+    KG CRM (KG_MCP_CRM_TOKEN):           /internal/mcp/leon-kampagne und /internal/mcp/crm
+    KG Business (KG_MCP_BUSINESS_TOKEN): /internal/mcp/business
+  Die Programme prüfen Dubletten, Schutz (Kunde, Nicht anrufen …), protokollieren jede Änderung und legen
+  Kampagnen nur als ENTWURF an. Gestartet wird nie, keine Anrufe, keine E-Mails.
+  Löschen nur in zwei Schritten (Vorschau → Bestätigung) in den Papierkorb; wiederherstellbar.
 
   python3 kg_mcp_server.py [env.json]     Server starten (Standard: /opt/kg-mcp-geheim/env.json)
 """
@@ -70,9 +73,17 @@ PROTOKOLLE = ("2024-11-05", "2025-03-26", "2025-06-18", "2025-11-25")
 
 ANLEITUNG = """\
 KG Daten: Zugriff auf die Firmendaten von Murat (Inhaber von KG Gebäudereinigung und KG Business, Duisburg).
-Lesen ist frei. Ändern darfst du – nach Murats Ja – NUR im KG CRM / Leon Reinigung: Firmen (leads) suchen, anlegen,
-importieren, ergänzen und Leon-Reinigung-Kampagnen als ENTWURF anlegen. Dafür hast du die Berechtigung.
-Starten kannst du eine Kampagne nie (das macht Murat im CRM). E-Mails verschickst du nie. KG Business änderst du nie.
+Lesen ist frei. Ändern darfst du – immer erst nach Murats ausdrücklichem Ja – Firmen (leads) in ZWEI GETRENNTEN Systemen:
+- KG CRM (KG Gebäudereinigung + Leon Reinigung): leads_suchen, lead_erstellen, leads_importieren, lead_aktualisieren,
+  leads_kampagne_hinzufuegen, kampagne_pruefen.
+- KG Business (Strom/Gas + Leon Business): business_leads_suchen, business_lead_erstellen, business_leads_importieren,
+  business_lead_aktualisieren (auch Strom-/Gasanbieter, Verbrauch, Vertragsende, Rückruf, Notiz), business_kampagne_hinzufuegen,
+  business_kampagne_pruefen.
+- Löschen (beide Systeme, Parameter system=crm|business): lead_loeschen, leads_massenloeschen, lead_wiederherstellen,
+  papierkorb_anzeigen, papierkorb_endgueltig_loeschen.
+Daten der beiden Systeme nie mischen: eine CRM-ID gibt es in Business nicht und umgekehrt. Ist unklar, welches System
+gemeint ist (z. B. „lösche Firma 1254“), frag Murat: „KG CRM oder KG Business?“ – nie raten.
+Starten kannst du eine Kampagne nie (das macht Murat im Programm). Anrufe und E-Mails löst du nie aus.
 Antworte in der Sprache des Nutzers (meist Türkisch, manchmal Deutsch). Im Sprachmodus: kurz, Zahlen zuerst, keine Tabellen vorlesen.
 
 Systeme (Parameter "system"):
@@ -106,6 +117,23 @@ FIRMEN FÜR KG GEBÄUDEREINIGUNG (KG CRM) – z. B. „Finde 10 Firmen in Duisbu
    verloren, schon im Verkauf, KG-Agent) werden nie aufgenommen und als „uebersprungen“ gemeldet.
 4. Mit kampagne_pruefen Name, Status (Entwurf) und Firmen zurücklesen und Murat bestätigen. Starten tut Murat.
 Werte nie selbst „Kunde“ setzen; Kunden werden nicht geändert. Änderungen stehen im Protokoll des CRM.
+
+FIRMEN FÜR KG BUSINESS (Strom/Gas): gleicher Ablauf wie oben mit den business_* Werkzeugen. Zusätzlich Strom-/Gasanbieter,
+Verbrauch (kWh/Jahr), Vertragsende (JJJJ-MM-TT), Entscheider; Rückruf mit rueckruf_am (Berliner Zeit) + rueckruf_notiz.
+Kampagnen: business_kampagne_hinzufuegen mit name (Entwurf, auch leer) oder kampagne_id + lead_ids (Business-IDs).
+
+LÖSCHEN (Papierkorb) – immer zwei Schritte, nie ohne Murats Ja:
+1. Vorschau: lead_loeschen (eine ID) oder leads_massenloeschen (Filter: suche, stadt, plz, status, branche, quelle,
+   typ=reinigungsfirma, oder ids). Es wird NICHTS gelöscht. Murat zeigen: Anzahl, Namen, IDs, „geschuetzt“ (mit Grund –
+   werden nie gelöscht) und „unklar“ (z. B. nicht sicher eine Reinigungsfirma – werden nie automatisch gelöscht; nur wenn
+   Murat einzelne davon ausdrücklich will: neue Vorschau mit diesen ids).
+2. Erst nach seinem ausdrücklichen Ja: dasselbe Werkzeug mit vorschau_id, genau den bestätigten ids und bestaetigt=true.
+   Vorschau gilt 30 Minuten; hat sich etwas geändert, kommt ein Fehler → neue Vorschau. Doppelt senden löscht nichts doppelt.
+Gelöschte Firmen liegen im Papierkorb (papierkorb_anzeigen), kommen über Lead-Sammler/Import nicht wieder herein und sind
+mit lead_wiederherstellen (gleiche ID, alle Daten) zurückholbar. papierkorb_endgueltig_loeschen nur, wenn Murat genau das will
+und es auf dem Server freigeschaltet ist; bestaetigung = „ENDGÜLTIG LÖSCHEN“.
+Nie geschützt-löschen: Kunden, Nicht anrufen/Gesperrt/Kein Interesse (Sperre bleibt), offener Rückruf/Termin/Angebot/Interesse,
+laufende Kampagnen, Firmen mit Leon-Anrufen (KG Business), Tagesliste, eigene Firma. Teste nie mit echten Firmen.
 
 LEON-AUSWAHL AUS DER DATENBANK:
 leon_kampagne legt eine Leon-Kampagne (Telefon-KI) als Entwurf an. Ablauf: aktion=branchen → staedte → vorschau
@@ -705,6 +733,59 @@ def _crm(body, zeit=120):
         raise Fehler(f"CRM nicht erreichbar: {exc}")
 
 
+def _business(body, zeit=120):
+    """Aufruf der Business-Route /internal/mcp/business (nur KG Business – eigene Datenbank, eigenes Token)."""
+    token = str(EINST.get("KG_MCP_BUSINESS_TOKEN") or "").strip()
+    url = str(EINST.get("KG_BUSINESS_INTERN_URL") or "").strip().rstrip("/")
+    if not token or not url:
+        raise Fehler("KG Business ist für ChatGPT noch nicht freigeschaltet (kg_mcp/business_freischalten.sh).")
+    anfrage = urllib.request.Request(url + "/internal/mcp/business", data=json.dumps(body).encode(), method="POST",
+                                     headers={"Content-Type": "application/json", "X-KG-MCP-Token": token})
+    try:
+        with urllib.request.urlopen(anfrage, timeout=zeit) as r:
+            return json.loads(r.read().decode() or "{}")
+    except urllib.error.HTTPError as exc:
+        try:
+            daten = json.loads(exc.read().decode() or "{}")
+        except ValueError:
+            daten = {}
+        details = {k: v for k, v in daten.items() if k not in ("success", "error")}
+        raise Fehler((daten.get("error") or f"KG Business antwortet mit HTTP {exc.code}")
+                     + (" " + json.dumps(details, ensure_ascii=False) if details else ""))
+    except (urllib.error.URLError, OSError) as exc:
+        raise Fehler(f"KG Business nicht erreichbar: {exc}")
+
+
+def _system(a, body, zeit=120):
+    """Löschen/Papierkorb: nur das ausdrücklich genannte System – nie raten, nie mischen."""
+    system = str(a.get("system") or "").strip().lower()
+    if system == "crm":
+        return dict(_crm(body, zeit), system="KG CRM")
+    if system == "business":
+        return _business(body, zeit)
+    raise Fehler("system fehlt oder ist falsch: crm (KG CRM / Gebäudereinigung) oder business (KG Business / Strom-Gas)? Bitte Murat fragen.")
+
+
+FILTER = ("suche", "stadt", "plz", "status", "branche", "branche_id", "quelle", "typ")
+
+
+def w_lead_loeschen(a):
+    if a.get("vorschau_id"):
+        return _system(a, {"aktion": "loeschen_bestaetigen", "vorschau_id": a.get("vorschau_id"), "ids": [a.get("id")],
+                           "bestaetigt": a.get("bestaetigt") is True, "grund": a.get("grund") or ""})
+    return _system(a, {"aktion": "loeschen_vorschau", "ids": [a.get("id")], "grund": a.get("grund") or ""})
+
+
+def w_leads_massenloeschen(a):
+    if a.get("vorschau_id"):
+        return _system(a, {"aktion": "loeschen_bestaetigen", "vorschau_id": a.get("vorschau_id"), "ids": a.get("ids") or [],
+                           "bestaetigt": a.get("bestaetigt") is True, "grund": a.get("grund") or ""}, zeit=300)
+    body = {k: a[k] for k in FILTER if a.get(k) not in (None, "")}
+    if a.get("ids"):
+        body["ids"] = a["ids"]
+    return _system(a, dict(body, aktion="loeschen_vorschau", grund=a.get("grund") or ""), zeit=300)
+
+
 LEAD_FELDER = {
     "firma": {"type": "string", "description": "Firmenname (Pflicht)"},
     "telefon": {"type": "string", "description": "Geschäftliche Telefonnummer – ohne Telefon kein Leon-Anruf"},
@@ -727,6 +808,41 @@ LEAD_FELDER = {
 }
 LEAD_SCHEMA = {"type": "object", "properties": LEAD_FELDER, "required": ["firma"], "additionalProperties": False}
 SCHREIBEN = {"readOnlyHint": False, "destructiveHint": False, "idempotentHint": False, "openWorldHint": False}
+
+
+BUSINESS_FELDER = {
+    "firma": {"type": "string", "description": "Firmenname (Pflicht)"},
+    "telefon": {"type": "string", "description": "Geschäftliche Telefonnummer – ohne Telefon kein Leon-Anruf"},
+    "email": {"type": "string"}, "website": {"type": "string"},
+    "strasse": {"type": "string", "description": "Straße und Hausnummer"}, "plz": {"type": "string"}, "stadt": {"type": "string"},
+    "branche": {"type": "string", "description": "Branche als Text (z. B. Metallbau, Bäckerei)"},
+    "branche_id": LEAD_FELDER["branche_id"],
+    "ansprechpartner": {"type": "string", "description": "Nur wenn auf einer Quelle bestätigt"},
+    "ansprechpartner_geprueft": {"type": "boolean", "description": "true nur wenn der Ansprechpartner belegt ist"},
+    "entscheider_name": {"type": "string", "description": "Entscheider (Inhaber/Geschäftsführer), nur wenn belegt"},
+    "stromanbieter": {"type": "string"}, "stromverbrauch": {"type": "integer", "description": "kWh pro Jahr"},
+    "vertragsende_strom": {"type": "string", "description": "JJJJ-MM-TT"},
+    "gasanbieter": {"type": "string"}, "gasverbrauch": {"type": "integer", "description": "kWh pro Jahr"},
+    "vertragsende_gas": {"type": "string", "description": "JJJJ-MM-TT"},
+    "quelle_url": {"type": "string", "description": "Wo die Daten stehen (Impressum, Branchenbuch …)"},
+    "punkte": {"type": "integer", "minimum": 0, "maximum": 100, "description": "Potenzial 0–100 (deine Einschätzung)"},
+    "notiz": {"type": "string", "description": "Warum die Firma passt"},
+}
+BUSINESS_SCHEMA = {"type": "object", "properties": BUSINESS_FELDER, "required": ["firma"], "additionalProperties": False}
+LOESCH_SYSTEM = {"type": "string", "enum": ["crm", "business"],
+                 "description": "crm = KG CRM (KG Gebäudereinigung), business = KG Business (Strom/Gas). Pflicht – wenn unklar, Murat fragen."}
+LOESCHEN = {"readOnlyHint": False, "destructiveHint": True, "idempotentHint": True, "openWorldHint": False}
+ENDGUELTIG = {"readOnlyHint": False, "destructiveHint": True, "idempotentHint": False, "openWorldHint": False}
+LOESCH_FILTER = {
+    "suche": {"type": "string", "description": "Teil des Firmennamens"},
+    "stadt": {"type": "string"}, "plz": {"type": "string", "description": "PLZ oder Anfang (z. B. 470)"},
+    "status": {"type": "string", "description": "genauer Status, z. B. Neu"},
+    "branche": {"type": "string", "description": "Branche als Text (CRM: Kasten; Business: Branche/Beruf enthält)"},
+    "branche_id": LEAD_FELDER["branche_id"],
+    "quelle": {"type": "string", "description": "z. B. Lead-Sammler, ChatGPT"},
+    "typ": {"type": "string", "enum": ["reinigungsfirma"],
+            "description": "nur sichere Reinigungsfirmen (Name/Branche); unklare werden nur gezeigt, nie gelöscht"},
+}
 
 
 SYSTEM_PARAM = {"type": "string", "enum": ["crm", "reinigung", "business"],
@@ -895,6 +1011,151 @@ WERKZEUGE = {
             "kampagne_id": {"type": "integer"}, "name": {"type": "string"},
         }, "additionalProperties": False},
     },
+    "business_leads_suchen": {
+        "fn": lambda a: _business(dict(a, aktion="leads_suchen")),
+        "title": "Firmen in KG Business suchen",
+        "description": "NUR KG Business (Strom/Gas): sucht Firmen nach Name, E-Mail, Webseite, Ansprechpartner oder Telefon "
+                       "(Teil reicht), optional Stadt, PLZ, Status, Branche, Quelle, Strom-/Gasanbieter, Vertragsende bis "
+                       "(JJJJ-MM-TT) oder id. Zeigt Strom/Gas-Daten, Rückruf, Notizen, Kampagnen und Schutz.",
+        "schema": {"type": "object", "properties": {
+            "suche": {"type": "string"}, "id": {"type": "integer"}, "stadt": {"type": "string"}, "plz": {"type": "string"},
+            "status": {"type": "string"}, "branche": {"type": "string"}, "branche_id": LEAD_FELDER["branche_id"],
+            "quelle": {"type": "string"}, "stromanbieter": {"type": "string"}, "gasanbieter": {"type": "string"},
+            "vertragsende_bis": {"type": "string", "description": "JJJJ-MM-TT"},
+            "limit": {"type": "integer", "minimum": 1, "maximum": 50},
+        }, "additionalProperties": False},
+    },
+    "business_lead_erstellen": {
+        "fn": lambda a: _business({"aktion": "lead_erstellen", "lead": a.get("lead") or {}}),
+        "title": "Eine Firma in KG Business anlegen",
+        "description": "NUR KG Business: legt EINE Firma an (Quelle „ChatGPT“, Status Neu), auch mit Strom/Gas-Daten – nach "
+                       "Murats Ja. Prüft vorher auf Dubletten und Papierkorb; Vorhandenes wird nicht doppelt angelegt. Nichts erfinden.",
+        "schema": {"type": "object", "properties": {"lead": BUSINESS_SCHEMA}, "required": ["lead"], "additionalProperties": False},
+        "annotations": SCHREIBEN,
+    },
+    "business_leads_importieren": {
+        "fn": lambda a: _business({"aktion": "leads_importieren", "leads": a.get("leads"), "csv": a.get("csv")}, zeit=300),
+        "title": "Firmen in KG Business importieren",
+        "description": "NUR KG Business: mehrere Firmen (bis 100 je Aufruf) als JSON-Liste oder CSV-Text – nach Murats Ja. "
+                       "Dubletten (Telefon, E-Mail, Domain, Firma+Ort/Straße) werden übersprungen, Ähnliche als „unklar“, "
+                       "gelöschte als „im_papierkorb“ gemeldet. Antwort: neu, vorhanden, unklar, fehler, im_papierkorb, kampagnenfaehig.",
+        "schema": {"type": "object", "properties": {
+            "leads": {"type": "array", "items": BUSINESS_SCHEMA, "maxItems": 100},
+            "csv": {"type": "string", "description": "Alternativ CSV mit Kopfzeile (Firma, Telefon, E-Mail, Website, Straße, PLZ, Ort, "
+                                                    "Branche, Ansprechpartner, Stromanbieter, Stromverbrauch, Vertragsende, Gasanbieter, "
+                                                    "Gasverbrauch, Notiz)"},
+        }, "additionalProperties": False},
+        "annotations": SCHREIBEN,
+    },
+    "business_lead_aktualisieren": {
+        "fn": lambda a: _business({"aktion": "lead_aktualisieren", "id": a.get("id"), "felder": a.get("felder") or {}}),
+        "title": "Firma in KG Business ändern",
+        "description": "NUR KG Business: ändert EINE Firma – nach Murats Ja: Kontakt, Adresse, Branche, Strom-/Gasanbieter, "
+                       "Verbrauch, Vertragsende, Entscheider, Rückruf (rueckruf_am Berliner Zeit + rueckruf_notiz), Status, "
+                       "Notiz anhängen, Nicht anrufen setzen (aufheben nie). Kunden werden nicht geändert. Vorher/Nachher im Protokoll.",
+        "schema": {"type": "object", "properties": {
+            "id": {"type": "integer", "description": "KG-Business-Lead-ID"},
+            "felder": {"type": "object", "properties": {
+                **{k: v for k, v in BUSINESS_FELDER.items() if k not in ("quelle_url", "punkte", "notiz")},
+                "best_call_time": {"type": "string", "description": "beste Anrufzeit"},
+                "status": {"type": "string", "enum": ["Neu", "Kontaktiert", "Rückruf", "Wiedervorlage", "Interessiert", "Qualifiziert",
+                                                      "Nicht Qualifiziert", "Kein Interesse", "Gesperrt"]},
+                "rueckruf_am": {"type": "string", "description": "JJJJ-MM-TT HH:MM (Berliner Zeit) – setzt Status Rückruf"},
+                "rueckruf_notiz": {"type": "string"},
+                "notiz_anhaengen": {"type": "string"},
+                "nicht_anrufen": {"type": "boolean", "description": "true = Sperre setzen (nur auf Wunsch der Firma)"},
+                "nicht_anrufen_grund": {"type": "string"},
+            }, "additionalProperties": False},
+        }, "required": ["id", "felder"], "additionalProperties": False},
+        "annotations": SCHREIBEN,
+    },
+    "business_kampagne_hinzufuegen": {
+        "fn": lambda a: _business(dict(a, aktion="leads_kampagne"), zeit=300),
+        "title": "Leon-Business-Kampagne als Entwurf (mit gewählten Firmen)",
+        "description": "NUR KG Business: legt eine Leon-Business-Kampagne als ENTWURF an (name; ohne Firmen = leerer Entwurf) "
+                       "oder ergänzt einen Entwurf (kampagne_id) mit lead_ids (KG-Business-IDs). Gleichnamiger Entwurf wird "
+                       "verwendet statt doppelt angelegt. Nach Murats Ja. Startet nie. Geschützte Firmen (Kunde, Nicht anrufen, "
+                       "Kein Interesse, Gesperrt, ohne Telefon) werden übersprungen. Antwort enthält die zurückgelesene Kampagne.",
+        "schema": {"type": "object", "properties": {
+            "name": {"type": "string", "description": "Name der neuen Kampagne"},
+            "kampagne_id": {"type": "integer", "description": "Bestehender Entwurf (statt name)"},
+            "lead_ids": {"type": "array", "items": {"type": "integer"}, "maxItems": 200},
+        }, "additionalProperties": False},
+        "annotations": SCHREIBEN,
+    },
+    "business_kampagne_pruefen": {
+        "fn": lambda a: _business(dict(a, aktion="kampagne_pruefen")),
+        "title": "Leon-Business-Kampagne zurücklesen",
+        "description": "NUR KG Business: liest eine Kampagne (kampagne_id oder genauer name): Name, Status, Agent, Firmen.",
+        "schema": {"type": "object", "properties": {
+            "kampagne_id": {"type": "integer"}, "name": {"type": "string"},
+        }, "additionalProperties": False},
+    },
+    "lead_loeschen": {
+        "fn": w_lead_loeschen,
+        "title": "Eine Firma löschen (Papierkorb, 2 Schritte)",
+        "description": "Löscht EINE Firma im genannten System (crm oder business) in den Papierkorb – immer zwei Schritte: "
+                       "1) system + id → Vorschau (Firma, Schutz, Verknüpfungen, vorschau_id) – es wird NICHTS gelöscht; "
+                       "Murat zeigen und ausdrücklich fragen. 2) Nach seinem Ja: system + id + vorschau_id + bestaetigt=true. "
+                       "Geschützte Firmen werden nie gelöscht. Zurückholen mit lead_wiederherstellen.",
+        "schema": {"type": "object", "properties": {
+            "system": LOESCH_SYSTEM, "id": {"type": "integer", "description": "Lead-ID im genannten System"},
+            "grund": {"type": "string", "description": "Warum (steht im Papierkorb)"},
+            "vorschau_id": {"type": "string", "description": "Nur Schritt 2: aus der Vorschau"},
+            "bestaetigt": {"type": "boolean", "description": "Nur Schritt 2: true erst nach Murats ausdrücklichem Ja"},
+        }, "required": ["system", "id"], "additionalProperties": False},
+        "annotations": LOESCHEN,
+    },
+    "leads_massenloeschen": {
+        "fn": w_leads_massenloeschen,
+        "title": "Mehrere Firmen löschen (Papierkorb, 2 Schritte)",
+        "description": "Mehrere Firmen im genannten System (crm oder business) in den Papierkorb – immer zwei Schritte: "
+                       "1) system + Filter (suche, stadt, plz, status, branche, quelle, typ=reinigungsfirma) oder ids → Vorschau: "
+                       "loeschbar, geschuetzt (mit Grund), unklar (nie automatisch), vorschau_id; es wird NICHTS gelöscht "
+                       "(höchstens 200 je Runde). 2) Nach Murats ausdrücklichem Ja: system + vorschau_id + ids (genau die "
+                       "bestätigten aus „loeschbar“) + bestaetigt=true. Gelöscht wird in Teilen; Doppelt senden ist sicher.",
+        "schema": {"type": "object", "properties": {
+            "system": LOESCH_SYSTEM, **LOESCH_FILTER,
+            "ids": {"type": "array", "items": {"type": "integer"}, "maxItems": 200,
+                    "description": "Schritt 1: diese IDs prüfen. Schritt 2: genau die bestätigten IDs aus der Vorschau"},
+            "grund": {"type": "string", "description": "Warum (steht im Papierkorb)"},
+            "vorschau_id": {"type": "string", "description": "Nur Schritt 2: aus der Vorschau"},
+            "bestaetigt": {"type": "boolean", "description": "Nur Schritt 2: true erst nach Murats ausdrücklichem Ja"},
+        }, "required": ["system"], "additionalProperties": False},
+        "annotations": LOESCHEN,
+    },
+    "lead_wiederherstellen": {
+        "fn": lambda a: _system(a, {"aktion": "wiederherstellen", "ids": a.get("ids") or []}),
+        "title": "Firmen aus dem Papierkorb zurückholen",
+        "description": "Holt gelöschte Firmen im genannten System (crm oder business) mit gleicher ID und allen Daten zurück "
+                       "(Business: auch zurück in den Kampagnen-Entwurf, wenn er noch Entwurf ist). Gibt es die Firma "
+                       "inzwischen neu, wird nicht doppelt angelegt, sondern gemeldet.",
+        "schema": {"type": "object", "properties": {
+            "system": LOESCH_SYSTEM, "ids": {"type": "array", "items": {"type": "integer"}, "minItems": 1, "maxItems": 100},
+        }, "required": ["system", "ids"], "additionalProperties": False},
+        "annotations": SCHREIBEN,
+    },
+    "papierkorb_anzeigen": {
+        "fn": lambda a: _system(a, {"aktion": "papierkorb", "suche": a.get("suche") or "", "limit": a.get("limit") or 50}),
+        "title": "Papierkorb anzeigen",
+        "description": "Zeigt gelöschte Firmen im genannten System (crm oder business): ID, Firma, Ort, Grund, wer, wann.",
+        "schema": {"type": "object", "properties": {
+            "system": LOESCH_SYSTEM, "suche": {"type": "string", "description": "Firma, Ort oder ID"},
+            "limit": {"type": "integer", "minimum": 1, "maximum": 200},
+        }, "required": ["system"], "additionalProperties": False},
+    },
+    "papierkorb_endgueltig_loeschen": {
+        "fn": lambda a: _system(a, {"aktion": "endgueltig_loeschen", "ids": a.get("ids") or [], "bestaetigung": a.get("bestaetigung") or ""}),
+        "title": "Aus dem Papierkorb endgültig löschen",
+        "description": "Löscht Firmen, die schon im Papierkorb liegen, endgültig (nicht mehr zurückholbar) – nur wenn Murat "
+                       "genau das ausdrücklich will und es auf dem Server eigens freigeschaltet ist. bestaetigung muss "
+                       "„ENDGÜLTIG LÖSCHEN“ sein. Höchstens 50 je Aufruf.",
+        "schema": {"type": "object", "properties": {
+            "system": LOESCH_SYSTEM, "ids": {"type": "array", "items": {"type": "integer"}, "minItems": 1, "maxItems": 50},
+            "bestaetigung": {"type": "string", "description": "genau: ENDGÜLTIG LÖSCHEN"},
+        }, "required": ["system", "ids", "bestaetigung"], "additionalProperties": False},
+        "annotations": ENDGUELTIG,
+    },
     "schema": {
         "fn": lambda a: w_schema(a.get("system")),
         "title": "Tabellen anzeigen",
@@ -964,7 +1225,7 @@ def bearbeiten(nachricht):
         return antwort(rid, {
             "protocolVersion": version,
             "capabilities": {"tools": {"listChanged": False}},
-            "serverInfo": {"name": "kg-daten", "title": "KG Daten", "version": "1.3.1"},
+            "serverInfo": {"name": "kg-daten", "title": "KG Daten", "version": "1.4.0"},
             "instructions": ANLEITUNG,
         })
     if methode == "ping":
