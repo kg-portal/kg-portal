@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""KG Daten – MCP-Connector für ChatGPT (lesen + Leon-Kampagne als Entwurf anlegen).
+"""KG Daten – MCP-Connector für ChatGPT (lesen, Firmen im KG CRM pflegen, Leon-Kampagnen als Entwurf).
 
 ChatGPT (auch im Sprachmodus) stellt hier Fragen zu KG CRM, Leon Reinigung und
 KG Business. Der Dienst liest die SQLite-Datenbanken ausschließlich im
@@ -11,8 +11,9 @@ Nur-Lese-Modus (mode=ro + PRAGMA query_only + SQLite-Authorizer):
 - Erreichbar nur unter einem geheimen Pfad: https://<domain>/<KG_MCP_PFAD>/mcp
 - Geheime Spalten (Passwörter, Tokens, IBAN, Steuer-ID, SV-Nummer, Zugangscodes)
   und Einstellungs-/Token-Tabellen werden nie ausgegeben.
-- Einzige schreibende Aktion: leon_kampagne legt über das CRM (Token KG_MCP_CRM_TOKEN,
-  /internal/mcp/leon-kampagne) eine Leon-Kampagne als ENTWURF an. Gestartet wird nie.
+- Schreiben nur über das CRM (Token KG_MCP_CRM_TOKEN): leon_kampagne (/internal/mcp/leon-kampagne) und
+  Firmen/Kampagnen-Entwürfe (/internal/mcp/crm). Das CRM prüft Dubletten, Schutz (Kunde, Nicht anrufen …),
+  protokolliert jede Änderung und legt Kampagnen nur als ENTWURF an. Gestartet wird nie. KG Business: nie.
 
   python3 kg_mcp_server.py [env.json]     Server starten (Standard: /opt/kg-mcp-geheim/env.json)
 """
@@ -69,8 +70,9 @@ PROTOKOLLE = ("2024-11-05", "2025-03-26", "2025-06-18", "2025-11-25")
 
 ANLEITUNG = """\
 KG Daten: Zugriff auf die Firmendaten von Murat (Inhaber von KG Gebäudereinigung und KG Business, Duisburg).
-Lesen ist frei. Einzige Änderung, die du machen darfst: Leon-Kampagnen als ENTWURF anlegen (Werkzeug leon_kampagne) –
-dafür hast du die Berechtigung. Starten kannst du eine Kampagne nie, das macht Murat im CRM.
+Lesen ist frei. Ändern darfst du – nach Murats Ja – NUR im KG CRM / Leon Reinigung: Firmen (leads) suchen, anlegen,
+importieren, ergänzen und Leon-Reinigung-Kampagnen als ENTWURF anlegen. Dafür hast du die Berechtigung.
+Starten kannst du eine Kampagne nie (das macht Murat im CRM). E-Mails verschickst du nie. KG Business änderst du nie.
 Antworte in der Sprache des Nutzers (meist Türkisch, manchmal Deutsch). Im Sprachmodus: kurz, Zahlen zuerst, keine Tabellen vorlesen.
 
 Systeme (Parameter "system"):
@@ -87,7 +89,25 @@ Systeme (Parameter "system"):
 Werkzeuge: Für häufige Fragen zuerst kg_heute, todo_brett, rueckrufe, leon_anrufe, firma_suchen benutzen.
 todo_brett = derselbe To-Do-Kasten, den Murat im Süper Program sieht (heute / woche / monat).
 Für alles andere: erst schema(system), dann sql_lesen(system, SELECT ...). Du kannst frei SELECT-Abfragen schreiben
-(auch JOIN, GROUP BY, WITH). Ändern ist nicht möglich – mit EINER Ausnahme:
+(auch JOIN, GROUP BY, WITH).
+
+FIRMEN FÜR KG GEBÄUDEREINIGUNG (KG CRM) – z. B. „Finde 10 Firmen in Duisburg, lege sie an, mach eine Kampagne“:
+1. Recherchieren: nur echte Firmen mit Geschäftskontakt (Impressum/Website/Branchenbuch). Nichts erfinden:
+   was du nicht sicher gefunden hast, leer lassen. quelle_url immer angeben. Ansprechpartner nur, wenn er auf
+   einer Quelle steht – dann ansprechpartner_geprueft=true. punkte 0–100 = deine Einschätzung, Grund in notiz
+   (z. B. Fläche, Mitarbeiter, Praxis/Büro). Keine Privatpersonen.
+2. Liste Murat zeigen und auf sein Ja warten. Dann leads_importieren (bis 100 je Aufruf, größere Listen in Teilen;
+   CSV geht als Text im Feld csv). Das CRM prüft selbst auf Dubletten (Telefon, E-Mail, Domain, Firma+Ort/Straße)
+   und meldet: neu, vorhanden (übersprungen), unklar (ähnlich – Murat fragen, nie zusammenführen), fehler.
+   Doppelt senden ist sicher – Vorhandenes wird nie ein zweites Mal angelegt.
+3. Kampagne: leads_kampagne_hinzufuegen mit name (neuer Entwurf) oder kampagne_id (nur Entwürfe), dazu
+   crm_lead_ids (z. B. „kampagnenfaehig“ aus dem Import) und/oder leon_lead_ids (Leads direkt in Leon Reinigung,
+   z. B. aus sql_lesen system=reinigung). Geschützte Firmen (Kunde, Nicht anrufen, Kein Interesse, Gesperrt,
+   verloren, schon im Verkauf, KG-Agent) werden nie aufgenommen und als „uebersprungen“ gemeldet.
+4. Mit kampagne_pruefen Name, Status (Entwurf) und Firmen zurücklesen und Murat bestätigen. Starten tut Murat.
+Werte nie selbst „Kunde“ setzen; Kunden werden nicht geändert. Änderungen stehen im Protokoll des CRM.
+
+LEON-AUSWAHL AUS DER DATENBANK:
 leon_kampagne legt eine Leon-Kampagne (Telefon-KI) als Entwurf an. Ablauf: aktion=branchen → staedte → vorschau
 (Liste dem Nutzer zeigen) → erst nach ausdrücklichem Ja des Nutzers aktion=anlegen mit Namen. Gestartet wird nie –
 das macht Murat selbst im CRM (Leon → Kampagnen).
@@ -662,6 +682,53 @@ def w_leon_kampagne(a):
         raise Fehler(f"CRM nicht erreichbar: {exc}")
 
 
+def _crm(body, zeit=120):
+    """Aufruf der CRM-Route /internal/mcp/crm (nur KG CRM / Leon Reinigung)."""
+    token = str(EINST.get("KG_MCP_CRM_TOKEN") or "").strip()
+    if not token:
+        raise Fehler("Schreiben ins CRM ist noch nicht freigeschaltet (kg_mcp/kampagne_freischalten.sh).")
+    url = str(EINST.get("KG_CRM_URL") or STANDARD["KG_CRM_URL"]).rstrip("/") + "/internal/mcp/crm"
+    anfrage = urllib.request.Request(url, data=json.dumps(body).encode(), method="POST",
+                                     headers={"Content-Type": "application/json", "X-KG-MCP-Token": token})
+    try:
+        with urllib.request.urlopen(anfrage, timeout=zeit) as r:
+            return json.loads(r.read().decode() or "{}")
+    except urllib.error.HTTPError as exc:
+        try:
+            daten = json.loads(exc.read().decode() or "{}")
+        except ValueError:
+            daten = {}
+        details = {k: v for k, v in daten.items() if k not in ("success", "error")}
+        raise Fehler((daten.get("error") or f"CRM antwortet mit HTTP {exc.code}")
+                     + (" " + json.dumps(details, ensure_ascii=False) if details else ""))
+    except (urllib.error.URLError, OSError) as exc:
+        raise Fehler(f"CRM nicht erreichbar: {exc}")
+
+
+LEAD_FELDER = {
+    "firma": {"type": "string", "description": "Firmenname (Pflicht)"},
+    "telefon": {"type": "string", "description": "Geschäftliche Telefonnummer – ohne Telefon kein Leon-Anruf"},
+    "email": {"type": "string"},
+    "website": {"type": "string"},
+    "strasse": {"type": "string", "description": "Straße und Hausnummer"},
+    "plz": {"type": "string"},
+    "stadt": {"type": "string"},
+    "branche_id": {"type": "string", "enum": ["1", "2", "3", "4", "5", "6", "7", "8", "9", "11", "12", "13"],
+                   "description": "Kasten: 1 Büro/Kanzlei/Beratung, 2 Medizin/Gesundheit, 3 Pflege/Soziales, 4 Bildung/Betreuung, "
+                                  "5 Einzelhandel/Lebensmittel, 6 Fitness/Sport/Freizeit, 7 Industrie/Produktion, "
+                                  "8 Lager/Logistik/Großhandel, 9 Immobilien/Hausverwaltung, 11 Handwerk/Bau/Kfz, "
+                                  "12 Friseur/Kosmetik/Sonstige, 13 Gastronomie/Hotel"},
+    "branche": {"type": "string", "description": "Branche als Text (z. B. Steuerberater) – wenn branche_id fehlt"},
+    "ansprechpartner": {"type": "string", "description": "Nur wenn auf einer Quelle bestätigt"},
+    "ansprechpartner_geprueft": {"type": "boolean", "description": "true nur wenn der Ansprechpartner belegt ist"},
+    "quelle_url": {"type": "string", "description": "Wo die Daten stehen (Impressum, Branchenbuch …)"},
+    "punkte": {"type": "integer", "minimum": 0, "maximum": 100, "description": "Potenzial 0–100 (deine Einschätzung)"},
+    "notiz": {"type": "string", "description": "Warum die Firma passt (Fläche, Mitarbeiter, Art des Objekts …)"},
+}
+LEAD_SCHEMA = {"type": "object", "properties": LEAD_FELDER, "required": ["firma"], "additionalProperties": False}
+SCHREIBEN = {"readOnlyHint": False, "destructiveHint": False, "idempotentHint": False, "openWorldHint": False}
+
+
 SYSTEM_PARAM = {"type": "string", "enum": ["crm", "reinigung", "business"],
                 "description": "crm = KG CRM (Gebäudereinigung), reinigung = Leon Reinigung (Telefon-KI), "
                                "business = KG Business (Strom/Gas)"}
@@ -752,6 +819,80 @@ WERKZEUGE = {
         }, "required": ["aktion"], "additionalProperties": False},
         "annotations": {"readOnlyHint": False, "destructiveHint": False, "idempotentHint": False, "openWorldHint": False},
     },
+    "leads_suchen": {
+        "fn": lambda a: _crm(dict(a, aktion="leads_suchen")),
+        "title": "Firmen im KG CRM suchen",
+        "description": "Sucht Firmen (leads) im KG CRM nach Name, E-Mail, Webseite oder Telefon (Teil reicht), "
+                       "optional Stadt, Status, Branche, Quelle (z. B. ChatGPT) oder id. Zeigt je Firma auch den Schutz "
+                       "(Kunde, Nicht anrufen, Kein Interesse, schon im Verkauf).",
+        "schema": {"type": "object", "properties": {
+            "suche": {"type": "string"}, "id": {"type": "integer"}, "stadt": {"type": "string"},
+            "status": {"type": "string"}, "branche_id": LEAD_FELDER["branche_id"], "branche": {"type": "string"},
+            "quelle": {"type": "string"}, "limit": {"type": "integer", "minimum": 1, "maximum": 50},
+        }, "additionalProperties": False},
+    },
+    "lead_erstellen": {
+        "fn": lambda a: _crm({"aktion": "lead_erstellen", "lead": a.get("lead") or {}}),
+        "title": "Eine Firma im KG CRM anlegen",
+        "description": "Legt EINE Firma im KG CRM an (Quelle „ChatGPT“, Status Neu) – nach Murats Ja. Prüft vorher auf "
+                       "Dubletten; Vorhandenes wird nicht doppelt angelegt. Nichts erfinden.",
+        "schema": {"type": "object", "properties": {"lead": LEAD_SCHEMA}, "required": ["lead"], "additionalProperties": False},
+        "annotations": SCHREIBEN,
+    },
+    "leads_importieren": {
+        "fn": lambda a: _crm({"aktion": "leads_importieren", "leads": a.get("leads"), "csv": a.get("csv")}, zeit=300),
+        "title": "Firmen ins KG CRM importieren",
+        "description": "Mehrere Firmen (bis 100 je Aufruf) als JSON-Liste oder CSV-Text ins KG CRM – nach Murats Ja. "
+                       "Dubletten (Telefon, E-Mail, Domain, Firma+Ort/Straße) werden übersprungen, Ähnliche als „unklar“ "
+                       "gemeldet. Antwort: neu, vorhanden, unklar, fehler, kampagnenfaehig (IDs mit Telefon).",
+        "schema": {"type": "object", "properties": {
+            "leads": {"type": "array", "items": LEAD_SCHEMA, "maxItems": 100},
+            "csv": {"type": "string", "description": "Alternativ CSV mit Kopfzeile (Firma, Telefon, E-Mail, Website, Straße, PLZ, Ort, Branche, Ansprechpartner, Quelle, Punkte, Notiz)"},
+        }, "additionalProperties": False},
+        "annotations": SCHREIBEN,
+    },
+    "lead_aktualisieren": {
+        "fn": lambda a: _crm({"aktion": "lead_aktualisieren", "id": a.get("id"), "felder": a.get("felder") or {}}),
+        "title": "Firma im KG CRM ändern",
+        "description": "Ändert EINE Firma im KG CRM – nach Murats Ja: Kontaktdaten, Adresse, Branche, Status "
+                       "(Neu, Kontaktiert, Interessiert, Kein Interesse, Nicht anrufen, Verloren), Notiz anhängen. "
+                       "Kunden werden nicht geändert. Vorher/Nachher wird protokolliert.",
+        "schema": {"type": "object", "properties": {
+            "id": {"type": "integer", "description": "CRM-Lead-ID"},
+            "felder": {"type": "object", "properties": {
+                "firma": {"type": "string"}, "telefon": {"type": "string"}, "email": {"type": "string"},
+                "website": {"type": "string"}, "strasse": {"type": "string"}, "plz": {"type": "string"},
+                "stadt": {"type": "string"}, "branche_id": LEAD_FELDER["branche_id"], "branche": {"type": "string"},
+                "ansprechpartner": {"type": "string"}, "ansprechpartner_geprueft": {"type": "boolean"},
+                "quelle_url": {"type": "string"},
+                "status": {"type": "string", "enum": ["Neu", "Kontaktiert", "Interessiert", "Kein Interesse", "Nicht anrufen", "Verloren"]},
+                "notiz_anhaengen": {"type": "string"},
+            }, "additionalProperties": False},
+        }, "required": ["id", "felder"], "additionalProperties": False},
+        "annotations": SCHREIBEN,
+    },
+    "leads_kampagne_hinzufuegen": {
+        "fn": lambda a: _crm(dict(a, aktion="leads_kampagne"), zeit=300),
+        "title": "Leon-Reinigung-Kampagne als Entwurf (mit gewählten Firmen)",
+        "description": "Legt eine Leon-Reinigung-Kampagne als ENTWURF an (name) oder ergänzt einen Entwurf (kampagne_id) "
+                       "mit gewählten Firmen: crm_lead_ids (KG CRM) und/oder leon_lead_ids (Leon Reinigung). Nach Murats Ja. "
+                       "Startet nie. Geschützte Firmen werden übersprungen. Antwort enthält die zurückgelesene Kampagne.",
+        "schema": {"type": "object", "properties": {
+            "name": {"type": "string", "description": "Name der neuen Kampagne"},
+            "kampagne_id": {"type": "integer", "description": "Bestehender Entwurf (statt name)"},
+            "crm_lead_ids": {"type": "array", "items": {"type": "integer"}, "maxItems": 200},
+            "leon_lead_ids": {"type": "array", "items": {"type": "integer"}, "maxItems": 200},
+        }, "additionalProperties": False},
+        "annotations": SCHREIBEN,
+    },
+    "kampagne_pruefen": {
+        "fn": lambda a: _crm(dict(a, aktion="kampagne_pruefen")),
+        "title": "Leon-Reinigung-Kampagne zurücklesen",
+        "description": "Liest eine Leon-Reinigung-Kampagne (kampagne_id oder genauer name): Name, Status, Agent, Firmen.",
+        "schema": {"type": "object", "properties": {
+            "kampagne_id": {"type": "integer"}, "name": {"type": "string"},
+        }, "additionalProperties": False},
+    },
     "schema": {
         "fn": lambda a: w_schema(a.get("system")),
         "title": "Tabellen anzeigen",
@@ -821,7 +962,7 @@ def bearbeiten(nachricht):
         return antwort(rid, {
             "protocolVersion": version,
             "capabilities": {"tools": {"listChanged": False}},
-            "serverInfo": {"name": "kg-daten", "title": "KG Daten", "version": "1.2.0"},
+            "serverInfo": {"name": "kg-daten", "title": "KG Daten", "version": "1.3.0"},
             "instructions": ANLEITUNG,
         })
     if methode == "ping":
