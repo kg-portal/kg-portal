@@ -6,7 +6,8 @@
 #
 # - Nur nach Anmeldung (gleiches Login wie das CRM).
 # - Nie doppelt: gleiche Pool-ID, gleiche Telefonnummer (nur Ziffern)
-#   oder gleiche Firma + Webseite → wird übersprungen.
+#   oder gleiche Firma + Webseite → wird übersprungen; Firmen im Papierkorb
+#   (von ChatGPT gelöscht) kommen nicht wieder.
 # - Bestehende Leads werden nie geändert.
 # =====================================================
 import re
@@ -14,6 +15,7 @@ import re
 from flask import jsonify, request
 
 from kg_kaesten import KASTEN_NAME
+from lead_kern import papierkorb_telefone
 
 MAX_FIRMEN = 1000
 CRM_BRANCHEN = KASTEN_NAME  # die 12 Kästen der Datenbank (branche_id → Name)
@@ -68,6 +70,7 @@ def register_lead_sammler_import(app, login_required, get_db_connection):
                     except Exception:
                         pass
             telefone = {_ziffern(r[0]) for r in conn.execute("SELECT telefon FROM leads WHERE COALESCE(telefon, '') <> ''")}
+            telefone |= papierkorb_telefone(conn)  # gelöschte Firmen (Papierkorb) nicht wieder aufnehmen
             schluessel = {r[0] for r in conn.execute("SELECT unique_key FROM leads WHERE COALESCE(unique_key, '') <> ''")}
 
             importiert = doppelt = uebersprungen = 0

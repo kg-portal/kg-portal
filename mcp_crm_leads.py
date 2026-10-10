@@ -5,6 +5,8 @@
 #   POST /internal/mcp/crm   {"aktion": …}
 #     leads_suchen, lead_erstellen, leads_importieren (JSON oder CSV), lead_aktualisieren,
 #     leads_kampagne (Entwurf anlegen oder in einen Entwurf legen), kampagne_pruefen
+#     loeschen_vorschau → loeschen_bestaetigen (zwei Schritte, Papierkorb), papierkorb, wiederherstellen,
+#     endgueltig_loeschen (nur mit KG_MCP_ENDGUELTIG=1 in crm_env.json + „ENDGÜLTIG LÖSCHEN“)
 #
 # - Nur KG CRM (Tabelle leads) und Leon Reinigung. KG Business wird nie angefasst.
 # - Nie doppelt: Telefon (normalisiert), E-Mail, Webseiten-Domain, Firma+Ort, Firma+Straße.
@@ -28,6 +30,7 @@ from flask import jsonify, request
 from kg_kaesten import KAESTEN, KASTEN_NAME
 from leon_auto_kampagne import CRM_ENDE, ERREICHT_ENDE
 from leon_datenbank import ensure_leon_links
+from lead_kern import Papierkorb, PapierkorbIndex, eigene_firma, reinigungsfirma, tabelle_da, MAX_VORSCHAU
 
 MAX_IMPORT = 100
 GESCHUETZT_STATUS = {"kunde", "kunden", "nicht anrufen", "kein interesse", "gesperrt", "verloren"}
@@ -217,6 +220,119 @@ def _schutz_grund(conn, lead_id):
     return ""
 
 
+# ---------------- Löschen (Papierkorb) ----------------
+LOESCH_STATUS = GESCHUETZT_STATUS | CRM_ENDE | {"rückruf", "rueckruf", "termin", "besichtigung", "angebot"}
+
+
+def loesch_schutz(conn, ids, kampagnen):
+    """{id: grund} – Kunden, Sperren (Nicht anrufen/Gesperrt/Kein Interesse), laufender Verkauf, Tagesliste,
+    Leon-Kampagne nicht beendet, eigene Firma. kampagnen = {Leon-Kampagnen-ID: Status} oder None (Leon nicht erreichbar)."""
+    if not ids:
+        return {}
+    kunden_tel, kunden_namen = set(), set()
+    if tabelle_da(conn, "kunden"):
+        for k in conn.execute("SELECT firma, telefon FROM kunden"):
+            if telefon_norm(k["telefon"]):
+                kunden_tel.add(telefon_norm(k["telefon"]))
+            if firma_norm(k["firma"]):
+                kunden_namen.add(firma_norm(k["firma"]))
+    tl = ("(SELECT t.status FROM tagesliste_leads t WHERE t.source_lead_id = l.id ORDER BY t.id DESC LIMIT 1)"
+          if tabelle_da(conn, "tagesliste_leads") else "NULL")
+    marks = ",".join("?" * len(ids))
+    schutz = {}
+    for r in conn.execute(f"""
+            SELECT l.id, l.firma, l.telefon, l.status, k.letztes_ergebnis, k.kampagne_id, {tl} AS tl_status
+            FROM leads l LEFT JOIN leon_links k ON k.quelle = 'leads' AND k.crm_id = l.id WHERE l.id IN ({marks})""",
+                          [int(i) for i in ids]):
+        status = str(r["status"] or "").strip().lower()
+        ergebnis = str(r["letztes_ergebnis"] or "").strip().lower()
+        if eigene_firma(r["firma"]):
+            grund = "eigene Firma / Testeintrag"
+        elif status in ("kunde", "kunden") or telefon_norm(r["telefon"]) in kunden_tel or firma_norm(r["firma"]) in kunden_namen:
+            grund = "Kunde"
+        elif status in ("nicht anrufen", "gesperrt", "kein interesse") or ergebnis in GESCHUETZT_ERGEBNIS:
+            grund = f"Sperre bleibt erhalten ({r['status'] if status else r['letztes_ergebnis']})"
+        elif status in LOESCH_STATUS:
+            grund = f"Verkaufsvorgang (Status {r['status']})"
+        elif ergebnis in ERREICHT_ENDE:
+            grund = f"Leon-Ergebnis „{r['letztes_ergebnis']}“ (Rückruf/Termin/Interesse)"
+        elif r["tl_status"] is not None:
+            grund = f"steht in der Tagesliste (Status {r['tl_status']})"
+        elif r["kampagne_id"] and kampagnen is None:
+            grund = "an Leon übergeben – Kampagnen-Status gerade nicht prüfbar"
+        elif r["kampagne_id"] and (kampagnen or {}).get(int(r["kampagne_id"]), "Beendet") != "Beendet":
+            grund = f"in Leon-Kampagne {r['kampagne_id']} ({kampagnen[int(r['kampagne_id'])]})"
+        else:
+            continue
+        schutz[r["id"]] = grund
+    return schutz
+
+
+def loesch_verknuepfungen(conn, ids):
+    if not ids:
+        return {}
+    marks = ",".join("?" * len(ids))
+    links = {}
+    for r in conn.execute(f"SELECT crm_id, leon_lead_id, kampagne_id, letztes_ergebnis FROM leon_links "
+                          f"WHERE quelle = 'leads' AND crm_id IN ({marks})", [int(i) for i in ids]):
+        links[r["crm_id"]] = [f"an Leon übergeben (Leon-Lead {r['leon_lead_id']}, Kampagne {r['kampagne_id'] or '–'}, "
+                              f"Ergebnis {r['letztes_ergebnis'] or '–'}) – Leon-Verlauf bleibt unverändert"]
+    return links
+
+
+FILTER_FELDER = ("ids", "suche", "stadt", "plz", "status", "branche", "branche_id", "quelle", "typ")
+
+
+def loesch_kandidaten(conn, d):
+    """→ (kandidaten, unklar [(zeile, grund)], weitere, kriterien) oder Fehlertext."""
+    kriterien = {k: d.get(k) for k in FILTER_FELDER if d.get(k) not in (None, "", [])}
+    if not kriterien:
+        return "Bitte mindestens einen Filter (ids, suche, stadt, plz, status, branche, quelle, typ) – alles löschen geht nie."
+    bed, par = [], []
+    if d.get("ids"):
+        try:
+            ids = list(dict.fromkeys(int(x) for x in d["ids"]))[:MAX_VORSCHAU]
+        except (TypeError, ValueError):
+            return "ids müssen Zahlen sein."
+        bed.append(f"id IN ({','.join('?' * len(ids))})")
+        par += ids
+    if d.get("suche"):
+        bed.append("firma LIKE ?")
+        par.append(f"%{_text(d['suche'], 120)}%")
+    if d.get("stadt"):
+        bed.append("stadt LIKE ?")
+        par.append(f"%{_text(d['stadt'], 80)}%")
+    if d.get("plz"):
+        bed.append("plz LIKE ?")
+        par.append(f"{re.sub(r'[^0-9]', '', str(d['plz']))[:5]}%")
+    if d.get("status"):
+        bed.append("LOWER(TRIM(COALESCE(status, ''))) = ?")
+        par.append(_text(d["status"], 40).lower())
+    if d.get("branche") or d.get("branche_id"):
+        bed.append("branche_id = ?")
+        par.append(kasten_fuer(d.get("branche_id"), d.get("branche")))
+    if d.get("quelle"):
+        bed.append("quelle = ?")
+        par.append(_text(d["quelle"], 40))
+    typ = str(d.get("typ") or "").strip().lower()
+    if typ and typ != "reinigungsfirma":
+        return "typ kann nur „reinigungsfirma“ sein."
+    zeilen = [dict(r) for r in conn.execute(
+        f"SELECT * FROM leads {('WHERE ' + ' AND '.join(bed)) if bed else ''} ORDER BY id", par)]
+    unklar = []
+    if typ == "reinigungsfirma":
+        sicher = []
+        for r in zeilen:
+            art, warum = reinigungsfirma(r.get("firma"), r.get("branche_name"), r.get("suchwort"))
+            if art == "sicher":
+                sicher.append(r)
+            elif art == "unklar":
+                unklar.append((r, warum))
+        zeilen = sicher
+    weitere = max(0, len(zeilen) - MAX_VORSCHAU)
+    return zeilen[:MAX_VORSCHAU], unklar, weitere, kriterien
+
+
 # ---------------- Routen ----------------
 def register_mcp_crm_leads(app, get_db_connection, leon_client_factory):
 
@@ -238,6 +354,23 @@ def register_mcp_crm_leads(app, get_db_connection, leon_client_factory):
     def _protokoll(conn, aktion, details):
         conn.execute("INSERT INTO mcp_protokoll (zeit, aktion, details) VALUES (?, ?, ?)",
                      (datetime.now().strftime("%Y-%m-%d %H:%M:%S"), aktion, json.dumps(details, ensure_ascii=False)[:20000]))
+
+    def _papierkorb(conn):
+        kampagnen = {}
+
+        def leon_kampagnen():
+            if "werte" not in kampagnen:
+                try:
+                    code, daten = leon_client_factory().request("GET", "/api/campaigns", timeout=30)
+                    kampagnen["werte"] = ({int(c["id"]): str(c.get("status") or "") for c in (daten or {}).get("campaigns", [])}
+                                          if code < 400 else None)
+                except Exception:  # Leon nicht erreichbar → übergebene Firmen gelten als geschützt
+                    kampagnen["werte"] = None
+            return kampagnen["werte"]
+
+        return Papierkorb(conn, schutz=lambda c, ids: loesch_schutz(c, ids, leon_kampagnen()),
+                          verknuepfungen=loesch_verknuepfungen,
+                          protokoll=lambda aktion, details: _protokoll(conn, aktion, details))
 
     def _firma_aus(f):
         f2 = {k: _text(f.get(k), n) for k, n in (("firma", 200), ("telefon", 60), ("email", 120), ("website", 300),
@@ -262,7 +395,8 @@ def register_mcp_crm_leads(app, get_db_connection, leon_client_factory):
 
     def _importieren(conn, firmen):
         bestand = Bestand(conn)
-        ergebnis = {"neu": [], "vorhanden": [], "unklar": [], "fehler": []}
+        papierkorb = PapierkorbIndex(conn)
+        ergebnis = {"neu": [], "vorhanden": [], "unklar": [], "fehler": [], "im_papierkorb": []}
         for i, roh in enumerate(firmen):
             if not isinstance(roh, dict):
                 ergebnis["fehler"].append({"zeile": i + 1, "grund": "kein Objekt"})
@@ -278,6 +412,11 @@ def register_mcp_crm_leads(app, get_db_connection, leon_client_factory):
                 if schutz:
                     eintrag["schutz"] = schutz
                 ergebnis[art].append(eintrag)
+                continue
+            geloescht, warum = papierkorb.pruefen(f)
+            if geloescht:
+                ergebnis["im_papierkorb"].append({"zeile": i + 1, "firma": f["firma"], "grund": warum, "papierkorb": geloescht,
+                                                  "hinweis": "wurde gelöscht – nur mit lead_wiederherstellen zurückholen"})
                 continue
             if not telefon_norm(f["telefon"]) and not f["email"] and not f["website"]:
                 ergebnis["fehler"].append({"zeile": i + 1, "firma": f["firma"], "grund": "weder Telefon noch E-Mail noch Webseite"})
@@ -331,7 +470,7 @@ def register_mcp_crm_leads(app, get_db_connection, leon_client_factory):
         if not k:
             return None
         code, leads = client.request("GET", f"/api/campaigns/{int(kampagne_id)}/leads", timeout=30)
-        liste = [{"leon_lead_id": l.get("id"), "firma": l.get("firma"), "telefon": l.get("telefon")}
+        liste = [{"leon_lead_id": l.get("lead_id") or l.get("id"), "firma": l.get("firma"), "telefon": l.get("telefon")}
                  for l in (leads or {}).get("selected_leads", [])]
         return {"id": k.get("id"), "name": k.get("name"), "status": k.get("status"),
                 "agent": k.get("agent_name") or k.get("agent_id"), "leads": liste, "anzahl_leads": len(liste)}
@@ -464,7 +603,7 @@ def register_mcp_crm_leads(app, get_db_connection, leon_client_factory):
                                           "unklar": len(ergebnis["unklar"]), "fehler": len(ergebnis["fehler"])})
                 conn.commit()
                 antwort = {"success": True, **ergebnis,
-                           "zusammenfassung": {k: len(ergebnis[k]) for k in ("neu", "vorhanden", "unklar", "fehler")}}
+                           "zusammenfassung": {k: len(ergebnis[k]) for k in ("neu", "vorhanden", "unklar", "fehler", "im_papierkorb")}}
                 if zuordnung is not None:
                     antwort["csv_spalten"] = zuordnung
                 return jsonify(antwort)
@@ -526,6 +665,36 @@ def register_mcp_crm_leads(app, get_db_connection, leon_client_factory):
                 if not k:
                     return jsonify({"success": False, "error": "Kampagne nicht gefunden."}), 404
                 return jsonify({"success": True, "kampagne": k})
+
+            if aktion == "loeschen_vorschau":
+                kandidaten = loesch_kandidaten(conn, d)
+                if isinstance(kandidaten, str):
+                    return jsonify({"success": False, "error": kandidaten}), 400
+                zeilen, unklar, weitere, kriterien = kandidaten
+                if not zeilen and not unklar and d.get("ids"):
+                    pk = _papierkorb(conn)
+                    schon = [i for i in d["ids"] if str(i).isdigit() and pk._im_papierkorb(int(i))]
+                    if schon:
+                        return jsonify({"success": False, "error": "Schon im Papierkorb (nichts zu tun).", "ids": schon}), 409
+                    return jsonify({"success": False, "error": "Firma nicht gefunden."}), 404
+                return jsonify(_papierkorb(conn).vorschau(zeilen, kriterien, d.get("grund"), unklar, weitere))
+
+            if aktion == "loeschen_bestaetigen":
+                antwort, code = _papierkorb(conn).bestaetigen(d.get("vorschau_id"), d.get("ids"), d.get("bestaetigt"),
+                                                              d.get("grund"))
+                return jsonify(antwort), code
+
+            if aktion == "papierkorb":
+                return jsonify(_papierkorb(conn).liste(d.get("suche"), d.get("limit") or 50))
+
+            if aktion == "wiederherstellen":
+                antwort, code = _papierkorb(conn).wiederherstellen(d.get("ids"))
+                return jsonify(antwort), code
+
+            if aktion == "endgueltig_loeschen":
+                frei = str(os.getenv("KG_MCP_ENDGUELTIG") or "").strip() == "1"
+                antwort, code = _papierkorb(conn).endgueltig(d.get("ids"), d.get("bestaetigung"), frei)
+                return jsonify(antwort), code
 
             return jsonify({"success": False, "error": "Unbekannte aktion."}), 400
         finally:
