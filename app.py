@@ -884,6 +884,10 @@ register_leon_auto_kampagne(app, login_required, get_db_connection, lambda: _leo
 from leon_leads_holen import register_leon_leads_holen
 register_leon_leads_holen(app, login_required, get_db_connection)
 
+# ChatGPT (KG Daten): Firmen anlegen/prüfen/ändern und Leon-Reinigung-Kampagnen als Entwurf – nur mit Token
+from mcp_crm_leads import register_mcp_crm_leads
+register_mcp_crm_leads(app, get_db_connection, lambda: _leon_routes_mod.leon_client)
+
 # Kampagnen-Bericht: nach jeder fertigen Leon-Kampagne Bericht + To-Do-Karte (+ WhatsApp an den Chef, wenn eingestellt)
 from kampagnen_bericht import register_kampagnen_bericht
 register_kampagnen_bericht(app, login_required, get_db_connection, lambda: _leon_routes_mod.leon_client)
