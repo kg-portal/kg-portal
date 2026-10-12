@@ -8,9 +8,10 @@
 #   LEON_URL, LEON_USER, LEON_PASSWORD
 # =====================================================
 
+import json
 import os
 import threading
-from datetime import datetime
+from datetime import datetime, timezone
 
 import requests
 from flask import Response, abort, jsonify, render_template, request, stream_with_context
@@ -397,6 +398,132 @@ def _sync_row(conn, row):
 
 
 # -----------------------------------------------------
+# Interesse (Gespräche mit Ergebnis „Interessiert“)
+# -----------------------------------------------------
+
+INTERESSE_GRUENDE = [
+    # (Schlüssel, Anzeige, Stichworte in Zusammenfassung/Notiz)
+    ("angebot", "Angebot gewünscht", ("angebot", "kostenvoranschlag")),
+    ("email", "Infos per E-Mail", ("e-mail", "email", "per mail", "portfolio", "unterlagen", "informationen", "infomaterial", "zuschicken", "zusenden")),
+    ("rueckruf", "Rückruf", ("rückruf", "zurückruf", "zurückrufen", "erneut anrufen", "nochmal anrufen", "noch einmal anrufen", "später anrufen", "meldet sich")),
+    ("besichtigung", "Besichtigung / Check-up", ("besichtigung", "check-up", "checkup")),
+    ("preis", "Preis / Kosten", ("preis", "kosten", "stundensatz")),
+]
+INTERESSE_WOCHENTAGE = ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"]
+
+
+def _interesse_datum(value):
+    """Leon speichert UTC („YYYY-MM-DD HH:MM:SS“) – Anzeige in deutscher Zeit."""
+    text = str(value or "").strip()
+    try:
+        from zoneinfo import ZoneInfo
+        dt = datetime.strptime(text[:19].replace("T", " "), "%Y-%m-%d %H:%M:%S")
+        dt = dt.replace(tzinfo=timezone.utc).astimezone(ZoneInfo("Europe/Berlin"))
+        return f"{INTERESSE_WOCHENTAGE[dt.weekday()]}, {dt.strftime('%d.%m.%Y')}", dt.strftime("%H:%M")
+    except Exception:
+        return text, ""
+
+
+def _interesse_eintrag(r):
+    try:
+        reinigung = json.loads(r.get("reinigung_json") or "{}")
+    except Exception:
+        reinigung = {}
+    if not isinstance(reinigung, dict):
+        reinigung = {}
+
+    def rg(key):
+        return _clean(reinigung.get(key), 500)
+
+    leistungen = reinigung.get("leistungen") if isinstance(reinigung.get("leistungen"), list) else []
+    summary = _clean(r.get("summary"), 2000)
+    email = rg("kontakt_email") or _clean(r.get("call_email")) or _clean(r.get("lead_email"))
+    rueckruf_wann = rg("rueckruf_wann")
+
+    text = " ".join([summary, rg("notiz"), " ".join(str(x) for x in leistungen)]).lower()
+    gruende = []
+    for key, label, worte in INTERESSE_GRUENDE:
+        treffer = any(w in text for w in worte)
+        if key == "email" and email:
+            treffer = True
+        if key == "rueckruf" and rueckruf_wann:
+            treffer = True
+            label = f"Rückruf: {rueckruf_wann}"
+        if treffer:
+            gruende.append({"key": key, "label": label})
+
+    datum, zeit = _interesse_datum(r.get("created_at"))
+    details = [
+        part for part in (
+            rg("objektart"),
+            (rg("flaeche_gesamt_m2") + " m²") if rg("flaeche_gesamt_m2") and "m" not in rg("flaeche_gesamt_m2") else rg("flaeche_gesamt_m2"),
+            ", ".join(_clean(x, 80) for x in leistungen if _clean(x, 80)),
+            ("bisher: " + rg("aktuelle_firma")) if rg("aktuelle_firma") else "",
+            ("Vertragsende: " + rg("vertragsende_aktuell")) if rg("vertragsende_aktuell") else "",
+        ) if part
+    ]
+    return {
+        "call_id": r.get("call_id"),
+        "firma": _clean(r.get("firma")) or "Unbekannter Kontakt",
+        "adresse": " · ".join(
+            part for part in (
+                _clean(r.get("strasse")),
+                (_clean(r.get("plz")) + " " + _clean(r.get("stadt"))).strip(),
+            ) if part
+        ),
+        "branche": _clean(r.get("branche")),
+        "kontakt": rg("ansprechpartner") or _clean(r.get("ansprechpartner")) or _clean(r.get("entscheider_name")),
+        "telefon": rg("kontakt_telefon") or _clean(r.get("telefon")) or _clean(r.get("phone_number")),
+        "email": email,
+        "datum": datum,
+        "zeit": zeit,
+        "score": r.get("score"),
+        "gruende": gruende,
+        "gruende_keys": " ".join(g["key"] for g in gruende),
+        "details": " · ".join(details),
+        "notiz": rg("notiz"),
+        "zusammenfassung": summary,
+    }
+
+
+def _interesse_aus_anrufliste():
+    """Ersatz, solange Leon /api/interesse/liste noch nicht hat: Anrufliste (je die neuesten 500, auch Archiv)."""
+    rows = []
+    for archived in ("0", "1"):
+        code, daten = leon_client.request("GET", f"/api/calls?archived={archived}", timeout=30)
+        if code != 200 or not isinstance(daten, dict) or not daten.get("success"):
+            raise LeonError((daten.get("error") if isinstance(daten, dict) else "") or f"HTTP {code}")
+        rows.extend(daten.get("calls") or [])
+    rows.sort(key=lambda c: int(c.get("id") or 0), reverse=True)
+    gesehen, liste = set(), []
+    for c in rows:
+        if c.get("result") != "Interessiert" or int(c.get("do_not_call") or 0):
+            continue
+        schluessel = ("lead", c.get("lead_id")) if c.get("lead_id") else ("tel", _clean(c.get("phone_number")))
+        if schluessel in gesehen:
+            continue
+        gesehen.add(schluessel)
+        liste.append({**c, "call_id": c.get("id"), "call_email": c.get("captured_email")})
+    return liste
+
+
+def _interesse_laden():
+    resp = leon_client.raw("GET", "/api/interesse/liste", timeout=30)
+    try:
+        if resp.status_code == 404:
+            return _interesse_aus_anrufliste()
+        try:
+            daten = resp.json()
+        except ValueError:
+            raise LeonError(f"Unerwartete Antwort von Leon (HTTP {resp.status_code}).")
+        if resp.status_code != 200 or not isinstance(daten, dict) or not daten.get("success"):
+            raise LeonError((daten.get("error") if isinstance(daten, dict) else "") or f"HTTP {resp.status_code}")
+        return daten.get("interesse") or []
+    finally:
+        resp.close()
+
+
+# -----------------------------------------------------
 # Routen
 # -----------------------------------------------------
 
@@ -447,6 +574,25 @@ def register_leon_routes(app, login_required, get_db_connection):
             rueckrufe=daten.get("rueckrufe") or [],
             stats=daten.get("stats") or {"ueberfaellig": 0, "heute": 0, "woche": 0, "gesamt": 0},
             heute=daten.get("heute") or datetime.now().strftime("%d.%m.%Y"),
+            fehler=fehler,
+        )
+
+    @app.route("/interesse")
+    @login_required
+    def leon_interesse():
+        # Alle Gespräche mit Ergebnis „Interessiert“ (bisherige und neue) – mit Grund, druckbar
+        eintraege, fehler = [], ""
+        try:
+            eintraege = [_interesse_eintrag(r) for r in _interesse_laden()]
+        except LeonError as exc:
+            fehler = str(exc)
+        stats = {key: sum(1 for e in eintraege if any(g["key"] == key for g in e["gruende"])) for key, _, _ in INTERESSE_GRUENDE}
+        stats["gesamt"] = len(eintraege)
+        return render_template(
+            "interesse.html",
+            eintraege=eintraege,
+            stats=stats,
+            heute=datetime.now().strftime("%d.%m.%Y"),
             fehler=fehler,
         )
 

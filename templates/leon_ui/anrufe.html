@@ -119,7 +119,7 @@ button,input,select{font:inherit}
 .call-result-pill.invoice.active{background:#fffbeb;border-color:#fcd34d;color:#b45309}
 .call-result-pill.no-interest.active{background:#fef2f2;border-color:#fca5a5;color:#b91c1c}
 /* Notfall: laufenden Anruf beenden */
-.call-hangup-btn{display:inline-block;margin-top:6px;padding:6px 12px;border:0;border-radius:8px;background:#dc2626;color:#fff;font-size:12px;font-weight:800;cursor:pointer;white-space:nowrap}
+.call-hangup-btn{display:inline-flex;align-items:center;padding:5px 12px;border:0;border-radius:8px;background:#dc2626;color:#fff;font-size:12px;font-weight:800;cursor:pointer;white-space:nowrap}
 .call-hangup-btn:hover{background:#b91c1c}
 .call-hangup-btn:disabled{opacity:.6;cursor:wait}
 </style>
@@ -810,6 +810,18 @@ function render(){
                                 ${resultPill("Rückruf", call.result)}
                                 ${resultPill("Rechnung", call.result)}
                                 ${resultPill("Kein Interesse", call.result)}
+                                ${
+                                    active
+                                    ?
+                                    `<button
+                                        type="button"
+                                        class="call-hangup-btn"
+                                        data-hangup="${esc(call.id)}"
+                                        ${hangingUp.has(String(call.id)) ? "disabled" : ""}
+                                    >${hangingUp.has(String(call.id)) ? "Wird beendet …" : "Beenden"}</button>`
+                                    :
+                                    ""
+                                }
                             </div>
                         </td>
 
@@ -834,19 +846,6 @@ function render(){
                             >
                                 Öffnen →
                             </a>
-
-                            ${
-                                active
-                                ?
-                                `<br><button
-                                    type="button"
-                                    class="call-hangup-btn"
-                                    data-hangup="${esc(call.id)}"
-                                    ${hangingUp.has(String(call.id)) ? "disabled" : ""}
-                                >${hangingUp.has(String(call.id)) ? "Wird beendet …" : "Beenden"}</button>`
-                                :
-                                ""
-                            }
                         </td>
 
                     </tr>

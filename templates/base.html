@@ -860,6 +860,11 @@
                 <i class="fa-solid fa-grip-vertical portal-drag-handle"></i>
             </a>
 
+            <a class="portal-nav-item {% if request.path.startswith('/interesse') %}active{% endif %}" href="/interesse" data-nav-key="interesse">
+                <span class="portal-nav-content"><i class="fa-solid fa-thumbs-up icon-teal"></i> Interesse</span>
+                <i class="fa-solid fa-grip-vertical portal-drag-handle"></i>
+            </a>
+
             <a class="portal-nav-item {% if request.path.startswith('/besichtigung') %}active{% endif %}" href="/besichtigung" data-nav-key="besichtigung">
                 <span class="portal-nav-content"><i class="fa-solid fa-clipboard-check icon-teal"></i> Besichtigung</span>
                 <i class="fa-solid fa-grip-vertical portal-drag-handle"></i>
@@ -950,6 +955,7 @@ document.addEventListener('DOMContentLoaded', function () {
         'lead-sammler',
         'leon',
         'rueckrufe',
+        'interesse',
         'besichtigung',
         'angebot',
         'leistungsverzeichnis',

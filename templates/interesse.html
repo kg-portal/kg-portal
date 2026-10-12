@@ -1,0 +1,244 @@
+{% extends "base.html" %}
+{% block content %}
+<!-- Interesse (Leon Reinigung) – alle Gespräche mit Ergebnis „Interessiert“, Daten vom Leon-Motor -->
+<style>
+  .in-page { width:100%; max-width:1900px; margin:0 auto; background:#fff; border-radius:24px; box-shadow:0 18px 50px rgba(15,23,42,.08); border:1px solid #dbe3f0; overflow:hidden; font-family:Arial, Helvetica, sans-serif; color:#0f172a; }
+
+  .in-hero { background:linear-gradient(135deg,#1e3a8a 0%,#2563eb 55%,#3b82f6 100%); color:#fff; padding:28px 30px; }
+  .in-hero-row { display:flex; justify-content:space-between; align-items:flex-start; gap:18px; flex-wrap:wrap; margin-bottom:24px; }
+  .in-hero h1 { margin:0; font-size:30px; line-height:1.1; font-weight:900; letter-spacing:-.4px; color:#fff; }
+  .in-hero p { margin:8px 0 0; font-size:13px; font-weight:700; opacity:.88; max-width:62ch; }
+  .in-today { background:rgba(255,255,255,.13); border:1px solid rgba(255,255,255,.2); border-radius:18px; padding:12px 18px; font-weight:900; font-size:14px; }
+
+  .in-stat-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:18px; }
+  .in-stat { background:#fff; border-radius:18px; padding:18px 22px; border:none; text-align:left; cursor:pointer; font-family:inherit; }
+  .in-stat.active { outline:3px solid #fde68a; }
+  .in-stat-label { font-size:11px; text-transform:uppercase; letter-spacing:.7px; font-weight:900; color:#2563eb; margin-bottom:7px; }
+  .in-stat-value { font-size:24px; font-weight:900; color:#1e3a8a; font-variant-numeric:tabular-nums; }
+  .in-stat-sub { margin-top:6px; font-size:11px; font-weight:800; color:#2563eb; }
+
+  .in-body { background:linear-gradient(180deg,#f8fafc 0%,#f1f5f9 100%); padding:28px 30px 32px; }
+  .in-head { display:flex; justify-content:space-between; align-items:flex-end; gap:16px; margin-bottom:16px; padding-bottom:14px; border-bottom:1px solid #e2e8f0; flex-wrap:wrap; }
+  .in-head h2 { margin:0; font-size:24px; font-weight:900; }
+  .in-head p { margin:6px 0 0; font-size:13px; font-weight:700; color:#64748b; }
+  .in-tools { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+  .in-search { padding:11px 14px; border:1.5px solid #e2e8f0; border-radius:12px; font-size:13px; min-width:280px; font-family:inherit; }
+  .in-search:focus { outline:none; border-color:#3b82f6; }
+
+  .in-toast { margin:0 0 14px; padding:12px 16px; border-radius:12px; font-size:13px; font-weight:800; background:#fef2f2; color:#b91c1c; border:1px solid #fecaca; }
+  .in-empty { background:#fff; border:1px dashed #bfdbfe; border-radius:20px; padding:34px 20px; text-align:center; color:#64748b; font-weight:800; line-height:1.6; }
+
+  .in-list { display:flex; flex-direction:column; gap:12px; }
+  .in-card { position:relative; background:#fff; border:1px solid #dbe3f0; border-radius:20px; padding:16px 18px 16px 24px; box-shadow:0 10px 24px rgba(15,23,42,.04); }
+  .in-card::before { content:""; position:absolute; left:0; top:12px; bottom:12px; width:5px; border-radius:0 999px 999px 0; background:#2563eb; }
+
+  .in-grid { display:grid; grid-template-columns:minmax(240px,1.3fr) minmax(170px,.7fr) minmax(240px,1fr) auto; gap:18px; align-items:start; }
+  .in-firma-row { display:flex; align-items:center; gap:10px; }
+  .in-box { display:none; width:16px; height:16px; border:1.5px solid #0f172a; border-radius:3px; flex:0 0 auto; }
+  .in-firma { font-size:18px; font-weight:900; letter-spacing:-.2px; }
+  .in-adresse { margin-top:6px; font-size:13px; font-weight:800; color:#64748b; }
+  .in-tags { display:flex; gap:6px; flex-wrap:wrap; margin-top:9px; }
+  .in-tag { display:inline-flex; align-items:center; gap:5px; border-radius:999px; padding:5px 9px; font-size:11px; font-weight:900; border:1px solid #e2e8f0; background:#f8fafc; color:#475569; }
+  .in-grund { background:#eff6ff; border-color:#bfdbfe; color:#1d4ed8; }
+  .in-grund.angebot { background:#fffbeb; border-color:#fde68a; color:#b45309; }
+  .in-grund.rueckruf { background:#ecfeff; border-color:#a5f3fc; color:#0e7490; }
+  .in-grund.besichtigung { background:#f5f3ff; border-color:#ddd6fe; color:#6d28d9; }
+  .in-grund.preis { background:#f0fdf4; border-color:#bbf7d0; color:#15803d; }
+
+  .in-label { font-size:10px; text-transform:uppercase; letter-spacing:.6px; font-weight:900; color:#64748b; margin-bottom:6px; }
+  .in-datum { font-size:15px; font-weight:900; font-variant-numeric:tabular-nums; }
+  .in-zeit { font-size:13px; font-weight:800; color:#64748b; margin-top:2px; font-variant-numeric:tabular-nums; }
+
+  .in-kontakt { display:flex; flex-direction:column; gap:6px; font-size:13px; font-weight:800; min-width:0; }
+  .in-kontakt div { display:flex; align-items:center; gap:8px; min-width:0; }
+  .in-kontakt i { width:16px; color:#3b82f6; text-align:center; }
+  .in-kontakt span { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .in-muted { color:#94a3b8; font-weight:700; }
+
+  .in-actions { display:flex; flex-direction:column; gap:8px; align-items:stretch; }
+  .in-btn { border:none; border-radius:12px; padding:11px 14px; font-weight:800; font-size:13px; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; gap:7px; text-decoration:none; white-space:nowrap; font-family:inherit; }
+  .in-btn.print { background:#2563eb; color:#fff; }
+  .in-btn.link { background:#f8fafc; color:#475569; border:1px solid #e2e8f0; }
+
+  .in-notiz { margin-top:14px; padding:12px 14px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:14px; font-size:13px; font-weight:700; line-height:1.5; color:#334155; display:flex; flex-direction:column; gap:6px; }
+  .in-notiz strong { color:#0f172a; }
+
+  .in-print-head { display:none; }
+
+  @media (max-width:1200px) {
+    .in-grid { grid-template-columns:minmax(0,1fr) minmax(0,1fr); }
+    .in-actions { flex-direction:row; flex-wrap:wrap; grid-column:1 / -1; }
+  }
+  @media (max-width:760px) {
+    .in-hero, .in-body { padding:18px; }
+    .in-stat-grid { grid-template-columns:1fr 1fr; }
+    .in-grid { grid-template-columns:1fr; }
+    .in-search { min-width:0; width:100%; }
+  }
+
+  /* Drucken: nur die (gefilterte) Liste, kompakt, mit Kästchen zum Abhaken */
+  @media print {
+    @page { size:A4; margin:12mm; }
+    .portal-sidebar, .in-hero, .in-tools, .in-head, .in-actions, .in-toast { display:none !important; }
+    .kg-portal-shell, .portal-main { display:block !important; margin:0 !important; padding:0 !important; width:auto !important; max-width:none !important; background:#fff !important; }
+    .in-page { border:none; box-shadow:none; border-radius:0; max-width:none; }
+    .in-body { background:#fff; padding:0; }
+    .in-print-head { display:block; margin:0 0 8px; font-size:14pt; font-weight:900; }
+    .in-print-head span { font-size:9pt; font-weight:700; color:#475569; margin-left:8px; }
+    .in-list { gap:0; }
+    .in-card { break-inside:avoid; page-break-inside:avoid; border:none; border-bottom:1px solid #94a3b8; border-radius:0; box-shadow:none; padding:7px 0; }
+    .in-card::before { display:none; }
+    .in-grid { grid-template-columns:1.4fr .6fr 1fr; gap:10px; }
+    .in-box { display:inline-block; }
+    .in-firma { font-size:11pt; }
+    .in-adresse, .in-kontakt, .in-datum, .in-zeit { font-size:9pt; }
+    .in-tag { font-size:8pt; padding:2px 6px; }
+    .in-kontakt span { white-space:normal; overflow:visible; }
+    .in-notiz { margin-top:5px; padding:0; border:none; background:none; font-size:8.5pt; line-height:1.35; }
+    * { -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+  }
+</style>
+
+<div class="in-page">
+  <section class="in-hero">
+    <div class="in-hero-row">
+      <div>
+        <h1><i class="fa-solid fa-thumbs-up"></i> Interesse</h1>
+        <p>Alle Gespräche, in denen Interesse gezeigt wurde – bisherige und neue erscheinen automatisch. Mit Grund (Angebot, Infos per E-Mail, Rückruf …), je Firma das neueste Gespräch.</p>
+      </div>
+      <div class="in-today">Heute: {{ heute }}</div>
+    </div>
+
+    <div class="in-stat-grid" role="group" aria-label="Filter">
+      <button type="button" class="in-stat active" data-filter="">
+        <div class="in-stat-label">Alle Interessenten</div>
+        <div class="in-stat-value">{{ stats.gesamt }}</div>
+        <div class="in-stat-sub">Interessiert</div>
+      </button>
+      <button type="button" class="in-stat" data-filter="angebot">
+        <div class="in-stat-label">Angebot</div>
+        <div class="in-stat-value">{{ stats.angebot }}</div>
+        <div class="in-stat-sub">Angebot gewünscht</div>
+      </button>
+      <button type="button" class="in-stat" data-filter="email">
+        <div class="in-stat-label">E-Mail</div>
+        <div class="in-stat-value">{{ stats.email }}</div>
+        <div class="in-stat-sub">Infos per E-Mail</div>
+      </button>
+      <button type="button" class="in-stat" data-filter="rueckruf">
+        <div class="in-stat-label">Rückruf</div>
+        <div class="in-stat-value">{{ stats.rueckruf }}</div>
+        <div class="in-stat-sub">möchte Rückruf</div>
+      </button>
+    </div>
+  </section>
+
+  <div class="in-body">
+    <div class="in-head">
+      <div>
+        <h2>Interessenten</h2>
+        <p>Neueste zuerst. „Drucken“ druckt die angezeigte Liste.</p>
+      </div>
+      <div class="in-tools">
+        <input type="search" id="inSearch" class="in-search" placeholder="Suche nach Firma, Person, Ort, Telefon, Grund …" aria-label="Interessenten durchsuchen">
+        <button type="button" class="in-btn print" onclick="window.print()"><i class="fa-solid fa-print"></i> Drucken</button>
+      </div>
+    </div>
+
+    <div class="in-print-head">Interesse – Stand {{ heute }}<span id="inPrintCount"></span></div>
+
+    {% if fehler %}
+    <div class="in-toast">Interessenten konnten nicht vom Leon-Motor geladen werden: {{ fehler }}</div>
+    {% endif %}
+
+    {% if not eintraege and not fehler %}
+    <div class="in-empty">
+      Noch keine Interessenten.<br>
+      Sobald ein Gespräch das Ergebnis „Interessiert“ bekommt, erscheint es hier.
+    </div>
+    {% endif %}
+
+    <div class="in-list" id="inList">
+      {% for e in eintraege %}
+      <article class="in-card" data-gruende="{{ e.gruende_keys }}"
+               data-search="{{ [e.firma, e.kontakt, e.adresse, e.telefon, e.email, e.branche, e.details, e.notiz, e.zusammenfassung, e.gruende | map(attribute='label') | join(' ')] | select | join(' ') | lower }}">
+        <div class="in-grid">
+          <div style="min-width:0">
+            <div class="in-firma-row">
+              <span class="in-box" aria-hidden="true"></span>
+              <div class="in-firma">{{ e.firma }}</div>
+            </div>
+            {% if e.adresse %}<div class="in-adresse"><i class="fa-solid fa-location-dot"></i> {{ e.adresse }}</div>{% endif %}
+            <div class="in-tags">
+              {% for g in e.gruende %}<span class="in-tag in-grund {{ g.key }}">{{ g.label }}</span>{% endfor %}
+              {% if not e.gruende %}<span class="in-tag in-grund">Interesse (siehe Gespräch)</span>{% endif %}
+              {% if e.branche %}<span class="in-tag">{{ e.branche }}</span>{% endif %}
+              {% if e.score %}<span class="in-tag">Score {{ e.score }}/10</span>{% endif %}
+            </div>
+          </div>
+
+          <div>
+            <div class="in-label">Gespräch</div>
+            <div class="in-datum">{{ e.datum }}</div>
+            {% if e.zeit %}<div class="in-zeit">{{ e.zeit }} Uhr</div>{% endif %}
+          </div>
+
+          <div class="in-kontakt">
+            <div class="in-label" style="margin:0">Kontakt</div>
+            <div><i class="fa-solid fa-user"></i>
+              {% if e.kontakt %}<span>{{ e.kontakt }}</span>{% else %}<span class="in-muted">kein Ansprechpartner</span>{% endif %}
+            </div>
+            <div><i class="fa-solid fa-phone"></i>
+              {% if e.telefon %}<span>{{ e.telefon }}</span>{% else %}<span class="in-muted">keine Telefonnummer</span>{% endif %}
+            </div>
+            <div><i class="fa-solid fa-envelope"></i>
+              {% if e.email %}<span>{{ e.email }}</span>{% else %}<span class="in-muted">keine E-Mail</span>{% endif %}
+            </div>
+          </div>
+
+          <div class="in-actions">
+            {% if e.call_id %}
+            <a class="in-btn link" href="/leon/gespraech/{{ e.call_id }}"><i class="fa-solid fa-headset"></i> Gespräch</a>
+            {% endif %}
+          </div>
+        </div>
+
+        {% if e.details or e.notiz or e.zusammenfassung %}
+        <div class="in-notiz">
+          {%- if e.details %}<div><strong>Objekt:</strong> {{ e.details }}</div>{% endif -%}
+          {%- if e.notiz %}<div><strong>Notiz:</strong> {{ e.notiz }}</div>{% endif -%}
+          {%- if e.zusammenfassung %}<div><strong>Gespräch:</strong> {{ e.zusammenfassung }}</div>{% endif -%}
+        </div>
+        {% endif %}
+      </article>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+<script>
+let activeFilter = '';
+
+function applyFilter() {
+  const q = document.getElementById('inSearch').value.trim().toLowerCase();
+  let sichtbar = 0;
+  document.querySelectorAll('#inList .in-card').forEach(card => {
+    const grundOk = !activeFilter || card.dataset.gruende.split(' ').includes(activeFilter);
+    const textOk = !q || card.dataset.search.includes(q);
+    const zeigen = grundOk && textOk;
+    card.style.display = zeigen ? '' : 'none';
+    if (zeigen) sichtbar += 1;
+  });
+  document.getElementById('inPrintCount').textContent = sichtbar + ' Einträge';
+}
+
+document.querySelectorAll('.in-stat').forEach(btn => btn.addEventListener('click', function () {
+  document.querySelectorAll('.in-stat').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  activeFilter = btn.dataset.filter;
+  applyFilter();
+}));
+document.getElementById('inSearch').addEventListener('input', applyFilter);
+applyFilter();
+</script>
+{% endblock %}
