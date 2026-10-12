@@ -118,6 +118,10 @@ button,input,select{font:inherit}
 .call-result-pill.callback.active{background:#eff6ff;border-color:#93c5fd;color:#1e40af}
 .call-result-pill.invoice.active{background:#fffbeb;border-color:#fcd34d;color:#b45309}
 .call-result-pill.no-interest.active{background:#fef2f2;border-color:#fca5a5;color:#b91c1c}
+/* Notfall: laufenden Anruf beenden */
+.call-hangup-btn{display:inline-block;margin-top:6px;padding:6px 12px;border:0;border-radius:8px;background:#dc2626;color:#fff;font-size:12px;font-weight:800;cursor:pointer;white-space:nowrap}
+.call-hangup-btn:hover{background:#b91c1c}
+.call-hangup-btn:disabled{opacity:.6;cursor:wait}
 </style>
 
 <link rel="stylesheet" href="{{ url_for('static', filename='leon/kg_portal.css') }}">
@@ -238,6 +242,9 @@ button,input,select{font:inherit}
 <script>
 
 let calls = [];
+
+/* Anrufe, für die „Beenden“ gerade läuft */
+const hangingUp = new Set();
 
 
 const qInput =
@@ -827,6 +834,19 @@ function render(){
                             >
                                 Öffnen →
                             </a>
+
+                            ${
+                                active
+                                ?
+                                `<br><button
+                                    type="button"
+                                    class="call-hangup-btn"
+                                    data-hangup="${esc(call.id)}"
+                                    ${hangingUp.has(String(call.id)) ? "disabled" : ""}
+                                >${hangingUp.has(String(call.id)) ? "Wird beendet …" : "Beenden"}</button>`
+                                :
+                                ""
+                            }
                         </td>
 
                     </tr>
@@ -910,6 +930,81 @@ async function loadCalls(){
             error.message;
     }
 }
+
+
+/* Notfall: laufenden Anruf nach Sicherheitsabfrage beenden */
+rows.addEventListener(
+    "click",
+    async event => {
+
+        const button =
+            event.target.closest("[data-hangup]");
+
+        if(!button){
+            return;
+        }
+
+        const callId =
+            String(button.dataset.hangup || "");
+
+        if(
+            !callId
+            ||
+            hangingUp.has(callId)
+        ){
+            return;
+        }
+
+        if(
+            !confirm(
+                "Sind Sie sicher, dass Sie diesen Anruf jetzt beenden möchten?"
+            )
+        ){
+            return;
+        }
+
+        hangingUp.add(callId);
+        render();
+
+        try{
+
+            const response =
+                await fetch(
+                    "/leon-api/calls/" + encodeURIComponent(callId) + "/hangup",
+                    {
+                        method:"POST",
+                        cache:"no-store"
+                    }
+                );
+
+            const data =
+                await response.json().catch(() => ({}));
+
+            if(
+                !response.ok
+                ||
+                !data.success
+            ){
+                throw new Error(
+                    data.error || ("HTTP " + response.status)
+                );
+            }
+
+        }catch(error){
+
+            alert(
+                "Der Anruf konnte nicht beendet werden: "
+                +
+                error.message
+            );
+
+        }finally{
+
+            hangingUp.delete(callId);
+            loadCalls();
+        }
+    }
+);
 
 
 qInput.addEventListener(
