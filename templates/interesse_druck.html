@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Interesse – {{ e.firma if e else "Druck" }}</title>
+<!-- Einzeldruck „Interesse“: ein Gespräch komplett (Kontakt, Grund, Aktionen, erfasste Daten, Zusammenfassung, Verlauf) -->
+<style>
+  @page { size:A4; margin:14mm 14mm 14mm 14mm; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:#f1f5f9; color:#0f172a; font-family:Arial, Helvetica, sans-serif; font-size:10.5pt; line-height:1.45; }
+  .dr-page { max-width:190mm; margin:24px auto; padding:14mm; background:#fff; border:1px solid #e2e8f0; border-radius:10px; }
+  .dr-actions { position:fixed; right:18px; top:18px; display:flex; gap:8px; }
+  .dr-actions button { border:none; border-radius:10px; padding:10px 14px; font-size:13px; font-weight:800; cursor:pointer; font-family:inherit; }
+  .dr-btn-print { background:#1e3a8a; color:#fff; }
+  .dr-btn-close { background:#e2e8f0; color:#334155; }
+
+  .dr-kopf { display:flex; justify-content:space-between; align-items:flex-start; gap:12px; border-bottom:2px solid #1e3a8a; padding-bottom:8px; margin-bottom:12px; }
+  .dr-kopf .dr-marke { font-size:9pt; font-weight:900; letter-spacing:.6px; color:#1e3a8a; text-transform:uppercase; }
+  .dr-kopf h1 { margin:2px 0 0; font-size:17pt; line-height:1.2; }
+  .dr-kopf .dr-stand { font-size:8.5pt; color:#475569; text-align:right; white-space:nowrap; }
+  .dr-box { display:inline-block; width:14px; height:14px; border:1.5px solid #0f172a; border-radius:3px; vertical-align:-2px; margin-right:6px; }
+
+  .dr-tags { margin:0 0 10px; }
+  .dr-tag { display:inline-block; margin:0 5px 4px 0; padding:2px 8px; border-radius:999px; border:1px solid #bfdbfe; background:#eff6ff; color:#1d4ed8; font-size:8.5pt; font-weight:800; }
+  .dr-tag.angebot { background:#fffbeb; border-color:#fde68a; color:#b45309; }
+  .dr-tag.rueckruf { background:#ecfeff; border-color:#a5f3fc; color:#0e7490; }
+  .dr-tag.besichtigung { background:#f5f3ff; border-color:#ddd6fe; color:#6d28d9; }
+  .dr-tag.preis { background:#f0fdf4; border-color:#bbf7d0; color:#15803d; }
+
+  h2 { margin:12px 0 5px; font-size:10.5pt; text-transform:uppercase; letter-spacing:.5px; color:#1e3a8a; border-bottom:1px solid #cbd5e1; padding-bottom:2px; }
+  .dr-grid { display:grid; grid-template-columns:1fr 1fr; gap:4px 18px; }
+  .dr-zeile { display:flex; gap:8px; }
+  .dr-zeile b { min-width:34mm; color:#475569; font-weight:800; }
+  .dr-liste { margin:0; padding-left:16px; }
+  .dr-ok { color:#15803d; font-weight:800; }
+  .dr-fehler { color:#b91c1c; font-weight:800; }
+  .dr-muted { color:#64748b; }
+  .dr-text { white-space:pre-wrap; }
+
+  .dr-dialog { display:flex; flex-direction:column; gap:3px; }
+  .dr-turn { display:grid; grid-template-columns:16mm 1fr; gap:6px; break-inside:avoid; page-break-inside:avoid; }
+  .dr-turn .wer { font-weight:900; color:#475569; }
+  .dr-turn.ki .wer { color:#1e3a8a; }
+
+  .dr-notizen div { border-bottom:1px solid #94a3b8; height:9mm; }
+  .dr-fehlerbox { padding:12px 14px; border:1px solid #fecaca; background:#fef2f2; color:#b91c1c; border-radius:10px; font-weight:800; }
+
+  @media print {
+    body { background:#fff; }
+    .dr-actions { display:none; }
+    .dr-page { max-width:none; margin:0; padding:0; border:none; border-radius:0; }
+    * { -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+  }
+</style>
+</head>
+<body>
+<div class="dr-actions">
+  <button type="button" class="dr-btn-close" onclick="window.close()">Schließen</button>
+  <button type="button" class="dr-btn-print" onclick="window.print()">Drucken</button>
+</div>
+
+<div class="dr-page">
+{% if not e %}
+  <div class="dr-fehlerbox">Gespräch {{ call_id }} konnte nicht vom Leon-Motor geladen werden: {{ fehler }}</div>
+{% else %}
+  <div class="dr-kopf">
+    <div>
+      <div class="dr-marke">KG Gebäudereinigung · Interessent</div>
+      <h1><span class="dr-box"></span>{{ e.firma }}</h1>
+      {% if e.adresse %}<div class="dr-muted">{{ e.adresse }}</div>{% endif %}
+    </div>
+    <div class="dr-stand">Gedruckt: {{ jetzt }}<br>Gespräch Nr. {{ e.call_id }}{% if e.archiviert %} (archiviert){% endif %}</div>
+  </div>
+
+  <div class="dr-tags">
+    {% for g in e.gruende %}<span class="dr-tag {{ g.key }}">{{ g.label }}</span>{% endfor %}
+    {% if not e.gruende %}<span class="dr-tag">Interesse (siehe Gespräch)</span>{% endif %}
+  </div>
+
+  <h2>Kontakt</h2>
+  <div class="dr-grid">
+    <div class="dr-zeile"><b>Ansprechpartner</b><span>{{ e.kontakt or "—" }}</span></div>
+    <div class="dr-zeile"><b>Telefon</b><span>{{ e.telefon or "—" }}</span></div>
+    <div class="dr-zeile"><b>E-Mail</b><span>{{ e.email or "—" }}</span></div>
+    <div class="dr-zeile"><b>Branche</b><span>{{ e.branche or "—" }}</span></div>
+    {% if e.website %}<div class="dr-zeile"><b>Website</b><span>{{ e.website }}</span></div>{% endif %}
+    {% if e.lead_status %}<div class="dr-zeile"><b>Status (Leon)</b><span>{{ e.lead_status }}</span></div>{% endif %}
+  </div>
+
+  <h2>Gespräch</h2>
+  <div class="dr-grid">
+    <div class="dr-zeile"><b>Datum</b><span>{{ e.beginn or (e.datum ~ " " ~ e.zeit) }}</span></div>
+    <div class="dr-zeile"><b>Dauer</b><span>{{ e.dauer or "—" }}</span></div>
+    <div class="dr-zeile"><b>Ergebnis</b><span>{{ e.ergebnis or "—" }}</span></div>
+    <div class="dr-zeile"><b>Bewertung</b><span>{{ (e.score ~ "/10") if e.score else "—" }}</span></div>
+    {% if e.rueckruf_geplant %}<div class="dr-zeile"><b>Rückruf geplant</b><span>{{ e.rueckruf_geplant }}{% if e.rueckruf_notiz %} – {{ e.rueckruf_notiz }}{% endif %}</span></div>{% endif %}
+  </div>
+
+  <h2>Was Leon erledigt hat</h2>
+  {% if e.aktionen %}
+  <ul class="dr-liste">
+    {% for a in e.aktionen %}
+    <li class="{{ 'dr-ok' if a.ok else 'dr-fehler' }}">{{ '✔' if a.ok else '✖' }} {{ a.text }}{% if not a.ok %} – nicht geklappt{% endif %}</li>
+    {% endfor %}
+  </ul>
+  {% elif e.aktionen_bekannt %}
+  <div class="dr-muted">Keine E-Mail verschickt, kein Kalendereintrag.</div>
+  {% else %}
+  <div class="dr-muted">Noch nicht verfügbar (Leon-Update fehlt).</div>
+  {% endif %}
+
+  {% if e.erfasst or e.bereiche %}
+  <h2>Erfasste Angaben</h2>
+  <div class="dr-grid">
+    {% for label, wert in e.erfasst %}<div class="dr-zeile"><b>{{ label }}</b><span>{{ wert }}</span></div>{% endfor %}
+  </div>
+  {% if e.bereiche %}
+  <div class="dr-zeile" style="margin-top:4px"><b>Bereiche</b><ul class="dr-liste">{% for b in e.bereiche %}<li>{{ b }}</li>{% endfor %}</ul></div>
+  {% endif %}
+  {% endif %}
+
+  <h2>Zusammenfassung</h2>
+  <div class="dr-text">{{ e.zusammenfassung or "—" }}</div>
+
+  <h2>Gesprächsverlauf</h2>
+  {% if e.dialog %}
+  <div class="dr-dialog">
+    {% for t in e.dialog %}<div class="dr-turn {{ 'ki' if t.ki else '' }}"><span class="wer">{{ "Leon" if t.ki else t.speaker }}</span><span class="dr-text">{{ t.text }}</span></div>{% endfor %}
+  </div>
+  {% elif e.transkript %}
+  <div class="dr-text">{{ e.transkript }}</div>
+  {% else %}
+  <div class="dr-muted">Kein Gesprächsverlauf vorhanden.</div>
+  {% endif %}
+
+  <h2>Notizen</h2>
+  <div class="dr-notizen"><div></div><div></div><div></div><div></div></div>
+{% endif %}
+</div>
+
+{% if e %}
+<script>
+  window.addEventListener('load', function () { setTimeout(function () { window.print(); }, 300); });
+</script>
+{% endif %}
+</body>
+</html>

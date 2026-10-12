@@ -439,12 +439,16 @@ def _interesse_eintrag(r):
     summary = _clean(r.get("summary"), 2000)
     email = rg("kontakt_email") or _clean(r.get("call_email")) or _clean(r.get("lead_email"))
     rueckruf_wann = rg("rueckruf_wann")
+    aktionen = [
+        {"art": _clean(a.get("art")), "ok": bool(a.get("ok")), "text": _clean(a.get("text"))}
+        for a in (r.get("aktionen") or []) if isinstance(a, dict) and _clean(a.get("text"))
+    ]
 
     text = " ".join([summary, rg("notiz"), " ".join(str(x) for x in leistungen)]).lower()
     gruende = []
     for key, label, worte in INTERESSE_GRUENDE:
         treffer = any(w in text for w in worte)
-        if key == "email" and email:
+        if key == "email" and (email or any(a["art"] == "email" for a in aktionen)):
             treffer = True
         if key == "rueckruf" and rueckruf_wann:
             treffer = True
@@ -483,6 +487,8 @@ def _interesse_eintrag(r):
         "details": " · ".join(details),
         "notiz": rg("notiz"),
         "zusammenfassung": summary,
+        "aktionen": aktionen,
+        "aktionen_bekannt": r.get("aktionen") is not None,
     }
 
 
@@ -519,6 +525,89 @@ def _interesse_laden():
         if resp.status_code != 200 or not isinstance(daten, dict) or not daten.get("success"):
             raise LeonError((daten.get("error") if isinstance(daten, dict) else "") or f"HTTP {resp.status_code}")
         return daten.get("interesse") or []
+    finally:
+        resp.close()
+
+
+INTERESSE_FELDER = [
+    ("objektart", "Objektart"), ("flaeche_gesamt_m2", "Fläche gesamt (m²)"), ("leistungen", "Leistungen"),
+    ("wunschtage", "Wunschtage"), ("uhrzeit_wunsch", "Uhrzeit-Wunsch"), ("aktuelle_firma", "Aktuelle Reinigung"),
+    ("zufriedenheit", "Zufriedenheit"), ("vertragsende_aktuell", "Vertragsende"), ("ansprechpartner", "Ansprechpartner"),
+    ("kontakt_telefon", "Telefon (genannt)"), ("kontakt_email", "E-Mail (genannt)"), ("rueckruf_wann", "Rückruf wann"),
+    ("besichtigung_datum", "Besichtigung Datum"), ("besichtigung_uhrzeit", "Besichtigung Uhrzeit"),
+    ("besichtigung_adresse", "Besichtigung Adresse"), ("notiz", "Notiz"),
+]
+
+
+def _interesse_druck(r):
+    """Alles zu einem Gespräch für den Einzeldruck: Eintrag wie in der Liste plus erfasste Daten und Verlauf."""
+    e = _interesse_eintrag(r)
+    try:
+        reinigung = json.loads(r.get("reinigung_json") or "{}")
+    except Exception:
+        reinigung = {}
+    if not isinstance(reinigung, dict):
+        reinigung = {}
+    erfasst = []
+    for key, label in INTERESSE_FELDER:
+        wert = reinigung.get(key)
+        if isinstance(wert, list):
+            wert = ", ".join(_clean(x, 120) for x in wert if _clean(x, 120))
+        if _clean(wert, 500):
+            erfasst.append((label, _clean(wert, 500)))
+    bereiche = []
+    for b in reinigung.get("bereiche") or []:
+        if isinstance(b, dict):
+            teile = [_clean(b.get(k), 80) for k in ("bereich", "m2", "haeufigkeit", "tage")]
+            if teile[1] and "m" not in teile[1]:
+                teile[1] += " m²"
+            if any(teile):
+                bereiche.append(" · ".join(t for t in teile if t))
+    try:
+        sek = int(r.get("duration_seconds") or 0)
+    except (TypeError, ValueError):
+        sek = 0
+    beginn_datum, beginn_zeit = _interesse_datum(r.get("started_at") or r.get("created_at"))
+    dialog = [
+        {"ki": "ki" in _clean(t.get("speaker")).lower(), "speaker": _clean(t.get("speaker")) or "?", "text": _clean(t.get("text"), 5000)}
+        for t in (r.get("dialog") or []) if isinstance(t, dict) and _clean(t.get("text"))
+    ]
+    e.update({
+        "beginn": f"{beginn_datum} {beginn_zeit}".strip(),
+        "dauer": f"{sek // 60}:{sek % 60:02d} min" if sek else "",
+        "status": _clean(r.get("status")),
+        "ergebnis": {"Rechnung": "Besichtigung"}.get(_clean(r.get("result")), _clean(r.get("result"))),
+        "lead_status": _clean(r.get("lead_status")),
+        "website": _clean(r.get("website")),
+        "rueckruf_geplant": _clean(r.get("callback_at")),
+        "rueckruf_notiz": _clean(r.get("callback_note"), 500),
+        "erfasst": erfasst,
+        "bereiche": bereiche,
+        "dialog": dialog,
+        "transkript": "" if dialog else _clean(r.get("transcript"), 20000),
+        "archiviert": bool(int(r.get("archived") or 0)),
+    })
+    return e
+
+
+def _interesse_einzeln_laden(call_id):
+    resp = leon_client.raw("GET", f"/api/interesse/{int(call_id)}", timeout=30)
+    try:
+        if resp.status_code == 404 and "json" not in (resp.headers.get("Content-Type") or ""):
+            # Leon noch ohne /api/interesse/<id>: Anrufdaten ohne Aktionen
+            code, daten = leon_client.request("GET", f"/api/calls/{int(call_id)}", timeout=30)
+            call = (daten or {}).get("call") if isinstance(daten, dict) else None
+            if code != 200 or not call:
+                raise LeonError((daten.get("error") if isinstance(daten, dict) else "") or f"HTTP {code}")
+            return {**call, "call_id": call.get("id"), "call_email": call.get("captured_email"),
+                    "telefon": call.get("lead_telefon"), "dialog": call.get("dialogue") or [], "aktionen": None}
+        try:
+            daten = resp.json()
+        except ValueError:
+            raise LeonError(f"Unerwartete Antwort von Leon (HTTP {resp.status_code}).")
+        if resp.status_code != 200 or not isinstance(daten, dict) or not daten.get("success"):
+            raise LeonError((daten.get("error") if isinstance(daten, dict) else "") or f"HTTP {resp.status_code}")
+        return daten.get("eintrag") or {}
     finally:
         resp.close()
 
@@ -595,6 +684,18 @@ def register_leon_routes(app, login_required, get_db_connection):
             heute=datetime.now().strftime("%d.%m.%Y"),
             fehler=fehler,
         )
+
+    @app.route("/interesse/<int:call_id>/drucken")
+    @login_required
+    def leon_interesse_drucken(call_id):
+        # Ein Interessent komplett zum Ausdrucken (Kontakt, Grund, Aktionen wie E-Mail verschickt, Daten, Gespräch)
+        try:
+            e = _interesse_druck(_interesse_einzeln_laden(call_id))
+        except LeonError as exc:
+            return render_template("interesse_druck.html", e=None, fehler=str(exc), call_id=call_id,
+                                   jetzt=datetime.now().strftime("%d.%m.%Y %H:%M"))
+        return render_template("interesse_druck.html", e=e, fehler="", call_id=call_id,
+                               jetzt=datetime.now().strftime("%d.%m.%Y %H:%M"))
 
     @app.route("/leon/gespraech/<int:call_id>")
     @login_required
