@@ -23,6 +23,7 @@
   .na-btn.gruen { background:#16a34a; color:#fff; }
   .na-btn.orange { background:#ea580c; color:#fff; }
   .na-btn.grau { background:#e2e8f0; color:#1e293b; }
+  .na-btn.rot { background:#fef2f2; color:#b91c1c; border:1px solid #fecaca; }
   .na-btn.klein { padding:8px 11px; font-size:12px; border-radius:10px; }
   .na-pflicht { color:#dc2626; }
   .na-hinweis { font-size:12px; font-weight:700; color:#64748b; }
@@ -80,8 +81,8 @@
   </section>
   {% endif %}
 
-  <section class="na-card">
-    <h2>Firma erfassen</h2>
+  <section class="na-card" id="naFormKarte">
+    <h2 id="naFormTitel">Firma erfassen</h2>
     <div class="na-grid" id="naFormular">
       <div class="w2"><label for="naFirma">Firma <span class="na-pflicht">*</span></label><input id="naFirma" class="na-input" autocomplete="off"></div>
       <div><label for="naBranche">Branche</label><input id="naBranche" class="na-input" placeholder="z. B. Arztpraxis"></div>
@@ -98,7 +99,8 @@
         <textarea id="naNotiz" class="na-input" placeholder="z. B. Nachbar ist Kunde und sehr zufrieden, möchte ein Angebot"></textarea></div>
     </div>
     <div class="na-row">
-      <button type="button" class="na-btn blau" id="naSpeichern" onclick="naSpeichern(false)"><i class="fa-solid fa-floppy-disk"></i> Speichern</button>
+      <button type="button" class="na-btn blau" id="naSpeichern" onclick="naSpeichern(false)"><i class="fa-solid fa-floppy-disk"></i> <span id="naSpeichernText">Speichern</span></button>
+      <button type="button" class="na-btn grau" id="naBearbAbbrechen" style="display:none" onclick="naBearbeitenEnde()">Abbrechen</button>
       <span class="na-hinweis">Vor dem Speichern wird geprüft, ob es die Firma schon gibt (Datenbank, Tagesliste, Kunden, frühere Anfragen).</span>
     </div>
     <div class="na-dubl" id="naDubl" role="alert">
@@ -138,6 +140,8 @@
           <button type="button" class="na-btn gruen klein" onclick="naPortfolio({{ a.id }})">Portfolio senden</button>
           <button type="button" class="na-btn orange klein" onclick="naBesichtigung({{ a.id }})">Besichtigung</button>
           <a class="na-btn grau klein" href="/interesse/anfrage/{{ a.id }}/drucken" target="_blank" rel="noopener">Drucken</a>
+          <button type="button" class="na-btn grau klein" onclick="naBearbeiten({{ a.id }})">Bearbeiten</button>
+          <button type="button" class="na-btn rot klein" onclick="naLoeschen({{ a.id }})">Löschen</button>
         </div></td>
       </tr>
       {% endfor %}
@@ -184,6 +188,47 @@ document.querySelectorAll('.na-datum').forEach(td => {
 
 function naDublZu() { document.getElementById('naDubl').style.display = 'none'; }
 
+// ---------------- Bearbeiten / Löschen ----------------
+let naEditId = null;
+const NA_FELDER = { naFirma: 'firma', naBranche: 'branche', naWebsite: 'website', naAnrede: 'anrede', naAnsprech: 'ansprechpartner',
+  naTelefon: 'telefon', naEmail: 'email', naStrasse: 'strasse', naPlz: 'plz', naOrt: 'ort', naNotiz: 'notiz' };
+
+function naBearbeiten(id) {
+  const a = naAnfrage(id);
+  if (!a) return;
+  naEditId = id;
+  Object.entries(NA_FELDER).forEach(([feld, key]) => { document.getElementById(feld).value = a[key] || ''; });
+  document.getElementById('naFormTitel').textContent = 'Anfrage bearbeiten: ' + (a.firma || '');
+  document.getElementById('naSpeichernText').textContent = 'Änderungen speichern';
+  document.getElementById('naBearbAbbrechen').style.display = '';
+  naDublZu();
+  document.getElementById('naMeldung').className = 'na-meldung';
+  document.getElementById('naFormKarte').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  document.getElementById('naFirma').focus();
+}
+
+function naBearbeitenEnde() {
+  naEditId = null;
+  Object.keys(NA_FELDER).forEach(feld => { document.getElementById(feld).value = ''; });
+  document.getElementById('naFormTitel').textContent = 'Firma erfassen';
+  document.getElementById('naSpeichernText').textContent = 'Speichern';
+  document.getElementById('naBearbAbbrechen').style.display = 'none';
+}
+
+async function naLoeschen(id) {
+  const a = naAnfrage(id);
+  if (!a) return;
+  if (!confirm('Sind Sie sicher, dass Sie diese Anfrage löschen möchten?\n\n' + (a.firma || '') +
+               '\n\nSie verschwindet aus „Bisherige Anfragen“ und „Interesse“. Der Eintrag in der Datenbank bleibt.')) return;
+  try {
+    const { status, json } = await naPost('/api/neue-anfrage/' + id + '/loeschen', {});
+    if (!json.success) throw new Error(json.error || ('HTTP ' + status));
+    window.location.href = '/leon/anfrage';
+  } catch (err) {
+    naMeldung('Konnte nicht gelöscht werden: ' + err.message, false);
+  }
+}
+
 async function naSpeichern(trotzdem) {
   const daten = {
     firma: naWert('naFirma'), branche: naWert('naBranche'), website: naWert('naWebsite'), anrede: naWert('naAnrede'),
@@ -193,6 +238,19 @@ async function naSpeichern(trotzdem) {
   if (!daten.firma) { naMeldung('Bitte den Firmennamen eintragen.', false); document.getElementById('naFirma').focus(); return; }
   const knopf = document.getElementById('naSpeichern');
   knopf.disabled = true;
+  if (naEditId) {
+    // Bearbeiten: Anfrage + Firmendaten in der Datenbank korrigieren
+    try {
+      const { status, json } = await naPost('/api/neue-anfrage/' + naEditId + '/bearbeiten', daten);
+      if (!json.success) throw new Error(json.error || ('HTTP ' + status));
+      window.location.href = '/leon/anfrage?neu=' + encodeURIComponent(naEditId);
+    } catch (err) {
+      naMeldung('Änderungen konnten nicht gespeichert werden: ' + err.message, false);
+    } finally {
+      knopf.disabled = false;
+    }
+    return;
+  }
   try {
     const { status, json } = await naPost('/api/neue-anfrage', daten);
     if (status === 409 && json.dublette) {

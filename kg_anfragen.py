@@ -318,6 +318,57 @@ def register_kg_anfragen(app, login_required, get_db_connection, leon_client, Le
             return jsonify({"success": False, "error": "Anfrage nicht gefunden."}), 404
         return jsonify({"success": True})
 
+    @app.route("/api/neue-anfrage/<int:anfrage_id>/bearbeiten", methods=["POST"])
+    @login_required
+    def kg_neue_anfrage_bearbeiten(anfrage_id):
+        """Anfrage korrigieren (z. B. falsche E-Mail). Die Firmendaten in der Datenbank (Tagesliste und ihre
+        Status-Einträge) werden mitkorrigiert; Notizen und Status dort bleiben unverändert."""
+        f, _ = _formular()
+        if not f["firma"]:
+            return jsonify({"success": False, "error": "Bitte den Firmennamen eintragen."}), 400
+        conn = get_db_connection()
+        try:
+            a = conn.execute("SELECT tagesliste_id FROM neue_anfragen WHERE id = ?", (anfrage_id,)).fetchone()
+            if not a:
+                return jsonify({"success": False, "error": "Anfrage nicht gefunden."}), 404
+            conn.execute(
+                f"UPDATE neue_anfragen SET {', '.join(k + ' = ?' for k in ANFRAGE_FELDER)} WHERE id = ?",
+                [f[k] for k in ANFRAGE_FELDER] + [anfrage_id],
+            )
+            tid = a["tagesliste_id"]
+            if tid:
+                db_felder = {"firma": f["firma"], "branche": f["branche"],
+                             "ansprechpartner": kontakt_mit_anrede(f["anrede"], f["ansprechpartner"]),
+                             "strasse": f["strasse"], "plz": f["plz"], "ort": f["ort"], "telefon": f["telefon"],
+                             "email": f["email"], "website": f["website"]}
+                for tabelle, spalte in (("tagesliste_leads", "id"), ("tagesliste_status_backup", "tagesliste_id")):
+                    if not _tabelle_da(conn, tabelle):
+                        continue
+                    da = _spalten(conn, tabelle)
+                    werte = {k: v for k, v in db_felder.items() if k in da}
+                    conn.execute(
+                        f"UPDATE {tabelle} SET {', '.join(k + ' = ?' for k in werte)} WHERE {spalte} = ?",
+                        list(werte.values()) + [tid],
+                    )
+            conn.commit()
+        finally:
+            conn.close()
+        return jsonify({"success": True, "id": anfrage_id})
+
+    @app.route("/api/neue-anfrage/<int:anfrage_id>/loeschen", methods=["POST"])
+    @login_required
+    def kg_neue_anfrage_loeschen(anfrage_id):
+        """Nur die Anfrage löschen (weg aus „Bisherige Anfragen“ und „Interesse“) – die Datenbank bleibt unverändert."""
+        conn = get_db_connection()
+        try:
+            cur = conn.execute("DELETE FROM neue_anfragen WHERE id = ?", (anfrage_id,))
+            conn.commit()
+        finally:
+            conn.close()
+        if not cur.rowcount:
+            return jsonify({"success": False, "error": "Anfrage nicht gefunden."}), 404
+        return jsonify({"success": True})
+
     @app.route("/api/interesse/manuell/ids")
     @login_required
     def kg_interesse_manuell_ids():
