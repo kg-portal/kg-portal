@@ -1,0 +1,344 @@
+{% extends "base.html" %}
+{% block content %}
+<!-- Neue Anfrage: Firma ruft selbst an → erfassen (Dubletten-Warnung) → Datenbank (Tagesliste, „Hat Interesse“)
+     → Portfolio senden / Besichtigung eintragen + bestätigen (vorhandene Fenster KG-Mail und KG-Kalender) -->
+<style>
+  .na { font-family:Arial, Helvetica, sans-serif; color:#0f172a; display:flex; flex-direction:column; gap:18px; }
+  .na-hero { background:linear-gradient(135deg,#1e3a8a 0%,#2563eb 55%,#3b82f6 100%); color:#fff; border-radius:22px; padding:24px 28px; box-shadow:0 14px 30px rgba(37,99,235,.22); }
+  .na-hero h1 { margin:0; font-size:26px; font-weight:900; color:#fff; }
+  .na-hero p { margin:8px 0 0; font-size:13px; font-weight:700; opacity:.9; max-width:80ch; line-height:1.5; }
+  .na-card { background:#fff; border:1px solid #dbe3f0; border-radius:20px; padding:20px 22px; box-shadow:0 10px 24px rgba(15,23,42,.04); }
+  .na-card h2 { margin:0 0 14px; font-size:18px; font-weight:900; color:#1e3a8a; }
+  .na-grid { display:grid; grid-template-columns:repeat(4, minmax(0,1fr)); gap:12px; }
+  .na-grid .w2 { grid-column:span 2; }
+  .na-grid .w4 { grid-column:1 / -1; }
+  .na-grid label { display:block; font-size:11px; font-weight:900; text-transform:uppercase; letter-spacing:.5px; color:#475569; margin-bottom:5px; }
+  .na-input { width:100%; box-sizing:border-box; padding:11px 12px; border-radius:12px; border:1.5px solid #e2e8f0; background:#f8fafc; font-size:14px; font-weight:700; font-family:inherit; color:#0f172a; }
+  .na-input:focus { outline:none; border-color:#2563eb; background:#fff; }
+  textarea.na-input { min-height:70px; resize:vertical; }
+  .na-row { display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-top:14px; }
+  .na-btn { border:none; border-radius:12px; padding:12px 16px; font-weight:800; font-size:14px; cursor:pointer; display:inline-flex; align-items:center; gap:8px; font-family:inherit; text-decoration:none; white-space:nowrap; }
+  .na-btn:disabled { opacity:.6; cursor:wait; }
+  .na-btn.blau { background:#2563eb; color:#fff; }
+  .na-btn.gruen { background:#16a34a; color:#fff; }
+  .na-btn.orange { background:#ea580c; color:#fff; }
+  .na-btn.grau { background:#e2e8f0; color:#1e293b; }
+  .na-btn.klein { padding:8px 11px; font-size:12px; border-radius:10px; }
+  .na-pflicht { color:#dc2626; }
+  .na-hinweis { font-size:12px; font-weight:700; color:#64748b; }
+  .na-meldung { display:none; padding:12px 16px; border-radius:12px; font-size:13px; font-weight:800; margin-top:12px; }
+  .na-meldung.ok { display:block; background:#f0fdf4; color:#15803d; border:1px solid #bbf7d0; }
+  .na-meldung.err { display:block; background:#fef2f2; color:#b91c1c; border:1px solid #fecaca; }
+
+  .na-dubl { display:none; margin-top:14px; padding:14px 16px; border-radius:14px; background:#fff7ed; border:1.5px solid #fdba74; }
+  .na-dubl h3 { margin:0 0 8px; font-size:15px; font-weight:900; color:#9a3412; }
+  .na-dubl ul { margin:0 0 8px; padding-left:18px; font-size:13px; font-weight:700; color:#7c2d12; line-height:1.6; }
+  .na-dubl .sicher { color:#b91c1c; }
+
+  .na-erfolg { border:2px solid #86efac; background:#f0fdf4; }
+  .na-erfolg h2 { color:#15803d; }
+  .na-gross { padding:16px 20px; font-size:15px; border-radius:14px; }
+
+  .na-tabelle { width:100%; border-collapse:collapse; font-size:13px; }
+  .na-tabelle th { text-align:left; font-size:11px; text-transform:uppercase; color:#64748b; padding:9px 8px; border-bottom:2px solid #eef2f7; }
+  .na-tabelle td { padding:10px 8px; border-bottom:1px solid #f1f5f9; vertical-align:top; }
+  .na-tabelle tr.neu td { background:#f0fdf4; }
+  .na-chip { display:inline-block; margin:0 4px 4px 0; padding:3px 8px; border-radius:999px; font-size:11px; font-weight:800; border:1px solid #e2e8f0; background:#f8fafc; color:#64748b; white-space:nowrap; }
+  .na-chip.ok { background:#f0fdf4; border-color:#bbf7d0; color:#15803d; }
+  .na-aktionen { display:flex; gap:6px; flex-wrap:wrap; }
+  .na-muted { color:#94a3b8; }
+
+  .na-backdrop { display:none; position:fixed; inset:0; background:rgba(15,23,42,.55); z-index:9999; align-items:center; justify-content:center; padding:20px; }
+  .na-backdrop.open { display:flex; }
+  .na-fenster { background:#fff; border-radius:18px; width:min(1100px,100%); height:min(860px,100%); display:flex; flex-direction:column; overflow:hidden; box-shadow:0 30px 80px rgba(0,0,0,.35); }
+  .na-fenster-kopf { display:flex; justify-content:space-between; align-items:center; padding:12px 16px; background:#1e3a8a; color:#fff; font-weight:900; }
+  .na-fenster-kopf button { border:none; background:rgba(255,255,255,.15); color:#fff; border-radius:10px; width:34px; height:34px; font-size:20px; cursor:pointer; }
+  .na-fenster iframe { flex:1; border:0; width:100%; }
+
+  @media (max-width:900px) { .na-grid { grid-template-columns:1fr 1fr; } .na-grid .w2 { grid-column:1 / -1; } }
+  @media (max-width:560px) { .na-grid { grid-template-columns:1fr; } .na-hero, .na-card { padding:16px; } }
+</style>
+
+{% include "_leon_tabs.html" %}
+
+<div class="na">
+  <section class="na-hero">
+    <h1><i class="fa-solid fa-phone-flip"></i> Neue Anfrage</h1>
+    <p>Eine Firma ruft selbst an (z. B. „Unser Nachbar ist bei Ihnen, wir möchten das auch“): hier erfassen – das System warnt, wenn es die Firma schon gibt.
+       Danach mit einem Klick Portfolio senden oder Besichtigung eintragen und bestätigen. Die Firma steht danach in der Datenbank (Tagesliste, „Hat Interesse“) und unter „Interesse“.</p>
+  </section>
+
+  {% set neu_a = (anfragen | selectattr("id", "equalto", neu) | list | first) if neu else None %}
+  {% if neu_a %}
+  <section class="na-card na-erfolg" id="naErfolg">
+    <h2>✔ Gespeichert: {{ neu_a.firma }}</h2>
+    <div class="na-hinweis" id="naErfolgDb">{% if neu_a.tagesliste_id %}In der Datenbank (Tagesliste, „Hat Interesse“).{% else %}Noch nicht in der Datenbank – unten in der Liste „In Datenbank“ drücken.{% endif %}</div>
+    <div class="na-row">
+      <button type="button" class="na-btn gruen na-gross" onclick="naPortfolio({{ neu_a.id }})"><i class="fa-solid fa-envelope"></i> Portfolio senden</button>
+      <button type="button" class="na-btn orange na-gross" onclick="naBesichtigung({{ neu_a.id }})"><i class="fa-solid fa-calendar-check"></i> Besichtigung eintragen + bestätigen</button>
+    </div>
+  </section>
+  {% endif %}
+
+  <section class="na-card">
+    <h2>Firma erfassen</h2>
+    <div class="na-grid" id="naFormular">
+      <div class="w2"><label for="naFirma">Firma <span class="na-pflicht">*</span></label><input id="naFirma" class="na-input" autocomplete="off"></div>
+      <div><label for="naBranche">Branche</label><input id="naBranche" class="na-input" placeholder="z. B. Arztpraxis"></div>
+      <div><label for="naWebsite">Website</label><input id="naWebsite" class="na-input"></div>
+      <div><label for="naAnrede">Anrede</label>
+        <select id="naAnrede" class="na-input"><option value="">–</option><option>Herr</option><option>Frau</option></select></div>
+      <div><label for="naAnsprech">Ansprechpartner</label><input id="naAnsprech" class="na-input" placeholder="Nachname"></div>
+      <div><label for="naTelefon">Telefon</label><input id="naTelefon" class="na-input" inputmode="tel"></div>
+      <div><label for="naEmail">E-Mail</label><input id="naEmail" class="na-input" inputmode="email"></div>
+      <div class="w2"><label for="naStrasse">Straße + Hausnr.</label><input id="naStrasse" class="na-input"></div>
+      <div><label for="naPlz">PLZ</label><input id="naPlz" class="na-input" inputmode="numeric"></div>
+      <div><label for="naOrt">Ort</label><input id="naOrt" class="na-input"></div>
+      <div class="w4"><label for="naNotiz">Notiz – wie auf uns aufmerksam, was gewünscht?</label>
+        <textarea id="naNotiz" class="na-input" placeholder="z. B. Nachbar ist Kunde und sehr zufrieden, möchte ein Angebot"></textarea></div>
+    </div>
+    <div class="na-row">
+      <button type="button" class="na-btn blau" id="naSpeichern" onclick="naSpeichern(false)"><i class="fa-solid fa-floppy-disk"></i> Speichern</button>
+      <span class="na-hinweis">Vor dem Speichern wird geprüft, ob es die Firma schon gibt (Datenbank, Tagesliste, Kunden, frühere Anfragen).</span>
+    </div>
+    <div class="na-dubl" id="naDubl" role="alert">
+      <h3>⚠ Diese Firma gibt es vielleicht schon:</h3>
+      <ul id="naDublListe"></ul>
+      <div class="na-row" style="margin-top:6px">
+        <button type="button" class="na-btn orange klein" onclick="naSpeichern(true)">Trotzdem speichern</button>
+        <button type="button" class="na-btn grau klein" onclick="naDublZu()">Abbrechen</button>
+      </div>
+    </div>
+    <div class="na-meldung" id="naMeldung" role="status"></div>
+  </section>
+
+  <section class="na-card">
+    <h2>Bisherige Anfragen</h2>
+    {% if not anfragen %}
+    <div class="na-hinweis">Noch keine Anfragen.</div>
+    {% else %}
+    <div style="overflow-x:auto">
+    <table class="na-tabelle">
+      <thead><tr><th>Datum</th><th>Firma</th><th>Kontakt</th><th>Erledigt</th><th></th></tr></thead>
+      <tbody>
+      {% for a in anfragen %}
+      <tr class="{{ 'neu' if a.id == neu else '' }}">
+        <td class="na-datum" data-utc="{{ a.erstellt_am }}">{{ a.erstellt_am }}</td>
+        <td><strong>{{ a.firma }}</strong><br><span class="na-muted">{{ [a.strasse, ((a.plz or '') ~ ' ' ~ (a.ort or '')) | trim] | select | join(' · ') }}</span>
+          {% if a.notiz %}<br><span class="na-hinweis">{{ a.notiz }}</span>{% endif %}</td>
+        <td>{{ a.kontakt or "—" }}<br><span class="na-muted">{{ a.telefon or "" }}{% if a.telefon and a.email %} · {% endif %}{{ a.email or "" }}</span></td>
+        <td>
+          <span class="na-chip {{ 'ok' if a.tagesliste_id else '' }}">{{ '✔ Datenbank' if a.tagesliste_id else '– Datenbank' }}</span>
+          {% if a.portfolio_am %}<span class="na-chip ok">✔ Portfolio</span>{% endif %}
+          {% if a.termin_am %}<span class="na-chip ok">✔ Besichtigung {{ a.termin_text }}</span>{% endif %}
+          {% if a.terminmail_am %}<span class="na-chip ok">✔ Bestätigung</span>{% endif %}
+        </td>
+        <td><div class="na-aktionen">
+          {% if not a.tagesliste_id %}<button type="button" class="na-btn grau klein" onclick="naInDatenbank({{ a.id }}, true)">In Datenbank</button>{% endif %}
+          <button type="button" class="na-btn gruen klein" onclick="naPortfolio({{ a.id }})">Portfolio senden</button>
+          <button type="button" class="na-btn orange klein" onclick="naBesichtigung({{ a.id }})">Besichtigung</button>
+          <a class="na-btn grau klein" href="/interesse/anfrage/{{ a.id }}/drucken" target="_blank" rel="noopener">Drucken</a>
+        </div></td>
+      </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    </div>
+    {% endif %}
+  </section>
+</div>
+
+<div class="na-backdrop" id="naBackdrop">
+  <div class="na-fenster">
+    <div class="na-fenster-kopf"><span id="naFensterTitel">KG Mail</span><button type="button" onclick="naFensterZu()" aria-label="Schließen">×</button></div>
+    <iframe id="naFrame" src="about:blank" title="KG Mail / KG Kalender"></iframe>
+  </div>
+</div>
+
+<script>
+const NA_ANFRAGEN = {{ anfragen | tojson }};
+let naAktiv = null;      // Anfrage, für die das Fenster offen ist
+let naModus = '';        // 'portfolio' | 'kalender' | 'terminmail'
+let naGeaendert = false; // nach dem Schließen neu laden
+const naOffen = [];      // laufende Vermerke – vor dem Neuladen abwarten
+
+function naAnfrage(id) { return NA_ANFRAGEN.find(a => a.id === id) || null; }
+function naWert(id) { return (document.getElementById(id).value || '').trim(); }
+function naMeldung(text, ok) { const el = document.getElementById('naMeldung'); el.textContent = text; el.className = 'na-meldung ' + (ok ? 'ok' : 'err'); }
+function naEsc(t) { return String(t || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+async function naPost(url, daten) {
+  const res = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(daten || {}) });
+  let json = {};
+  try { json = await res.json(); } catch (e) { json = {}; }
+  return { status: res.status, json };
+}
+// Anrede nur übergeben, wenn „Herr …“/„Frau …“ – sonst „Sehr geehrte Damen und Herren“ (wie beim Nachfassen in Leon)
+function naKontaktFuerMail(a) { return /^(herr|frau)\s/i.test(a.kontakt || '') ? a.kontakt : ''; }
+function naOrt(a) { return [a.plz || '', a.ort || ''].filter(Boolean).join(' '); }
+
+// Datum (UTC aus der Datenbank) in deutscher Zeit anzeigen
+document.querySelectorAll('.na-datum').forEach(td => {
+  const d = new Date(String(td.dataset.utc || '').replace(' ', 'T') + 'Z');
+  if (!isNaN(d)) td.textContent = d.toLocaleString('de-DE', { dateStyle: 'short', timeStyle: 'short' });
+});
+
+function naDublZu() { document.getElementById('naDubl').style.display = 'none'; }
+
+async function naSpeichern(trotzdem) {
+  const daten = {
+    firma: naWert('naFirma'), branche: naWert('naBranche'), website: naWert('naWebsite'), anrede: naWert('naAnrede'),
+    ansprechpartner: naWert('naAnsprech'), telefon: naWert('naTelefon'), email: naWert('naEmail'),
+    strasse: naWert('naStrasse'), plz: naWert('naPlz'), ort: naWert('naOrt'), notiz: naWert('naNotiz'), trotzdem: !!trotzdem
+  };
+  if (!daten.firma) { naMeldung('Bitte den Firmennamen eintragen.', false); document.getElementById('naFirma').focus(); return; }
+  const knopf = document.getElementById('naSpeichern');
+  knopf.disabled = true;
+  try {
+    const { status, json } = await naPost('/api/neue-anfrage', daten);
+    if (status === 409 && json.dublette) {
+      document.getElementById('naDublListe').innerHTML = (json.treffer || []).map(t =>
+        '<li class="' + (t.sicher ? 'sicher' : '') + '"><strong>' + naEsc(t.wo) + ':</strong> ' + naEsc(t.firma) +
+        (t.ort ? ' (' + naEsc(t.ort) + ')' : '') + (t.status ? ' – Status: ' + naEsc(t.status) : '') + ' – ' + naEsc(t.grund) + '</li>').join('');
+      document.getElementById('naDubl').style.display = 'block';
+      return;
+    }
+    if (!json.success) throw new Error(json.error || ('HTTP ' + status));
+    naDublZu();
+    const a = Object.assign({ id: json.id, tagesliste_id: null }, json.anfrage || {});
+    await naInDatenbank(a.id, false, a);
+    window.location.href = '/leon/anfrage?neu=' + encodeURIComponent(a.id);
+  } catch (err) {
+    naMeldung('Konnte nicht gespeichert werden: ' + err.message, false);
+  } finally {
+    knopf.disabled = false;
+  }
+}
+
+// In die Datenbank (Tagesliste) eintragen – über die vorhandenen Routen, wie „+ Firma hinzufügen“ und „Hat Interesse“
+async function naInDatenbank(id, neuLaden, a) {
+  a = a || naAnfrage(id);
+  if (!a) return;
+  try {
+    const add = await naPost('/datenbank/tagesliste-add', {
+      firma: a.firma || '', branche: a.branche || '', ansprechpartner: a.kontakt || '', strasse: a.strasse || '',
+      plz: a.plz || '', ort: a.ort || '', telefon: a.telefon || '', email: a.email || '', website: a.website || '',
+      quelle: 'Eingehender Anruf', source_lead_id: 0
+    });
+    if (!add.json.ok) throw new Error(add.json.message || ('HTTP ' + add.status));
+    if (add.json.id) {
+      // erst die Notiz, dann „Hat Interesse“ – so steht die Notiz auch im dauerhaften Status-Eintrag der Datenbank
+      await naPost('/datenbank/tagesliste-note', { id: add.json.id, notiz: ('Eingehender Anruf' + (a.notiz ? ': ' + a.notiz : '')) });
+      await naPost('/datenbank/tagesliste-status', { id: add.json.id, status: 'interessiert' });
+      await naPost('/api/neue-anfrage/' + id + '/tagesliste', { tagesliste_id: add.json.id });
+    } else {
+      // war schon in der Tagesliste – nur verknüpfen, dort nichts ändern
+      await naPost('/api/neue-anfrage/' + id + '/tagesliste', {});
+    }
+  } catch (err) {
+    naMeldung('In der Datenbank konnte nicht eingetragen werden: ' + err.message, false);
+  }
+  if (neuLaden) window.location.reload();
+}
+
+function naFensterAuf(titel, url) {
+  document.getElementById('naFensterTitel').textContent = titel;
+  document.getElementById('naFrame').setAttribute('src', url);
+  document.getElementById('naBackdrop').classList.add('open');
+}
+async function naFensterZu() {
+  document.getElementById('naBackdrop').classList.remove('open');
+  document.getElementById('naFrame').setAttribute('src', 'about:blank');
+  naModus = '';
+  await Promise.allSettled(naOffen);
+  if (naGeaendert) window.location.reload();
+}
+
+function naMailUrl(a, extra) {
+  const p = new URLSearchParams();
+  p.set('empfaenger', a.email || '');
+  p.set('firma', a.firma || '');
+  p.set('ansprechpartner', naKontaktFuerMail(a));
+  p.set('adresse', a.strasse || '');
+  p.set('ort', naOrt(a));
+  p.set('telefon', a.telefon || '');
+  Object.entries(extra || {}).forEach(([k, v]) => p.set(k, v || ''));
+  return '/datenbank/mail-mini?' + p.toString();
+}
+
+function naPortfolio(id) {
+  naAktiv = naAnfrage(id);
+  if (!naAktiv) return;
+  naModus = 'portfolio';
+  naFensterAuf('KG Mail · Portfolio – ' + naAktiv.firma, naMailUrl(naAktiv, { modus: 'kontaktformular' }));
+}
+
+function naBesichtigung(id) {
+  naAktiv = naAnfrage(id);
+  if (!naAktiv) return;
+  naModus = 'kalender';
+  const p = new URLSearchParams();
+  p.set('source', 'besichtigung');
+  p.set('firma', naAktiv.firma || '');
+  naFensterAuf('KG Kalender · Besichtigung – ' + naAktiv.firma, '/datenbank/kalender-mini?' + p.toString());
+}
+
+function naDatumDE(text) {
+  const m = String(text || '').match(/^(\d{4})-(\d{2})-(\d{2})(?:[T ](\d{2}):(\d{2}))?/);
+  return m ? { datum: m[3] + '.' + m[2] + '.' + m[1], zeit: m[4] ? m[4] + ':' + m[5] : '' } : { datum: String(text || ''), zeit: '' };
+}
+
+// Was im Fenster passiert (E-Mail gesendet, Termin gespeichert), wird mitgeschrieben – die Fenster selbst bleiben unverändert
+async function naBeobachten(url, bodyText, d) {
+  const aktiv = naAktiv, modus = naModus;  // Stand beim Absenden festhalten
+  if (!aktiv || !d) return;
+  let body = {};
+  try { body = JSON.parse(bodyText || '{}'); } catch (e) { body = {}; }
+  if (url.indexOf('/api/gmail/send') !== -1) {
+    const art = modus === 'portfolio' ? 'portfolio' : (modus === 'terminmail' ? 'terminmail' : '');
+    if (!d.ok || !art) return;
+    naGeaendert = true;
+    await naPost('/api/neue-anfrage/' + aktiv.id + '/vermerk', { art, an: body.to || '' });
+  } else if (url.indexOf('/api/google-calendar/events') !== -1 && modus === 'kalender') {
+    if (!d.success) return;
+    naGeaendert = true;
+    const t = naDatumDE(body.start);
+    const zeit = t.zeit || ((String(body.title || '').match(/(\d{1,2}:\d{2})\s*$/) || [])[1] || '');
+    await naPost('/api/neue-anfrage/' + aktiv.id + '/vermerk', { art: 'termin', termin: (t.datum + ' ' + zeit).trim() });
+    if (aktiv.tagesliste_id) await naPost('/datenbank/tagesliste-status', { id: aktiv.tagesliste_id, status: 'besichtigung', spaeter_datum: '' });
+  }
+}
+
+document.getElementById('naFrame').addEventListener('load', function () {
+  let w = null;
+  try { w = this.contentWindow; } catch (e) { w = null; }
+  if (!w || !w.fetch || w.__naBeobachtet) return;
+  const original = w.fetch.bind(w);
+  w.__naBeobachtet = true;
+  w.fetch = async function (url, opts) {
+    const res = await original(url, opts);
+    const u = String(url), methode = String((opts && opts.method) || 'GET').toUpperCase();
+    if (methode === 'POST' && (u.indexOf('/api/gmail/send') !== -1 || u.indexOf('/api/google-calendar/events') !== -1)) {
+      // Antwort lesen, solange das Fenster noch offen ist (danach schließt es sich selbst)
+      let daten = null;
+      try { daten = JSON.parse(await res.clone().text()); } catch (e) { daten = null; }
+      if (daten) naOffen.push(naBeobachten(u, String((opts && opts.body) || ''), daten).catch(() => {}));
+    }
+    return res;
+  };
+  // Terminbestätigung: passende Vorlage gleich auswählen (Herr / Frau / Damen und Herren)
+  if (naModus === 'terminmail' && naAktiv && typeof w.selectMailTemplate === 'function') {
+    const k = (naAktiv.kontakt || '').toLowerCase();
+    w.selectMailTemplate(k.startsWith('frau ') ? 'person-frau' : (k.startsWith('herr ') ? 'person-herr' : 'firma'));
+  }
+});
+
+window.addEventListener('message', function (event) {
+  const msg = event.data || {};
+  if (msg.type === 'kg-mail-mini-close') { naFensterZu(); return; }
+  if (msg.type === 'kg-besichtigung-open-mail' && naAktiv) {
+    naModus = 'terminmail';
+    naFensterAuf('KG Mail · Terminbestätigung – ' + naAktiv.firma, naMailUrl(naAktiv, { datum: msg.datum || '', uhrzeit: msg.uhrzeit || '' }));
+  }
+});
+</script>
+{% endblock %}

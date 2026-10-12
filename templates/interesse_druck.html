@@ -70,7 +70,7 @@
       <h1><span class="dr-box"></span>{{ e.firma }}</h1>
       {% if e.adresse %}<div class="dr-muted">{{ e.adresse }}</div>{% endif %}
     </div>
-    <div class="dr-stand">Gedruckt: {{ jetzt }}<br>Gespräch Nr. {{ e.call_id }}{% if e.archiviert %} (archiviert){% endif %}</div>
+    <div class="dr-stand">Gedruckt: {{ jetzt }}<br>{{ "Anfrage" if e.art == "anfrage" else "Gespräch" }} Nr. {{ e.call_id }}{% if e.archiviert %} (archiviert){% endif %}</div>
   </div>
 
   <div class="dr-tags">
@@ -97,14 +97,14 @@
     {% if e.rueckruf_geplant %}<div class="dr-zeile"><b>Rückruf geplant</b><span>{{ e.rueckruf_geplant }}{% if e.rueckruf_notiz %} – {{ e.rueckruf_notiz }}{% endif %}</span></div>{% endif %}
   </div>
 
-  <h2>Was Leon erledigt hat</h2>
+  <h2>{{ "Erledigt (Eingehender Anruf)" if e.art == "anfrage" else "Was Leon erledigt hat" }}</h2>
   {% if e.aktionen %}
   <ul class="dr-liste">
     {% for a in e.aktionen %}
     <li class="{{ 'dr-ok' if a.ok else 'dr-fehler' }}">{{ '✔' if a.ok else '✖' }} {{ a.text }}{% if not a.ok %} – nicht geklappt{% endif %}</li>
     {% endfor %}
   </ul>
-  {% elif e.aktionen_bekannt %}
+  {% elif e.aktionen_bekannt or e.art == "anfrage" %}
   <div class="dr-muted">Keine E-Mail verschickt, kein Kalendereintrag.</div>
   {% else %}
   <div class="dr-muted">Noch nicht verfügbar (Leon-Update fehlt).</div>
@@ -120,9 +120,10 @@
   {% endif %}
   {% endif %}
 
-  <h2>Zusammenfassung</h2>
+  <h2>{{ "Notiz zur Anfrage" if e.art == "anfrage" else "Zusammenfassung" }}</h2>
   <div class="dr-text">{{ e.zusammenfassung or "—" }}</div>
 
+  {% if e.art != "anfrage" %}
   <h2>Gesprächsverlauf</h2>
   {% if e.dialog %}
   <div class="dr-dialog">
@@ -132,6 +133,7 @@
   <div class="dr-text">{{ e.transkript }}</div>
   {% else %}
   <div class="dr-muted">Kein Gesprächsverlauf vorhanden.</div>
+  {% endif %}
   {% endif %}
 
   <h2>Notizen</h2>

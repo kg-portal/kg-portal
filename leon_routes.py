@@ -187,6 +187,8 @@ LEON_PAGES = {
 }
 
 LEON_TABS = [
+    # nur im CRM: Firma ruft selbst an (kg_anfragen.py)
+    ("anfrage", "/leon/anfrage", "Neue Anfrage"),
     # gleiche Reiter und Reihenfolge wie Leon in KG Business
     ("gespraeche", "/leon/gespraeche", "Telefonakquise"),
     ("kampagnen", "/leon/kampagnen", "Kampagnen"),
@@ -628,6 +630,10 @@ def register_leon_routes(app, login_required, get_db_connection):
     from leon_datenbank import register_leon_datenbank
     register_leon_datenbank(app, login_required, get_db_connection, leon_client, LeonError)
 
+    # Neue Anfrage (Firma ruft selbst an) + „→ Interesse“ aus Anrufe
+    from kg_anfragen import anfrage_als_zeile, ensure_anfragen_tables, interesse_zusatz, register_kg_anfragen
+    register_kg_anfragen(app, login_required, get_db_connection, leon_client, LeonError, LEON_TABS)
+
     @app.route("/leon")
     @login_required
     def leon_page():
@@ -672,9 +678,34 @@ def register_leon_routes(app, login_required, get_db_connection):
         # Alle Gespräche mit Ergebnis „Interessiert“ (bisherige und neue) – mit Grund, druckbar
         eintraege, fehler = [], ""
         try:
-            eintraege = [_interesse_eintrag(r) for r in _interesse_laden()]
+            for r in _interesse_laden():
+                e = _interesse_eintrag(r)
+                e.update(_sort=_clean(r.get("created_at")), _lead=r.get("lead_id"),
+                         gespraech_url=f"/leon/gespraech/{r.get('call_id')}", druck_url=f"/interesse/{r.get('call_id')}/drucken")
+                eintraege.append(e)
         except LeonError as exc:
             fehler = str(exc)
+        # Dazu: von Hand aus „Anrufe“ geholte Gespräche und Neue Anfragen (CRM; Leon bleibt unverändert)
+        conn = get_db_connection()
+        try:
+            manuell, anfragen = interesse_zusatz(conn)
+        finally:
+            conn.close()
+        calls = {e["call_id"] for e in eintraege}
+        leads = {e["_lead"] for e in eintraege if e["_lead"]}
+        for r in manuell:
+            if r["call_id"] in calls or (r.get("lead_id") and r["lead_id"] in leads):
+                continue
+            e = _interesse_eintrag(r)
+            e.update(_sort=_clean(r.get("created_at")), quelle="Von Hand hinzugefügt",
+                     gespraech_url=f"/leon/gespraech/{r['call_id']}", druck_url=f"/interesse/{r['call_id']}/drucken")
+            eintraege.append(e)
+        for a in anfragen:
+            e = _interesse_eintrag(anfrage_als_zeile(a))
+            e.update(_sort=_clean(a.get("erstellt_am")), quelle="Eingehender Anruf", call_id=None,
+                     gespraech_url="", druck_url=f"/interesse/anfrage/{a['id']}/drucken")
+            eintraege.append(e)
+        eintraege.sort(key=lambda e: e["_sort"], reverse=True)
         stats = {key: sum(1 for e in eintraege if any(g["key"] == key for g in e["gruende"])) for key, _, _ in INTERESSE_GRUENDE}
         stats["gesamt"] = len(eintraege)
         return render_template(
@@ -684,6 +715,23 @@ def register_leon_routes(app, login_required, get_db_connection):
             heute=datetime.now().strftime("%d.%m.%Y"),
             fehler=fehler,
         )
+
+    @app.route("/interesse/anfrage/<int:anfrage_id>/drucken")
+    @login_required
+    def leon_interesse_anfrage_drucken(anfrage_id):
+        # Neue Anfrage (Firma hat selbst angerufen) zum Ausdrucken – gleiche Druckseite wie bei Leon-Gesprächen
+        conn = get_db_connection()
+        try:
+            ensure_anfragen_tables(conn)
+            a = conn.execute("SELECT * FROM neue_anfragen WHERE id = ?", (anfrage_id,)).fetchone()
+        finally:
+            conn.close()
+        jetzt = datetime.now().strftime("%d.%m.%Y %H:%M")
+        if not a:
+            return render_template("interesse_druck.html", e=None, fehler="Anfrage nicht gefunden.", call_id=anfrage_id, jetzt=jetzt)
+        e = _interesse_druck({**anfrage_als_zeile(dict(a)), "call_id": anfrage_id})
+        e.update(art="anfrage", call_id=anfrage_id)
+        return render_template("interesse_druck.html", e=e, fehler="", call_id=anfrage_id, jetzt=jetzt)
 
     @app.route("/interesse/<int:call_id>/drucken")
     @login_required
