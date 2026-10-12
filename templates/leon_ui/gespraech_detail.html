@@ -193,6 +193,12 @@
   .nf-head button{border:0;background:#f1f5f9;border-radius:10px;width:34px;height:34px;font-size:18px;cursor:pointer}
   .nf-frame{flex:1;border:0;width:100%}
 </style>
+<style id="kg-interesse">
+  /* „Zu Interesse hinzufügen“: Gespräch von Hand auf die Seite „Interesse“ holen */
+  .nf-interesse{--nf-bg:#eff6ff;--nf-rand:#bfdbfe;--nf-text:#1d4ed8}
+  .nf-btn.nf-fertig{--nf-bg:#f0fdf4;--nf-rand:#bbf7d0;--nf-text:#15803d;cursor:default;transform:none;box-shadow:none}
+  .nf-btn:disabled{cursor:default}
+</style>
 </head>
 <body>
 <div class="kg-business-shell">
@@ -248,6 +254,14 @@
                 </button>
             </div>
             <div class="nf-status" id="nachfassenStatus">Anrede (Damen und Herren / Herr / Frau) im nächsten Fenster wählen – wie in der Datenbank.</div>
+        </div>
+
+        <div class="panel" id="interessePanel">
+            <h2>Interesse</h2>
+            <button type="button" class="nf-btn nf-interesse" id="interesseKnopf" onclick="zuInteresse()">
+                <span>👍</span><span><span id="interesseTitel">Zu „Interesse“ hinzufügen</span><small>Leons Ergebnis und Bewertung bleiben unverändert</small></span>
+            </button>
+            <div class="nf-status" id="interesseStatus"></div>
         </div>
 
         <div class="panel">
@@ -570,9 +584,63 @@ window.addEventListener("message", event => {
     }
 });
 
+// ---------------- „Zu Interesse hinzufügen“ (nur CRM – Leons Ergebnis und Bewertung bleiben unverändert) ----------------
+function interesseErledigt(text) {
+    const knopf = document.getElementById("interesseKnopf");
+    knopf.disabled = true;
+    knopf.classList.add("nf-fertig");
+    document.getElementById("interesseTitel").textContent = text;
+}
+
+async function interesseLaden() {
+    try {
+        const [liste, anruf] = await Promise.all([
+            fetch("/api/interesse/manuell/ids", { cache: "no-store" }).then(r => r.json()),
+            fetch("/leon-api/calls/" + callId, { cache: "no-store" }).then(r => r.json())
+        ]);
+        if ((liste.ids || []).map(String).includes(String(callId))) {
+            interesseErledigt("✔ Steht unter „Interesse“");
+        } else if (((anruf || {}).call || {}).result === "Interessiert") {
+            interesseErledigt("✔ Steht schon unter „Interesse“ (Leon: Interessiert)");
+        }
+    } catch (error) {
+        // nur Anzeige – der Knopf bleibt nutzbar
+    }
+}
+
+async function zuInteresse() {
+    const status = document.getElementById("interesseStatus");
+    const firma = (document.getElementById("pageTitle").textContent || "").replace(/^Gespräch · /, "");
+    if (!confirm("Sind Sie sicher, dass Sie dieses Gespräch zu „Interesse“ hinzufügen möchten?\n\n" + firma + "\n\nLeons Ergebnis und Bewertung bleiben unverändert.")) {
+        return;
+    }
+    const knopf = document.getElementById("interesseKnopf");
+    knopf.disabled = true;
+    try {
+        const response = await fetch("/api/interesse/manuell", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            cache: "no-store",
+            body: JSON.stringify({ call_id: callId })
+        });
+        let data = {};
+        try { data = await response.json(); } catch (error) { data = {}; }
+        if (!response.ok || !data.success) {
+            throw new Error(data.error || ("HTTP " + response.status));
+        }
+        interesseErledigt("✔ Steht unter „Interesse“");
+        status.textContent = "Hinzugefügt – zu sehen unter „Interesse“.";
+    } catch (error) {
+        knopf.disabled = false;
+        status.textContent = "Konnte nicht hinzugefügt werden: " + error.message;
+    }
+}
+
 nachfassenLaden();
 
 loadCall();
+
+interesseLaden();
 </script>
 
 </section></main>

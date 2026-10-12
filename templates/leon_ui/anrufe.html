@@ -122,11 +122,6 @@ button,input,select{font:inherit}
 .call-hangup-btn{display:inline-flex;align-items:center;padding:5px 12px;border:0;border-radius:8px;background:#dc2626;color:#fff;font-size:12px;font-weight:800;cursor:pointer;white-space:nowrap}
 .call-hangup-btn:hover{background:#b91c1c}
 .call-hangup-btn:disabled{opacity:.6;cursor:wait}
-/* „→ Interesse“: Gespräch von Hand zu „Interesse“ holen */
-.call-interesse-btn{display:inline-flex;align-items:center;padding:5px 10px;border:1px solid #93c5fd;border-radius:8px;background:#fff;color:#1d4ed8;font-size:11px;font-weight:800;cursor:pointer;white-space:nowrap}
-.call-interesse-btn:hover{background:#eff6ff}
-.call-interesse-btn:disabled{opacity:.6;cursor:wait}
-.call-interesse-ok{display:inline-flex;align-items:center;padding:5px 8px;font-size:11px;font-weight:800;color:#15803d;white-space:nowrap}
 </style>
 
 <link rel="stylesheet" href="{{ url_for('static', filename='leon/kg_portal.css') }}">
@@ -250,10 +245,6 @@ let calls = [];
 
 /* Anrufe, für die „Beenden“ gerade läuft */
 const hangingUp = new Set();
-
-/* Gespräche, die von Hand zu „Interesse“ geholt wurden (CRM) */
-const imInteresse = new Set();
-const zuInteresseLaeuft = new Set();
 
 
 const qInput =
@@ -831,24 +822,6 @@ function render(){
                                     :
                                     ""
                                 }
-                                ${
-                                    !active && call.result !== "Interessiert"
-                                    ?
-                                    (
-                                        imInteresse.has(String(call.id))
-                                        ?
-                                        `<span class="call-interesse-ok">✔ Interesse</span>`
-                                        :
-                                        `<button
-                                            type="button"
-                                            class="call-interesse-btn"
-                                            data-zu-interesse="${esc(call.id)}"
-                                            ${zuInteresseLaeuft.has(String(call.id)) ? "disabled" : ""}
-                                        >→ Interesse</button>`
-                                    )
-                                    :
-                                    ""
-                                }
                             </div>
                         </td>
 
@@ -1033,90 +1006,6 @@ rows.addEventListener(
 );
 
 
-/* „→ Interesse“: nach Sicherheitsabfrage zu „Interesse“ holen – Leons Ergebnis und Bewertung bleiben unverändert */
-rows.addEventListener(
-    "click",
-    async event => {
-
-        const button =
-            event.target.closest("[data-zu-interesse]");
-
-        if(!button){
-            return;
-        }
-
-        const callId =
-            String(button.dataset.zuInteresse || "");
-
-        if(
-            !callId
-            ||
-            zuInteresseLaeuft.has(callId)
-            ||
-            imInteresse.has(callId)
-        ){
-            return;
-        }
-
-        const call =
-            calls.find(c => String(c.id) === callId) || {};
-
-        if(
-            !confirm(
-                "Sind Sie sicher, dass Sie dieses Gespräch zu „Interesse“ hinzufügen möchten?\n\n"
-                + (call.firma || "Unbekannter Kontakt")
-                + "\n\nLeons Ergebnis und Bewertung bleiben unverändert."
-            )
-        ){
-            return;
-        }
-
-        zuInteresseLaeuft.add(callId);
-        render();
-
-        try{
-
-            const response =
-                await fetch(
-                    "/api/interesse/manuell",
-                    {
-                        method:"POST",
-                        headers:{"Content-Type":"application/json"},
-                        cache:"no-store",
-                        body:JSON.stringify({call_id:Number(callId)})
-                    }
-                );
-
-            let data = {};
-
-            try{
-                data = await response.json();
-            }catch(error){
-                data = {};
-            }
-
-            if(!response.ok || !data.success){
-                throw new Error(data.error || ("HTTP " + response.status));
-            }
-
-            imInteresse.add(callId);
-
-        }catch(error){
-
-            alert(
-                "Konnte nicht zu „Interesse“ hinzugefügt werden: "
-                + error.message
-            );
-
-        }finally{
-
-            zuInteresseLaeuft.delete(callId);
-            render();
-        }
-    }
-);
-
-
 qInput.addEventListener(
     "input",
     render
@@ -1133,16 +1022,6 @@ resultFilter.addEventListener(
     "change",
     render
 );
-
-
-/* Bereits von Hand zu „Interesse“ geholte Gespräche */
-fetch("/api/interesse/manuell/ids", {cache:"no-store"})
-    .then(response => response.json())
-    .then(data => {
-        (data.ids || []).forEach(id => imInteresse.add(String(id)));
-        render();
-    })
-    .catch(() => {});
 
 
 /* İlk yükleme */
