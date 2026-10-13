@@ -535,6 +535,9 @@ def register_mcp_crm_leads(app, get_db_connection, leon_client_factory):
             code, res = client.request("POST", f"/api/campaigns/{kampagne_id}/leads", {"lead_ids": ok_leon}, timeout=30)
             if not (res or {}).get("success"):
                 hinweise.append((res or {}).get("error") or "Leon-Leads konnten nicht zugeordnet werden.")
+            if (res or {}).get("uebersprungen"):  # Leon nimmt keine Nummer zweimal
+                namen = ", ".join(u.get("firma") or str(u.get("lead_id")) for u in res["uebersprungen"][:15])
+                hinweise.append(f"{len(res['uebersprungen'])} nicht in die Kampagne – schon angerufen oder schon in einer Kampagne: {namen}")
         kontrolle = _kampagne_lesen(client, kampagne_id)
         _protokoll(conn, "leads_kampagne", {"kampagne_id": kampagne_id, "name": name, "crm": ok_crm, "leon": ok_leon,
                                             "uebersprungen": uebersprungen})

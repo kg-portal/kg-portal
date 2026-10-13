@@ -367,6 +367,9 @@ def register_leon_datenbank(app, login_required, get_db_connection, leon_client,
             try:
                 code, added = leon_client.request("POST", f"/api/campaigns/{kampagne_id}/leads", {"lead_ids": leon_ids})
                 hinzugefuegt = added.get("added") or 0
+                if added.get("uebersprungen"):  # Leon nimmt keine Nummer zweimal (schon angerufen / schon in einer Kampagne)
+                    namen = ", ".join(u.get("firma") or str(u.get("lead_id")) for u in added["uebersprungen"][:15])
+                    fehler.append(f"{len(added['uebersprungen'])} nicht in die Kampagne – schon angerufen oder schon in einer Kampagne: {namen}")
                 if not added.get("success"):
                     fehler.append(added.get("error") or "Zuordnung zur Kampagne fehlgeschlagen.")
             except LeonError as exc:
