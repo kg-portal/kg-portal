@@ -80,7 +80,7 @@ body{background:#edf2f7;font-family:'Inter',sans-serif;color:#0f172a}
 .kg-scan-3d-view{
   position:relative;
   width:100%;
-  min-height:420px;
+  min-height:560px;
   border-radius:18px;
   border:1px solid #dbe3ef;
   background:linear-gradient(180deg,#f8fafc 0%,#eef2f7 100%);
@@ -1016,11 +1016,12 @@ function kgLoad3DModel(modelKey) {
 
 // =====================================================
 // KG SCAN · 3D DREHEN
-// Drehbares Modell aus der Scan-Geometrie (Wände, Fenster,
-// Türen, Möbel). Braucht keinen Server-Export, nur die Daten,
-// die die KG Scan App mit dem Scan schickt.
+// Drehbares Modell aus der Scan-Geometrie, im Stil der
+// iPhone-Ansicht: weiße Wände mit Tür- und Fensteröffnungen,
+// graue Fliesen, weiße Tische, schwarze Stühle.
+// Braucht keinen Server-Export, nur die Scan-Daten.
 // =====================================================
-function kgRenderGeometry3D(holder, geometry) {
+function kgRenderGeometry3D(holder, geometry, floorPolygons) {
   const host = document.createElement("div");
   host.className = "kg-scan-drehen";
   host.style.cssText = "position:absolute;inset:0;z-index:5;";
@@ -1032,50 +1033,53 @@ function kgRenderGeometry3D(holder, geometry) {
   const renderer = new THREE.WebGLRenderer({ antialias: true });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
   renderer.setSize(width(), height());
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
   renderer.domElement.style.cssText = "display:block;width:100%;height:100%;touch-action:none;cursor:grab;";
   host.appendChild(renderer.domElement);
 
   const scene = new THREE.Scene();
-  scene.background = new THREE.Color(0xf1f5f9);
+  scene.background = new THREE.Color(0xe6e8eb);
 
-  const camera = new THREE.PerspectiveCamera(50, width() / height(), 0.05, 300);
-
-  scene.add(new THREE.HemisphereLight(0xffffff, 0x94a3b8, 0.95));
-  const sun = new THREE.DirectionalLight(0xffffff, 0.65);
-  sun.position.set(6, 12, 8);
-  scene.add(sun);
-
-  const farben = {
-    wall: 0xe2e8f0,
-    window: 0x60a5fa,
-    door: 0xf59e0b,
-    table: 0x8b5cf6,
-    chair: 0xa78bfa,
-    storage: 0x7c3aed,
-    sofa: 0x9333ea,
-    toilet: 0xf8fafc,
-    sink: 0xbae6fd,
-    bathtub: 0xbae6fd,
-    refrigerator: 0xcbd5e1,
-    stove: 0x64748b,
-    oven: 0x64748b,
-    dishwasher: 0x94a3b8,
-    washerDryer: 0x94a3b8,
-    television: 0x1e293b
-  };
+  const camera = new THREE.PerspectiveCamera(42, width() / height(), 0.05, 300);
 
   const zahl = v => {
     const n = Number(v);
     return Number.isFinite(n) ? n : 0;
   };
 
+  // Farben wie in der iPhone-Ansicht
+  const matWand = new THREE.MeshStandardMaterial({ color: 0xf2f1ec, roughness: 0.92 });
+  const matWeiss = new THREE.MeshStandardMaterial({ color: 0xf9f9f6, roughness: 0.8 });
+  const matHellgrau = new THREE.MeshStandardMaterial({ color: 0xdcdcd8, roughness: 0.85 });
+  const matDunkel = new THREE.MeshStandardMaterial({ color: 0x616161, roughness: 0.9 });
+  const matSchwarz = new THREE.MeshStandardMaterial({ color: 0x1a1a1a, roughness: 0.75 });
+  const matSofa = new THREE.MeshStandardMaterial({ color: 0x8a8a8a, roughness: 0.95 });
+  const matGlas = new THREE.MeshStandardMaterial({ color: 0x52adf2, roughness: 0.2, transparent: true, opacity: 0.55 });
+  const matRahmen = new THREE.MeshStandardMaterial({ color: 0xf5f5f5, roughness: 0.7 });
+  const kantenMat = new THREE.LineBasicMaterial({ color: 0xc8c8c2, transparent: true, opacity: 0.6 });
+
+  function box(w, h, d, mat, x, y, z, parent, kanten) {
+    const geo = new THREE.BoxGeometry(Math.max(0.005, w), Math.max(0.005, h), Math.max(0.005, d));
+    const mesh = new THREE.Mesh(geo, mat);
+    mesh.position.set(x, y, z);
+    mesh.castShadow = true;
+    mesh.receiveShadow = true;
+    if (kanten) {
+      mesh.add(new THREE.LineSegments(new THREE.EdgesGeometry(geo), kantenMat));
+    }
+    parent.add(mesh);
+    return mesh;
+  }
+
   const items = (geometry || []).filter(g => g && typeof g === "object");
+  const waende = items.filter(g => String(g.kind) === "wall");
+  const oeffnungen = items.filter(g => ["door", "window", "opening"].includes(String(g.kind)));
+  const moebel = items.filter(g => !["wall", "door", "window", "opening", "trashCan"].includes(String(g.kind)));
 
   let bodenY = Infinity;
-  items.forEach(g => {
-    if (String(g.kind) === "wall") {
-      bodenY = Math.min(bodenY, zahl(g.y) - zahl(g.height) / 2);
-    }
+  waende.forEach(g => {
+    bodenY = Math.min(bodenY, zahl(g.y) - zahl(g.height) / 2);
   });
   if (!Number.isFinite(bodenY)) {
     items.forEach(g => {
@@ -1087,47 +1091,165 @@ function kgRenderGeometry3D(holder, geometry) {
   }
 
   const group = new THREE.Group();
-  const kantenMaterial = new THREE.LineBasicMaterial({ color: 0x64748b, transparent: true, opacity: 0.45 });
-
-  items.forEach(g => {
-    const kind = String(g.kind || "");
-    if (kind === "opening") {
-      return;
-    }
-
-    const istWand = kind === "wall";
-    const istOeffnung = kind === "window" || kind === "door";
-
-    const w = Math.max(0.02, zahl(g.width));
-    const h = Math.max(0.02, zahl(g.height));
-    const d = istOeffnung ? 0.14 : Math.max(0.02, zahl(g.depth) || 0.1);
-
-    const geo = new THREE.BoxGeometry(w, h, d);
-    const mat = new THREE.MeshStandardMaterial({
-      color: farben[kind] || 0xa855f7,
-      roughness: 0.85,
-      metalness: 0,
-      transparent: istWand || kind === "window",
-      opacity: istWand ? 0.78 : (kind === "window" ? 0.7 : 1)
-    });
-
-    const mesh = new THREE.Mesh(geo, mat);
-    const y = (istWand || istOeffnung) ? zahl(g.y) : bodenY + h / 2;
-    mesh.position.set(zahl(g.x), y, zahl(g.z));
-    mesh.rotation.y = -zahl(g.rotationY);
-
-    const kanten = new THREE.LineSegments(new THREE.EdgesGeometry(geo), kantenMaterial);
-    mesh.add(kanten);
-
-    group.add(mesh);
-  });
-
   scene.add(group);
 
+  // ---------- Wände mit Öffnungen ----------
+  const WAND_DICKE = 0.12;
+  const benutzt = new Set();
+
+  waende.forEach(wand => {
+    const W = Math.max(0.05, zahl(wand.width));
+    const H = Math.max(0.05, zahl(wand.height));
+    const wx = zahl(wand.x);
+    const wy = zahl(wand.y);
+    const wz = zahl(wand.z);
+    const phi = -zahl(wand.rotationY);
+    const dx = Math.cos(phi);
+    const dz = -Math.sin(phi);
+    const nx = Math.sin(phi);
+    const nz = Math.cos(phi);
+    const unten = wy - H / 2;
+    const oben = wy + H / 2;
+
+    const loecher = [];
+    oeffnungen.forEach((o, index) => {
+      const ox = zahl(o.x) - wx;
+      const oz = zahl(o.z) - wz;
+      const t = ox * dx + oz * dz;
+      const n = ox * nx + oz * nz;
+      let winkel = Math.abs((zahl(o.rotationY) - zahl(wand.rotationY)) % Math.PI);
+      winkel = Math.min(winkel, Math.PI - winkel);
+      if (Math.abs(n) > 0.3 || winkel > 0.35) {
+        return;
+      }
+      const a = Math.max(-W / 2, t - zahl(o.width) / 2);
+      const b = Math.min(W / 2, t + zahl(o.width) / 2);
+      if (b - a < 0.05) {
+        return;
+      }
+      benutzt.add(index);
+      loecher.push({
+        a,
+        b,
+        y0: Math.max(unten, zahl(o.y) - zahl(o.height) / 2),
+        y1: Math.min(oben, zahl(o.y) + zahl(o.height) / 2),
+        kind: String(o.kind)
+      });
+    });
+    loecher.sort((p, q) => p.a - q.a);
+
+    const teile = [];
+    let pos = -W / 2;
+    loecher.forEach(l => {
+      if (l.a > pos + 0.01) {
+        teile.push({ t0: pos, t1: l.a, y0: unten, y1: oben });
+      }
+      const a = Math.max(l.a, pos);
+      if (l.b > a) {
+        if (l.y0 > unten + 0.02) {
+          teile.push({ t0: a, t1: l.b, y0: unten, y1: l.y0 });
+        }
+        if (l.y1 < oben - 0.02) {
+          teile.push({ t0: a, t1: l.b, y0: l.y1, y1: oben });
+        }
+        if (l.kind === "window") {
+          const mitte = (a + l.b) / 2;
+          const glas = box(l.b - a, l.y1 - l.y0, 0.03, matGlas,
+            wx + dx * mitte, (l.y0 + l.y1) / 2, wz + dz * mitte, group, false);
+          glas.rotation.y = phi;
+          glas.castShadow = false;
+          const rahmen = box(l.b - a, 0.05, WAND_DICKE + 0.02, matRahmen,
+            wx + dx * mitte, l.y0 + 0.025, wz + dz * mitte, group, false);
+          rahmen.rotation.y = phi;
+        }
+        pos = Math.max(pos, l.b);
+      }
+    });
+    if (pos < W / 2 - 0.01) {
+      teile.push({ t0: pos, t1: W / 2, y0: unten, y1: oben });
+    }
+
+    teile.forEach(t => {
+      const mitte = (t.t0 + t.t1) / 2;
+      const teil = box(t.t1 - t.t0, t.y1 - t.y0, WAND_DICKE, matWand,
+        wx + dx * mitte, (t.y0 + t.y1) / 2, wz + dz * mitte, group, true);
+      teil.rotation.y = phi;
+    });
+  });
+
+  // Fenster und Türen ohne passende Wand
+  oeffnungen.forEach((o, index) => {
+    if (benutzt.has(index) || String(o.kind) === "opening") {
+      return;
+    }
+    const istFenster = String(o.kind) === "window";
+    const teil = box(zahl(o.width), zahl(o.height), istFenster ? 0.03 : 0.04,
+      istFenster ? matGlas : matHellgrau, zahl(o.x), zahl(o.y), zahl(o.z), group, !istFenster);
+    teil.rotation.y = -zahl(o.rotationY);
+  });
+
+  // ---------- Möbel ----------
+  function moebelGruppe(g) {
+    const kind = String(g.kind || "");
+    const w = Math.max(0.05, zahl(g.width));
+    const h = Math.max(0.05, zahl(g.height));
+    const d = Math.max(0.05, zahl(g.depth));
+    const m = new THREE.Group();
+
+    if (kind === "table") {
+      box(w, 0.04, d, matWeiss, 0, h - 0.02, 0, m, true);
+      const bx = w / 2 - 0.05;
+      const bz = d / 2 - 0.05;
+      [[bx, bz], [-bx, bz], [bx, -bz], [-bx, -bz]].forEach(([x, z]) => {
+        box(0.04, h - 0.04, 0.04, matHellgrau, x, (h - 0.04) / 2, z, m, false);
+      });
+    } else if (kind === "chair") {
+      const sitz = Math.min(0.48, h * 0.52);
+      box(w * 0.9, 0.07, d * 0.85, matSchwarz, 0, sitz, d * 0.05, m, false);
+      box(w * 0.9, Math.max(0.1, h - sitz - 0.05), 0.06, matSchwarz, 0, sitz + (h - sitz) / 2, -d / 2 + 0.06, m, false);
+      box(0.05, sitz - 0.05, 0.05, matSchwarz, 0, (sitz - 0.05) / 2, 0, m, false);
+      box(w * 0.7, 0.03, d * 0.7, matSchwarz, 0, 0.015, 0, m, false);
+    } else if (kind === "sofa") {
+      box(w, h * 0.45, d, matSofa, 0, h * 0.225, 0, m, true);
+      box(w, h, d * 0.25, matSofa, 0, h / 2, -d / 2 + d * 0.125, m, true);
+    } else if (kind === "toilet") {
+      box(w * 0.6, h * 0.5, d * 0.7, matWeiss, 0, h * 0.25, d * 0.1, m, true);
+      box(w, h, d * 0.25, matWeiss, 0, h / 2, -d / 2 + d * 0.125, m, true);
+    } else if (["refrigerator", "stove", "oven", "dishwasher", "washerDryer"].includes(kind)) {
+      box(w, h, d, matHellgrau, 0, h / 2, 0, m, true);
+    } else if (kind === "television") {
+      box(w, h, Math.min(d, 0.06), matSchwarz, 0, h / 2, 0, m, false);
+    } else if (kind === "stairs") {
+      const stufen = Math.max(3, Math.round(h / 0.18));
+      for (let i = 0; i < stufen; i++) {
+        const sh = h * (i + 1) / stufen;
+        box(w, sh, d / stufen, matWeiss, 0, sh / 2, -d / 2 + d * (i + 0.5) / stufen, m, true);
+      }
+    } else if (kind === "storage") {
+      box(w, h, d, matWeiss, 0, h / 2, 0, m, true);
+      const boeden = Math.max(1, Math.floor(h / 0.38));
+      for (let i = 1; i <= boeden; i++) {
+        box(w * 0.98, 0.012, 0.005, matDunkel, 0, h * i / (boeden + 1), d / 2 + 0.003, m, false);
+      }
+    } else {
+      box(w, h, d, matWeiss, 0, h / 2, 0, m, true);
+    }
+
+    let basis = bodenY;
+    if (["sink", "television"].includes(kind) && zahl(g.y) - h / 2 > bodenY + 0.35) {
+      basis = zahl(g.y) - h / 2;
+    }
+    m.position.set(zahl(g.x), basis, zahl(g.z));
+    m.rotation.y = -zahl(g.rotationY);
+    return m;
+  }
+
+  moebel.forEach(g => group.add(moebelGruppe(g)));
+
+  // ---------- Grenzen, Boden ----------
   const bounds = new THREE.Box3().setFromObject(group);
   const size = new THREE.Vector3();
   const center = new THREE.Vector3();
-
   if (bounds.isEmpty()) {
     size.set(4, 2.5, 4);
     center.set(0, bodenY + 1.25, 0);
@@ -1135,36 +1257,103 @@ function kgRenderGeometry3D(holder, geometry) {
     bounds.getSize(size);
     bounds.getCenter(center);
   }
-
   const span = Math.max(size.x, size.z, 2);
 
-  const boden = new THREE.Mesh(
-    new THREE.PlaneGeometry(size.x + 0.6, size.z + 0.6),
-    new THREE.MeshStandardMaterial({ color: 0xd6d3d1, roughness: 1, side: THREE.DoubleSide })
+  const fliese = document.createElement("canvas");
+  fliese.width = 64;
+  fliese.height = 64;
+  const fc = fliese.getContext("2d");
+  fc.fillStyle = "#707070";
+  fc.fillRect(0, 0, 64, 64);
+  fc.fillStyle = "#9e9e9e";
+  fc.fillRect(2, 2, 60, 60);
+  fc.fillStyle = "rgba(255,255,255,0.10)";
+  fc.fillRect(2, 2, 60, 10);
+  const fliesenTextur = new THREE.CanvasTexture(fliese);
+  fliesenTextur.wrapS = THREE.RepeatWrapping;
+  fliesenTextur.wrapT = THREE.RepeatWrapping;
+  fliesenTextur.repeat.set(1 / 0.3, 1 / 0.3);
+  const matBoden = new THREE.MeshStandardMaterial({ map: fliesenTextur, roughness: 0.95, side: THREE.DoubleSide });
+
+  const polygone = (Array.isArray(floorPolygons) ? floorPolygons : [])
+    .filter(p => Array.isArray(p) && p.length >= 3);
+
+  if (polygone.length) {
+    polygone.forEach(poly => {
+      const form = new THREE.Shape();
+      poly.forEach((pt, i) => {
+        const x = zahl(pt && pt.x);
+        const y = -zahl(pt && pt.z);
+        if (i === 0) {
+          form.moveTo(x, y);
+        } else {
+          form.lineTo(x, y);
+        }
+      });
+      const boden = new THREE.Mesh(new THREE.ShapeGeometry(form), matBoden);
+      boden.rotation.x = -Math.PI / 2;
+      boden.position.y = bodenY + 0.001;
+      boden.receiveShadow = true;
+      scene.add(boden);
+    });
+  } else {
+    const boden = new THREE.Mesh(new THREE.PlaneGeometry(size.x, size.z), matBoden);
+    boden.geometry.translate(center.x, -center.z, 0);
+    const uv = boden.geometry.attributes.uv;
+    const posAttr = boden.geometry.attributes.position;
+    for (let i = 0; i < uv.count; i++) {
+      uv.setXY(i, posAttr.getX(i), posAttr.getY(i));
+    }
+    boden.rotation.x = -Math.PI / 2;
+    boden.position.y = bodenY + 0.001;
+    boden.receiveShadow = true;
+    scene.add(boden);
+  }
+
+  // Schatten unter dem Objekt
+  const schattenFlaeche = new THREE.Mesh(
+    new THREE.PlaneGeometry(span * 3, span * 3),
+    new THREE.ShadowMaterial({ opacity: 0.12 })
   );
-  boden.rotation.x = -Math.PI / 2;
-  boden.position.set(center.x, bodenY - 0.002, center.z);
-  scene.add(boden);
+  schattenFlaeche.rotation.x = -Math.PI / 2;
+  schattenFlaeche.position.set(center.x, bodenY - 0.002, center.z);
+  schattenFlaeche.receiveShadow = true;
+  scene.add(schattenFlaeche);
 
-  const raster = new THREE.GridHelper(Math.ceil(span + 2), Math.ceil(span + 2), 0xb6bcc6, 0xd5d9df);
-  raster.position.set(center.x, bodenY, center.z);
-  scene.add(raster);
+  // ---------- Licht ----------
+  scene.add(new THREE.HemisphereLight(0xffffff, 0xb8bcc2, 0.75));
+  const sonne = new THREE.DirectionalLight(0xffffff, 0.75);
+  sonne.position.set(center.x + span * 0.6, bodenY + span * 1.6, center.z + span * 0.9);
+  sonne.target.position.copy(center);
+  sonne.castShadow = true;
+  sonne.shadow.mapSize.set(2048, 2048);
+  sonne.shadow.camera.left = -span;
+  sonne.shadow.camera.right = span;
+  sonne.shadow.camera.top = span;
+  sonne.shadow.camera.bottom = -span;
+  sonne.shadow.camera.near = 0.1;
+  sonne.shadow.camera.far = span * 6;
+  sonne.shadow.bias = -0.0005;
+  scene.add(sonne);
+  scene.add(sonne.target);
 
+  // ---------- Steuerung ----------
   const controls = new THREE.OrbitControls(camera, renderer.domElement);
   controls.enableDamping = true;
   controls.dampingFactor = 0.08;
   controls.screenSpacePanning = true;
   controls.minDistance = 0.3;
   controls.maxDistance = span * 6;
-  controls.maxPolarAngle = Math.PI / 2 + 0.25;
+  controls.maxPolarAngle = Math.PI / 2 + 0.2;
 
   function startAnsicht() {
+    const abstand = span * 1.35;
     camera.position.set(
-      center.x + span * 0.85,
-      bodenY + span * 1.05,
-      center.z + span * 0.85
+      center.x + abstand * 0.62,
+      bodenY + abstand * 0.95,
+      center.z + abstand * 0.62
     );
-    controls.target.set(center.x, bodenY + Math.min(1, size.y / 2), center.z);
+    controls.target.set(center.x, bodenY + Math.min(0.8, size.y / 3), center.z);
     controls.update();
   }
   startAnsicht();
@@ -1187,7 +1376,7 @@ function kgRenderGeometry3D(holder, geometry) {
     font-weight:700;
     color:#475569;
   `;
-  hinweis.innerHTML = "Ziehen: drehen · Scrollen / 2 Finger: Zoom · Rechte Maustaste: verschieben";
+  hinweis.textContent = "Ziehen: drehen · Scrollen / 2 Finger: Zoom · Rechte Maustaste: verschieben";
 
   const reset = document.createElement("button");
   reset.type = "button";
@@ -1226,13 +1415,155 @@ function kgRenderGeometry3D(holder, geometry) {
       if (obj.geometry) {
         obj.geometry.dispose();
       }
-      if (obj.material && obj.material.dispose) {
-        obj.material.dispose();
-      }
     });
+    [matWand, matWeiss, matHellgrau, matDunkel, matSchwarz, matSofa, matGlas, matRahmen, kantenMat, matBoden].forEach(m => m.dispose());
+    fliesenTextur.dispose();
     renderer.dispose();
     host.remove();
   };
+}
+
+// =====================================================
+// KG SCAN · VORSCHAUBILDER GRÖSSER
+// Die iPhone-Bilder sind hochkant mit viel leerem Rand.
+// Der leere Rand wird nur in der Anzeige weggelassen,
+// das Bild selbst bleibt unverändert.
+// =====================================================
+const kgPreviewBoundsCache = {};
+
+function kgPreviewBounds(img, mode) {
+  const key = (img.currentSrc || img.src) + "|" + mode;
+  if (Object.prototype.hasOwnProperty.call(kgPreviewBoundsCache, key)) {
+    return kgPreviewBoundsCache[key];
+  }
+
+  let result = null;
+
+  try {
+    const W = img.naturalWidth;
+    const H = img.naturalHeight;
+
+    if (W && H) {
+      const s = Math.min(1, 480 / Math.max(W, H));
+      const w = Math.max(1, Math.round(W * s));
+      const h = Math.max(1, Math.round(H * s));
+      const canvas = document.createElement("canvas");
+      canvas.width = w;
+      canvas.height = h;
+      const ctx = canvas.getContext("2d");
+      ctx.drawImage(img, 0, 0, w, h);
+      const px = ctx.getImageData(0, 0, w, h).data;
+
+      // Hintergrund = häufigste Farbe am Bildrand
+      const zaehler = {};
+      let bestIndex = 0;
+      let bestAnzahl = 0;
+      const probe = (x, y) => {
+        const i = (y * w + x) * 4;
+        const k = (px[i] >> 3) + "," + (px[i + 1] >> 3) + "," + (px[i + 2] >> 3);
+        zaehler[k] = (zaehler[k] || 0) + 1;
+        if (zaehler[k] > bestAnzahl) {
+          bestAnzahl = zaehler[k];
+          bestIndex = i;
+        }
+      };
+      for (let x = 0; x < w; x += 2) {
+        probe(x, 0);
+        probe(x, h - 1);
+      }
+      for (let y = 0; y < h; y += 2) {
+        probe(0, y);
+        probe(w - 1, y);
+      }
+
+      const br = px[bestIndex];
+      const bg = px[bestIndex + 1];
+      const bb = px[bestIndex + 2];
+      const schwelle = mode === "2d" ? 120 : 22;
+
+      const zeilen = new Array(h).fill(0);
+      const spalten = new Array(w).fill(0);
+
+      for (let y = 0; y < h; y++) {
+        for (let x = 0; x < w; x++) {
+          const i = (y * w + x) * 4;
+          if (px[i + 3] < 20) {
+            continue;
+          }
+          const diff =
+            Math.abs(px[i] - br) +
+            Math.abs(px[i + 1] - bg) +
+            Math.abs(px[i + 2] - bb);
+          if (diff > schwelle) {
+            zeilen[y]++;
+            spalten[x]++;
+          }
+        }
+      }
+
+      const minZeile = Math.max(2, w * 0.01);
+      const minSpalte = Math.max(2, h * 0.01);
+      const y0 = zeilen.findIndex(v => v >= minZeile);
+      const y1 = h - 1 - zeilen.slice().reverse().findIndex(v => v >= minZeile);
+      const x0 = spalten.findIndex(v => v >= minSpalte);
+      const x1 = w - 1 - spalten.slice().reverse().findIndex(v => v >= minSpalte);
+
+      if (y0 >= 0 && x0 >= 0 && y1 > y0 && x1 > x0) {
+        const pad = Math.max(x1 - x0, y1 - y0) * 0.07;
+        const ax = Math.max(0, x0 - pad);
+        const ay = Math.max(0, y0 - pad);
+        const bx = Math.min(w - 1, x1 + pad);
+        const by = Math.min(h - 1, y1 + pad);
+        const bw = (bx - ax) / s;
+        const bh = (by - ay) / s;
+
+        if (bw * bh < W * H * 0.85) {
+          result = { x: ax / s, y: ay / s, w: bw, h: bh, bg: "rgb(" + br + "," + bg + "," + bb + ")" };
+        }
+      }
+    }
+  } catch (e) {
+    result = null;
+  }
+
+  kgPreviewBoundsCache[key] = result;
+  return result;
+}
+
+function kgFitPreviewImage(img, holder, mode) {
+  if (!img || !holder || img.style.display === "none" || !img.naturalWidth) {
+    return;
+  }
+
+  const b = kgPreviewBounds(img, mode);
+
+  if (!b) {
+    img.style.inset = "0";
+    img.style.left = "0";
+    img.style.top = "0";
+    img.style.width = "100%";
+    img.style.height = "100%";
+    img.style.objectFit = "contain";
+    return;
+  }
+
+  const breite = holder.clientWidth;
+  const hoehe = holder.clientHeight;
+  const oben = 64;
+  const rand = 18;
+  const platzB = Math.max(50, breite - 2 * rand);
+  const platzH = Math.max(50, hoehe - oben - rand);
+  const scale = Math.min(platzB / b.w, platzH / b.h);
+
+  holder.style.background = b.bg;
+  img.style.inset = "auto";
+  img.style.objectFit = "fill";
+  img.style.maxWidth = "none";
+  img.style.maxHeight = "none";
+  img.style.width = img.naturalWidth * scale + "px";
+  img.style.height = img.naturalHeight * scale + "px";
+  img.style.left = rand + (platzB - b.w * scale) / 2 - b.x * scale + "px";
+  img.style.top = oben + (platzH - b.h * scale) / 2 - b.y * scale + "px";
 }
 
 function kgRenderScan3D(scan) {
@@ -1247,6 +1578,11 @@ function kgRenderScan3D(scan) {
   if (holder.__kgDrehenStop) {
     holder.__kgDrehenStop();
     holder.__kgDrehenStop = null;
+  }
+
+  if (holder.__kgPreviewResize) {
+    window.removeEventListener("resize", holder.__kgPreviewResize);
+    holder.__kgPreviewResize = null;
   }
 
   // Eski renderer / SVG / canvas / native preview temizle
@@ -1398,6 +1734,11 @@ function kgRenderScan3D(scan) {
       buttonDrehen.style.background = "#ffffff";
       buttonDrehen.style.color = "#4b5563";
 
+      previewImage.dataset.mode = mode;
+      previewImage.onload = () => {
+        kgFitPreviewImage(previewImage, holder, mode);
+      };
+
       const is2D =
         mode === "2d";
 
@@ -1460,7 +1801,8 @@ function kgRenderScan3D(scan) {
         holder.__kgDrehenStop =
           kgRenderGeometry3D(
             holder,
-            scanGeometrie
+            scanGeometrie,
+            scan?.floor_polygons
           );
 
         if (status) {
@@ -1471,6 +1813,19 @@ function kgRenderScan3D(scan) {
         showNativePreview("3d");
       }
     };
+
+    holder.__kgPreviewResize = () => {
+      kgFitPreviewImage(
+        previewImage,
+        holder,
+        previewImage.dataset.mode || "3d"
+      );
+    };
+
+    window.addEventListener(
+      "resize",
+      holder.__kgPreviewResize
+    );
 
     showNativePreview("3d");
 

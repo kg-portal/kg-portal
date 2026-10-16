@@ -3621,6 +3621,7 @@ www.kg-reinigung.de
                 "urinals": data.get("urinals") or 0,
                 "sinks": data.get("sinks") or 0,
                 "geometry": data.get("geometry") or [],
+                "floor_polygons": data.get("floor_polygons") or [],
                 "model_id": data.get("model_id") or "",
                 "gescannt_am": datetime.now().isoformat()
             }
