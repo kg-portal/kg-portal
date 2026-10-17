@@ -40,6 +40,87 @@
     .hl-punkt { grid-template-columns: 52px 1fr; } .hl-aktion { grid-column: 2; justify-content: flex-start; }
   }
   @media print { .hl-btns, .hl-aktion, .kgm { display: none !important; } .hl-hero { color: #0f172a; background: #fff; border: 2px solid #0f172a; } .hl-chip { color: #0f172a; } }
+  /* ===== PREMIUM (einheitliches Design) ===== */
+  @keyframes kgRein { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+  .hl { font-family: inherit; }
+  .hl-hero { border-radius: 24px; padding: 28px 30px 26px; min-height: 196px;
+             background: radial-gradient(520px 230px at 90% -20%, rgba(255,255,255,.26), transparent 60%),
+                         radial-gradient(420px 220px at 0% 120%, rgba(56,189,248,.25), transparent 60%),
+                         linear-gradient(135deg, #1e40af, #2563eb);
+             box-shadow: 0 24px 50px -28px rgba(29,78,216,.7);
+             animation: kgRein .6s cubic-bezier(.22,1,.36,1) backwards; }
+  .hl-hero::after { content: ""; position: absolute; right: -80px; top: -110px; width: 280px; height: 280px; border-radius: 50%; background: rgba(255,255,255,.07); pointer-events: none; }
+  .hl-hero small { font-size: 11.5px; letter-spacing: 1.4px; color: #bfdbfe; opacity: 1; }
+  .hl-hero h1 { margin: 8px 0 4px; font-size: 34px; letter-spacing: -1px; line-height: 1.1; }
+  .hl-hero p { color: #dbeafe; font-weight: 600; opacity: 1; }
+  .hl-chips { gap: 8px; margin-top: 16px; position: relative; z-index: 1; }
+  .hl-chip { background: rgba(255,255,255,.14); border-color: rgba(255,255,255,.28); padding: 7px 13px; font-size: 12.5px;
+             transition: translate .2s, background-color .2s; }
+  .hl-chip:hover { translate: 0 -2px; background: rgba(255,255,255,.24); }
+  .hl-btns { z-index: 2; }
+  .hl-btns button, .hl-btns a { background: #fff; color: #1e40af; border-radius: 12px; padding: 10px 14px; font-weight: 900;
+             box-shadow: 0 12px 24px -16px rgba(15,23,42,.7); transition: translate .2s, box-shadow .2s, background-color .2s; }
+  .hl-btns button:hover, .hl-btns a:hover { translate: 0 -2px; background: #eff6ff; box-shadow: 0 16px 28px -16px rgba(15,23,42,.75); }
+  .hl-msg { position: relative; z-index: 1; }
+  .hl-msg:empty { display: none; }
+  /* Fortschritt heute (neu, liest nur die Liste auf dieser Seite) */
+  .hlp-fort { position: absolute; right: 30px; bottom: 26px; z-index: 1; display: flex; align-items: center; gap: 14px; padding: 12px 18px 12px 12px;
+              border-radius: 20px; background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.24); color: #fff;
+              box-shadow: inset 0 1px 0 rgba(255,255,255,.16); transition: translate .2s, background-color .2s;
+              animation: kgRein .6s cubic-bezier(.22,1,.36,1) backwards; animation-delay: 160ms; }
+  .hlp-fort:hover { translate: 0 -2px; background: rgba(255,255,255,.18); }
+  .hlp-fort[hidden] { display: none; }
+  .hlp-ring { width: 62px; height: 62px; display: block; flex: 0 0 62px; transform: rotate(-90deg); }
+  .hlp-ring-bg { fill: none; stroke: rgba(255,255,255,.2); stroke-width: 6; }
+  .hlp-ring-fg { fill: none; stroke: #fff; stroke-width: 6; stroke-linecap: round; stroke-dasharray: 100; transition: stroke-dashoffset .9s cubic-bezier(.22,1,.36,1); }
+  .hlp-lbl { font-size: 11px; font-weight: 800; letter-spacing: 1.2px; text-transform: uppercase; color: #bfdbfe; }
+  .hlp-zahl { margin-top: 2px; font-size: 15px; font-weight: 800; color: #dbeafe; font-variant-numeric: tabular-nums; }
+  .hlp-zahl b { font-size: 28px; font-weight: 900; letter-spacing: -1px; color: #fff; }
+  .hlp-rot { display: inline-block; margin-top: 4px; padding: 3px 9px; border-radius: 999px; background: #fee2e2; color: #b91c1c; font-size: 11.5px; font-weight: 900; }
+  .hlp-rot:empty { display: none; }
+  /* Karten */
+  .hl-grid { gap: 16px; margin-top: 16px; }
+  .hl-karte { position: relative; border: 1px solid #e6ebf2; border-radius: 24px; padding: 20px 22px 16px;
+              box-shadow: 0 18px 40px -30px rgba(15,23,42,.45); transition: translate .2s, box-shadow .2s;
+              animation: kgRein .6s cubic-bezier(.22,1,.36,1) backwards; animation-delay: calc(var(--i,0)*70ms + 120ms); }
+  .hl-karte::before { content: ""; position: absolute; top: -1px; left: 24px; width: 56px; height: 4px; border-radius: 0 0 6px 6px; background: var(--f); }
+  .hl-karte:hover { translate: 0 -2px; box-shadow: 0 26px 48px -30px rgba(15,23,42,.5); }
+  .hl-grid > .hl-karte:nth-child(2) { --i: 1; } .hl-grid > .hl-karte:nth-child(3) { --i: 2; } .hl-grid > .hl-karte:nth-child(4) { --i: 3; }
+  .hl-grid > .hl-karte:nth-child(5) { --i: 4; } .hl-grid > .hl-karte:nth-child(6) { --i: 5; } .hl-grid > .hl-karte:nth-child(7) { --i: 6; }
+  .hl-grid > .hl-karte:nth-child(n+8) { --i: 7; }
+  .hl-karte h2 { margin: 2px 0 8px; font-size: 17px; letter-spacing: -.2px; color: #0f172a; gap: 10px; }
+  .hl-karte h2 span { min-width: 30px; text-align: center; padding: 4px 11px; font-size: 12.5px; color: var(--f);
+                      background: linear-gradient(rgba(255,255,255,.87), rgba(255,255,255,.87)), var(--f); }
+  .hl-punkt { padding: 11px 8px; margin: 0 -8px; border-radius: 14px; border-top-color: #eef2f7; transition: background-color .2s; }
+  .hl-punkt:hover { background: rgba(37,99,235,.05); }
+  .hl-zeit { font-size: 12.5px; padding-top: 3px; }
+  .hl-titel { font-size: 15px; font-weight: 800; letter-spacing: -.1px; }
+  .hl-titel a:hover { color: #1d4ed8; }
+  .hl-sub.rot { display: inline-block; margin-top: 4px; padding: 2px 9px; border-radius: 999px; background: #fee2e2; color: #b91c1c; font-size: 12px; }
+  .hl-k { border-color: #dbe3ef; border-radius: 12px; padding: 7px 12px; font-weight: 900; color: #0f172a;
+          transition: translate .2s, box-shadow .2s, border-color .2s, color .2s, background-color .2s; }
+  .hl-k:hover { translate: 0 -2px; border-color: var(--f); color: var(--f); box-shadow: 0 10px 20px -14px rgba(15,23,42,.6); }
+  .hl-k.haupt { background-image: linear-gradient(135deg, rgba(255,255,255,.12), rgba(0,0,0,.16)); border-color: transparent; color: #fff;
+                box-shadow: 0 10px 20px -12px var(--f); }
+  .hl-k.haupt:hover { color: #fff; }
+  .hl-k:disabled { cursor: default; }
+  .hl-punkt.weg .hl-ok { background: #dcfce7; border-color: #bbf7d0; color: #15803d; }
+  .hl-leer { padding: 14px; border: 2px dashed #e2e8f0; border-radius: 16px; text-align: center; font-size: 13px; font-weight: 800; color: #94a3b8; }
+  .hl-fehler { margin-top: 16px; border-radius: 16px; padding: 10px 14px; border: 1px solid #fde68a; }
+  @media (max-width: 900px) { .hlp-fort { right: 24px; bottom: 22px; } }
+  @media (max-width: 760px) {
+    .hl-hero { min-height: 0; }
+    .hlp-fort { position: static; margin-top: 16px; align-self: flex-start; width: fit-content; }
+  }
+  @media (max-width: 640px) { .hl-hero h1 { font-size: 25px; } .hl-karte { padding: 18px 16px 14px; } }
+  @media (prefers-reduced-motion: reduce) { .hl-hero, .hl-karte, .hlp-fort { animation: none; } .hlp-ring-fg { transition: none; } }
+  @media print {
+    .hlp-fort, .hl-hero::after, .hl-karte::before { display: none !important; }
+    .hl-hero, .hl-karte { animation: none; box-shadow: none; translate: none; }
+    .hl-hero { background: #fff; color: #0f172a; min-height: 0; }
+    .hl-hero small, .hl-hero p { color: #0f172a; }
+    .hl-chip { background: #fff; border-color: #0f172a; }
+  }
 </style>
 
 {% set farbe = {"termine": "#2563eb", "besichtigungen": "#7c3aed", "rueckrufe": "#0284c7", "todos": "#16a34a", "berichte": "#ea580c", "stundenzettel": "#0f766e"} %}
@@ -57,6 +138,15 @@
       <button type="button" onclick="window.print()">🖨 Drucken</button>
     </div>
     <div class="hl-msg" id="hlMsg"></div>
+    <!-- PREMIUM: Fortschritt heute (nur Anzeige, zählt die Liste unten) -->
+    <div class="hlp-fort" data-kg-skip hidden>
+      <svg class="hlp-ring" viewBox="0 0 64 64" aria-hidden="true"><circle class="hlp-ring-bg" cx="32" cy="32" r="26"></circle><circle class="hlp-ring-fg" cx="32" cy="32" r="26" pathLength="100" stroke-dashoffset="100"></circle></svg>
+      <div>
+        <div class="hlp-lbl">Heute erledigt</div>
+        <div class="hlp-zahl"><b data-hlp-erledigt>0</b> / <span data-hlp-gesamt>0</span></div>
+        <div class="hlp-rot" data-hlp-ueber></div>
+      </div>
+    </div>
   </section>
 
   <div class="hl-grid">
@@ -127,4 +217,38 @@
   }));
 })();
 </script>
+<!-- PREMIUM: Fortschrittsring (liest nur die Einträge dieser Seite, sendet nichts) -->
+{% raw %}
+<script>
+(function () {
+  try {
+    var box = document.querySelector(".hlp-fort");
+    if (!box) return;
+    var ring = box.querySelector(".hlp-ring-fg");
+    function zaehlen() {
+      var knoepfe = document.querySelectorAll(".hl-punkt .hl-ok");
+      var gesamt = knoepfe.length, fertig = 0, ueber = 0;
+      knoepfe.forEach(function (k) {
+        var p = k.closest(".hl-punkt");
+        if (!p) return;
+        if (p.classList.contains("weg")) fertig++;
+        else if (p.querySelector(".hl-sub.rot")) ueber++;
+      });
+      if (!gesamt) { box.hidden = true; return; }
+      box.hidden = false;
+      box.querySelector("[data-hlp-erledigt]").textContent = fertig;
+      box.querySelector("[data-hlp-gesamt]").textContent = gesamt;
+      box.querySelector("[data-hlp-ueber]").textContent = ueber ? ueber + " überfällig" : "";
+      var pct = Math.round(fertig / gesamt * 100);
+      requestAnimationFrame(function () { ring.style.strokeDashoffset = String(100 - pct); });
+    }
+    zaehlen();
+    var grid = document.querySelector(".hl-grid");
+    if (grid && window.MutationObserver) {
+      new MutationObserver(zaehlen).observe(grid, { subtree: true, attributes: true, attributeFilter: ["class"] });
+    }
+  } catch (e) { /* nur Optik */ }
+})();
+</script>
+{% endraw %}
 {% endblock %}
