@@ -4161,6 +4161,182 @@ body {
     opacity: 0.95;
 }
 
+
+/* Kopf: kleine Bewegung beim Überfahren (nur Aussehen; translate stört die Start-Animation nicht) */
+.b4-t {
+    transition: translate 0.3s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.3s ease, border-color 0.3s ease;
+}
+
+.b4-t:hover {
+    translate: 0 -4px;
+    border-color: #bfdbfe;
+    box-shadow: 0 30px 50px -30px rgba(29, 78, 216, 0.45);
+}
+
+.b4-blau:hover {
+    box-shadow: 0 34px 58px -26px rgba(29, 78, 216, 0.85);
+}
+
+.b4-t::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(115deg, transparent 35%, rgba(59, 130, 246, 0.1) 50%, transparent 65%);
+    transform: translateX(-110%);
+    pointer-events: none;
+}
+
+.b4-blau::after {
+    background: linear-gradient(115deg, transparent 35%, rgba(255, 255, 255, 0.22) 50%, transparent 65%);
+}
+
+.b4-t:hover::after {
+    transform: translateX(110%);
+    transition: transform 0.9s ease;
+}
+
+.b4-mn,
+.b4-chip,
+.b4-leg > div {
+    transition: translate 0.25s ease, background-color 0.25s ease;
+}
+
+.b4-mn:hover {
+    translate: 0 -2px;
+    background: #eff6ff;
+}
+
+.b4-chip:hover {
+    translate: 0 -2px;
+}
+
+.b4-leg > div:hover {
+    translate: 3px 0;
+}
+
+.b4-saeule:hover,
+.b4-sch:hover .b4-bar i {
+    filter: brightness(1.15) saturate(1.1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .b4-t,
+    .b4-mn,
+    .b4-chip,
+    .b4-leg > div {
+        transition: none;
+    }
+
+    .b4-t:hover,
+    .b4-mn:hover,
+    .b4-chip:hover,
+    .b4-leg > div:hover {
+        translate: none;
+    }
+
+    .b4-t::after {
+        display: none;
+    }
+}
+
+/* Grafik „Kundenweg-Fluss“ */
+.kf-flaeche {
+    overflow-x: auto;
+}
+
+.kf-flaeche svg {
+    display: block;
+    width: 100%;
+    min-width: 760px;
+    height: auto;
+}
+
+.kf-leer {
+    padding: 40px 10px;
+    text-align: center;
+    font-size: 13px;
+    font-weight: 800;
+    color: #94a3b8;
+}
+
+.kf-band {
+    opacity: 0;
+    transition: opacity 0.9s ease calc(var(--i, 0) * 0.1s + 0.3s);
+}
+
+.kf-an .kf-band {
+    opacity: 0.42;
+}
+
+.kf-an .kf-band:hover {
+    opacity: 0.72;
+    transition: opacity 0.2s ease;
+}
+
+.kf-knoten {
+    transform-box: fill-box;
+    transform-origin: 50% 50%;
+    transform: scaleY(0);
+    transition: transform 0.8s cubic-bezier(0.22, 1, 0.36, 1) calc(var(--i, 0) * 0.08s);
+}
+
+.kf-an .kf-knoten {
+    transform: none;
+}
+
+.kf-schild {
+    opacity: 0;
+    transform: translateX(-6px);
+    transition: opacity 0.5s ease calc(var(--i, 0) * 0.08s + 0.6s), transform 0.5s cubic-bezier(0.22, 1, 0.36, 1) calc(var(--i, 0) * 0.08s + 0.6s);
+}
+
+.kf-an .kf-schild {
+    opacity: 1;
+    transform: none;
+}
+
+.kf-quote {
+    transform-box: fill-box;
+    transform-origin: 0 50%;
+    transform: scaleX(0);
+    transition: transform 1.2s cubic-bezier(0.22, 1, 0.36, 1) calc(var(--i, 0) * 0.1s + 0.9s);
+}
+
+.kf-an .kf-quote {
+    transform: none;
+}
+
+html[data-kg-x="on"] .kf-schild-bg,
+html[data-kg-x="on"] .kf-platz {
+    fill: #1b2436;
+}
+
+html[data-kg-x="on"] .kf-karte-bg {
+    fill: #172033;
+    stroke: #24314a;
+}
+
+html[data-kg-x="on"] .kf-balken-bg {
+    fill: #24314a;
+}
+
+html[data-kg-x="on"] .kf-t1 {
+    fill: #e2e8f0;
+}
+
+html[data-kg-x="on"] .kf-wert {
+    filter: brightness(1.5);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .kf-band,
+    .kf-knoten,
+    .kf-schild,
+    .kf-quote {
+        transition: none;
+    }
+}
+
 /* Grafik „Monat gegen Vormonat“ */
 .mv-panel {
     margin: 0 0 22px;
@@ -4787,6 +4963,22 @@ body {
                     </div>
                 </div>
                 <div class="mv-grid" id="mvGrid"></div>
+            </section>
+
+            <section class="mv-panel" id="kfPanel" aria-label="Kundenweg-Fluss">
+                <div class="mv-kopf">
+                    <div class="mv-ti">
+                        <div class="mv-ib"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></div>
+                        <div><h3>Kundenweg-Fluss</h3><small>Wohin gehen die angerufenen Firmen? Breite = Anzahl</small></div>
+                    </div>
+                    <div class="mv-tabs">
+                        <button type="button" data-kf="7">7 Tage</button>
+                        <button type="button" data-kf="30">30 Tage</button>
+                        <button type="button" data-kf="90">90 Tage</button>
+                        <button type="button" class="an" data-kf="monat">Monat</button>
+                    </div>
+                </div>
+                <div class="kf-flaeche" id="kfFlaeche"><div class="kf-leer">Lade …</div></div>
             </section>
 
             <div class="branchen-toggle-card" id="branchenToggle" onclick="toggleBranchenPanel()">
@@ -11584,6 +11776,214 @@ document.addEventListener("DOMContentLoaded", function() {
         io.observe(panel);
     }
 
+
+    /* Grafik „Kundenweg-Fluss“: je Firma der Weg im Zeitraum, Breite = Anzahl (nur lesend) */
+    let kfZeitraum = "monat";
+    let kfDaten = null;
+    let kfGezeigt = false;
+    let kfAnimZeit = 0;
+
+    const KF_FARBE = {
+        angerufen: ["#3b82f6", "#1d4ed8"], interessiert: ["#22c55e", "#15803d"], kontaktformular: ["#a78bfa", "#6d28d9"],
+        spaeter: ["#fb923c", "#c2410c"], verloren: ["#f87171", "#b91c1c"], ohne: ["#cbd5e1", "#94a3b8"],
+        direkt: ["#38bdf8", "#0369a1"], besichtigung: ["#fb923c", "#c2410c"], angebot: ["#f87171", "#b91c1c"], kunde: ["#4ade80", "#15803d"]
+    };
+
+    async function kfLaden(neu) {
+        try {
+            const response = await fetch("/api/datenbank/kundenweg-fluss?zeitraum=" + encodeURIComponent(kfZeitraum));
+            const data = await response.json();
+            if (!data.ok) return;
+            kfDaten = data;
+            kfZeichnen(neu === true);
+        } catch (error) {
+            console.error("Kundenweg-Fluss Fehler:", error);
+        }
+    }
+
+    function kfProzent(teil, ganzes) {
+        if (!ganzes) return "–";
+        const p = teil * 100 / ganzes;
+        return (p > 0 && p < 10 ? p.toFixed(1).replace(".", ",") : String(Math.round(p))) + " %";
+    }
+
+    function kfSvg(d) {
+        const W = 1120, H = 400, nw = 16, oben = 16, gap = 14;
+        const SP = [150, 400, 690, 860, 1020];
+        const e = d.ergebnis || {}, b = d.besichtigung || {};
+        const knoten = {};
+        const spalte1 = [];
+        [["interessiert", "Interessiert"], ["kontaktformular", "Kontaktformular"], ["spaeter", "Später anrufen"], ["verloren", "Verloren"], ["ohne", "Ohne Ergebnis"]]
+            .forEach(function (x) { if (e[x[0]]) spalte1.push({ k: x[0], name: x[1], wert: e[x[0]], pct: kfProzent(e[x[0]], d.angerufen) }); });
+        if (b.direkt) spalte1.push({ k: "direkt", name: "Direkt / Anfrage", wert: b.direkt, pct: "" });
+
+        const summe1 = spalte1.reduce(function (a, x) { return a + x.wert; }, 0);
+        const sk = (H - 2 * oben - Math.max(0, spalte1.length - 1) * gap) / Math.max(1, summe1, d.angerufen);
+        let y = oben;
+        spalte1.forEach(function (x) {
+            x.x = SP[1];
+            x.y = y;
+            x.h = Math.max(x.wert * sk, 10);
+            y += x.h + gap;
+            knoten[x.k] = x;
+        });
+        const block = spalte1.filter(function (x) { return x.k !== "direkt"; });
+        const blockEnde = block.length ? block[block.length - 1].y + block[block.length - 1].h : oben;
+        const h0 = Math.max(d.angerufen * sk, d.angerufen ? 10 : 0);
+        knoten.angerufen = { k: "angerufen", name: "Angerufen", wert: d.angerufen, x: SP[0], y: oben + (blockEnde - oben - h0) / 2, h: h0 };
+
+        const sk2 = Math.min(sk, 130 / Math.max(1, b.gesamt || 0));
+        [["besichtigung", "Besichtigung", b.gesamt || 0, 2], ["angebot", "Angebot", d.angebot || 0, 3], ["kunde", "Kunde", d.kunde || 0, 4]].forEach(function (x) {
+            knoten[x[0]] = { k: x[0], name: x[1], wert: x[2], x: SP[x[3]], y: oben + 20, h: x[2] ? Math.max(x[2] * sk2, 10) : 22 };
+        });
+
+        let defs = '<filter id="kfSchatten" x="-20%" y="-30%" width="140%" height="170%"><feDropShadow dx="0" dy="8" stdDeviation="9" flood-color="#0f172a" flood-opacity=".14"/></filter>';
+        let baender = "", striche = "";
+        const belegtAus = {}, belegtEin = {};
+        let nr = 0;
+        function band(von, nach, wert, s0, s1) {
+            const q = knoten[von], z = knoten[nach];
+            if (!q || !z || !wert) return;
+            const t0 = wert * s0, t1 = wert * s1;
+            const x0 = q.x + nw, x1 = z.x, xm = (x0 + x1) / 2;
+            const y0 = q.y + (belegtAus[von] || 0), y1 = z.y + (belegtEin[nach] || 0);
+            belegtAus[von] = (belegtAus[von] || 0) + t0;
+            belegtEin[nach] = (belegtEin[nach] || 0) + t1;
+            const id = "kfBand" + nr;
+            defs += '<linearGradient id="' + id + '" gradientUnits="userSpaceOnUse" x1="' + x0 + '" x2="' + x1 + '" y1="0" y2="0"><stop offset="0" stop-color="' + KF_FARBE[von][0] + '"/><stop offset="1" stop-color="' + KF_FARBE[nach][0] + '"/></linearGradient>';
+            baender += '<path class="kf-band" style="--i:' + nr + ';" d="M' + x0 + ',' + y0.toFixed(1) + ' C' + xm + ',' + y0.toFixed(1) + ' ' + xm + ',' + y1.toFixed(1) + ' ' + x1 + ',' + y1.toFixed(1) +
+                ' L' + x1 + ',' + (y1 + t1).toFixed(1) + ' C' + xm + ',' + (y1 + t1).toFixed(1) + ' ' + xm + ',' + (y0 + t0).toFixed(1) + ' ' + x0 + ',' + (y0 + t0).toFixed(1) + ' Z" fill="url(#' + id + ')">' +
+                '<title>' + esc(q.name + " → " + z.name + ": " + zahlDe(wert) + " (" + kfProzent(wert, q.wert) + ")") + '</title></path>';
+            nr += 1;
+        }
+        spalte1.forEach(function (x) { if (x.k !== "direkt") band("angerufen", x.k, x.wert, sk, sk); });
+        band("interessiert", "besichtigung", b.aus_interessiert || 0, sk, sk2);
+        band("direkt", "besichtigung", b.direkt || 0, sk, sk2);
+        [["besichtigung", "angebot", d.angebot || 0], ["angebot", "kunde", d.kunde || 0]].forEach(function (x) {
+            if (x[2]) {
+                band(x[0], x[1], x[2], sk2, sk2);
+                return;
+            }
+            const q = knoten[x[0]], z = knoten[x[1]];
+            const x0 = q.x + nw, x1 = z.x, y0 = q.y + q.h / 2, y1 = z.y + z.h / 2;
+            striche += '<path class="kf-schild" d="M' + x0 + ',' + y0 + ' C' + (x0 + x1) / 2 + ',' + y0 + ' ' + (x0 + x1) / 2 + ',' + y1 + ' ' + x1 + ',' + y1 + '" fill="none" stroke="#cbd5e1" stroke-width="2.5" stroke-dasharray="5 6"/>';
+        });
+
+        // Knoten
+        let kn = "", i = 0;
+        Object.keys(knoten).forEach(function (k) {
+            const x = knoten[k], f = KF_FARBE[k];
+            defs += '<linearGradient id="kfKn_' + k + '" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="' + f[0] + '"/><stop offset="1" stop-color="' + f[1] + '"/></linearGradient>';
+            if (x.wert) {
+                kn += '<rect class="kf-knoten" style="--i:' + (i++) + ';" x="' + x.x + '" y="' + x.y.toFixed(1) + '" width="' + nw + '" height="' + x.h.toFixed(1) + '" rx="6" fill="url(#kfKn_' + k + ')"><title>' + esc(x.name + ": " + zahlDe(x.wert)) + '</title></rect>';
+            } else {
+                kn += '<rect class="kf-platz kf-schild" x="' + x.x + '" y="' + x.y.toFixed(1) + '" width="' + nw + '" height="' + x.h.toFixed(1) + '" rx="5" fill="#ffffff" stroke="' + f[0] + '" stroke-width="2" stroke-dasharray="3 3"/>';
+            }
+        });
+
+        // Schilder: Spalte 1 ohne Überlappung (mindestens 50 auseinander)
+        const mitten = spalte1.map(function (x) { return Math.max(x.y + x.h / 2, 30); });
+        for (let n = 1; n < mitten.length; n++) mitten[n] = Math.max(mitten[n], mitten[n - 1] + 50);
+        const ueber = mitten.length ? mitten[mitten.length - 1] - (H - 26) : 0;
+        if (ueber > 0) for (let n = 0; n < mitten.length; n++) mitten[n] = Math.max(26 + n * 50, mitten[n] - ueber);
+
+        let schilder = "";
+        function schild(x, mitte, nr2) {
+            const f = KF_FARBE[x.k];
+            const bw = Math.max(x.name.length * 7.4, 46) + 24 + (x.pct ? 44 : 0);
+            const tx = x.x + nw + 12;
+            schilder += '<g class="kf-schild" style="--i:' + nr2 + ';">' +
+                '<g filter="url(#kfSchatten)"><rect class="kf-schild-bg" x="' + tx + '" y="' + (mitte - 24).toFixed(1) + '" width="' + bw.toFixed(0) + '" height="46" rx="13" fill="#ffffff"/></g>' +
+                '<rect x="' + tx + '" y="' + (mitte - 24).toFixed(1) + '" width="4" height="46" rx="2" fill="' + f[0] + '"/>' +
+                '<text class="kf-t1" x="' + (tx + 14) + '" y="' + (mitte - 5).toFixed(1) + '" font-size="12" font-weight="800" fill="#475569">' + esc(x.name) + '</text>' +
+                '<text class="kf-wert" x="' + (tx + 14) + '" y="' + (mitte + 15).toFixed(1) + '" font-size="18" font-weight="900" fill="' + f[1] + '">' + zahlDe(x.wert) + '</text>' +
+                (x.pct ? '<text x="' + (tx + bw - 12).toFixed(0) + '" y="' + (mitte + 15).toFixed(1) + '" text-anchor="end" font-size="12" font-weight="900" fill="#94a3b8">' + x.pct + '</text>' : '') +
+                '</g>';
+        }
+        spalte1.forEach(function (x, n) { schild(x, mitten[n], n); });
+        ["besichtigung", "angebot", "kunde"].forEach(function (k, n) { schild(knoten[k], Math.max(knoten[k].y + knoten[k].h / 2, 30), spalte1.length + n); });
+        const a = knoten.angerufen, am = a.y + a.h / 2;
+        schilder += '<g class="kf-schild" style="--i:0;"><text class="kf-t1" x="' + (a.x - 14) + '" y="' + (am - 3).toFixed(1) + '" text-anchor="end" font-size="13" font-weight="800" fill="#334155">Angerufen</text>' +
+            '<text class="kf-wert" x="' + (a.x - 14) + '" y="' + (am + 22).toFixed(1) + '" text-anchor="end" font-size="26" font-weight="900" fill="#1d4ed8">' + zahlDe(a.wert) + '</text></g>';
+
+        // Quoten unten rechts
+        const quoten = [
+            ["Angerufen → Interessiert", e.interessiert || 0, d.angerufen, KF_FARBE.interessiert],
+            ["Interessiert → Besichtigung", b.aus_interessiert || 0, e.interessiert || 0, KF_FARBE.besichtigung],
+            ["Besichtigung → Angebot", d.angebot || 0, b.gesamt || 0, KF_FARBE.angebot],
+            ["Angebot → Kunde", d.kunde || 0, d.angebot || 0, KF_FARBE.kunde]
+        ];
+        const kx0 = 690, ky0 = 170, kw = 202, kh = 100, kg = 16;
+        let karten = "";
+        quoten.forEach(function (q, n) {
+            const x = kx0 + (n % 2) * (kw + kg), y = ky0 + Math.floor(n / 2) * (kh + kg);
+            const pz = q[2] ? Math.min(100, q[1] * 100 / q[2]) : 0;
+            karten += '<rect class="kf-karte-bg" x="' + x + '" y="' + y + '" width="' + kw + '" height="' + kh + '" rx="18" fill="#f8fbff" stroke="#e6edf7"/>' +
+                '<text x="' + (x + 16) + '" y="' + (y + 27) + '" font-size="11.5" font-weight="800" fill="#64748b">' + esc(q[0]) + '</text>' +
+                '<text class="kf-wert" x="' + (x + 16) + '" y="' + (y + 64) + '" font-size="28" font-weight="900" fill="' + q[3][1] + '">' + kfProzent(q[1], q[2]) + '</text>' +
+                '<rect class="kf-balken-bg" x="' + (x + 16) + '" y="' + (y + 78) + '" width="' + (kw - 32) + '" height="8" rx="4" fill="#e8eef6"/>' +
+                (pz > 0 ? '<rect class="kf-quote" style="--i:' + n + ';" x="' + (x + 16) + '" y="' + (y + 78) + '" width="' + Math.max(8, (kw - 32) * pz / 100).toFixed(1) + '" height="8" rx="4" fill="' + q[3][1] + '"/>' : '');
+        });
+
+        return '<svg viewBox="0 0 ' + W + ' ' + H + '"><defs>' + defs + '</defs>' + baender + striche + kn + schilder + karten + '</svg>';
+    }
+
+    function kfAnimieren() {
+        const panel = document.getElementById("kfPanel");
+        if (!panel) return;
+        panel.classList.remove("kf-an");
+        void panel.offsetWidth;
+        panel.classList.add("kf-an");
+        kfAnimZeit = performance.now();
+    }
+
+    function kfZeichnen(neu) {
+        const box = document.getElementById("kfFlaeche");
+        if (!box || !kfDaten) return;
+        const d = kfDaten;
+        const schluessel = JSON.stringify(d);
+        const vorher = box.dataset.schluessel;
+        if (!neu && vorher === schluessel) return;
+        box.dataset.schluessel = schluessel;
+        if (!d.angerufen && !(d.besichtigung && d.besichtigung.gesamt)) {
+            box.innerHTML = '<div class="kf-leer">Im Zeitraum wurde noch keine Firma angerufen.</div>';
+            return;
+        }
+        box.innerHTML = kfSvg(d);
+        if (kfGezeigt && (neu || !vorher || performance.now() - kfAnimZeit < 2500)) kfAnimieren();
+    }
+
+    function kfStart() {
+        const panel = document.getElementById("kfPanel");
+        if (!panel) return;
+        panel.querySelectorAll(".mv-tabs button").forEach(function (knopf) {
+            knopf.addEventListener("click", function () {
+                if (kfZeitraum === knopf.dataset.kf) return;
+                kfZeitraum = knopf.dataset.kf;
+                panel.querySelectorAll(".mv-tabs button").forEach(function (b) { b.classList.toggle("an", b === knopf); });
+                kfLaden(true);
+            });
+        });
+        function sichtbar() {
+            if (kfGezeigt) return;
+            kfGezeigt = true;
+            kfAnimieren();
+        }
+        if (RUHIG || !window.IntersectionObserver) {
+            sichtbar();
+        } else {
+            const io = new IntersectionObserver(function (eintraege) {
+                if (eintraege.some(function (e) { return e.isIntersecting; })) {
+                    io.disconnect();
+                    sichtbar();
+                }
+            }, { threshold: 0.25 });
+            io.observe(panel);
+        }
+        kfLaden(false);
+        setInterval(kfLaden, 120000);
+    }
+
     function awStart() {
         awStatusRinge();
         AW_STATUS.forEach(function (id) { awBeobachten(id, awStatusRinge); });
@@ -11598,6 +11998,7 @@ document.addEventListener("DOMContentLoaded", function() {
         awAngebotLaden();
         mvStart();
         mvLaden();
+        kfStart();
         setInterval(awAngebotLaden, 120000);
         setInterval(mvLaden, 120000);
     }
