@@ -39,6 +39,90 @@
   .ak-points { font-weight:900; color:#1e3a8a; font-variant-numeric:tabular-nums; }
   @media (max-width:1100px) { .ak-grid { grid-template-columns:1fr 1fr; } }
   @media (max-width:640px) { .ak-hero, .ak-body { padding:16px; } .ak-grid { grid-template-columns:1fr; } .ak-hero h1 { font-size:22px; } }
+  /* ===== PREMIUM (einheitliches Design) ===== */
+  .ak-page { font-family: inherit; background: transparent; border: 0; border-radius: 0; box-shadow: none; overflow: visible; }
+  .ak-hero { position: relative; overflow: hidden; border-radius: 24px; padding: 28px 30px; box-shadow: 0 24px 50px -28px rgba(29,78,216,.7);
+    background: radial-gradient(520px 230px at 90% -20%, rgba(255,255,255,.26), transparent 60%),
+                radial-gradient(420px 220px at 0% 120%, rgba(56,189,248,.25), transparent 60%),
+                linear-gradient(135deg, #1e40af, #2563eb); }
+  .ak-hero::after { content: ""; position: absolute; right: -60px; top: -90px; width: 260px; height: 260px; border-radius: 50%; background: rgba(255,255,255,.08); pointer-events: none; }
+  .ak-hero > * { position: relative; z-index: 1; }
+  .ak-kicker { display: block; margin-bottom: 6px; font-size: 11.5px; font-weight: 800; letter-spacing: 1.4px; text-transform: uppercase; color: #bfdbfe; }
+  .ak-hero h1 { font-size: 30px; letter-spacing: -1px; }
+  .ak-hero p { color: #dbeafe; font-weight: 600; }
+  .ak-state { display: inline-flex; align-items: center; gap: 9px; border-radius: 999px; padding: 10px 16px; font-size: 13.5px; letter-spacing: .3px;
+    background: rgba(255,255,255,.14); border-color: rgba(255,255,255,.28); box-shadow: 0 10px 22px -14px rgba(15,23,42,.6); }
+  .ak-state::before { content: ""; width: 9px; height: 9px; border-radius: 50%; background: #cbd5e1; box-shadow: 0 0 0 4px rgba(255,255,255,.14); }
+  .ak-state.ak-an { background: linear-gradient(135deg, #16a34a, #15803d); }
+  .ak-state.ak-an::before { background: #bbf7d0; animation: akPuls 1.8s ease-in-out infinite; }
+
+  .ak-body { background: transparent; padding: 18px 0 0; gap: 16px; }
+  .ak-kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
+  .ak-kpi { display: flex; align-items: center; gap: 14px; min-width: 0; background: #fff; border: 1px solid #e6ebf2; border-radius: 20px; padding: 16px 18px;
+    box-shadow: 0 18px 40px -30px rgba(15,23,42,.45); transition: translate .2s, box-shadow .2s; }
+  .ak-kpi:hover { translate: 0 -2px; box-shadow: 0 22px 44px -28px rgba(15,23,42,.5); }
+  .ak-ico { flex: 0 0 38px; width: 38px; height: 38px; border-radius: 12px; display: grid; place-items: center; background: linear-gradient(135deg, #3b82f6, #1d4ed8); box-shadow: 0 10px 20px -10px rgba(29,78,216,.8); }
+  .ak-ico svg { width: 19px; height: 19px; fill: none; stroke: #fff; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .ak-ico.gruen { background: linear-gradient(135deg, #16a34a, #15803d); box-shadow: 0 10px 20px -10px rgba(21,128,61,.8); }
+  .ak-ico.lila { background: linear-gradient(135deg, #7c3aed, #6d28d9); box-shadow: 0 10px 20px -10px rgba(109,40,217,.8); }
+  .ak-ico.aus { background: linear-gradient(135deg, #94a3b8, #64748b); box-shadow: 0 10px 20px -10px rgba(71,85,105,.7); }
+  .ak-ico.cyan { background: linear-gradient(135deg, #0891b2, #0e7490); box-shadow: 0 10px 20px -10px rgba(14,116,144,.8); }
+  .ak-kpi-text { min-width: 0; }
+  .ak-kpi-text b { display: block; font-size: 26px; line-height: 1; font-weight: 900; letter-spacing: -1px; color: #0f172a; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .ak-kpi-text span { display: block; margin-top: 5px; font-size: 11.5px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; color: #64748b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .ak-kpi-text small { display: block; margin-top: 3px; font-size: 12px; font-weight: 700; color: #94a3b8; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .ak-ring { position: relative; margin-left: auto; flex: 0 0 52px; width: 52px; height: 52px; }
+  .ak-ring svg { display: block; width: 100%; height: 100%; }
+  .ak-ring circle { fill: none; stroke-width: 5; }
+  .ak-ring .t { stroke: rgba(148,163,184,.24); }
+  .ak-ring .v { stroke: #0891b2; stroke-linecap: round; transition: stroke-dashoffset 1s cubic-bezier(.22,1,.36,1); }
+  .ak-ring i { position: absolute; inset: 0; display: grid; place-items: center; font-style: normal; font-size: 11px; font-weight: 900; color: #475569; }
+
+  .ak-card { border: 1px solid #e6ebf2; border-radius: 24px; padding: 20px 22px; box-shadow: 0 18px 40px -30px rgba(15,23,42,.45); }
+  .ak-card h2 { display: flex; align-items: center; gap: 10px; font-size: 11.5px; font-weight: 800; letter-spacing: 1.4px; text-transform: uppercase; color: #64748b; margin-bottom: 14px; }
+  .ak-card h2::before { content: ""; width: 10px; height: 10px; border-radius: 4px; background: linear-gradient(135deg, #3b82f6, #1d4ed8); box-shadow: 0 0 0 4px rgba(37,99,235,.12); }
+  .ak-grid label, .ak-label { font-size: 11.5px; font-weight: 800; letter-spacing: .6px; color: #64748b; }
+  .ak-in { border: 1.5px solid #dbe3ef; background: #f8fbff; font-weight: 600; transition: border-color .2s, box-shadow .2s, background-color .2s; }
+  .ak-in:focus { outline: none; border-color: #2563eb; background: #fff; box-shadow: 0 0 0 4px rgba(37,99,235,.12); }
+  .ak-chip { border: 1.5px solid #dbe3ef; background: #fff; transition: translate .2s, border-color .2s, background-color .2s, box-shadow .2s; }
+  .ak-chip:hover { translate: 0 -1px; border-color: #93c5fd; box-shadow: 0 8px 16px -12px rgba(29,78,216,.6); }
+  .ak-chip.on { border-color: #2563eb; background: #eff6ff; color: #1d4ed8; box-shadow: 0 8px 18px -12px rgba(29,78,216,.7); }
+  .ak-chip input { accent-color: #2563eb; }
+  .ak-switch { padding: 10px 14px; border: 1px solid #e6edf7; border-radius: 14px; background: #f8fbff; }
+  .ak-switch input { accent-color: #16a34a; }
+  .ak-btn { border-radius: 13px; background: linear-gradient(135deg, #3b82f6, #1d4ed8); box-shadow: 0 12px 22px -14px rgba(29,78,216,.85); transition: translate .2s, box-shadow .2s, opacity .2s; }
+  .ak-btn.blue { background: linear-gradient(135deg, #2563eb, #1e40af); }
+  .ak-btn.grey { background: linear-gradient(135deg, #64748b, #475569); box-shadow: 0 12px 22px -14px rgba(71,85,105,.85); }
+  #akSave.ak-btn { background: linear-gradient(135deg, #16a34a, #15803d); box-shadow: 0 12px 22px -14px rgba(21,128,61,.85); }
+  .ak-btn:not(:disabled):hover { translate: 0 -2px; box-shadow: 0 18px 28px -14px rgba(15,23,42,.45); }
+  .ak-msg.ok, .ak-msg.err { display: inline-block; padding: 7px 12px; border-radius: 999px; font-size: 13px; }
+  .ak-msg.ok { background: #dcfce7; } .ak-msg.err { background: #fee2e2; }
+  .ak-msg:empty { display: none; }
+  .ak-stat { background: #f8fbff; border: 1px solid #e6edf7; color: #334155; padding: 6px 12px; }
+  .ak-tablewrap { border: 1px solid #e6ebf2; border-radius: 18px; }
+  .ak-table { border-collapse: separate; border-spacing: 0; }
+  .ak-table th { background: #f8fafc; font-size: 11px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; color: #64748b; padding: 11px 10px; border-bottom: 1px solid #e6ebf2; }
+  .ak-table td { padding: 11px 10px; }
+  .ak-table tbody tr:last-child td { border-bottom: 0; }
+  .ak-table tbody tr { transition: background-color .15s; }
+  .ak-table tbody tr:hover { background: #f8fbff; }
+  .ak-pill { padding: 3px 10px; font-weight: 800; background: #dbeafe; color: #1d4ed8; }
+  .ak-pill.r2 { background: #fef3c7; color: #b45309; }
+  .ak-points { color: #1d4ed8; }
+  #akBericht.ak-hint { padding: 14px 16px; border-radius: 16px; background: #f8fbff; border: 1px solid #e6edf7; }
+  .ak-rules { list-style: none; padding-left: 0; display: grid; gap: 8px; }
+  .ak-rules li { position: relative; padding: 9px 12px 9px 40px; border-radius: 14px; background: #f8fbff; border: 1px solid #eef2f7; }
+  .ak-rules li::before { content: "✓"; position: absolute; left: 12px; top: 9px; width: 18px; height: 18px; border-radius: 6px; display: grid; place-items: center;
+    font-size: 11px; font-weight: 900; color: #fff; background: linear-gradient(135deg, #3b82f6, #1d4ed8); }
+
+  .ak-hero, .ak-body > * { animation: kgRein .6s cubic-bezier(.22,1,.36,1) backwards; animation-delay: calc(var(--i, 0) * 70ms); }
+  .ak-body > :nth-child(1) { --i: 1; } .ak-body > :nth-child(2) { --i: 2; } .ak-body > :nth-child(3) { --i: 3; }
+  .ak-body > :nth-child(4) { --i: 4; } .ak-body > :nth-child(5) { --i: 5; }
+  @keyframes kgRein { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+  @keyframes akPuls { 50% { box-shadow: 0 0 0 7px rgba(187,247,208,.18); } }
+  @media (max-width: 1100px) { .ak-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @media (max-width: 640px) { .ak-hero { padding: 18px; } .ak-body { padding: 14px 0 0; } .ak-kpis { gap: 10px; } .ak-kpi { padding: 14px; } .ak-ring { display: none; } }
+  @media (prefers-reduced-motion: reduce) { .ak-hero, .ak-body > *, .ak-state.ak-an::before { animation: none; } .ak-ring .v { transition: none; } }
 </style>
 
 {% include "_leon_tabs.html" %}
@@ -46,6 +130,7 @@
 <div class="ak-page">
   <section class="ak-hero">
     <div>
+      <span class="ak-kicker">Leon · Automatik</span>
       <h1>🤖 Leon Auto-Kampagne</h1>
       <p>Jeden Morgen (Mo–Fr) die besten Firmen aus deinen ausgewählten Datenbanken im Umkreis – an Leon übergeben und die Kampagne starten.
          Nicht erreicht → am nächsten Tag 2. Runde, danach 3 Wochen Pause. Erreichte Firmen werden nie wieder automatisch angerufen.</p>
@@ -54,6 +139,17 @@
   </section>
 
   <div class="ak-body">
+    <div class="ak-kpis" id="akKpis" aria-label="Kurzüberblick">
+      <div class="ak-kpi"><span class="ak-ico gruen"><svg viewBox="0 0 24 24"><path d="M12 2v6M12 22v-4M4.9 4.9l2.8 2.8M16.3 16.3l2.8 2.8M2 12h4M18 12h4"/><circle cx="12" cy="12" r="3"/></svg></span>
+        <div class="ak-kpi-text"><b data-ak="status">–</b><span>Automatik</span><small data-ak="start">Mo–Fr</small></div></div>
+      <div class="ak-kpi"><span class="ak-ico lila"><svg viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v6c0 1.7 3.6 3 8 3s8-1.3 8-3V5M4 11v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6"/></svg></span>
+        <div class="ak-kpi-text"><b data-ak="branchen">–</b><span>Branchen gewählt</span><small>höchstens 6</small></div></div>
+      <div class="ak-kpi"><span class="ak-ico cyan"><svg viewBox="0 0 24 24"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2z"/></svg></span>
+        <div class="ak-kpi-text"><b data-ak="anrufbar">–</b><span>Anrufbar</span><small>in den gewählten Branchen</small></div>
+        <div class="ak-ring" title="Anrufbare Firmen im Verhältnis zu „Firmen pro Tag“"><svg viewBox="0 0 44 44" aria-hidden="true"><circle class="t" cx="22" cy="22" r="18"/><circle class="v" cx="22" cy="22" r="18" pathLength="100" stroke-dasharray="100" stroke-dashoffset="100" transform="rotate(-90 22 22)"/></svg><i data-ak="quote">–</i></div></div>
+      <div class="ak-kpi"><span class="ak-ico"><svg viewBox="0 0 24 24"><path d="M12 22s7-6.1 7-12a7 7 0 1 0-14 0c0 5.9 7 12 7 12z"/><circle cx="12" cy="10" r="2.5"/></svg></span>
+        <div class="ak-kpi-text"><b data-ak="limit">–</b><span>Firmen pro Tag</span><small data-ak="umkreis">–</small></div></div>
+    </div>
     <div class="ak-card">
       <h2>1. Einstellungen</h2>
       <span class="ak-label">Branchen (Datenbanken) – Reihenfolge = Priorität</span>
@@ -247,6 +343,37 @@
     } catch (err) { /* Standard-Agent bleibt */ }
     if ($("akAgent").querySelector(`option[value="${agentWahl}"]`)) $("akAgent").value = agentWahl;
   })();
+})();
+</script>
+<script>
+/* PREMIUM: Kurzüberblick – liest nur, was auf der Seite steht (keine Abrufe, keine Änderungen) */
+(function () {
+  const kpis = document.getElementById("akKpis"), state = document.getElementById("akState"), branchen = document.getElementById("akBranchen");
+  if (!kpis || !state || !branchen) return;
+  const wert = (id) => { const el = document.getElementById(id); return el ? String(el.value || "").trim() : ""; };
+  const setze = (k, v) => kpis.querySelectorAll('[data-ak="' + k + '"]').forEach(el => { el.textContent = v; });
+  function rechnen() {
+    const an = /^AN\b/.test(state.textContent.trim());
+    state.classList.toggle("ak-an", an);
+    const ico = kpis.querySelector(".ak-ico"); if (ico) ico.classList.toggle("aus", !an);
+    setze("status", an ? "AN" : (state.textContent.trim() === "AUS" ? "AUS" : "–"));
+    setze("start", "Mo–Fr ab " + (wert("akStunde") || "8") + " Uhr");
+    const gew = branchen.querySelectorAll(".ak-chip.on");
+    let anrufbar = 0;
+    gew.forEach(c => { const m = /(\d+)\s*anrufbar/.exec((c.querySelector("small") || {}).textContent || ""); if (m) anrufbar += Number(m[1]); });
+    setze("branchen", gew.length + " / 6");
+    setze("anrufbar", anrufbar.toLocaleString("de-DE"));
+    const limit = parseInt(wert("akLimit"), 10) || 0;
+    setze("limit", limit || "–");
+    setze("umkreis", (wert("akRadius") || "–") + " km um " + (wert("akPlz") || "–"));
+    const q = limit ? Math.min(100, Math.round(100 * anrufbar / limit)) : 0;
+    setze("quote", limit ? (anrufbar >= limit ? "✓" : q + "%") : "–");
+    const v = kpis.querySelector(".ak-ring .v"); if (v) v.setAttribute("stroke-dashoffset", String(100 - q));
+  }
+  new MutationObserver(rechnen).observe(state, { childList: true, characterData: true, subtree: true });
+  new MutationObserver(rechnen).observe(branchen, { childList: true });
+  ["akLimit", "akRadius", "akPlz", "akStunde", "akQuelle"].forEach(id => { const el = document.getElementById(id); if (el) el.addEventListener("input", rechnen); });
+  rechnen();
 })();
 </script>
 {% endblock %}

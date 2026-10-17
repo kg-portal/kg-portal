@@ -84,8 +84,124 @@
     .kb-hero { color: #0f172a; background: #fff; border: 2px solid #0f172a; }
     .kb-sum { -webkit-line-clamp: unset; display: block; }
   }
+  /* ===== PREMIUM (einheitliches Design) ===== */
+  /* neue Grafiken (Ringe, Donut) – gelten auch beim Drucken */
+  .kb-kpi { position: relative; }
+  .kb-kring { position: absolute; top: 12px; right: 12px; width: 50px; height: 50px; }
+  .kb-kring svg, .kb-hring svg, .kb-donut svg { display: block; width: 100%; height: 100%; overflow: visible; }
+  .kb-kring i { position: absolute; inset: 0; display: grid; place-items: center; font-style: normal; font-size: 10px; font-weight: 900; letter-spacing: -.3px; color: #475569; font-variant-numeric: tabular-nums; }
+  .kb-ring-t { fill: none; stroke: rgba(148,163,184,.24); }
+  .kb-ring-v { fill: none; stroke-linecap: round; }
+  .kb-erg { display: grid; grid-template-columns: 150px minmax(0, 1fr); column-gap: 24px; align-items: center; }
+  .kb-erg > h2 { grid-column: 1 / -1; }
+  .kb-erg > .kb-donut { grid-column: 1; grid-row: 2 / span 2; }
+  .kb-erg > .kb-verteilung, .kb-erg > .kb-legende { grid-column: 2; }
+  .kb-erg .kb-legende { grid-template-columns: 1fr; gap: 7px; }
+  .kb-donut { position: relative; width: 150px; height: 150px; }
+  .kb-donut-mitte { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+  .kb-donut-mitte b { font-size: 30px; line-height: 1; font-weight: 900; letter-spacing: -1px; color: #0f172a; font-variant-numeric: tabular-nums; }
+  .kb-donut-mitte small { margin-top: 3px; font-size: 11px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; color: #64748b; }
+  .kb-hring { position: absolute; right: 26px; bottom: 20px; width: 84px; height: 84px; z-index: 1; }
+  .kb-hring .kb-ring-t { stroke: rgba(255,255,255,.22); }
+  .kb-hring div { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1; }
+  .kb-hring b { font-size: 20px; font-weight: 900; letter-spacing: -.5px; color: #fff; }
+  .kb-hero .kb-hring small { margin-top: 3px; font-size: 9.5px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; color: #bfdbfe; opacity: 1; }
+  @media (max-width: 900px) { .kb-hring { display: none; } }
+  @media (max-width: 640px) {
+    .kb-erg { grid-template-columns: 112px minmax(0, 1fr); column-gap: 16px; }
+    .kb-donut { width: 112px; height: 112px; } .kb-donut-mitte b { font-size: 24px; }
+    .kb-kring { width: 38px; height: 38px; top: 10px; right: 10px; } .kb-kring i { font-size: 9px; }
+  }
+  @media print { .kb-hring { display: none; } .kb * { animation: none !important; } }
+
+  /* Aussehen am Bildschirm (Druck bleibt wie bisher) */
+  @media screen {
+    .kb { font-family: inherit; }
+    .kb-hero { border-radius: 24px; padding: 28px 30px; box-shadow: 0 24px 50px -28px rgba(29,78,216,.7);
+      background: radial-gradient(520px 230px at 90% -20%, rgba(255,255,255,.26), transparent 60%),
+                  radial-gradient(420px 220px at 0% 120%, rgba(56,189,248,.25), transparent 60%),
+                  linear-gradient(135deg, #1e40af, #2563eb); }
+    .kb-hero small { font-size: 11.5px; letter-spacing: 1.4px; color: #bfdbfe; opacity: 1; }
+    .kb-hero h1 { font-size: 32px; letter-spacing: -1px; padding-right: 220px; }
+    .kb-hero .kb-zeit { color: #dbeafe; font-weight: 600; opacity: 1; }
+    .kb-chip { background: rgba(255,255,255,.14); border-color: rgba(255,255,255,.26); font-weight: 800; backdrop-filter: blur(4px); }
+    .kb-hero-btns a, .kb-hero-btns button { border-radius: 12px; padding: 10px 14px; box-shadow: 0 10px 22px -14px rgba(15,23,42,.6);
+      transition: translate .2s, box-shadow .2s, background-color .2s; }
+    .kb-hero-btns a:hover, .kb-hero-btns button:hover { translate: 0 -2px; background: #fff; box-shadow: 0 16px 26px -14px rgba(15,23,42,.65); }
+
+    .kb-kpis { gap: 14px; }
+    .kb-kpi { border: 1px solid #e6ebf2; border-radius: 20px; padding: 16px 18px 15px; min-height: 104px;
+      box-shadow: 0 18px 40px -30px rgba(15,23,42,.45); transition: translate .2s, box-shadow .2s; }
+    .kb-kpi:hover { translate: 0 -2px; box-shadow: 0 22px 44px -28px rgba(15,23,42,.5); }
+    .kb-kpi b { font-size: 36px; letter-spacing: -1px; margin-top: 2px; }
+    .kb-kpi span { margin-top: 8px; font-size: 12px; font-weight: 800; color: #64748b; }
+    .kb-kpi em { color: #0f766e; }
+
+    .kb-zwei { gap: 16px; margin-top: 16px; }
+    .kb-karte { border: 1px solid #e6ebf2; border-radius: 24px; padding: 20px 22px; box-shadow: 0 18px 40px -30px rgba(15,23,42,.45); }
+    .kb-karte h2 { font-size: 11.5px; font-weight: 800; letter-spacing: 1.4px; text-transform: uppercase; color: #64748b; }
+    .kb-karte h2 > span:first-child { font-size: 15px; font-weight: 900; letter-spacing: 0; text-transform: none; color: #0f172a; }
+    .kb-bahn { background: #f1f5f9; border-radius: 12px; }
+    .kb-balken { border-radius: 12px; box-shadow: inset 0 -2px 0 rgba(0,0,0,.08), inset 0 1px 0 rgba(255,255,255,.18); }
+    .kb-stufe label { font-size: 13.5px; }
+    .kb-verteilung { height: 14px; gap: 2px; background: transparent; }
+    .kb-verteilung i { border-radius: 999px; }
+    .kb-legende div { font-size: 13.5px; padding: 3px 0; }
+    .kb-legende i { border-radius: 5px; }
+    .kb-fortschritt .kb-balken { background: linear-gradient(90deg, #22c55e, #16a34a); }
+
+    .kb-aktionen { gap: 14px; }
+    .kb-fall { border: 1px solid #e6ebf2; border-left: 5px solid var(--f); border-radius: 20px; padding: 16px 18px;
+      box-shadow: 0 16px 34px -28px rgba(15,23,42,.5); transition: opacity .25s, translate .2s, box-shadow .2s; }
+    .kb-fall:hover { translate: 0 -2px; box-shadow: 0 22px 40px -26px rgba(15,23,42,.5); }
+    .kb-badge { padding: 4px 11px; font-size: 11.5px; letter-spacing: .2px; box-shadow: 0 6px 14px -8px var(--f); }
+    .kb-rr { background: #dbeafe; color: #1d4ed8; border-radius: 999px; padding: 5px 11px; font-size: 12px; }
+    .kb-sum { background: #f8fbff; border: 1px solid #e6edf7; border-radius: 14px; color: #334155; }
+    .kb-k { border-color: #dbe3ef; border-radius: 12px; font-weight: 800; transition: translate .2s, box-shadow .2s, background-color .2s, border-color .2s; }
+    .kb-k:hover { translate: 0 -2px; box-shadow: 0 10px 18px -12px rgba(15,23,42,.45); }
+    .kb-k.haupt { background: linear-gradient(135deg, #3b82f6, #1d4ed8); border-color: #1d4ed8; color: #fff; box-shadow: 0 10px 20px -12px rgba(29,78,216,.8); }
+    .kb-k.haupt:hover { color: #fff; }
+    .kb-k.ok { background: linear-gradient(135deg, #16a34a, #15803d); border-color: #15803d; color: #fff; }
+    .kb-k.ok:hover { color: #fff; }
+    .kb-leer { background: #f8fbff; border: 1px dashed #dbe3ef; border-radius: 16px; }
+
+    .kb-filter { gap: 6px; }
+    .kb-filter button { border-color: #e2e8f0; background: #fff; font-size: 12.5px; letter-spacing: 0; text-transform: none; transition: translate .2s, box-shadow .2s, background-color .2s; }
+    .kb-filter button:hover { translate: 0 -1px; box-shadow: 0 8px 16px -12px rgba(15,23,42,.5); }
+    .kb-filter button.on { background: linear-gradient(135deg, #3b82f6, #1d4ed8); border-color: #1d4ed8; color: #fff; box-shadow: 0 10px 18px -12px rgba(29,78,216,.8); }
+    .kb-tab-wrap { border: 1px solid #e6ebf2; border-radius: 18px; margin-top: 12px; }
+    .kb-tabelle { margin-top: 0; border-collapse: separate; border-spacing: 0; }
+    .kb-tabelle th { background: #f8fafc; font-size: 11px; letter-spacing: 1px; padding: 11px 12px; border-bottom: 1px solid #e6ebf2; }
+    .kb-tabelle td { padding: 12px; border-bottom: 1px solid #f1f5f9; }
+    .kb-tabelle tbody tr:last-child td { border-bottom: 0; }
+    .kb-tabelle tbody tr { transition: background-color .15s; }
+    .kb-tabelle tbody tr:hover { background: #f8fbff; }
+    .kb-tabelle td a { color: #2563eb; font-weight: 800; text-decoration: none; }
+    .kb-pille { padding: 4px 10px; font-size: 11.5px; font-weight: 800;
+      background: color-mix(in srgb, var(--f) 14%, #fff); color: color-mix(in srgb, var(--f) 78%, #0f172a); }
+
+    .kb-hero, .kb-kpi, .kb-zwei > .kb-karte, .kb > .kb-karte, .kb-fall { animation: kgRein .6s cubic-bezier(.22,1,.36,1) backwards; animation-delay: calc(var(--i, 0) * 70ms); }
+    .kb-kpi:nth-child(1) { --i: 1; } .kb-kpi:nth-child(2) { --i: 2; } .kb-kpi:nth-child(3) { --i: 3; }
+    .kb-kpi:nth-child(4) { --i: 4; } .kb-kpi:nth-child(5) { --i: 5; } .kb-kpi:nth-child(6) { --i: 6; }
+    .kb-zwei > .kb-karte:first-child { --i: 7; } .kb-zwei > .kb-karte:last-child { --i: 8; }
+    .kb > .kb-karte { --i: 9; }
+    .kb-fall:nth-child(2) { --i: 10; } .kb-fall:nth-child(3) { --i: 11; } .kb-fall:nth-child(n+4) { --i: 12; }
+    .kb-ring-v { animation: kbRing 1.2s cubic-bezier(.22,1,.36,1) backwards; animation-delay: .35s; }
+    .kb-donut svg { animation: kbDonut 1s cubic-bezier(.22,1,.36,1) backwards; animation-delay: .45s; }
+    @media (max-width: 640px) { .kb-hero h1 { padding-right: 0; } }
+    @media (max-width: 640px) { .kb-hero h1 { font-size: 24px; } .kb-kpi b { font-size: 28px; } .kb-kpi { min-height: 0; } }
+  }
+  @keyframes kgRein { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+  @keyframes kbRing { from { stroke-dashoffset: 100; } }
+  @keyframes kbDonut { from { opacity: 0; transform: rotate(-60deg) scale(.86); } to { opacity: 1; transform: none; } }
+  @media (prefers-reduced-motion: reduce) {
+    .kb-hero, .kb-kpi, .kb-karte, .kb-fall, .kb-ring-v, .kb-donut svg { animation: none !important; }
+  }
 </style>
 
+{% macro kb_ring(p, farbe, titel) -%}
+<div class="kb-kring" title="{{ titel }}"><svg viewBox="0 0 44 44" aria-hidden="true"><circle class="kb-ring-t" cx="22" cy="22" r="18" stroke-width="5"/>{% if p > 0 %}<circle class="kb-ring-v" cx="22" cy="22" r="18" stroke-width="5" pathLength="100" stroke-dasharray="100" stroke-dashoffset="{{ 100 - ([p, 100]|min) }}" transform="rotate(-90 22 22)" stroke="{{ farbe }}"/>{% endif %}</svg><i>{{ p }}%</i></div>
+{%- endmacro %}
 {% set z = b.zahlen %}
 <div class="kb" id="kb" data-id="{{ b.id }}" data-aufnahme="{{ aufnahme_link }}">
   <section class="kb-hero">
@@ -102,15 +218,16 @@
       <a href="/leon/berichte">← Alle Berichte</a>
       <button type="button" onclick="window.print()">🖨 Drucken</button>
     </div>
+    <div class="kb-hring" title="Positiv = interessiert, Rückruf oder Termin – von den erreichten Firmen"><svg viewBox="0 0 44 44" aria-hidden="true"><circle class="kb-ring-t" cx="22" cy="22" r="19" stroke-width="4"/>{% if b.quote_positiv > 0 %}<circle class="kb-ring-v" cx="22" cy="22" r="19" stroke-width="4" pathLength="100" stroke-dasharray="100" stroke-dashoffset="{{ 100 - ([b.quote_positiv, 100]|min) }}" transform="rotate(-90 22 22)" stroke="#ffffff"/>{% endif %}</svg><div><b>{{ b.quote_positiv }}%</b><small>positiv</small></div></div>
   </section>
 
   <section class="kb-kpis">
-    <div class="kb-kpi" style="--f:#0f172a"><b data-zahl="{{ z.angerufen }}">{{ z.angerufen }}</b><span>Angerufen</span></div>
-    <div class="kb-kpi" style="--f:#0f766e"><b data-zahl="{{ z.erreicht }}">{{ z.erreicht }}</b><span>Erreicht <em>{{ b.quote_erreicht }} %</em></span></div>
-    <div class="kb-kpi" style="--f:{{ info.heiss.farbe }}"><b data-zahl="{{ z.heiss }}">{{ z.heiss }}</b><span>🔥 Interessiert</span></div>
-    <div class="kb-kpi" style="--f:{{ info.termin.farbe }}"><b data-zahl="{{ z.termin }}">{{ z.termin }}</b><span>📅 Termin</span></div>
-    <div class="kb-kpi" style="--f:{{ info.rueckruf.farbe }}"><b data-zahl="{{ z.rueckruf }}">{{ z.rueckruf }}</b><span>📞 Rückruf</span></div>
-    <div class="kb-kpi" style="--f:{{ info.kein.farbe }}"><b data-zahl="{{ z.kein }}">{{ z.kein }}</b><span>✋ Kein Interesse</span></div>
+    <div class="kb-kpi" style="--f:#0f172a">{{ kb_ring((100 * z.angerufen / z.firmen)|round|int if z.firmen else 0, '#2563eb', 'angerufen von ' ~ z.firmen ~ ' Firmen') }}<b data-zahl="{{ z.angerufen }}">{{ z.angerufen }}</b><span>Angerufen</span></div>
+    <div class="kb-kpi" style="--f:#0f766e">{{ kb_ring(b.quote_erreicht, '#14b8a6', 'erreicht von angerufen') }}<b data-zahl="{{ z.erreicht }}">{{ z.erreicht }}</b><span>Erreicht <em>{{ b.quote_erreicht }} %</em></span></div>
+    <div class="kb-kpi" style="--f:{{ info.heiss.farbe }}">{{ kb_ring((100 * z.heiss / z.erreicht)|round|int if z.erreicht else 0, info.heiss.farbe, 'von den erreichten Firmen') }}<b data-zahl="{{ z.heiss }}">{{ z.heiss }}</b><span>🔥 Interessiert</span></div>
+    <div class="kb-kpi" style="--f:{{ info.termin.farbe }}">{{ kb_ring((100 * z.termin / z.erreicht)|round|int if z.erreicht else 0, info.termin.farbe, 'von den erreichten Firmen') }}<b data-zahl="{{ z.termin }}">{{ z.termin }}</b><span>📅 Termin</span></div>
+    <div class="kb-kpi" style="--f:{{ info.rueckruf.farbe }}">{{ kb_ring((100 * z.rueckruf / z.erreicht)|round|int if z.erreicht else 0, info.rueckruf.farbe, 'von den erreichten Firmen') }}<b data-zahl="{{ z.rueckruf }}">{{ z.rueckruf }}</b><span>📞 Rückruf</span></div>
+    <div class="kb-kpi" style="--f:{{ info.kein.farbe }}">{{ kb_ring((100 * z.kein / z.erreicht)|round|int if z.erreicht else 0, info.kein.farbe, 'von den erreichten Firmen') }}<b data-zahl="{{ z.kein }}">{{ z.kein }}</b><span>✋ Kein Interesse</span></div>
   </section>
 
   <div class="kb-zwei">
@@ -129,8 +246,9 @@
       <p style="margin:12px 0 0;font-size:12px;font-weight:700;color:#64748b">Positiv = interessiert, Rückruf oder Termin. Prozent jeweils von der Stufe davor.</p>
     </section>
 
-    <section class="kb-karte">
+    <section class="kb-karte kb-erg">
       <h2>Ergebnisse</h2>
+      <div class="kb-donut" aria-hidden="true"><svg viewBox="0 0 120 120"><circle class="kb-ring-t" cx="60" cy="60" r="48" stroke-width="14"/>{% set kbd = namespace(start=0) %}{% for k, name, symbol, farbe in kategorien %}{% if z[k] %}{% set anteil = 100 * z[k] / (z.firmen or 1) %}<circle cx="60" cy="60" r="48" fill="none" stroke-width="14" pathLength="100" stroke="{{ farbe }}" stroke-dasharray="{{ [anteil - 0.8, 0.4]|max }} {{ 100 - ([anteil - 0.8, 0.4]|max) }}" stroke-dashoffset="{{ -kbd.start }}" transform="rotate(-90 60 60)"><title>{{ name }}: {{ z[k] }}</title></circle>{% set kbd.start = kbd.start + anteil %}{% endif %}{% endfor %}</svg><div class="kb-donut-mitte"><b>{{ z.firmen }}</b><small>Firmen</small></div></div>
       <div class="kb-verteilung">
         {% for k, name, symbol, farbe in kategorien %}{% if z[k] %}<i style="width:{{ 100 * z[k] / (z.firmen or 1) }}%;background:{{ farbe }}" title="{{ name }}: {{ z[k] }}"></i>{% endif %}{% endfor %}
       </div>

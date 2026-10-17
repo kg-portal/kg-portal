@@ -12,6 +12,34 @@
   .kgm button.grau { background: #475569; }
   .kgm-msg { margin-top: 10px; font-size: 13px; font-weight: 800; }
   .kgm-msg.ok { color: #15803d; } .kgm-msg.err { color: #b91c1c; }
+  /* ===== PREMIUM (einheitliches Design) ===== */
+  .kgm { font-family: inherit; position: relative; margin-top: 16px; border: 1px solid #e6ebf2; border-radius: 24px; padding: 20px 22px 18px 82px;
+    box-shadow: 0 18px 40px -30px rgba(15,23,42,.45); animation: kgRein .6s cubic-bezier(.22,1,.36,1) backwards; animation-delay: 280ms; }
+  .kgm::before { content: ""; position: absolute; left: 22px; top: 20px; width: 42px; height: 42px; border-radius: 13px;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M21 11.5a8.4 8.4 0 0 1-12.4 7.4L3 21l2.1-5.4A8.4 8.4 0 1 1 21 11.5z'/%3E%3C/svg%3E") center / 21px 21px no-repeat, linear-gradient(135deg, #16a34a, #15803d);
+    box-shadow: 0 10px 20px -10px rgba(21,128,61,.8); }
+  .kgm h2 { font-size: 17px; letter-spacing: -.2px; color: #0f172a; }
+  .kgm p { font-weight: 600; color: #64748b; max-width: 980px; }
+  .kgm-zeile { gap: 10px 14px; }
+  .kgm label { font-weight: 700; color: #1e293b; }
+  .kgm-zeile:nth-of-type(2) label { padding: 8px 12px; border: 1px solid #e6edf7; border-radius: 14px; background: #f8fbff; transition: border-color .2s, background-color .2s; }
+  .kgm-zeile:nth-of-type(2) label:hover { border-color: #bfdbfe; background: #f1f6ff; }
+  .kgm input[type=checkbox] { width: 18px; height: 18px; accent-color: #2563eb; }
+  .kgm input[type=text], .kgm input[type=time] { border: 1.5px solid #dbe3ef; border-radius: 12px; background: #fff; transition: border-color .2s, box-shadow .2s; }
+  .kgm input[type=time] { padding: 4px 8px; font-size: 14px; }
+  .kgm input[type=text]:focus, .kgm input[type=time]:focus { outline: none; border-color: #2563eb; box-shadow: 0 0 0 4px rgba(37,99,235,.12); }
+  .kgm button { border-radius: 12px; font-weight: 900; padding: 10px 16px; background: linear-gradient(135deg, #16a34a, #15803d);
+    box-shadow: 0 10px 20px -12px rgba(21,128,61,.8); transition: translate .2s, box-shadow .2s; }
+  .kgm button.grau { background: linear-gradient(135deg, #64748b, #475569); box-shadow: 0 10px 20px -12px rgba(71,85,105,.8); }
+  .kgm button:hover { translate: 0 -2px; box-shadow: 0 16px 24px -12px rgba(15,23,42,.45); }
+  .kgm-zeile > a { padding: 9px 13px; border-radius: 12px; background: #eff6ff; color: #1d4ed8 !important; text-decoration: none; transition: translate .2s, background-color .2s; }
+  .kgm-zeile > a:hover { translate: 0 -2px; background: #dbeafe; }
+  .kgm-msg.ok, .kgm-msg.err { display: inline-block; padding: 6px 12px; border-radius: 999px; }
+  .kgm-msg.ok { background: #dcfce7; } .kgm-msg.err { background: #fee2e2; }
+  .kgm-msg:empty { display: none; }
+  @keyframes kgRein { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+  @media (max-width: 640px) { .kgm { padding: 18px 16px; } .kgm::before { display: none; } .kgm input[type=text] { width: 100%; } }
+  @media (prefers-reduced-motion: reduce) { .kgm { animation: none; } }
 </style>
 <section class="kgm" id="kgm">
   <h2>📱 WhatsApp an dich</h2>

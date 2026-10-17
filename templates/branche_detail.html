@@ -821,6 +821,253 @@ body{
     box-shadow: 0 4px 10px rgba(15,23,42,0.08);
 }
 
+/* ===== PREMIUM (einheitliches Design) ===== */
+.content > .section-head{
+    position:relative;
+    overflow:hidden;
+    padding:26px 28px;
+    border-radius:24px;
+    color:#ffffff;
+    background:radial-gradient(520px 230px at 90% -20%, rgba(255,255,255,.26), transparent 60%),
+               radial-gradient(420px 220px at 0% 120%, rgba(56,189,248,.25), transparent 60%),
+               linear-gradient(135deg,#1e40af,#2563eb);
+    box-shadow:0 24px 50px -28px rgba(29,78,216,.7);
+}
+.content > .section-head::after{
+    content:"";
+    position:absolute;
+    right:-60px;
+    top:-90px;
+    width:260px;
+    height:260px;
+    border-radius:50%;
+    background:rgba(255,255,255,.08);
+    pointer-events:none;
+}
+.content > .section-head h2{ color:#ffffff; font-size:30px; letter-spacing:-1px; }
+.content > .section-head p{ color:#dbeafe; font-weight:600; }
+.bd-kicker{
+    display:block;
+    margin-bottom:6px;
+    font-size:11.5px;
+    font-weight:800;
+    letter-spacing:1.4px;
+    text-transform:uppercase;
+    color:#bfdbfe;
+}
+.content > .section-head .back-btn,
+.detail-topline .back-btn{
+    background:rgba(255,255,255,.16);
+    border:1px solid rgba(255,255,255,.3);
+    box-shadow:0 10px 22px -14px rgba(15,23,42,.6);
+    transition:translate .2s, background-color .2s;
+}
+.content > .section-head .back-btn:hover,
+.detail-topline .back-btn:hover{ translate:-2px 0; background:rgba(255,255,255,.26); }
+
+.bd-kpis{
+    display:grid;
+    grid-template-columns:repeat(4,minmax(0,1fr));
+    gap:14px;
+    margin:0 0 18px;
+}
+.bd-kpi{
+    display:flex;
+    align-items:center;
+    gap:14px;
+    min-width:0;
+    background:#ffffff;
+    border:1px solid #e6ebf2;
+    border-radius:20px;
+    padding:16px 18px;
+    box-shadow:0 18px 40px -30px rgba(15,23,42,.45);
+    transition:translate .2s, box-shadow .2s;
+}
+.bd-kpi:hover{ translate:0 -2px; box-shadow:0 22px 44px -28px rgba(15,23,42,.5); }
+.bd-ico{
+    flex:0 0 38px;
+    width:38px;
+    height:38px;
+    border-radius:12px;
+    display:grid;
+    place-items:center;
+    background:linear-gradient(135deg,#3b82f6,#1d4ed8);
+    box-shadow:0 10px 20px -10px rgba(29,78,216,.8);
+}
+.bd-ico svg{ width:19px; height:19px; fill:none; stroke:#ffffff; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+.bd-ico.lila{ background:linear-gradient(135deg,#7c3aed,#6d28d9); box-shadow:0 10px 20px -10px rgba(109,40,217,.8); }
+.bd-ico.cyan{ background:linear-gradient(135deg,#0891b2,#0e7490); box-shadow:0 10px 20px -10px rgba(14,116,144,.8); }
+.bd-ico.gruen{ background:linear-gradient(135deg,#16a34a,#15803d); box-shadow:0 10px 20px -10px rgba(21,128,61,.8); }
+.bd-kpi-text{ min-width:0; }
+.bd-kpi-text b{ display:block; font-size:28px; line-height:1; font-weight:900; letter-spacing:-1px; color:#0f172a; font-variant-numeric:tabular-nums; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.bd-kpi-text b.bd-klein{ font-size:17px; letter-spacing:-.3px; line-height:1.2; }
+.bd-kpi-text span{ display:block; margin-top:5px; font-size:11.5px; font-weight:800; letter-spacing:1px; text-transform:uppercase; color:#64748b; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+
+.branchen-grid{ gap:14px; }
+.branche-card{
+    border:1px solid #e6ebf2;
+    border-radius:24px;
+    background:#ffffff;
+    box-shadow:0 18px 40px -30px rgba(15,23,42,.45);
+    transition:translate .2s, box-shadow .2s, border-color .2s;
+    animation:kgRein .6s cubic-bezier(.22,1,.36,1) backwards;
+    animation-delay:calc(var(--i,0) * 50ms + 150ms);
+}
+.branche-card:before{ height:3px; opacity:.9; }
+.branche-card:hover{
+    transform:none;
+    translate:0 -4px;
+    border-color:#bfdbfe;
+    box-shadow:0 26px 48px -28px rgba(29,78,216,.45);
+}
+.branche-card:nth-child(2){--i:1} .branche-card:nth-child(3){--i:2} .branche-card:nth-child(4){--i:3}
+.branche-card:nth-child(5){--i:4} .branche-card:nth-child(6){--i:5} .branche-card:nth-child(7){--i:6}
+.branche-card:nth-child(8){--i:7} .branche-card:nth-child(9){--i:8} .branche-card:nth-child(10){--i:9}
+.branche-card:nth-child(11){--i:10} .branche-card:nth-child(n+12){--i:11}
+.category-number{
+    width:38px;
+    height:38px;
+    border-radius:12px;
+    font-size:14px;
+    color:#ffffff;
+    border:0;
+    background:linear-gradient(135deg,#3b82f6,#1d4ed8);
+    box-shadow:0 10px 20px -10px rgba(29,78,216,.8);
+}
+.open-pill{
+    background:#eff6ff;
+    border-color:#dbeafe;
+    padding:7px 11px;
+    font-weight:800;
+    transition:background-color .2s, color .2s;
+}
+.branche-card:hover .open-pill{ background:#2563eb; border-color:#2563eb; color:#ffffff; }
+.branche-head{ color:#0f172a; font-size:15.5px; }
+.branche-text{ color:#64748b; }
+.branche-count{
+    background:#f8fbff;
+    border:1px solid #e6edf7;
+    color:#1d4ed8;
+    font-weight:800;
+}
+
+.detail-topline{
+    position:relative;
+    overflow:hidden;
+    padding:24px 26px;
+    border-radius:24px;
+    background:radial-gradient(520px 230px at 90% -20%, rgba(255,255,255,.26), transparent 60%),
+               radial-gradient(420px 220px at 0% 120%, rgba(56,189,248,.25), transparent 60%),
+               linear-gradient(135deg,#1e40af,#2563eb);
+    box-shadow:0 24px 50px -28px rgba(29,78,216,.7);
+}
+.detail-title-text h1{ color:#ffffff; font-size:28px; letter-spacing:-.8px; }
+.detail-title-text p{ color:#dbeafe; font-weight:600; }
+.add-company-btn{
+    border-radius:14px;
+    background:linear-gradient(135deg,#16a34a,#15803d);
+    box-shadow:0 14px 26px -14px rgba(5,46,22,.9);
+    transition:translate .2s, box-shadow .2s;
+}
+.add-company-btn:hover{ translate:0 -2px; box-shadow:0 20px 32px -14px rgba(5,46,22,.9); }
+.detail-filter-card{
+    border:1px solid #e6ebf2;
+    border-radius:24px;
+    box-shadow:0 18px 40px -30px rgba(15,23,42,.45);
+}
+.detail-filter-row input,
+.detail-filter-row select{
+    border:1.5px solid #dbe3ef;
+    background:#f8fbff;
+    border-radius:14px;
+    font-weight:700;
+    transition:border-color .2s, box-shadow .2s, background-color .2s;
+}
+.detail-filter-row input:focus,
+.detail-filter-row select:focus{ border-color:#2563eb; background:#ffffff; box-shadow:0 0 0 4px rgba(37,99,235,.12); }
+.kg-filter-btn{
+    border-radius:14px;
+    background:linear-gradient(135deg,#3b82f6,#1d4ed8);
+    box-shadow:0 12px 22px -14px rgba(29,78,216,.85);
+    transition:translate .2s, box-shadow .2s;
+}
+.kg-filter-btn:hover{ translate:0 -2px; box-shadow:0 18px 28px -14px rgba(29,78,216,.85); }
+.kg-filter-reset{ color:#2563eb; text-decoration:none; }
+.kg-seiten a{
+    border-radius:12px;
+    border-color:#e6ebf2;
+    font-weight:800;
+    box-shadow:0 10px 20px -16px rgba(15,23,42,.5);
+    transition:translate .2s, box-shadow .2s;
+}
+.kg-seiten a:hover{ translate:0 -2px; box-shadow:0 16px 26px -16px rgba(15,23,42,.5); }
+
+.company-list{ gap:10px; }
+.company-card{
+    border:1px solid #e6ebf2;
+    border-radius:20px;
+    box-shadow:0 14px 32px -28px rgba(15,23,42,.5);
+    transition:border-color .2s, box-shadow .2s, translate .2s;
+}
+.company-card:hover{
+    transform:none;
+    translate:0 -2px;
+    border-color:#bfdbfe;
+    box-shadow:0 20px 38px -26px rgba(29,78,216,.45);
+}
+.company-card.open{ border-color:#bfdbfe; }
+.drag-handle{ border-radius:14px; border-color:#e6ebf2; background:#f8fbff; transition:background-color .2s, color .2s; }
+.drag-handle:hover{ background:#eff6ff; color:#1d4ed8; }
+.company-branch-badge{ background:#dbeafe; border-color:#dbeafe; font-weight:800; }
+.company-name{ font-size:17.5px; }
+.daily-add-btn{
+    border-radius:14px;
+    background:linear-gradient(135deg,#16a34a,#15803d);
+    box-shadow:0 12px 22px -14px rgba(21,128,61,.85);
+    transition:translate .2s, box-shadow .2s, background-color .2s;
+}
+.daily-add-btn:hover{ transform:none; translate:0 -2px; box-shadow:0 18px 28px -14px rgba(21,128,61,.85); }
+.daily-add-btn.added{ background:#047857; }
+.company-delete-btn{ border-radius:14px; transition:background-color .2s, color .2s, translate .2s; }
+.company-delete-btn:hover{ translate:0 -2px; }
+.company-open-icon{ border-radius:12px; border-color:#e6ebf2; background:#eff6ff; }
+.detail-inner{ border-top-color:#e6ebf2; }
+.detail-box{ background:#f8fbff; border-color:#e6edf7; border-radius:16px; }
+.detail-edit-input{ border:1.5px solid #dbe3ef; border-radius:12px; transition:border-color .2s, box-shadow .2s; }
+.detail-edit-input:focus{ box-shadow:0 0 0 4px rgba(37,99,235,.12); }
+.maps-open-btn{ transition:translate .2s, background-color .2s; }
+.maps-open-btn:hover{ translate:0 -1px; }
+.empty-state{ border-color:#dbe3ef; background:#f8fbff; border-radius:24px; }
+
+.content > .section-head,
+.bd-kpis,
+.detail-topline,
+.detail-filter-card,
+#companyList,
+.kg-seiten{
+    animation:kgRein .6s cubic-bezier(.22,1,.36,1) backwards;
+    animation-delay:calc(var(--i,0) * 70ms);
+}
+.bd-kpis{ --i:1; }
+.detail-filter-card{ --i:1; }
+#companyList{ --i:2; }
+.kg-seiten{ --i:3; }
+@keyframes kgRein{ from{ opacity:0; transform:translateY(14px); } to{ opacity:1; transform:none; } }
+@media(max-width:1100px){
+    .bd-kpis{ grid-template-columns:repeat(2,minmax(0,1fr)); }
+}
+@media(max-width:800px){
+    .content > .section-head{ padding:20px; }
+    .content > .section-head h2{ font-size:24px; }
+    .detail-topline{ padding:18px; }
+}
+@media(max-width:520px){
+    .bd-kpis{ grid-template-columns:1fr; }
+}
+@media (prefers-reduced-motion: reduce){
+    .content > .section-head, .bd-kpis, .detail-topline, .detail-filter-card, #companyList, .kg-seiten, .branche-card{ animation:none; }
+}
+
 </style>
 </head>
 <body>
@@ -832,11 +1079,25 @@ body{
     <div style="display:flex; align-items:center; gap:12px;">
         <button class="back-btn" type="button" onclick="window.location.href='/datenbank'">←</button>
         <div>
+            <span class="bd-kicker">Datenbank · Branchen</span>
             <h2>Branchen-Auswahl</h2>
             <p>Ein Klick auf eine Box öffnet die Firmenliste der jeweiligen Branche.</p>
         </div>
     </div>
 </div>
+
+            {% if not branche %}
+            <section class="bd-kpis" aria-label="Kennzahlen der Datenbank">
+                <div class="bd-kpi"><span class="bd-ico"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg></span>
+                    <div class="bd-kpi-text"><b>{{ kaesten|length }}</b><span>Branchen-Gruppen</span></div></div>
+                <div class="bd-kpi"><span class="bd-ico cyan"><svg viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v6c0 1.7 3.6 3 8 3s8-1.3 8-3V5M4 11v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6"/></svg></span>
+                    <div class="bd-kpi-text"><b>{{ "{:,}".format(gesamt|int).replace(",", ".") }}</b><span>Firmen in der Datenbank</span></div></div>
+                <div class="bd-kpi"><span class="bd-ico lila"><svg viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></span>
+                    <div class="bd-kpi-text"><b>{{ berufe|length }}{% if berufe|length >= 100 %}+{% endif %}</b><span>Berufe</span></div></div>
+                <div class="bd-kpi"><span class="bd-ico gruen"><svg viewBox="0 0 24 24"><path d="M12 2l3 6.5 7 .8-5.2 4.8 1.5 7L12 17.6 5.7 21l1.5-7L2 9.3l7-.8z"/></svg></span>
+                    <div class="bd-kpi-text">{% if berufe %}<b class="bd-klein" title="{{ berufe[0].beruf }}">{{ berufe[0].beruf }}</b><span>Häufigster Beruf · {{ berufe[0].n }}</span>{% else %}<b>–</b><span>Häufigster Beruf</span>{% endif %}</div></div>
+            </section>
+            {% endif %}
 
             <section class="branchen-grid" id="branchenGrid"></section>
         </main>

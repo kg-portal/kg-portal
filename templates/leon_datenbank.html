@@ -32,17 +32,97 @@
     .ldb-msg.ok { color: #16a34a; } .ldb-msg.err { color: #dc2626; }
     .ldb-muted { color: #64748b; font-weight: 600; }
     @media (max-width: 1000px) { .ldb-filters, .ldb-target { grid-template-columns: 1fr; } }
+    /* ===== PREMIUM (einheitliches Design) ===== */
+    .ldb { font-family: inherit; gap: 18px; }
+    .ldb-head { position: relative; overflow: hidden; border-radius: 24px; padding: 28px 30px; box-shadow: 0 24px 50px -28px rgba(29,78,216,.7);
+        background: radial-gradient(520px 230px at 90% -20%, rgba(255,255,255,.26), transparent 60%),
+                    radial-gradient(420px 220px at 0% 120%, rgba(56,189,248,.25), transparent 60%),
+                    linear-gradient(135deg, #1e40af, #2563eb); }
+    .ldb-head::after { content: ""; position: absolute; right: -60px; top: -90px; width: 260px; height: 260px; border-radius: 50%; background: rgba(255,255,255,.08); pointer-events: none; }
+    .ldb-head > * { position: relative; z-index: 1; }
+    .ldb-kicker { display: block; margin-bottom: 6px; font-size: 11.5px; font-weight: 800; letter-spacing: 1.4px; text-transform: uppercase; color: #bfdbfe; }
+    .ldb-head h1 { font-size: 30px; font-weight: 900; letter-spacing: -1px; }
+    .ldb-head p { color: #dbeafe; opacity: 1; max-width: 1000px; }
+    .ldb-head p b { color: #fff; }
+
+    .ldb-kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
+    .ldb-kpi { display: flex; align-items: center; gap: 14px; min-width: 0; background: #fff; border: 1px solid #e6ebf2; border-radius: 20px; padding: 16px 18px;
+        box-shadow: 0 18px 40px -30px rgba(15,23,42,.45); transition: translate .2s, box-shadow .2s; }
+    .ldb-kpi:hover { translate: 0 -2px; box-shadow: 0 22px 44px -28px rgba(15,23,42,.5); }
+    .ldb-ico { flex: 0 0 38px; width: 38px; height: 38px; border-radius: 12px; display: grid; place-items: center; background: linear-gradient(135deg, #3b82f6, #1d4ed8); box-shadow: 0 10px 20px -10px rgba(29,78,216,.8); }
+    .ldb-ico svg { width: 19px; height: 19px; fill: none; stroke: #fff; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+    .ldb-ico.lila { background: linear-gradient(135deg, #7c3aed, #6d28d9); box-shadow: 0 10px 20px -10px rgba(109,40,217,.8); }
+    .ldb-ico.cyan { background: linear-gradient(135deg, #0891b2, #0e7490); box-shadow: 0 10px 20px -10px rgba(14,116,144,.8); }
+    .ldb-ico.gruen { background: linear-gradient(135deg, #16a34a, #15803d); box-shadow: 0 10px 20px -10px rgba(21,128,61,.8); }
+    .ldb-kpi-text { min-width: 0; }
+    .ldb-kpi-text b { display: block; font-size: 28px; line-height: 1; font-weight: 900; letter-spacing: -1px; color: #0f172a; font-variant-numeric: tabular-nums; }
+    .ldb-kpi-text span { display: block; margin-top: 5px; font-size: 11.5px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; color: #64748b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .ldb-kpi-text small { display: block; margin-top: 3px; font-size: 12px; font-weight: 700; color: #94a3b8; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .ldb-ring { position: relative; margin-left: auto; flex: 0 0 52px; width: 52px; height: 52px; }
+    .ldb-ring svg { display: block; width: 100%; height: 100%; }
+    .ldb-ring circle { fill: none; stroke-width: 5; }
+    .ldb-ring .t { stroke: rgba(148,163,184,.24); }
+    .ldb-ring .v { stroke: #16a34a; stroke-linecap: round; transition: stroke-dashoffset 1s cubic-bezier(.22,1,.36,1); }
+    .ldb-ring i { position: absolute; inset: 0; display: grid; place-items: center; font-style: normal; font-size: 11px; font-weight: 900; color: #475569; }
+
+    .ldb-card { border: 1px solid #e6ebf2; border-radius: 24px; padding: 20px 22px; box-shadow: 0 18px 40px -30px rgba(15,23,42,.45); }
+    .ldb-card h2 { display: flex; align-items: center; gap: 10px; font-size: 11.5px; font-weight: 800; letter-spacing: 1.4px; text-transform: uppercase; color: #64748b; }
+    .ldb-card h2::before { content: ""; flex: 0 0 10px; width: 10px; height: 10px; border-radius: 4px; background: linear-gradient(135deg, #3b82f6, #1d4ed8); box-shadow: 0 0 0 4px rgba(37,99,235,.12); }
+    .ldb-card h2 > span:first-child { margin-right: auto; }
+    .ldb-filters label, .ldb-target label { font-size: 11.5px; letter-spacing: .3px; color: #64748b; }
+    .ldb-input { border: 1.5px solid #dbe3ef; background: #f8fbff; transition: border-color .2s, box-shadow .2s, background-color .2s; }
+    .ldb-input:focus { border-color: #2563eb; background: #fff; box-shadow: 0 0 0 4px rgba(37,99,235,.12); }
+    .ldb-check input { width: 17px; height: 17px; accent-color: #2563eb; }
+    .ldb-btn { border-radius: 13px; font-weight: 900; background: linear-gradient(135deg, #3b82f6, #1d4ed8); box-shadow: 0 12px 22px -14px rgba(29,78,216,.85);
+        transition: translate .2s, box-shadow .2s, background-color .2s; }
+    .ldb-btn:hover { background: linear-gradient(135deg, #3b82f6, #1d4ed8); translate: 0 -2px; box-shadow: 0 18px 28px -14px rgba(29,78,216,.85); }
+    .ldb-btn.grey, .ldb-btn.grey:hover { background: #eef2f7; color: #1e293b; box-shadow: none; }
+    .ldb-btn.grey:hover { background: #e2e8f0; }
+    .ldb-btn:disabled { translate: none; }
+    .ldb-table-wrap { border: 1px solid #e6ebf2; border-radius: 18px; }
+    .ldb-table { border-collapse: separate; border-spacing: 0; }
+    .ldb-table th { background: #f8fafc; font-weight: 800; letter-spacing: 1px; padding: 11px 10px; border-bottom: 1px solid #e6ebf2; z-index: 1; }
+    .ldb-table td { padding: 11px 10px; }
+    .ldb-table tbody tr:last-child td { border-bottom: 0; }
+    .ldb-table tbody tr { transition: background-color .15s; }
+    .ldb-table tbody tr:hover { background: #f8fbff; }
+    .ldb-table input[type=checkbox] { width: 17px; height: 17px; accent-color: #2563eb; }
+    .ldb-pill { padding: 3px 10px; font-size: 11.5px; }
+    .ldb-msg.ok, .ldb-msg.err { display: inline-block; padding: 7px 12px; border-radius: 999px; font-size: 13px; }
+    .ldb-msg.ok { background: #dcfce7; } .ldb-msg.err { background: #fee2e2; }
+    .ldb-msg:empty { display: none; }
+    .ldb-card a { color: #2563eb; font-weight: 700; text-decoration: none; }
+
+    .ldb > * { animation: kgRein .6s cubic-bezier(.22,1,.36,1) backwards; animation-delay: calc(var(--i, 0) * 70ms); }
+    .ldb > :nth-child(2) { --i: 1; } .ldb > :nth-child(3) { --i: 2; } .ldb > :nth-child(4) { --i: 3; }
+    @keyframes kgRein { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+    @media (max-width: 1100px) { .ldb-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+    @media (max-width: 640px) { .ldb-head { padding: 20px; } .ldb-head h1 { font-size: 23px; } .ldb-kpis { gap: 10px; } .ldb-kpi { padding: 14px; } .ldb-ring { display: none; } }
+    @media (prefers-reduced-motion: reduce) { .ldb > * { animation: none; } .ldb-ring .v { transition: none; } }
 </style>
 
 {% include "_leon_tabs.html" %}
 
 <div class="ldb">
     <div class="ldb-head">
+        <span class="ldb-kicker">Leon · Datenbank</span>
         <h1>📋 Aus Datenbank an Leon</h1>
         <p>Firmen aus der Tagesliste oder der großen Datenbank auswählen und einer Leon-Kampagne geben.
            Nach jedem Anruf trägt Leon das Ergebnis selbst in die Tagesliste ein – wie Damla:
            <b>Besichtigung</b> (mit m², Rhythmus und Tagen vorbefüllt), <b>Interessiert</b>, <b>Später/Rückruf</b>,
            <b>Verloren</b> bei kein Interesse. Nicht erreicht ändert nichts.</p>
+    </div>
+
+    <div class="ldb-kpis" id="ldbKpis" aria-label="Kennzahlen">
+        <div class="ldb-kpi"><span class="ldb-ico"><svg viewBox="0 0 24 24"><path d="M3 6h18M3 12h18M3 18h12"/></svg></span>
+            <div class="ldb-kpi-text"><b data-ldb="geladen">–</b><span>Firmen angezeigt</span><small data-ldb="markiert">0 markiert</small></div></div>
+        <div class="ldb-kpi"><span class="ldb-ico lila"><svg viewBox="0 0 24 24"><path d="M3 11l18-8-8 18-2-8-8-2z"/></svg></span>
+            <div class="ldb-kpi-text"><b data-ldb="kampagnen">–</b><span>Leon-Kampagnen</span><small>zur Auswahl</small></div></div>
+        <div class="ldb-kpi"><span class="ldb-ico cyan"><svg viewBox="0 0 24 24"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2z"/></svg></span>
+            <div class="ldb-kpi-text"><b data-ldb="uebergeben">–</b><span>An Leon übergeben</span><small data-ldb="mitergebnis">–</small></div></div>
+        <div class="ldb-kpi"><span class="ldb-ico gruen"><svg viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg></span>
+            <div class="ldb-kpi-text"><b data-ldb="positiv">–</b><span>Positiv</span><small>Besichtigung · Interesse</small></div>
+            <div class="ldb-ring" title="Anteil an den Firmen mit Ergebnis"><svg viewBox="0 0 44 44" aria-hidden="true"><circle class="t" cx="22" cy="22" r="18"/><circle class="v" cx="22" cy="22" r="18" pathLength="100" stroke-dasharray="100" stroke-dashoffset="100" transform="rotate(-90 22 22)"/></svg><i data-ldb="quote">–</i></div></div>
     </div>
 
     <div class="ldb-card">
@@ -241,6 +321,34 @@
 
     ladeBranchen();
     ladeKampagnen().then(ladeVerknuepfungen);
+})();
+</script>
+<script>
+/* PREMIUM: Kennzahlen – nur gelesen aus den Tabellen/Listen dieser Seite (keine Abrufe, keine Änderungen) */
+(function () {
+    const kpis = document.getElementById('ldbKpis'), lRows = document.getElementById('lRows'), vRows = document.getElementById('vRows'), tK = document.getElementById('tKampagne');
+    if (!kpis || !lRows || !vRows || !tK) return;
+    const setze = (k, v) => kpis.querySelectorAll('[data-ldb="' + k + '"]').forEach(el => { el.textContent = v; });
+    const zeilen = (tb) => Array.from(tb.querySelectorAll(':scope > tr')).filter(tr => !tr.querySelector('td[colspan]'));
+    function rechnen() {
+        const geladen = lRows.querySelectorAll('.lPick').length;
+        setze('geladen', /Filter wählen/.test(lRows.textContent) ? '–' : geladen.toLocaleString('de-DE'));
+        setze('markiert', lRows.querySelectorAll('.lPick:checked').length + ' markiert');
+        setze('kampagnen', Math.max(0, tK.options.length - 1));
+        const v = zeilen(vRows);
+        const mitErgebnis = vRows.querySelectorAll('.ldb-pill').length;
+        const positiv = vRows.querySelectorAll('.ldb-pill.green').length;
+        setze('uebergeben', v.length.toLocaleString('de-DE'));
+        setze('mitergebnis', mitErgebnis + ' mit Ergebnis');
+        setze('positiv', positiv.toLocaleString('de-DE'));
+        const q = mitErgebnis ? Math.round(100 * positiv / mitErgebnis) : 0;
+        setze('quote', mitErgebnis ? q + '%' : '–');
+        const ring = kpis.querySelector('.ldb-ring .v'); if (ring) ring.setAttribute('stroke-dashoffset', String(100 - Math.min(100, q)));
+    }
+    [lRows, vRows, tK].forEach(el => new MutationObserver(rechnen).observe(el, { childList: true }));
+    lRows.addEventListener('change', rechnen);
+    ['lAlle', 'lKeine'].forEach(id => { const b = document.getElementById(id); if (b) b.addEventListener('click', () => setTimeout(rechnen, 0)); });
+    rechnen();
 })();
 </script>
 
