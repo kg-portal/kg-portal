@@ -219,36 +219,65 @@ body {
 }
 
 /* =========================
-   NEUER KOPF (hell, Leon-Trichter, Heute, Monat)
+   NEUER KOPF (Systemblau, Leon-Trichter, Heute, Monat) + Panels der 4 Karten
 ========================= */
 .db-hero.db-hero-neu {
     background: #f8fbff;
     color: #0f172a;
-    padding: 28px 30px 6px 30px;
+    padding: 24px 26px 4px 26px;
+}
+
+.dbn-band {
+    position: relative;
+    overflow: hidden;
+    border-radius: 26px;
+    padding: 28px 30px 30px 30px;
+    color: #ffffff;
+    background:
+        radial-gradient(900px 380px at 88% -20%, rgba(255, 255, 255, 0.20), transparent 60%),
+        radial-gradient(600px 300px at 10% 130%, rgba(56, 189, 248, 0.22), transparent 60%),
+        linear-gradient(135deg, #183a91 0%, #1d4ed8 55%, #2563eb 100%);
+    box-shadow: 0 28px 56px -24px rgba(29, 78, 216, 0.55);
+}
+
+.dbn-band::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image:
+        linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+    background-size: 44px 44px;
+    -webkit-mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.7), transparent 70%);
+    mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.7), transparent 70%);
+    pointer-events: none;
 }
 
 .dbn-kopf {
+    position: relative;
+    z-index: 1;
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 16px;
     flex-wrap: wrap;
-    margin-bottom: 22px;
+    margin-bottom: 24px;
+}
+
+.dbn-over {
+    font-size: 11px;
+    font-weight: 900;
+    letter-spacing: 2.4px;
+    text-transform: uppercase;
+    color: #bfdbfe;
 }
 
 .dbn-titel {
-    margin: 0;
-    font-size: 28px;
+    margin: 6px 0 0;
+    font-size: 32px;
     font-weight: 900;
-    letter-spacing: -0.4px;
-    color: #0f172a;
-}
-
-.dbn-untertitel {
-    margin: 4px 0 0;
-    font-size: 13px;
-    font-weight: 700;
-    color: #64748b;
+    letter-spacing: -0.8px;
+    color: #ffffff;
 }
 
 .dbn-kopf-rechts {
@@ -258,155 +287,192 @@ body {
     flex-wrap: wrap;
 }
 
+.dbn-glas {
+    background: rgba(255, 255, 255, 0.10);
+    border: 1px solid rgba(255, 255, 255, 0.22);
+}
+
 .dbn-uhr {
-    background: #ffffff;
-    border: 1px solid #e2e8f0;
-    border-radius: 12px;
-    padding: 9px 14px;
-    font-size: 13px;
+    border-radius: 14px;
+    padding: 10px 16px;
+    font-size: 14px;
     font-weight: 900;
-    color: #183a91;
+    color: #ffffff;
 }
 
 .dbn-datum {
-    margin-left: 8px;
-    color: #64748b;
+    margin-left: 10px;
+    font-size: 13px;
     font-weight: 700;
+    opacity: 0.8;
 }
 
 .dbn-btn {
-    border: 1px solid #e2e8f0;
-    background: #ffffff;
-    color: #0f172a;
-    border-radius: 12px;
-    padding: 10px 14px;
+    border-radius: 14px;
+    padding: 11px 16px;
     font-size: 13px;
     font-weight: 900;
     cursor: pointer;
+    color: #ffffff;
+    background: rgba(255, 255, 255, 0.10);
+    border: 1px solid rgba(255, 255, 255, 0.22);
 }
 
-.dbn-btn-blau {
-    background: #1d4ed8;
-    border-color: #1d4ed8;
-    color: #ffffff;
+.dbn-btn-weiss {
+    background: #ffffff;
+    border-color: #ffffff;
+    color: #183a91;
 }
 
 .dbn-btn-gruen {
-    background: #15803d;
-    border-color: #15803d;
-    color: #ffffff;
+    background: linear-gradient(135deg, #16a34a, #22c55e);
+    border-color: transparent;
+    box-shadow: 0 8px 20px -6px rgba(34, 197, 94, 0.6);
 }
 
-.dbn-karte {
-    background: #ffffff;
-    border: 1px solid #e2e8f0;
-    border-radius: 18px;
-    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 8px 24px rgba(15, 23, 42, 0.05);
+.dbn-raster {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 340px;
+    gap: 20px;
+}
+
+.dbn-panel {
+    border-radius: 22px;
+    padding: 22px;
 }
 
 .dbn-label {
-    margin: 0 0 14px;
-    font-size: 12px;
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 14px;
+    font-size: 11.5px;
     font-weight: 900;
+    letter-spacing: 1.6px;
     text-transform: uppercase;
-    letter-spacing: 0.7px;
-    color: #64748b;
+    color: #dbeafe;
 }
 
-.dbn-oben {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) 360px;
-    gap: 18px;
-    margin-bottom: 18px;
+.dbn-label em {
+    font-style: normal;
+    text-transform: none;
+    letter-spacing: 0.2px;
+    font-weight: 700;
+    color: #bfdbfe;
 }
 
-.dbn-leon,
-.dbn-heute {
-    padding: 22px 24px;
-}
-
-.dbn-trichter {
+.dbn-schritte {
     display: grid;
     grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 12px;
 }
 
-.dbn-stufe {
-    padding: 4px 18px 4px 0;
+.dbn-schritt {
+    position: relative;
+    border-radius: 18px;
+    padding: 16px 16px 14px;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.16);
 }
 
-.dbn-stufe + .dbn-stufe {
-    padding-left: 24px;
-    border-left: 1px solid #e2e8f0;
+.dbn-schritt:not(:last-child)::after {
+    content: "";
+    position: absolute;
+    right: -10px;
+    top: 50%;
+    width: 9px;
+    height: 9px;
+    border-top: 2px solid rgba(255, 255, 255, 0.45);
+    border-right: 2px solid rgba(255, 255, 255, 0.45);
+    transform: translateY(-50%) rotate(45deg);
+}
+
+.dbn-icon {
+    width: 34px;
+    height: 34px;
+    margin-bottom: 12px;
+    border-radius: 11px;
+    display: grid;
+    place-items: center;
+}
+
+.dbn-icon svg {
+    width: 18px;
+    height: 18px;
+    fill: none;
+    stroke: #ffffff;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
 }
 
 .dbn-zahl {
-    font-size: 34px;
-    line-height: 1.1;
+    font-size: 36px;
+    line-height: 1;
     font-weight: 900;
-    letter-spacing: -0.8px;
-    color: #0f172a;
+    letter-spacing: -1px;
+    color: #ffffff;
 }
 
 .dbn-text {
-    margin-top: 4px;
-    font-size: 12px;
+    margin-top: 6px;
+    font-size: 12.5px;
     font-weight: 700;
-    color: #64748b;
+    color: #dbeafe;
 }
 
 .dbn-quote {
     display: inline-block;
-    margin-top: 8px;
-    padding: 3px 8px;
+    margin-top: 10px;
+    padding: 4px 9px;
     border-radius: 999px;
-    background: #eff6ff;
-    color: #1d4ed8;
+    background: rgba(255, 255, 255, 0.16);
+    color: #ffffff;
     font-size: 11px;
     font-weight: 900;
 }
 
 .dbn-gruen .dbn-zahl,
-.dbn-gruen .dbn-mini-zahl,
-.dbn-gruen .dbn-monat-zahl {
-    color: #16a34a;
+.dbn-gruen .dbn-mini-zahl {
+    color: #86efac;
 }
 
 .dbn-dunkelgruen .dbn-zahl,
-.dbn-dunkelgruen .dbn-mini-zahl,
-.dbn-dunkelgruen .dbn-monat-zahl {
-    color: #166534;
+.dbn-dunkelgruen .dbn-mini-zahl {
+    color: #34d399;
 }
 
 .dbn-balken {
     display: flex;
-    height: 10px;
-    margin: 18px 0 10px;
+    height: 12px;
+    margin: 20px 0 12px;
     border-radius: 999px;
-    background: #e2e8f0;
+    background: rgba(255, 255, 255, 0.18);
     overflow: hidden;
 }
 
 .dbn-balken i {
     display: block;
-    height: 100%;
     width: 0;
+    height: 100%;
 }
 
 .dbn-legende {
     display: flex;
     flex-wrap: wrap;
-    gap: 16px;
+    gap: 18px;
     margin-bottom: 14px;
-    font-size: 11.5px;
+    font-size: 12px;
     font-weight: 700;
-    color: #64748b;
+    color: #dbeafe;
 }
 
 .dbn-legende b {
     display: inline-block;
     width: 10px;
     height: 10px;
-    margin-right: 6px;
+    margin-right: 7px;
     border-radius: 3px;
     vertical-align: -1px;
 }
@@ -418,25 +484,25 @@ body {
 }
 
 .dbn-chip {
-    padding: 7px 11px;
+    padding: 7px 12px;
     border-radius: 999px;
-    border: 1px solid #e2e8f0;
-    background: #f8fafc;
-    color: #334155;
+    background: rgba(255, 255, 255, 0.10);
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    color: #ffffff;
     font-size: 12px;
     font-weight: 800;
 }
 
 .dbn-chip-rot {
-    background: #fef2f2;
-    border-color: #fecaca;
-    color: #dc2626;
+    background: rgba(239, 68, 68, 0.24);
+    border-color: rgba(254, 202, 202, 0.55);
+    color: #fee2e2;
 }
 
 .dbn-chip-orange {
-    background: #fff7ed;
-    border-color: #fed7aa;
-    color: #ea580c;
+    background: rgba(249, 115, 22, 0.24);
+    border-color: rgba(254, 215, 170, 0.55);
+    color: #ffedd5;
 }
 
 .dbn-heute-grid {
@@ -446,126 +512,370 @@ body {
 }
 
 .dbn-mini {
-    padding: 12px 14px;
-    border: 1px solid #e2e8f0;
-    border-radius: 14px;
-    background: #f8fafc;
+    padding: 14px;
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.16);
 }
 
 .dbn-mini-akzent {
-    background: #eff6ff;
-    border-color: #bfdbfe;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.24), rgba(255, 255, 255, 0.10));
+    border-color: rgba(255, 255, 255, 0.40);
 }
 
 .dbn-mini-zahl {
-    font-size: 24px;
+    font-size: 28px;
+    line-height: 1;
     font-weight: 900;
-    color: #0f172a;
-}
-
-.dbn-mini-akzent .dbn-mini-zahl {
-    color: #1d4ed8;
+    color: #ffffff;
 }
 
 .dbn-mini-text {
-    margin-top: 2px;
-    font-size: 11px;
+    margin-top: 6px;
+    font-size: 12.5px;
     font-weight: 700;
-    color: #64748b;
+    color: #dbeafe;
 }
 
 .dbn-mini-sub {
-    margin-top: 2px;
-    font-size: 10.5px;
-    font-weight: 700;
-    color: #2563eb;
+    margin-top: 6px;
+    font-size: 11px;
+    font-weight: 800;
+    color: #bfdbfe;
 }
 
 .dbn-monat {
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
-    padding: 16px 8px;
-    margin-bottom: 18px;
+    gap: 18px;
+    margin: 20px 0 18px;
 }
 
-.dbn-monat > div {
-    padding: 0 22px;
+.dbn-m {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 18px 20px;
+    border-radius: 20px;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 10px 30px -18px rgba(15, 23, 42, 0.35);
 }
 
-.dbn-monat > div + div {
-    border-left: 1px solid #e2e8f0;
+.dbn-m .dbn-icon {
+    width: 44px;
+    height: 44px;
+    margin: 0;
+    border-radius: 14px;
+    flex-shrink: 0;
 }
 
-.dbn-monat-zahl {
-    font-size: 22px;
+.dbn-m-zahl {
+    font-size: 26px;
+    line-height: 1.1;
     font-weight: 900;
     color: #0f172a;
 }
 
-.dbn-monat-text {
-    font-size: 12px;
+.dbn-m-text {
+    margin-top: 2px;
+    font-size: 12.5px;
     font-weight: 700;
     color: #64748b;
 }
 
+.dbn-m-gruen .dbn-m-zahl {
+    color: #16a34a;
+}
+
+.dbn-m-dunkelgruen .dbn-m-zahl {
+    color: #047857;
+}
+
+/* Besichtigung-Karte: gesamt + dieser Monat */
+.wf-zahl {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    height: 42px;
+    padding: 0 14px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: #ffffff;
+    font-size: 18px;
+    font-weight: 900;
+}
+
+.wf-zahl small {
+    font-size: 11px;
+    font-weight: 800;
+    opacity: 0.92;
+}
+
+.workflow-card[data-panel] {
+    cursor: pointer;
+}
+
+/* Panel der 4 Karten (wie LifeHub Löhne: Karte wächst zum großen Fenster) */
+.kgp-hinter {
+    position: fixed;
+    inset: 0;
+    z-index: 10000;
+    background: rgba(23, 37, 84, 0.45);
+    -webkit-backdrop-filter: blur(3px);
+    backdrop-filter: blur(3px);
+    opacity: 0;
+    transition: opacity 0.5s ease;
+}
+
+.kgp-hinter.offen {
+    opacity: 1;
+}
+
+.kgp-panel {
+    position: fixed;
+    z-index: 10001;
+    overflow: hidden;
+    border-radius: 28px;
+    background: #ffffff;
+    box-shadow: 0 40px 80px -20px rgba(15, 23, 42, 0.45);
+    transition:
+        top 520ms cubic-bezier(0.22, 1, 0.36, 1),
+        left 520ms cubic-bezier(0.22, 1, 0.36, 1),
+        width 520ms cubic-bezier(0.22, 1, 0.36, 1),
+        height 520ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.kgp-inhalt {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.kgp-panel.offen .kgp-inhalt {
+    opacity: 1;
+    transition-delay: 0.2s;
+}
+
+.kgp-kopf {
+    position: relative;
+    padding: 24px 24px 20px;
+    color: #ffffff;
+}
+
+.kgp-zu {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    width: 40px;
+    height: 40px;
+    border: 0;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.15);
+    color: #ffffff;
+    font-size: 20px;
+    font-weight: 900;
+    cursor: pointer;
+}
+
+.kgp-zu:hover {
+    background: rgba(255, 255, 255, 0.25);
+}
+
+.kgp-over {
+    font-size: 12.5px;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.82);
+}
+
+.kgp-titel {
+    margin: 4px 0 0;
+    font-size: 24px;
+    font-weight: 900;
+}
+
+.kgp-gross {
+    margin-top: 8px;
+    font-size: 30px;
+    font-weight: 900;
+}
+
+.kgp-unter {
+    margin-top: 2px;
+    font-size: 13px;
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.88);
+}
+
+.kgp-tabs {
+    display: flex;
+    gap: 8px;
+    margin-top: 14px;
+}
+
+.kgp-tab {
+    padding: 7px 14px;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    background: rgba(255, 255, 255, 0.12);
+    color: #ffffff;
+    font-size: 12.5px;
+    font-weight: 900;
+    cursor: pointer;
+}
+
+.kgp-tab.aktiv {
+    background: #ffffff;
+    color: #0f172a;
+}
+
+.kgp-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #334155;
+}
+
+.kgp-liste {
+    border: 1px solid #dbeafe;
+    border-radius: 18px;
+    overflow: hidden;
+}
+
+.kgp-zeile {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 11px 16px;
+    border-top: 1px solid #eff6ff;
+}
+
+.kgp-zeile:first-child {
+    border-top: 0;
+}
+
+.kgp-zeile.summe {
+    background: #f8fafc;
+    font-weight: 900;
+    color: #0f172a;
+}
+
+.kgp-haupt {
+    flex: 1;
+    min-width: 0;
+}
+
+.kgp-name {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    font-weight: 800;
+    color: #0f172a;
+}
+
+.kgp-klein {
+    margin-top: 1px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #64748b;
+}
+
+.kgp-wert {
+    flex-shrink: 0;
+    text-align: right;
+    font-weight: 800;
+    color: #0f172a;
+    font-variant-numeric: tabular-nums;
+}
+
+.kgp-pill {
+    display: inline-block;
+    margin-top: 3px;
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: #f1f5f9;
+    color: #475569;
+    font-size: 11px;
+    font-weight: 900;
+}
+
+.kgp-pill.offen {
+    background: #fff7ed;
+    color: #c2410c;
+}
+
+.kgp-pill.angebot {
+    background: #ecfdf5;
+    color: #047857;
+}
+
+.kgp-leer {
+    padding: 36px 16px;
+    text-align: center;
+    font-weight: 700;
+    color: #64748b;
+}
+
+.kgp-fuss {
+    padding: 12px 16px 16px;
+}
+
+.kgp-fuss button {
+    width: 100%;
+    padding: 12px;
+    border: 0;
+    border-radius: 14px;
+    color: #ffffff;
+    font-size: 13.5px;
+    font-weight: 900;
+    cursor: pointer;
+}
+
 @media (max-width: 1280px) {
-    .dbn-oben {
+    .dbn-raster {
         grid-template-columns: 1fr;
     }
 }
 
 @media (max-width: 1000px) {
-    .dbn-trichter {
+    .dbn-schritte {
         grid-template-columns: repeat(3, minmax(0, 1fr));
-        row-gap: 14px;
     }
 
-    .dbn-stufe:nth-child(4) {
-        border-left: 0;
-        padding-left: 0;
+    .dbn-schritt:nth-child(3)::after {
+        display: none;
     }
 
     .dbn-monat {
         grid-template-columns: 1fr 1fr;
-        row-gap: 14px;
-    }
-
-    .dbn-monat > div:nth-child(3) {
-        border-left: 0;
     }
 }
 
 @media (max-width: 640px) {
     .db-hero.db-hero-neu {
-        padding: 18px 18px 4px 18px;
+        padding: 14px 12px 2px 12px;
     }
 
-    .dbn-trichter {
+    .dbn-band {
+        padding: 20px 18px;
+    }
+
+    .dbn-schritte {
         grid-template-columns: 1fr 1fr;
     }
 
-    .dbn-stufe,
-    .dbn-stufe + .dbn-stufe,
-    .dbn-stufe:nth-child(4) {
-        border-left: 0;
-        padding: 0;
+    .dbn-schritt::after {
+        display: none;
     }
-}
 
-@media (max-width: 1280px) {
-    .leon-stats-grid {
-        grid-template-columns: repeat(4, 1fr);
-    }
-}
-
-@media (max-width: 1000px) {
-    .leon-stats-grid {
-        grid-template-columns: 1fr 1fr;
-    }
-}
-
-@media (max-width: 640px) {
-    .leon-stats-grid {
+    .dbn-monat {
         grid-template-columns: 1fr;
     }
 }
@@ -3119,114 +3429,132 @@ body {
 
 <div class="db-page">
     <section class="db-hero db-hero-neu">
-        <div class="dbn-kopf">
-            <div>
-                <h1 class="dbn-titel">Datenbank</h1>
-                <p class="dbn-untertitel">Leads · Leon · Besichtigung · Angebot</p>
+        <div class="dbn-band">
+            <div class="dbn-kopf">
+                <div>
+                    <div class="dbn-over">KG Portal · CRM-Zentrale</div>
+                    <h1 class="dbn-titel">Datenbank</h1>
+                </div>
+
+                <div class="dbn-kopf-rechts">
+                    <div class="dbn-uhr dbn-glas"><span id="liveTimeOnly">00:00</span><span class="dbn-datum" id="liveDateOnly">Montag, 1. Januar 2026</span></div>
+                    <button class="dbn-btn">Import</button>
+                    <button class="dbn-btn dbn-btn-weiss" onclick="openApifyLeadModal()">+ Neuer Lead</button>
+                    <button class="dbn-btn dbn-btn-gruen" onclick="openDirectAngebotModal()">+ Direktes Angebot</button>
+                </div>
             </div>
 
-            <div class="dbn-kopf-rechts">
-                <div class="dbn-uhr"><span id="liveTimeOnly">00:00</span><span class="dbn-datum" id="liveDateOnly">Montag, 1. Januar 2026</span></div>
-                <button class="dbn-btn">Import</button>
-                <button class="dbn-btn dbn-btn-blau" onclick="openApifyLeadModal()">+ Neuer Lead</button>
-                <button class="dbn-btn dbn-btn-gruen" onclick="openDirectAngebotModal()">+ Direktes Angebot</button>
+            <div class="dbn-raster">
+                <div class="dbn-panel dbn-glas">
+                    <div class="dbn-label">Leon · Telefonakquise <em>gesamt seit Start</em></div>
+                    <div class="dbn-schritte">
+                        <div class="dbn-schritt">
+                            <div class="dbn-icon" style="background:linear-gradient(135deg,#6366f1,#8b5cf6);"><svg viewBox="0 0 24 24"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4 20-7z"/></svg></div>
+                            <div class="dbn-zahl" id="leonGesendet">–</div>
+                            <div class="dbn-text">an Leon gesendet</div>
+                            <span class="dbn-quote" id="leonGesendetSub">&nbsp;</span>
+                        </div>
+                        <div class="dbn-schritt">
+                            <div class="dbn-icon" style="background:linear-gradient(135deg,#2563eb,#3b82f6);"><svg viewBox="0 0 24 24"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2z"/></svg></div>
+                            <div class="dbn-zahl" id="leonAngerufen">–</div>
+                            <div class="dbn-text">angerufen</div>
+                            <span class="dbn-quote" id="leonAngerufenQuote">&nbsp;</span>
+                        </div>
+                        <div class="dbn-schritt">
+                            <div class="dbn-icon" style="background:linear-gradient(135deg,#0ea5e9,#38bdf8);"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>
+                            <div class="dbn-zahl" id="leonGespraech">–</div>
+                            <div class="dbn-text">Gespräch</div>
+                            <span class="dbn-quote" id="leonGespraechQuote">&nbsp;</span>
+                        </div>
+                        <div class="dbn-schritt dbn-gruen">
+                            <div class="dbn-icon" style="background:linear-gradient(135deg,#16a34a,#22c55e);"><svg viewBox="0 0 24 24"><path d="M7 10v12"/><path d="M15 5.9 14 10h5.8a2 2 0 0 1 2 2.3l-1.4 8A2 2 0 0 1 18.4 22H7V10l4-8a3 3 0 0 1 3 3.9z"/></svg></div>
+                            <div class="dbn-zahl" id="leonInteressiert">–</div>
+                            <div class="dbn-text">interessiert</div>
+                            <span class="dbn-quote" id="leonInteressiertQuote">&nbsp;</span>
+                        </div>
+                        <div class="dbn-schritt dbn-dunkelgruen">
+                            <div class="dbn-icon" style="background:linear-gradient(135deg,#047857,#10b981);"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/><path d="m9 16 2 2 4-4"/></svg></div>
+                            <div class="dbn-zahl" id="leonBesichtigung">–</div>
+                            <div class="dbn-text">Besichtigung</div>
+                            <span class="dbn-quote" id="leonBesichtigungQuote">&nbsp;</span>
+                        </div>
+                    </div>
+
+                    <div class="dbn-balken">
+                        <i id="leonBalkenGespraech" style="background:linear-gradient(90deg,#93c5fd,#bfdbfe);"></i>
+                        <i id="leonBalkenNicht" style="background:#fb7185;"></i>
+                        <i id="leonBalkenFehler" style="background:#ef4444;"></i>
+                    </div>
+                    <div class="dbn-legende">
+                        <span><b style="background:#bfdbfe;"></b>Gespräch</span>
+                        <span><b style="background:#fb7185;"></b>nicht erreicht</span>
+                        <span><b style="background:#ef4444;"></b>Fehler</span>
+                        <span><b style="background:rgba(255,255,255,0.3);"></b>wartet</span>
+                    </div>
+
+                    <div class="dbn-chips">
+                        <span class="dbn-chip dbn-chip-rot">Nicht erreicht <b id="leonNichtErreicht">–</b></span>
+                        <span class="dbn-chip dbn-chip-rot">Fehler <b id="leonFehler">–</b></span>
+                        <span class="dbn-chip dbn-chip-orange">Rückruf <b id="leonRueckruf">–</b></span>
+                        <span class="dbn-chip">Kein Interesse <b id="leonKeinInteresse">–</b></span>
+                        <span class="dbn-chip">ohne Ergebnis <b id="leonOhneErgebnis">–</b></span>
+                    </div>
+                </div>
+
+                <div class="dbn-panel dbn-glas">
+                    <div class="dbn-label">Heute</div>
+                    <div class="dbn-heute-grid">
+                        <div class="dbn-mini dbn-mini-akzent">
+                            <div class="dbn-mini-zahl" id="leonAnruflisteHeute">–</div>
+                            <div class="dbn-mini-text">Leon Anrufliste</div>
+                            <div class="dbn-mini-sub" id="leonAnruflisteHeuteSub">Kampagnen von heute</div>
+                        </div>
+                        <div class="dbn-mini">
+                            <div class="dbn-mini-zahl" id="todayAngerufenLive">{{ datenbank_stats.today_angerufen }}</div>
+                            <div class="dbn-mini-text">angerufen</div>
+                        </div>
+                        <div class="dbn-mini dbn-gruen">
+                            <div class="dbn-mini-zahl" id="todayInteressiertLive">{{ datenbank_stats.today_interessiert }}</div>
+                            <div class="dbn-mini-text">interessiert</div>
+                        </div>
+                        <div class="dbn-mini dbn-dunkelgruen">
+                            <div class="dbn-mini-zahl" id="todayBesichtigungLive">{{ datenbank_stats.today_besichtigung }}</div>
+                            <div class="dbn-mini-text">Besichtigung</div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
 
-        <div class="dbn-oben">
-            <div class="dbn-karte dbn-leon">
-                <div class="dbn-label">Leon · Telefonakquise (gesamt)</div>
-
-                <div class="dbn-trichter">
-                    <div class="dbn-stufe">
-                        <div class="dbn-zahl" id="leonGesendet">–</div>
-                        <div class="dbn-text">an Leon gesendet</div>
-                        <span class="dbn-quote" id="leonGesendetSub">&nbsp;</span>
-                    </div>
-                    <div class="dbn-stufe">
-                        <div class="dbn-zahl" id="leonAngerufen">–</div>
-                        <div class="dbn-text">angerufen</div>
-                        <span class="dbn-quote" id="leonAngerufenQuote">&nbsp;</span>
-                    </div>
-                    <div class="dbn-stufe">
-                        <div class="dbn-zahl" id="leonGespraech">–</div>
-                        <div class="dbn-text">Gespräch</div>
-                        <span class="dbn-quote" id="leonGespraechQuote">&nbsp;</span>
-                    </div>
-                    <div class="dbn-stufe dbn-gruen">
-                        <div class="dbn-zahl" id="leonInteressiert">–</div>
-                        <div class="dbn-text">interessiert</div>
-                        <span class="dbn-quote" id="leonInteressiertQuote">&nbsp;</span>
-                    </div>
-                    <div class="dbn-stufe dbn-dunkelgruen">
-                        <div class="dbn-zahl" id="leonBesichtigung">–</div>
-                        <div class="dbn-text">Besichtigung</div>
-                        <span class="dbn-quote" id="leonBesichtigungQuote">&nbsp;</span>
-                    </div>
-                </div>
-
-                <div class="dbn-balken">
-                    <i id="leonBalkenGespraech" style="background:#3b82f6;"></i>
-                    <i id="leonBalkenNicht" style="background:#fca5a5;"></i>
-                    <i id="leonBalkenFehler" style="background:#dc2626;"></i>
-                </div>
-                <div class="dbn-legende">
-                    <span><b style="background:#3b82f6;"></b>Gespräch</span>
-                    <span><b style="background:#fca5a5;"></b>nicht erreicht</span>
-                    <span><b style="background:#dc2626;"></b>Fehler</span>
-                    <span><b style="background:#e2e8f0;"></b>wartet</span>
-                </div>
-
-                <div class="dbn-chips">
-                    <span class="dbn-chip dbn-chip-rot">Nicht erreicht <b id="leonNichtErreicht">–</b></span>
-                    <span class="dbn-chip dbn-chip-rot">Fehler <b id="leonFehler">–</b></span>
-                    <span class="dbn-chip dbn-chip-orange">Rückruf <b id="leonRueckruf">–</b></span>
-                    <span class="dbn-chip">Kein Interesse <b id="leonKeinInteresse">–</b></span>
-                    <span class="dbn-chip">ohne Ergebnis <b id="leonOhneErgebnis">–</b></span>
-                </div>
-            </div>
-
-            <div class="dbn-karte dbn-heute">
-                <div class="dbn-label">Heute</div>
-                <div class="dbn-heute-grid">
-                    <div class="dbn-mini dbn-mini-akzent">
-                        <div class="dbn-mini-zahl" id="leonAnruflisteHeute">–</div>
-                        <div class="dbn-mini-text">Leon Anrufliste</div>
-                        <div class="dbn-mini-sub" id="leonAnruflisteHeuteSub">Kampagnen von heute</div>
-                    </div>
-                    <div class="dbn-mini">
-                        <div class="dbn-mini-zahl" id="todayAngerufenLive">{{ datenbank_stats.today_angerufen }}</div>
-                        <div class="dbn-mini-text">angerufen</div>
-                    </div>
-                    <div class="dbn-mini dbn-gruen">
-                        <div class="dbn-mini-zahl" id="todayInteressiertLive">{{ datenbank_stats.today_interessiert }}</div>
-                        <div class="dbn-mini-text">interessiert</div>
-                    </div>
-                    <div class="dbn-mini dbn-dunkelgruen">
-                        <div class="dbn-mini-zahl" id="todayBesichtigungLive">{{ datenbank_stats.today_besichtigung }}</div>
-                        <div class="dbn-mini-text">Besichtigung</div>
-                    </div>
-                </div>
+        <div class="dbn-monat">
+        <div class="dbn-m">
+            <div class="dbn-icon" style="background:linear-gradient(135deg,#6366f1,#8b5cf6);"><svg viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14c0 1.7 4 3 9 3s9-1.3 9-3V5"/><path d="M3 12c0 1.7 4 3 9 3s9-1.3 9-3"/></svg></div>
+            <div>
+                <div class="dbn-m-zahl">{{ "{:,}".format(datenbank_stats.total_leads|int)|replace(",", ".") }}</div>
+                <div class="dbn-m-text">Leads im System</div>
             </div>
         </div>
-
-        <div class="dbn-karte dbn-monat">
+        <div class="dbn-m">
+            <div class="dbn-icon" style="background:linear-gradient(135deg,#2563eb,#3b82f6);"><svg viewBox="0 0 24 24"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2z"/></svg></div>
             <div>
-                <div class="dbn-monat-zahl">{{ "{:,}".format(datenbank_stats.total_leads|int)|replace(",", ".") }}</div>
-                <div class="dbn-monat-text">Leads im System</div>
+                <div class="dbn-m-zahl" id="leonMonatAngerufen">–</div>
+                <div class="dbn-m-text"><span class="dbn-monatsname">Dieser Monat</span> · von Leon angerufen</div>
             </div>
+        </div>
+        <div class="dbn-m dbn-m-gruen">
+            <div class="dbn-icon" style="background:linear-gradient(135deg,#16a34a,#22c55e);"><svg viewBox="0 0 24 24"><path d="M7 10v12"/><path d="M15 5.9 14 10h5.8a2 2 0 0 1 2 2.3l-1.4 8A2 2 0 0 1 18.4 22H7V10l4-8a3 3 0 0 1 3 3.9z"/></svg></div>
             <div>
-                <div class="dbn-monat-zahl" id="leonMonatAngerufen">–</div>
-                <div class="dbn-monat-text"><span class="dbn-monatsname">Dieser Monat</span> · von Leon angerufen</div>
+                <div class="dbn-m-zahl" id="monthInteressiertLive">{{ datenbank_stats.month_interessiert }}</div>
+                <div class="dbn-m-text"><span class="dbn-monatsname">Dieser Monat</span> · interessiert</div>
             </div>
-            <div class="dbn-gruen">
-                <div class="dbn-monat-zahl" id="monthInteressiertLive">{{ datenbank_stats.month_interessiert }}</div>
-                <div class="dbn-monat-text"><span class="dbn-monatsname">Dieser Monat</span> · interessiert</div>
+        </div>
+        <div class="dbn-m dbn-m-dunkelgruen">
+            <div class="dbn-icon" style="background:linear-gradient(135deg,#047857,#10b981);"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/><path d="m9 16 2 2 4-4"/></svg></div>
+            <div>
+                <div class="dbn-m-zahl" id="monthBesichtigungLive">{{ datenbank_stats.month_besichtigung }}</div>
+                <div class="dbn-m-text"><span class="dbn-monatsname">Dieser Monat</span> · Besichtigung</div>
             </div>
-            <div class="dbn-dunkelgruen">
-                <div class="dbn-monat-zahl" id="monthBesichtigungLive">{{ datenbank_stats.month_besichtigung }}</div>
-                <div class="dbn-monat-text"><span class="dbn-monatsname">Dieser Monat</span> · Besichtigung</div>
-            </div>
+        </div>
         </div>
 
         <!-- alte Felder: nur ausgeblendet, die ids bleiben für das bestehende JavaScript -->
@@ -3245,7 +3573,7 @@ body {
     <main class="db-content">
         <section id="mainView">
             <div class="workflow-grid" id="workflowSortable">
-                <div class="workflow-card card-blue-full">
+                <div class="workflow-card card-blue-full" data-panel="leon">
                     <div class="workflow-top">
                         <div class="workflow-count" id="leonAnruflisteWorkflowCount">–</div>
                     </div>
@@ -3263,16 +3591,18 @@ body {
                     <button type="button" class="workflow-btn" onclick="showDamlaPage()">Tagesliste öffnen</button>
                 </div>
 
-                <div class="workflow-card card-orange-full">
+                <div class="workflow-card card-orange-full" data-panel="besichtigung">
                     <div class="workflow-top">
-                        <div class="workflow-count" id="besichtigungWorkflowCount">{{ tagesliste_leads|selectattr('status', 'equalto', 'besichtigung')|list|length }}</div>
+                        <div class="wf-zahl" title="alle Besichtigungen bisher"><span id="besichtigungGesamtCount">–</span><small>gesamt</small></div>
+                        <div class="wf-zahl" title="Besichtigungen in diesem Monat"><span id="besichtigungMonatCount">–</span><small class="dbn-monatsname">Monat</small></div>
+                        <span id="besichtigungWorkflowCount" style="display:none;">{{ tagesliste_leads|selectattr('status', 'equalto', 'besichtigung')|list|length }}</span>
                     </div>
                     <div class="workflow-title">Besichtigungstermine</div>
                     <div class="workflow-text">Interessierte Leads, die zur Besichtigung vorbereitet oder terminiert werden.</div>
                     <button type="button" class="workflow-btn" onclick="showBesichtigungPage()">Besichtigung öffnen</button>
                 </div>
 
-                <div class="workflow-card card-red-full">
+                <div class="workflow-card card-red-full" data-panel="angebot">
                     <div class="workflow-top">
                         <div class="workflow-count" id="angebotWorkflowCount">{{ tagesliste_leads|selectattr('status', 'equalto', 'angebot')|list|length }}</div>
                     </div>
@@ -3281,7 +3611,7 @@ body {
                     <button type="button" class="workflow-btn" onclick="showAngebotPage()">Angebote öffnen</button>
                 </div>
 
-                <div class="workflow-card card-green-full">
+                <div class="workflow-card card-green-full" data-panel="kunden">
                     <div class="workflow-top">
                         <div class="workflow-count" id="kundenWorkflowCount">0</div>
                     </div>
@@ -9288,7 +9618,7 @@ document.addEventListener("DOMContentLoaded", function() {
 </div>
 
 <script>
-/* Leon-Zahlen oben (nur lesend): /api/datenbank/leon-uebersicht */
+/* Leon-Zahlen oben, Besichtigung gesamt/Monat und die Panels der 4 Karten (nur lesend) */
 (function () {
     function setzen(id, wert) {
         const el = document.getElementById(id);
@@ -9305,17 +9635,38 @@ document.addEventListener("DOMContentLoaded", function() {
         if (el) el.style.width = ganzes ? (teil * 100 / ganzes) + "%" : "0";
     }
 
-    function monatsnamen() {
-        const text = new Date().toLocaleDateString("de-DE", { month: "long" });
-        const name = text.charAt(0).toUpperCase() + text.slice(1);
-        document.querySelectorAll(".dbn-monatsname").forEach(function (el) { el.textContent = name; });
+    function esc(text) {
+        return String(text ?? "")
+            .replaceAll("&", "&amp;")
+            .replaceAll("<", "&lt;")
+            .replaceAll(">", "&gt;")
+            .replaceAll('"', "&quot;")
+            .replaceAll("'", "&#039;");
     }
+
+    function datumDe(text) {
+        const t = String(text || "");
+        return /^\d{4}-\d{2}-\d{2}/.test(t) ? t.slice(8, 10) + "." + t.slice(5, 7) + "." + t.slice(0, 4) : (t || "–");
+    }
+
+    function euro(wert) {
+        return Number(wert || 0).toLocaleString("de-DE", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " €";
+    }
+
+    function monatsname() {
+        const text = new Date().toLocaleDateString("de-DE", { month: "long" });
+        return text.charAt(0).toUpperCase() + text.slice(1);
+    }
+
+    let leonDaten = null;
+    let besichtigungDaten = null;
 
     async function kgLeonUebersichtLaden() {
         try {
             const response = await fetch("/api/datenbank/leon-uebersicht");
             const data = await response.json();
             if (!data.ok) return;
+            leonDaten = data;
 
             const z = data.zahlen || {};
             const k = data.kampagnen_heute;
@@ -9360,10 +9711,222 @@ document.addEventListener("DOMContentLoaded", function() {
         }
     }
 
+    async function kgBesichtigungLaden() {
+        try {
+            const response = await fetch("/api/datenbank/besichtigung-uebersicht");
+            const data = await response.json();
+            if (!data.ok) return;
+            besichtigungDaten = data;
+            setzen("besichtigungGesamtCount", data.gesamt || 0);
+            setzen("besichtigungMonatCount", data.monat || 0);
+        } catch (error) {
+            console.error("Besichtigung-Übersicht Fehler:", error);
+        }
+    }
+
+    /* ---------------- Panel: Karte wächst zum großen Fenster (wie LifeHub Löhne) ---------------- */
+
+    const PANEL_FARBE = {
+        leon: "linear-gradient(135deg,#0b2a6f 0%,#123c9c 50%,#2563eb 100%)",
+        besichtigung: "linear-gradient(135deg,#9a3412 0%,#c2410c 50%,#f97316 100%)",
+        angebot: "linear-gradient(135deg,#7f1d1d 0%,#b91c1c 50%,#ef4444 100%)",
+        kunden: "linear-gradient(135deg,#14532d 0%,#15803d 50%,#22c55e 100%)"
+    };
+
+    let offen = null;
+
+    function zeile(name, klein, wert, extra) {
+        return '<div class="kgp-zeile' + (extra || "") + '">' +
+            '<div class="kgp-haupt"><div class="kgp-name">' + name + '</div>' +
+            (klein ? '<div class="kgp-klein">' + klein + '</div>' : '') + '</div>' +
+            '<div class="kgp-wert">' + wert + '</div></div>';
+    }
+
+    function liste(zeilen, leerText) {
+        return zeilen.length
+            ? '<div class="kgp-liste">' + zeilen.join("") + '</div>'
+            : '<div class="kgp-leer">' + esc(leerText) + '</div>';
+    }
+
+    function kopfHtml(over, titel, gross, unter, tabs) {
+        return '<div class="kgp-kopf">' +
+            '<button type="button" class="kgp-zu" aria-label="Schließen">✕</button>' +
+            '<div class="kgp-over">' + esc(over) + '</div>' +
+            '<h2 class="kgp-titel">' + esc(titel) + '</h2>' +
+            '<div class="kgp-gross">' + esc(gross) + '</div>' +
+            (unter ? '<div class="kgp-unter">' + esc(unter) + '</div>' : '') +
+            (tabs || '') + '</div>';
+    }
+
+    function besichtigungZeilen(eintraege) {
+        return eintraege.map(function (e) {
+            const pill = e.stand === "offen" ? "offen" : (e.stand.indexOf("Angebot") === 0 ? "angebot" : "");
+            return zeile(
+                esc(e.firma || "–"),
+                esc([e.ort, e.quelle].filter(Boolean).join(" · ")),
+                esc(datumDe(e.datum)) + '<br><span class="kgp-pill ' + pill + '">' + esc(e.stand) + '</span>'
+            );
+        });
+    }
+
+    async function inhaltLaden(art, panel) {
+        const kopf = panel.querySelector(".kgp-kopf-platz");
+        const body = panel.querySelector(".kgp-body");
+        const fuss = panel.querySelector(".kgp-fuss button");
+
+        if (art === "leon") {
+            await kgLeonUebersichtLaden();
+            const k = leonDaten && leonDaten.kampagnen_heute;
+            kopf.innerHTML = kopfHtml("Heute", "Leon Anrufliste", k ? k.firmen + " Firmen" : "–",
+                k ? (k.kampagnen + (k.kampagnen === 1 ? " Kampagne" : " Kampagnen") + " · " + k.wartend + " warten · " + k.heute_angerufen + " heute angerufen") : "Leon gerade nicht erreichbar");
+            const zeilen = ((k && k.liste) || []).map(function (c) {
+                return zeile(esc(c.name), esc(c.status || ""), c.firmen + " Firmen<br><span class=\"kgp-klein\">" + c.wartend + " warten</span>");
+            });
+            body.innerHTML = liste(zeilen, "Heute wurde noch keine Kampagne angelegt.");
+            fuss.textContent = "Kampagnen öffnen";
+            fuss.onclick = function () { window.location.href = "/leon/kampagnen"; };
+        }
+
+        if (art === "besichtigung") {
+            await kgBesichtigungLaden();
+            const d = besichtigungDaten || { gesamt: 0, monat: 0, offen: 0, eintraege: [] };
+            const jetzt = new Date();
+            const monat = jetzt.getFullYear() + "-" + String(jetzt.getMonth() + 1).padStart(2, "0");
+            const imMonat = d.eintraege.filter(function (e) { return (e.datum || "").slice(0, 7) === monat; });
+            const tabs = '<div class="kgp-tabs">' +
+                '<button type="button" class="kgp-tab aktiv" data-tab="monat">' + esc(monatsname()) + ' (' + d.monat + ')</button>' +
+                '<button type="button" class="kgp-tab" data-tab="gesamt">Gesamt (' + d.gesamt + ')</button></div>';
+            kopf.innerHTML = kopfHtml("Besichtigungen", "Besichtigungstermine", d.gesamt + " gesamt",
+                monatsname() + ": " + d.monat + " · offen: " + d.offen, tabs);
+            body.innerHTML = liste(besichtigungZeilen(imMonat), "In diesem Monat noch keine Besichtigung.");
+            kopf.querySelectorAll(".kgp-tab").forEach(function (tab) {
+                tab.addEventListener("click", function () {
+                    kopf.querySelectorAll(".kgp-tab").forEach(function (t) { t.classList.toggle("aktiv", t === tab); });
+                    body.innerHTML = tab.dataset.tab === "gesamt"
+                        ? liste(besichtigungZeilen(d.eintraege), "Noch keine Besichtigung.")
+                        : liste(besichtigungZeilen(imMonat), "In diesem Monat noch keine Besichtigung.");
+                });
+            });
+            fuss.textContent = "Besichtigung öffnen";
+            fuss.onclick = function () { panelSchliessen(function () { if (typeof showBesichtigungPage === "function") showBesichtigungPage(); }); };
+        }
+
+        if (art === "angebot") {
+            let leads = [];
+            try {
+                const response = await fetch("/api/datenbank/by-status?status=angebot");
+                leads = await response.json() || [];
+            } catch (error) {
+                console.error("Angebot-Liste Fehler:", error);
+            }
+            const summe = leads.reduce(function (a, l) { return a + Number(l.angebot_netto || 0); }, 0);
+            kopf.innerHTML = kopfHtml("Angebote", "Angebot Warteliste", leads.length + (leads.length === 1 ? " Angebot" : " Angebote"), "Summe netto: " + euro(summe));
+            const zeilen = leads.map(function (l) {
+                return zeile(
+                    "AN-" + esc(l.angebot_nr || "–") + " · " + esc(l.firma || "–"),
+                    esc([l.plz, l.ort].filter(Boolean).join(" ")),
+                    esc(euro(l.angebot_netto)) + '<br><span class="kgp-klein">' + esc(l.angebot_datum || "–") + '</span>'
+                );
+            });
+            if (zeilen.length) zeilen.push(zeile("Summe netto", "", esc(euro(summe)), " summe"));
+            body.innerHTML = liste(zeilen, "Keine offenen Angebote.");
+            fuss.textContent = "Angebote öffnen";
+            fuss.onclick = function () { panelSchliessen(function () { if (typeof showAngebotPage === "function") showAngebotPage(); }); };
+        }
+
+        if (art === "kunden") {
+            kopf.innerHTML = kopfHtml("Kunden", "Kunden geworden", "0", "aus Angeboten gewonnen");
+            body.innerHTML = liste([], "Noch keine Kunden aus Angeboten. Das kommt mit dem Schritt „Auftrag → Kunde“ in der Angebot Warteliste.");
+            fuss.textContent = "Kundenliste öffnen";
+            fuss.onclick = function () { panelSchliessen(function () { if (typeof showKundenPage === "function") showKundenPage(); }); };
+        }
+
+        kopf.querySelector(".kgp-zu").addEventListener("click", function () { panelSchliessen(); });
+    }
+
+    function panelOeffnen(karte, art) {
+        if (offen) return;
+        const r = karte.getBoundingClientRect();
+        const hinter = document.createElement("div");
+        hinter.className = "kgp-hinter";
+        const panel = document.createElement("section");
+        panel.className = "kgp-panel";
+        panel.setAttribute("role", "dialog");
+        panel.setAttribute("aria-modal", "true");
+        panel.style.top = r.top + "px";
+        panel.style.left = r.left + "px";
+        panel.style.width = r.width + "px";
+        panel.style.height = r.height + "px";
+        panel.innerHTML =
+            '<div class="kgp-inhalt">' +
+            '<div class="kgp-kopf-platz" style="background:' + PANEL_FARBE[art] + ';">' + kopfHtml("", "", "Lade …", "") + '</div>' +
+            '<div class="kgp-body"><div class="kgp-leer">Lade Daten …</div></div>' +
+            '<div class="kgp-fuss"><button type="button" style="background:' + PANEL_FARBE[art] + ';"></button></div>' +
+            '</div>';
+        document.body.appendChild(hinter);
+        document.body.appendChild(panel);
+        karte.style.visibility = "hidden";
+        offen = { karte: karte, panel: panel, hinter: hinter };
+
+        hinter.addEventListener("click", function () { panelSchliessen(); });
+        panel.querySelector(".kgp-zu").addEventListener("click", function () { panelSchliessen(); });
+
+        requestAnimationFrame(function () {
+            requestAnimationFrame(function () {
+                const vw = window.innerWidth;
+                const vh = window.innerHeight;
+                const w = Math.min(640, vw - 24);
+                const h = Math.min(Math.round(vh * 0.86), 820);
+                panel.style.top = Math.round((vh - h) / 2) + "px";
+                panel.style.left = Math.round((vw - w) / 2) + "px";
+                panel.style.width = w + "px";
+                panel.style.height = h + "px";
+                panel.classList.add("offen");
+                hinter.classList.add("offen");
+            });
+        });
+
+        inhaltLaden(art, panel);
+    }
+
+    function panelSchliessen(danach) {
+        if (!offen) return;
+        const o = offen;
+        offen = null;
+        const r = o.karte.getBoundingClientRect();
+        o.panel.classList.remove("offen");
+        o.hinter.classList.remove("offen");
+        o.panel.style.top = r.top + "px";
+        o.panel.style.left = r.left + "px";
+        o.panel.style.width = r.width + "px";
+        o.panel.style.height = r.height + "px";
+        setTimeout(function () {
+            o.panel.remove();
+            o.hinter.remove();
+            o.karte.style.visibility = "";
+            if (typeof danach === "function") danach();
+        }, 560);
+    }
+
+    document.addEventListener("keydown", function (e) {
+        if (e.key === "Escape") panelSchliessen();
+    });
+
     document.addEventListener("DOMContentLoaded", function () {
-        monatsnamen();
+        const name = monatsname();
+        document.querySelectorAll(".dbn-monatsname").forEach(function (el) { el.textContent = name; });
+
+        document.querySelectorAll(".workflow-card[data-panel]").forEach(function (karte) {
+            karte.addEventListener("click", function (e) {
+                if (e.target.closest("button, a, input, select, textarea")) return;
+                panelOeffnen(karte, karte.dataset.panel);
+            });
+        });
+
         kgLeonUebersichtLaden();
+        kgBesichtigungLaden();
         setInterval(kgLeonUebersichtLaden, 120000);
+        setInterval(kgBesichtigungLaden, 120000);
     });
 })();
 </script>

@@ -38,6 +38,13 @@ def _kampagnen_heute(leon_client):
                         "firmen": sum(int(k.get("lead_count") or 0) for k in von_heute),
                         "wartend": sum(int(k.get("waiting_count") or 0) for k in von_heute),
                         "heute_angerufen": sum(int(k.get("today_call_count") or 0) for k in liste),
+                        "liste": [{
+                            "name": k.get("name") or "",
+                            "status": k.get("status") or "",
+                            "firmen": int(k.get("lead_count") or 0),
+                            "wartend": int(k.get("waiting_count") or 0),
+                            "heute_angerufen": int(k.get("today_call_count") or 0),
+                        } for k in von_heute],
                     }
             finally:
                 resp.close()
