@@ -65,11 +65,76 @@
     .sza-plan th:nth-child(4), .sza-plan td:nth-child(4) { min-width: 140px; }
     .sza-plan { overflow-x: auto; }
   }
+  /* ===== PREMIUM (einheitliches Design) ===== */
+  @keyframes kgRein { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+  @keyframes e2Bogen { from { stroke-dashoffset: 100; } }
+  @keyframes e2Balken { from { transform: scaleX(0); } }
+  .sza-head { position: relative; overflow: hidden; border-radius: 24px; padding: 26px 28px; align-items: flex-start;
+              background: radial-gradient(520px 230px at 90% -20%, rgba(255,255,255,.26), transparent 60%), radial-gradient(420px 220px at 0% 120%, rgba(56,189,248,.25), transparent 60%), linear-gradient(135deg, #1e40af, #2563eb);
+              box-shadow: 0 24px 50px -28px rgba(29,78,216,.7); }
+  .sza-head .e2-lbl { display: block; font-size: 11.5px; font-weight: 800; letter-spacing: 1.4px; text-transform: uppercase; color: #bfdbfe; margin-bottom: 6px; }
+  .sza-head h1 { font-size: 30px; font-weight: 900; letter-spacing: -.8px; line-height: 1.15; color: #fff; }
+  .sza-head p { color: #dbeafe; opacity: 1; font-weight: 600; font-size: 13.5px; margin-top: 8px; }
+  .sza-head .sza-month { background: rgba(255,255,255,.14); border: 1px solid rgba(255,255,255,.28); border-radius: 16px; padding: 8px 8px 8px 14px; color: #fff; }
+  .sza-head .sza-month label { font-size: 11.5px; font-weight: 800; letter-spacing: 1.2px; text-transform: uppercase; color: #dbeafe; }
+  .sza-head input[type=month] { border-radius: 12px; font-weight: 800; color: #1e40af; padding: 8px 12px; }
+  .e2-sza-kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; margin-top: 16px; }
+  .e2-sza-k { position: relative; display: grid; grid-template-columns: 38px minmax(0, 1fr) auto; column-gap: 12px; align-items: center; background: #fff; border: 1px solid #e6ebf2; border-radius: 22px; padding: 18px 18px 16px; box-shadow: 0 18px 40px -30px rgba(15,23,42,.45); transition: translate .2s, box-shadow .2s; }
+  .e2-sza-k:hover { translate: 0 -2px; box-shadow: 0 22px 44px -28px rgba(15,23,42,.5); }
+  .e2-sza-k > i { grid-column: 1; grid-row: 1 / span 2; width: 38px; height: 38px; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 15px; font-style: normal; background: linear-gradient(135deg, #3b82f6, #1d4ed8); box-shadow: 0 8px 16px -8px rgba(29,78,216,.7); }
+  .e2-sza-k > i.cyan { background: linear-gradient(135deg, #0891b2, #0e7490); box-shadow: 0 8px 16px -8px rgba(8,145,178,.7); }
+  .e2-sza-k > i.gruen { background: linear-gradient(135deg, #16a34a, #15803d); box-shadow: 0 8px 16px -8px rgba(22,163,74,.7); }
+  .e2-sza-k > i.rot { background: linear-gradient(135deg, #ef4444, #dc2626); box-shadow: 0 8px 16px -8px rgba(239,68,68,.7); }
+  .e2-sza-k > small { grid-column: 2; grid-row: 1; font-size: 11.5px; font-weight: 800; letter-spacing: 1.2px; text-transform: uppercase; color: #64748b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .e2-sza-k > b { grid-column: 2; grid-row: 2; font-size: 27px; font-weight: 900; letter-spacing: -.8px; line-height: 1.15; color: #1d4ed8; white-space: nowrap; }
+  .e2-sza-k > em { grid-column: 1 / -1; grid-row: 3; margin-top: 10px; padding-top: 10px; border-top: 1px solid #eef2f7; font-style: normal; font-size: 12.5px; font-weight: 700; color: #64748b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .e2-sza-k > .e2-graf { grid-column: 3; grid-row: 1 / span 2; position: relative; width: 52px; height: 52px; color: #0f172a; }
+  .e2-sza-k.cyan > b { color: #0e7490; } .e2-sza-k.gruen > b { color: #15803d; } .e2-sza-k.rot > b { color: #dc2626; }
+  .e2-graf svg { display: block; width: 100%; height: 100%; overflow: visible; }
+  .e2-graf .e2-spur { fill: none; stroke: rgba(148,163,184,.25); }
+  .e2-graf .e2-bogen { fill: none; stroke-linecap: round; animation: e2Bogen 1.1s cubic-bezier(.22,1,.36,1) .25s backwards; }
+  .e2-graf .e2-mitte { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 11.5px; font-weight: 900; letter-spacing: -.3px; }
+  .e2-sza-stand { grid-column: 1 / -1; background: #fff; border: 1px solid #e6ebf2; border-radius: 22px; padding: 16px 20px; box-shadow: 0 18px 40px -30px rgba(15,23,42,.45); }
+  .e2-sza-stand-kopf { display: flex; justify-content: space-between; gap: 10px; font-size: 11.5px; font-weight: 800; letter-spacing: 1.4px; text-transform: uppercase; color: #64748b; }
+  .e2-sza-stand-kopf span { letter-spacing: 0; text-transform: none; font-weight: 700; color: #94a3b8; }
+  .e2-sza-balken { display: flex; height: 12px; margin-top: 12px; border-radius: 999px; overflow: hidden; background: rgba(148,163,184,.22); }
+  .e2-sza-balken i { display: block; height: 100%; transform-origin: 0 50%; animation: e2Balken .9s cubic-bezier(.22,1,.36,1) .3s backwards; }
+  .e2-sza-legende { display: flex; flex-wrap: wrap; gap: 8px 16px; margin-top: 10px; font-size: 12.5px; font-weight: 700; color: #475569; }
+  .e2-sza-legende span { display: inline-flex; align-items: center; gap: 6px; }
+  .e2-sza-legende span i { width: 9px; height: 9px; border-radius: 3px; display: inline-block; }
+  .sza-card { border: 1px solid #e6ebf2; border-radius: 22px; padding: 20px 22px; box-shadow: 0 18px 40px -30px rgba(15,23,42,.45); }
+  .sza-help { background: #f8fbff; border-color: #e6edf7; box-shadow: none; }
+  .sza-auto { border: 1px solid #dbeafe; }
+  .sza-name { font-size: 18px; font-weight: 900; letter-spacing: -.3px; }
+  .sza-badge { font-weight: 900; padding: 5px 11px; }
+  .b-bestaetigt { background: #dcfce7; color: #15803d; }
+  .sza-btn { border-radius: 12px; font-weight: 800; transition: translate .2s, box-shadow .2s, filter .2s; box-shadow: 0 8px 16px -12px rgba(15,23,42,.6); }
+  .sza-btn:not(:disabled):hover { translate: 0 -2px; box-shadow: 0 14px 22px -12px rgba(15,23,42,.55); }
+  .c-blue { background: linear-gradient(135deg, #3b82f6, #1d4ed8); } .c-green { background: linear-gradient(135deg, #16a34a, #15803d); }
+  .c-orange { background: linear-gradient(135deg, #f59e0b, #d97706); } .c-slate { background: linear-gradient(135deg, #64748b, #475569); }
+  .c-purple { background: linear-gradient(135deg, #7c3aed, #6d28d9); } .c-red { background: linear-gradient(135deg, #ef4444, #dc2626); }
+  .c-wa { background: linear-gradient(135deg, #0d9488, #0f766e); }
+  .sza-termine, .sza-summary, .sza-bericht { background: #f8fbff; border: 1px solid #e6edf7; border-radius: 14px; }
+  .sza-wa { border-radius: 14px; }
+  .sza-info-row { border-top-color: #eef2f7; }
+  .sza-info-row select, .sza-sprache, .sza-auto-opt input[type=number], .sza-auto-opt select, .sza-plan input[type=time], .sza-plan input[type=text], .sza-plan select { border-color: #dbe3ef; border-radius: 12px; transition: border-color .2s, box-shadow .2s; }
+  .sza-info-row select:focus, .sza-sprache:focus, .sza-auto-opt input[type=number]:focus, .sza-auto-opt select:focus, .sza-plan input:focus, .sza-plan select:focus { outline: none; border-color: #2563eb; box-shadow: 0 0 0 4px rgba(37,99,235,.12); }
+  .sza-plan table { border: 1px solid #e6ebf2; border-radius: 16px; border-collapse: separate; border-spacing: 0; overflow: hidden; }
+  .sza-plan th { background: #f8fafc; font-size: 11.5px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; color: #64748b; padding: 10px 8px; }
+  .sza-plan tbody tr { transition: background-color .2s; }
+  .sza-plan tbody tr:hover { background: #f8fbff; }
+  .sza-head, .e2-sza-k, .e2-sza-stand, .sza-wrap > .sza-card { animation: kgRein .6s cubic-bezier(.22,1,.36,1) backwards; animation-delay: calc(var(--i, 0) * 70ms); }
+  .e2-sza-k:nth-child(1) { --i: 1; } .e2-sza-k:nth-child(2) { --i: 2; } .e2-sza-k:nth-child(3) { --i: 3; } .e2-sza-k:nth-child(4) { --i: 4; }
+  .e2-sza-stand { --i: 5; } .sza-wrap > .sza-help { --i: 6; } .sza-wrap > .sza-auto { --i: 7; }
+  @media (max-width: 1100px) { .e2-sza-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @media (max-width: 700px) { .sza-head h1 { font-size: 23px; } .e2-sza-kpis { gap: 10px; } .e2-sza-k { padding: 14px; } .e2-sza-k > b { font-size: 22px; } }
+  @media (prefers-reduced-motion: reduce) { .sza-head, .e2-sza-k, .e2-sza-stand, .sza-wrap > .sza-card, .e2-graf .e2-bogen, .e2-sza-balken i { animation: none; } .sza-btn, .e2-sza-k { transition: none; } }
 </style>
 
 <div class="sza-wrap">
   <div class="sza-head">
     <div>
+      <span class="e2-lbl">KG Portal · Stundenzettel-Automatik</span>
       <h1>⏱ Feste Zeiten &amp; WhatsApp-Bestätigung</h1>
       <p>Feste Arbeitszeiten je Mitarbeiter speichern → ganzen Monat ausfüllen (nur leere Tage, ohne Feiertage) →
          der KG Agent schickt jedem seinen Monat per WhatsApp → „Ja“ oder Korrektur → zur Frist wird gesperrt und der Bericht kommt per Mail.</p>
@@ -77,6 +142,18 @@
     <div class="sza-month">
       <label for="szaMonat">Monat</label>
       <input type="month" id="szaMonat">
+    </div>
+  </div>
+
+  <div class="e2-sza-kpis" id="e2SzaKpis" aria-live="polite">
+    <div class="e2-sza-k"><i class="fa-solid fa-users" aria-hidden="true"></i><small>Mitarbeiter</small><b id="e2SzaMa">–</b><em id="e2SzaMaSub">aktiv im Monat</em></div>
+    <div class="e2-sza-k cyan"><i class="cyan fa-solid fa-clock" aria-hidden="true"></i><small>Stunden</small><b id="e2SzaStd">–</b><em>Std. im gewählten Monat</em></div>
+    <div class="e2-sza-k gruen"><i class="gruen fa-solid fa-circle-check" aria-hidden="true"></i><small>Bestätigt / Ja</small><b id="e2SzaOk">–</b><em id="e2SzaOkSub">–</em><div class="e2-graf" id="e2SzaOkRing"></div></div>
+    <div class="e2-sza-k rot"><i class="rot fa-solid fa-triangle-exclamation" aria-hidden="true"></i><small>Bitte prüfen</small><b id="e2SzaPruef">–</b><em id="e2SzaPruefSub">–</em></div>
+    <div class="e2-sza-stand">
+      <div class="e2-sza-stand-kopf">Stand des Monats <span id="e2SzaStandInfo"></span></div>
+      <div class="e2-sza-balken" id="e2SzaBalken"></div>
+      <div class="e2-sza-legende" id="e2SzaLegende"></div>
     </div>
   </div>
 
@@ -483,4 +560,80 @@
   laden();
 })();
 </script>
+{% raw %}
+<script>
+/* ===== PREMIUM: Kennzahlen + Monatsstand (nur Anzeige, liest die Karten der Seite) ===== */
+(function () {
+  try {
+    const el = (id) => document.getElementById(id);
+    const liste = el("szaList");
+    if (!liste) return;
+    const num = (s) => { const n = parseFloat(String(s || "").replace(/[^\d,.-]/g, "").replace(/\./g, "").replace(",", ".")); return isNaN(n) ? 0 : n; };
+    const fmt = (n) => n.toLocaleString("de-DE", { maximumFractionDigits: 2 });
+    const MON = ["Januar", "Februar", "März", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober", "November", "Dezember"];
+    const GRUPPEN = [
+      ["ok", "Bestätigt / Ja", "#16a34a", ["bestaetigt", "wa_ja", "anruf_ja"]],
+      ["korr", "Korrigiert", "#7c3aed", ["wa_korrigiert", "anruf_korrigiert"]],
+      ["wartet", "Wartet auf Antwort", "#f59e0b", ["wa_wartet", "anruf_wartet", "anruf_auswertung"]],
+      ["pruef", "Bitte prüfen", "#ef4444", ["wa_unklar", "wa_nein", "anruf_unklar", "anruf_nicht_erreicht"]],
+      ["aus", "Ausgefüllt", "#3b82f6", ["ausgefuellt", "leon_wartet", "leon_fertig"]],
+      ["offen", "Offen", "#94a3b8", ["offen"]]
+    ];
+    let letzter = "";
+    function setze(id, text) { const e = el(id); if (e && e.textContent !== text) e.textContent = text; }
+    function aktualisieren() {
+      try {
+        const karten = Array.from(liste.querySelectorAll(".sza-card[data-id]"));
+        const z = { ok: 0, korr: 0, wartet: 0, pruef: 0, aus: 0, offen: 0 };
+        let std = 0, ohneTel = 0, gesperrt = 0;
+        karten.forEach((k) => {
+          const badge = k.querySelector(".sza-badge");
+          const st = badge ? (Array.from(badge.classList).find((c) => c.indexOf("b-") === 0) || "b-offen").slice(2) : "offen";
+          const g = GRUPPEN.find((x) => x[3].indexOf(st) >= 0);
+          z[g ? g[0] : "offen"]++;
+          if (st === "bestaetigt") gesperrt++;
+          const sub = k.querySelector(".sza-sub");
+          const t = sub ? sub.textContent : "";
+          if (/keine Telefonnummer/.test(t)) ohneTel++;
+          const m = t.match(/([\d.,]+)\s*Std\. im Monat/);
+          if (m) std += num(m[1]);
+        });
+        const n = karten.length;
+        const mv = (el("szaMonat") && el("szaMonat").value) || "";
+        const key = JSON.stringify([z, std, ohneTel, gesperrt, n, mv]);
+        if (key === letzter) return;
+        letzter = key;
+        setze("e2SzaMa", String(n));
+        setze("e2SzaMaSub", n ? (ohneTel ? ohneTel + " ohne Telefonnummer" : "alle mit Telefonnummer") : "keine aktiven Mitarbeiter");
+        setze("e2SzaStd", fmt(std));
+        setze("e2SzaOk", z.ok + " / " + n);
+        setze("e2SzaOkSub", gesperrt + " gesperrt · " + z.korr + " korrigiert");
+        setze("e2SzaPruef", String(z.pruef));
+        if (el("e2SzaPruef")) el("e2SzaPruef").style.color = z.pruef ? "" : "#64748b";
+        setze("e2SzaPruefSub", z.wartet + " warten auf Antwort");
+        const p = n ? z.ok / n * 100 : 0;
+        const ring = el("e2SzaOkRing");
+        if (ring) {
+          ring.innerHTML = '<svg viewBox="0 0 52 52" aria-hidden="true"><circle class="e2-spur" cx="26" cy="26" r="21" stroke-width="6"></circle>' +
+            (p > 0.4 ? '<circle class="e2-bogen" cx="26" cy="26" r="21" stroke-width="6" pathLength="100" stroke="#16a34a" stroke-dasharray="100 100" stroke-dashoffset="' + (100 - p).toFixed(2) + '" transform="rotate(-90 26 26)"></circle>' : "") +
+            '</svg><div class="e2-mitte">' + (n ? Math.round(p) + "%" : "–") + "</div>";
+          ring.title = "Bestätigt / Ja: " + z.ok + " von " + n;
+        }
+        const balken = el("e2SzaBalken"), legende = el("e2SzaLegende");
+        if (balken && legende) {
+          balken.innerHTML = GRUPPEN.filter((g) => z[g[0]]).map((g, i) =>
+            '<i style="width:' + (z[g[0]] / n * 100).toFixed(2) + "%;background:" + g[2] + ";animation-delay:" + (300 + i * 80) + 'ms" title="' + g[1] + ": " + z[g[0]] + '"></i>').join("");
+          legende.innerHTML = GRUPPEN.filter((g) => z[g[0]]).map((g) => '<span><i style="background:' + g[2] + '"></i>' + g[1] + " " + z[g[0]] + "</span>").join("") || "<span>Noch keine Mitarbeiter geladen.</span>";
+        }
+        const [j, m2] = mv.split("-").map(Number);
+        setze("e2SzaStandInfo", j && m2 ? MON[m2 - 1] + " " + j : "");
+      } catch (e) { /* nur Anzeige */ }
+    }
+    let t = 0;
+    if (window.MutationObserver) new MutationObserver(() => { clearTimeout(t); t = setTimeout(aktualisieren, 80); }).observe(liste, { childList: true });
+    aktualisieren();
+  } catch (e) { /* nur Anzeige */ }
+})();
+</script>
+{% endraw %}
 {% endblock %}

@@ -285,6 +285,40 @@
     background: #f8fafc;
     display: block;
 }
+/* ===== PREMIUM (einheitliches Design) ===== */
+@keyframes kgRein{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+.kg-stz-hero{position:relative;background:radial-gradient(520px 230px at 90% -20%,rgba(255,255,255,.26),transparent 60%),radial-gradient(420px 220px at 0% 120%,rgba(56,189,248,.25),transparent 60%),linear-gradient(135deg,#1e40af,#2563eb);border-radius:24px;box-shadow:0 24px 50px -28px rgba(29,78,216,.7);margin-bottom:22px}
+.kg-stz-hero .e2-lbl{display:block;font-size:11.5px;font-weight:800;letter-spacing:1.4px;text-transform:uppercase;color:#bfdbfe;margin-bottom:6px}
+.kg-stz-hero h2{font-size:34px;letter-spacing:-.9px}
+.kg-stz-hero p{color:#dbeafe;font-weight:600}
+.kg-stz-hero-icon{border:1px solid rgba(255,255,255,.32);background:rgba(255,255,255,.16);border-radius:18px;box-shadow:inset 0 1px 0 rgba(255,255,255,.2)}
+.kg-stz-hero .e2-chip{display:inline-flex;align-items:center;gap:6px;margin-top:12px;padding:5px 12px;border-radius:999px;background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.28);color:#fff;font-size:12px;font-weight:800}
+.kg-stz-hero > a{color:#1e40af !important;font-weight:900 !important;border-radius:13px !important;box-shadow:0 10px 22px -12px rgba(15,23,42,.55);transition:translate .2s,box-shadow .2s}
+.kg-stz-hero > a:hover{translate:0 -2px;box-shadow:0 16px 28px -14px rgba(15,23,42,.6)}
+.kg-stz-card{border:1px solid #e6ebf2;border-radius:24px;box-shadow:0 18px 40px -30px rgba(15,23,42,.45)}
+.kg-stz-card-head{color:#64748b;font-size:11.5px;font-weight:800;letter-spacing:1.4px;padding:18px 24px;border-bottom-color:#eef2f7}
+.kg-stz-card-head i{color:#2563eb}
+.kg-stz-table thead{background:#f8fafc;border-bottom:1px solid #e6ebf2}
+.kg-stz-table th{font-size:11.5px;font-weight:800;letter-spacing:1px;color:#64748b;padding:12px 22px}
+.kg-stz-row{border-bottom-color:#eef2f7;transition:background-color .2s}
+.kg-stz-row:hover{background:#f8fbff}
+.kg-stz-avatar{border-radius:14px;background:linear-gradient(135deg,#3b82f6,#1d4ed8);color:#fff;box-shadow:0 8px 16px -8px rgba(29,78,216,.7)}
+.kg-stz-link-input{border-radius:12px;border-color:#dbe3ef;background:#f8fbff;transition:border-color .2s,box-shadow .2s}
+.kg-stz-link-input:focus{outline:none;border-color:#2563eb;box-shadow:0 0 0 4px rgba(37,99,235,.12)}
+.kg-stz-copy-btn{border-radius:12px;border-color:#dbe3ef;transition:translate .2s,box-shadow .2s,background-color .2s}
+.kg-stz-copy-btn:hover{translate:0 -2px;background:#eff6ff;box-shadow:0 10px 18px -12px rgba(29,78,216,.5)}
+.kg-stz-open-btn{border-radius:13px;background:linear-gradient(135deg,#3b82f6,#1d4ed8);box-shadow:0 10px 20px -10px rgba(29,78,216,.75);transition:translate .2s,box-shadow .2s}
+.kg-stz-open-btn:hover{translate:0 -2px;box-shadow:0 14px 24px -10px rgba(29,78,216,.8)}
+.kg-stz-delete-btn{border-radius:12px;transition:translate .2s,background-color .2s}
+.kg-stz-delete-btn:hover{translate:0 -2px;background:#fee2e2}
+.kg-stz-preview{border:1px solid #e6ebf2;border-radius:24px;box-shadow:0 18px 40px -30px rgba(15,23,42,.45)}
+.kg-stz-preview-head{background:radial-gradient(420px 200px at 100% -40%,rgba(255,255,255,.22),transparent 60%),linear-gradient(135deg,#1e40af,#2563eb)}
+.kg-stz-preview-btn,.kg-stz-preview-close{border-radius:12px;transition:translate .2s,background-color .2s}
+.kg-stz-preview-btn:hover,.kg-stz-preview-close:hover{translate:0 -2px;background:rgba(255,255,255,.26)}
+.kg-stz-hero,.kg-stz-card{animation:kgRein .6s cubic-bezier(.22,1,.36,1) backwards;animation-delay:calc(var(--i,0)*70ms)}
+.kg-stz-card{--i:2}
+@media (max-width:900px){.kg-stz-hero{flex-direction:row;flex-wrap:wrap;align-items:center;justify-content:flex-start;gap:12px}.kg-stz-hero-left{flex:1 1 100%;margin-bottom:6px}.kg-stz-hero > a{margin-left:0 !important}.kg-stz-hero h2{font-size:28px}}
+@media (prefers-reduced-motion:reduce){.kg-stz-hero,.kg-stz-card{animation:none}}
 </style>
 
 <!--
@@ -303,8 +337,10 @@
                 <i class="fa-solid fa-clock-rotate-left"></i>
             </div>
             <div>
+                <span class="e2-lbl">KG Portal · Personal</span>
                 <h2>Stundenzettel Liste</h2>
                 <p>Alle Stundenzettel-Links Ihrer Mitarbeiter</p>
+                <span class="e2-chip">👥 {{ mitarbeiter_liste|length }} aktive Mitarbeiter</span>
             </div>
         </div>
         <a href="/stundenzettel/automatik" style="margin-left:auto;display:inline-flex;align-items:center;gap:8px;background:#ffffff;color:#1d4ed8;font-weight:800;text-decoration:none;padding:11px 16px;border-radius:12px;min-height:40px;">⏱ Feste Zeiten &amp; WhatsApp-Bestätigung</a>

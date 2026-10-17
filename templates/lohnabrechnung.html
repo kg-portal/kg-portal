@@ -23,13 +23,73 @@
   .lo-msg.ok { color: #15803d; } .lo-msg.err { color: #b91c1c; }
   .lo-hint { font-size: 13px; color: #475569; line-height: 1.55; }
   .lo-tablewrap { overflow-x: auto; }
+  /* ===== PREMIUM (einheitliches Design) ===== */
+  @keyframes kgRein { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+  @keyframes e2Bogen { from { stroke-dashoffset: 100; } }
+  .lo-wrap { font-family: inherit; }
+  .lo-head { position: relative; overflow: hidden; border-radius: 24px; padding: 26px 28px;
+             background: radial-gradient(520px 230px at 90% -20%, rgba(255,255,255,.26), transparent 60%), radial-gradient(420px 220px at 0% 120%, rgba(56,189,248,.25), transparent 60%), linear-gradient(135deg, #1e40af, #2563eb);
+             box-shadow: 0 24px 50px -28px rgba(29,78,216,.7); }
+  .lo-head .e2-lbl { display: block; font-size: 11.5px; font-weight: 800; letter-spacing: 1.4px; text-transform: uppercase; color: #bfdbfe; margin-bottom: 6px; }
+  .lo-head h1 { font-size: 30px; font-weight: 900; letter-spacing: -.8px; line-height: 1.15; color: #fff; }
+  .lo-head p { color: #dbeafe; font-weight: 600; font-size: 13.5px; margin-top: 8px; max-width: 860px; }
+  .e2-lo-kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; margin-top: 16px; }
+  .e2-lo-k { display: grid; grid-template-columns: 38px minmax(0, 1fr) auto; column-gap: 12px; align-items: center; background: #fff; border: 1px solid #e6ebf2; border-radius: 22px; padding: 18px 18px 16px; box-shadow: 0 18px 40px -30px rgba(15,23,42,.45); transition: translate .2s, box-shadow .2s; }
+  .e2-lo-k:hover { translate: 0 -2px; box-shadow: 0 22px 44px -28px rgba(15,23,42,.5); }
+  .e2-lo-k > i { grid-column: 1; grid-row: 1 / span 2; width: 38px; height: 38px; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 15px; font-style: normal; background: linear-gradient(135deg, #3b82f6, #1d4ed8); box-shadow: 0 8px 16px -8px rgba(29,78,216,.7); }
+  .e2-lo-k > i.gruen { background: linear-gradient(135deg, #16a34a, #15803d); box-shadow: 0 8px 16px -8px rgba(22,163,74,.7); }
+  .e2-lo-k > i.orange { background: linear-gradient(135deg, #f59e0b, #d97706); box-shadow: 0 8px 16px -8px rgba(245,158,11,.7); }
+  .e2-lo-k > i.rot { background: linear-gradient(135deg, #ef4444, #dc2626); box-shadow: 0 8px 16px -8px rgba(239,68,68,.7); }
+  .e2-lo-k > small { grid-column: 2; grid-row: 1; font-size: 11.5px; font-weight: 800; letter-spacing: 1.2px; text-transform: uppercase; color: #64748b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .e2-lo-k > b { grid-column: 2; grid-row: 2; font-size: 27px; font-weight: 900; letter-spacing: -.8px; line-height: 1.15; color: #1d4ed8; white-space: nowrap; }
+  .e2-lo-k > em { grid-column: 1 / -1; grid-row: 3; margin-top: 10px; padding-top: 10px; border-top: 1px solid #eef2f7; font-style: normal; font-size: 12.5px; font-weight: 700; color: #64748b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .e2-lo-k.gruen > b { color: #15803d; } .e2-lo-k.orange > b { color: #b45309; } .e2-lo-k.rot > b { color: #dc2626; }
+  .e2-lo-k > .e2-graf { grid-column: 3; grid-row: 1 / span 2; position: relative; width: 52px; height: 52px; color: #0f172a; }
+  .e2-graf svg { display: block; width: 100%; height: 100%; overflow: visible; }
+  .e2-graf .e2-spur { fill: none; stroke: rgba(148,163,184,.25); }
+  .e2-graf .e2-bogen { fill: none; stroke-linecap: round; animation: e2Bogen 1.1s cubic-bezier(.22,1,.36,1) .25s backwards; }
+  .e2-graf .e2-mitte { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 11.5px; font-weight: 900; letter-spacing: -.3px; }
+  .lo-card { border: 1px solid #e6ebf2; border-radius: 22px; padding: 20px 22px; box-shadow: 0 18px 40px -30px rgba(15,23,42,.45); }
+  .lo-card h2 { font-size: 18px; font-weight: 900; letter-spacing: -.3px; color: #0f172a; }
+  .lo-row label { font-size: 11.5px; letter-spacing: 1px; text-transform: uppercase; color: #64748b; }
+  .lo-in { border: 1px solid #dbe3ef; border-radius: 12px; background: #fff; transition: border-color .2s, box-shadow .2s; }
+  .lo-in:focus { outline: none; border-color: #2563eb; box-shadow: 0 0 0 4px rgba(37,99,235,.12); }
+  .lo-btn { border-radius: 13px; font-weight: 900; background: linear-gradient(135deg, #3b82f6, #1d4ed8); box-shadow: 0 10px 20px -12px rgba(29,78,216,.75); transition: translate .2s, box-shadow .2s; }
+  .lo-btn.green { background: linear-gradient(135deg, #16a34a, #15803d); box-shadow: 0 10px 20px -12px rgba(22,163,74,.75); }
+  .lo-btn.grey { background: linear-gradient(135deg, #64748b, #475569); box-shadow: 0 10px 20px -12px rgba(71,85,105,.7); }
+  .lo-btn.red { background: linear-gradient(135deg, #ef4444, #dc2626); box-shadow: 0 10px 20px -12px rgba(220,38,38,.75); }
+  .lo-btn:not(:disabled):hover { translate: 0 -2px; box-shadow: 0 14px 24px -12px rgba(15,23,42,.55); }
+  .lo-tablewrap { margin-top: 12px; border: 1px solid #e6ebf2; border-radius: 18px; }
+  .lo-table { margin-top: 0; }
+  .lo-table th { background: #f8fafc; font-size: 11.5px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; color: #64748b; padding: 12px 12px; border-bottom: 1px solid #e6ebf2; }
+  .lo-table td { padding: 12px; border-bottom-color: #eef2f7; }
+  .lo-table tbody tr { transition: background-color .2s; }
+  .lo-table tbody tr:hover { background: #f8fbff; }
+  .lo-table tbody tr:last-child td { border-bottom: 0; }
+  .lo-pill { font-weight: 900; padding: 4px 11px; white-space: nowrap; }
+  .p-bereit { background: #dbeafe; color: #1d4ed8; } .p-gesendet { background: #dcfce7; color: #15803d; }
+  .p-passwort_fehlt, .p-email_fehlt { background: #fee2e2; color: #b91c1c; }
+  .lo-head, .e2-lo-k, .lo-card { animation: kgRein .6s cubic-bezier(.22,1,.36,1) backwards; animation-delay: calc(var(--i, 0) * 70ms); }
+  .e2-lo-k:nth-child(1) { --i: 1; } .e2-lo-k:nth-child(2) { --i: 2; } .e2-lo-k:nth-child(3) { --i: 3; } .e2-lo-k:nth-child(4) { --i: 4; }
+  .lo-card { --i: 5; } .lo-card + .lo-card { --i: 6; }
+  @media (max-width: 1000px) { .e2-lo-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @media (max-width: 700px) { .lo-head h1 { font-size: 23px; } .e2-lo-k { padding: 14px; } .e2-lo-k > b { font-size: 22px; } }
+  @media (prefers-reduced-motion: reduce) { .lo-head, .e2-lo-k, .lo-card, .e2-graf .e2-bogen { animation: none; } .lo-btn, .e2-lo-k { transition: none; } }
 </style>
 
 <div class="lo-wrap">
   <div class="lo-head">
+    <span class="e2-lbl">KG Portal · Personal</span>
     <h1>💶 Lohnabrechnungen versenden</h1>
     <p>Sammel-PDF hochladen → jede Seite wird über den Namen dem Mitarbeiter zugeordnet → jeder bekommt ein eigenes PDF mit Passwort
        (Geburtsdatum TTMMJJJJ). Erst prüfen, dann senden. Nichts geht automatisch raus.</p>
+  </div>
+
+  <div class="e2-lo-kpis" id="e2LoKpis" aria-live="polite">
+    <div class="e2-lo-k"><i class="fa-solid fa-file-pdf" aria-hidden="true"></i><small>Abrechnungen</small><b id="e2LoAlle">–</b><em id="e2LoMonat">im gewählten Monat</em></div>
+    <div class="e2-lo-k orange"><i class="orange fa-solid fa-hourglass-half" aria-hidden="true"></i><small>Bereit</small><b id="e2LoBereit">–</b><em>geprüft, noch nicht gesendet</em></div>
+    <div class="e2-lo-k gruen"><i class="gruen fa-solid fa-paper-plane" aria-hidden="true"></i><small>Gesendet</small><b id="e2LoGesendet">–</b><em id="e2LoGesendetSub">–</em><div class="e2-graf" id="e2LoRing"></div></div>
+    <div class="e2-lo-k rot"><i class="rot fa-solid fa-triangle-exclamation" aria-hidden="true"></i><small>Fehlt etwas</small><b id="e2LoFehlt">–</b><em id="e2LoFehltSub">Passwort oder E-Mail fehlt</em></div>
   </div>
 
   <div class="lo-card">
@@ -133,4 +193,56 @@
   liste();
 })();
 </script>
+{% raw %}
+<script>
+/* ===== PREMIUM: Kennzahlen (nur Anzeige, liest die Tabelle der Seite) ===== */
+(function () {
+  try {
+    const el = (id) => document.getElementById(id);
+    const rows = el("loRows");
+    if (!rows) return;
+    const MON = ["Januar", "Februar", "März", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober", "November", "Dezember"];
+    let letzter = "";
+    function setze(id, text) { const e = el(id); if (e && e.textContent !== text) e.textContent = text; }
+    function aktualisieren() {
+      try {
+        const z = { bereit: 0, gesendet: 0, passwort_fehlt: 0, email_fehlt: 0, sonst: 0 };
+        const trs = Array.from(rows.querySelectorAll("tr[data-id]"));
+        trs.forEach((tr) => {
+          const pill = tr.querySelector(".lo-pill");
+          const st = pill ? (Array.from(pill.classList).find((c) => c.indexOf("p-") === 0) || "").slice(2) : "";
+          if (st in z) z[st]++; else z.sonst++;
+        });
+        const n = trs.length;
+        const mv = (el("loMonat") && el("loMonat").value) || "";
+        const key = JSON.stringify([z, n, mv]);
+        if (key === letzter) return;
+        letzter = key;
+        const [j, m] = mv.split("-").map(Number);
+        setze("e2LoAlle", String(n));
+        setze("e2LoMonat", j && m ? MON[m - 1] + " " + j : "im gewählten Monat");
+        setze("e2LoBereit", String(z.bereit));
+        setze("e2LoGesendet", z.gesendet + " / " + n);
+        setze("e2LoGesendetSub", n ? (z.gesendet === n ? "alle verschickt" : (n - z.gesendet) + " noch offen") : "noch nichts hochgeladen");
+        const fehlt = z.passwort_fehlt + z.email_fehlt;
+        setze("e2LoFehlt", String(fehlt));
+        setze("e2LoFehltSub", fehlt ? z.passwort_fehlt + " × Passwort · " + z.email_fehlt + " × E-Mail" : "Passwort oder E-Mail fehlt");
+        if (el("e2LoFehlt")) el("e2LoFehlt").style.color = fehlt ? "" : "#64748b";
+        const p = n ? z.gesendet / n * 100 : 0;
+        const ring = el("e2LoRing");
+        if (ring) {
+          ring.innerHTML = '<svg viewBox="0 0 52 52" aria-hidden="true"><circle class="e2-spur" cx="26" cy="26" r="21" stroke-width="6"></circle>' +
+            (p > 0.4 ? '<circle class="e2-bogen" cx="26" cy="26" r="21" stroke-width="6" pathLength="100" stroke="#16a34a" stroke-dasharray="100 100" stroke-dashoffset="' + (100 - p).toFixed(2) + '" transform="rotate(-90 26 26)"></circle>' : "") +
+            '</svg><div class="e2-mitte">' + (n ? Math.round(p) + "%" : "–") + "</div>";
+          ring.title = "Gesendet: " + z.gesendet + " von " + n;
+        }
+      } catch (e) { /* nur Anzeige */ }
+    }
+    let t = 0;
+    if (window.MutationObserver) new MutationObserver(() => { clearTimeout(t); t = setTimeout(aktualisieren, 80); }).observe(rows, { childList: true });
+    aktualisieren();
+  } catch (e) { /* nur Anzeige */ }
+})();
+</script>
+{% endraw %}
 {% endblock %}
