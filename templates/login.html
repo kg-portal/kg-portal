@@ -7,112 +7,145 @@
     <title>KG-Portal Login</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap">
     <style>
         * { box-sizing: border-box; }
         body {
             min-height: 100vh;
             margin: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 24px;
-            font-family: Inter, "Segoe UI", Roboto, Arial, sans-serif;
-            color: #0f172a;
-            background:
-                radial-gradient(900px 520px at 85% -10%, rgba(255,255,255,.22), transparent 60%),
-                radial-gradient(700px 480px at -10% 110%, rgba(56,189,248,.35), transparent 60%),
-                linear-gradient(135deg, #1e40af 0%, #2563eb 60%, #3b82f6 100%);
-            overflow: hidden;
+            display: grid;
+            grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
+            font-family: "Plus Jakarta Sans", Inter, "Segoe UI", Roboto, Arial, sans-serif;
+            color: #111827;
+            background: #ffffff;
+            -webkit-font-smoothing: antialiased;
         }
-        .blase { position: fixed; border-radius: 50%; background: rgba(255,255,255,.08); pointer-events: none; animation: schweben 12s ease-in-out infinite; }
-        .blase.b1 { width: 420px; height: 420px; right: -120px; top: -140px; }
-        .blase.b2 { width: 300px; height: 300px; left: -90px; bottom: -110px; animation-delay: -4s; }
-        .blase.b3 { width: 160px; height: 160px; left: 18%; top: 12%; background: rgba(255,255,255,.06); animation-delay: -8s; }
-        @keyframes schweben { 0%,100% { transform: translateY(0); } 50% { transform: translateY(18px); } }
-        .login-card {
+        .links {
             position: relative;
-            width: 100%;
-            max-width: 400px;
-            padding: 34px 32px 26px;
-            border-radius: 28px;
-            background: rgba(255,255,255,.97);
-            box-shadow: 0 40px 80px -30px rgba(15,23,42,.55), 0 0 0 1px rgba(255,255,255,.6);
-            text-align: center;
-            animation: rein .7s cubic-bezier(.22,1,.36,1) backwards;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 44px 48px;
+            background: #111318;
+            color: #e5e7eb;
         }
-        @keyframes rein { from { opacity: 0; transform: translateY(18px) scale(.98); } to { opacity: 1; transform: none; } }
-        .logo-box { display: inline-block; padding: 14px 20px 10px; margin-bottom: 18px; border-radius: 20px; background: #fff; border: 2px solid #2563eb; box-shadow: 0 16px 30px rgba(37,99,235,.18); }
-        .logo { display: block; width: 170px; max-width: 100%; margin: 0 auto 4px; }
-        .portal { font-size: 11px; font-weight: 800; letter-spacing: 4px; color: #1d4ed8; }
-        h2 { margin: 0 0 4px; font-size: 22px; font-weight: 900; letter-spacing: -.4px; color: #0f172a; }
-        .unter { margin: 0 0 20px; font-size: 13px; font-weight: 600; color: #64748b; }
-        .feld { position: relative; margin: 10px 0; }
-        .feld svg { position: absolute; left: 15px; top: 50%; width: 18px; height: 18px; margin-top: -9px; color: #94a3b8; pointer-events: none; }
+        .links:before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background-image: linear-gradient(rgba(255,255,255,.045) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.045) 1px, transparent 1px);
+            background-size: 36px 36px;
+            mask-image: radial-gradient(ellipse at 30% 40%, #000 0%, transparent 75%);
+        }
+        .links:after {
+            content: "";
+            position: absolute;
+            width: 520px;
+            height: 520px;
+            right: -180px;
+            bottom: -200px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(37,99,235,.35), transparent 65%);
+        }
+        .marke { position: relative; z-index: 1; display: inline-flex; align-items: center; gap: 14px; }
+        .marke .logo-box { padding: 10px 14px 8px; border-radius: 14px; background: #fff; }
+        .marke img { display: block; width: 120px; }
+        .marke span { font-size: 12px; font-weight: 700; letter-spacing: 4px; color: #9ca3af; }
+        .text { position: relative; z-index: 1; max-width: 460px; }
+        .text h1 { margin: 0 0 14px; font-size: 40px; line-height: 1.1; font-weight: 800; letter-spacing: -.03em; color: #fff; }
+        .text p { margin: 0; font-size: 15px; line-height: 1.6; color: #9ca3af; }
+        .punkte { position: relative; z-index: 1; display: flex; gap: 22px; font-size: 13px; font-weight: 600; color: #9ca3af; }
+        .punkte span { display: inline-flex; align-items: center; gap: 8px; }
+        .punkte i { width: 6px; height: 6px; border-radius: 50%; background: #3b82f6; }
+        .rechts { display: flex; align-items: center; justify-content: center; padding: 40px 24px; background: #f4f5f7; }
+        .login-card {
+            width: 100%;
+            max-width: 380px;
+            padding: 32px 30px 24px;
+            border-radius: 18px;
+            background: #fff;
+            border: 1px solid #e5e7eb;
+            box-shadow: 0 1px 2px rgba(16,24,40,.05), 0 24px 48px -32px rgba(16,24,40,.25);
+        }
+        .eyebrow { display: inline-flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 700; color: #6b7280; }
+        .eyebrow i { width: 8px; height: 8px; border-radius: 2px; background: #2563eb; }
+        h2 { margin: 10px 0 4px; font-size: 26px; font-weight: 800; letter-spacing: -.02em; color: #111827; }
+        .unter { margin: 0 0 22px; font-size: 14px; color: #6b7280; }
+        label { display: block; margin: 14px 0 6px; font-size: 13px; font-weight: 600; color: #374151; }
         input {
             width: 100%;
-            padding: 15px 14px 15px 44px;
-            border: 1.5px solid #dbe3ef;
-            border-radius: 14px;
-            background: #f8fbff;
+            height: 44px;
+            padding: 0 14px;
+            border: 1px solid #d1d5db;
+            border-radius: 10px;
+            background: #fff;
             font-family: inherit;
             font-size: 16px;
-            font-weight: 600;
-            color: #0f172a;
-            transition: border-color .2s, box-shadow .2s, background-color .2s;
+            color: #111827;
+            transition: border-color .15s, box-shadow .15s;
         }
-        input:focus { border-color: #2563eb; background: #fff; box-shadow: 0 0 0 4px rgba(37,99,235,.14); outline: none; }
+        input:focus { border-color: #111827; box-shadow: 0 0 0 3px rgba(17,24,39,.10); outline: none; }
         button {
             width: 100%;
-            padding: 15px;
-            margin-top: 14px;
+            height: 44px;
+            margin-top: 22px;
             border: none;
-            border-radius: 14px;
-            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            border-radius: 10px;
+            background: #111827;
             color: #fff;
             font-family: inherit;
-            font-size: 16px;
-            font-weight: 900;
-            letter-spacing: .2px;
-            cursor: pointer;
-            box-shadow: 0 16px 30px -14px #1d4ed8;
-            transition: translate .2s, box-shadow .2s;
-        }
-        button:hover { translate: 0 -2px; box-shadow: 0 22px 36px -14px #1d4ed8; }
-        .error {
-            background: #fee2e2;
-            color: #b91c1c;
-            padding: 11px 12px;
-            border-radius: 12px;
-            font-size: 14px;
-            margin-bottom: 12px;
+            font-size: 15px;
             font-weight: 700;
+            cursor: pointer;
+            transition: background-color .15s;
         }
-        .fuss { margin-top: 20px; color: #94a3b8; font-size: 12px; font-weight: 600; }
-        @media (prefers-reduced-motion: reduce) { .blase, .login-card { animation: none; } }
+        button:hover { background: #000; }
+        html[data-kg-x="on"] button { background: #2563eb; }
+        html[data-kg-x="on"] button:hover { background: #1d4ed8; }
+        html[data-kg-x="on"] .eyebrow i { background: #60a5fa; }
+        .error { background: #fef2f2; color: #b91c1c; padding: 10px 12px; border-radius: 10px; font-size: 14px; margin-bottom: 6px; font-weight: 600; }
+        .fuss { margin: 20px 0 0; color: #9ca3af; font-size: 12px; text-align: center; }
+        @media (max-width: 860px) {
+            body { grid-template-columns: 1fr; }
+            .links { padding: 26px 24px; min-height: 0; gap: 22px; }
+            .text h1 { font-size: 28px; }
+            .text p, .punkte { display: none; }
+        }
     </style>
 </head>
 <body>
-    <div class="blase b1"></div><div class="blase b2"></div><div class="blase b3"></div>
-    <div class="login-card">
-        <div class="logo-box" data-kg-skip><img class="logo" src="/static/kg_logo_portal.png" alt="KG Gebäudereinigung"><div class="portal">PORTAL</div></div>
-        <h2>Willkommen zurück</h2>
-        <p class="unter">Bitte melde dich an, um fortzufahren.</p>
+    <section class="links" data-kg-skip>
+        <div class="marke"><div class="logo-box"><img src="/static/kg_logo_portal.png" alt="KG Gebäudereinigung"></div><span>PORTAL</span></div>
+        <div class="text">
+            <h1>Alles für den Betrieb an einem Ort.</h1>
+            <p>Leads, Leon, Besichtigungen, Angebote, Kunden, Personal und Buchhaltung – im KG Portal.</p>
+        </div>
+        <div class="punkte"><span><i></i>CRM</span><span><i></i>Telefon-KI Leon</span><span><i></i>Personal &amp; Finanzen</span></div>
+    </section>
+    <main class="rechts">
+        <div class="login-card">
+            <div class="eyebrow"><i></i>KG-Portal</div>
+            <h2>Anmelden</h2>
+            <p class="unter">Willkommen zurück. Bitte melde dich an.</p>
 
-        {% with messages = get_flashed_messages(with_categories=true) %}
-          {% if messages %}
-            {% for category, message in messages %}
-              <div class="error">{{ message }}</div>
-            {% endfor %}
-          {% endif %}
-        {% endwith %}
+            {% with messages = get_flashed_messages(with_categories=true) %}
+              {% if messages %}
+                {% for category, message in messages %}
+                  <div class="error">{{ message }}</div>
+                {% endfor %}
+              {% endif %}
+            {% endwith %}
 
-        <form method="POST">
-            <div class="feld"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg><input type="text" name="username" placeholder="Benutzername" required autocomplete="username"></div>
-            <div class="feld"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg><input type="password" name="password" placeholder="Passwort" required autocomplete="current-password"></div>
-            <button type="submit">Einloggen</button>
-        </form>
-        <p class="fuss">© 2026 KG-Gebäudereinigung</p>
-    </div>
+            <form method="POST">
+                <label for="benutzer">Benutzername</label>
+                <input id="benutzer" type="text" name="username" placeholder="Benutzername" required autocomplete="username">
+                <label for="passwort">Passwort</label>
+                <input id="passwort" type="password" name="password" placeholder="Passwort" required autocomplete="current-password">
+                <button type="submit">Einloggen</button>
+            </form>
+            <p class="fuss">© 2026 KG-Gebäudereinigung</p>
+        </div>
+    </main>
 </body>
 </html>

@@ -821,252 +821,108 @@ body{
     box-shadow: 0 4px 10px rgba(15,23,42,0.08);
 }
 
-/* ===== PREMIUM (einheitliches Design) ===== */
-.content > .section-head{
-    position:relative;
-    overflow:hidden;
-    padding:26px 28px;
-    border-radius:24px;
-    color:#ffffff;
-    background:radial-gradient(520px 230px at 90% -20%, rgba(255,255,255,.26), transparent 60%),
-               radial-gradient(420px 220px at 0% 120%, rgba(56,189,248,.25), transparent 60%),
-               linear-gradient(135deg,#1e40af,#2563eb);
-    box-shadow:0 24px 50px -28px rgba(29,78,216,.7);
-}
-.content > .section-head::after{
-    content:"";
-    position:absolute;
-    right:-60px;
-    top:-90px;
-    width:260px;
-    height:260px;
-    border-radius:50%;
-    background:rgba(255,255,255,.08);
-    pointer-events:none;
-}
-.content > .section-head h2{ color:#ffffff; font-size:30px; letter-spacing:-1px; }
-.content > .section-head p{ color:#dbeafe; font-weight:600; }
-.bd-kicker{
-    display:block;
-    margin-bottom:6px;
-    font-size:11.5px;
-    font-weight:800;
-    letter-spacing:1.4px;
-    text-transform:uppercase;
-    color:#bfdbfe;
-}
-.content > .section-head .back-btn,
-.detail-topline .back-btn{
-    background:rgba(255,255,255,.16);
-    border:1px solid rgba(255,255,255,.3);
-    box-shadow:0 10px 22px -14px rgba(15,23,42,.6);
-    transition:translate .2s, background-color .2s;
-}
-.content > .section-head .back-btn:hover,
-.detail-topline .back-btn:hover{ translate:-2px 0; background:rgba(255,255,255,.26); }
-
-.bd-kpis{
-    display:grid;
-    grid-template-columns:repeat(4,minmax(0,1fr));
-    gap:14px;
-    margin:0 0 18px;
-}
-.bd-kpi{
-    display:flex;
-    align-items:center;
-    gap:14px;
-    min-width:0;
-    background:#ffffff;
-    border:1px solid #e6ebf2;
-    border-radius:20px;
-    padding:16px 18px;
-    box-shadow:0 18px 40px -30px rgba(15,23,42,.45);
-    transition:translate .2s, box-shadow .2s;
-}
-.bd-kpi:hover{ translate:0 -2px; box-shadow:0 22px 44px -28px rgba(15,23,42,.5); }
-.bd-ico{
-    flex:0 0 38px;
-    width:38px;
-    height:38px;
-    border-radius:12px;
-    display:grid;
-    place-items:center;
-    background:linear-gradient(135deg,#3b82f6,#1d4ed8);
-    box-shadow:0 10px 20px -10px rgba(29,78,216,.8);
-}
-.bd-ico svg{ width:19px; height:19px; fill:none; stroke:#ffffff; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
-.bd-ico.lila{ background:linear-gradient(135deg,#7c3aed,#6d28d9); box-shadow:0 10px 20px -10px rgba(109,40,217,.8); }
-.bd-ico.cyan{ background:linear-gradient(135deg,#0891b2,#0e7490); box-shadow:0 10px 20px -10px rgba(14,116,144,.8); }
-.bd-ico.gruen{ background:linear-gradient(135deg,#16a34a,#15803d); box-shadow:0 10px 20px -10px rgba(21,128,61,.8); }
-.bd-kpi-text{ min-width:0; }
-.bd-kpi-text b{ display:block; font-size:28px; line-height:1; font-weight:900; letter-spacing:-1px; color:#0f172a; font-variant-numeric:tabular-nums; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-.bd-kpi-text b.bd-klein{ font-size:17px; letter-spacing:-.3px; line-height:1.2; }
-.bd-kpi-text span{ display:block; margin-top:5px; font-size:11.5px; font-weight:800; letter-spacing:1px; text-transform:uppercase; color:#64748b; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+/* ===== PREMIUM V2 „Graphit“ ===== */
+.page-shell{ background:transparent; border:0; border-radius:0; box-shadow:none; min-height:0; overflow:visible; }
+.content, .detail-content{ padding:0; background:transparent; min-height:0; }
+.page-shell .v2-eyebrow{ display:inline-flex; align-items:center; gap:8px; margin-bottom:8px; font-size:12px; font-weight:700; color:#6b7280; letter-spacing:.01em; }
+.page-shell .v2-eyebrow i{ display:inline-block; width:8px; height:8px; border-radius:2px; background:#0d9488; }
+.section-head, .detail-topline{ align-items:flex-end; padding:6px 0 20px; margin-bottom:20px; border-bottom:1px solid #e5e7eb; }
+.section-head h2, .detail-title-text h1{ font-size:30px; line-height:1.15; font-weight:800; color:#111827; letter-spacing:-.02em; }
+.section-head p, .detail-title-text p{ margin-top:6px; font-size:14px; font-weight:500; color:#6b7280; }
+.back-btn{ width:40px; height:40px; border-radius:10px; border:1px solid #d1d5db; background:#fff; color:#111827; font-size:18px; font-weight:700; box-shadow:none; transition:background-color .15s ease, border-color .15s ease; flex:0 0 40px; }
+.back-btn:hover{ background:#f9fafb; border-color:#9ca3af; }
+.detail-title-wrap{ align-items:center; gap:14px; }
 
 .branchen-grid{ gap:14px; }
-.branche-card{
-    border:1px solid #e6ebf2;
-    border-radius:24px;
-    background:#ffffff;
-    box-shadow:0 18px 40px -30px rgba(15,23,42,.45);
-    transition:translate .2s, box-shadow .2s, border-color .2s;
-    animation:kgRein .6s cubic-bezier(.22,1,.36,1) backwards;
-    animation-delay:calc(var(--i,0) * 50ms + 150ms);
-}
-.branche-card:before{ height:3px; opacity:.9; }
-.branche-card:hover{
-    transform:none;
-    translate:0 -4px;
-    border-color:#bfdbfe;
-    box-shadow:0 26px 48px -28px rgba(29,78,216,.45);
-}
-.branche-card:nth-child(2){--i:1} .branche-card:nth-child(3){--i:2} .branche-card:nth-child(4){--i:3}
-.branche-card:nth-child(5){--i:4} .branche-card:nth-child(6){--i:5} .branche-card:nth-child(7){--i:6}
-.branche-card:nth-child(8){--i:7} .branche-card:nth-child(9){--i:8} .branche-card:nth-child(10){--i:9}
-.branche-card:nth-child(11){--i:10} .branche-card:nth-child(n+12){--i:11}
-.category-number{
-    width:38px;
-    height:38px;
-    border-radius:12px;
-    font-size:14px;
-    color:#ffffff;
-    border:0;
-    background:linear-gradient(135deg,#3b82f6,#1d4ed8);
-    box-shadow:0 10px 20px -10px rgba(29,78,216,.8);
-}
-.open-pill{
-    background:#eff6ff;
-    border-color:#dbeafe;
-    padding:7px 11px;
-    font-weight:800;
-    transition:background-color .2s, color .2s;
-}
-.branche-card:hover .open-pill{ background:#2563eb; border-color:#2563eb; color:#ffffff; }
-.branche-head{ color:#0f172a; font-size:15.5px; }
-.branche-text{ color:#64748b; }
-.branche-count{
-    background:#f8fbff;
-    border:1px solid #e6edf7;
-    color:#1d4ed8;
-    font-weight:800;
-}
+.branche-card{ min-height:220px; padding:16px; gap:12px; border-radius:14px; border:1px solid #e5e7eb; background:#fff; box-shadow:0 1px 2px rgba(16,24,40,.05); transition:border-color .15s ease, box-shadow .15s ease; }
+.branche-card:before{ display:none; }
+.branche-card:hover{ transform:none; border-color:#d1d5db; box-shadow:0 8px 24px -12px rgba(16,24,40,.18); }
+.category-number{ width:28px; height:28px; border-radius:8px; border:0; background:#f3f4f6; color:#374151; font-size:12px; font-weight:700; font-variant-numeric:tabular-nums; }
+.open-pill{ border:0; background:transparent; color:#9ca3af; padding:4px 0; font-size:12px; font-weight:600; transition:color .15s ease; }
+.branche-card:hover .open-pill{ color:#111827; }
+.branche-head{ font-size:15px; font-weight:700; color:#111827; letter-spacing:-.01em; min-height:38px; }
+.branche-text{ font-size:12.5px; line-height:1.5; font-weight:500; color:#6b7280; }
+.branche-count{ justify-content:flex-start; gap:8px; text-align:left; min-height:0; padding:12px 0 0; border:0; border-top:1px solid #f0f1f4; border-radius:0; background:transparent; color:#374151; font-size:12px; font-weight:600; }
+.branche-count:before{ content:""; width:6px; height:6px; flex:0 0 6px; border-radius:2px; background:#0d9488; }
 
-.detail-topline{
-    position:relative;
-    overflow:hidden;
-    padding:24px 26px;
-    border-radius:24px;
-    background:radial-gradient(520px 230px at 90% -20%, rgba(255,255,255,.26), transparent 60%),
-               radial-gradient(420px 220px at 0% 120%, rgba(56,189,248,.25), transparent 60%),
-               linear-gradient(135deg,#1e40af,#2563eb);
-    box-shadow:0 24px 50px -28px rgba(29,78,216,.7);
-}
-.detail-title-text h1{ color:#ffffff; font-size:28px; letter-spacing:-.8px; }
-.detail-title-text p{ color:#dbeafe; font-weight:600; }
-.add-company-btn{
-    border-radius:14px;
-    background:linear-gradient(135deg,#16a34a,#15803d);
-    box-shadow:0 14px 26px -14px rgba(5,46,22,.9);
-    transition:translate .2s, box-shadow .2s;
-}
-.add-company-btn:hover{ translate:0 -2px; box-shadow:0 20px 32px -14px rgba(5,46,22,.9); }
-.detail-filter-card{
-    border:1px solid #e6ebf2;
-    border-radius:24px;
-    box-shadow:0 18px 40px -30px rgba(15,23,42,.45);
-}
-.detail-filter-row input,
-.detail-filter-row select{
-    border:1.5px solid #dbe3ef;
-    background:#f8fbff;
-    border-radius:14px;
-    font-weight:700;
-    transition:border-color .2s, box-shadow .2s, background-color .2s;
-}
-.detail-filter-row input:focus,
-.detail-filter-row select:focus{ border-color:#2563eb; background:#ffffff; box-shadow:0 0 0 4px rgba(37,99,235,.12); }
-.kg-filter-btn{
-    border-radius:14px;
-    background:linear-gradient(135deg,#3b82f6,#1d4ed8);
-    box-shadow:0 12px 22px -14px rgba(29,78,216,.85);
-    transition:translate .2s, box-shadow .2s;
-}
-.kg-filter-btn:hover{ translate:0 -2px; box-shadow:0 18px 28px -14px rgba(29,78,216,.85); }
-.kg-filter-reset{ color:#2563eb; text-decoration:none; }
-.kg-seiten a{
-    border-radius:12px;
-    border-color:#e6ebf2;
-    font-weight:800;
-    box-shadow:0 10px 20px -16px rgba(15,23,42,.5);
-    transition:translate .2s, box-shadow .2s;
-}
-.kg-seiten a:hover{ translate:0 -2px; box-shadow:0 16px 26px -16px rgba(15,23,42,.5); }
+.add-company-btn{ height:40px; padding:0 16px; border:1px solid #111827; border-radius:10px; background:#111827; color:#fff; font-size:13.5px; font-weight:700; box-shadow:none; transition:background-color .15s ease; }
+.add-company-btn:hover{ background:#000; }
+
+.page-shell .v2-bd-kpis{ display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:16px; margin-bottom:20px; }
+.page-shell .v2-kpi{ min-width:0; display:flex; flex-direction:column; gap:6px; padding:16px 18px; background:#fff; border:1px solid #e5e7eb; border-radius:14px; box-shadow:0 1px 2px rgba(16,24,40,.05); }
+.page-shell .v2-kpi-kopf{ display:flex; align-items:center; justify-content:space-between; gap:8px; font-size:13px; font-weight:600; color:#6b7280; }
+.page-shell .v2-kpi-kopf svg{ width:18px; height:18px; flex:0 0 18px; fill:none; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
+.page-shell .v2-kpi-wert{ font-size:30px; line-height:1.1; font-weight:800; color:#111827; letter-spacing:-.02em; font-variant-numeric:tabular-nums; }
+.page-shell .v2-kpi-wert small{ margin-left:4px; font-size:14px; font-weight:700; color:#6b7280; letter-spacing:0; }
+.page-shell .v2-kpi-fuss{ display:flex; align-items:center; gap:10px; min-height:30px; font-size:12px; font-weight:600; color:#6b7280; font-variant-numeric:tabular-nums; }
+.page-shell .v2-stapel{ display:flex; gap:2px; flex:1; height:6px; border-radius:3px; background:#f3f4f6; overflow:hidden; }
+.page-shell .v2-stapel span{ display:block; height:100%; border-radius:2px; }
+.page-shell .v2-ring{ width:30px; height:30px; flex:0 0 30px; transform:rotate(-90deg); }
+.page-shell .v2-ring circle{ fill:none; stroke-width:4; }
+.page-shell .v2-ring .v2-wert{ stroke-linecap:round; }
+.page-shell .v2-track{ stroke:#eef0f3; }
+.page-shell .v2-start .v2-kpi{ animation:v2BdAuf .5s cubic-bezier(.2,.8,.2,1) backwards; }
+.page-shell .v2-start .v2-kpi:nth-child(2){ animation-delay:.05s; }
+.page-shell .v2-start .v2-kpi:nth-child(3){ animation-delay:.1s; }
+.page-shell .v2-start .v2-kpi:nth-child(4){ animation-delay:.15s; }
+.page-shell .v2-start .v2-stapel span{ animation:v2BdBreite .9s cubic-bezier(.2,.8,.2,1) .15s backwards; }
+.page-shell .v2-start .v2-ring .v2-wert{ animation:v2BdRing 1s cubic-bezier(.2,.8,.2,1) .15s backwards; }
+@keyframes v2BdAuf{ from{ opacity:0; transform:translateY(6px); } }
+@keyframes v2BdBreite{ from{ width:0; } }
+@keyframes v2BdRing{ from{ stroke-dasharray:0 100; } }
+
+.detail-filter-card{ border:1px solid #e5e7eb; border-radius:14px; box-shadow:0 1px 2px rgba(16,24,40,.05); padding:16px; margin-bottom:20px; }
+.detail-filter-row input, .detail-filter-row select{ height:40px; padding:0 12px; border:1px solid #d1d5db; border-radius:10px; background:#fff; font-size:14px; font-weight:500; color:#111827; transition:border-color .15s ease, box-shadow .15s ease; }
+.detail-filter-row input:focus, .detail-filter-row select:focus{ border-color:#111827; box-shadow:0 0 0 3px rgba(17,24,39,.10); }
+.detail-filter-row input::placeholder{ color:#9ca3af; }
+.kg-filter-btn{ height:40px; min-height:40px; padding:0 18px; border:1px solid #111827; border-radius:10px; background:#111827; color:#fff; font-size:13.5px; font-weight:700; transition:background-color .15s ease; }
+.kg-filter-btn:hover{ background:#000; }
+.kg-filter-reset{ color:#2563eb; font-size:13px; font-weight:600; text-decoration:none; }
+.kg-filter-reset:hover{ text-decoration:underline; }
+.kg-seiten{ font-size:13px; font-weight:600; color:#6b7280; font-variant-numeric:tabular-nums; }
+.kg-seiten a{ display:inline-flex; align-items:center; height:36px; padding:0 14px; border-radius:10px; border:1px solid #d1d5db; background:#fff; color:#111827; font-weight:700; }
+.kg-seiten a:hover{ background:#f9fafb; border-color:#9ca3af; }
 
 .company-list{ gap:10px; }
-.company-card{
-    border:1px solid #e6ebf2;
-    border-radius:20px;
-    box-shadow:0 14px 32px -28px rgba(15,23,42,.5);
-    transition:border-color .2s, box-shadow .2s, translate .2s;
-}
-.company-card:hover{
-    transform:none;
-    translate:0 -2px;
-    border-color:#bfdbfe;
-    box-shadow:0 20px 38px -26px rgba(29,78,216,.45);
-}
-.company-card.open{ border-color:#bfdbfe; }
-.drag-handle{ border-radius:14px; border-color:#e6ebf2; background:#f8fbff; transition:background-color .2s, color .2s; }
-.drag-handle:hover{ background:#eff6ff; color:#1d4ed8; }
-.company-branch-badge{ background:#dbeafe; border-color:#dbeafe; font-weight:800; }
-.company-name{ font-size:17.5px; }
-.daily-add-btn{
-    border-radius:14px;
-    background:linear-gradient(135deg,#16a34a,#15803d);
-    box-shadow:0 12px 22px -14px rgba(21,128,61,.85);
-    transition:translate .2s, box-shadow .2s, background-color .2s;
-}
-.daily-add-btn:hover{ transform:none; translate:0 -2px; box-shadow:0 18px 28px -14px rgba(21,128,61,.85); }
-.daily-add-btn.added{ background:#047857; }
-.company-delete-btn{ border-radius:14px; transition:background-color .2s, color .2s, translate .2s; }
-.company-delete-btn:hover{ translate:0 -2px; }
-.company-open-icon{ border-radius:12px; border-color:#e6ebf2; background:#eff6ff; }
-.detail-inner{ border-top-color:#e6ebf2; }
-.detail-box{ background:#f8fbff; border-color:#e6edf7; border-radius:16px; }
-.detail-edit-input{ border:1.5px solid #dbe3ef; border-radius:12px; transition:border-color .2s, box-shadow .2s; }
-.detail-edit-input:focus{ box-shadow:0 0 0 4px rgba(37,99,235,.12); }
-.maps-open-btn{ transition:translate .2s, background-color .2s; }
-.maps-open-btn:hover{ translate:0 -1px; }
-.empty-state{ border-color:#dbe3ef; background:#f8fbff; border-radius:24px; }
+.company-card{ border:1px solid #e5e7eb; border-radius:12px; box-shadow:0 1px 2px rgba(16,24,40,.05); transition:border-color .15s ease, box-shadow .15s ease; }
+.company-card:before{ display:none; }
+.company-card:hover{ transform:none; border-color:#d1d5db; box-shadow:0 8px 24px -14px rgba(16,24,40,.2); }
+.company-card.sortable-chosen{ border-color:#111827; box-shadow:0 12px 28px -12px rgba(16,24,40,.25); }
+.company-summary{ padding:12px 14px; }
+.drag-handle{ width:36px; height:36px; border-radius:10px; border:1px solid #e5e7eb; background:#fff; color:#9ca3af; font-size:18px; font-weight:700; }
+.drag-handle:hover{ color:#111827; border-color:#d1d5db; }
+.company-branch-badge{ border:0; border-radius:6px; padding:3px 8px; background:#f3f4f6; color:#4b5563; font-size:11.5px; font-weight:600; margin-bottom:6px; }
+.company-name{ font-size:16px; font-weight:700; color:#111827; letter-spacing:-.01em; }
+.company-line{ margin-top:4px; font-size:13px; font-weight:500; color:#6b7280; }
+.daily-add-btn{ min-height:36px; border:1px solid #a7f3d0; border-radius:10px; background:#ecfdf5; color:#047857; font-size:12.5px; font-weight:700; box-shadow:none; transition:background-color .15s ease, border-color .15s ease; }
+.daily-add-btn:hover{ transform:none; box-shadow:none; background:#d1fae5; }
+.daily-add-btn.added{ background:#fff; border-color:#e5e7eb; color:#047857; }
+.company-delete-btn{ width:36px; height:36px; border-radius:10px; border:1px solid #fecaca; background:#fef2f2; color:#b91c1c; font-size:14px; }
+.company-delete-btn:hover{ background:#fee2e2; color:#b91c1c; }
+.company-open-icon{ width:32px; height:32px; border-radius:8px; border:1px solid #e5e7eb; background:#fff; color:#6b7280; font-size:16px; }
+.company-details{ padding:0 14px 14px 78px; }
+.detail-inner{ border-top:1px solid #f0f1f4; padding-top:14px; }
+.detail-box{ background:#f9fafb; border:1px solid #f0f1f4; border-radius:10px; padding:12px; min-height:0; }
+.detail-label{ font-size:12px; line-height:1.2; text-transform:none; letter-spacing:0; font-weight:600; color:#6b7280; }
+.detail-edit-input{ height:38px; padding:0 10px; border:1px solid #d1d5db; border-radius:8px; background:#fff; font-size:13.5px; font-weight:500; color:#111827; }
+.detail-edit-input:focus{ border-color:#111827; box-shadow:0 0 0 3px rgba(17,24,39,.10); }
+.maps-open-btn{ height:36px; padding:0 12px; border:1px solid #d1d5db; border-radius:8px; background:#fff; color:#111827; font-size:12.5px; font-weight:700; box-shadow:none; }
+.maps-open-btn:hover{ background:#f9fafb; border-color:#9ca3af; }
+.maps-logo{ width:auto; height:auto; background:transparent; box-shadow:none; font-size:14px; }
+.empty-state{ border:1px dashed #e5e7eb; border-radius:14px; background:#fff; padding:36px 24px; color:#6b7280; font-size:14px; font-weight:500; }
+.empty-state strong{ color:#111827; font-size:15px; font-weight:700; margin-bottom:6px; }
+.empty-state:before{ content:""; display:block; width:24px; height:24px; margin:0 auto 10px; background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%239ca3af' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='M21 21l-4.3-4.3'/%3E%3C/svg%3E") center / contain no-repeat; }
 
-.content > .section-head,
-.bd-kpis,
-.detail-topline,
-.detail-filter-card,
-#companyList,
-.kg-seiten{
-    animation:kgRein .6s cubic-bezier(.22,1,.36,1) backwards;
-    animation-delay:calc(var(--i,0) * 70ms);
-}
-.bd-kpis{ --i:1; }
-.detail-filter-card{ --i:1; }
-#companyList{ --i:2; }
-.kg-seiten{ --i:3; }
-@keyframes kgRein{ from{ opacity:0; transform:translateY(14px); } to{ opacity:1; transform:none; } }
-@media(max-width:1100px){
-    .bd-kpis{ grid-template-columns:repeat(2,minmax(0,1fr)); }
-}
-@media(max-width:800px){
-    .content > .section-head{ padding:20px; }
-    .content > .section-head h2{ font-size:24px; }
-    .detail-topline{ padding:18px; }
-}
-@media(max-width:520px){
-    .bd-kpis{ grid-template-columns:1fr; }
-}
-@media (prefers-reduced-motion: reduce){
-    .content > .section-head, .bd-kpis, .detail-topline, .detail-filter-card, #companyList, .kg-seiten, .branche-card{ animation:none; }
-}
+html[data-kg-x="on"] .add-company-btn, html[data-kg-x="on"] .kg-filter-btn{ background:#2563eb !important; border-color:#2563eb !important; color:#fff !important; }
+html[data-kg-x="on"] .add-company-btn:hover, html[data-kg-x="on"] .kg-filter-btn:hover{ background:#1d4ed8 !important; border-color:#1d4ed8 !important; }
+html[data-kg-x="on"] .company-card.sortable-chosen{ border-color:#60a5fa !important; }
+html[data-kg-x="on"] .detail-filter-row input:focus, html[data-kg-x="on"] .detail-filter-row select:focus, html[data-kg-x="on"] .detail-edit-input:focus{ border-color:#60a5fa !important; box-shadow:0 0 0 3px rgba(96,165,250,.18); }
+html[data-kg-x="on"] .page-shell .v2-track{ stroke:rgba(148,163,184,.18); }
+@media(max-width:1100px){ .page-shell .v2-bd-kpis{ grid-template-columns:repeat(2,minmax(0,1fr)); } }
+@media(max-width:900px){ .company-summary{ grid-template-columns:40px minmax(0,1fr) 148px 36px 32px; gap:12px; } .company-details{ padding-left:66px; } }
+@media(max-width:800px){ .company-summary{ grid-template-columns:42px minmax(0,1fr) 34px; } .company-details{ padding:0 14px 14px 68px; } .section-head h2, .detail-title-text h1{ font-size:24px; } .detail-topline{ align-items:flex-start; } }
+@media(max-width:560px){ .page-shell .v2-bd-kpis{ grid-template-columns:1fr; } }
+@media(prefers-reduced-motion:reduce){ .page-shell .v2-start .v2-kpi, .page-shell .v2-start .v2-stapel span, .page-shell .v2-start .v2-ring .v2-wert{ animation:none; } }
 
 </style>
 </head>
@@ -1079,25 +935,12 @@ body{
     <div style="display:flex; align-items:center; gap:12px;">
         <button class="back-btn" type="button" onclick="window.location.href='/datenbank'">←</button>
         <div>
-            <span class="bd-kicker">Datenbank · Branchen</span>
+            <div class="v2-eyebrow"><i></i>Datenbank · Branchen</div>
             <h2>Branchen-Auswahl</h2>
             <p>Ein Klick auf eine Box öffnet die Firmenliste der jeweiligen Branche.</p>
         </div>
     </div>
 </div>
-
-            {% if not branche %}
-            <section class="bd-kpis" aria-label="Kennzahlen der Datenbank">
-                <div class="bd-kpi"><span class="bd-ico"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg></span>
-                    <div class="bd-kpi-text"><b>{{ kaesten|length }}</b><span>Branchen-Gruppen</span></div></div>
-                <div class="bd-kpi"><span class="bd-ico cyan"><svg viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v6c0 1.7 3.6 3 8 3s8-1.3 8-3V5M4 11v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6"/></svg></span>
-                    <div class="bd-kpi-text"><b>{{ "{:,}".format(gesamt|int).replace(",", ".") }}</b><span>Firmen in der Datenbank</span></div></div>
-                <div class="bd-kpi"><span class="bd-ico lila"><svg viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></span>
-                    <div class="bd-kpi-text"><b>{{ berufe|length }}{% if berufe|length >= 100 %}+{% endif %}</b><span>Berufe</span></div></div>
-                <div class="bd-kpi"><span class="bd-ico gruen"><svg viewBox="0 0 24 24"><path d="M12 2l3 6.5 7 .8-5.2 4.8 1.5 7L12 17.6 5.7 21l1.5-7L2 9.3l7-.8z"/></svg></span>
-                    <div class="bd-kpi-text">{% if berufe %}<b class="bd-klein" title="{{ berufe[0].beruf }}">{{ berufe[0].beruf }}</b><span>Häufigster Beruf · {{ berufe[0].n }}</span>{% else %}<b>–</b><span>Häufigster Beruf</span>{% endif %}</div></div>
-            </section>
-            {% endif %}
 
             <section class="branchen-grid" id="branchenGrid"></section>
         </main>
@@ -1109,12 +952,43 @@ body{
                 <div class="detail-title-wrap">
                     <button class="back-btn" onclick="showMainView()">←</button>
                     <div class="detail-title-text">
+                        <div class="v2-eyebrow"><i></i>Datenbank · Branche</div>
                         <h1 id="detailTitle">Büro & Verwaltung</h1>
                         <p id="detailSub">Eigene Firmenliste dieser Branchengruppe</p>
                     </div>
                 </div>
                 <button class="add-company-btn" type="button" onclick="manualCompanyAdd()">+ Firma hinzufügen</button>
             </div>
+
+            {# PREMIUM V2: Kennzahlen nur aus den schon geladenen Firmen dieser Seite #}
+            {% set v2leads = leads | default([]) %}{% set v2l = v2leads | length %}
+            {% set v2top = (berufe | default([]))[:5] %}{% set v2tn = namespace(s=0) %}{% for b in v2top %}{% set v2tn.s = v2tn.s + b.n %}{% endfor %}
+            <section class="v2-bd-kpis v2-start" data-v2-bd-kpis aria-label="Kennzahlen dieser Branche">
+                <div class="v2-kpi">
+                    <div class="v2-kpi-kopf"><span>Firmen</span><svg viewBox="0 0 24 24" stroke="#0d9488" aria-hidden="true"><path d="M3 21h18"/><path d="M5 21V7l7-4 7 4v14"/><path d="M9 21v-6h6v6"/></svg></div>
+                    <div class="v2-kpi-wert">{{ gesamt }}</div>
+                    <div class="v2-kpi-fuss"><div class="v2-stapel" title="{% for b in v2top %}{{ b.beruf }}: {{ b.n }}{{ ' · ' if not loop.last }}{% endfor %}">{% set v2farben = ['#0d9488', '#2563eb', '#7c3aed', '#d97706', '#64748b'] %}{% for b in v2top %}<span style="width:{{ 100 * b.n / (v2tn.s or 1) }}%;background:{{ v2farben[loop.index0] }}"></span>{% endfor %}</div><span>{{ (berufe | default([])) | length }} Berufe</span></div>
+                </div>
+                <div class="v2-kpi">
+                    <div class="v2-kpi-kopf"><span>Mit Telefon</span><svg viewBox="0 0 24 24" stroke="#2563eb" aria-hidden="true"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/></svg></div>
+                    {% set v2z = v2leads | selectattr("telefon") | list | length %}{% set v2p = ((100 * v2z / v2l) | round | int) if v2l else 0 %}
+                    <div class="v2-kpi-wert">{{ v2z }}<small>{{ v2p }} %</small></div>
+                    <div class="v2-kpi-fuss"><svg class="v2-ring" viewBox="0 0 36 36" aria-hidden="true"><circle class="v2-track" cx="18" cy="18" r="14" pathLength="100"/><circle class="v2-wert" cx="18" cy="18" r="14" pathLength="100" stroke="#2563eb" stroke-dasharray="{{ [v2p - 0.5, 1] | max if v2p else 0 }} 100"/></svg><span>von {{ v2l }} auf dieser Seite</span></div>
+                </div>
+                <div class="v2-kpi">
+                    <div class="v2-kpi-kopf"><span>Mit E-Mail</span><svg viewBox="0 0 24 24" stroke="#7c3aed" aria-hidden="true"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M22 7l-10 6L2 7"/></svg></div>
+                    {% set v2z = v2leads | selectattr("email") | list | length %}{% set v2p = ((100 * v2z / v2l) | round | int) if v2l else 0 %}
+                    <div class="v2-kpi-wert">{{ v2z }}<small>{{ v2p }} %</small></div>
+                    <div class="v2-kpi-fuss"><svg class="v2-ring" viewBox="0 0 36 36" aria-hidden="true"><circle class="v2-track" cx="18" cy="18" r="14" pathLength="100"/><circle class="v2-wert" cx="18" cy="18" r="14" pathLength="100" stroke="#7c3aed" stroke-dasharray="{{ [v2p - 0.5, 1] | max if v2p else 0 }} 100"/></svg><span>von {{ v2l }} auf dieser Seite</span></div>
+                </div>
+                <div class="v2-kpi">
+                    <div class="v2-kpi-kopf"><span>Mit Webseite</span><svg viewBox="0 0 24 24" stroke="#d97706" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3a14 14 0 0 1 0 18a14 14 0 0 1 0-18z"/></svg></div>
+                    {% set v2z = v2leads | selectattr("website") | list | length %}{% set v2p = ((100 * v2z / v2l) | round | int) if v2l else 0 %}
+                    <div class="v2-kpi-wert">{{ v2z }}<small>{{ v2p }} %</small></div>
+                    <div class="v2-kpi-fuss"><svg class="v2-ring" viewBox="0 0 36 36" aria-hidden="true"><circle class="v2-track" cx="18" cy="18" r="14" pathLength="100"/><circle class="v2-wert" cx="18" cy="18" r="14" pathLength="100" stroke="#d97706" stroke-dasharray="{{ [v2p - 0.5, 1] | max if v2p else 0 }} 100"/></svg><span>von {{ v2l }} auf dieser Seite</span></div>
+                </div>
+            </section>
+            <script>setTimeout(function () { var k = document.querySelector('[data-v2-bd-kpis]'); if (k) k.classList.remove('v2-start'); }, 1500);</script>
 
             <section class="detail-filter-card">
                 <form class="detail-filter-row kg-filter-form" method="get" action="/branche-detail">

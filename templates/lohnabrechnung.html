@@ -23,73 +23,110 @@
   .lo-msg.ok { color: #15803d; } .lo-msg.err { color: #b91c1c; }
   .lo-hint { font-size: 13px; color: #475569; line-height: 1.55; }
   .lo-tablewrap { overflow-x: auto; }
-  /* ===== PREMIUM (einheitliches Design) ===== */
-  @keyframes kgRein { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
-  @keyframes e2Bogen { from { stroke-dashoffset: 100; } }
-  .lo-wrap { font-family: inherit; }
-  .lo-head { position: relative; overflow: hidden; border-radius: 24px; padding: 26px 28px;
-             background: radial-gradient(520px 230px at 90% -20%, rgba(255,255,255,.26), transparent 60%), radial-gradient(420px 220px at 0% 120%, rgba(56,189,248,.25), transparent 60%), linear-gradient(135deg, #1e40af, #2563eb);
-             box-shadow: 0 24px 50px -28px rgba(29,78,216,.7); }
-  .lo-head .e2-lbl { display: block; font-size: 11.5px; font-weight: 800; letter-spacing: 1.4px; text-transform: uppercase; color: #bfdbfe; margin-bottom: 6px; }
-  .lo-head h1 { font-size: 30px; font-weight: 900; letter-spacing: -.8px; line-height: 1.15; color: #fff; }
-  .lo-head p { color: #dbeafe; font-weight: 600; font-size: 13.5px; margin-top: 8px; max-width: 860px; }
-  .e2-lo-kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; margin-top: 16px; }
-  .e2-lo-k { display: grid; grid-template-columns: 38px minmax(0, 1fr) auto; column-gap: 12px; align-items: center; background: #fff; border: 1px solid #e6ebf2; border-radius: 22px; padding: 18px 18px 16px; box-shadow: 0 18px 40px -30px rgba(15,23,42,.45); transition: translate .2s, box-shadow .2s; }
-  .e2-lo-k:hover { translate: 0 -2px; box-shadow: 0 22px 44px -28px rgba(15,23,42,.5); }
-  .e2-lo-k > i { grid-column: 1; grid-row: 1 / span 2; width: 38px; height: 38px; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 15px; font-style: normal; background: linear-gradient(135deg, #3b82f6, #1d4ed8); box-shadow: 0 8px 16px -8px rgba(29,78,216,.7); }
-  .e2-lo-k > i.gruen { background: linear-gradient(135deg, #16a34a, #15803d); box-shadow: 0 8px 16px -8px rgba(22,163,74,.7); }
-  .e2-lo-k > i.orange { background: linear-gradient(135deg, #f59e0b, #d97706); box-shadow: 0 8px 16px -8px rgba(245,158,11,.7); }
-  .e2-lo-k > i.rot { background: linear-gradient(135deg, #ef4444, #dc2626); box-shadow: 0 8px 16px -8px rgba(239,68,68,.7); }
-  .e2-lo-k > small { grid-column: 2; grid-row: 1; font-size: 11.5px; font-weight: 800; letter-spacing: 1.2px; text-transform: uppercase; color: #64748b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .e2-lo-k > b { grid-column: 2; grid-row: 2; font-size: 27px; font-weight: 900; letter-spacing: -.8px; line-height: 1.15; color: #1d4ed8; white-space: nowrap; }
-  .e2-lo-k > em { grid-column: 1 / -1; grid-row: 3; margin-top: 10px; padding-top: 10px; border-top: 1px solid #eef2f7; font-style: normal; font-size: 12.5px; font-weight: 700; color: #64748b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .e2-lo-k.gruen > b { color: #15803d; } .e2-lo-k.orange > b { color: #b45309; } .e2-lo-k.rot > b { color: #dc2626; }
-  .e2-lo-k > .e2-graf { grid-column: 3; grid-row: 1 / span 2; position: relative; width: 52px; height: 52px; color: #0f172a; }
-  .e2-graf svg { display: block; width: 100%; height: 100%; overflow: visible; }
-  .e2-graf .e2-spur { fill: none; stroke: rgba(148,163,184,.25); }
-  .e2-graf .e2-bogen { fill: none; stroke-linecap: round; animation: e2Bogen 1.1s cubic-bezier(.22,1,.36,1) .25s backwards; }
-  .e2-graf .e2-mitte { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 11.5px; font-weight: 900; letter-spacing: -.3px; }
-  .lo-card { border: 1px solid #e6ebf2; border-radius: 22px; padding: 20px 22px; box-shadow: 0 18px 40px -30px rgba(15,23,42,.45); }
-  .lo-card h2 { font-size: 18px; font-weight: 900; letter-spacing: -.3px; color: #0f172a; }
-  .lo-row label { font-size: 11.5px; letter-spacing: 1px; text-transform: uppercase; color: #64748b; }
-  .lo-in { border: 1px solid #dbe3ef; border-radius: 12px; background: #fff; transition: border-color .2s, box-shadow .2s; }
-  .lo-in:focus { outline: none; border-color: #2563eb; box-shadow: 0 0 0 4px rgba(37,99,235,.12); }
-  .lo-btn { border-radius: 13px; font-weight: 900; background: linear-gradient(135deg, #3b82f6, #1d4ed8); box-shadow: 0 10px 20px -12px rgba(29,78,216,.75); transition: translate .2s, box-shadow .2s; }
-  .lo-btn.green { background: linear-gradient(135deg, #16a34a, #15803d); box-shadow: 0 10px 20px -12px rgba(22,163,74,.75); }
-  .lo-btn.grey { background: linear-gradient(135deg, #64748b, #475569); box-shadow: 0 10px 20px -12px rgba(71,85,105,.7); }
-  .lo-btn.red { background: linear-gradient(135deg, #ef4444, #dc2626); box-shadow: 0 10px 20px -12px rgba(220,38,38,.75); }
-  .lo-btn:not(:disabled):hover { translate: 0 -2px; box-shadow: 0 14px 24px -12px rgba(15,23,42,.55); }
-  .lo-tablewrap { margin-top: 12px; border: 1px solid #e6ebf2; border-radius: 18px; }
-  .lo-table { margin-top: 0; }
-  .lo-table th { background: #f8fafc; font-size: 11.5px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; color: #64748b; padding: 12px 12px; border-bottom: 1px solid #e6ebf2; }
-  .lo-table td { padding: 12px; border-bottom-color: #eef2f7; }
-  .lo-table tbody tr { transition: background-color .2s; }
-  .lo-table tbody tr:hover { background: #f8fbff; }
-  .lo-table tbody tr:last-child td { border-bottom: 0; }
-  .lo-pill { font-weight: 900; padding: 4px 11px; white-space: nowrap; }
-  .p-bereit { background: #dbeafe; color: #1d4ed8; } .p-gesendet { background: #dcfce7; color: #15803d; }
-  .p-passwort_fehlt, .p-email_fehlt { background: #fee2e2; color: #b91c1c; }
-  .lo-head, .e2-lo-k, .lo-card { animation: kgRein .6s cubic-bezier(.22,1,.36,1) backwards; animation-delay: calc(var(--i, 0) * 70ms); }
-  .e2-lo-k:nth-child(1) { --i: 1; } .e2-lo-k:nth-child(2) { --i: 2; } .e2-lo-k:nth-child(3) { --i: 3; } .e2-lo-k:nth-child(4) { --i: 4; }
-  .lo-card { --i: 5; } .lo-card + .lo-card { --i: 6; }
-  @media (max-width: 1000px) { .e2-lo-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-  @media (max-width: 700px) { .lo-head h1 { font-size: 23px; } .e2-lo-k { padding: 14px; } .e2-lo-k > b { font-size: 22px; } }
-  @media (prefers-reduced-motion: reduce) { .lo-head, .e2-lo-k, .lo-card, .e2-graf .e2-bogen { animation: none; } .lo-btn, .e2-lo-k { transition: none; } }
+  {% raw %}
+  /* ===== PREMIUM V2 „Graphit“ ===== */
+  .v2s-lohn { --g-ink:#111827; --g-muted:#6b7280; --g-line:#e5e7eb; font-family:inherit; padding:4px 4px 48px; font-variant-numeric:tabular-nums; }
+  /* Seitenkopf */
+  .v2s-lohn .lo-head { background:transparent; color:var(--g-ink); border-radius:0; padding:4px 0 20px; border-bottom:1px solid var(--g-line); margin-bottom:20px; }
+  .v2s-eyebrow { display:flex; align-items:center; gap:8px; font-size:12px; font-weight:700; color:#6b7280; margin:0 0 6px; letter-spacing:.01em; }
+  .v2s-eyebrow .v2s-q { width:8px; height:8px; border-radius:2px; background:#7c3aed; flex:none; }
+  .v2s-lohn .lo-head h1 { font-size:30px; font-weight:800; letter-spacing:-.02em; line-height:1.15; color:var(--g-ink); }
+  .v2s-lohn .lo-head p { margin:6px 0 0; color:var(--g-muted); font-size:14px; max-width:820px; }
+  /* KPI-Karten */
+  .v2s-kpis { display:grid; grid-template-columns:repeat(4, minmax(0, 1fr)); gap:14px; margin-bottom:8px; }
+  .v2s-kpi { position:relative; display:flex; flex-direction:column; min-width:0; background:#fff; border:1px solid var(--g-line); border-radius:14px; padding:16px 18px; box-shadow:0 1px 2px rgba(16,24,40,.05); }
+  .v2s-kpi small { font-size:13px; font-weight:600; color:var(--g-muted); padding-right:26px; }
+  .v2s-kpi > b { font-size:28px; font-weight:800; letter-spacing:-.02em; line-height:1.15; color:var(--g-ink); margin-top:6px; white-space:nowrap; }
+  .v2s-kpi > span { font-size:12.5px; font-weight:500; color:var(--g-muted); margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .v2s-ic { position:absolute; top:16px; right:16px; width:18px; height:18px; fill:none; stroke:var(--v2s-farbe, #7c3aed); stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
+  .v2s-viz { margin-top:auto; padding-top:12px; min-height:30px; }
+  .v2s-spur { display:flex; gap:2px; height:6px; border-radius:999px; overflow:hidden; background:#f0f1f4; }
+  .v2s-spur i { display:block; height:100%; min-width:3px; }
+  .v2s-linie { position:relative; height:4px; border-radius:999px; background:#f0f1f4; overflow:hidden; }
+  .v2s-linie i { position:absolute; left:0; top:0; bottom:0; border-radius:999px; }
+  .v2s-leg { display:flex; flex-wrap:wrap; gap:4px 10px; margin-top:8px; font-size:11px; font-weight:600; color:#6b7280; line-height:1.3; }
+  .v2s-leg em { font-style:normal; display:inline-flex; align-items:center; gap:5px; white-space:nowrap; }
+  .v2s-leg em:before { content:""; width:6px; height:6px; border-radius:2px; background:var(--f, #9ca3af); }
+  .v2s-leg b { font-weight:800; color:#374151; }
+  /* Karten und Formular */
+  .v2s-lohn .lo-card { border:1px solid var(--g-line); border-radius:14px; padding:18px 20px; margin-top:16px; box-shadow:0 1px 2px rgba(16,24,40,.05); }
+  .v2s-lohn .lo-card h2 { font-size:15px; font-weight:700; color:var(--g-ink); margin:0 0 14px; letter-spacing:-.01em; }
+  .v2s-lohn .lo-row { gap:12px; }
+  .v2s-lohn .lo-row label { font-size:12.5px; font-weight:600; color:var(--g-muted); margin-bottom:6px; }
+  .v2s-lohn .lo-in { height:40px; padding:0 12px; border:1px solid #d1d5db; border-radius:10px; background:#fff; font-size:14px; color:var(--g-ink); }
+  .v2s-lohn .lo-in[type=file] { padding:0 6px 0 4px; line-height:38px; color:#4b5563; }
+  .v2s-lohn .lo-in[type=file]::file-selector-button { height:30px; margin:0 10px 0 0; padding:0 12px; border:1px solid #d1d5db; border-radius:8px; background:#f9fafb; color:var(--g-ink); font:inherit; font-size:13px; font-weight:700; cursor:pointer; }
+  .v2s-lohn .lo-in:focus { outline:none; border-color:var(--g-ink); box-shadow:0 0 0 3px rgba(17,24,39,.10); }
+  .v2s-lohn .lo-btn { display:inline-flex; align-items:center; justify-content:center; min-height:40px; padding:0 16px; border:1px solid transparent; border-radius:10px; font-size:13.5px; font-weight:700; background:#111827; transition:background-color .15s, border-color .15s; }
+  .v2s-lohn .lo-btn:not(:disabled):hover { background:#000; }
+  .v2s-lohn .lo-btn.green { background:#ecfdf5; border-color:#a7f3d0; color:#047857; }
+  .v2s-lohn .lo-btn.green:not(:disabled):hover { background:#d1fae5; }
+  .v2s-lohn .lo-btn.red { background:#fef2f2; border-color:#fecaca; color:#b91c1c; }
+  .v2s-lohn .lo-btn.red:not(:disabled):hover { background:#fee2e2; }
+  .v2s-lohn .lo-btn.grey { background:#fff; border-color:#d1d5db; color:var(--g-ink); }
+  .v2s-lohn .lo-btn.grey:not(:disabled):hover { background:#f9fafb; }
+  .v2s-lohn .lo-table .lo-btn { min-height:32px; padding:0 12px; font-size:12.5px; }
+  .v2s-lohn .lo-table a.lo-btn { display:inline-flex !important; vertical-align:middle; }
+  .v2s-lohn .lo-table .lo-in { height:32px; font-size:13px; }
+  .v2s-lohn .lo-hint { font-size:13px; color:var(--g-muted); margin:0 0 6px; }
+  /* Tabelle */
+  .v2s-lohn .lo-table { font-size:13.5px; margin-top:12px; }
+  .v2s-lohn .lo-table th { font-size:12px; font-weight:600; color:var(--g-muted); padding:10px 10px; border-bottom:1px solid var(--g-line); white-space:nowrap; }
+  .v2s-lohn .lo-table td { padding:12px 10px; border-bottom:1px solid #f0f1f3; color:#374151; }
+  .v2s-lohn .lo-table td b { color:var(--g-ink); font-weight:700; }
+  .v2s-lohn .lo-table tbody tr { transition:background-color .15s; }
+  .v2s-lohn .lo-table tbody tr:hover { background:#f9fafb; }
+  .v2s-lohn .lo-table td:nth-child(3), .v2s-lohn .lo-table th:nth-child(3) { text-align:right; }
+  .v2s-lohn .lo-table td:last-child { text-align:right; }
+  .v2s-lohn .lo-table td small { color:#9ca3af; font-size:11.5px; }
+  .v2s-lohn .lo-table td[colspan] { text-align:center; padding:32px 10px; color:var(--g-muted); font-size:14px; border-bottom:0; }
+  .v2s-lohn .lo-table td[colspan]:before { content:""; display:block; width:22px; height:22px; margin:0 auto 8px; background:no-repeat center/contain url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%239ca3af' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z'/%3E%3Cpath d='M14 3v5h5'/%3E%3C/svg%3E"); }
+  .v2s-lohn .lo-table tbody tr:only-child:hover { background:transparent; }
+  .v2s-lohn input[type=checkbox] { accent-color:#111827; width:16px; height:16px; }
+  .v2s-lohn .lo-pill { display:inline-flex; align-items:center; gap:6px; padding:2px 8px; border-radius:6px; font-size:12px; font-weight:700; line-height:1.5; }
+  .v2s-lohn .lo-pill:before { content:""; width:6px; height:6px; border-radius:50%; background:currentColor; flex:none; }
+  .v2s-lohn .p-bereit { background:#eff6ff; color:#1d4ed8; }
+  .v2s-lohn .p-gesendet { background:#ecfdf5; color:#047857; }
+  .v2s-lohn .p-passwort_fehlt, .v2s-lohn .p-email_fehlt { background:#fef2f2; color:#b91c1c; }
+  .v2s-lohn .lo-msg { font-size:13.5px; font-weight:600; }
+  /* Start-Animation nur beim ersten Laden */
+  @keyframes v2sAuf { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:none; } }
+  @keyframes v2sBreit { from { transform:scaleX(0); } to { transform:scaleX(1); } }
+  html.v2-start .v2s-kpi { animation:v2sAuf .5s cubic-bezier(.2,.7,.2,1) backwards; }
+  html.v2-start .v2s-kpi:nth-child(2) { animation-delay:.06s; }
+  html.v2-start .v2s-kpi:nth-child(3) { animation-delay:.12s; }
+  html.v2-start .v2s-kpi:nth-child(4) { animation-delay:.18s; }
+  html.v2-start .v2s-spur, html.v2-start .v2s-linie i { transform-origin:0 50%; animation:v2sBreit .8s cubic-bezier(.2,.7,.2,1) .2s backwards; }
+  @media (prefers-reduced-motion:reduce) { html.v2-start .v2s-kpi, html.v2-start .v2s-spur, html.v2-start .v2s-linie i { animation:none; } }
+  /* Dunkelmodus: Graphit sichtbar halten */
+  html[data-kg-x="on"] .v2s-lohn .lo-btn:not(.green):not(.red):not(.grey) { background:#2563eb !important; border-color:#2563eb !important; color:#fff !important; }
+  html[data-kg-x="on"] .v2s-lohn .lo-btn:not(.green):not(.red):not(.grey):not(:disabled):hover { background:#1d4ed8 !important; }
+  html[data-kg-x="on"] .v2s-lohn input[type=checkbox] { accent-color:#60a5fa; }
+  html[data-kg-x="on"] .v2s-lohn .lo-in[type=file]::file-selector-button { background:#1f2937; border-color:#374151; color:#e5e7eb; }
+  html[data-kg-x="on"] .v2s-lohn .lo-in:focus { border-color:#60a5fa !important; box-shadow:0 0 0 3px rgba(96,165,250,.18); }
+  @media (max-width: 1100px) { .v2s-kpis { grid-template-columns:repeat(2, minmax(0, 1fr)); } }
+  @media (max-width: 700px) {
+    .v2s-lohn { padding:0 0 40px; }
+    .v2s-lohn .lo-head h1 { font-size:24px; }
+    .v2s-lohn .lo-in { font-size:16px; }
+  }
+  @media (max-width: 520px) { .v2s-kpis { grid-template-columns:minmax(0, 1fr); } }
+  {% endraw %}
 </style>
 
-<div class="lo-wrap">
+<div class="lo-wrap v2s-lohn">
   <div class="lo-head">
-    <span class="e2-lbl">KG Portal · Personal</span>
+    <div class="v2s-eyebrow"><span class="v2s-q"></span>Personal · Lohn</div>
     <h1>💶 Lohnabrechnungen versenden</h1>
     <p>Sammel-PDF hochladen → jede Seite wird über den Namen dem Mitarbeiter zugeordnet → jeder bekommt ein eigenes PDF mit Passwort
        (Geburtsdatum TTMMJJJJ). Erst prüfen, dann senden. Nichts geht automatisch raus.</p>
   </div>
 
-  <div class="e2-lo-kpis" id="e2LoKpis" aria-live="polite">
-    <div class="e2-lo-k"><i class="fa-solid fa-file-pdf" aria-hidden="true"></i><small>Abrechnungen</small><b id="e2LoAlle">–</b><em id="e2LoMonat">im gewählten Monat</em></div>
-    <div class="e2-lo-k orange"><i class="orange fa-solid fa-hourglass-half" aria-hidden="true"></i><small>Bereit</small><b id="e2LoBereit">–</b><em>geprüft, noch nicht gesendet</em></div>
-    <div class="e2-lo-k gruen"><i class="gruen fa-solid fa-paper-plane" aria-hidden="true"></i><small>Gesendet</small><b id="e2LoGesendet">–</b><em id="e2LoGesendetSub">–</em><div class="e2-graf" id="e2LoRing"></div></div>
-    <div class="e2-lo-k rot"><i class="rot fa-solid fa-triangle-exclamation" aria-hidden="true"></i><small>Fehlt etwas</small><b id="e2LoFehlt">–</b><em id="e2LoFehltSub">Passwort oder E-Mail fehlt</em></div>
+  <div class="v2s-kpis" aria-label="Kennzahlen des gewählten Monats">
+    <div class="v2s-kpi" style="--v2s-farbe:#7c3aed"><small>Abrechnungen</small><b data-v2s-wert="alle">–</b><span data-v2s-text="alle">im gewählten Monat</span><svg class="v2s-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h4"/></svg><div class="v2s-viz" data-v2s="alle"></div></div>
+    <div class="v2s-kpi" style="--v2s-farbe:#16a34a"><small>Gesendet</small><b data-v2s-wert="gesendet">–</b><span data-v2s-text="gesendet">per E-Mail</span><svg class="v2s-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4z"/></svg><div class="v2s-viz" data-v2s="gesendet"></div></div>
+    <div class="v2s-kpi" style="--v2s-farbe:#2563eb"><small>Bereit zum Senden</small><b data-v2s-wert="bereit">–</b><span data-v2s-text="bereit">mit Passwort und E-Mail</span><svg class="v2s-ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8.5 12.5 2.5 2.5 5-5.5"/></svg><div class="v2s-viz" data-v2s="bereit"></div></div>
+    <div class="v2s-kpi" style="--v2s-farbe:#e11d48"><small>Fehlt noch</small><b data-v2s-wert="fehlt">–</b><span data-v2s-text="fehlt">Passwort oder E-Mail</span><svg class="v2s-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4M12 17h.01"/></svg><div class="v2s-viz" data-v2s="fehlt"></div></div>
   </div>
 
   <div class="lo-card">
@@ -193,56 +230,65 @@
   liste();
 })();
 </script>
-{% raw %}
 <script>
-/* ===== PREMIUM: Kennzahlen (nur Anzeige, liest die Tabelle der Seite) ===== */
+{% raw %}
+/* ===== PREMIUM V2 „Graphit“: Kennzahlen – nur lesend aus der Tabelle der Seite (/api/lohn/liste lädt die Seite selbst) ===== */
 (function () {
-  try {
-    const el = (id) => document.getElementById(id);
-    const rows = el("loRows");
-    if (!rows) return;
-    const MON = ["Januar", "Februar", "März", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober", "November", "Dezember"];
-    let letzter = "";
-    function setze(id, text) { const e = el(id); if (e && e.textContent !== text) e.textContent = text; }
-    function aktualisieren() {
-      try {
-        const z = { bereit: 0, gesendet: 0, passwort_fehlt: 0, email_fehlt: 0, sonst: 0 };
-        const trs = Array.from(rows.querySelectorAll("tr[data-id]"));
-        trs.forEach((tr) => {
-          const pill = tr.querySelector(".lo-pill");
-          const st = pill ? (Array.from(pill.classList).find((c) => c.indexOf("p-") === 0) || "").slice(2) : "";
-          if (st in z) z[st]++; else z.sonst++;
-        });
-        const n = trs.length;
-        const mv = (el("loMonat") && el("loMonat").value) || "";
-        const key = JSON.stringify([z, n, mv]);
-        if (key === letzter) return;
-        letzter = key;
-        const [j, m] = mv.split("-").map(Number);
-        setze("e2LoAlle", String(n));
-        setze("e2LoMonat", j && m ? MON[m - 1] + " " + j : "im gewählten Monat");
-        setze("e2LoBereit", String(z.bereit));
-        setze("e2LoGesendet", z.gesendet + " / " + n);
-        setze("e2LoGesendetSub", n ? (z.gesendet === n ? "alle verschickt" : (n - z.gesendet) + " noch offen") : "noch nichts hochgeladen");
-        const fehlt = z.passwort_fehlt + z.email_fehlt;
-        setze("e2LoFehlt", String(fehlt));
-        setze("e2LoFehltSub", fehlt ? z.passwort_fehlt + " × Passwort · " + z.email_fehlt + " × E-Mail" : "Passwort oder E-Mail fehlt");
-        if (el("e2LoFehlt")) el("e2LoFehlt").style.color = fehlt ? "" : "#64748b";
-        const p = n ? z.gesendet / n * 100 : 0;
-        const ring = el("e2LoRing");
-        if (ring) {
-          ring.innerHTML = '<svg viewBox="0 0 52 52" aria-hidden="true"><circle class="e2-spur" cx="26" cy="26" r="21" stroke-width="6"></circle>' +
-            (p > 0.4 ? '<circle class="e2-bogen" cx="26" cy="26" r="21" stroke-width="6" pathLength="100" stroke="#16a34a" stroke-dasharray="100 100" stroke-dashoffset="' + (100 - p).toFixed(2) + '" transform="rotate(-90 26 26)"></circle>' : "") +
-            '</svg><div class="e2-mitte">' + (n ? Math.round(p) + "%" : "–") + "</div>";
-          ring.title = "Gesendet: " + z.gesendet + " von " + n;
-        }
-      } catch (e) { /* nur Anzeige */ }
-    }
-    let t = 0;
-    if (window.MutationObserver) new MutationObserver(() => { clearTimeout(t); t = setTimeout(aktualisieren, 80); }).observe(rows, { childList: true });
-    aktualisieren();
-  } catch (e) { /* nur Anzeige */ }
+  var html = document.documentElement;
+  html.classList.add("v2-start");
+  setTimeout(function () { html.classList.remove("v2-start"); }, 1600);
+  var rows = document.getElementById("loRows");
+  if (!rows) return;
+  var esc = function (s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); };
+  var q = function (s) { return document.querySelector(s); };
+  var wert = function (k, t) { var e = q('[data-v2s-wert="' + k + '"]'); if (e) e.textContent = t; };
+  var text = function (k, t) { var e = q('[data-v2s-text="' + k + '"]'); if (e) e.textContent = t; };
+  var viz = function (k) { return q('.v2s-viz[data-v2s="' + k + '"]'); };
+  function spur(ziel, teile, leer) {
+    var da = teile.filter(function (t) { return t.v > 0; });
+    ziel.innerHTML = '<div class="v2s-spur">' + da.map(function (t) {
+      return '<i style="flex:' + t.v + ' 1 0;background:' + t.f + '" title="' + esc(t.v + " " + t.l) + '"></i>';
+    }).join("") + '</div><div class="v2s-leg">' + (da.length ? da.map(function (t) {
+      return '<em style="--f:' + t.f + '"><b>' + t.v + "</b>" + esc(t.l) + "</em>";
+    }).join("") : "<em>" + esc(leer) + "</em>") + "</div>";
+  }
+  function linie(ziel, anteil, farbe, txt) {
+    var p = Math.max(0, Math.min(1, anteil || 0));
+    ziel.innerHTML = '<div class="v2s-linie"><i style="width:' + (p * 100).toFixed(1) + "%;background:" + farbe + '"></i></div>' +
+      '<div class="v2s-leg"><em style="--f:' + farbe + '">' + esc(txt) + "</em></div>";
+  }
+  var sig = "";
+  function zeichnen() {
+    var z = Array.prototype.map.call(rows.querySelectorAll("tr[data-id]"), function (tr) {
+      var p = tr.querySelector(".lo-pill"), m = p && /\bp-([a-z_]+)/.exec(p.className), sm = p && p.parentNode.querySelector("small");
+      return { st: m ? m[1] : "", am: sm ? sm.textContent.trim() : "", sel: !!tr.querySelector(".lo-sel:checked") };
+    });
+    var s = JSON.stringify(z);
+    if (s === sig) return;
+    sig = s;
+    var n = z.length, c = function (st) { return z.filter(function (x) { return x.st === st; }).length; };
+    var ges = c("gesendet"), ber = c("bereit"), pw = c("passwort_fehlt"), em = c("email_fehlt"), sel = z.filter(function (x) { return x.sel; }).length;
+    var letzte = z.map(function (x) { return x.st === "gesendet" ? x.am.slice(0, 16) : ""; }).filter(Boolean).sort().pop() || "";
+    wert("alle", n);
+    text("alle", n ? "Seiten zugeordnet" : "noch nichts hochgeladen");
+    if (viz("alle")) spur(viz("alle"), [{ v: ges, f: "#16a34a", l: "gesendet" }, { v: ber, f: "#2563eb", l: "bereit" }, { v: pw + em, f: "#e11d48", l: "fehlt" }], "keine Einträge");
+    wert("gesendet", ges + " / " + n);
+    text("gesendet", letzte ? "zuletzt " + letzte.slice(8, 10) + "." + letzte.slice(5, 7) + ". · " + letzte.slice(11, 16) + " Uhr" : "per E-Mail");
+    if (viz("gesendet")) linie(viz("gesendet"), n ? ges / n : 0, "#16a34a", n ? Math.round(ges / n * 100) + " % versendet" : "keine Einträge");
+    wert("bereit", ber);
+    text("bereit", sel ? sel + " ausgewählt" : "mit Passwort und E-Mail");
+    if (viz("bereit")) linie(viz("bereit"), ber ? sel / ber : 0, "#2563eb", ber ? sel + " von " + ber + " ausgewählt" : "nichts zu senden");
+    wert("fehlt", pw + em);
+    text("fehlt", pw + em ? "bitte ergänzen" : "alles vollständig");
+    if (viz("fehlt")) spur(viz("fehlt"), [{ v: pw, f: "#e11d48", l: "Passwort" }, { v: em, f: "#d97706", l: "E-Mail" }], "nichts offen");
+  }
+  var t = 0;
+  new MutationObserver(function () { clearTimeout(t); t = setTimeout(zeichnen, 60); }).observe(rows, { childList: true });
+  document.addEventListener("change", function (ev) {
+    if (ev.target && (ev.target.id === "loAll" || (ev.target.classList && ev.target.classList.contains("lo-sel")))) setTimeout(zeichnen, 0);
+  });
+  zeichnen();
 })();
-</script>
 {% endraw %}
+</script>
 {% endblock %}

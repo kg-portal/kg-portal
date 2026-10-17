@@ -744,244 +744,618 @@
     }
 }
 
-/* ===== PREMIUM (einheitliches Design) ===== */
-/* Nur Aussehen: alle IDs, Klassen und Funktionen der Startseite bleiben wie vorher. */
-@keyframes kgRein{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
-@keyframes kgpZeichnen{from{stroke-dashoffset:100}}
-@keyframes kgpSaeule{from{transform:scaleY(0)}}
-
-/* --- Kopf (Hero) im Systemblau --- */
-.index-hero{
+/* ===== PREMIUM V2 „Graphit“ ===== */
+/* Startseite: typografischer Kopf, weiße Kacheln, KPI-Karten mit feinen Grafiken – nur Aussehen */
+{% raw %}
+.index-hero {
+    --v2a-ink: #111827;
+    --v2a-muted: #6b7280;
+    --v2a-line: #e5e7eb;
+    background: transparent;
+    color: var(--v2a-ink);
+    padding: 2px 0 20px;
+    border-radius: 0;
+    margin-bottom: 20px;
+    box-shadow: none;
+    border-bottom: 1px solid var(--v2a-line);
+    overflow: visible;
+    isolation: isolate;
+}
+.index-hero::after {
+    left: 0;
+    right: auto;
+    top: -90px;
+    width: min(620px, 100%);
+    height: 280px;
+    border-radius: 0;
     background:
-        radial-gradient(520px 230px at 90% -20%, rgba(255,255,255,.26), transparent 60%),
-        radial-gradient(420px 220px at 0% 120%, rgba(56,189,248,.25), transparent 60%),
-        linear-gradient(135deg,#1e40af,#2563eb);
-    border-radius:24px;
-    padding:26px 28px;
-    margin-bottom:20px;
-    box-shadow:0 24px 50px -28px rgba(29,78,216,.7);
-    animation:kgRein .6s cubic-bezier(.22,1,.36,1) backwards;
+        radial-gradient(closest-side at 35% 50%, rgba(37, 99, 235, 0.06), transparent 75%),
+        radial-gradient(closest-side at 70% 40%, rgba(124, 58, 237, 0.045), transparent 75%);
+    pointer-events: none;
+    z-index: -1;
 }
-.index-hero::after{background:rgba(255,255,255,.08);}
-.index-logo-box{width:100px;height:100px;border-radius:24px;box-shadow:0 18px 34px -18px rgba(15,23,42,.55);transition:translate .2s, box-shadow .2s;}
-.index-logo-box:hover{translate:0 -2px;box-shadow:0 22px 40px -18px rgba(15,23,42,.6);}
-.index-logo-box img{max-height:78px;max-width:84px;}
-.kgp-hero-lbl{font-size:11.5px;font-weight:800;letter-spacing:1.4px;text-transform:uppercase;color:#bfdbfe;margin-bottom:6px;}
-.index-title h1{font-size:30px;letter-spacing:-.8px;}
-.index-title p{color:#dbeafe;font-weight:700;margin-top:8px;}
-.index-live-box{
-    border-radius:20px;
-    background:rgba(255,255,255,.12);
-    border:1px solid rgba(255,255,255,.24);
-    box-shadow:inset 0 1px 0 rgba(255,255,255,.18), 0 18px 34px -24px rgba(15,23,42,.6);
-    transition:translate .2s, box-shadow .2s;
+.index-hero-top {
+    grid-template-columns: minmax(0, 1fr) 220px minmax(0, 320px);
+    gap: 14px;
+    align-items: stretch;
 }
-.index-live-box:hover{translate:0 -2px;}
-.index-live-box .index-small-label{color:#bfdbfe;font-size:11px;letter-spacing:1.4px;}
-.index-time{font-size:42px;letter-spacing:-1.5px;font-variant-numeric:tabular-nums;}
-.index-date{color:#dbeafe;}
-.index-weather-box{
-    border:0;
-    border-radius:20px;
-    box-shadow:0 22px 40px -26px rgba(15,23,42,.65);
-    transition:translate .2s, box-shadow .2s;
+.index-brand { gap: 16px; align-self: center; }
+.index-logo-box {
+    width: 64px;
+    height: 64px;
+    border-radius: 14px;
+    background: #ffffff;
+    border: 1px solid var(--v2a-line);
+    box-shadow: 0 1px 2px rgba(16, 24, 40, 0.05);
 }
-.index-weather-box:hover{translate:0 -2px;}
-.index-weather-box .index-weather-title{color:#64748b;letter-spacing:1.4px;font-size:11px;font-weight:800;}
-.index-weather-box .index-weather-main{color:#0f172a;}
-.weather-forecast-window{background:#f8fbff;border:1px solid #e6edf7;border-radius:12px;}
-.weather-forecast-day{border-right-color:#e6edf7;}
-
-/* --- Kennzahlen im Kopf (neu, nur Anzeige) --- */
-.kgp-stats{position:relative;z-index:1;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-top:22px;}
-.kgp-stat{
-    display:flex;flex-direction:column;gap:12px;min-width:0;
-    padding:14px 16px 14px;border-radius:18px;
-    background:rgba(255,255,255,.12);
-    border:1px solid rgba(255,255,255,.22);
-    box-shadow:inset 0 1px 0 rgba(255,255,255,.16);
-    color:#fff;
-    transition:translate .2s, background-color .2s, box-shadow .2s;
-    animation:kgRein .6s cubic-bezier(.22,1,.36,1) backwards;
-    animation-delay:calc(var(--i,0)*70ms + 120ms);
+.index-logo-box img { max-height: 42px; max-width: 50px; }
+.v2a-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--v2a-muted);
 }
-.kgp-stat:hover{translate:0 -2px;background-color:rgba(255,255,255,.18);box-shadow:inset 0 1px 0 rgba(255,255,255,.2), 0 16px 30px -22px rgba(15,23,42,.7);}
-.kgp-stat-ic{flex:0 0 34px;width:34px;height:34px;border-radius:11px;display:grid;place-items:center;background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.28);}
-.kgp-stat-ic svg{width:17px;height:17px;}
-.kgp-stat-kopf{display:flex;align-items:center;gap:10px;min-width:0;}
-.kgp-stat-fuss{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;min-width:0;min-height:38px;}
-.kgp-stat-lbl{flex:1;min-width:0;font-size:11px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;color:#bfdbfe;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.kgp-stat-val{flex:0 1 auto;min-width:0;font-size:28px;line-height:1.1;font-weight:900;letter-spacing:-.8px;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-variant-numeric:tabular-nums;}
-.kgp-stat-val small{font-size:14px;font-weight:800;letter-spacing:0;color:#dbeafe;margin-left:2px;}
-.kgp-grafik{flex:0 1 96px;width:96px;min-width:60px;height:36px;display:block;overflow:visible;}
-.kgp-spark-fl{fill:rgba(255,255,255,.16);stroke:none;}
-.kgp-spark-ln{fill:none;stroke:#fff;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:100;stroke-dashoffset:0;animation:kgpZeichnen 1.4s cubic-bezier(.22,1,.36,1) .35s backwards;}
-.kgp-spark-pt{fill:#fff;stroke:rgba(37,99,235,.9);stroke-width:2;}
-.kgp-bar{fill:rgba(255,255,255,.42);transform-box:fill-box;transform-origin:50% 100%;animation:kgpSaeule .8s cubic-bezier(.22,1,.36,1) backwards;animation-delay:calc(var(--j,0)*35ms + 300ms);}
-.kgp-bar.jetzt{fill:#fff;}
-.kgp-ring{flex:0 0 46px;width:46px;height:46px;margin-top:-8px;display:block;transform:rotate(-90deg);}
-.kgp-ring-bg{fill:none;stroke:rgba(255,255,255,.2);stroke-width:5;}
-.kgp-ring-fg{fill:none;stroke:#fff;stroke-width:5;stroke-linecap:round;stroke-dasharray:100;animation:kgpZeichnen 1.4s cubic-bezier(.22,1,.36,1) .35s backwards;}
-
-/* --- Kacheln (Bento): weiße Karten statt blauer Rahmen --- */
-.dashboard-grid{gap:18px;}
-.dashboard-grid > .module-container.kgp-m{
-    --kgp-rgb:37,99,235;
-    background:
-        radial-gradient(260px 150px at 100% 0%, rgba(var(--kgp-rgb),.09), transparent 70%),
-        #ffffff;
-    border:1px solid #e6ebf2;
-    border-radius:24px;
-    padding:20px;
-    gap:16px;
-    box-shadow:0 18px 40px -30px rgba(15,23,42,.45);
-    transition:translate .2s, box-shadow .2s, border-color .2s;
-    animation:kgRein .6s cubic-bezier(.22,1,.36,1) backwards;
-    animation-delay:calc(var(--i,0)*70ms + 140ms);
+.v2a-eyebrow::before {
+    content: "";
+    width: 8px;
+    height: 8px;
+    border-radius: 2px;
+    background: #2563eb;
+    flex: 0 0 8px;
 }
-.dashboard-grid > .module-container.kgp-m:nth-child(1){--i:1}
-.dashboard-grid > .module-container.kgp-m:nth-child(2){--i:2}
-.dashboard-grid > .module-container.kgp-m:nth-child(3){--i:3}
-.dashboard-grid > .module-container.kgp-m:nth-child(4){--i:4}
-.dashboard-grid > .module-container.kgp-m:nth-child(5){--i:5}
-.dashboard-grid > .module-container.kgp-m:nth-child(6){--i:6}
-.dashboard-grid > .module-container.kgp-m:nth-child(7){--i:7}
-.dashboard-grid > .module-container.kgp-m:nth-child(8){--i:8}
-.dashboard-grid > .module-container.kgp-m:hover{translate:0 -3px;box-shadow:0 28px 50px -30px rgba(15,23,42,.5);}
-.dashboard-grid > .module-container.kgp-m:has(.kpi-card.blue-active){border-color:#93c5fd;box-shadow:0 0 0 3px rgba(37,99,235,.12), 0 22px 44px -30px rgba(29,78,216,.6);}
-.dashboard-grid > .module-container.kgp-m.module-sortable-chosen{box-shadow:0 28px 54px -24px rgba(29,78,216,.55);}
-.kgp-m.kgp-blau{--kgp-rgb:37,99,235;--kgp-a:#3b82f6;--kgp-b:#1d4ed8;}
-.kgp-m.kgp-indigo{--kgp-rgb:79,70,229;--kgp-a:#4f46e5;--kgp-b:#3730a3;}
-.kgp-m.kgp-tuerkis{--kgp-rgb:13,148,136;--kgp-a:#14b8a6;--kgp-b:#0f766e;}
-.kgp-m.kgp-gruen{--kgp-rgb:22,163,74;--kgp-a:#22c55e;--kgp-b:#15803d;}
-.kgp-m.kgp-orange{--kgp-rgb:234,88,12;--kgp-a:#f97316;--kgp-b:#c2410c;}
-.kgp-m.kgp-rot{--kgp-rgb:220,38,38;--kgp-a:#ef4444;--kgp-b:#b91c1c;}
-.kgp-m.kgp-lila{--kgp-rgb:124,58,237;--kgp-a:#7c3aed;--kgp-b:#5b21b6;}
-.kgp-m.kgp-pink{--kgp-rgb:219,39,119;--kgp-a:#ec4899;--kgp-b:#be185d;}
-
-/* Symbol-Quadrat oben links */
-.kgp-ic{flex:0 0 38px;width:38px;height:38px;border-radius:12px;display:grid;place-items:center;color:#fff;
-    background:linear-gradient(135deg,var(--kgp-a,#3b82f6),var(--kgp-b,#1d4ed8));
-    box-shadow:0 10px 20px -10px rgba(var(--kgp-rgb,37,99,235),.9);}
-.kgp-ic svg{width:19px;height:19px;display:block;}
-
-/* Kennzahl-Bereich oben in der Kachel */
-.dashboard-grid .kgp-m .kpi-card,
-.dashboard-grid .kgp-m .kpi-card.blue-active{
-    background:transparent !important;
-    border:0 !important;
-    border-radius:16px;
-    padding:0;
-    min-height:0;
-    gap:10px;
-    color:#0f172a;
-    transition:none;
+.index-title h1 {
+    margin: 6px 0 0 0;
+    font-size: 30px;
+    line-height: 1.12;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: var(--v2a-ink);
 }
-.kgp-m .kpi-card > .card-label{order:-1;}
-.kgp-m .kpi-card > .kgp-ic{order:-2;}
-.kgp-m .kpi-card > .card-month-badge:not(.card-label){order:1;}
-.kgp-m .card-label{font-size:11.5px;font-weight:800;letter-spacing:1.4px;text-transform:uppercase;color:#64748b;line-height:1.35;margin-top:4px;}
-.kgp-m .card-label.card-month-badge{
-    align-self:stretch;display:block;background:none;box-shadow:none;border-radius:0;padding:0;
-    color:#64748b;font-size:11.5px;font-weight:800;letter-spacing:1.4px;
-}
-.kgp-m .card-value{font-size:32px;line-height:1.05;font-weight:900;letter-spacing:-1px;color:#0f172a;font-variant-numeric:tabular-nums;}
-.kgp-m .card-month-badge:not(.card-label){
-    background:#dbeafe;color:#1d4ed8;box-shadow:none;
-    font-size:11.5px;font-weight:800;padding:5px 10px;letter-spacing:.2px;
+.index-title p {
+    margin: 6px 0 0 0;
+    font-size: 14px;
+    line-height: 1.45;
+    font-weight: 500;
+    color: var(--v2a-muted);
 }
 
-/* Buchhaltung: helle Kennzahl-Zeilen */
-.kgp-m .accounting-lines{gap:8px;}
-.kgp-m .accounting-pill{
-    position:relative;background:#f8fbff;border:1px solid #e6edf7;border-radius:14px;
-    padding:9px 12px 9px 16px;color:#64748b;font-size:11.5px;font-weight:800;box-shadow:none;
-    transition:translate .2s, box-shadow .2s;
+/* Live-Uhr und Wetter als ruhige weiße Karten */
+.index-live-box,
+.index-weather-box {
+    background: #ffffff;
+    border: 1px solid var(--v2a-line);
+    border-radius: 14px;
+    box-shadow: 0 1px 2px rgba(16, 24, 40, 0.05);
+    backdrop-filter: none;
+    color: var(--v2a-ink);
 }
-.kgp-m .accounting-pill::before{content:"";position:absolute;left:6px;top:9px;bottom:9px;width:4px;border-radius:4px;background:#2563eb;}
-.kgp-m .accounting-pill.expense::before{background:#ef4444;}
-.kgp-m .accounting-pill:hover{translate:0 -2px;box-shadow:0 12px 22px -18px rgba(15,23,42,.6);}
-.kgp-m .accounting-pill .accounting-period{font-weight:800;opacity:1;}
-.kgp-m .accounting-pill .accounting-amount{margin-top:3px;font-size:20px;font-weight:900;letter-spacing:-.5px;color:#1d4ed8;}
-.kgp-m .accounting-pill.expense .accounting-amount{color:#dc2626;}
+.index-live-box {
+    min-height: 0;
+    justify-items: start;
+    align-content: center;
+    gap: 4px;
+    padding: 14px 18px;
+}
+.index-live-box > .index-small-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    color: var(--v2a-muted);
+    text-align: left;
+}
+.index-live-box > .index-small-label::before {
+    content: "";
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #16a34a;
+    box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.14);
+}
+.index-time {
+    font-size: 30px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: var(--v2a-ink);
+    font-variant-numeric: tabular-nums;
+}
+.index-date {
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--v2a-muted);
+    text-align: left;
+    font-variant-numeric: tabular-nums;
+}
+.index-weather-box {
+    max-width: 320px;
+    min-height: 0;
+    justify-items: stretch;
+    gap: 6px;
+    padding: 14px 16px 12px;
+}
+.index-weather-box .index-weather-title {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    color: var(--v2a-muted);
+}
+.index-weather-box .index-weather-main {
+    gap: 10px;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--v2a-ink);
+}
+.index-weather-box #weather-icon { width: 34px; height: 34px; }
+.index-weather-box .weather-current-info {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 2px 10px;
+    text-align: left;
+    text-transform: none;
+    letter-spacing: 0;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--v2a-muted);
+    font-variant-numeric: tabular-nums;
+}
+.index-weather-box .weather-current-info .weather-high { color: #e11d48; font-weight: 700; }
+.index-weather-box .weather-current-info .weather-low { color: #2563eb; font-weight: 700; }
+.index-weather-box .weather-update-line {
+    font-size: 11px;
+    font-weight: 600;
+    color: #9ca3af;
+}
+.index-weather-box .weather-forecast-window {
+    margin-top: 2px;
+    border-radius: 10px;
+    background: #f9fafb;
+    border: 1px solid #f0f1f4;
+}
+.index-weather-box .weather-forecast-day { border-right: 1px solid #eef0f3; padding: 6px 3px 5px; }
+.index-weather-box .weather-forecast-name { color: var(--v2a-muted); font-size: 10.5px; font-weight: 700; }
+.index-weather-box .weather-forecast-icon { width: 22px; height: 22px; }
+.index-weather-box .weather-forecast-temperature {
+    font-size: 10px;
+    font-weight: 700;
+    color: #9ca3af;
+    font-variant-numeric: tabular-nums;
+}
+.index-weather-box .weather-forecast-max { color: #e11d48; }
+.index-weather-box .weather-forecast-min { color: #2563eb; }
 
-/* Telefonakquise / Angebot: kleine Kennzahl-Kacheln */
-.kgp-m .dashboard-card-head{flex-wrap:wrap;justify-content:flex-start;gap:10px;}
-.kgp-m .dashboard-card-head > .card-label{flex:1 1 100%;}
-.kgp-m .dashboard-stat-grid{gap:8px;}
-.kgp-m .dashboard-stat-item{
-    --c:#2563eb;
-    position:relative;background:#f8fbff;border:1px solid #e6edf7;border-radius:14px;
-    padding:9px 10px 9px 12px;min-height:0;color:#64748b;font-size:11.5px;font-weight:800;line-height:1.2;
-    box-shadow:none;justify-content:flex-start;transition:translate .2s, box-shadow .2s;
-}
-.kgp-m .dashboard-stat-item::before{content:"";display:block;width:8px;height:8px;border-radius:3px;background:var(--c);margin-bottom:6px;}
-.kgp-m .dashboard-stat-item:hover{translate:0 -2px;box-shadow:0 12px 22px -18px rgba(15,23,42,.6);}
-.kgp-m .dashboard-stat-item span{font-size:22px;font-weight:900;letter-spacing:-.5px;color:var(--c);margin-top:3px;font-variant-numeric:tabular-nums;}
-.kgp-m .dashboard-stat-item.blue{--c:#2563eb;}
-.kgp-m .dashboard-stat-item.green{--c:#16a34a;}
-.kgp-m .dashboard-stat-item.purple{--c:#7c3aed;}
-.kgp-m .dashboard-stat-item.pink{--c:#db2777;}
-.kgp-m .dashboard-stat-item.red{--c:#dc2626;}
-.kgp-m .dashboard-stat-item.gray{--c:#64748b;}
-/* Kunden / Mitarbeiter: große Zahl + Hinweis-Zeile */
-.kgp-m .dashboard-count-bubble{
-    order:3;flex:1 1 100%;justify-content:flex-start;height:auto;min-width:0;
-    background:none;border:0;box-shadow:none;border-radius:0;
-    color:#0f172a;font-size:32px;font-weight:900;letter-spacing:-1px;line-height:1.05;font-variant-numeric:tabular-nums;
-}
-.kgp-m .dashboard-stat-item:not(:has(span)){flex-direction:row;align-items:center;gap:8px;padding:10px 12px;color:#475569;font-size:12.5px;}
-.kgp-m .dashboard-stat-item:not(:has(span))::before{margin:0;flex:0 0 8px;}
+.index-weather-box .weather-forecast-window:has(.weather-forecast-track:empty) { display: none; }
 
-/* To-Do-Batterie: feiner Rahmen */
-.kgp-m .todo-battery-wrap{justify-content:flex-start;margin:2px 0 0;gap:18px;}
-.kgp-m .battery.segmented{border:2px solid #cbd5e1;border-radius:12px;height:42px;max-width:100%;background:#f8fbff;}
-.kgp-m .battery.segmented::after{background:#cbd5e1;right:-9px;top:12px;width:6px;height:14px;border-radius:0 4px 4px 0;}
-.kgp-m .battery-text{font-size:28px;letter-spacing:-1px;color:#0f172a;min-width:0;}
-.kgp-m .todo-list{margin-top:0;}
-.kgp-m .todo-list:empty{display:none;}
+@media (max-width: 1360px) {
+    .index-hero-top { grid-template-columns: 220px minmax(0, 1fr); }
+    .index-brand { grid-column: 1 / -1; }
+    .index-weather-box { grid-column: auto; max-width: none; justify-self: stretch; }
+}
+@media (max-width: 720px) {
+    .index-hero { padding: 0 0 18px; }
+    .index-hero-top { grid-template-columns: minmax(0, 1fr); }
+    .index-logo-box { width: 56px; height: 56px; border-radius: 12px; }
+    .index-logo-box img { max-height: 36px; max-width: 44px; }
+    .index-title h1 { font-size: 26px; }
+}
 
-/* Grafik-Bereich unten in der Kachel */
-.kgp-m .chart-box{margin-top:auto;background:#f8fbff;border:1px solid #edf2f9;border-radius:18px;padding:14px 14px 10px;}
-.kgp-m .chart-title{font-size:11.5px;font-weight:800;letter-spacing:1.4px;text-transform:uppercase;color:#64748b;margin-bottom:10px;}
-.kgp-m .nav-btn{
-    width:34px;height:34px;padding:0;flex:0 0 34px;display:grid;place-items:center;
-    border-radius:12px;background:#fff;border:1px solid #e6ebf2;color:#1d4ed8;font-size:13px;
-    box-shadow:0 8px 16px -12px rgba(15,23,42,.5);
-    transition:translate .2s, box-shadow .2s, background-color .2s;
+/* Kacheln: weiße Karten mit feiner Linie */
+.dashboard-grid { gap: 16px; }
+.module-container {
+    --v2a-akz: #2563eb;
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 14px;
+    padding: 0;
+    gap: 0;
+    box-shadow: 0 1px 2px rgba(16, 24, 40, 0.05);
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
-.kgp-m .nav-btn:hover{transform:none;translate:0 -2px;background:#eff6ff;box-shadow:0 12px 20px -12px rgba(29,78,216,.55);}
+.module-container:hover {
+    border-color: #d1d5db;
+    box-shadow: 0 1px 2px rgba(16, 24, 40, 0.05), 0 10px 28px -18px rgba(16, 24, 40, 0.28);
+}
+.module-container:has(> .kpi-card.blue-active) { border-color: #cbd0d8; }
+@supports (grid-template-rows: subgrid) {
+    .module-container {
+        display: grid;
+        grid-row: span 2;
+        grid-template-rows: subgrid;
+        row-gap: 0;
+    }
+}
+.module-sortable-chosen { box-shadow: 0 16px 36px -14px rgba(16, 24, 40, 0.32); }
 
-/* Ausblenden / Verschieben: dezente Knöpfe oben rechts */
-.kgp-m .module-hide-toggle,
-.kgp-m .module-drag-handle{
-    top:23px;width:32px;height:32px;border-radius:11px;
-    background:#f1f5f9;color:#64748b;border:1px solid #e6ebf2;box-shadow:none;
-    transition:translate .2s, background-color .2s, color .2s;
+.module-drag-handle,
+.module-hide-toggle {
+    top: 14px;
+    width: 30px;
+    height: 30px;
+    border-radius: 8px;
+    background: #ffffff;
+    color: #6b7280;
+    border: 1px solid #e5e7eb;
+    box-shadow: none;
+    font-size: 15px;
+    transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
 }
-.kgp-m .module-drag-handle{right:20px;}
-.kgp-m .module-hide-toggle{right:58px;}
-.kgp-m .module-hide-toggle:hover,
-.kgp-m .module-drag-handle:hover{transform:none;translate:0 -2px;background:#eff6ff;color:#1d4ed8;}
-.kgp-m .module-drag-handle span{font-size:17px !important;}
-.dashboard-grid > .module-container.kgp-m.kg-module-hidden{background:#f8fbff;border-style:dashed;border-color:#cbd5e1;box-shadow:none;}
-.kgp-m.kg-module-hidden::before{background:#fff;color:#1d4ed8;border:1px solid #dbeafe;font-size:13px;box-shadow:0 12px 24px -16px rgba(15,23,42,.45);}
+.module-drag-handle { right: 14px; }
+.module-hide-toggle { right: 50px; }
+.module-drag-handle:hover,
+.module-hide-toggle:hover {
+    transform: none;
+    background: #f9fafb;
+    color: #111827;
+    border-color: #d1d5db;
+}
+.module-drag-handle span { font-size: 15px !important; letter-spacing: -1px !important; }
+.module-hide-toggle svg { width: 16px; height: 16px; stroke-width: 2; }
 
-@media (max-width: 1400px){
-    .kgp-stats{grid-template-columns:repeat(2,minmax(0,1fr));}
+.module-container.kg-module-hidden {
+    background: #fafafa;
+    border-style: dashed;
+    box-shadow: none;
 }
-@media (max-width: 720px){
-    .index-title h1{font-size:26px;}
-    .index-time{font-size:36px;}
-    .kgp-stats{grid-template-columns:minmax(0,1fr);gap:10px;margin-top:16px;}
-    .dashboard-grid{gap:14px;}
+.module-container.kg-module-hidden::before {
+    background: #ffffff;
+    color: #6b7280;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 8px 14px;
+    font-size: 13px;
+    font-weight: 700;
+    box-shadow: none;
 }
-@media (prefers-reduced-motion: reduce){
-    .index-hero,.kgp-stat,.dashboard-grid > .module-container.kgp-m,.kgp-spark-ln,.kgp-bar,.kgp-ring-fg{animation:none;}
+
+/* KPI-Teil der Kachel */
+.module-container .kpi-card,
+.module-container .kpi-card.blue-active {
+    background: transparent !important;
+    border: 0 !important;
+    border-radius: 0;
+    padding: 18px 18px 16px;
+    min-height: 0;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    align-content: flex-start;
+    gap: 6px 8px;
+    color: #111827;
+    transition: none;
 }
-@media print{
-    .index-hero,.kgp-stat,.dashboard-grid > .module-container.kgp-m{animation:none;}
+.module-container .kpi-card .card-label,
+.module-container .kpi-card .card-label.card-month-badge {
+    order: 1;
+    flex: 1 1 100%;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 30px;
+    margin: 0;
+    padding: 0 76px 0 0;
+    background: none;
+    border-radius: 0;
+    box-shadow: none;
+    color: #6b7280;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0;
+    line-height: 1.3;
 }
+.module-container .kpi-card .card-label::before {
+    content: "";
+    width: 18px;
+    height: 18px;
+    flex: 0 0 18px;
+    background: var(--v2a-akz);
+    -webkit-mask: var(--v2a-ico) center / contain no-repeat;
+    mask: var(--v2a-ico) center / contain no-repeat;
+}
+.module-container .kpi-card .card-month-badge:not(.card-label) {
+    order: 3;
+    background: #f3f4f6;
+    color: #374151;
+    border-radius: 6px;
+    padding: 4px 8px;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0;
+    box-shadow: none;
+    line-height: 1.25;
+}
+.module-container .kpi-card .card-value {
+    order: 2;
+    flex: 1 1 100%;
+    min-width: 0;
+    margin: 2px 0 4px;
+    font-size: 28px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    line-height: 1.15;
+    color: #111827;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
+/* Neue feine Elemente (nur lesend befüllt) */
+.v2a-spark { order: 2; flex: 1 1 100%; position: relative; height: 26px; margin: 0 0 4px; display: block; }
+.v2a-spark:empty { display: none; }
+.v2a-spark svg { display: block; width: 100%; height: 100%; overflow: visible; }
+.v2a-spark .v2a-punkt {
+    position: absolute;
+    right: -3px;
+    width: 7px;
+    height: 7px;
+    margin-top: -3.5px;
+    border-radius: 50%;
+    background: #2563eb;
+    box-shadow: 0 0 0 2px #ffffff;
+}
+.v2a-pill {
+    order: 4;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    border-radius: 6px;
+    padding: 4px 8px;
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1.25;
+    background: #f3f4f6;
+    color: #374151;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+.v2a-pill:empty { display: none; }
+.v2a-pill::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; opacity: 0.85; }
+.v2a-pill.v2a-auf { background: #ecfdf5; color: #047857; }
+.v2a-pill.v2a-ab { background: #fef2f2; color: #b91c1c; }
+.v2a-pill.v2a-blau { background: #eff6ff; color: #1d4ed8; }
+.v2a-meta {
+    order: 5;
+    font-size: 12.5px;
+    font-weight: 500;
+    color: #6b7280;
+    font-variant-numeric: tabular-nums;
+}
+.v2a-meta:empty { display: none; }
+
+/* Buchhaltung: zwei ruhige Zeilen statt Farbpillen */
+.module-container .accounting-lines { order: 2; flex: 1 1 100%; gap: 0; margin-top: 2px; }
+.module-container .accounting-pill,
+.module-container .accounting-pill.income,
+.module-container .accounting-pill.expense {
+    display: grid;
+    grid-template-columns: 8px auto minmax(0, 1fr) auto;
+    align-items: center;
+    column-gap: 6px;
+    background: none;
+    color: #6b7280;
+    border-radius: 0;
+    padding: 10px 0;
+    font-size: 12.5px;
+    font-weight: 600;
+    line-height: 1.3;
+    box-shadow: none;
+    border-top: 1px solid #f0f1f4;
+}
+.module-container .accounting-pill:first-child { border-top: 0; padding-top: 4px; }
+.module-container .accounting-pill::before { content: ""; width: 8px; height: 8px; border-radius: 2px; background: #2563eb; }
+.module-container .accounting-pill.expense::before { background: #e11d48; }
+.module-container .accounting-period { color: #9ca3af; font-weight: 600; opacity: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.module-container .accounting-amount {
+    margin-top: 0;
+    font-size: 16px;
+    font-weight: 800;
+    color: #111827;
+    text-align: right;
+    letter-spacing: -0.01em;
+    font-variant-numeric: tabular-nums;
+}
+
+/* To-Do: Akku wird zur feinen Fortschrittslinie */
+.module-container .todo-battery-wrap {
+    order: 2;
+    flex: 1 1 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+    margin: 2px 0 2px;
+}
+.module-container .battery-text {
+    order: 1;
+    font-size: 28px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    line-height: 1.15;
+    color: #111827;
+    min-width: 0;
+    font-variant-numeric: tabular-nums;
+}
+.module-container .battery.segmented {
+    order: 2;
+    width: 100%;
+    height: 6px;
+    border: 0;
+    border-radius: 999px;
+    padding: 0;
+    background: #f1f2f5;
+    overflow: hidden;
+}
+.module-container .battery.segmented::after { display: none; }
+.module-container .battery-fill { display: block; gap: 0; }
+.module-container .battery-fill::before,
+.module-container .battery-fill.low::before,
+.module-container .battery-fill.mid::before,
+.module-container .battery-fill.high::before {
+    display: block;
+    height: 100%;
+    width: calc(var(--level, 0) * 1%);
+    max-width: 100%;
+    border-radius: 999px;
+    background: #16a34a;
+    transform-origin: left center;
+}
+.module-container .battery-fill.low::before { background: #e11d48; }
+.module-container .battery-fill.mid::before { background: #d97706; }
+.module-container .todo-list { order: 4; flex: 1 1 100%; margin-top: 0; color: #1f2937; font-weight: 600; }
+.module-container .todo-list:empty { display: none; }
+
+/* Telefonakquise / Angebot: 2×2 Kennzahlen mit Punkt */
+.module-container .dashboard-card-head { order: 1; flex: 1 1 100%; }
+.module-container .dashboard-stat-grid { order: 2; flex: 1 1 100%; gap: 8px; margin-top: 2px; }
+.module-container .dashboard-stat-item[class] {
+    position: relative;
+    background: #f9fafb;
+    border: 1px solid #f0f1f4;
+    border-radius: 10px;
+    padding: 9px 12px 9px 26px;
+    min-height: 0;
+    color: #6b7280;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1.25;
+    box-shadow: none;
+}
+.module-container .dashboard-stat-item[class]::before {
+    content: "";
+    position: absolute;
+    left: 12px;
+    top: 14px;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #64748b;
+}
+.module-container .dashboard-stat-item.blue::before { background: #2563eb; }
+.module-container .dashboard-stat-item.green::before { background: #16a34a; }
+.module-container .dashboard-stat-item.purple::before { background: #7c3aed; }
+.module-container .dashboard-stat-item.pink::before,
+.module-container .dashboard-stat-item.red::before { background: #e11d48; }
+.module-container .dashboard-stat-item span {
+    margin-top: 3px;
+    font-size: 18px;
+    font-weight: 800;
+    color: #111827;
+    letter-spacing: -0.01em;
+    font-variant-numeric: tabular-nums;
+}
+
+/* Kunden / Mitarbeiter: große Zahl + Status-Pille */
+.v2a-kunden .dashboard-card-head,
+.v2a-team .dashboard-card-head { flex-direction: column; align-items: stretch; gap: 6px; }
+.module-container .dashboard-count-bubble {
+    order: 2;
+    justify-content: flex-start;
+    min-width: 0;
+    height: auto;
+    border-radius: 0;
+    background: none;
+    border: 0;
+    box-shadow: none;
+    color: #111827;
+    font-size: 28px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    line-height: 1.15;
+    font-variant-numeric: tabular-nums;
+}
+.v2a-kunden .dashboard-stat-grid,
+.v2a-team .dashboard-stat-grid { display: flex; margin-top: 2px !important; }
+.v2a-kunden .dashboard-stat-item[class],
+.v2a-team .dashboard-stat-item[class] {
+    display: inline-flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 8px;
+    border: 0;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 700;
+    background: #ecfdf5;
+    color: #047857;
+}
+.v2a-team .dashboard-stat-item[class] { background: #f5f3ff; color: #6d28d9; }
+.v2a-kunden .dashboard-stat-item[class]::before,
+.v2a-team .dashboard-stat-item[class]::before { position: static; background: currentColor; flex: 0 0 6px; }
+
+/* Grafik-Teil der Kachel */
+.module-container .chart-box {
+    background: transparent;
+    border-radius: 0;
+    border-top: 1px solid #f0f1f4;
+    padding: 14px 18px 18px;
+}
+.module-container .chart-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: #111827;
+    letter-spacing: 0;
+    margin-bottom: 12px;
+}
+.module-container .nav-btn {
+    flex: 0 0 28px;
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    background: #ffffff;
+    color: #6b7280;
+    font-size: 10px;
+    line-height: 1;
+    transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+.module-container .nav-btn:hover { transform: none; background: #f9fafb; color: #111827; border-color: #d1d5db; }
+.module-container .chart-container-row { gap: 6px; }
+
+/* Akzent + Linien-Symbol je Kachel */
+.v2a-umsatz { --v2a-akz: #2563eb; --v2a-ico: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 17l6-6 4 4 8-8'/%3E%3Cpath d='M14 7h7v7'/%3E%3C/svg%3E"); }
+.v2a-jahr { --v2a-akz: #2563eb; --v2a-ico: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 3v18h18'/%3E%3Cpath d='M8 17v-5M13 17V8M18 17V5'/%3E%3C/svg%3E"); }
+.v2a-buch { --v2a-akz: #64748b; --v2a-ico: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='5' width='18' height='14' rx='2'/%3E%3Cpath d='M3 10h18M15 15h3'/%3E%3C/svg%3E"); }
+.v2a-todo { --v2a-akz: #16a34a; --v2a-ico: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='3' width='18' height='18' rx='4'/%3E%3Cpath d='M8 12.5l3 3 5-6'/%3E%3C/svg%3E"); }
+.v2a-akquise { --v2a-akz: #e11d48; --v2a-ico: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2z'/%3E%3C/svg%3E"); }
+.v2a-angebot { --v2a-akz: #d97706; --v2a-ico: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z'/%3E%3Cpath d='M14 3v5h5M9 13h6M9 17h4'/%3E%3C/svg%3E"); }
+.v2a-kunden { --v2a-akz: #0d9488; --v2a-ico: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 21V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v16M16 9h2a2 2 0 0 1 2 2v10M3 21h18M8 7h4M8 11h4M8 15h4'/%3E%3C/svg%3E"); }
+.v2a-team { --v2a-akz: #7c3aed; --v2a-ico: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2'/%3E%3Ccircle cx='9' cy='7' r='4'/%3E%3Cpath d='M22 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8'/%3E%3C/svg%3E"); }
+
+/* Start-Animation nur beim ersten Laden (Klasse wird nach ~1,5 s entfernt) */
+@keyframes v2aAuf { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+@keyframes v2aWachsen { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+@keyframes v2aZeichnen { from { stroke-dashoffset: 100; } to { stroke-dashoffset: 0; } }
+@keyframes v2aBlenden { from { opacity: 0; } to { opacity: 1; } }
+.v2a-start .module-container .card-value,
+.v2a-start .module-container .battery-text,
+.v2a-start .module-container .dashboard-count-bubble,
+.v2a-start .module-container .accounting-amount,
+.v2a-start .module-container .dashboard-stat-item span {
+    animation: v2aAuf 0.6s cubic-bezier(0.2, 0.7, 0.2, 1) 0.1s backwards;
+}
+.v2a-start .module-container .battery-fill::before { animation: v2aWachsen 0.9s cubic-bezier(0.2, 0.7, 0.2, 1) 0.25s backwards; }
+.v2a-start .v2a-spark .v2a-linie { stroke-dasharray: 100; animation: v2aZeichnen 1.1s cubic-bezier(0.3, 0.6, 0.2, 1) 0.2s backwards; }
+.v2a-start .v2a-spark .v2a-flaeche,
+.v2a-start .v2a-spark .v2a-punkt { animation: v2aBlenden 0.6s ease 0.9s backwards; }
+@media (prefers-reduced-motion: reduce) {
+    .v2a-start .module-container *, .v2a-start .module-container *::before { animation: none !important; }
+}
+
+/* Dunkelmodus: SVG wird vom Theme nicht umgefärbt */
+html[data-kg-x="on"] .v2a-spark .v2a-flaeche-start { stop-opacity: 0.22; }
+html[data-kg-x="on"] .v2a-spark .v2a-punkt { box-shadow: 0 0 0 2px #111723; }
+html[data-kg-x="on"] .module-container.kg-module-hidden::before { background: #111723; color: #d1d5db; border-color: #374151; }
+{% endraw %}
 
 </style>
 
@@ -995,6 +1369,10 @@
 ..........................................................................................................
 -->
 
+<script>
+// PREMIUM V2: Start-Animation nur beim ersten Laden (Klasse wird nach ~1,5 s entfernt)
+(function () { var h = document.documentElement; h.classList.add('v2a-start'); function weg() { setTimeout(function () { h.classList.remove('v2a-start'); }, 1500); } if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', weg); else weg(); })();
+</script>
 <section class="index-hero">
     <div class="index-hero-top">
         <div class="index-brand">
@@ -1003,7 +1381,7 @@
             </div>
 
             <div class="index-title">
-                <div class="kgp-hero-lbl">KG Portal · Startseite</div>
+                <div class="v2a-eyebrow">Übersicht · Duisburg</div>
                 <h1>KG Steuerzentrale</h1>
                 <p>Umsatz · Kunden · Mitarbeiter · Aufgaben</p>
             </div>
@@ -1048,38 +1426,6 @@
             </div>
         </div>
     </div>
-
-    <!-- PREMIUM: Kennzahlen auf einen Blick (nur Anzeige, gleiche Werte wie in den Kacheln) -->
-    <div class="kgp-stats" data-kg-skip>
-        <div class="kgp-stat" style="--i:1;">
-            <div class="kgp-stat-kopf"><span class="kgp-stat-ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"></polyline><polyline points="16 7 22 7 22 13"></polyline></svg></span><span class="kgp-stat-lbl" data-kgp-monat>Umsatz Monat</span></div>
-            <div class="kgp-stat-fuss">
-                <div class="kgp-stat-val">{{ ("{:,.0f}".format(monatlicher_umsatz))|replace(",", ".") }} <small>€</small></div>
-                <svg class="kgp-grafik" data-kgp-grafik="umsatz" viewBox="0 0 96 36" aria-hidden="true"></svg>
-            </div>
-        </div>
-        <div class="kgp-stat" style="--i:2;">
-            <div class="kgp-stat-kopf"><span class="kgp-stat-ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"></path><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"></path><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"></path><path d="M10 6h4"></path><path d="M10 10h4"></path><path d="M10 14h4"></path><path d="M10 18h4"></path></svg></span><span class="kgp-stat-lbl">Aktive Kunden</span></div>
-            <div class="kgp-stat-fuss">
-                <div class="kgp-stat-val">{{ customer_count }}</div>
-                <svg class="kgp-grafik" data-kgp-grafik="kunden" viewBox="0 0 96 36" aria-hidden="true"><title>Neue Kunden je Monat</title></svg>
-            </div>
-        </div>
-        <div class="kgp-stat" style="--i:3;">
-            <div class="kgp-stat-kopf"><span class="kgp-stat-ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M22 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg></span><span class="kgp-stat-lbl">Aktive Mitarbeiter</span></div>
-            <div class="kgp-stat-fuss">
-                <div class="kgp-stat-val">{{ employee_count }}</div>
-                <svg class="kgp-grafik" data-kgp-grafik="personal" viewBox="0 0 96 36" aria-hidden="true"></svg>
-            </div>
-        </div>
-        <div class="kgp-stat" style="--i:4;">
-            <div class="kgp-stat-kopf"><span class="kgp-stat-ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 11 12 14 22 4"></polyline><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg></span><span class="kgp-stat-lbl">To-Do erledigt</span></div>
-            <div class="kgp-stat-fuss">
-                <div class="kgp-stat-val">{{ todo_percent }} <small>%</small></div>
-                <svg class="kgp-ring" viewBox="0 0 54 54" aria-hidden="true"><circle class="kgp-ring-bg" cx="27" cy="27" r="22"></circle><circle class="kgp-ring-fg" cx="27" cy="27" r="22" pathLength="100" stroke-dashoffset="{{ 100 - todo_percent }}"></circle></svg>
-            </div>
-        </div>
-    </div>
 </section>
 
 
@@ -1092,29 +1438,29 @@
 -->
 
 <div class="dashboard-grid">
-    <div class="module-container kgp-m kgp-blau">
+    <div class="module-container v2a-umsatz">
         <div class="kpi-card blue-active" onclick="setActive(this)">
-            <span class="kgp-ic" data-kg-skip aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"></polyline><polyline points="16 7 22 7 22 13"></polyline></svg></span>
             <div id="current-month-label" class="card-month-badge">April 2026</div>
             <div class="card-label">Monatlicher Umsatz</div>
             <div class="card-value">{{ "{:,.2f}".format(monatlicher_umsatz) }} €</div>
+            <div class="v2a-spark" data-v2a="umsatz-spark"></div>
+            <div class="v2a-pill" data-v2a="umsatz-delta"></div>
         </div>
         <div class="chart-box"><div class="chart-title">Monatstrend</div><canvas id="monthlyTrendChart"></canvas></div>
     </div>
 
-    <div class="module-container kgp-m kgp-indigo">
+    <div class="module-container v2a-jahr">
         <div class="kpi-card" onclick="setActive(this)">
-            <span class="kgp-ic" data-kg-skip aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3v18h18"></path><path d="M18 17V9"></path><path d="M13 17V5"></path><path d="M8 17v-3"></path></svg></span>
             <div id="current-year-label" class="card-month-badge">Jahr 2026</div>
             <div class="card-label">Aktueller Gesamtumsatz</div>
             <div class="card-value">{{ "{:,.2f}".format(jahres_umsatz) }} €</div>
+            <div class="v2a-meta" data-v2a="jahr-best"></div>
         </div> 
         <div class="chart-box"><div id="yearly-overview-title" class="chart-title">Jahresübersicht 2026</div><canvas id="yearlyOverviewChart"></canvas></div>
     </div>
 
-    <div class="module-container kgp-m kgp-tuerkis">
+    <div class="module-container v2a-buch">
         <div class="kpi-card" onclick="setActive(this)">
-            <span class="kgp-ic" data-kg-skip aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"></path><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"></path><path d="M18 12a2 2 0 0 0 0 4h4v-4Z"></path></svg></span>
             <div class="card-label card-month-badge">Buchhaltung</div>
             <div class="accounting-lines">
                 <div class="accounting-pill income">
@@ -1133,9 +1479,8 @@
         </div>
     </div>
 
-    <div class="module-container kgp-m kgp-gruen">
+    <div class="module-container v2a-todo">
     <div class="kpi-card" onclick="setActive(this)">
-        <span class="kgp-ic" data-kg-skip aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 11 12 14 22 4"></polyline><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg></span>
         <div class="card-label card-month-badge">To-Do Liste</div>
 
        <!-- SEGMENTED BATTERY (KADEMELİ) -->
@@ -1148,6 +1493,7 @@
 
 
         <ul id="todoList" class="todo-list"></ul>
+        <div class="v2a-meta" data-v2a="todo-woche"></div>
     </div>
 
     <div class="chart-box">
@@ -1161,10 +1507,9 @@
  </div>
 
 
-    <div class="module-container kgp-m kgp-orange">
+    <div class="module-container v2a-akquise">
     <div class="kpi-card" onclick="setActive(this)">
         <div class="dashboard-card-head">
-            <span class="kgp-ic" data-kg-skip aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg></span>
             <div class="card-label card-month-badge">Telefonakquise</div>
         </div>
         <div class="dashboard-stat-grid">
@@ -1180,10 +1525,9 @@
     </div>
 </div>
 
-    <div class="module-container kgp-m kgp-rot">
+    <div class="module-container v2a-angebot">
     <div class="kpi-card" onclick="setActive(this)">
         <div class="dashboard-card-head">
-            <span class="kgp-ic" data-kg-skip aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg></span>
             <div class="card-label card-month-badge">Angebot</div>
         </div>
         <div class="dashboard-stat-grid">
@@ -1196,10 +1540,9 @@
     <div class="chart-box"><div class="chart-title">Angebot Status</div><div style="position:relative;height:180px"><canvas id="chart5"></canvas></div></div>
 </div>
 
-    <div class="module-container kgp-m kgp-lila">
+    <div class="module-container v2a-kunden">
     <div class="kpi-card" onclick="setActive(this)">
         <div class="dashboard-card-head">
-            <span class="kgp-ic" data-kg-skip aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"></path><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"></path><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"></path><path d="M10 6h4"></path><path d="M10 10h4"></path><path d="M10 14h4"></path><path d="M10 18h4"></path></svg></span>
             <div class="card-label card-month-badge">Aktive Kunden</div>
             <div class="dashboard-count-bubble">{{ customer_count }}</div>
         </div>
@@ -1210,10 +1553,9 @@
     <div class="chart-box"><div class="chart-title">Kundenübersicht 2026</div><canvas id="chart3"></canvas></div>
 </div>
 
-    <div class="module-container kgp-m kgp-pink">
+    <div class="module-container v2a-team">
     <div class="kpi-card" onclick="setActive(this)">
         <div class="dashboard-card-head">
-            <span class="kgp-ic" data-kg-skip aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M22 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg></span>
             <div class="card-label card-month-badge">Aktive Mitarbeiter</div>
             <div class="dashboard-count-bubble">{{ employee_count }}</div>
         </div>
@@ -1270,6 +1612,18 @@
                 }));
             }
         });
+    }
+</script>
+<script>
+    // PREMIUM V2 „Graphit“: nur Schrift/Legende/Balkenbreite der Diagramme verfeinern – Daten, Farben und Logik unverändert
+    if (window.Chart) {
+        try {
+            Chart.defaults.font.family = getComputedStyle(document.body).fontFamily || Chart.defaults.font.family;
+            Chart.defaults.font.size = 11;
+            Chart.defaults.plugins.legend.labels.usePointStyle = true;
+            Chart.defaults.plugins.legend.labels.pointStyle = 'circle';
+            if (Chart.defaults.datasets && Chart.defaults.datasets.bar) Chart.defaults.datasets.bar.maxBarThickness = 22;
+        } catch (e) {}
     }
 </script>
 <script>
@@ -1919,69 +2273,86 @@ const percent = kgTodoPercent;
     }
 
 </script>
-
-<!-- PREMIUM: zeichnet nur die kleinen Grafiken im Kopf (liest vorhandene Werte, sendet nichts) -->
-{% raw %}
 <script>
+// ===== PREMIUM V2 „Graphit“ – nur lesend: kleine Zusatzgrafiken aus den Daten, die die Seite schon hat =====
 (function () {
-    try {
-        function zahlen(liste) {
-            return Array.isArray(liste) ? liste.map(function (v) { var n = Number(v); return Number.isFinite(n) ? n : 0; }) : null;
-        }
-        var jetzt = new Date();
-        var monat = jetzt.getMonth();
+    function liste(fn) { try { var a = fn(); return Array.isArray(a) ? a.map(function (v) { return Number(v) || 0; }) : null; } catch (e) { return null; } }
+    var jahr = liste(function () { return kgJahresGrafikVerisi; });
+    var kwLabels = (function () { try { return Array.isArray(kgTodoKwLabels) ? kgTodoKwLabels : null; } catch (e) { return null; } })();
+    var erledigt = liste(function () { return kgTodoErledigtVerisi; });
+    var offen = liste(function () { return kgTodoOffenVerisi; });
+    var heute = new Date();
+    var m = heute.getMonth();
+    var monate = ['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni', 'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember'];
+    var kurz = ['Jan', 'Feb', 'Mär', 'Apr', 'Mai', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dez'];
+    function feld(name) { return document.querySelector('[data-v2a="' + name + '"]'); }
+    var NS = 'http://www.w3.org/2000/svg';
+    function el(tag, attrs) { var n = document.createElementNS(NS, tag); for (var k in attrs) n.setAttribute(k, attrs[k]); return n; }
 
-        var lbl = document.querySelector('[data-kgp-monat]');
-        if (lbl) {
-            var mName = jetzt.toLocaleDateString('de-DE', { month: 'long' });
-            lbl.textContent = 'Umsatz ' + mName.charAt(0).toUpperCase() + mName.slice(1);
+    // Umsatz: Veränderung zum Vormonat + Verlauf der letzten 6 Monate
+    if (jahr && jahr.length === 12) {
+        var delta = feld('umsatz-delta');
+        if (delta && m > 0) {
+            var jetzt = jahr[m], vorher = jahr[m - 1];
+            if (vorher > 0) {
+                var p = Math.round((jetzt - vorher) / vorher * 100);
+                delta.textContent = (p > 0 ? '+' : p < 0 ? '−' : '±') + Math.abs(p) + ' % ggü. ' + kurz[m - 1];
+                if (p !== 0) delta.classList.add(p > 0 ? 'v2a-auf' : 'v2a-ab');
+            } else {
+                delta.textContent = '— ggü. ' + kurz[m - 1];
+            }
         }
-
-        // Linie mit Fläche (Umsatz Januar bis heute)
-        function linie(svg, werte) {
-            if (!svg || !werte || !werte.length) return;
-            if (werte.length < 2) werte = [0].concat(werte);
-            var w = 96, h = 36, r = 4;
-            var max = Math.max.apply(null, werte), min = Math.min.apply(null, werte.concat([0]));
-            var spanne = (max - min) || 1;
-            var pkt = werte.map(function (v, i) {
-                return [r + i * (w - 2 * r) / (werte.length - 1), h - r - (v - min) / spanne * (h - 2 * r)];
+        var spark = feld('umsatz-spark');
+        var werte = jahr.slice(Math.max(0, m - 5), m + 1);
+        if (spark && werte.length >= 2) {
+            var W = Math.round(spark.getBoundingClientRect().width) || 100, H = 26, P = 3;
+            var max = Math.max.apply(null, werte), min = Math.min.apply(null, werte);
+            var span = (max - min) || 1;
+            var pts = werte.map(function (v, i) {
+                return [i * (W / (werte.length - 1)), max === min ? H - P - 1 : P + (1 - (v - min) / span) * (H - 2 * P)];
             });
-            var d = pkt.map(function (q, i) { return (i ? 'L' : 'M') + q[0].toFixed(1) + ' ' + q[1].toFixed(1); }).join(' ');
-            var letzt = pkt[pkt.length - 1];
-            svg.innerHTML =
-                '<path class="kgp-spark-fl" d="' + d + ' L' + letzt[0].toFixed(1) + ' ' + (h - r) + ' L' + pkt[0][0].toFixed(1) + ' ' + (h - r) + ' Z"></path>' +
-                '<path class="kgp-spark-ln" pathLength="100" d="' + d + '"></path>' +
-                '<circle class="kgp-spark-pt" cx="' + letzt[0].toFixed(1) + '" cy="' + letzt[1].toFixed(1) + '" r="3.2"></circle>';
+            var d = pts.map(function (q, i) { return (i ? 'L' : 'M') + q[0].toFixed(1) + ' ' + q[1].toFixed(1); }).join(' ');
+            var svg = el('svg', { viewBox: '0 0 ' + W + ' ' + H, preserveAspectRatio: 'none', 'aria-hidden': 'true' });
+            var gid = 'v2aSparkVerlauf';
+            var defs = el('defs', {});
+            var lg = el('linearGradient', { id: gid, x1: '0', y1: '0', x2: '0', y2: '1' });
+            lg.appendChild(el('stop', { offset: '0', 'stop-color': '#2563eb', 'stop-opacity': '0.14', 'class': 'v2a-flaeche-start' }));
+            lg.appendChild(el('stop', { offset: '1', 'stop-color': '#2563eb', 'stop-opacity': '0' }));
+            defs.appendChild(lg);
+            svg.appendChild(defs);
+            svg.appendChild(el('path', { d: d + ' L' + W + ' ' + H + ' L0 ' + H + ' Z', fill: 'url(#' + gid + ')', 'class': 'v2a-flaeche' }));
+            svg.appendChild(el('path', { d: d, fill: 'none', stroke: '#2563eb', 'stroke-width': '2', 'stroke-linecap': 'round', 'stroke-linejoin': 'round', pathLength: '100', 'class': 'v2a-linie' }));
+            var last = pts[pts.length - 1];
+            var t = el('title', {});
+            t.textContent = 'Umsatz ' + kurz[Math.max(0, m - 5)] + '–' + kurz[m];
+            svg.appendChild(t);
+            spark.appendChild(svg);
+            var punkt = document.createElement('span');
+            punkt.className = 'v2a-punkt';
+            punkt.style.top = (last[1] / H * 100).toFixed(1) + '%';
+            spark.appendChild(punkt);
         }
-
-        // Kleine Säulen (12 Monate), aktueller Monat hervorgehoben
-        function saeulen(svg, werte) {
-            if (!svg || !werte || !werte.length) return;
-            var w = 96, h = 36, n = werte.length, luecke = 2;
-            var bw = (w - (n - 1) * luecke) / n;
-            var max = Math.max.apply(null, werte.concat([0])) || 1;
-            var html = '';
-            werte.forEach(function (v, i) {
-                var bh = Math.max(3, v / max * (h - 2));
-                html += '<rect class="kgp-bar' + (i === monat ? ' jetzt' : '') + '" style="--j:' + i + '" x="' + (i * (bw + luecke)).toFixed(1) +
-                    '" y="' + (h - bh).toFixed(1) + '" width="' + bw.toFixed(1) + '" height="' + bh.toFixed(1) + '" rx="1.6"></rect>';
-            });
-            svg.innerHTML = html;
+        // Jahr: stärkster Monat bisher
+        var best = feld('jahr-best');
+        if (best) {
+            var bi = -1, bv = 0;
+            jahr.slice(0, m + 1).forEach(function (v, i) { if (v > bv) { bv = v; bi = i; } });
+            if (bi >= 0) best.textContent = 'Stärkster Monat: ' + monate[bi];
         }
+    }
 
-        var jahr = zahlen(typeof kgJahresGrafikVerisi !== 'undefined' ? kgJahresGrafikVerisi : null);
-        var kunden = zahlen(typeof kgKundenGrafikVerisi !== 'undefined' ? kgKundenGrafikVerisi : null);
-        var personal = zahlen(typeof kgPersonelGrafikVerisi !== 'undefined' ? kgPersonelGrafikVerisi : null);
-
-        linie(document.querySelector('[data-kgp-grafik="umsatz"]'), jahr ? jahr.slice(0, monat + 1) : null);
-        saeulen(document.querySelector('[data-kgp-grafik="kunden"]'), kunden);
-        saeulen(document.querySelector('[data-kgp-grafik="personal"]'), personal);
-    } catch (e) {
-        /* nur Optik – bei Fehlern bleibt die Seite unverändert */
+    // To-Do: aktuelle Kalenderwoche aus den Wochen-Daten der Grafik
+    var kw = feld('todo-woche');
+    if (kw && erledigt && offen && kwLabels) {
+        var j = heute.getFullYear();
+        var neujahr = new Date(Date.UTC(j, 0, 1));
+        var start = Date.UTC(j, 0, 1) - ((neujahr.getUTCDay() + 6) % 7) * 86400000;
+        var idx = Math.floor((Date.UTC(j, m, heute.getDate()) - start) / (7 * 86400000));
+        if (idx >= 0 && idx < offen.length) {
+            kw.textContent = String(kwLabels[idx] || ('KW ' + (idx + 1))) + ' · ' + offen[idx] + ' offen · ' + erledigt[idx] + ' erledigt';
+        }
     }
 })();
 </script>
-{% endraw %}
 
 {% endblock %}

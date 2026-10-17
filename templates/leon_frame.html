@@ -6,13 +6,16 @@
 {% include "_leon_tabs.html" %}
 
 <style>
-/* ===== PREMIUM (einheitliches Design) ===== */
-/* Leon-Rahmen: weicher Schatten, runde Ecken, ohne Einblenden (Rahmen muss immer sichtbar sein) */
-#leonFrame { border-radius: 24px !important; box-shadow: 0 30px 60px -44px rgba(30,64,175,.45), 0 0 0 1px rgba(148,163,184,.22) !important; }
+    /* ===== PREMIUM V2 „Graphit“ ===== */
+    /* Leon-Rahmen ohne eigenen Kasten: die Leon-Seite steht direkt in der Portal-Karte (keine Animation am Iframe) */
+    @media screen {
+        #leonFrame.kg-v2-rahmen { border-radius:0 !important; background:transparent !important; box-shadow:none !important; animation:none !important; transition:none !important; }
+    }
 </style>
 
 <iframe
     id="leonFrame"
+    class="kg-v2-rahmen"
     src="{{ frame_src }}"
     title="Leon"
     style="display:block;width:100%;height:calc(100vh - 150px);min-height:600px;border:0;border-radius:20px;background:#f8fafc;box-shadow:0 10px 25px rgba(0,0,0,.05);"

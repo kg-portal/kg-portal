@@ -40,90 +40,116 @@
     .hl-punkt { grid-template-columns: 52px 1fr; } .hl-aktion { grid-column: 2; justify-content: flex-start; }
   }
   @media print { .hl-btns, .hl-aktion, .kgm { display: none !important; } .hl-hero { color: #0f172a; background: #fff; border: 2px solid #0f172a; } .hl-chip { color: #0f172a; } }
-  /* ===== PREMIUM (einheitliches Design) ===== */
-  @keyframes kgRein { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
-  .hl { font-family: inherit; }
-  .hl-hero { border-radius: 24px; padding: 28px 30px 26px; min-height: 196px;
-             background: radial-gradient(520px 230px at 90% -20%, rgba(255,255,255,.26), transparent 60%),
-                         radial-gradient(420px 220px at 0% 120%, rgba(56,189,248,.25), transparent 60%),
-                         linear-gradient(135deg, #1e40af, #2563eb);
-             box-shadow: 0 24px 50px -28px rgba(29,78,216,.7);
-             animation: kgRein .6s cubic-bezier(.22,1,.36,1) backwards; }
-  .hl-hero::after { content: ""; position: absolute; right: -80px; top: -110px; width: 280px; height: 280px; border-radius: 50%; background: rgba(255,255,255,.07); pointer-events: none; }
-  .hl-hero small { font-size: 11.5px; letter-spacing: 1.4px; color: #bfdbfe; opacity: 1; }
-  .hl-hero h1 { margin: 8px 0 4px; font-size: 34px; letter-spacing: -1px; line-height: 1.1; }
-  .hl-hero p { color: #dbeafe; font-weight: 600; opacity: 1; }
-  .hl-chips { gap: 8px; margin-top: 16px; position: relative; z-index: 1; }
-  .hl-chip { background: rgba(255,255,255,.14); border-color: rgba(255,255,255,.28); padding: 7px 13px; font-size: 12.5px;
-             transition: translate .2s, background-color .2s; }
-  .hl-chip:hover { translate: 0 -2px; background: rgba(255,255,255,.24); }
-  .hl-btns { z-index: 2; }
-  .hl-btns button, .hl-btns a { background: #fff; color: #1e40af; border-radius: 12px; padding: 10px 14px; font-weight: 900;
-             box-shadow: 0 12px 24px -16px rgba(15,23,42,.7); transition: translate .2s, box-shadow .2s, background-color .2s; }
-  .hl-btns button:hover, .hl-btns a:hover { translate: 0 -2px; background: #eff6ff; box-shadow: 0 16px 28px -16px rgba(15,23,42,.75); }
-  .hl-msg { position: relative; z-index: 1; }
-  .hl-msg:empty { display: none; }
-  /* Fortschritt heute (neu, liest nur die Liste auf dieser Seite) */
-  .hlp-fort { position: absolute; right: 30px; bottom: 26px; z-index: 1; display: flex; align-items: center; gap: 14px; padding: 12px 18px 12px 12px;
-              border-radius: 20px; background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.24); color: #fff;
-              box-shadow: inset 0 1px 0 rgba(255,255,255,.16); transition: translate .2s, background-color .2s;
-              animation: kgRein .6s cubic-bezier(.22,1,.36,1) backwards; animation-delay: 160ms; }
-  .hlp-fort:hover { translate: 0 -2px; background: rgba(255,255,255,.18); }
-  .hlp-fort[hidden] { display: none; }
-  .hlp-ring { width: 62px; height: 62px; display: block; flex: 0 0 62px; transform: rotate(-90deg); }
-  .hlp-ring-bg { fill: none; stroke: rgba(255,255,255,.2); stroke-width: 6; }
-  .hlp-ring-fg { fill: none; stroke: #fff; stroke-width: 6; stroke-linecap: round; stroke-dasharray: 100; transition: stroke-dashoffset .9s cubic-bezier(.22,1,.36,1); }
-  .hlp-lbl { font-size: 11px; font-weight: 800; letter-spacing: 1.2px; text-transform: uppercase; color: #bfdbfe; }
-  .hlp-zahl { margin-top: 2px; font-size: 15px; font-weight: 800; color: #dbeafe; font-variant-numeric: tabular-nums; }
-  .hlp-zahl b { font-size: 28px; font-weight: 900; letter-spacing: -1px; color: #fff; }
-  .hlp-rot { display: inline-block; margin-top: 4px; padding: 3px 9px; border-radius: 999px; background: #fee2e2; color: #b91c1c; font-size: 11.5px; font-weight: 900; }
-  .hlp-rot:empty { display: none; }
-  /* Karten */
-  .hl-grid { gap: 16px; margin-top: 16px; }
-  .hl-karte { position: relative; border: 1px solid #e6ebf2; border-radius: 24px; padding: 20px 22px 16px;
-              box-shadow: 0 18px 40px -30px rgba(15,23,42,.45); transition: translate .2s, box-shadow .2s;
-              animation: kgRein .6s cubic-bezier(.22,1,.36,1) backwards; animation-delay: calc(var(--i,0)*70ms + 120ms); }
-  .hl-karte::before { content: ""; position: absolute; top: -1px; left: 24px; width: 56px; height: 4px; border-radius: 0 0 6px 6px; background: var(--f); }
-  .hl-karte:hover { translate: 0 -2px; box-shadow: 0 26px 48px -30px rgba(15,23,42,.5); }
-  .hl-grid > .hl-karte:nth-child(2) { --i: 1; } .hl-grid > .hl-karte:nth-child(3) { --i: 2; } .hl-grid > .hl-karte:nth-child(4) { --i: 3; }
-  .hl-grid > .hl-karte:nth-child(5) { --i: 4; } .hl-grid > .hl-karte:nth-child(6) { --i: 5; } .hl-grid > .hl-karte:nth-child(7) { --i: 6; }
-  .hl-grid > .hl-karte:nth-child(n+8) { --i: 7; }
-  .hl-karte h2 { margin: 2px 0 8px; font-size: 17px; letter-spacing: -.2px; color: #0f172a; gap: 10px; }
-  .hl-karte h2 span { min-width: 30px; text-align: center; padding: 4px 11px; font-size: 12.5px; color: var(--f);
-                      background: linear-gradient(rgba(255,255,255,.87), rgba(255,255,255,.87)), var(--f); }
-  .hl-punkt { padding: 11px 8px; margin: 0 -8px; border-radius: 14px; border-top-color: #eef2f7; transition: background-color .2s; }
-  .hl-punkt:hover { background: rgba(37,99,235,.05); }
-  .hl-zeit { font-size: 12.5px; padding-top: 3px; }
-  .hl-titel { font-size: 15px; font-weight: 800; letter-spacing: -.1px; }
-  .hl-titel a:hover { color: #1d4ed8; }
-  .hl-sub.rot { display: inline-block; margin-top: 4px; padding: 2px 9px; border-radius: 999px; background: #fee2e2; color: #b91c1c; font-size: 12px; }
-  .hl-k { border-color: #dbe3ef; border-radius: 12px; padding: 7px 12px; font-weight: 900; color: #0f172a;
-          transition: translate .2s, box-shadow .2s, border-color .2s, color .2s, background-color .2s; }
-  .hl-k:hover { translate: 0 -2px; border-color: var(--f); color: var(--f); box-shadow: 0 10px 20px -14px rgba(15,23,42,.6); }
-  .hl-k.haupt { background-image: linear-gradient(135deg, rgba(255,255,255,.12), rgba(0,0,0,.16)); border-color: transparent; color: #fff;
-                box-shadow: 0 10px 20px -12px var(--f); }
-  .hl-k.haupt:hover { color: #fff; }
-  .hl-k:disabled { cursor: default; }
-  .hl-punkt.weg .hl-ok { background: #dcfce7; border-color: #bbf7d0; color: #15803d; }
-  .hl-leer { padding: 14px; border: 2px dashed #e2e8f0; border-radius: 16px; text-align: center; font-size: 13px; font-weight: 800; color: #94a3b8; }
-  .hl-fehler { margin-top: 16px; border-radius: 16px; padding: 10px 14px; border: 1px solid #fde68a; }
-  @media (max-width: 900px) { .hlp-fort { right: 24px; bottom: 22px; } }
-  @media (max-width: 760px) {
-    .hl-hero { min-height: 0; }
-    .hlp-fort { position: static; margin-top: 16px; align-self: flex-start; width: fit-content; }
+
+  /* ===== PREMIUM V2 „Graphit“ ===== */
+  /* Arbeitsliste: typografischer Kopf, Tages-Kennzahlen, ruhige Karten – nur Bildschirm, Druck bleibt wie bisher */
+  {% raw %}
+  @media screen {
+    .hl { font-family: inherit; color: #1f2937; }
+    .hl-hero { background: transparent; color: #111827; border-radius: 0; padding: 2px 0 20px; border-bottom: 1px solid #e5e7eb; overflow: visible; isolation: isolate; }
+    .hl-hero::before { content: ""; position: absolute; left: 0; top: -80px; width: min(560px, 100%); height: 260px; pointer-events: none; z-index: -1;
+      background: radial-gradient(closest-side at 35% 50%, rgba(37, 99, 235, .06), transparent 75%), radial-gradient(closest-side at 70% 40%, rgba(124, 58, 237, .045), transparent 75%); }
+    .hl-hero small { display: inline-flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 700; letter-spacing: .06em; color: #6b7280; opacity: 1; }
+    .hl-hero small::before { content: ""; width: 8px; height: 8px; border-radius: 2px; background: #d97706; flex: 0 0 8px; }
+    .hl-hero h1 { margin: 6px 0 4px; font-size: 30px; font-weight: 800; letter-spacing: -.02em; line-height: 1.12; color: #111827; font-variant-numeric: tabular-nums; }
+    .hl-hero p { font-size: 14px; font-weight: 500; color: #6b7280; opacity: 1; }
+    .hl-chips { gap: 6px; margin-top: 14px; }
+    .hl-chip { display: inline-flex; align-items: center; gap: 6px; background: #fff; border: 1px solid #e5e7eb; border-radius: 8px; padding: 5px 10px; font-size: 12.5px; font-weight: 600; color: #374151; font-variant-numeric: tabular-nums; transition: background-color .15s, border-color .15s; }
+    .hl-chip:hover { background: #f9fafb; border-color: #d1d5db; }
+    .hl-btns { top: 2px; right: 0; gap: 8px; }
+    .hl-btns button, .hl-btns a { display: inline-flex; align-items: center; gap: 6px; height: 38px; padding: 0 14px; border-radius: 10px; font-size: 13.5px; font-weight: 700;
+      background: #fff; color: #111827; border: 1px solid #d1d5db; transition: background-color .15s, border-color .15s; }
+    .hl-btns button:hover, .hl-btns a:hover { background: #f9fafb; }
+    .hl-btns #hlWa { background: #111827; border-color: #111827; color: #fff; }
+    .hl-btns #hlWa:hover { background: #000; border-color: #000; }
+    .hl-msg { margin-top: 10px; font-size: 13px; font-weight: 600; }
+    .hl-msg:empty { display: none; }
+    .hl-msg[style*="220, 252, 231"] { color: #047857 !important; }
+    .hl-msg[style*="254, 202, 202"] { color: #b91c1c !important; }
+
+    /* Tages-Kennzahlen */
+    .v2h-kpis { display: grid; grid-template-columns: 1.5fr 1fr 1fr; gap: 14px; margin-top: 20px; }
+    .v2h-kpi { background: #fff; border: 1px solid #e5e7eb; border-radius: 14px; padding: 16px 18px; box-shadow: 0 1px 2px rgba(16, 24, 40, .05); min-width: 0; }
+    .v2h-kopf { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+    .v2h-label { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; color: #6b7280; }
+    .v2h-label svg { width: 18px; height: 18px; flex: 0 0 18px; }
+    .v2h-wert { margin-top: 8px; font-size: 28px; font-weight: 800; letter-spacing: -.02em; line-height: 1.15; color: #111827; font-variant-numeric: tabular-nums; }
+    .v2h-wert small { font-size: 15px; font-weight: 700; color: #9ca3af; letter-spacing: 0; }
+    .v2h-meta { font-size: 12.5px; font-weight: 500; color: #6b7280; }
+    .v2h-balken { display: flex; gap: 2px; height: 8px; margin-top: 12px; border-radius: 999px; overflow: hidden; background: #f1f2f5; }
+    .v2h-balken span { display: block; height: 100%; min-width: 4px; background: var(--f); transform-origin: left center; }
+    .v2h-legende { display: flex; flex-wrap: wrap; gap: 4px 12px; margin-top: 10px; font-size: 12px; font-weight: 600; color: #6b7280; }
+    .v2h-legende a, .v2h-legende span { display: inline-flex; align-items: center; gap: 6px; color: inherit; text-decoration: none; font-variant-numeric: tabular-nums; }
+    .v2h-legende a:hover { color: #111827; }
+    .v2h-legende i { width: 8px; height: 8px; border-radius: 2px; background: var(--f); }
+    .v2h-legende b { color: #111827; font-weight: 700; }
+    .v2h-linie { height: 4px; margin-top: 14px; border-radius: 999px; background: #f1f2f5; overflow: hidden; }
+    .v2h-linie span { display: block; height: 100%; width: 0; border-radius: 999px; background: var(--f, #16a34a); transform-origin: left center; transition: width .5s cubic-bezier(.2, .7, .2, 1); }
+    .v2h-unten { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 10px; }
+    .v2h-pill { display: inline-flex; align-items: center; gap: 6px; border-radius: 6px; padding: 3px 8px; font-size: 12px; font-weight: 700; background: #f3f4f6; color: #374151; white-space: nowrap; }
+    .v2h-pill::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+    .v2h-pill.gruen { background: #ecfdf5; color: #047857; }
+    .v2h-pill.rot { background: #fef2f2; color: #b91c1c; }
+
+    /* Abschnitts-Karten */
+    .hl-grid { gap: 16px; margin-top: 16px; }
+    .hl-karte { border: 1px solid #e5e7eb; border-top: 1px solid #e5e7eb; border-radius: 14px; padding: 16px 18px 10px; box-shadow: 0 1px 2px rgba(16, 24, 40, .05); }
+    .hl-karte h2 { margin: 0 0 6px; font-size: 15px; font-weight: 700; color: #111827; gap: 10px; }
+    .hl-karte h2 span { font-size: 12px; font-weight: 700; border-radius: 6px; padding: 2px 8px; min-width: 24px; text-align: center; font-variant-numeric: tabular-nums;
+      color: var(--f); background: #f3f4f6; }
+    .hl-karte:has(> .hl-leer) h2 span { color: #6b7280; background: #f3f4f6; }
+    .hl-punkt { grid-template-columns: 64px 1fr auto; gap: 12px; padding: 12px 0; border-top: 1px solid #f0f1f4; }
+    .hl-zeit { font-size: 13px; font-weight: 700; color: #111827; }
+    .hl-titel { font-size: 14.5px; font-weight: 700; color: #111827; }
+    .hl-titel a:hover { text-decoration: underline; text-underline-offset: 3px; text-decoration-color: #d1d5db; }
+    .hl-sub { font-size: 13px; font-weight: 500; color: #6b7280; }
+    .hl-sub.rot { display: inline-flex; align-items: center; gap: 6px; margin-top: 4px; border-radius: 6px; padding: 2px 8px; font-size: 12px; font-weight: 700; color: #b91c1c; background: #fef2f2; }
+    .hl-sub.rot::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+    .hl-k { min-height: 34px; border-radius: 10px; padding: 6px 12px; font-size: 13px; font-weight: 700; border: 1px solid #d1d5db; background: #fff; color: #111827; transition: background-color .15s, border-color .15s; }
+    .hl-k:hover { background: #f9fafb; }
+    .hl-k.haupt { background: #111827; border-color: #111827; color: #fff; }
+    .hl-k.haupt:hover { background: #000; border-color: #000; }
+    .hl-k.hl-ok { background: #ecfdf5; border-color: #ecfdf5; color: #047857; }
+    .hl-k.hl-ok:hover { background: #d1fae5; border-color: #d1fae5; }
+    .hl-k.hl-ok:disabled { cursor: default; }
+    .hl-leer { display: flex; align-items: center; gap: 10px; margin: 4px 0 8px; padding: 12px 14px; border: 1px dashed #e5e7eb; border-radius: 10px; font-size: 14px; font-weight: 500; color: #6b7280; }
+    .hl-leer::before { content: ""; width: 18px; height: 18px; flex: 0 0 18px; background: #9ca3af;
+      -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='9'/%3E%3Cpath d='M8.5 12.5l2.5 2.5 4.5-5'/%3E%3C/svg%3E") center / contain no-repeat;
+      mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='9'/%3E%3Cpath d='M8.5 12.5l2.5 2.5 4.5-5'/%3E%3C/svg%3E") center / contain no-repeat; }
+    .hl-fehler { margin-top: 16px; font-size: 12.5px; font-weight: 600; color: #b45309; background: #fffbeb; border: 1px solid #fde68a; border-radius: 10px; padding: 10px 14px; }
+
+    /* Eingebundene WhatsApp-Karte auf dieser Seite angleichen (nur Aussehen) */
+    .hl ~ .kgm { font-family: inherit; margin-top: 16px; border-color: #e5e7eb; border-radius: 14px; padding: 18px 20px; box-shadow: 0 1px 2px rgba(16, 24, 40, .05); color: #1f2937; }
+    .hl ~ .kgm h2 { font-size: 15px; font-weight: 700; color: #111827; }
+    .hl ~ .kgm p { font-weight: 500; color: #6b7280; }
+    .hl ~ .kgm label { font-weight: 600; color: #1f2937; }
+    .hl ~ .kgm input[type=text], .hl ~ .kgm input[type=time] { height: 40px; border-radius: 10px; border-color: #d1d5db; font-size: 14px; }
+    .hl ~ .kgm button { border-radius: 10px; font-size: 13.5px; font-weight: 700; }
+    .hl ~ .kgm button.grau { background: #fff; color: #111827; border: 1px solid #d1d5db; }
+
+    /* Start-Animation nur beim ersten Laden */
+    @keyframes v2hWachsen { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+    @keyframes v2hAuf { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+    .v2h-start .v2h-balken span, .v2h-start .v2h-linie span { animation: v2hWachsen .8s cubic-bezier(.2, .7, .2, 1) .15s backwards; }
+    .v2h-start .v2h-wert { animation: v2hAuf .6s cubic-bezier(.2, .7, .2, 1) .05s backwards; }
+    @media (prefers-reduced-motion: reduce) { .v2h-start .v2h-balken span, .v2h-start .v2h-wert { animation: none; } }
+
+    @media (max-width: 900px) { .v2h-kpis { grid-template-columns: 1fr 1fr; } .v2h-kpis .v2h-kpi:first-child { grid-column: 1 / -1; } }
+    @media (max-width: 640px) { .v2h-kpis { grid-template-columns: 1fr; } .hl-hero h1 { font-size: 26px; } }
+
+    /* Dunkelmodus: Graphit-Knöpfe sichtbar halten */
+    html[data-kg-x="on"] .hl-btns #hlWa, html[data-kg-x="on"] .hl-k.haupt { background: #2563eb !important; border-color: #2563eb !important; color: #fff !important; }
+    html[data-kg-x="on"] .hl-btns #hlWa:hover, html[data-kg-x="on"] .hl-k.haupt:hover { background: #1d4ed8 !important; border-color: #1d4ed8 !important; }
   }
-  @media (max-width: 640px) { .hl-hero h1 { font-size: 25px; } .hl-karte { padding: 18px 16px 14px; } }
-  @media (prefers-reduced-motion: reduce) { .hl-hero, .hl-karte, .hlp-fort { animation: none; } .hlp-ring-fg { transition: none; } }
-  @media print {
-    .hlp-fort, .hl-hero::after, .hl-karte::before { display: none !important; }
-    .hl-hero, .hl-karte { animation: none; box-shadow: none; translate: none; }
-    .hl-hero { background: #fff; color: #0f172a; min-height: 0; }
-    .hl-hero small, .hl-hero p { color: #0f172a; }
-    .hl-chip { background: #fff; border-color: #0f172a; }
-  }
+  {% endraw %}
+  @media print { .v2h-kpis { display: none !important; } }
 </style>
 
 {% set farbe = {"termine": "#2563eb", "besichtigungen": "#7c3aed", "rueckrufe": "#0284c7", "todos": "#16a34a", "berichte": "#ea580c", "stundenzettel": "#0f766e"} %}
+<script>
+// PREMIUM V2: Start-Animation nur beim ersten Laden (Klasse wird nach ~1,5 s entfernt)
+(function () { var h = document.documentElement; h.classList.add('v2h-start'); function weg() { setTimeout(function () { h.classList.remove('v2h-start'); }, 1500); } if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', weg); else weg(); })();
+</script>
 <div class="hl">
   <section class="hl-hero">
     <small>{{ "☀️ Guten Morgen" if ist_heute else "📋 Arbeitsliste" }}</small>
@@ -138,16 +164,49 @@
       <button type="button" onclick="window.print()">🖨 Drucken</button>
     </div>
     <div class="hl-msg" id="hlMsg"></div>
-    <!-- PREMIUM: Fortschritt heute (nur Anzeige, zählt die Liste unten) -->
-    <div class="hlp-fort" data-kg-skip hidden>
-      <svg class="hlp-ring" viewBox="0 0 64 64" aria-hidden="true"><circle class="hlp-ring-bg" cx="32" cy="32" r="26"></circle><circle class="hlp-ring-fg" cx="32" cy="32" r="26" pathLength="100" stroke-dashoffset="100"></circle></svg>
-      <div>
-        <div class="hlp-lbl">Heute erledigt</div>
-        <div class="hlp-zahl"><b data-hlp-erledigt>0</b> / <span data-hlp-gesamt>0</span></div>
-        <div class="hlp-rot" data-hlp-ueber></div>
-      </div>
-    </div>
   </section>
+
+  {# PREMIUM V2: Tages-Kennzahlen – nur Anzeige aus den Daten dieser Liste #}
+  {% set v2 = namespace(gesamt=0, ueber=0, abhaken=0) %}
+  {% for key, titel in abschnitte %}{% set v2.gesamt = v2.gesamt + l[key]|length %}{% for e in l[key] %}{% if e.ueberfaellig or (e.sub and e.sub.startswith('überfällig')) %}{% set v2.ueber = v2.ueber + 1 %}{% endif %}{% if e.art in ('todo', 'bericht') %}{% set v2.abhaken = v2.abhaken + 1 %}{% endif %}{% endfor %}{% endfor %}
+  {% set v2_business = (l.business.rueckrufe|length + l.business.todos|length) if l.business else 0 %}
+  {% set v2.gesamt = v2.gesamt + v2_business %}
+  <div class="v2h-kpis">
+    <section class="v2h-kpi">
+      <div class="v2h-kopf">
+        <span class="v2h-label"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#2563eb" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11"/><path d="M4.5 6h.01M4.5 12h.01M4.5 18h.01"/></svg>Punkte heute</span>
+        <span class="v2h-meta">nach Bereich</span>
+      </div>
+      <div class="v2h-wert">{{ v2.gesamt }}</div>
+      <div class="v2h-balken" role="img" aria-label="Verteilung der Punkte nach Bereich">{% for key, titel in abschnitte %}{% if l[key] %}<span style="--f:{{ farbe[key] }}; flex:{{ l[key]|length }} 1 0" title="{{ titel }}: {{ l[key]|length }}"></span>{% endif %}{% endfor %}{% if v2_business %}<span style="--f:#047857; flex:{{ v2_business }} 1 0" title="KG Business: {{ v2_business }}"></span>{% endif %}</div>
+      <div class="v2h-legende">
+        {% for key, titel in abschnitte %}{% if l[key] %}<a href="#{{ key }}" style="--f:{{ farbe[key] }}"><i></i>{{ (titel.split(' ', 1)[1] if ' ' in titel else titel).split(' – ')[0] }} <b>{{ l[key]|length }}</b></a>{% endif %}{% endfor %}
+        {% if v2_business %}<span style="--f:#047857"><i></i>KG Business <b>{{ v2_business }}</b></span>{% endif %}
+        {% if not v2.gesamt %}<span>Heute steht nichts an.</span>{% endif %}
+      </div>
+    </section>
+    <section class="v2h-kpi" style="--f:#e11d48">
+      <div class="v2h-kopf">
+        <span class="v2h-label"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#e11d48" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Überfällig</span>
+      </div>
+      <div class="v2h-wert">{{ v2.ueber }}</div>
+      <div class="v2h-linie"><span style="width:{{ ((v2.ueber * 100 / v2.gesamt)|round(1)) if v2.gesamt else 0 }}%"></span></div>
+      <div class="v2h-unten">
+        <span class="v2h-meta">von {{ v2.gesamt }} Punkten</span>
+        {% if v2.ueber %}<span class="v2h-pill rot">nachholen</span>{% else %}<span class="v2h-pill gruen">alles im Plan</span>{% endif %}
+      </div>
+    </section>
+    <section class="v2h-kpi" style="--f:#16a34a">
+      <div class="v2h-kopf">
+        <span class="v2h-label"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#16a34a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M8.5 12.5l2.5 2.5 4.5-5"/></svg>Heute abgehakt</span>
+      </div>
+      <div class="v2h-wert"><span data-v2h="zahl">0</span> <small>/ {{ v2.abhaken }}</small></div>
+      <div class="v2h-linie"><span data-v2h="linie"></span></div>
+      <div class="v2h-unten">
+        <span class="v2h-meta">{{ "Aufgaben und Kampagnen-Punkte" if v2.abhaken else "Nichts zum Abhaken" }}</span>
+      </div>
+    </section>
+  </div>
 
   <div class="hl-grid">
     {% for key, titel in abschnitte %}
@@ -217,38 +276,21 @@
   }));
 })();
 </script>
-<!-- PREMIUM: Fortschrittsring (liest nur die Einträge dieser Seite, sendet nichts) -->
-{% raw %}
 <script>
+// PREMIUM V2 „Graphit“ – nur lesend: zählt abgehakte Punkte dieser Seite für die Kennzahl „Heute abgehakt“
 (function () {
-  try {
-    var box = document.querySelector(".hlp-fort");
-    if (!box) return;
-    var ring = box.querySelector(".hlp-ring-fg");
-    function zaehlen() {
-      var knoepfe = document.querySelectorAll(".hl-punkt .hl-ok");
-      var gesamt = knoepfe.length, fertig = 0, ueber = 0;
-      knoepfe.forEach(function (k) {
-        var p = k.closest(".hl-punkt");
-        if (!p) return;
-        if (p.classList.contains("weg")) fertig++;
-        else if (p.querySelector(".hl-sub.rot")) ueber++;
-      });
-      if (!gesamt) { box.hidden = true; return; }
-      box.hidden = false;
-      box.querySelector("[data-hlp-erledigt]").textContent = fertig;
-      box.querySelector("[data-hlp-gesamt]").textContent = gesamt;
-      box.querySelector("[data-hlp-ueber]").textContent = ueber ? ueber + " überfällig" : "";
-      var pct = Math.round(fertig / gesamt * 100);
-      requestAnimationFrame(function () { ring.style.strokeDashoffset = String(100 - pct); });
-    }
-    zaehlen();
-    var grid = document.querySelector(".hl-grid");
-    if (grid && window.MutationObserver) {
-      new MutationObserver(zaehlen).observe(grid, { subtree: true, attributes: true, attributeFilter: ["class"] });
-    }
-  } catch (e) { /* nur Optik */ }
+  const zahl = document.querySelector('[data-v2h="zahl"]'), linie = document.querySelector('[data-v2h="linie"]');
+  const grid = document.querySelector('.hl-grid');
+  if (!zahl || !linie || !grid) return;
+  function zaehlen() {
+    const alle = grid.querySelectorAll('.hl-punkt[data-art="todo"], .hl-punkt[data-art="bericht"]');
+    let weg = 0;
+    alle.forEach(p => { if (p.classList.contains('weg')) weg++; });
+    zahl.textContent = weg;
+    linie.style.width = (alle.length ? Math.round(weg / alle.length * 100) : 0) + '%';
+  }
+  zaehlen();
+  new MutationObserver(zaehlen).observe(grid, { subtree: true, attributes: true, attributeFilter: ['class'] });
 })();
 </script>
-{% endraw %}
 {% endblock %}

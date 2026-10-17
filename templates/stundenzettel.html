@@ -285,40 +285,96 @@
     background: #f8fafc;
     display: block;
 }
-/* ===== PREMIUM (einheitliches Design) ===== */
-@keyframes kgRein{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
-.kg-stz-hero{position:relative;background:radial-gradient(520px 230px at 90% -20%,rgba(255,255,255,.26),transparent 60%),radial-gradient(420px 220px at 0% 120%,rgba(56,189,248,.25),transparent 60%),linear-gradient(135deg,#1e40af,#2563eb);border-radius:24px;box-shadow:0 24px 50px -28px rgba(29,78,216,.7);margin-bottom:22px}
-.kg-stz-hero .e2-lbl{display:block;font-size:11.5px;font-weight:800;letter-spacing:1.4px;text-transform:uppercase;color:#bfdbfe;margin-bottom:6px}
-.kg-stz-hero h2{font-size:34px;letter-spacing:-.9px}
-.kg-stz-hero p{color:#dbeafe;font-weight:600}
-.kg-stz-hero-icon{border:1px solid rgba(255,255,255,.32);background:rgba(255,255,255,.16);border-radius:18px;box-shadow:inset 0 1px 0 rgba(255,255,255,.2)}
-.kg-stz-hero .e2-chip{display:inline-flex;align-items:center;gap:6px;margin-top:12px;padding:5px 12px;border-radius:999px;background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.28);color:#fff;font-size:12px;font-weight:800}
-.kg-stz-hero > a{color:#1e40af !important;font-weight:900 !important;border-radius:13px !important;box-shadow:0 10px 22px -12px rgba(15,23,42,.55);transition:translate .2s,box-shadow .2s}
-.kg-stz-hero > a:hover{translate:0 -2px;box-shadow:0 16px 28px -14px rgba(15,23,42,.6)}
-.kg-stz-card{border:1px solid #e6ebf2;border-radius:24px;box-shadow:0 18px 40px -30px rgba(15,23,42,.45)}
-.kg-stz-card-head{color:#64748b;font-size:11.5px;font-weight:800;letter-spacing:1.4px;padding:18px 24px;border-bottom-color:#eef2f7}
-.kg-stz-card-head i{color:#2563eb}
-.kg-stz-table thead{background:#f8fafc;border-bottom:1px solid #e6ebf2}
-.kg-stz-table th{font-size:11.5px;font-weight:800;letter-spacing:1px;color:#64748b;padding:12px 22px}
-.kg-stz-row{border-bottom-color:#eef2f7;transition:background-color .2s}
-.kg-stz-row:hover{background:#f8fbff}
-.kg-stz-avatar{border-radius:14px;background:linear-gradient(135deg,#3b82f6,#1d4ed8);color:#fff;box-shadow:0 8px 16px -8px rgba(29,78,216,.7)}
-.kg-stz-link-input{border-radius:12px;border-color:#dbe3ef;background:#f8fbff;transition:border-color .2s,box-shadow .2s}
-.kg-stz-link-input:focus{outline:none;border-color:#2563eb;box-shadow:0 0 0 4px rgba(37,99,235,.12)}
-.kg-stz-copy-btn{border-radius:12px;border-color:#dbe3ef;transition:translate .2s,box-shadow .2s,background-color .2s}
-.kg-stz-copy-btn:hover{translate:0 -2px;background:#eff6ff;box-shadow:0 10px 18px -12px rgba(29,78,216,.5)}
-.kg-stz-open-btn{border-radius:13px;background:linear-gradient(135deg,#3b82f6,#1d4ed8);box-shadow:0 10px 20px -10px rgba(29,78,216,.75);transition:translate .2s,box-shadow .2s}
-.kg-stz-open-btn:hover{translate:0 -2px;box-shadow:0 14px 24px -10px rgba(29,78,216,.8)}
-.kg-stz-delete-btn{border-radius:12px;transition:translate .2s,background-color .2s}
-.kg-stz-delete-btn:hover{translate:0 -2px;background:#fee2e2}
-.kg-stz-preview{border:1px solid #e6ebf2;border-radius:24px;box-shadow:0 18px 40px -30px rgba(15,23,42,.45)}
-.kg-stz-preview-head{background:radial-gradient(420px 200px at 100% -40%,rgba(255,255,255,.22),transparent 60%),linear-gradient(135deg,#1e40af,#2563eb)}
-.kg-stz-preview-btn,.kg-stz-preview-close{border-radius:12px;transition:translate .2s,background-color .2s}
-.kg-stz-preview-btn:hover,.kg-stz-preview-close:hover{translate:0 -2px;background:rgba(255,255,255,.26)}
-.kg-stz-hero,.kg-stz-card{animation:kgRein .6s cubic-bezier(.22,1,.36,1) backwards;animation-delay:calc(var(--i,0)*70ms)}
-.kg-stz-card{--i:2}
-@media (max-width:900px){.kg-stz-hero{flex-direction:row;flex-wrap:wrap;align-items:center;justify-content:flex-start;gap:12px}.kg-stz-hero-left{flex:1 1 100%;margin-bottom:6px}.kg-stz-hero > a{margin-left:0 !important}.kg-stz-hero h2{font-size:28px}}
-@media (prefers-reduced-motion:reduce){.kg-stz-hero,.kg-stz-card{animation:none}}
+{% raw %}
+/* ===== PREMIUM V2 „Graphit“ ===== */
+.v2s-alt { --g-ink:#111827; --g-muted:#6b7280; --g-line:#e5e7eb; font-variant-numeric:tabular-nums; }
+/* Seitenkopf */
+.v2s-alt .kg-stz-hero { background:transparent; color:var(--g-ink); border-radius:0; padding:4px 0 20px; margin-bottom:20px; gap:10px; box-shadow:none; border-bottom:1px solid var(--g-line); overflow:visible; }
+.v2s-alt .kg-stz-hero-left { min-width:0; }
+.v2s-alt .kg-stz-hero-icon { display:none; }
+.v2s-eyebrow { display:flex; align-items:center; gap:8px; font-size:12px; font-weight:700; color:#6b7280; margin:0 0 6px; letter-spacing:.01em; }
+.v2s-eyebrow .v2s-q { width:8px; height:8px; border-radius:2px; background:#0d9488; flex:none; }
+.v2s-alt .kg-stz-hero h2 { font-size:30px; font-weight:800; letter-spacing:-.02em; line-height:1.15; color:var(--g-ink); }
+.v2s-alt .kg-stz-hero p { margin:4px 0 0; font-size:14px; font-weight:500; color:var(--g-muted); }
+.v2s-alt .kg-stz-hero > a { height:40px; min-height:40px !important; padding:0 14px !important; border-radius:10px !important; background:#fff !important; border:1px solid #d1d5db; color:var(--g-ink) !important; font-size:13.5px; font-weight:700 !important; white-space:nowrap; box-shadow:0 1px 2px rgba(16,24,40,.05); transition:background-color .15s, border-color .15s; }
+.v2s-alt .kg-stz-hero > a + a { margin-left:8px !important; }
+.v2s-alt .kg-stz-hero > a:hover { background:#f9fafb !important; border-color:#c4c9d1; }
+/* KPI-Karten */
+.v2s-kpis { display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:14px; margin-bottom:24px; }
+.v2s-kpi { position:relative; display:flex; flex-direction:column; min-width:0; background:#fff; border:1px solid var(--g-line); border-radius:14px; padding:16px 18px; box-shadow:0 1px 2px rgba(16,24,40,.05); }
+.v2s-kpi small { font-size:13px; font-weight:600; color:var(--g-muted); padding-right:26px; }
+.v2s-kpi > b { font-size:28px; font-weight:800; letter-spacing:-.02em; line-height:1.15; color:var(--g-ink); margin-top:6px; }
+.v2s-kpi > span { font-size:12.5px; font-weight:500; color:var(--g-muted); margin-top:2px; }
+.v2s-ic { position:absolute; top:16px; right:16px; width:18px; height:18px; fill:none; stroke:var(--v2s-farbe, #0d9488); stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
+.v2s-viz { margin-top:auto; padding-top:12px; }
+.v2s-linie { position:relative; height:4px; border-radius:999px; background:#f0f1f4; overflow:hidden; }
+.v2s-linie i { position:absolute; left:0; top:0; bottom:0; border-radius:999px; }
+.v2s-leg { display:flex; flex-wrap:wrap; gap:4px 10px; margin-top:8px; font-size:11px; font-weight:600; color:#6b7280; line-height:1.3; }
+.v2s-leg em { font-style:normal; display:inline-flex; align-items:center; gap:5px; white-space:nowrap; }
+.v2s-leg em:before { content:""; width:6px; height:6px; border-radius:2px; background:var(--f, #9ca3af); }
+.v2s-stapel { display:flex; align-items:center; }
+.v2s-stapel span { width:28px; height:28px; border-radius:50%; background:#f3f4f6; color:#374151; border:2px solid #fff; font-size:10.5px; font-weight:700; display:inline-flex; align-items:center; justify-content:center; margin-left:-6px; }
+.v2s-stapel span:first-child { margin-left:0; }
+.v2s-stapel span.mehr { background:#fff; border-color:#e5e7eb; color:#6b7280; }
+/* Tabelle */
+.v2s-alt .kg-stz-card { border:1px solid var(--g-line); border-radius:14px; box-shadow:0 1px 2px rgba(16,24,40,.05); }
+.v2s-alt .kg-stz-card-head { padding:16px 20px; border-bottom:1px solid var(--g-line); color:var(--g-ink); font-size:15px; font-weight:700; text-transform:none; letter-spacing:0; }
+.v2s-alt .kg-stz-card-head > div:first-child i { color:#9ca3af; margin-right:4px; font-size:14px; }
+.v2s-alt .kg-stz-card-head > div:last-child { font-size:12.5px; font-weight:600; color:var(--g-muted); }
+.v2s-alt .kg-stz-table thead { background:transparent; border-bottom:1px solid var(--g-line); }
+.v2s-alt .kg-stz-table th { padding:10px 20px; font-size:12px; font-weight:600; color:var(--g-muted); text-transform:none; letter-spacing:0; }
+.v2s-alt .kg-stz-row { border-bottom:1px solid #f0f1f3; transition:background-color .15s; }
+.v2s-alt .kg-stz-row:hover { background:#f9fafb; }
+.v2s-alt .kg-stz-worker-cell, .v2s-alt .kg-stz-action-cell, .v2s-alt .kg-stz-row > td { padding:14px 20px !important; }
+.v2s-alt .kg-stz-worker-wrap { grid-template-columns:36px minmax(0, 1fr); gap:12px; }
+.v2s-alt .kg-stz-avatar { width:36px; height:36px; border-radius:50%; background:#f3f4f6; color:#374151; font-size:12.5px; font-weight:700; }
+.v2s-alt .kg-stz-name { font-size:14.5px; font-weight:700; color:var(--g-ink); margin-bottom:2px; }
+.v2s-alt .kg-stz-link-row { margin-top:0; }
+.v2s-alt .kg-stz-link-input { height:38px; padding:0 12px; border:1px solid var(--g-line); border-radius:10px; background:#f9fafb; color:#374151; font-size:12.5px; }
+.v2s-alt .kg-stz-link-input:focus { outline:none; border-color:var(--g-ink); box-shadow:0 0 0 3px rgba(17,24,39,.10); }
+.v2s-alt .kg-stz-copy-btn { height:38px; padding:0 12px; background:#fff; color:var(--g-ink); border:1px solid #d1d5db; border-radius:10px; font-size:12px; font-weight:700; letter-spacing:.02em; transition:background-color .15s; }
+.v2s-alt .kg-stz-copy-btn:hover { background:#f9fafb; }
+.v2s-alt .kg-stz-actions { gap:8px; align-items:center; }
+.v2s-alt .kg-stz-open-btn { height:38px; padding:0 16px; border-radius:10px; background:#111827; font-size:13.5px; font-weight:700; transition:background-color .15s; }
+.v2s-alt .kg-stz-open-btn:hover { background:#000; }
+.v2s-alt .kg-stz-open-btn i { font-size:12px; margin-right:4px; }
+.v2s-alt .kg-stz-delete-btn { width:38px; height:38px; border-radius:10px; background:#fef2f2; color:#b91c1c; transition:background-color .15s; }
+.v2s-alt .kg-stz-delete-btn:hover { background:#fee2e2; }
+/* Vorschau */
+.v2s-alt .kg-stz-preview { margin-top:24px; border:1px solid var(--g-line); border-radius:14px; box-shadow:0 1px 2px rgba(16,24,40,.05); }
+.v2s-alt .kg-stz-preview-head { background:#fff; color:var(--g-ink); padding:14px 18px; border-bottom:1px solid var(--g-line); }
+.v2s-alt .kg-stz-preview-title { font-size:15px; font-weight:700; }
+.v2s-alt .kg-stz-preview-sub { font-size:12.5px; font-weight:500; color:var(--g-muted); opacity:1; }
+.v2s-alt .kg-stz-preview-actions { gap:8px; }
+.v2s-alt .kg-stz-preview-btn { height:38px; border-radius:10px; border:1px solid #d1d5db; background:#fff; color:var(--g-ink); font-size:13px; font-weight:700; }
+.v2s-alt .kg-stz-preview-btn:hover { background:#f9fafb; }
+.v2s-alt .kg-stz-preview-close { width:38px; height:38px; border-radius:10px; border:1px solid #d1d5db; background:#fff; color:#374151; font-size:20px; font-weight:500; }
+.v2s-alt .kg-stz-preview-close:hover { background:#f9fafb; }
+.v2s-alt .kg-stz-preview-frame { background:#f4f5f7; }
+/* Start-Animation nur beim ersten Laden */
+@keyframes v2sAuf { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:none; } }
+@keyframes v2sBreit { from { transform:scaleX(0); } to { transform:scaleX(1); } }
+html.v2-start .v2s-kpi { animation:v2sAuf .5s cubic-bezier(.2,.7,.2,1) backwards; }
+html.v2-start .v2s-kpi + .v2s-kpi { animation-delay:.08s; }
+html.v2-start .v2s-linie i { transform-origin:0 50%; animation:v2sBreit .8s cubic-bezier(.2,.7,.2,1) .2s backwards; }
+@media (prefers-reduced-motion:reduce) { html.v2-start .v2s-kpi, html.v2-start .v2s-linie i { animation:none; } }
+/* Dunkelmodus: Graphit-Knöpfe sichtbar halten */
+html[data-kg-x="on"] .v2s-alt .kg-stz-open-btn { background:#2563eb !important; border-color:#2563eb !important; color:#fff !important; }
+html[data-kg-x="on"] .v2s-alt .kg-stz-open-btn:hover { background:#1d4ed8 !important; }
+html[data-kg-x="on"] .v2s-alt .kg-stz-link-input:focus { border-color:#60a5fa !important; }
+html[data-kg-x="on"] .v2s-stapel span { border-color:#1e293b !important; }
+@media (max-width: 900px) {
+    .v2s-alt .kg-stz-hero { flex-direction:row; flex-wrap:wrap; align-items:center; justify-content:flex-start; gap:8px; }
+    .v2s-alt .kg-stz-link-input { flex:0 0 auto; }
+    .v2s-alt .kg-stz-hero-left { flex:1 1 100%; }
+    .v2s-alt .kg-stz-hero > a { margin-left:0 !important; }
+    .v2s-alt .kg-stz-hero > a + a { margin-left:0 !important; }
+}
+@media (max-width: 640px) {
+    .v2s-kpis { grid-template-columns:minmax(0, 1fr); }
+    .v2s-alt .kg-stz-hero h2 { font-size:26px; }
+}
+{% endraw %}
 </style>
 
 <!--
@@ -330,21 +386,25 @@
 -->
 
 
-<div class="kg-stz-page">
+<div class="kg-stz-page v2s-alt">
     <div class="kg-stz-hero">
         <div class="kg-stz-hero-left">
             <div class="kg-stz-hero-icon">
                 <i class="fa-solid fa-clock-rotate-left"></i>
             </div>
             <div>
-                <span class="e2-lbl">KG Portal · Personal</span>
+                <div class="v2s-eyebrow"><span class="v2s-q"></span>Personal · Zeiterfassung · Bisherige Ansicht</div>
                 <h2>Stundenzettel Liste</h2>
                 <p>Alle Stundenzettel-Links Ihrer Mitarbeiter</p>
-                <span class="e2-chip">👥 {{ mitarbeiter_liste|length }} aktive Mitarbeiter</span>
             </div>
         </div>
         <a href="/stundenzettel/automatik" style="margin-left:auto;display:inline-flex;align-items:center;gap:8px;background:#ffffff;color:#1d4ed8;font-weight:800;text-decoration:none;padding:11px 16px;border-radius:12px;min-height:40px;">⏱ Feste Zeiten &amp; WhatsApp-Bestätigung</a>
         <a href="/mitarbeiter/lohnabrechnung" style="margin-left:10px;display:inline-flex;align-items:center;gap:8px;background:#ffffff;color:#1d4ed8;font-weight:800;text-decoration:none;padding:11px 16px;border-radius:12px;min-height:40px;">💶 Lohnabrechnungen</a>
+    </div>
+
+    <div class="v2s-kpis" aria-label="Kennzahlen">
+        <div class="v2s-kpi" style="--v2s-farbe:#7c3aed"><small>Aktive Mitarbeiter</small><b data-v2s-wert="ma">–</b><span>mit eigenem Stundenzettel</span><svg class="v2s-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg><div class="v2s-viz" data-v2s="ma"></div></div>
+        <div class="v2s-kpi" style="--v2s-farbe:#0d9488"><small>Links mit Zugangscode</small><b data-v2s-wert="code">–</b><span>Link je Mitarbeiter, kopierbar</span><svg class="v2s-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg><div class="v2s-viz" data-v2s="code"></div></div>
     </div>
 
     <div class="kg-stz-card">
@@ -868,6 +928,39 @@ function openStundenzettelPreviewNewWindow() {
     if (!currentStundenzettelPreviewUrl) return;
     window.open(currentStundenzettelPreviewUrl, "_blank");
 }
+</script>
+<script>
+{% raw %}
+/* ===== PREMIUM V2 „Graphit“: Kennzahlen – nur lesend aus der Tabelle der Seite ===== */
+(function () {
+    var html = document.documentElement;
+    html.classList.add("v2-start");
+    setTimeout(function () { html.classList.remove("v2-start"); }, 1600);
+    var zeilen = document.querySelectorAll(".v2s-alt .kg-stz-row");
+    var n = zeilen.length;
+    var esc = function (s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); };
+    var mitCode = Array.prototype.filter.call(zeilen, function (z) {
+        var t = (z.querySelector(".kg-stz-worker-wrap div div:last-child") || {}).textContent || "";
+        return /ID:\s*\S/.test(t);
+    }).length;
+    var w = function (k) { return document.querySelector('[data-v2s-wert="' + k + '"]'); };
+    var v = function (k) { return document.querySelector('.v2s-viz[data-v2s="' + k + '"]'); };
+    if (w("ma")) w("ma").textContent = n;
+    if (w("code")) w("code").textContent = mitCode + " / " + n;
+    if (v("ma")) {
+        var kurz = Array.prototype.slice.call(zeilen, 0, 7).map(function (z) {
+            return "<span>" + esc(((z.querySelector(".kg-stz-avatar") || {}).textContent || "").trim()) + "</span>";
+        }).join("");
+        v("ma").innerHTML = n ? '<div class="v2s-stapel">' + kurz + (n > 7 ? '<span class="mehr">+' + (n - 7) + "</span>" : "") + "</div>"
+            : '<div class="v2s-leg"><em>keine aktiven Mitarbeiter</em></div>';
+    }
+    if (v("code")) {
+        var p = n ? mitCode / n : 0;
+        v("code").innerHTML = '<div class="v2s-linie"><i style="width:' + (p * 100).toFixed(1) + '%;background:#0d9488"></i></div>' +
+            '<div class="v2s-leg"><em style="--f:#0d9488">' + (n ? Math.round(p * 100) + " % mit Zugangscode" : "keine Mitarbeiter") + "</em></div>";
+    }
+})();
+{% endraw %}
 </script>
 
 {% endblock %}

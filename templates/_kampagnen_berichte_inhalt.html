@@ -28,88 +28,95 @@
   .kbl-muted { color: #64748b; font-size: 13px; font-weight: 700; }
   .kbl-leer { margin-top: 14px; padding: 22px; border-radius: 18px; background: #fff; border: 1px dashed #cbd5e1; color: #475569; font-weight: 700; }
   @media (max-width: 640px) { .kbl-hero { padding: 18px; } .kbl-hero h1 { font-size: 22px; } .kbl-grid { grid-template-columns: 1fr; } }
-  /* ===== PREMIUM (einheitliches Design) ===== */
-  .kbl { font-family: inherit; }
-  .kbl-hero { position: relative; overflow: hidden; border-radius: 24px; padding: 26px 30px; box-shadow: 0 24px 50px -28px rgba(29,78,216,.7);
-    background: radial-gradient(520px 230px at 90% -20%, rgba(255,255,255,.26), transparent 60%),
-                radial-gradient(420px 220px at 0% 120%, rgba(56,189,248,.25), transparent 60%),
-                linear-gradient(135deg, #1e40af, #2563eb); }
-  .kbl-hero::after { content: ""; position: absolute; right: -50px; top: -70px; width: 240px; height: 240px; border-radius: 50%; background: rgba(255,255,255,.08); }
-  .kbl-kicker { display: block; margin-bottom: 6px; font-size: 11.5px; font-weight: 800; letter-spacing: 1.4px; text-transform: uppercase; color: #bfdbfe; }
-  .kbl-hero h1 { font-size: 30px; letter-spacing: -1px; }
-  .kbl-hero p { color: #dbeafe; font-weight: 600; opacity: 1; }
+  /* ===== PREMIUM V2 „Graphit“ ===== */
+  .kbl { font-family: inherit; color: #1f2937; }
+  .kbl .v2-eyebrow { display: inline-flex; align-items: center; gap: 8px; margin-bottom: 8px; font-size: 12px; font-weight: 700; color: #6b7280; letter-spacing: .01em; }
+  .kbl .v2-eyebrow i { display: inline-block; width: 8px; height: 8px; border-radius: 2px; background: #2563eb; }
+  .kbl-hero { border-radius: 0; padding: 6px 0 20px; color: #111827; background: transparent; border-bottom: 1px solid #e5e7eb; }
+  .kbl-hero h1 { font-size: 30px; font-weight: 800; color: #111827; letter-spacing: -.02em; }
+  .kbl-hero p { margin-top: 6px; font-size: 14px; font-weight: 500; opacity: 1; color: #6b7280; line-height: 1.6; max-width: 110ch; }
 
-  .kbl-kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; margin-top: 16px; }
-  .kbl-kpi { position: relative; display: flex; align-items: center; gap: 14px; min-width: 0; background: #fff; border: 1px solid #e6ebf2; border-radius: 20px;
-    padding: 16px 18px; box-shadow: 0 18px 40px -30px rgba(15,23,42,.45); transition: translate .2s, box-shadow .2s; }
-  .kbl-kpi:hover { translate: 0 -2px; box-shadow: 0 22px 44px -28px rgba(15,23,42,.5); }
-  .kbl-ico { flex: 0 0 38px; width: 38px; height: 38px; border-radius: 12px; display: grid; place-items: center;
-    background: linear-gradient(135deg, #3b82f6, #1d4ed8); box-shadow: 0 10px 20px -10px rgba(29,78,216,.8); }
-  .kbl-ico svg { width: 19px; height: 19px; fill: none; stroke: #fff; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-  .kbl-ico.gruen { background: linear-gradient(135deg, #16a34a, #15803d); box-shadow: 0 10px 20px -10px rgba(21,128,61,.8); }
-  .kbl-ico.cyan { background: linear-gradient(135deg, #0891b2, #0e7490); box-shadow: 0 10px 20px -10px rgba(14,116,144,.8); }
-  .kbl-ico.orange { background: linear-gradient(135deg, #f59e0b, #d97706); box-shadow: 0 10px 20px -10px rgba(217,119,6,.8); }
-  .kbl-kpi-text { min-width: 0; }
-  .kbl-kpi-text b { display: block; font-size: 28px; line-height: 1; font-weight: 900; letter-spacing: -1px; color: #0f172a; font-variant-numeric: tabular-nums; }
-  .kbl-kpi-text span { display: block; margin-top: 5px; font-size: 11.5px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; color: #64748b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .kbl-ring { position: relative; margin-left: auto; flex: 0 0 52px; width: 52px; height: 52px; }
-  .kbl-ring svg { display: block; width: 100%; height: 100%; }
-  .kbl-ring circle { fill: none; stroke-width: 5; }
-  .kbl-ring .t { stroke: rgba(148,163,184,.24); }
-  .kbl-ring .v { stroke: #0891b2; stroke-linecap: round; transition: stroke-dashoffset 1s cubic-bezier(.22,1,.36,1); }
-  .kbl-ring i { position: absolute; inset: 0; display: grid; place-items: center; font-style: normal; font-size: 11px; font-weight: 900; color: #475569; }
+  .kbl .v2-kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; margin-top: 20px; }
+  .kbl .v2-kpi { min-width: 0; display: flex; flex-direction: column; gap: 6px; padding: 16px 18px; background: #fff; border: 1px solid #e5e7eb; border-radius: 14px; box-shadow: 0 1px 2px rgba(16, 24, 40, .05); }
+  .kbl .v2-kpi-kopf { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 13px; font-weight: 600; color: #6b7280; }
+  .kbl .v2-kpi-kopf svg { width: 18px; height: 18px; flex: 0 0 18px; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+  .kbl .v2-kpi-wert { font-size: 30px; line-height: 1.1; font-weight: 800; color: #111827; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
+  .kbl .v2-kpi-wert small { margin-left: 4px; font-size: 14px; font-weight: 700; color: #6b7280; letter-spacing: 0; }
+  .kbl .v2-kpi-fuss { display: flex; align-items: center; gap: 10px; min-height: 30px; font-size: 12px; font-weight: 600; color: #6b7280; font-variant-numeric: tabular-nums; }
+  .kbl .v2-linie { position: relative; flex: 1; height: 4px; border-radius: 2px; background: #f3f4f6; overflow: hidden; }
+  .kbl .v2-linie span { position: absolute; left: 0; top: 0; bottom: 0; width: 0; border-radius: 2px; transition: width .8s cubic-bezier(.2, .8, .2, 1); }
+  .kbl .v2-ring { width: 30px; height: 30px; flex: 0 0 30px; transform: rotate(-90deg); }
+  .kbl .v2-ring circle { fill: none; stroke-width: 4; }
+  .kbl .v2-ring .v2-wert { stroke-linecap: round; transition: stroke-dasharray .9s cubic-bezier(.2, .8, .2, 1); }
+  .kbl .v2-track { stroke: #eef0f3; }
+  .kbl .v2-spark { display: block; flex: 1; height: 30px; overflow: visible; }
+  .kbl .v2-start .v2-kpi { animation: v2KblAuf .5s cubic-bezier(.2, .8, .2, 1) backwards; }
+  .kbl .v2-start .v2-kpi:nth-child(2) { animation-delay: .05s; }
+  .kbl .v2-start .v2-kpi:nth-child(3) { animation-delay: .1s; }
+  .kbl .v2-start .v2-kpi:nth-child(4) { animation-delay: .15s; }
+  @keyframes v2KblAuf { from { opacity: 0; transform: translateY(6px); } }
 
-  .kbl-grid { gap: 14px; margin-top: 16px; }
-  .kbl-karte { position: relative; border: 1px solid #e6ebf2; border-radius: 22px; padding: 18px 20px; box-shadow: 0 18px 40px -30px rgba(15,23,42,.45);
-    transition: translate .2s, box-shadow .2s, border-color .2s; }
-  .kbl-karte:hover { transform: none; translate: 0 -3px; border-color: #bfdbfe; box-shadow: 0 24px 46px -28px rgba(29,78,216,.45); }
-  .kbl-name { font-size: 16.5px; letter-spacing: -.2px; }
-  .kbl-offen { padding: 4px 11px; font-size: 11.5px; font-weight: 800; background: #fef3c7; color: #b45309; }
-  .kbl-offen.fertig { background: #dcfce7; color: #15803d; }
-  .kbl-zahlen { gap: 8px; margin-top: 14px; }
-  .kbl-zahlen div { background: #f8fbff; border: 1px solid #e6edf7; border-radius: 14px; padding: 9px 6px; }
-  .kbl-zahlen b { font-size: 21px; letter-spacing: -.5px; }
-  .kbl-zahlen span { font-size: 10.5px; letter-spacing: .3px; }
-  .kbl-bar { height: 10px; gap: 2px; background: transparent; margin-top: 14px; }
-  .kbl-bar i { border-radius: 999px; }
-  .kbl-box { border: 1px solid #e6ebf2; border-radius: 24px; padding: 20px 22px; margin-top: 16px; box-shadow: 0 18px 40px -30px rgba(15,23,42,.45); }
-  .kbl-box h2 { font-size: 11.5px; font-weight: 800; letter-spacing: 1.4px; text-transform: uppercase; color: #64748b; }
-  .kbl-row { padding: 12px 14px; margin-top: 8px; border: 1px solid #eef2f7; border-radius: 16px; background: #f8fbff; transition: background-color .2s, border-color .2s; }
-  .kbl-row:first-of-type { border-top: 1px solid #eef2f7; }
-  .kbl-row:hover { background: #f1f6ff; border-color: #dbe7fb; }
-  .kbl-btn { border-radius: 12px; font-weight: 900; padding: 10px 15px; background: linear-gradient(135deg, #3b82f6, #1d4ed8);
-    box-shadow: 0 10px 20px -12px rgba(29,78,216,.8); transition: translate .2s, box-shadow .2s, opacity .2s; }
-  .kbl-btn:not(:disabled):hover { translate: 0 -2px; box-shadow: 0 16px 26px -12px rgba(29,78,216,.8); }
-  .kbl-btn:disabled { box-shadow: none; }
-  .kbl-leer { border-radius: 20px; border-color: #dbe3ef; background: #f8fbff; }
-
-  .kbl-hero, .kbl-kpi, .kbl-karte, .kbl-box { animation: kgRein .6s cubic-bezier(.22,1,.36,1) backwards; animation-delay: calc(var(--i, 0) * 70ms); }
-  .kbl-kpi:nth-child(1) { --i: 1; } .kbl-kpi:nth-child(2) { --i: 2; } .kbl-kpi:nth-child(3) { --i: 3; } .kbl-kpi:nth-child(4) { --i: 4; }
-  .kbl-karte:nth-child(1) { --i: 3; } .kbl-karte:nth-child(2) { --i: 4; } .kbl-karte:nth-child(3) { --i: 5; } .kbl-karte:nth-child(n+4) { --i: 6; }
-  .kbl-box { --i: 5; }
-  @keyframes kgRein { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
-  @media (max-width: 1000px) { .kbl-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-  @media (max-width: 640px) { .kbl-hero h1 { font-size: 22px; } .kbl-kpis { gap: 10px; } .kbl-kpi { padding: 14px; } .kbl-ring { display: none; } }
-  @media (prefers-reduced-motion: reduce) { .kbl-hero, .kbl-kpi, .kbl-karte, .kbl-box { animation: none; } .kbl-ring .v { transition: none; } }
+  .kbl-grid { grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 16px; margin-top: 20px; }
+  .kbl-karte { border: 1px solid #e5e7eb; border-radius: 14px; padding: 18px 20px; box-shadow: 0 1px 2px rgba(16, 24, 40, .05); transition: border-color .15s ease, box-shadow .15s ease; }
+  .kbl-karte:hover { transform: none; border-color: #d1d5db; box-shadow: 0 8px 24px -12px rgba(16, 24, 40, .18); }
+  .kbl-name { font-size: 15px; font-weight: 700; color: #111827; letter-spacing: -.01em; }
+  .kbl-zeit { font-size: 12.5px; font-weight: 500; color: #6b7280; margin-top: 4px; font-variant-numeric: tabular-nums; }
+  .kbl-offen { display: inline-flex; align-items: center; gap: 6px; border-radius: 6px; padding: 3px 8px; font-size: 12px; font-weight: 700; background: #fffbeb; color: #b45309; }
+  .kbl-offen::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+  .kbl-offen.fertig { background: #ecfdf5; color: #047857; }
+  .kbl-offen.fertig::before { display: none; }
+  .kbl-zahlen { gap: 0; margin-top: 16px; }
+  .kbl-zahlen div { background: transparent; border-radius: 0; padding: 0 12px; text-align: left; border-left: 1px solid #f0f1f4; }
+  .kbl-zahlen div:first-child { padding-left: 0; border-left: 0; }
+  .kbl-zahlen b { font-size: 22px; font-weight: 800; color: #111827; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
+  .kbl-zahlen span { font-size: 12px; font-weight: 600; color: #6b7280; }
+  .kbl-bar { gap: 2px; height: 6px; border-radius: 3px; background: #f3f4f6; margin-top: 16px; }
+  .kbl-bar i { border-radius: 2px; }
+  .kbl-box { border: 1px solid #e5e7eb; border-radius: 14px; padding: 20px 22px; margin-top: 20px; box-shadow: 0 1px 2px rgba(16, 24, 40, .05); }
+  .kbl-box h2 { font-size: 15px; font-weight: 700; color: #111827; letter-spacing: -.01em; margin-bottom: 6px; }
+  .kbl-row { padding: 12px 0; border-top: 1px solid #f0f1f4; }
+  .kbl-row b { color: #111827; font-weight: 700; }
+  .kbl-btn { display: inline-flex; align-items: center; height: 34px; min-height: 34px; padding: 0 12px; border: 1px solid #111827; border-radius: 8px; background: #111827; color: #fff; font-size: 12.5px; font-weight: 700; transition: background-color .15s ease; }
+  .kbl-btn:hover:not(:disabled) { background: #000; }
+  .kbl-btn:disabled { opacity: 1; background: #fff; border-color: #e5e7eb; color: #9ca3af; }
+  .kbl-muted { color: #6b7280; font-size: 13px; font-weight: 500; }
+  .kbl-leer { margin-top: 20px; padding: 28px 22px; border-radius: 14px; background: #fff; border: 1px dashed #e5e7eb; color: #6b7280; font-size: 14px; font-weight: 500; text-align: center; }
+  html[data-kg-x="on"] .kbl-btn:not(:disabled) { background: #2563eb !important; border-color: #2563eb !important; color: #fff !important; }
+  html[data-kg-x="on"] .kbl-btn:not(:disabled):hover { background: #1d4ed8 !important; }
+  html[data-kg-x="on"] .kbl .v2-track { stroke: rgba(148, 163, 184, .18); }
+  @media (max-width: 1100px) { .kbl .v2-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @media (max-width: 640px) { .kbl-hero { padding: 6px 0 18px; } .kbl-hero h1 { font-size: 24px; } .kbl .v2-kpis { grid-template-columns: 1fr; } .kbl-grid { grid-template-columns: 1fr; } }
+  @media (prefers-reduced-motion: reduce) { .kbl .v2-start .v2-kpi { animation: none; } .kbl .v2-linie span, .kbl .v2-ring .v2-wert { transition: none; } }
 </style>
 <div class="kbl">
   <section class="kbl-hero">
-    <span class="kbl-kicker">Leon · Auswertung</span>
+    <div class="v2-eyebrow"><i></i>Leon · Auswertung</div>
     <h1>📊 Kampagnen-Berichte</h1>
     <p>Sobald eine Leon-Kampagne fertig ist, entsteht hier automatisch ein Bericht – und eine To-Do-Karte mit den wichtigsten Firmen.
        Jeder Lauf bekommt einen eigenen Bericht (die Auto-Kampagne also einen pro Tag).</p>
   </section>
-  <div class="kbl-kpis" id="kblKpis" aria-label="Kennzahlen aller Berichte">
-    <div class="kbl-kpi"><span class="kbl-ico"><svg viewBox="0 0 24 24"><path d="M4 19V5M4 19h16M8 15v-4M12 15V8M16 15v-6"/></svg></span>
-      <div class="kbl-kpi-text"><b data-kbl="berichte">–</b><span>Berichte</span></div></div>
-    <div class="kbl-kpi"><span class="kbl-ico"><svg viewBox="0 0 24 24"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2z"/></svg></span>
-      <div class="kbl-kpi-text"><b data-kbl="angerufen">–</b><span>Angerufen</span></div></div>
-    <div class="kbl-kpi"><span class="kbl-ico cyan"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1" fill="#fff"/></svg></span>
-      <div class="kbl-kpi-text"><b data-kbl="erreicht">–</b><span>Erreicht</span></div>
-      <div class="kbl-ring" title="Erreicht von angerufen (alle Berichte)"><svg viewBox="0 0 44 44" aria-hidden="true"><circle class="t" cx="22" cy="22" r="18"/><circle class="v" cx="22" cy="22" r="18" pathLength="100" stroke-dasharray="100" stroke-dashoffset="100" transform="rotate(-90 22 22)"/></svg><i data-kbl="quote">–</i></div></div>
-    <div class="kbl-kpi"><span class="kbl-ico orange"><svg viewBox="0 0 24 24"><path d="M9 11l3 3 8-8"/><path d="M20 12v6a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h9"/></svg></span>
-      <div class="kbl-kpi-text"><b data-kbl="offen">–</b><span>Offene Fälle</span></div></div>
-  </div>
+  <section class="v2-kpis v2-start" data-v2-kbl-kpis aria-label="Kennzahlen über alle Berichte">
+    <div class="v2-kpi">
+      <div class="v2-kpi-kopf"><span>Berichte</span><svg viewBox="0 0 24 24" stroke="#2563eb" aria-hidden="true"><path d="M3 3v18h18"/><path d="M7 16v-5M12 16V8M17 16v-9"/></svg></div>
+      <div class="v2-kpi-wert" data-v2="berichte">–</div>
+      <div class="v2-kpi-fuss" data-v2="spark" title="Angerufene Firmen je Bericht"></div>
+    </div>
+    <div class="v2-kpi">
+      <div class="v2-kpi-kopf"><span>Erreicht</span><svg viewBox="0 0 24 24" stroke="#0d9488" aria-hidden="true"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="M22 4L12 14.01l-3-3"/></svg></div>
+      <div class="v2-kpi-wert" data-v2="erreicht">–</div>
+      <div class="v2-kpi-fuss"><svg class="v2-ring" viewBox="0 0 36 36" aria-hidden="true"><circle class="v2-track" cx="18" cy="18" r="14" pathLength="100"/><circle class="v2-wert" data-v2="ring" cx="18" cy="18" r="14" pathLength="100" stroke="#0d9488" stroke-dasharray="0 100"/></svg><span data-v2="erreichtText"></span></div>
+    </div>
+    <div class="v2-kpi">
+      <div class="v2-kpi-kopf"><span>Positiv</span><svg viewBox="0 0 24 24" stroke="#d97706" aria-hidden="true"><path d="M22 7l-8.5 8.5-5-5L2 17"/><path d="M16 7h6v6"/></svg></div>
+      <div class="v2-kpi-wert" data-v2="positiv">–</div>
+      <div class="v2-kpi-fuss"><div class="v2-linie"><span data-v2="positivLinie" style="background:#d97706"></span></div><span data-v2="positivText"></span></div>
+    </div>
+    <div class="v2-kpi">
+      <div class="v2-kpi-kopf"><span>Offene Aufgaben</span><svg viewBox="0 0 24 24" stroke="#7c3aed" aria-hidden="true"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></div>
+      <div class="v2-kpi-wert" data-v2="offen">–</div>
+      <div class="v2-kpi-fuss"><div class="v2-linie"><span data-v2="offenLinie" style="background:#16a34a"></span></div><span data-v2="offenText"></span></div>
+    </div>
+  </section>
   {% if fehler %}<div class="kbl-leer">{{ fehler }}</div>{% endif %}
   <div id="kblListe" class="kbl-grid"></div>
   <div class="kbl-box">
@@ -157,27 +164,45 @@
 })();
 </script>
 <script>
-/* PREMIUM: Kennzahlen oben – nur gelesen aus den angezeigten Berichtskarten (keine eigenen Abrufe) */
+// PREMIUM V2: Kennzahlen nur aus den angezeigten Berichtskarten lesen (keine eigenen Abfragen)
 (function () {
-  const liste = document.getElementById("kblListe"), kpis = document.getElementById("kblKpis");
-  if (!liste || !kpis) return;
-  const zahl = (el) => { const n = parseInt(String(el ? el.textContent : "").replace(/\D+/g, ""), 10); return isNaN(n) ? 0 : n; };
-  const setze = (k, v) => kpis.querySelectorAll('[data-kbl="' + k + '"]').forEach(el => { el.textContent = v; });
-  function rechnen() {
-    const karten = liste.querySelectorAll(".kbl-karte");
-    let angerufen = 0, erreicht = 0, offen = 0;
-    karten.forEach(k => {
-      const z = k.querySelectorAll(".kbl-zahlen > div > b");
-      angerufen += zahl(z[0]); erreicht += zahl(z[1]);
-      const o = k.querySelector(".kbl-offen:not(.fertig)"); if (o) offen += zahl(o);
+  const box = document.querySelector("[data-v2-kbl-kpis]"), liste = document.getElementById("kblListe");
+  if (!box || !liste) return;
+  const feld = (k) => box.querySelector('[data-v2="' + k + '"]');
+  setTimeout(() => box.classList.remove("v2-start"), 1500);
+  const zahl = (el) => parseInt((el && el.textContent) || "0", 10) || 0;
+  function zeichnen() {
+    const karten = Array.from(liste.querySelectorAll(".kbl-karte"));
+    let ang = 0, err = 0, pos = 0, offen = 0, fertig = 0;
+    const reihe = [];
+    karten.forEach((k) => {
+      const b = k.querySelectorAll(".kbl-zahlen b");
+      ang += zahl(b[0]); err += zahl(b[1]); pos += zahl(b[2]) + zahl(b[3]);
+      reihe.push(zahl(b[0]));
+      const o = k.querySelector(".kbl-offen");
+      if (o && o.classList.contains("fertig")) fertig++; else offen += zahl(o);
     });
-    const q = angerufen ? Math.round(100 * erreicht / angerufen) : 0;
-    setze("berichte", karten.length.toLocaleString("de-DE")); setze("angerufen", angerufen.toLocaleString("de-DE"));
-    setze("erreicht", erreicht.toLocaleString("de-DE")); setze("offen", offen.toLocaleString("de-DE"));
-    setze("quote", angerufen ? q + "%" : "–");
-    const v = kpis.querySelector(".kbl-ring .v"); if (v) v.setAttribute("stroke-dashoffset", String(100 - Math.min(100, q)));
+    feld("berichte").textContent = karten.length;
+    const r = reihe.reverse().slice(-14), max = Math.max(1, ...r), w = 160, h = 30;
+    feld("spark").innerHTML = r.length > 1
+      ? (() => {
+          const pt = r.map((v, i) => [(i * w / (r.length - 1)).toFixed(1), (h - 3 - (h - 6) * v / max).toFixed(1)]);
+          const linie = pt.map((p, i) => (i ? "L" : "M") + p[0] + " " + p[1]).join(" ");
+          return '<svg class="v2-spark" viewBox="0 0 ' + w + " " + h + '" preserveAspectRatio="none" aria-hidden="true"><defs><linearGradient id="v2KblVerlauf" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2563eb" stop-opacity=".14"/><stop offset="1" stop-color="#2563eb" stop-opacity="0"/></linearGradient></defs>' +
+            '<path d="' + linie + " L" + w + " " + h + " L0 " + h + ' Z" fill="url(#v2KblVerlauf)"/><path d="' + linie + '" fill="none" stroke="#2563eb" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke"/></svg>';
+        })()
+      : "<span>" + (r.length ? r[0] + " angerufen" : "noch kein Bericht") + "</span>";
+    const pz = ang ? Math.round(100 * err / ang) : 0;
+    feld("erreicht").innerHTML = err + "<small>" + pz + " %</small>";
+    feld("ring").setAttribute("stroke-dasharray", (pz ? Math.max(pz - 0.5, 1) : 0) + " 100");
+    feld("erreichtText").textContent = "von " + ang + " angerufen";
+    feld("positiv").textContent = pos;
+    feld("positivLinie").style.width = err ? Math.min(100, 100 * pos / err) + "%" : "0";
+    feld("positivText").textContent = err ? Math.round(100 * pos / err) + " % der Erreichten" : "–";
+    feld("offen").textContent = offen;
+    feld("offenLinie").style.width = karten.length ? (100 * fertig / karten.length) + "%" : "0";
+    feld("offenText").textContent = fertig + " von " + karten.length + " Berichten erledigt";
   }
-  new MutationObserver(rechnen).observe(liste, { childList: true });
-  rechnen();
+  new MutationObserver(zeichnen).observe(liste, { childList: true });
 })();
 </script>

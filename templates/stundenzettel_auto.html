@@ -65,76 +65,122 @@
     .sza-plan th:nth-child(4), .sza-plan td:nth-child(4) { min-width: 140px; }
     .sza-plan { overflow-x: auto; }
   }
-  /* ===== PREMIUM (einheitliches Design) ===== */
-  @keyframes kgRein { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
-  @keyframes e2Bogen { from { stroke-dashoffset: 100; } }
-  @keyframes e2Balken { from { transform: scaleX(0); } }
-  .sza-head { position: relative; overflow: hidden; border-radius: 24px; padding: 26px 28px; align-items: flex-start;
-              background: radial-gradient(520px 230px at 90% -20%, rgba(255,255,255,.26), transparent 60%), radial-gradient(420px 220px at 0% 120%, rgba(56,189,248,.25), transparent 60%), linear-gradient(135deg, #1e40af, #2563eb);
-              box-shadow: 0 24px 50px -28px rgba(29,78,216,.7); }
-  .sza-head .e2-lbl { display: block; font-size: 11.5px; font-weight: 800; letter-spacing: 1.4px; text-transform: uppercase; color: #bfdbfe; margin-bottom: 6px; }
-  .sza-head h1 { font-size: 30px; font-weight: 900; letter-spacing: -.8px; line-height: 1.15; color: #fff; }
-  .sza-head p { color: #dbeafe; opacity: 1; font-weight: 600; font-size: 13.5px; margin-top: 8px; }
-  .sza-head .sza-month { background: rgba(255,255,255,.14); border: 1px solid rgba(255,255,255,.28); border-radius: 16px; padding: 8px 8px 8px 14px; color: #fff; }
-  .sza-head .sza-month label { font-size: 11.5px; font-weight: 800; letter-spacing: 1.2px; text-transform: uppercase; color: #dbeafe; }
-  .sza-head input[type=month] { border-radius: 12px; font-weight: 800; color: #1e40af; padding: 8px 12px; }
-  .e2-sza-kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; margin-top: 16px; }
-  .e2-sza-k { position: relative; display: grid; grid-template-columns: 38px minmax(0, 1fr) auto; column-gap: 12px; align-items: center; background: #fff; border: 1px solid #e6ebf2; border-radius: 22px; padding: 18px 18px 16px; box-shadow: 0 18px 40px -30px rgba(15,23,42,.45); transition: translate .2s, box-shadow .2s; }
-  .e2-sza-k:hover { translate: 0 -2px; box-shadow: 0 22px 44px -28px rgba(15,23,42,.5); }
-  .e2-sza-k > i { grid-column: 1; grid-row: 1 / span 2; width: 38px; height: 38px; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 15px; font-style: normal; background: linear-gradient(135deg, #3b82f6, #1d4ed8); box-shadow: 0 8px 16px -8px rgba(29,78,216,.7); }
-  .e2-sza-k > i.cyan { background: linear-gradient(135deg, #0891b2, #0e7490); box-shadow: 0 8px 16px -8px rgba(8,145,178,.7); }
-  .e2-sza-k > i.gruen { background: linear-gradient(135deg, #16a34a, #15803d); box-shadow: 0 8px 16px -8px rgba(22,163,74,.7); }
-  .e2-sza-k > i.rot { background: linear-gradient(135deg, #ef4444, #dc2626); box-shadow: 0 8px 16px -8px rgba(239,68,68,.7); }
-  .e2-sza-k > small { grid-column: 2; grid-row: 1; font-size: 11.5px; font-weight: 800; letter-spacing: 1.2px; text-transform: uppercase; color: #64748b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .e2-sza-k > b { grid-column: 2; grid-row: 2; font-size: 27px; font-weight: 900; letter-spacing: -.8px; line-height: 1.15; color: #1d4ed8; white-space: nowrap; }
-  .e2-sza-k > em { grid-column: 1 / -1; grid-row: 3; margin-top: 10px; padding-top: 10px; border-top: 1px solid #eef2f7; font-style: normal; font-size: 12.5px; font-weight: 700; color: #64748b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .e2-sza-k > .e2-graf { grid-column: 3; grid-row: 1 / span 2; position: relative; width: 52px; height: 52px; color: #0f172a; }
-  .e2-sza-k.cyan > b { color: #0e7490; } .e2-sza-k.gruen > b { color: #15803d; } .e2-sza-k.rot > b { color: #dc2626; }
-  .e2-graf svg { display: block; width: 100%; height: 100%; overflow: visible; }
-  .e2-graf .e2-spur { fill: none; stroke: rgba(148,163,184,.25); }
-  .e2-graf .e2-bogen { fill: none; stroke-linecap: round; animation: e2Bogen 1.1s cubic-bezier(.22,1,.36,1) .25s backwards; }
-  .e2-graf .e2-mitte { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 11.5px; font-weight: 900; letter-spacing: -.3px; }
-  .e2-sza-stand { grid-column: 1 / -1; background: #fff; border: 1px solid #e6ebf2; border-radius: 22px; padding: 16px 20px; box-shadow: 0 18px 40px -30px rgba(15,23,42,.45); }
-  .e2-sza-stand-kopf { display: flex; justify-content: space-between; gap: 10px; font-size: 11.5px; font-weight: 800; letter-spacing: 1.4px; text-transform: uppercase; color: #64748b; }
-  .e2-sza-stand-kopf span { letter-spacing: 0; text-transform: none; font-weight: 700; color: #94a3b8; }
-  .e2-sza-balken { display: flex; height: 12px; margin-top: 12px; border-radius: 999px; overflow: hidden; background: rgba(148,163,184,.22); }
-  .e2-sza-balken i { display: block; height: 100%; transform-origin: 0 50%; animation: e2Balken .9s cubic-bezier(.22,1,.36,1) .3s backwards; }
-  .e2-sza-legende { display: flex; flex-wrap: wrap; gap: 8px 16px; margin-top: 10px; font-size: 12.5px; font-weight: 700; color: #475569; }
-  .e2-sza-legende span { display: inline-flex; align-items: center; gap: 6px; }
-  .e2-sza-legende span i { width: 9px; height: 9px; border-radius: 3px; display: inline-block; }
-  .sza-card { border: 1px solid #e6ebf2; border-radius: 22px; padding: 20px 22px; box-shadow: 0 18px 40px -30px rgba(15,23,42,.45); }
-  .sza-help { background: #f8fbff; border-color: #e6edf7; box-shadow: none; }
-  .sza-auto { border: 1px solid #dbeafe; }
-  .sza-name { font-size: 18px; font-weight: 900; letter-spacing: -.3px; }
-  .sza-badge { font-weight: 900; padding: 5px 11px; }
-  .b-bestaetigt { background: #dcfce7; color: #15803d; }
-  .sza-btn { border-radius: 12px; font-weight: 800; transition: translate .2s, box-shadow .2s, filter .2s; box-shadow: 0 8px 16px -12px rgba(15,23,42,.6); }
-  .sza-btn:not(:disabled):hover { translate: 0 -2px; box-shadow: 0 14px 22px -12px rgba(15,23,42,.55); }
-  .c-blue { background: linear-gradient(135deg, #3b82f6, #1d4ed8); } .c-green { background: linear-gradient(135deg, #16a34a, #15803d); }
-  .c-orange { background: linear-gradient(135deg, #f59e0b, #d97706); } .c-slate { background: linear-gradient(135deg, #64748b, #475569); }
-  .c-purple { background: linear-gradient(135deg, #7c3aed, #6d28d9); } .c-red { background: linear-gradient(135deg, #ef4444, #dc2626); }
-  .c-wa { background: linear-gradient(135deg, #0d9488, #0f766e); }
-  .sza-termine, .sza-summary, .sza-bericht { background: #f8fbff; border: 1px solid #e6edf7; border-radius: 14px; }
-  .sza-wa { border-radius: 14px; }
-  .sza-info-row { border-top-color: #eef2f7; }
-  .sza-info-row select, .sza-sprache, .sza-auto-opt input[type=number], .sza-auto-opt select, .sza-plan input[type=time], .sza-plan input[type=text], .sza-plan select { border-color: #dbe3ef; border-radius: 12px; transition: border-color .2s, box-shadow .2s; }
-  .sza-info-row select:focus, .sza-sprache:focus, .sza-auto-opt input[type=number]:focus, .sza-auto-opt select:focus, .sza-plan input:focus, .sza-plan select:focus { outline: none; border-color: #2563eb; box-shadow: 0 0 0 4px rgba(37,99,235,.12); }
-  .sza-plan table { border: 1px solid #e6ebf2; border-radius: 16px; border-collapse: separate; border-spacing: 0; overflow: hidden; }
-  .sza-plan th { background: #f8fafc; font-size: 11.5px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; color: #64748b; padding: 10px 8px; }
-  .sza-plan tbody tr { transition: background-color .2s; }
-  .sza-plan tbody tr:hover { background: #f8fbff; }
-  .sza-head, .e2-sza-k, .e2-sza-stand, .sza-wrap > .sza-card { animation: kgRein .6s cubic-bezier(.22,1,.36,1) backwards; animation-delay: calc(var(--i, 0) * 70ms); }
-  .e2-sza-k:nth-child(1) { --i: 1; } .e2-sza-k:nth-child(2) { --i: 2; } .e2-sza-k:nth-child(3) { --i: 3; } .e2-sza-k:nth-child(4) { --i: 4; }
-  .e2-sza-stand { --i: 5; } .sza-wrap > .sza-help { --i: 6; } .sza-wrap > .sza-auto { --i: 7; }
-  @media (max-width: 1100px) { .e2-sza-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-  @media (max-width: 700px) { .sza-head h1 { font-size: 23px; } .e2-sza-kpis { gap: 10px; } .e2-sza-k { padding: 14px; } .e2-sza-k > b { font-size: 22px; } }
-  @media (prefers-reduced-motion: reduce) { .sza-head, .e2-sza-k, .e2-sza-stand, .sza-wrap > .sza-card, .e2-graf .e2-bogen, .e2-sza-balken i { animation: none; } .sza-btn, .e2-sza-k { transition: none; } }
+  {% raw %}
+  /* ===== PREMIUM V2 „Graphit“ ===== */
+  .v2s-auto { --g-ink:#111827; --g-muted:#6b7280; --g-line:#e5e7eb; padding:4px 4px 48px; font-variant-numeric:tabular-nums; }
+  /* Seitenkopf */
+  .v2s-auto .sza-head { background:transparent; color:var(--g-ink); border-radius:0; padding:4px 0 20px; gap:16px 24px; align-items:flex-end; border-bottom:1px solid var(--g-line); margin-bottom:20px; }
+  .v2s-eyebrow { display:flex; align-items:center; gap:8px; font-size:12px; font-weight:700; color:#6b7280; margin:0 0 6px; letter-spacing:.01em; }
+  .v2s-eyebrow .v2s-q { width:8px; height:8px; border-radius:2px; background:#0d9488; flex:none; }
+  .v2s-auto .sza-head h1 { font-size:30px; font-weight:800; letter-spacing:-.02em; line-height:1.15; color:var(--g-ink); }
+  .v2s-auto .sza-head p { margin:6px 0 0; opacity:1; color:var(--g-muted); font-size:14px; max-width:700px; }
+  .v2s-auto .sza-head .sza-month { gap:10px; font-size:13px; font-weight:600; color:var(--g-muted); }
+  .v2s-auto .sza-head input[type=month] { height:40px; font-size:14px; font-weight:600; color:var(--g-ink); padding:0 12px; border:1px solid #d1d5db; border-radius:10px; background:#fff; box-shadow:0 1px 2px rgba(16,24,40,.05); }
+  .v2s-auto .sza-head input[type=month]:focus { outline:none; border-color:var(--g-ink); box-shadow:0 0 0 3px rgba(17,24,39,.10); }
+  /* KPI-Karten */
+  .v2s-kpis { display:grid; grid-template-columns:repeat(4, minmax(0, 1fr)); gap:14px; margin-bottom:8px; }
+  .v2s-kpi { position:relative; display:flex; flex-direction:column; min-width:0; background:#fff; border:1px solid var(--g-line); border-radius:14px; padding:16px 18px; box-shadow:0 1px 2px rgba(16,24,40,.05); }
+  .v2s-kpi small { font-size:13px; font-weight:600; color:var(--g-muted); padding-right:26px; }
+  .v2s-kpi > b { font-size:28px; font-weight:800; letter-spacing:-.02em; line-height:1.15; color:var(--g-ink); margin-top:6px; white-space:nowrap; }
+  .v2s-kpi > span { font-size:12.5px; font-weight:500; color:var(--g-muted); margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .v2s-ic { position:absolute; top:16px; right:16px; width:18px; height:18px; fill:none; stroke:var(--v2s-farbe, #0d9488); stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
+  .v2s-viz { margin-top:auto; padding-top:12px; min-height:44px; }
+  .v2s-viz svg { display:block; width:100%; overflow:visible; }
+  .v2s-spur { display:flex; gap:2px; height:6px; border-radius:999px; overflow:hidden; background:#f0f1f4; }
+  .v2s-spur i { display:block; height:100%; min-width:3px; }
+  .v2s-linie { position:relative; height:4px; border-radius:999px; background:#f0f1f4; overflow:hidden; }
+  .v2s-linie i { position:absolute; left:0; top:0; bottom:0; border-radius:999px; }
+  .v2s-leg { display:flex; flex-wrap:wrap; gap:4px 10px; margin-top:8px; font-size:11px; font-weight:600; color:#6b7280; line-height:1.3; }
+  .v2s-leg em { font-style:normal; display:inline-flex; align-items:center; gap:5px; white-space:nowrap; }
+  .v2s-leg em:before { content:""; width:6px; height:6px; border-radius:2px; background:var(--f, #9ca3af); }
+  .v2s-leg b { font-weight:800; color:#374151; }
+  .v2s-ref { stroke:#e5e7eb; stroke-width:1; stroke-dasharray:3 3; vector-effect:non-scaling-stroke; }
+  /* Karten */
+  .v2s-auto .sza-card { border:1px solid var(--g-line); border-radius:14px; padding:18px 20px; margin-top:16px; box-shadow:0 1px 2px rgba(16,24,40,.05); }
+  .v2s-auto .sza-help { color:#4b5563; font-size:13px; line-height:1.65; background:#f9fafb; box-shadow:none; }
+  .v2s-auto .sza-help b { color:var(--g-ink); }
+  .v2s-auto .sza-auto { border:1px solid var(--g-line); }
+  .v2s-auto .sza-name { font-size:16px; font-weight:700; letter-spacing:-.01em; color:var(--g-ink); }
+  .v2s-auto .sza-sub { font-size:12.5px; color:var(--g-muted); line-height:1.6; }
+  .v2s-auto .sza-badge { display:inline-flex; align-items:center; gap:6px; padding:2px 8px; border-radius:6px; font-size:12px; font-weight:700; line-height:1.5; }
+  .v2s-auto .sza-badge:before { content:""; width:6px; height:6px; border-radius:50%; background:currentColor; flex:none; }
+  .v2s-auto .b-offen, .v2s-auto .b-aus { background:#f3f4f6; color:#374151; }
+  .v2s-auto .b-ausgefuellt, .v2s-auto .b-leon_wartet, .v2s-auto .b-leon_fertig { background:#eff6ff; color:#1d4ed8; }
+  .v2s-auto .b-wa_wartet, .v2s-auto .b-anruf_wartet, .v2s-auto .b-anruf_auswertung { background:#fffbeb; color:#b45309; }
+  .v2s-auto .b-wa_ja, .v2s-auto .b-anruf_ja, .v2s-auto .b-an { background:#ecfdf5; color:#047857; }
+  .v2s-auto .b-wa_korrigiert, .v2s-auto .b-anruf_korrigiert { background:#f5f3ff; color:#6d28d9; }
+  .v2s-auto .b-wa_nein, .v2s-auto .b-wa_unklar, .v2s-auto .b-anruf_unklar, .v2s-auto .b-anruf_nicht_erreicht { background:#fef2f2; color:#b91c1c; }
+  .v2s-auto .b-bestaetigt { background:#047857; color:#fff; }
+  /* Knöpfe */
+  .v2s-auto .sza-btns { gap:8px; margin-top:14px; }
+  .v2s-auto .sza-btn { display:inline-flex; align-items:center; justify-content:center; min-height:38px; padding:0 14px; border:1px solid transparent; border-radius:10px; font-size:13px; font-weight:700; transition:background-color .15s, border-color .15s; }
+  .v2s-auto .sza-btn:disabled { opacity:.45; }
+  .v2s-auto .c-slate { background:#fff; border-color:#d1d5db; color:var(--g-ink); }
+  .v2s-auto .c-slate:not(:disabled):hover { background:#f9fafb; }
+  .v2s-auto .c-blue { background:#111827; color:#fff; }
+  .v2s-auto .c-blue:not(:disabled):hover { background:#000; }
+  .v2s-auto .c-green { background:#ecfdf5; border-color:#a7f3d0; color:#047857; }
+  .v2s-auto .c-green:not(:disabled):hover { background:#d1fae5; }
+  .v2s-auto .c-wa { background:#f0fdfa; border-color:#99f6e4; color:#0f766e; }
+  .v2s-auto .c-wa:not(:disabled):hover { background:#ccfbf1; }
+  .v2s-auto .c-purple { background:#f5f3ff; border-color:#ddd6fe; color:#6d28d9; }
+  .v2s-auto .c-purple:not(:disabled):hover { background:#ede9fe; }
+  .v2s-auto .c-red { background:#fef2f2; border-color:#fecaca; color:#b91c1c; }
+  .v2s-auto .c-red:not(:disabled):hover { background:#fee2e2; }
+  .v2s-auto .c-orange { background:#fffbeb; border-color:#fde68a; color:#b45309; }
+  /* Inhalte */
+  .v2s-auto .sza-termine { background:#f9fafb; border:1px solid #f0f1f3; border-radius:10px; padding:10px 14px; font-size:13px; color:#374151; }
+  .v2s-auto .sza-termine b { color:var(--g-ink); }
+  .v2s-auto .sza-summary { background:#f9fafb; border:1px solid #f0f1f3; border-radius:10px; font-size:13.5px; color:#374151; }
+  .v2s-auto .sza-wa { border:1px solid #ccfbf1; border-left-width:1px; border-radius:10px; background:#f0fdfa; font-size:13.5px; color:#1f2937; }
+  .v2s-auto .sza-wa.rot { border-color:#fecaca; background:#fef2f2; }
+  .v2s-auto .sza-bericht { background:#f9fafb; border:1px solid #f0f1f3; border-radius:10px; color:#1f2937; }
+  .v2s-auto .sza-info-row { gap:8px 10px; border-top:1px solid #f0f1f3; margin-top:16px; padding-top:14px; font-size:13.5px; color:var(--g-ink); }
+  .v2s-auto .sza-info-row b { font-weight:700; }
+  .v2s-auto .sza-info-row select, .v2s-auto .sza-sprache, .v2s-auto .sza-auto-opt input[type=number], .v2s-auto .sza-auto-opt select { height:36px; padding:0 10px; border:1px solid #d1d5db; border-radius:8px; background:#fff; color:var(--g-ink); }
+  .v2s-auto .sza-sprache { height:30px; font-size:13px; padding:0 6px; }
+  .v2s-auto .sza-auto-opt { font-size:14px; font-weight:600; color:#1f2937; }
+  .v2s-auto input[type=checkbox] { accent-color:#111827; }
+  .v2s-auto .sza-auto-log { font-size:12.5px; color:#4b5563; }
+  .v2s-auto .sza-auto-log div { border-top:1px solid #f0f1f3; }
+  .v2s-auto .sza-plan table { border-collapse:collapse; }
+  .v2s-auto .sza-plan th { font-size:12px; font-weight:600; color:var(--g-muted); padding:8px 6px; border-bottom:1px solid var(--g-line); }
+  .v2s-auto .sza-plan td { border-top:0; border-bottom:1px solid #f0f1f3; }
+  .v2s-auto .sza-plan input[type=time], .v2s-auto .sza-plan input[type=text], .v2s-auto .sza-plan select { height:40px; padding:0 10px; border:1px solid #d1d5db; border-radius:10px; background:#fff; }
+  .v2s-auto input:focus, .v2s-auto select:focus { outline:none; border-color:var(--g-ink); box-shadow:0 0 0 3px rgba(17,24,39,.10); }
+  /* Start-Animation nur beim ersten Laden */
+  @keyframes v2sAuf { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:none; } }
+  @keyframes v2sWachs { from { transform:scaleY(0); } to { transform:scaleY(1); } }
+  @keyframes v2sBreit { from { transform:scaleX(0); } to { transform:scaleX(1); } }
+  html.v2-start .v2s-kpi { animation:v2sAuf .5s cubic-bezier(.2,.7,.2,1) backwards; }
+  html.v2-start .v2s-kpi:nth-child(2) { animation-delay:.06s; }
+  html.v2-start .v2s-kpi:nth-child(3) { animation-delay:.12s; }
+  html.v2-start .v2s-kpi:nth-child(4) { animation-delay:.18s; }
+  html.v2-start .v2s-balken { transform-box:fill-box; transform-origin:50% 100%; animation:v2sWachs .6s cubic-bezier(.2,.7,.2,1) .2s backwards; }
+  html.v2-start .v2s-spur, html.v2-start .v2s-linie i { transform-origin:0 50%; animation:v2sBreit .8s cubic-bezier(.2,.7,.2,1) .2s backwards; }
+  @media (prefers-reduced-motion:reduce) { html.v2-start .v2s-kpi, html.v2-start .v2s-balken, html.v2-start .v2s-spur, html.v2-start .v2s-linie i { animation:none; } }
+  /* Dunkelmodus: Graphit sichtbar halten */
+  html[data-kg-x="on"] .v2s-auto .c-blue { background:#2563eb !important; border-color:#2563eb !important; color:#fff !important; }
+  html[data-kg-x="on"] .v2s-auto .c-blue:not(:disabled):hover { background:#1d4ed8 !important; }
+  html[data-kg-x="on"] .v2s-auto .b-bestaetigt { background:#047857 !important; color:#fff !important; }
+  html[data-kg-x="on"] .v2s-auto input[type=checkbox] { accent-color:#60a5fa; }
+  html[data-kg-x="on"] .v2s-auto input:focus, html[data-kg-x="on"] .v2s-auto select:focus { border-color:#60a5fa !important; box-shadow:0 0 0 3px rgba(96,165,250,.18); }
+  html[data-kg-x="on"] .v2s-ref { stroke:#334155; }
+  @media (max-width: 1100px) { .v2s-kpis { grid-template-columns:repeat(2, minmax(0, 1fr)); } }
+  @media (max-width: 700px) {
+    .v2s-auto { padding:0 0 40px; }
+    .v2s-auto .sza-head h1 { font-size:24px; }
+    .v2s-auto .sza-card { padding:16px; }
+    .v2s-auto .sza-sprache { height:36px; font-size:16px; }
+  }
+  @media (max-width: 520px) { .v2s-kpis { grid-template-columns:minmax(0, 1fr); } }
+  {% endraw %}
 </style>
 
-<div class="sza-wrap">
+<div class="sza-wrap v2s-auto">
   <div class="sza-head">
     <div>
-      <span class="e2-lbl">KG Portal · Stundenzettel-Automatik</span>
+      <div class="v2s-eyebrow"><span class="v2s-q"></span>Personal · Stundenzettel · Automatik</div>
       <h1>⏱ Feste Zeiten &amp; WhatsApp-Bestätigung</h1>
       <p>Feste Arbeitszeiten je Mitarbeiter speichern → ganzen Monat ausfüllen (nur leere Tage, ohne Feiertage) →
          der KG Agent schickt jedem seinen Monat per WhatsApp → „Ja“ oder Korrektur → zur Frist wird gesperrt und der Bericht kommt per Mail.</p>
@@ -145,16 +191,11 @@
     </div>
   </div>
 
-  <div class="e2-sza-kpis" id="e2SzaKpis" aria-live="polite">
-    <div class="e2-sza-k"><i class="fa-solid fa-users" aria-hidden="true"></i><small>Mitarbeiter</small><b id="e2SzaMa">–</b><em id="e2SzaMaSub">aktiv im Monat</em></div>
-    <div class="e2-sza-k cyan"><i class="cyan fa-solid fa-clock" aria-hidden="true"></i><small>Stunden</small><b id="e2SzaStd">–</b><em>Std. im gewählten Monat</em></div>
-    <div class="e2-sza-k gruen"><i class="gruen fa-solid fa-circle-check" aria-hidden="true"></i><small>Bestätigt / Ja</small><b id="e2SzaOk">–</b><em id="e2SzaOkSub">–</em><div class="e2-graf" id="e2SzaOkRing"></div></div>
-    <div class="e2-sza-k rot"><i class="rot fa-solid fa-triangle-exclamation" aria-hidden="true"></i><small>Bitte prüfen</small><b id="e2SzaPruef">–</b><em id="e2SzaPruefSub">–</em></div>
-    <div class="e2-sza-stand">
-      <div class="e2-sza-stand-kopf">Stand des Monats <span id="e2SzaStandInfo"></span></div>
-      <div class="e2-sza-balken" id="e2SzaBalken"></div>
-      <div class="e2-sza-legende" id="e2SzaLegende"></div>
-    </div>
+  <div class="v2s-kpis" aria-label="Kennzahlen des gewählten Monats">
+    <div class="v2s-kpi" style="--v2s-farbe:#7c3aed"><small>Mitarbeiter</small><b data-v2s-wert="ma">–</b><span data-v2s-text="ma">aktiv</span><svg class="v2s-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg><div class="v2s-viz" data-v2s="ma"></div></div>
+    <div class="v2s-kpi" style="--v2s-farbe:#2563eb"><small>Stunden im Monat</small><b data-v2s-wert="std">–</b><span data-v2s-text="std">laut Stundenzettel</span><svg class="v2s-ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><div class="v2s-viz" data-v2s="std"></div></div>
+    <div class="v2s-kpi" style="--v2s-farbe:#0d9488"><small>Rückmeldungen</small><b data-v2s-wert="ant">–</b><span data-v2s-text="ant">WhatsApp &amp; Anruf</span><svg class="v2s-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 11.5a8.4 8.4 0 0 1-12.3 7.5L3 21l2-5.7A8.5 8.5 0 1 1 21 11.5z"/></svg><div class="v2s-viz" data-v2s="ant"></div></div>
+    <div class="v2s-kpi" style="--v2s-farbe:#16a34a"><small>Bestätigt &amp; gesperrt</small><b data-v2s-wert="ok">–</b><span data-v2s-text="ok">Monate</span><svg class="v2s-ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg><div class="v2s-viz" data-v2s="ok"></div></div>
   </div>
 
   <div class="sza-card sza-help">
@@ -560,80 +601,100 @@
   laden();
 })();
 </script>
-{% raw %}
 <script>
-/* ===== PREMIUM: Kennzahlen + Monatsstand (nur Anzeige, liest die Karten der Seite) ===== */
+{% raw %}
+/* ===== PREMIUM V2 „Graphit“: Kennzahl-Grafiken =====
+   Nur lesend: Zahlen aus den Mitarbeiter-Karten, die die Seite schon geladen hat. Nichts wird gesendet/gespeichert. */
 (function () {
-  try {
-    const el = (id) => document.getElementById(id);
-    const liste = el("szaList");
-    if (!liste) return;
-    const num = (s) => { const n = parseFloat(String(s || "").replace(/[^\d,.-]/g, "").replace(/\./g, "").replace(",", ".")); return isNaN(n) ? 0 : n; };
-    const fmt = (n) => n.toLocaleString("de-DE", { maximumFractionDigits: 2 });
-    const MON = ["Januar", "Februar", "März", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober", "November", "Dezember"];
-    const GRUPPEN = [
-      ["ok", "Bestätigt / Ja", "#16a34a", ["bestaetigt", "wa_ja", "anruf_ja"]],
-      ["korr", "Korrigiert", "#7c3aed", ["wa_korrigiert", "anruf_korrigiert"]],
-      ["wartet", "Wartet auf Antwort", "#f59e0b", ["wa_wartet", "anruf_wartet", "anruf_auswertung"]],
-      ["pruef", "Bitte prüfen", "#ef4444", ["wa_unklar", "wa_nein", "anruf_unklar", "anruf_nicht_erreicht"]],
-      ["aus", "Ausgefüllt", "#3b82f6", ["ausgefuellt", "leon_wartet", "leon_fertig"]],
-      ["offen", "Offen", "#94a3b8", ["offen"]]
-    ];
-    let letzter = "";
-    function setze(id, text) { const e = el(id); if (e && e.textContent !== text) e.textContent = text; }
-    function aktualisieren() {
-      try {
-        const karten = Array.from(liste.querySelectorAll(".sza-card[data-id]"));
-        const z = { ok: 0, korr: 0, wartet: 0, pruef: 0, aus: 0, offen: 0 };
-        let std = 0, ohneTel = 0, gesperrt = 0;
-        karten.forEach((k) => {
-          const badge = k.querySelector(".sza-badge");
-          const st = badge ? (Array.from(badge.classList).find((c) => c.indexOf("b-") === 0) || "b-offen").slice(2) : "offen";
-          const g = GRUPPEN.find((x) => x[3].indexOf(st) >= 0);
-          z[g ? g[0] : "offen"]++;
-          if (st === "bestaetigt") gesperrt++;
-          const sub = k.querySelector(".sza-sub");
-          const t = sub ? sub.textContent : "";
-          if (/keine Telefonnummer/.test(t)) ohneTel++;
-          const m = t.match(/([\d.,]+)\s*Std\. im Monat/);
-          if (m) std += num(m[1]);
-        });
-        const n = karten.length;
-        const mv = (el("szaMonat") && el("szaMonat").value) || "";
-        const key = JSON.stringify([z, std, ohneTel, gesperrt, n, mv]);
-        if (key === letzter) return;
-        letzter = key;
-        setze("e2SzaMa", String(n));
-        setze("e2SzaMaSub", n ? (ohneTel ? ohneTel + " ohne Telefonnummer" : "alle mit Telefonnummer") : "keine aktiven Mitarbeiter");
-        setze("e2SzaStd", fmt(std));
-        setze("e2SzaOk", z.ok + " / " + n);
-        setze("e2SzaOkSub", gesperrt + " gesperrt · " + z.korr + " korrigiert");
-        setze("e2SzaPruef", String(z.pruef));
-        if (el("e2SzaPruef")) el("e2SzaPruef").style.color = z.pruef ? "" : "#64748b";
-        setze("e2SzaPruefSub", z.wartet + " warten auf Antwort");
-        const p = n ? z.ok / n * 100 : 0;
-        const ring = el("e2SzaOkRing");
-        if (ring) {
-          ring.innerHTML = '<svg viewBox="0 0 52 52" aria-hidden="true"><circle class="e2-spur" cx="26" cy="26" r="21" stroke-width="6"></circle>' +
-            (p > 0.4 ? '<circle class="e2-bogen" cx="26" cy="26" r="21" stroke-width="6" pathLength="100" stroke="#16a34a" stroke-dasharray="100 100" stroke-dashoffset="' + (100 - p).toFixed(2) + '" transform="rotate(-90 26 26)"></circle>' : "") +
-            '</svg><div class="e2-mitte">' + (n ? Math.round(p) + "%" : "–") + "</div>";
-          ring.title = "Bestätigt / Ja: " + z.ok + " von " + n;
-        }
-        const balken = el("e2SzaBalken"), legende = el("e2SzaLegende");
-        if (balken && legende) {
-          balken.innerHTML = GRUPPEN.filter((g) => z[g[0]]).map((g, i) =>
-            '<i style="width:' + (z[g[0]] / n * 100).toFixed(2) + "%;background:" + g[2] + ";animation-delay:" + (300 + i * 80) + 'ms" title="' + g[1] + ": " + z[g[0]] + '"></i>').join("");
-          legende.innerHTML = GRUPPEN.filter((g) => z[g[0]]).map((g) => '<span><i style="background:' + g[2] + '"></i>' + g[1] + " " + z[g[0]] + "</span>").join("") || "<span>Noch keine Mitarbeiter geladen.</span>";
-        }
-        const [j, m2] = mv.split("-").map(Number);
-        setze("e2SzaStandInfo", j && m2 ? MON[m2 - 1] + " " + j : "");
-      } catch (e) { /* nur Anzeige */ }
-    }
-    let t = 0;
-    if (window.MutationObserver) new MutationObserver(() => { clearTimeout(t); t = setTimeout(aktualisieren, 80); }).observe(liste, { childList: true });
-    aktualisieren();
-  } catch (e) { /* nur Anzeige */ }
+  var html = document.documentElement;
+  html.classList.add("v2-start");
+  setTimeout(function () { html.classList.remove("v2-start"); }, 1600);
+  var liste = document.getElementById("szaList");
+  if (!liste) return;
+  var esc = function (s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); };
+  var zahl = function (t) { var n = parseFloat(String(t || "").replace(/[^\d,.\-]/g, "").replace(/\./g, "").replace(",", ".")); return isNaN(n) ? 0 : n; };
+  var de = function (n, d) { return Number(n || 0).toLocaleString("de-DE", { minimumFractionDigits: d || 0, maximumFractionDigits: d || 0 }); };
+  var q = function (s) { return document.querySelector(s); };
+  var wert = function (k, t) { var e = q('[data-v2s-wert="' + k + '"]'); if (e) e.textContent = t; };
+  var text = function (k, t) { var e = q('[data-v2s-text="' + k + '"]'); if (e) e.textContent = t; };
+  var viz = function (k) { return q('.v2s-viz[data-v2s="' + k + '"]'); };
+  var G = {
+    ok: ["bestaetigt"], ja: ["wa_ja", "anruf_ja"], korr: ["wa_korrigiert", "anruf_korrigiert"],
+    wartet: ["wa_wartet", "anruf_wartet", "anruf_auswertung"], pruefen: ["wa_unklar", "wa_nein", "anruf_unklar", "anruf_nicht_erreicht"]
+  };
+  function spur(ziel, teile, leer) {
+    var da = teile.filter(function (t) { return t.v > 0; });
+    ziel.innerHTML = '<div class="v2s-spur">' + da.map(function (t) {
+      return '<i style="flex:' + t.v + ' 1 0;background:' + t.f + '" title="' + esc(t.v + " " + t.l) + '"></i>';
+    }).join("") + '</div><div class="v2s-leg">' + (da.length ? da.map(function (t) {
+      return '<em style="--f:' + t.f + '"><b>' + t.v + "</b>" + esc(t.l) + "</em>";
+    }).join("") : "<em>" + esc(leer) + "</em>") + "</div>";
+  }
+  function linie(ziel, anteil, farbe, txt) {
+    var p = Math.max(0, Math.min(1, anteil || 0));
+    ziel.innerHTML = '<div class="v2s-linie"><i style="width:' + (p * 100).toFixed(1) + "%;background:" + farbe + '"></i></div>' +
+      '<div class="v2s-leg"><em style="--f:' + farbe + '">' + esc(txt) + "</em></div>";
+  }
+  function saeulen(ziel, werte, unten) {
+    var w = Math.max(120, ziel.clientWidth || 240), hoehe = 34, n = Math.max(werte.length, 1);
+    var max = Math.max(40, werte.reduce(function (s, v) { return Math.max(s, v.v); }, 0));
+    var luecke = n > 24 ? 2 : 4, bw = Math.max(2, Math.min(14, (w - luecke * (n - 1)) / n));
+    var start = Math.max(0, (w - (bw * n + luecke * (n - 1))) / 2);
+    var s = '<svg viewBox="0 0 ' + w + " " + hoehe + '" height="' + hoehe + '" role="img" aria-label="Stunden je Mitarbeiter"><line class="v2s-ref" x1="0" x2="' + w + '" y1="0.5" y2="0.5"></line>';
+    werte.forEach(function (v, i) {
+      var hh = Math.max(v.v > 0 ? 2 : 1.5, Math.min(1, v.v / max) * (hoehe - 3));
+      s += '<rect class="v2s-balken" x="' + (start + i * (bw + luecke)).toFixed(1) + '" y="' + (hoehe - hh).toFixed(1) + '" width="' + bw.toFixed(1) + '" height="' + hh.toFixed(1) +
+        '" rx="' + Math.min(3, bw / 2).toFixed(1) + '" fill="' + (v.v > 0 ? "#2563eb" : "#d1d5db") + '"><title>' + esc(v.t) + "</title></rect>";
+    });
+    ziel.innerHTML = s + '</svg><div class="v2s-leg">' + unten + "</div>";
+  }
+  var sig = "", daten = null;
+  function lesen() {
+    return Array.prototype.map.call(liste.querySelectorAll(".sza-card[data-id]"), function (c) {
+      var b = c.querySelector(".sza-row .sza-badge"), m = b && /\bb-([a-z_]+)/.exec(b.className);
+      var sub = (c.querySelector(".sza-sub") || {}).textContent || "";
+      var h = /([\d.,]+)\s*Std\.\s*im Monat/.exec(sub);
+      return { name: ((c.querySelector(".sza-name") || {}).textContent || "").trim(), st: m ? m[1] : "offen", std: h ? zahl(h[1]) : 0, tel: sub.indexOf("keine Telefonnummer") < 0 };
+    });
+  }
+  function zeichnen(d, erzwingen) {
+    var s = JSON.stringify(d);
+    if (s === sig && !erzwingen) return;
+    sig = s; daten = d;
+    var n = d.length, zaehl = function (g) { return d.filter(function (m) { return G[g].indexOf(m.st) >= 0; }).length; };
+    var ok = zaehl("ok"), ja = zaehl("ja"), korr = zaehl("korr"), wartet = zaehl("wartet"), pruefen = zaehl("pruefen");
+    var offen = n - ok - ja - korr - wartet - pruefen;
+    var ohneTel = d.filter(function (m) { return !m.tel; }).length;
+    wert("ma", n);
+    text("ma", ohneTel ? ohneTel + " ohne Telefonnummer" : "alle mit Telefonnummer");
+    if (viz("ma")) spur(viz("ma"), [
+      { v: ok, f: "#16a34a", l: "bestätigt" }, { v: ja + korr, f: "#7c3aed", l: "Antwort" },
+      { v: wartet, f: "#d97706", l: "wartet" }, { v: pruefen, f: "#e11d48", l: "prüfen" }, { v: offen, f: "#94a3b8", l: "offen" }
+    ], "keine aktiven Mitarbeiter");
+    var summe = d.reduce(function (a, m) { return a + m.std; }, 0);
+    wert("std", de(summe, summe % 1 ? 1 : 0));
+    text("std", n ? "Ø " + de(summe / n, 1) + " Std je Mitarbeiter" : "laut Stundenzettel");
+    if (viz("std")) saeulen(viz("std"), d.map(function (m) { return { v: m.std, t: m.name + ": " + de(m.std, 2) + " Std" }; }),
+      n ? '<em style="--f:#2563eb">je Mitarbeiter</em><em style="--f:#e5e7eb">Linie = ' + de(Math.max(40, d.reduce(function (a, m) { return Math.max(a, m.std); }, 0))) + " Std</em>" : "<em>keine Mitarbeiter</em>");
+    var kontakt = ja + korr + wartet + pruefen;
+    wert("ant", (ja + korr) + " / " + kontakt);
+    text("ant", wartet ? wartet + " warten auf Antwort" : pruefen ? pruefen + " bitte prüfen" : "WhatsApp & Anruf");
+    if (viz("ant")) spur(viz("ant"), [
+      { v: ja, f: "#0d9488", l: "Ja" }, { v: korr, f: "#7c3aed", l: "korrigiert" }, { v: wartet, f: "#d97706", l: "wartet" }, { v: pruefen, f: "#e11d48", l: "prüfen" }
+    ], "noch nichts gesendet");
+    wert("ok", ok + " / " + n);
+    text("ok", n - ok ? (n - ok) + " noch offen" : "alle gesperrt");
+    if (viz("ok")) linie(viz("ok"), n ? ok / n : 0, "#16a34a", n ? de(ok / n * 100) + " % bestätigt" : "keine Mitarbeiter");
+  }
+  var t = 0;
+  new MutationObserver(function () {
+    clearTimeout(t);
+    t = setTimeout(function () { if (liste.querySelector(".sza-card[data-id]") || !liste.querySelector(".sza-msg.err")) zeichnen(lesen()); }, 60);
+  }).observe(liste, { childList: true });
+  var rt = 0;
+  window.addEventListener("resize", function () { clearTimeout(rt); rt = setTimeout(function () { if (daten) zeichnen(daten, true); }, 150); });
+  if (liste.children.length) zeichnen(lesen());
 })();
-</script>
 {% endraw %}
+</script>
 {% endblock %}

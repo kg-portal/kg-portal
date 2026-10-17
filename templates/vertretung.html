@@ -25,173 +25,116 @@
   .vr-grid label { display: block; font-size: 12px; font-weight: 800; color: #475569; margin-bottom: 5px; }
   @media (max-width: 1000px) { .vr-days { grid-template-columns: 1fr 1fr; } .vr-grid { grid-template-columns: 1fr 1fr; } }
   @media (max-width: 640px) { .vr-days, .vr-grid { grid-template-columns: 1fr; } .vr-head h1 { font-size: 21px; } }
-  /* ===== PREMIUM (einheitliches Design) ===== */
-  /* Nur Bildschirm. Keine Funktion geändert. */
-  @keyframes kgRein { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
-  @keyframes kpHoch { from { transform: scaleY(0); } }
+  /* ===== PREMIUM V2 „Graphit“ ===== */
+  {% raw %}
+  .vr-wrap { font-family: inherit; color: #1f2937; font-variant-numeric: tabular-nums; }
+  .vr-head { position: relative; background: transparent; color: #111827;
+             border-radius: 0; padding: 6px 0 20px; border-bottom: 1px solid #e5e7eb; margin-bottom: 20px; align-items: flex-end; }
+  .vr2-eyebrow { display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 700; color: #6b7280; margin: 0 0 10px; letter-spacing: .01em; }
+  .vr2-eyebrow i { width: 8px; height: 8px; border-radius: 2px; background: #0d9488; flex: none; }
+  .vr-head h1 { font-size: 30px; font-weight: 800; letter-spacing: -.02em; line-height: 1.15; color: #111827; }
+  .vr-head p { margin-top: 8px; font-size: 14px; color: #6b7280; max-width: 620px; }
+  .vr-nav { gap: 2px; padding: 3px; border: 1px solid #e5e7eb; border-radius: 12px; background: #fff; color: #111827; font-weight: 700; font-size: 13.5px;
+            box-shadow: 0 1px 2px rgba(16,24,40,.05); }
+  .vr-nav button { background: transparent; color: #374151; width: 34px; height: 34px; min-height: 34px; padding: 0; border-radius: 9px; font-size: 11px; }
+  .vr-nav button:hover { background: #f3f4f6; }
+  #vrWoche { padding: 0 10px; white-space: nowrap; }
 
-  @media screen {
-    .vr-wrap { max-width: 1400px; font-family: inherit; }
+  .vr2-kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; margin: 0 0 20px; }
+  .vr2-kpi { background: #fff; border: 1px solid #e5e7eb; border-radius: 14px; padding: 16px 18px; box-shadow: 0 1px 2px rgba(16,24,40,.05);
+             min-width: 0; display: flex; flex-direction: column; transition: border-color .15s, box-shadow .15s; }
+  .vr2-kpi:hover { border-color: #d1d5db; box-shadow: 0 1px 2px rgba(16,24,40,.05), 0 8px 24px -16px rgba(16,24,40,.25); }
+  .vr2-kpi-kopf { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 13px; font-weight: 600; color: #6b7280; }
+  .vr2-kpi-kopf svg { width: 18px; height: 18px; flex: none; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+  .vr2-kpi-wert { margin-top: 10px; font-size: 28px; font-weight: 800; line-height: 1.1; letter-spacing: -.02em; color: #111827; white-space: nowrap; }
+  .vr2-kpi-wert small { font-size: 13px; font-weight: 600; color: #6b7280; letter-spacing: 0; margin: 0 10px 0 4px; }
+  .vr2-kpi-wert small:last-child { margin-right: 0; }
+  .vr2-kpi-meta { margin-top: 4px; font-size: 12.5px; color: #6b7280; min-height: 18px; }
+  .vr2-kpi-grafik { margin-top: auto; padding-top: 12px; min-height: 16px; }
+  .vr2-kpi-grafik svg { display: block; width: 100%; overflow: visible; }
+  .vr2-bar-lbl { font-size: 11px; fill: #9ca3af; font-weight: 600; }
+  .vr2-grid { stroke: #f0f1f4; stroke-dasharray: 3 3; }
+  .vr2-linie { height: 4px; border-radius: 4px; background: #f0f1f4; overflow: hidden; }
+  .vr2-linie b { display: block; height: 100%; border-radius: 4px; background: #0d9488; transform-origin: left center; }
+  .vr2-split { display: flex; gap: 2px; height: 6px; }
+  .vr2-split b { display: block; height: 100%; border-radius: 3px; min-width: 4px; transform-origin: left center; }
+  .vr2-legende { display: flex; flex-wrap: wrap; gap: 4px 12px; margin-top: 8px; font-size: 12px; color: #6b7280; }
+  .vr2-legende span { display: inline-flex; align-items: center; gap: 6px; }
+  .vr2-legende i { width: 8px; height: 8px; border-radius: 2px; }
+  .vr2-pill { display: inline-flex; align-items: center; gap: 6px; padding: 3px 8px; border-radius: 6px; font-size: 12px; font-weight: 700; line-height: 1.3;
+              background: #f3f4f6; color: #374151; }
+  .vr2-pill::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+  .vr2-pill.gruen { background: #ecfdf5; color: #047857; }
+  .vr2-pill.bernstein { background: #fffbeb; color: #b45309; }
 
-    /* Kopf-Kachel */
-    .vr-head {
-      position: relative;
-      overflow: hidden;
-      border-radius: 24px;
-      padding: 26px 28px;
-      background:
-        radial-gradient(520px 230px at 90% -20%, rgba(255,255,255,.26), transparent 60%),
-        radial-gradient(420px 220px at 0% 120%, rgba(56,189,248,.25), transparent 60%),
-        linear-gradient(135deg, #1e40af, #2563eb);
-      box-shadow: 0 24px 50px -28px rgba(29,78,216,.7);
-      animation: kgRein .6s cubic-bezier(.22,1,.36,1) backwards;
-    }
-    .kp-hero-lbl { font-size: 11.5px; font-weight: 800; letter-spacing: 1.4px; text-transform: uppercase; color: #bfdbfe; margin-bottom: 10px; }
-    .vr-head h1 { font-size: 36px; font-weight: 900; letter-spacing: -.9px; line-height: 1.1; }
-    .vr-head p { color: #dbeafe; font-weight: 600; }
-    .vr-nav { gap: 10px; }
-    .vr-nav button {
-      border-radius: 12px;
-      min-width: 44px;
-      min-height: 44px;
-      background: rgba(255,255,255,.14);
-      border: 1px solid rgba(255,255,255,.26);
-      transition: translate .2s, box-shadow .2s, background-color .2s;
-    }
-    .vr-nav button:hover { translate: 0 -2px; background-color: rgba(255,255,255,.24); box-shadow: 0 14px 26px -16px rgba(15,23,42,.6); }
-    #vrWoche {
-      padding: 11px 16px;
-      border-radius: 12px;
-      background: rgba(255,255,255,.12);
-      border: 1px solid rgba(255,255,255,.22);
-      font-size: 15px;
-      font-weight: 900;
-      letter-spacing: -.2px;
-      white-space: nowrap;
-    }
+  .vr-card { border: 1px solid #e5e7eb; border-radius: 14px; padding: 18px 20px; margin-top: 0; box-shadow: 0 1px 2px rgba(16,24,40,.05); }
+  .vr-card h2 { font-size: 15px; font-weight: 700; color: #111827; margin: 0 0 14px; letter-spacing: -.01em; }
+  .vr-grid { gap: 12px; }
+  .vr-grid label { font-size: 12.5px; font-weight: 600; color: #6b7280; margin-bottom: 6px; }
+  .vr-in { height: 40px; padding: 0 12px; border: 1px solid #d1d5db; border-radius: 10px; background: #fff; color: #111827; font-size: 14px;
+           box-sizing: border-box; transition: border-color .15s, box-shadow .15s; }
+  .vr-in:focus { outline: none; border-color: #111827; box-shadow: 0 0 0 3px rgba(17,24,39,.10); }
+  .vr-btn { height: 40px; min-height: 40px; padding: 0 16px; border-radius: 10px; background: #111827; color: #fff; font-size: 13.5px; font-weight: 700;
+            transition: background .15s; }
+  .vr-btn:hover { background: #000; }
+  .vr-btn:disabled { opacity: .55; cursor: default; }
+  .vr-msg { font-weight: 600; }
 
-    /* Karten */
-    .vr-card {
-      border: 1px solid #e6ebf2;
-      border-radius: 24px;
-      padding: 20px 22px;
-      margin-top: 16px;
-      box-shadow: 0 18px 40px -30px rgba(15,23,42,.45);
-      animation: kgRein .6s cubic-bezier(.22,1,.36,1) backwards;
-      animation-delay: 70ms;
-    }
-    .vr-card h2 { font-size: 18px; font-weight: 900; color: #0f172a; letter-spacing: -.3px; margin-bottom: 14px; }
-    .vr-grid { gap: 12px; }
-    .vr-grid label { font-size: 11.5px; font-weight: 800; letter-spacing: 1.1px; text-transform: uppercase; color: #64748b; margin-bottom: 6px; }
-    .vr-in {
-      border: 1px solid #dbe3ef;
-      border-radius: 12px;
-      background: #ffffff;
-      min-height: 44px;
-      transition: border-color .2s, box-shadow .2s;
-    }
-    .vr-in:focus { outline: none; border-color: #2563eb; box-shadow: 0 0 0 4px rgba(37,99,235,.12); }
-    .vr-btn {
-      border-radius: 12px;
-      min-height: 44px;
-      padding: 10px 18px;
-      font-weight: 900;
-      background: linear-gradient(135deg, #16a34a, #15803d);
-      box-shadow: 0 14px 26px -16px rgba(21,128,61,.8);
-      transition: translate .2s, box-shadow .2s, background-color .2s;
-    }
-    .vr-btn:hover { translate: 0 -2px; box-shadow: 0 18px 30px -16px rgba(21,128,61,.85); }
-    .vr-btn:disabled { opacity: .6; cursor: wait; translate: none; }
+  .vr-days { gap: 16px; margin-top: 20px; }
+  .vr-day { border: 1px solid #e5e7eb; border-radius: 14px; padding: 16px; box-shadow: 0 1px 2px rgba(16,24,40,.05); display: flex; flex-direction: column; }
+  .vr-day h3 { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 15px; font-weight: 700; color: #111827;
+               margin: 0 0 4px; letter-spacing: -.01em; }
+  .vr-day h3[data-vr2]::after { content: attr(data-vr2); flex: none; padding: 3px 8px; border-radius: 6px; font-size: 12px; font-weight: 700;
+                                 background: #f3f4f6; color: #374151; }
+  .vr-day h3[data-vr2-ton="offen"]::after { background: #fffbeb; color: #b45309; }
+  .vr-day h3[data-vr2-ton="ok"]::after { background: #ecfdf5; color: #047857; }
+  .vr-item { border-radius: 10px; padding: 12px; margin-top: 10px; font-size: 13.5px; line-height: 1.5; }
+  .vr-abw { position: relative; background: #fff; border: 1px solid #e5e7eb; color: #4b5563; padding-left: 56px; min-height: 60px; box-sizing: border-box; }
+  .vr-abw b { color: #111827; font-weight: 700; }
+  .vr2-ava { position: absolute; left: 12px; top: 12px; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+             font-size: 12px; font-weight: 700; letter-spacing: .02em; background: #f3f4f6; color: #374151; }
+  .vr2-ava.krank { background: #fff1f2; color: #be123c; }
+  .vr2-ava.urlaub { background: #fffbeb; color: #b45309; }
+  .vr-ok { position: relative; background: transparent; border: 1px dashed #e5e7eb; color: #6b7280; font-size: 13.5px; padding: 11px 12px 11px 30px; }
+  .vr-ok::before { content: ""; position: absolute; left: 13px; top: 50%; width: 7px; height: 7px; margin-top: -3.5px; border-radius: 50%; background: #16a34a; }
+  .vr-row { margin-top: 10px; gap: 8px; }
+  .vr-row .vr-in { height: 36px; font-size: 13.5px; flex: 1 1 140px; min-width: 0; }
+  .vr-row .vr-btn { height: 36px; min-height: 36px; font-size: 13px; padding: 0 12px; }
+  .vr-free { font-size: 12.5px; line-height: 1.5; color: #6b7280; }
+  .vr-free b { color: #374151; font-weight: 600; }
+  .vr-day > .vr-free { margin-top: auto; padding-top: 12px; border-top: 1px solid #f0f1f4; }
+  .vr-day > .vr-item:nth-last-child(2) { margin-bottom: 14px; }
 
-    /* Wochen-Kennzahlen (neu, nur lesend) */
-    .kp-bento { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 16px; margin-top: 16px; }
-    .kp-tile {
-      position: relative;
-      min-width: 0;
-      background: #ffffff;
-      border: 1px solid #e6ebf2;
-      border-radius: 24px;
-      padding: 20px 22px;
-      box-shadow: 0 18px 40px -30px rgba(15,23,42,.45);
-      color: #0f172a;
-      transition: translate .2s, box-shadow .2s;
-      animation: kgRein .6s cubic-bezier(.22,1,.36,1) backwards;
-      animation-delay: calc(var(--i,0) * 70ms + 70ms);
-    }
-    .kp-tile:hover { translate: 0 -2px; box-shadow: 0 24px 44px -28px rgba(15,23,42,.5); }
-    .kp-s8 { grid-column: span 8; }
-    .kp-s4 { grid-column: span 4; }
-    .kp-lbl { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 11.5px; font-weight: 800; letter-spacing: 1.4px; text-transform: uppercase; color: #64748b; }
-    .kp-lbl em { font-style: normal; text-transform: none; letter-spacing: 0; font-weight: 700; color: #94a3b8; white-space: nowrap; }
-    .kp-chart { display: block; width: 100%; height: auto; max-height: 230px; margin-top: 12px; overflow: visible; }
-    .kp-saeule { transform-box: fill-box; transform-origin: center bottom; animation: kpHoch .9s cubic-bezier(.22,1,.36,1) backwards; }
-    .kp-c-wert { fill: currentColor; font-size: 12px; font-weight: 900; }
-    .kp-c-tag { fill: currentColor; opacity: .62; font-size: 11px; font-weight: 700; }
-    .kp-c-tag.heute { opacity: 1; fill: #2563eb; font-weight: 900; }
-    .kp-c-leer { fill: currentColor; opacity: .55; font-size: 13px; font-weight: 700; }
-    .kp-leg-row { list-style: none; margin: 8px 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: 16px; }
-    .kp-leg-row li { display: flex; align-items: center; gap: 7px; font-size: 12.5px; font-weight: 700; color: #475569; }
-    .kp-dot { width: 10px; height: 10px; border-radius: 4px; flex-shrink: 0; }
-    .kp-kgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 14px; }
-    .kp-k { display: flex; align-items: center; gap: 10px; min-width: 0; padding: 12px; background: #f8fbff; border: 1px solid #e6edf7; border-radius: 16px; }
-    .kp-k b { display: block; font-size: 24px; line-height: 1; font-weight: 900; letter-spacing: -.6px; color: #0f172a; }
-    .kp-k span { display: block; margin-top: 4px; font-size: 11.5px; line-height: 1.3; font-weight: 700; color: #64748b; }
-    .kp-ico { width: 38px; height: 38px; border-radius: 12px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; box-shadow: 0 10px 18px -12px rgba(15,23,42,.6); }
-    .kp-ico svg { width: 20px; height: 20px; display: block; }
-    .kp-ico.rot { background: linear-gradient(135deg, #ef4444, #b91c1c); }
-    .kp-ico.orange { background: linear-gradient(135deg, #f59e0b, #d97706); }
-    .kp-ico.gruen { background: linear-gradient(135deg, #16a34a, #15803d); }
-    .kp-ico.blau { background: linear-gradient(135deg, #3b82f6, #1d4ed8); }
+  .vr2-start .vr2-kpi { animation: vr2-auf .5s cubic-bezier(.2,.7,.2,1) backwards; }
+  .vr2-start .vr2-kpi:nth-child(2) { animation-delay: .06s; }
+  .vr2-start .vr2-kpi:nth-child(3) { animation-delay: .12s; }
+  .vr2-start .vr2-kpi:nth-child(4) { animation-delay: .18s; }
+  .vr2-start .vr2-balken rect.vr2-b { animation: vr2-wachsen .7s cubic-bezier(.2,.7,.2,1) backwards; transform-box: fill-box; transform-origin: 50% 100%; }
+  .vr2-start .vr2-linie b, .vr2-start .vr2-split b { animation: vr2-breit .8s cubic-bezier(.2,.7,.2,1) backwards; }
+  @keyframes vr2-auf { from { opacity: 0; transform: translateY(6px); } }
+  @keyframes vr2-wachsen { from { transform: scaleY(0); } }
+  @keyframes vr2-breit { from { transform: scaleX(0); } }
+  @media (prefers-reduced-motion: reduce) { .vr2-start * { animation: none !important; } }
 
-    /* Tageskarten */
-    .vr-days { gap: 14px; margin-top: 16px; }
-    .vr-day {
-      position: relative;
-      overflow: hidden;
-      border: 1px solid #e6ebf2;
-      border-radius: 22px;
-      padding: 18px 18px 16px;
-      box-shadow: 0 18px 40px -30px rgba(15,23,42,.45);
-      transition: translate .2s, box-shadow .2s, border-color .2s;
-      animation: kgRein .6s cubic-bezier(.22,1,.36,1) backwards;
-      animation-delay: calc(var(--i,0) * 70ms + 140ms);
-    }
-    .vr-day:nth-child(2) { --i: 1; }
-    .vr-day:nth-child(3) { --i: 2; }
-    .vr-day:nth-child(4) { --i: 3; }
-    .vr-day:nth-child(5) { --i: 4; }
-    .vr-day:nth-child(n+6) { --i: 5; }
-    .vr-day:hover { translate: 0 -2px; box-shadow: 0 24px 44px -28px rgba(15,23,42,.5); }
-    .vr-day::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 4px; background: linear-gradient(90deg, #22c55e, #16a34a); opacity: .85; }
-    .vr-day.kp-hat-abw::before { background: linear-gradient(90deg, #ef4444, #f59e0b); }
-    .vr-day.kp-heute { border-color: #93c5fd; box-shadow: 0 0 0 3px rgba(37,99,235,.12), 0 18px 40px -30px rgba(15,23,42,.45); }
-    .vr-day h3 { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; font-size: 15.5px; font-weight: 900; letter-spacing: -.2px; }
-    .vr-day.kp-heute h3::after { content: "Heute"; padding: 3px 9px; border-radius: 999px; background: #dbeafe; color: #1d4ed8; font-size: 11px; font-weight: 900; letter-spacing: .2px; }
-    .vr-item { border-radius: 14px; padding: 11px 13px 11px 15px; }
-    .vr-abw { background: #fef2f2; border: 1px solid #fecaca; color: #7f1d1d; box-shadow: inset 4px 0 0 #ef4444; }
-    .vr-abw.kp-urlaub { background: #fffbeb; border-color: #fde68a; color: #78350f; box-shadow: inset 4px 0 0 #f59e0b; }
-    .vr-abw.kp-geregelt { box-shadow: inset 4px 0 0 #16a34a; }
-    .vr-ok { background: #f0fdf4; border: 1px solid #bbf7d0; color: #15803d; font-weight: 700; }
-    .vr-ok::before { content: "✓  "; font-weight: 900; }
-    .vr-free { margin-top: 10px; font-size: 12.5px; line-height: 1.5; color: #475569; }
-    .vr-free b { font-size: 10.5px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; color: #64748b; margin-right: 2px; }
-    .vr-row .vr-in { min-height: 40px; }
-    .vr-row .vr-btn { min-height: 40px; }
+  @media (max-width: 1100px) { .vr2-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @media (max-width: 640px) { .vr2-kpis { grid-template-columns: 1fr; } .vr-head h1 { font-size: 24px; } }
 
-    @media (min-width: 641px) { .vr-wrap { padding: 0 0 48px; } }
-    @media (max-width: 1000px) { .kp-s8, .kp-s4 { grid-column: span 12; } .vr-head h1 { font-size: 30px; } }
-    @media (max-width: 640px) { .vr-head h1 { font-size: 26px; } }
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .vr-head, .vr-card, .vr-day, .kp-tile, .kp-saeule { animation: none !important; transition: none !important; }
-  }
+  /* Dunkelmodus (kg_theme.js): Graphit-Knöpfe sichtbar halten, feine Linien/Grafiken abdunkeln */
+  html[data-kg-x="on"] .vr-btn { background: #2563eb !important; border-color: #2563eb !important; color: #fff !important; }
+  html[data-kg-x="on"] .vr-btn:hover { background: #1d4ed8 !important; }
+  html[data-kg-x="on"] .vr2-grid { stroke: rgba(148,163,184,.18); }
+  html[data-kg-x="on"] .vr2-linie { background: rgba(148,163,184,.18) !important; }
+  html[data-kg-x="on"] .vr-day h3[data-vr2]::after { background: rgba(148,163,184,.16); color: #e5e7eb; }
+  html[data-kg-x="on"] .vr-day h3[data-vr2-ton="offen"]::after { background: rgba(217,119,6,.18); color: #fbbf24; }
+  html[data-kg-x="on"] .vr-day h3[data-vr2-ton="ok"]::after { background: rgba(22,163,74,.18); color: #4ade80; }
+  html[data-kg-x="on"] .vr-day > .vr-free { border-top-color: rgba(148,163,184,.18); }
+  {% endraw %}
 </style>
 
 <div class="vr-wrap">
-  <div class="vr-head" data-kg-skip>
+  <div class="vr-head">
     <div>
-      <div class="kp-hero-lbl">KG Portal · Personal</div>
+      <div class="vr2-eyebrow"><i></i>Personal · Abwesenheiten</div>
       <h1>🛡️ Vertretung</h1>
       <p>Wer fehlt diese Woche (Urlaub/Krank), welche Objekte laut festen Zeiten betroffen sind und wer frei ist.
          Vertretung mit einem Klick in deren Stundenzettel eintragen.</p>
@@ -200,6 +143,33 @@
       <button id="vrPrev" aria-label="Vorige Woche">◀</button>
       <span id="vrWoche">…</span>
       <button id="vrNext" aria-label="Nächste Woche">▶</button>
+    </div>
+  </div>
+
+  <div class="vr2-kpis vr2-start" id="vr2Kpis">
+    <div class="vr2-kpi">
+      <div class="vr2-kpi-kopf"><span>Abwesenheiten</span><svg viewBox="0 0 24 24" stroke="#e11d48" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 11h-6"/></svg></div>
+      <div class="vr2-kpi-wert" id="vr2AbwWert">–</div>
+      <div class="vr2-kpi-meta" id="vr2AbwMeta">Personentage in dieser Woche</div>
+      <div class="vr2-kpi-grafik" id="vr2AbwGrafik"></div>
+    </div>
+    <div class="vr2-kpi">
+      <div class="vr2-kpi-kopf"><span>Vertretung geregelt</span><svg viewBox="0 0 24 24" stroke="#0d9488" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg></div>
+      <div class="vr2-kpi-wert" id="vr2VertWert">–</div>
+      <div class="vr2-kpi-meta" id="vr2VertMeta">&nbsp;</div>
+      <div class="vr2-kpi-grafik" id="vr2VertGrafik"></div>
+    </div>
+    <div class="vr2-kpi">
+      <div class="vr2-kpi-kopf"><span>Krank · Urlaub</span><svg viewBox="0 0 24 24" stroke="#d97706" aria-hidden="true"><path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z"/></svg></div>
+      <div class="vr2-kpi-wert" id="vr2GrundWert">–</div>
+      <div class="vr2-kpi-meta" id="vr2GrundMeta">&nbsp;</div>
+      <div class="vr2-kpi-grafik" id="vr2GrundGrafik"></div>
+    </div>
+    <div class="vr2-kpi">
+      <div class="vr2-kpi-kopf"><span>Frei im Schnitt</span><svg viewBox="0 0 24 24" stroke="#2563eb" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="m16 11 2 2 4-4"/></svg></div>
+      <div class="vr2-kpi-wert" id="vr2FreiWert">–</div>
+      <div class="vr2-kpi-meta" id="vr2FreiMeta">&nbsp;</div>
+      <div class="vr2-kpi-grafik" id="vr2FreiGrafik"></div>
     </div>
   </div>
 
@@ -214,27 +184,6 @@
     </div>
     <div class="vr-msg" id="abwMsg"></div>
   </div>
-
-  <!-- ===== PREMIUM (einheitliches Design): Wochen-Kennzahlen – nur lesend aus den angezeigten Tageskarten ===== -->
-  <section class="kp-bento" id="kpVBento" aria-label="Wochenübersicht">
-    <div class="kp-tile kp-s8" style="--i:1">
-      <div class="kp-lbl">Abwesenheiten pro Tag <em id="kpVWoche"></em></div>
-      <svg class="kp-chart" id="kpVChart" viewBox="0 0 560 170" aria-hidden="true"></svg>
-      <ul class="kp-leg-row">
-        <li><i class="kp-dot" style="background:#ef4444"></i>Krank</li>
-        <li><i class="kp-dot" style="background:#f59e0b"></i>Urlaub</li>
-      </ul>
-    </div>
-    <div class="kp-tile kp-s4" style="--i:2">
-      <div class="kp-lbl">Woche im Blick <em>Mo–Sa</em></div>
-      <div class="kp-kgrid">
-        <div class="kp-k"><div class="kp-ico rot"><svg viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="4"/><path d="M2 21c0-4 3-7 7-7s7 3 7 7M17 11h5"/></svg></div><div><b id="kpVAbw">–</b><span>Personen fehlen</span></div></div>
-        <div class="kp-k"><div class="kp-ico orange"><svg viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7.5v5.5M12 16.5v.01"/></svg></div><div><b id="kpVOffen">–</b><span>Vertretung offen</span></div></div>
-        <div class="kp-k"><div class="kp-ico gruen"><svg viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></div><div><b id="kpVGeregelt">–</b><span>Vertretung geregelt</span></div></div>
-        <div class="kp-k"><div class="kp-ico blau"><svg viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="4"/><path d="M2 21c0-4 3-7 7-7s7 3 7 7M16 4.5a4 4 0 0 1 0 7M22 21c0-3-1.8-5.5-4.5-6.5"/></svg></div><div><b id="kpVFrei">–</b><span>Ø frei pro Tag</span></div></div>
-      </div>
-    </div>
-  </section>
 
   <div class="vr-days" id="vrDays"></div>
 </div>
@@ -318,108 +267,111 @@
   laden();
 })();
 </script>
-{% raw %}
 <script>
-/* ===== PREMIUM (einheitliches Design) =====
-   Wochen-Kennzahlen + Balkengrafik, nur LESEND aus den bereits angezeigten Tageskarten.
-   Ändert keine bestehende Funktion, speichert nichts, ruft keinen Server auf. */
+/* ===== PREMIUM V2 „Graphit“: Kennzahlen und Avatare – liest nur die bereits geladene Wochenansicht (DOM) ===== */
+{% raw %}
 (function () {
-  "use strict";
-  var tage = document.getElementById("vrDays");
-  if (!tage) return;
-  var esc = function (s) {
-    return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) {
-      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+  var tageBox = document.getElementById("vrDays"), kpis = document.getElementById("vr2Kpis");
+  if (!tageBox || !kpis) return;
+  var NS = "http://www.w3.org/2000/svg";
+  function $(id) { return document.getElementById(id); }
+  function zahl(v, st) { return Number(v).toLocaleString("de-DE", { minimumFractionDigits: st || 0, maximumFractionDigits: st || 0 }); }
+  function el(tag, at, txt) {
+    var e = document.createElementNS(NS, tag);
+    for (var k in at) e.setAttribute(k, at[k]);
+    if (txt != null) e.textContent = txt;
+    return e;
+  }
+  function initialen(name) {
+    var w = String(name || "").trim().split(/\s+/).filter(Boolean);
+    return ((w[0] || "?").charAt(0) + (w.length > 1 ? w[w.length - 1].charAt(0) : "")).toUpperCase();
+  }
+  function balken(box, werte, labels, farbe) {
+    box.innerHTML = "";
+    var b = Math.max(box.clientWidth || 220, 120), h = 58, unten = 16, max = Math.max.apply(null, werte.concat([1]));
+    var s = el("svg", { viewBox: "0 0 " + b + " " + h, height: h, class: "vr2-balken", role: "img",
+                        "aria-label": labels.map(function (l, i) { return l + " " + werte[i]; }).join(", ") });
+    s.appendChild(el("line", { x1: 0, x2: b, y1: h - unten + .5, y2: h - unten + .5, class: "vr2-grid" }));
+    s.appendChild(el("line", { x1: 0, x2: b, y1: 2.5, y2: 2.5, class: "vr2-grid" }));
+    var n = werte.length, schritt = b / n, bw = Math.min(22, schritt * .56);
+    werte.forEach(function (v, i) {
+      var x = i * schritt + (schritt - bw) / 2, hh = v ? Math.max(3, (h - unten - 4) * v / max) : 0;
+      if (hh) s.appendChild(el("rect", { x: x, y: h - unten - hh, width: bw, height: hh, rx: 4, fill: farbe, class: "vr2-b",
+                                         style: "animation-delay:" + (i * 50) + "ms" }));
+      else s.appendChild(el("rect", { x: x, y: h - unten - 2, width: bw, height: 2, rx: 1, class: "vr2-grid", fill: "none" }));
+      s.appendChild(el("text", { x: x + bw / 2, y: h - 2, "text-anchor": "middle", class: "vr2-bar-lbl" }, labels[i]));
     });
-  };
-  function heuteIso() {
-    var d = new Date();
-    return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+    box.appendChild(s);
   }
-  function setText(id, t) {
-    var el = document.getElementById(id);
-    if (el) el.textContent = t;
-  }
-
   function lesen() {
-    var heute = heuteIso();
-    return Array.prototype.slice.call(tage.querySelectorAll(".vr-day")).map(function (d) {
-      var titel = d.querySelector("h3");
-      var label = titel ? titel.textContent.trim() : "";
-      var t = { datum: d.getAttribute("data-datum") || "", label: label, krank: 0, urlaub: 0, offen: 0, geregelt: 0, frei: 0, namen: [] };
-      Array.prototype.slice.call(d.querySelectorAll(".vr-abw")).forEach(function (it) {
-        var b = it.querySelector("b");
-        var grund = b && b.nextSibling ? String(b.nextSibling.textContent || "").replace(/[–-]/g, "").trim() : "";
-        if (b) t.namen.push(b.textContent.trim());
-        var text = it.textContent || "";
-        if (/urlaub/i.test(grund)) { t.urlaub++; it.classList.add("kp-urlaub"); }
-        else { t.krank++; it.classList.add("kp-krank"); }
-        if (text.indexOf("✅ Vertretung") >= 0) { t.geregelt++; it.classList.add("kp-geregelt"); }
-        else if (it.querySelector(".vr-set") || text.indexOf("Niemand ist an diesem Tag frei") >= 0) { t.offen++; it.classList.add("kp-offen"); }
+    return Array.prototype.map.call(tageBox.querySelectorAll(".vr-day"), function (d) {
+      var h3 = d.querySelector("h3"), t = { tag: d, h3: h3, kurz: h3 ? h3.textContent.trim().slice(0, 2) : "", abw: 0, krank: 0, urlaub: 0, offen: 0, geregelt: 0, frei: 0 };
+      d.querySelectorAll(".vr-item.vr-abw").forEach(function (it) {
+        var b = it.querySelector("b"), grund = b && b.nextSibling ? b.nextSibling.textContent : "", txt = it.textContent;
+        t.abw++;
+        var urlaub = /Urlaub/i.test(grund);
+        if (urlaub) t.urlaub++; else t.krank++;
+        if (/Vertretung:/.test(txt)) t.geregelt++;
+        else if (it.querySelector(".vr-set") || /Niemand ist an diesem Tag frei/.test(txt)) t.offen++;
+        if (!it.querySelector(".vr2-ava") && b) {
+          var a = document.createElement("span");
+          a.className = "vr2-ava " + (urlaub ? "urlaub" : "krank");
+          a.setAttribute("aria-hidden", "true");
+          a.textContent = initialen(b.textContent);
+          it.insertBefore(a, it.firstChild);
+        }
       });
-      var frei = d.querySelector(".vr-free");
-      if (frei) {
-        var f = (frei.textContent || "").replace(/^\s*Frei:\s*/, "").trim();
-        t.frei = !f || f === "niemand" ? 0 : f.split(",").filter(function (x) { return x.trim(); }).length;
+      var f = d.querySelector(".vr-free"), namen = f ? f.textContent.replace(/^\s*Frei:\s*/, "").trim() : "";
+      t.frei = !namen || namen === "niemand" ? 0 : namen.split(",").filter(function (x) { return x.trim(); }).length;
+      if (h3) {
+        if (t.offen) { h3.setAttribute("data-vr2", t.offen + " offen"); h3.setAttribute("data-vr2-ton", "offen"); }
+        else if (t.geregelt) { h3.setAttribute("data-vr2", "Geregelt"); h3.setAttribute("data-vr2-ton", "ok"); }
+        else if (t.abw) { h3.setAttribute("data-vr2", t.abw + " abwesend"); h3.setAttribute("data-vr2-ton", ""); }
+        else { h3.removeAttribute("data-vr2"); h3.removeAttribute("data-vr2-ton"); }
       }
-      if (t.krank + t.urlaub) d.classList.add("kp-hat-abw");
-      if (t.datum === heute) d.classList.add("kp-heute");
-      t.heute = t.datum === heute;
       return t;
     });
   }
-
+  var letzte = [];
   function zeichnen() {
-    var liste = lesen();
-    var svg = document.getElementById("kpVChart");
-    var woche = document.getElementById("vrWoche");
-    setText("kpVWoche", woche ? woche.textContent.trim() : "");
-    if (!liste.length) {
-      ["kpVAbw", "kpVOffen", "kpVGeregelt", "kpVFrei"].forEach(function (id) { setText(id, "–"); });
-      if (svg) svg.innerHTML = '<text class="kp-c-leer" x="280" y="90" text-anchor="middle">Keine Daten für diese Woche.</text>';
+    var tage = letzte, n = tage.length;
+    var sum = function (k) { return tage.reduce(function (s, t) { return s + t[k]; }, 0); };
+    if (!n) {
+      ["vr2AbwWert", "vr2VertWert", "vr2GrundWert", "vr2FreiWert"].forEach(function (id) { $(id).textContent = "–"; });
+      ["vr2AbwGrafik", "vr2VertGrafik", "vr2GrundGrafik", "vr2FreiGrafik"].forEach(function (id) { $(id).innerHTML = ""; });
       return;
     }
-    var personen = {};
-    liste.forEach(function (t) { t.namen.forEach(function (n) { personen[n] = 1; }); });
-    var summe = function (k) { return liste.reduce(function (s, t) { return s + t[k]; }, 0); };
-    setText("kpVAbw", String(Object.keys(personen).length));
-    setText("kpVOffen", String(summe("offen")));
-    setText("kpVGeregelt", String(summe("geregelt")));
-    setText("kpVFrei", (summe("frei") / liste.length).toLocaleString("de-DE", { maximumFractionDigits: 1 }));
-    var offenEl = document.getElementById("kpVOffen");
-    if (offenEl) offenEl.style.color = summe("offen") ? "#c2410c" : "";
+    var abw = sum("abw"), krank = sum("krank"), urlaub = sum("urlaub"), offen = sum("offen"), geregelt = sum("geregelt"), frei = sum("frei");
+    var labels = tage.map(function (t) { return t.kurz; });
+    $("vr2AbwWert").textContent = zahl(abw);
+    $("vr2AbwMeta").textContent = abw ? "an " + tage.filter(function (t) { return t.abw; }).length + " von " + n + " Tagen" : "Niemand fehlt diese Woche";
+    balken($("vr2AbwGrafik"), tage.map(function (t) { return t.abw; }), labels, "#e11d48");
 
-    if (!svg) return;
-    var max = Math.max(2, Math.max.apply(null, liste.map(function (t) { return t.krank + t.urlaub; })));
-    var n = liste.length, breite = 560 / n, sb = Math.min(52, breite - 22), oben = 22, hoehe = 108, html = "";
-    liste.forEach(function (t, i) {
-      var x = i * breite + (breite - sb) / 2, mitte = x + sb / 2, y = oben + hoehe;
-      html += '<rect x="' + x.toFixed(1) + '" y="' + oben + '" width="' + sb.toFixed(1) + '" height="' + hoehe + '" rx="12" fill="rgba(100,116,139,0.10)"/>';
-      [["krank", "#ef4444"], ["urlaub", "#f59e0b"]].forEach(function (s, j) {
-        var v = t[s[0]];
-        if (!v) return;
-        var h = v / max * hoehe;
-        y -= h;
-        html += '<rect class="kp-saeule" x="' + x.toFixed(1) + '" y="' + y.toFixed(1) + '" width="' + sb.toFixed(1) + '" height="' + h.toFixed(1) +
-          '" rx="10" fill="' + s[1] + '" style="animation-delay:' + (250 + i * 70 + j * 120) + 'ms"><title>' + esc(t.label) + ": " + v + (s[0] === "krank" ? " krank" : " im Urlaub") + '</title></rect>';
-      });
-      var ges = t.krank + t.urlaub;
-      html += '<text class="kp-c-wert" x="' + mitte.toFixed(1) + '" y="' + (ges ? y - 7 : oben + hoehe - 8).toFixed(1) + '" text-anchor="middle"' + (ges ? "" : ' opacity="0.45"') + '>' + (ges || "0") + '</text>';
-      var kurz = t.label.replace(/^(\S{2})\S*\s*/, "$1 ");
-      html += '<text class="kp-c-tag' + (t.heute ? " heute" : "") + '" x="' + mitte.toFixed(1) + '" y="' + (oben + hoehe + 22) + '" text-anchor="middle">' + esc(kurz) + '</text>';
-    });
-    if (!summe("krank") && !summe("urlaub")) {
-      html += '<text class="kp-c-leer" x="280" y="' + (oben + hoehe / 2) + '" text-anchor="middle">Niemand fehlt in dieser Woche ✓</text>';
-    }
-    svg.innerHTML = html;
-  }
+    var bedarf = offen + geregelt;
+    $("vr2VertWert").innerHTML = bedarf ? zahl(geregelt) + "<small>von " + zahl(bedarf) + "</small>" : "–";
+    $("vr2VertMeta").innerHTML = !bedarf ? "Kein Vertretungsbedarf"
+      : offen ? '<span class="vr2-pill bernstein">' + zahl(offen) + " offen</span>" : '<span class="vr2-pill gruen">Alles geregelt</span>';
+    $("vr2VertGrafik").innerHTML = '<div class="vr2-linie" role="img" aria-label="' + (bedarf ? Math.round(geregelt / bedarf * 100) : 0) + ' % geregelt"><b style="width:' +
+      (bedarf ? Math.round(geregelt / bedarf * 100) : 0) + '%;background:' + (offen ? "#0d9488" : "#16a34a") + '"></b></div>';
 
-  function sicher() {
-    try { zeichnen(); } catch (e) { if (window.console) console.warn("Premium-Kennzahlen Vertretung:", e); }
+    $("vr2GrundWert").innerHTML = zahl(krank) + "<small>Krank</small>" + zahl(urlaub) + "<small>Urlaub</small>";
+    $("vr2GrundMeta").textContent = abw ? Math.round(krank / abw * 100) + " % krankheitsbedingt" : "Keine Einträge";
+    $("vr2GrundGrafik").innerHTML = abw ? '<div class="vr2-split" role="img" aria-label="Krank ' + krank + ', Urlaub ' + urlaub + '">' +
+      (krank ? '<b style="flex:' + krank + ';background:#e11d48"></b>' : "") + (urlaub ? '<b style="flex:' + urlaub + ';background:#d97706"></b>' : "") + "</div>"
+      : '<div class="vr2-linie"></div>';
+
+    var team = ($("abwWer") && $("abwWer").options.length) || 0;
+    $("vr2FreiWert").innerHTML = zahl(frei / n, 1) + "<small>pro Tag</small>";
+    $("vr2FreiMeta").textContent = team ? "Team: " + zahl(team) + " Mitarbeiter" : "ohne feste Zeiten, nicht abwesend";
+    balken($("vr2FreiGrafik"), tage.map(function (t) { return t.frei; }), labels, "#64748b");
   }
-  if (window.MutationObserver) new MutationObserver(sicher).observe(tage, { childList: true });
-  sicher();
+  function aktualisieren() { letzte = lesen(); zeichnen(); }
+  new MutationObserver(aktualisieren).observe(tageBox, { childList: true });
+  if (tageBox.children.length) aktualisieren();
+  var rt = 0;
+  window.addEventListener("resize", function () { clearTimeout(rt); rt = setTimeout(zeichnen, 150); });
+  setTimeout(function () { kpis.classList.remove("vr2-start"); }, 1500);
 })();
-</script>
 {% endraw %}
+</script>
 {% endblock %}

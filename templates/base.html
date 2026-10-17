@@ -8,7 +8,7 @@
     <link rel="manifest" href="/static/manifest.json">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
@@ -20,7 +20,7 @@
             --kg-muted:#64748b;
             --kg-hover:#eef2ff;
             --kg-sidebar-width:280px;
-            --kg-font:Inter, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            --kg-font:"Plus Jakarta Sans", Inter, "Segoe UI", Roboto, Arial, sans-serif;
         }
 
         html,
@@ -803,118 +803,142 @@
     </style>
     <style>
         /* =====================================================
-           PREMIUM (einheitliches Design) – nur Aussehen
-           Menü, Seitenhülle, Scrollbalken, Fokus, Einblenden
+           PREMIUM V2 „GRAPHIT“ – nur Aussehen
+           Graphit-Menü, ruhige Arbeitsfläche, feine Linien,
+           Kopfleiste mit Seitenname, Datum und Uhr
            ===================================================== */
-        .portal-main {
-            background:
-                radial-gradient(900px 420px at 100% 0%, rgba(37,99,235,.06), transparent 60%),
-                radial-gradient(700px 380px at 0% 100%, rgba(56,189,248,.06), transparent 60%),
-                var(--kg-bg);
+        :root {
+            --v2-ink:#111827;
+            --v2-text:#1f2937;
+            --v2-muted:#6b7280;
+            --v2-line:#e5e7eb;
+            --v2-canvas:#f4f5f7;
+            --v2-card:#ffffff;
+            --v2-blue:#2563eb;
+            --v2-graphit:#111318;
+            --v2-graphit-2:#1a1d24;
         }
+        body.kg-portal-body, .kg-portal-shell, .portal-main { background:var(--v2-canvas) !important; }
+        .kg-portal-body { color:var(--v2-text) !important; font-feature-settings:"tnum" 1, "cv11" 1; -webkit-font-smoothing:antialiased; }
         .portal-card {
-            border-color:#e6ebf2;
-            border-radius:28px;
-            box-shadow:0 30px 60px -48px rgba(30,64,175,.35), 0 1px 0 rgba(15,23,42,.02);
+            border:1px solid var(--v2-line);
+            border-radius:18px;
+            box-shadow:0 1px 2px rgba(16,24,40,.04), 0 12px 32px -24px rgba(16,24,40,.18);
         }
-        ::selection { background:rgba(37,99,235,.18); }
+        ::selection { background:rgba(37,99,235,.16); }
         .kg-portal-body ::-webkit-scrollbar { width:10px; height:10px; }
-        .kg-portal-body ::-webkit-scrollbar-thumb { background:#cbd5e1; border-radius:999px; border:3px solid transparent; background-clip:padding-box; }
-        .kg-portal-body ::-webkit-scrollbar-thumb:hover { background:#94a3b8; border:3px solid transparent; background-clip:padding-box; }
+        .kg-portal-body ::-webkit-scrollbar-thumb { background:#d1d5db; border-radius:999px; border:3px solid transparent; background-clip:padding-box; }
         .kg-portal-body ::-webkit-scrollbar-track { background:transparent; }
         .portal-card input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):focus-visible,
         .portal-card select:focus-visible,
-        .portal-card textarea:focus-visible {
-            outline:none;
-            border-color:#2563eb;
-            box-shadow:0 0 0 4px rgba(37,99,235,.12);
-        }
-        .portal-card button:focus-visible,
-        .portal-card a:focus-visible {
-            outline:3px solid rgba(37,99,235,.35);
-            outline-offset:2px;
+        .portal-card textarea:focus-visible { outline:none; border-color:var(--v2-ink); box-shadow:0 0 0 3px rgba(17,24,39,.10); }
+        .portal-card button:focus-visible, .portal-card a:focus-visible { outline:2px solid var(--v2-ink); outline-offset:2px; }
+
+        /* Kopfleiste (nur breite Bildschirme) */
+        .v2-kopfleiste { display:none; }
+        @media (min-width:1025px) {
+            .v2-kopfleiste {
+                display:flex; align-items:center; gap:14px;
+                margin:0 0 18px; padding:0 4px;
+                font-size:13px; font-weight:600; color:var(--v2-muted);
+            }
+            .v2-kopfleiste .v2-pfad { display:flex; align-items:center; gap:8px; min-width:0; }
+            .v2-kopfleiste .v2-pfad b { color:var(--v2-ink); font-weight:800; font-size:14px; white-space:nowrap; }
+            .v2-kopfleiste .v2-pfad i { width:4px; height:4px; border-radius:50%; background:#c4c8cf; }
+            .v2-kopfleiste .v2-rechts { margin-left:auto; display:flex; align-items:center; gap:10px; }
+            .v2-kopfleiste .v2-chip {
+                display:inline-flex; align-items:center; gap:8px; height:34px; padding:0 12px;
+                border:1px solid var(--v2-line); border-radius:10px; background:#fff; color:var(--v2-text);
+                font-weight:700; white-space:nowrap;
+            }
+            .v2-kopfleiste .v2-chip svg { width:15px; height:15px; color:var(--v2-muted); }
+            .v2-kopfleiste .v2-punkt { width:8px; height:8px; border-radius:50%; background:#22c55e; box-shadow:0 0 0 3px rgba(34,197,94,.18); }
         }
 
-        /* Menü links (nur breite Bildschirme; Tablet/Handy behalten ihr eigenes Menü) */
+        /* Menü links: Graphit (breite Bildschirme) */
         @media (min-width:1025px) {
             .portal-sidebar {
-                background:linear-gradient(180deg, #ffffff 0%, #fbfcff 100%);
-                border-right:1px solid #e6ebf2;
-                box-shadow:12px 0 40px -36px rgba(30,64,175,.35);
-                padding-top:40px;
+                background:linear-gradient(180deg, var(--v2-graphit) 0%, #0d0f13 100%);
+                border-right:1px solid rgba(255,255,255,.06);
+                padding:26px 16px 26px 16px;
+                width:264px;
+                --kg-sidebar-width:264px;
             }
-            .portal-sidebar-title.kg-logo-titel { margin-bottom:26px; }
+            .portal-main { width:calc(100% - 264px); margin-left:264px; padding:24px 28px 28px; }
+            .portal-sidebar-title.kg-logo-titel {
+                margin:0 4px 18px;
+                padding:14px 16px 12px;
+                border:0;
+                border-radius:14px;
+                background:#ffffff;
+                box-shadow:0 10px 30px -12px rgba(0,0,0,.6);
+            }
+            .portal-sidebar-title.kg-logo-titel::after { display:none; }
+            .portal-title-logo { max-height:84px; }
+            .kg-logo-titel .portal-title-sub { margin-top:6px; color:#6b7280; letter-spacing:5px; font-size:10px; }
+            .portal-sidebar [data-kg-theme-slot] { padding:0 4px 14px !important; }
+            .portal-sidebar .kg-theme-toggle { color:#d1d5db; border-color:rgba(255,255,255,.12); background:rgba(255,255,255,.05); }
             .portal-nav-group-title {
-                color:#94a3b8;
+                color:#6b7280;
                 font-size:10.5px;
                 font-weight:800;
-                letter-spacing:1.8px;
-                margin:4px 0 10px 12px;
+                letter-spacing:1.6px;
+                margin:14px 0 6px 12px;
             }
-            .portal-nav-item {
-                padding:9px 12px 9px 10px;
-                margin-bottom:6px;
-                border-radius:14px;
-                border:1px solid transparent;
+            .portal-nav-item,
+            .portal-nav-item[data-nav-key] {
+                margin-bottom:2px;
+                padding:9px 10px 9px 12px;
+                border-radius:10px;
+                border:0;
                 background:transparent;
                 box-shadow:none;
-                font-size:14.5px;
-                transition:background-color .2s ease, box-shadow .2s ease, translate .2s ease, border-color .2s ease;
+                font-size:14px;
+                transition:background-color .15s ease, color .15s ease;
             }
-            .portal-nav-item::before { opacity:0; transition:opacity .3s ease; }
-            .portal-nav-item:hover {
-                background:#f1f6ff;
-                border-color:#e0e9fb;
-                box-shadow:none;
-                transform:none;
-                translate:3px 0;
-            }
-            .portal-nav-item .portal-nav-content { gap:12px; color:#1e3a8a; font-weight:800; }
-            .portal-nav-item .portal-nav-content i {
-                width:36px;
-                height:36px;
-                display:grid;
-                place-items:center;
-                border-radius:11px;
-                font-size:16px;
-                background:color-mix(in srgb, currentColor 14%, transparent);
-                transition:background-color .2s ease, color .2s ease;
-            }
-            .portal-drag-handle { opacity:0 !important; font-size:13px !important; color:#94a3b8 !important; transition:opacity .2s ease; }
-            .portal-nav-item:hover .portal-drag-handle { opacity:.8 !important; }
+            .portal-nav-item[data-nav-key="startseite"] { margin-bottom:6px; }
+            .portal-nav-item::before { display:none; }
+            .portal-nav-item .portal-nav-content { color:#c9ced6; font-weight:600; gap:12px; letter-spacing:0; }
+            .portal-nav-item .portal-nav-content i { font-size:15px; width:20px; opacity:.95; }
+            .portal-drag-handle { opacity:0 !important; color:#6b7280 !important; font-size:12px !important; }
+            .portal-nav-item:hover { background:rgba(255,255,255,.06); transform:none; box-shadow:none; }
+            .portal-nav-item:hover .portal-nav-content { color:#ffffff; }
+            .portal-nav-item:hover .portal-drag-handle { opacity:.7 !important; }
             .portal-nav-item.active {
-                background:radial-gradient(160px 80px at 100% 0%, rgba(255,255,255,.22), transparent 60%), linear-gradient(135deg, #2563eb, #1d4ed8);
-                border:1px solid transparent;
-                box-shadow:0 14px 26px -14px rgba(29,78,216,.85);
-                translate:0 0;
+                background:rgba(255,255,255,.09);
+                border:0;
+                box-shadow:inset 3px 0 0 #3b82f6;
             }
-            .portal-nav-item.active::before { opacity:1; }
-            .portal-nav-item.active .portal-nav-content { color:#ffffff !important; }
-            .portal-nav-item.active .portal-nav-content i {
-                background:color-mix(in srgb, #ffffff 96%, transparent);
-                color:#1d4ed8 !important;
-            }
-            .portal-nav-item.active .portal-drag-handle { color:#dbeafe !important; }
-            .portal-nav-item[data-nav-key="startseite"] { margin-bottom:22px; }
-            .portal-nav-item[data-nav-key="todo"],
-            .portal-nav-item[data-nav-key="vertrag"],
-            .portal-nav-item[data-nav-key="kunden"],
-            .portal-nav-item[data-nav-key="vertretung"] { margin-bottom:24px; }
+            .portal-nav-item.active .portal-nav-content { color:#ffffff !important; font-weight:700; }
+            .portal-nav-item.active i { color:#60a5fa !important; }
+            .portal-nav-item.active .portal-drag-handle { color:#9ca3af !important; }
+            .portal-sidebar::-webkit-scrollbar-thumb { background:rgba(255,255,255,.14); }
         }
-        /* Druck / PDF (z. B. Leistungsverzeichnis): keine Animationen, Schrift wie bisher */
+
+        /* Tablet / Handy: obere Leiste in Graphit */
+        @media (max-width:1024px) {
+            .portal-sidebar { background:var(--v2-graphit) !important; border-bottom:1px solid rgba(255,255,255,.06) !important; }
+            .portal-sidebar-title.kg-logo-titel { background:#ffffff !important; border:0 !important; }
+            .portal-nav-item, .portal-nav-item[data-nav-key] { background:rgba(255,255,255,.06) !important; border:1px solid rgba(255,255,255,.08) !important; box-shadow:none !important; }
+            .portal-nav-item .portal-nav-content { color:#e5e7eb !important; }
+            .portal-nav-item.active { background:#2563eb !important; border-color:#2563eb !important; }
+            .portal-nav-item.active .portal-nav-content, .portal-nav-item.active i { color:#ffffff !important; }
+            .portal-sidebar .kg-theme-toggle { color:#d1d5db; border-color:rgba(255,255,255,.14); }
+        }
+
+        /* Druck / PDF: keine Animationen, Schrift wie bisher */
         @media print {
             *, *::before, *::after { animation:none !important; transition:none !important; }
             .kg-portal-body,
-            .kg-portal-body *:not(i):not(.fa):not(.fa-solid):not(.fa-regular):not(.fa-brands) {
-                font-family:Arial, Helvetica, sans-serif !important;
-            }
+            .kg-portal-body *:not(i):not(.fa):not(.fa-solid):not(.fa-regular):not(.fa-brands) { font-family:Arial, Helvetica, sans-serif !important; }
+            .v2-kopfleiste { display:none !important; }
         }
     </style>
 </head>
 <body class="kg-portal-body">
 <div class="kg-portal-shell">
 
-    <aside class="portal-sidebar">
+    <aside class="portal-sidebar" data-kg-skip>
         <a class="portal-sidebar-title kg-logo-titel" href="/"><img class="portal-title-logo" src="/static/kg_logo_portal.png" alt="KG Gebäudereinigung"><span class="portal-title-sub">PORTAL</span></a>
         <div data-kg-theme-slot style="padding:0 18px 12px;"></div>
 
@@ -1033,6 +1057,14 @@
     </aside>
 
     <main class="portal-main">
+        <div class="v2-kopfleiste" aria-hidden="true">
+            <div class="v2-pfad"><span>KG Portal</span><i></i><b id="v2Seitenname">Startseite</b></div>
+            <div class="v2-rechts">
+                <span class="v2-chip"><span class="v2-punkt"></span>Online</span>
+                <span class="v2-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg><span id="v2Datum"></span></span>
+                <span class="v2-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span id="v2Uhr"></span></span>
+            </div>
+        </div>
         <section class="portal-card">
             {% block content %}{% endblock %}
         </section>
@@ -1137,24 +1169,39 @@ document.addEventListener('DOMContentLoaded', function () {
 </script>
 
 <script>
-/* Sicherheitsnetz für Start-Animationen (nur Aussehen):
-   kg_theme.js hält beim Einlesen der Farben alle Animationen kurz an. Eine einmalige Start-Animation
-   darf dabei nie hängen bleiben, sonst bleibt ein Element unsichtbar. Endlose Animationen bleiben unberührt. */
+/* V2-Kopfleiste: Seitenname aus dem aktiven Menüpunkt, Datum und Uhr (nur Anzeige) */
+(function () {
+    function name() {
+        var a = document.querySelector('.portal-nav-item.active .portal-nav-content');
+        var el = document.getElementById('v2Seitenname');
+        if (a && el) el.textContent = (a.textContent || '').trim() || 'Startseite';
+    }
+    function zeit() {
+        var d = new Date();
+        var datum = document.getElementById('v2Datum'), uhr = document.getElementById('v2Uhr');
+        if (datum) datum.textContent = d.toLocaleDateString('de-DE', { weekday: 'short', day: '2-digit', month: '2-digit', year: 'numeric' });
+        if (uhr) uhr.textContent = d.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
+    }
+    document.addEventListener('DOMContentLoaded', function () { name(); setTimeout(name, 300); zeit(); setInterval(zeit, 15000); });
+})();
+
+/* Sicherheitsnetz für Start-Animationen: kg_theme.js hält beim Einlesen der Farben alle Animationen kurz an.
+   Eine einmalige Start-Animation darf nie hängen bleiben (sonst bleibt ein Element unsichtbar). */
 (function () {
     if (!document.getAnimations) return;
     var gesehen = new WeakMap();
-    function pruefen() {
-        if (document.documentElement.classList.contains("kgx-scan")) return;
+    setInterval(function () {
+        if (document.documentElement.classList.contains('kgx-scan')) return;
         var jetzt = performance.now();
         document.getAnimations().forEach(function (a) {
             try {
                 var eff = a.effect;
                 if (!eff || !eff.getComputedTiming) return;
                 if (eff.getComputedTiming().iterations === Infinity) return;
-                if (a.playState === "finished" || a.playState === "idle") return;
-                if (a.playState === "paused") {
+                if (a.playState === 'finished' || a.playState === 'idle') return;
+                if (a.playState === 'paused') {
                     var el = eff.target;
-                    if (el && String(getComputedStyle(el).animationPlayState).indexOf("paused") >= 0) return;
+                    if (el && String(getComputedStyle(el).animationPlayState).indexOf('paused') >= 0) return;
                     a.play();
                     return;
                 }
@@ -1163,8 +1210,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (jetzt - g.zeit > 4000 && a.currentTime === g.ct) a.finish();
             } catch (e) {}
         });
-    }
-    setInterval(pruefen, 900);
+    }, 900);
 })();
 </script>
 </body>

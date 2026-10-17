@@ -1,36 +1,42 @@
-# Premium-Design – Einspielen und Zurücksetzen
+# Premium-Design – Einspielen, Version 1 / Version 2 / alt
 
 Stand: 17.10.2026 · Branch `claude/nifty-galileo-19dve0`
 
-## Was ist neu
-Einheitliches Premium-Design im ganzen CRM: Schrift Inter, Menü mit Symbol-Kacheln, Systemblau-Köpfe,
-Kennzahl-Kacheln, lesende Grafiken (Ringe, Säulen, Donuts), Start-Animationen, Hover-Bewegung.
-Nur Vorlagen (`templates/`) geändert – keine Python-Datei, keine Datenbank, keine Funktion.
-Druck/PDF (Angebot, Leistungsverzeichnis, Verträge, Interesse-Druck) unverändert.
+Es gibt drei Aussehen. Alle betreffen nur Vorlagen (`templates/`) – keine Python-Datei, keine Daten,
+keine Funktion. Druck/PDF (Angebot, Leistungsverzeichnis, Verträge, Interesse-Druck) bleibt unverändert.
+Datenbank- und Besichtigung-Seite sind in allen drei Ständen gleich (neu, freigegeben).
 
-Commits: `1a5b60a` … `dd0d6f0` (Teil 1–6). Der Stand direkt davor ist `37f3f5a`
-(Datenbank-Seite + Besichtigung im Bento-Design – das bleibt auch beim Zurücksetzen erhalten).
+| Stand | Commit | Aussehen |
+|---|---|---|
+| alt | `37f3f5a` | bisheriges Aussehen |
+| Version 1 | `dda1d6b` | hell, Systemblau-Köpfe, Glas-Kacheln, farbige Symbol-Quadrate, Schrift Inter |
+| Version 2 „Graphit“ | aktueller Stand (HEAD) | Graphit-Menü, Kopfleiste mit Seitenname/Datum/Uhr, ruhige weiße Karten, feine Grafiken, Schrift Plus Jakarta Sans |
 
-## Einspielen (PowerShell, ein Befehl)
+## 1. Neuen Stand holen (einmal, PowerShell)
+Holt alles und zeigt Version 2:
 ```
 ssh root@46.224.155.41 'cd /opt/kg-crm && git fetch -q origin claude/nifty-galileo-19dve0 && git merge -q --ff-only FETCH_HEAD && systemctl restart kg-crm && sleep 5 && systemctl is-active kg-crm && git log --oneline -1'
 ```
-Erwartet: `active` und `… Premium-Deploy-Anleitung …` (oder neuer). Danach im Browser Strg+F5.
 
-## Zurück zum alten Aussehen (PowerShell, ein Befehl)
-Setzt nur die Vorlagen (`templates/`) auf den Stand `37f3f5a` zurück (vor dem Premium-Umbau,
-Datenbank und Besichtigung bleiben neu). Python und Daten bleiben unverändert:
+## 2. Umschalten (jederzeit, je ein Befehl)
+Version 1 ansehen:
 ```
-ssh root@46.224.155.41 'cd /opt/kg-crm && git checkout 37f3f5a -- templates && systemctl restart kg-crm && sleep 5 && systemctl is-active kg-crm && git status --short | head -3'
+ssh root@46.224.155.41 'cd /opt/kg-crm && git checkout dda1d6b -- templates && systemctl restart kg-crm && sleep 5 && systemctl is-active kg-crm'
 ```
-Erwartet: `active` und Zeilen mit `M templates/…` (die zurückgesetzten Vorlagen).
+Version 2 ansehen:
+```
+ssh root@46.224.155.41 'cd /opt/kg-crm && git checkout HEAD -- templates && systemctl restart kg-crm && sleep 5 && systemctl is-active kg-crm'
+```
+Altes Aussehen:
+```
+ssh root@46.224.155.41 'cd /opt/kg-crm && git checkout 37f3f5a -- templates && systemctl restart kg-crm && sleep 5 && systemctl is-active kg-crm'
+```
+Nach jedem Umschalten im Browser Strg+F5.
 
-## Doch wieder Premium (nach dem Zurücksetzen)
-```
-ssh root@46.224.155.41 'cd /opt/kg-crm && git checkout HEAD -- templates && systemctl restart kg-crm && sleep 5 && systemctl is-active kg-crm && git status --short | head -3'
-```
-Erwartet: `active` und keine `M templates/…`-Zeilen.
+Wichtig: Vor dem nächsten normalen Einspielen (Schritt 1) erst „Version 2 ansehen“ ausführen,
+sonst bricht `git merge` wegen der umgeschalteten Vorlagen ab (es geht nichts kaputt, nur der neue Stand kommt nicht an).
 
-Wichtig: Solange zurückgesetzt ist, vor dem nächsten normalen Einspielen erst „Doch wieder Premium“
-ausführen – sonst bricht `git merge` wegen der geänderten Vorlagen ab (es geht nichts kaputt, nur
-der neue Stand kommt nicht an).
+## 3. Mischen
+Wenn Seiten aus Version 1 und Version 2 gemischt werden sollen (z. B. Startseite V1, Kalender V2):
+Claude stellt den Mix im Repo zusammen, testet ihn und liefert danach wieder einen einzigen Einspiel-Befehl.
+Der Rahmen (Menü links, Schrift, Kopfleiste) gilt für alle Seiten gemeinsam: entweder V1 oder V2.
