@@ -65,22 +65,22 @@
 
   <!-- ===== Kundenarten (neu, nur lesend aus der Liste; Art ergibt sich aus „Häufigkeit“) ===== -->
   <section class="kp-arten no-print" id="kpKundenArten" aria-label="Kundenarten">
-    <div class="kp-art" data-kp-filter="bestand" style="--a:#2563eb;--b:#eff6ff;--i:1" title="Liste filtern: Bestandskunden">
+    <div class="kp-art" data-kp-filter="bestand" data-kpp="bestand" tabindex="0" role="button" style="--a:#2563eb;--b:#eff6ff;--i:1" title="Details: Bestandskunden">
       <div class="kp-lbl">Bestandskunden <em>regelmäßig</em></div>
       <div class="kp-art-zahl"><b id="kpArtBestandN">–</b><span>Kunden</span></div>
       <div class="kp-art-summe"><b id="kpArtBestandS">–</b><span>pro Monat</span></div>
     </div>
-    <div class="kp-art" data-kp-filter="jaehrlich" style="--a:#7c3aed;--b:#f5f3ff;--i:2" title="Liste filtern: Jährlich">
+    <div class="kp-art" data-kp-filter="jaehrlich" data-kpp="jaehrlich" tabindex="0" role="button" style="--a:#7c3aed;--b:#f5f3ff;--i:2" title="Details: Jährlich">
       <div class="kp-lbl">Jährlich <em>1x / 2x jährlich</em></div>
       <div class="kp-art-zahl"><b id="kpArtJaehrlichN">–</b><span>Kunden</span></div>
       <div class="kp-art-summe"><b id="kpArtJaehrlichS">–</b><span>Summe Beträge</span></div>
     </div>
-    <div class="kp-art" data-kp-filter="einmalig" style="--a:#d97706;--b:#fffbeb;--i:3" title="Liste filtern: Einmalig">
+    <div class="kp-art" data-kp-filter="einmalig" data-kpp="einmalig" tabindex="0" role="button" style="--a:#d97706;--b:#fffbeb;--i:3" title="Details: Einmalig">
       <div class="kp-lbl">Einmalig <em>Sonderreinigung</em></div>
       <div class="kp-art-zahl"><b id="kpArtEinmaligN">–</b><span>Kunden</span></div>
       <div class="kp-art-summe"><b id="kpArtEinmaligS">–</b><span>Summe Beträge</span></div>
     </div>
-    <div class="kp-art" data-kp-filter="gekuendigt" style="--a:#ef4444;--b:#fef2f2;--i:4" title="Liste filtern: Gekündigt">
+    <div class="kp-art" data-kp-filter="gekuendigt" data-kpp="gekuendigt" tabindex="0" role="button" style="--a:#ef4444;--b:#fef2f2;--i:4" title="Details: Gekündigt">
       <div class="kp-lbl">Gekündigt <em>alle Arten</em></div>
       <div class="kp-art-zahl"><b id="kpArtGekN">–</b><span>Kunden</span></div>
       <div class="kp-art-summe kp-art-klein"><b>zählt nicht zum Umsatz</b></div>
@@ -89,7 +89,7 @@
 
   <!-- ===== PREMIUM (einheitliches Design): Kennzahlen-Kacheln – nur lesend aus der Kundenliste ===== -->
   <section class="kp-bento no-print" id="kpKundenBento" aria-label="Kennzahlen Kunden">
-    <div class="kp-tile" style="--i:1">
+    <div class="kp-tile" style="--i:1" data-kpp="status" tabindex="0" role="button" title="Details öffnen">
       <div class="kp-lbl">Vertragsstatus <em>alle Kunden</em></div>
       <div class="kp-donut-row">
         <svg class="kp-donut" id="kpKStatusRing" viewBox="0 0 120 120" aria-hidden="true"></svg>
@@ -97,26 +97,26 @@
       </div>
     </div>
 
-    <div class="kp-tile" style="--i:2">
+    <div class="kp-tile" style="--i:2" data-kpp="betrag" tabindex="0" role="button" title="Details öffnen">
       <div class="kp-lbl">Betrag <em>Bestandskunden · pro Monat</em></div>
       <div class="kp-big" id="kpKSumme">–</div>
       <div class="kp-sub" id="kpKSummeSub"></div>
       <div class="kp-bars" id="kpKTop"></div>
     </div>
 
-    <div class="kp-tile" style="--i:3">
+    <div class="kp-tile" style="--i:3" data-kpp="staedte" tabindex="0" role="button" title="Details öffnen">
       <div class="kp-lbl">Einsatzgebiet <em>Kunden · € / Monat</em></div>
       <div class="kp-st-kopf"><b id="kpStN">–</b><span id="kpStText"></span></div>
       <div class="kp-st-liste" id="kpStListe"></div>
     </div>
 
-    <div class="kp-tile" style="--i:4">
+    <div class="kp-tile" style="--i:4" data-kpp="haeufigkeit" tabindex="0" role="button" title="Details öffnen">
       <div class="kp-lbl">Häufigkeit <em id="kpKFreqAnz">je Vertrag</em></div>
       <div class="kp-rang" id="kpKFreq"></div>
       <div class="kp-rang-mehr" id="kpKFreqMehr"></div>
     </div>
 
-    <div class="kp-tile kp-anteil" style="--i:5">
+    <div class="kp-tile kp-anteil" style="--i:5" data-kpp="anteil" tabindex="0" role="button" title="Details öffnen">
       <div class="kp-lbl">Umsatzanteil <em>Bestandskunden · € / Monat</em></div>
       <div class="kp-anteil-row">
         <svg class="kp-donut kp-anteil-ring" id="kpKAnteilRing" viewBox="0 0 120 120" aria-hidden="true"></svg>
@@ -2081,6 +2081,99 @@
     .kp-st-z s { grid-column:1 / -1; display:block; height:6px; border-radius:3px; background:rgba(100,116,139,0.14); overflow:hidden; text-decoration:none; }
     .kp-st-z s i { display:block; height:100%; border-radius:3px; animation:kpBreiteW .9s cubic-bezier(.22,1,.36,1) backwards; }
 
+    /* ---------- Detail-Fenster: Kachel wächst zum großen Fenster (wie Datenbank / LifeHub Löhne) ---------- */
+    [data-kpp] { cursor:pointer; }
+    [data-kpp]:focus-visible { outline:3px solid rgba(37,99,235,0.45); outline-offset:3px; }
+    .kpp-hinter {
+      position:fixed;
+      inset:0;
+      z-index:10000;
+      background:rgba(23,37,84,0.45);
+      -webkit-backdrop-filter:blur(3px);
+      backdrop-filter:blur(3px);
+    }
+    .kpp-panel {
+      position:fixed;
+      z-index:10001;
+      overflow:hidden;
+      border-radius:28px;
+      background:#ffffff;
+      box-shadow:0 40px 80px -20px rgba(15,23,42,0.45);
+    }
+    .kpp-inhalt { display:flex; flex-direction:column; height:100%; }
+    .kpp-kopf { position:relative; padding:24px 24px 20px; color:#ffffff; }
+    .kpp-zu {
+      position:absolute;
+      top:16px;
+      right:16px;
+      width:40px;
+      height:40px;
+      border:0;
+      border-radius:12px;
+      background:rgba(255,255,255,0.15);
+      color:#ffffff;
+      font-size:18px;
+      font-weight:900;
+      cursor:pointer;
+      transition:background-color .2s, transform .2s;
+    }
+    .kpp-zu:hover { background:rgba(255,255,255,0.28); transform:rotate(90deg); }
+    .kpp-over { font-size:12.5px; font-weight:800; letter-spacing:.14em; text-transform:uppercase; color:rgba(255,255,255,0.82); }
+    .kpp-titel { margin:4px 0 0; font-size:24px; font-weight:900; color:#ffffff; }
+    .kpp-gross { margin-top:8px; font-size:30px; font-weight:900; letter-spacing:-.5px; }
+    .kpp-unter { margin-top:2px; font-size:13px; font-weight:700; color:rgba(255,255,255,0.9); }
+    .kpp-tabs { display:flex; flex-wrap:wrap; gap:8px; margin-top:14px; }
+    .kpp-tab {
+      padding:7px 14px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,0.35);
+      background:rgba(255,255,255,0.12);
+      color:#ffffff;
+      font:inherit;
+      font-size:12.5px;
+      font-weight:900;
+      cursor:pointer;
+    }
+    .kpp-tab.aktiv { background:#ffffff; color:#0f172a; }
+    .kpp-body { flex:1; overflow-y:auto; padding:16px; font-size:14px; font-weight:600; color:#334155; }
+    .kpp-liste { border:1px solid #dbeafe; border-radius:18px; overflow:hidden; }
+    .kpp-zeile { display:flex; align-items:center; gap:12px; padding:11px 16px; border-top:1px solid #eff6ff; }
+    .kpp-zeile:first-child { border-top:0; }
+    .kpp-zeile[data-kid] { cursor:pointer; transition:background-color .15s; }
+    .kpp-zeile[data-kid]:hover { background:#f8fbff; }
+    .kpp-zeile.summe { background:#f8fafc; font-weight:900; color:#0f172a; }
+    .kpp-nr {
+      flex-shrink:0;
+      width:26px;
+      height:26px;
+      border-radius:9px;
+      display:grid;
+      place-items:center;
+      background:#eff6ff;
+      color:#1d4ed8;
+      font-size:12px;
+      font-weight:900;
+    }
+    .kpp-haupt { flex:1; min-width:0; }
+    .kpp-name { overflow:hidden; white-space:nowrap; text-overflow:ellipsis; font-weight:800; color:#0f172a; }
+    .kpp-klein { display:block; margin-top:1px; font-size:12px; font-weight:600; color:#64748b; }
+    .kpp-wert { flex-shrink:0; text-align:right; font-weight:800; color:#0f172a; font-variant-numeric:tabular-nums; }
+    .kpp-balken { display:block; height:5px; margin-top:6px; border-radius:3px; background:rgba(100,116,139,0.14); overflow:hidden; }
+    .kpp-balken i { display:block; height:100%; border-radius:3px; }
+    .kpp-leer { padding:36px 16px; text-align:center; font-weight:700; color:#64748b; }
+    .kpp-fuss { padding:12px 16px 16px; }
+    .kpp-fuss button {
+      width:100%;
+      padding:12px;
+      border:0;
+      border-radius:14px;
+      color:#ffffff;
+      font:inherit;
+      font-size:13.5px;
+      font-weight:900;
+      cursor:pointer;
+    }
+
     /* ---------- Umsatzanteil (neu, nur lesend) ---------- */
     .kp-tile.kp-anteil { grid-column:span 12; }
     .kp-anteil-row {
@@ -2510,17 +2603,252 @@ document.addEventListener("DOMContentLoaded", function () {
         c.classList.toggle("aktiv", c.getAttribute("data-kp-filter") === art);
       });
     }
-    Array.prototype.forEach.call(document.querySelectorAll("#kpReiter .kp-r, #kpKundenArten .kp-art"), function (b) {
-      b.addEventListener("click", function () {
-        var art = b.getAttribute("data-kp-filter");
-        if (b.classList.contains("kp-art") && b.classList.contains("aktiv")) art = "alle";
-        filtern(art);
-        if (b.classList.contains("kp-art")) {
+    Array.prototype.forEach.call(document.querySelectorAll("#kpReiter .kp-r"), function (b) {
+      b.addEventListener("click", function () { filtern(b.getAttribute("data-kp-filter")); });
+    });
+    kpFiltern = filtern;
+  }
+
+  // ---------- Detail-Fenster: Kachel wächst zum großen Fenster (wie Datenbank / LifeHub Löhne) ----------
+  var kpFiltern = null, KD = null, kppOffen = null;
+  var KPP_EASE = "cubic-bezier(.22,1,.36,1)";
+  var KPP_FARBE = {
+    bestand: "linear-gradient(135deg,#1e3a8a 0%,#1d4ed8 50%,#3b82f6 100%)",
+    jaehrlich: "linear-gradient(135deg,#4c1d95 0%,#6d28d9 50%,#8b5cf6 100%)",
+    einmalig: "linear-gradient(135deg,#78350f 0%,#b45309 50%,#f59e0b 100%)",
+    gekuendigt: "linear-gradient(135deg,#7f1d1d 0%,#b91c1c 50%,#ef4444 100%)",
+    status: "linear-gradient(135deg,#14532d 0%,#15803d 50%,#22c55e 100%)",
+    betrag: "linear-gradient(135deg,#064e3b 0%,#047857 50%,#10b981 100%)",
+    staedte: "linear-gradient(135deg,#1e1b4b 0%,#3730a3 50%,#6366f1 100%)",
+    haeufigkeit: "linear-gradient(135deg,#581c87 0%,#7e22ce 50%,#c026d3 100%)",
+    anteil: "linear-gradient(135deg,#0c4a6e 0%,#0369a1 50%,#0ea5e9 100%)"
+  };
+  var KPP_MONAT = { "1x w": 4.33, "2x w": 8.66, "3x w": 12.99, "4x w": 17.32, "5x w": 21.65, "täglich": 21.65, "6x w": 25.98,
+    "1x mtl": 1, "alle 2 Monate": 0.5, "alle 3 Monate": 1 / 3, "1x jährlich": 1 / 12, "2x jährlich": 1 / 6 };
+  function kppRuhig() {
+    return !!(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+  }
+  function kppDatum(d) {
+    return d ? ("0" + d.getDate()).slice(-2) + "." + ("0" + (d.getMonth() + 1)).slice(-2) + "." + d.getFullYear() : "";
+  }
+  function kppZeile(name, klein, wert, kid, extra, vorne) {
+    return '<div class="kpp-zeile' + (extra || "") + '"' + (kid ? ' data-kid="' + esc(kid) + '" title="Kundenkarte öffnen"' : "") + '>' +
+      (vorne || "") + '<div class="kpp-haupt"><div class="kpp-name">' + name + '</div>' +
+      (klein ? '<span class="kpp-klein">' + klein + '</span>' : "") + '</div>' +
+      '<div class="kpp-wert">' + wert + '</div></div>';
+  }
+  function kppListe(zeilen, leer) {
+    return zeilen.length ? '<div class="kpp-liste">' + zeilen.join("") + '</div>' : '<div class="kpp-leer">' + esc(leer) + '</div>';
+  }
+  function kppKopf(over, titel, gross, unter, tabs) {
+    return '<button type="button" class="kpp-zu" aria-label="Schließen">✕</button>' +
+      '<div class="kpp-over">' + esc(over) + '</div><h2 class="kpp-titel">' + esc(titel) + '</h2>' +
+      '<div class="kpp-gross">' + esc(gross) + '</div>' + (unter ? '<div class="kpp-unter">' + esc(unter) + '</div>' : "") + (tabs || "");
+  }
+  function kppKunden(liste, art) {
+    return liste.map(function (k, i) {
+      var klein = [k.ort, k.freq].filter(Boolean).join(" · ");
+      if (k.status === "gekuendigt") klein += (klein ? " · " : "") + (k.ende ? "Vertrag bis " + kppDatum(k.ende) : "gekündigt");
+      return kppZeile(esc(k.firma || "–"), esc(klein), esc(euro(k.betrag)) + (art === "bestand" ? '<span class="kpp-klein">pro Monat</span>' : ""),
+        k.id, "", '<span class="kpp-nr">' + (i + 1) + '</span>');
+    });
+  }
+  function kppSumme(liste, text) {
+    var s = liste.reduce(function (a, k) { return a + k.betrag; }, 0);
+    return kppZeile(esc(text), "", esc(euro(s)), "", " summe");
+  }
+  function kppNamen(liste) {
+    var n = liste.map(function (k) { return k.firma; });
+    return n.slice(0, 4).join(", ") + (n.length > 4 ? " … +" + (n.length - 4) : "");
+  }
+
+  var KPP_ART = {
+    bestand: { titel: "Bestandskunden", leer: "Noch keine Bestandskunden." },
+    jaehrlich: { titel: "Jährlich", leer: "Keine jährlichen Kunden." },
+    einmalig: { titel: "Einmalig", leer: "Keine einmaligen Kunden. Bei „Häufigkeit“ „einmalig“ wählen." },
+    gekuendigt: { titel: "Gekündigt", leer: "Keine gekündigten Verträge." }
+  };
+
+  function kppInhalt(art, panel) {
+    var kopf = panel.querySelector(".kpp-kopf"), body = panel.querySelector(".kpp-body"), fuss = panel.querySelector(".kpp-fuss button");
+    var alle = KD.kunden, aktuell = KD.aktuell, bestand = KD.bestand;
+    function nachBetrag(l) { return l.slice().sort(function (a, b) { return b.betrag - a.betrag; }); }
+    function zurListe(filter, text) {
+      fuss.textContent = text;
+      fuss.onclick = function () {
+        kppSchliessen(function () {
+          if (kpFiltern) kpFiltern(filter);
           var r = document.getElementById("kpReiter");
-          if (r && r.scrollIntoView) r.scrollIntoView({ behavior: "smooth", block: "start" });
-        }
+          if (r && r.scrollIntoView) r.scrollIntoView({ behavior: kppRuhig() ? "auto" : "smooth", block: "start" });
+        });
+      };
+    }
+
+    if (KPP_ART[art]) {
+      var l = alle.filter(function (k) { return k.art === art; });
+      l = art === "gekuendigt" ? l.slice().sort(function (a, b) { return (b.ende || 0) - (a.ende || 0); }) : nachBetrag(l);
+      var sum = l.reduce(function (a, k) { return a + k.betrag; }, 0);
+      var unter = art === "bestand" ? euro(sum) + " pro Monat" + (l.length ? " · Ø " + euro(sum / l.length) : "")
+        : art === "gekuendigt" ? "zählt nicht zum Umsatz" : "Summe Beträge: " + euro(sum);
+      kopf.innerHTML = kppKopf("Kundenarten", KPP_ART[art].titel, l.length + (l.length === 1 ? " Kunde" : " Kunden"), unter);
+      var z = kppKunden(l, art);
+      if (z.length && art !== "gekuendigt") z.push(kppSumme(l, art === "bestand" ? "Summe pro Monat" : "Summe"));
+      body.innerHTML = kppListe(z, KPP_ART[art].leer);
+      zurListe(art, "In der Kundenliste anzeigen");
+    }
+
+    if (art === "status") {
+      var gek = alle.filter(function (k) { return k.status === "gekuendigt"; });
+      var akt = alle.filter(function (k) { return k.status !== "gekuendigt"; });
+      var tabs = '<div class="kpp-tabs"><button type="button" class="kpp-tab aktiv" data-tab="akt">Aktuell (' + akt.length + ')</button>' +
+        '<button type="button" class="kpp-tab" data-tab="gek">Gekündigt (' + gek.length + ')</button></div>';
+      kopf.innerHTML = kppKopf("Vertragsstatus", "Alle Kunden", alle.length + " Kunden", akt.length + " aktuell · " + gek.length + " gekündigt", tabs);
+      function zeig(t) {
+        body.innerHTML = t === "gek" ? kppListe(kppKunden(gek, "gekuendigt"), "Keine gekündigten Verträge.")
+          : kppListe(kppKunden(nachBetrag(akt), ""), "Keine aktuellen Verträge.");
+      }
+      zeig("akt");
+      Array.prototype.forEach.call(kopf.querySelectorAll(".kpp-tab"), function (tab) {
+        tab.addEventListener("click", function () {
+          Array.prototype.forEach.call(kopf.querySelectorAll(".kpp-tab"), function (t) { t.classList.toggle("aktiv", t === tab); });
+          zeig(tab.getAttribute("data-tab"));
+        });
+      });
+      zurListe("alle", "Ganze Kundenliste anzeigen");
+    }
+
+    if (art === "betrag" || art === "anteil") {
+      var lb = nachBetrag(bestand.filter(function (k) { return k.betrag > 0; }));
+      var sb = lb.reduce(function (a, k) { return a + k.betrag; }, 0), kum = 0;
+      var top3 = lb.slice(0, 3).reduce(function (a, k) { return a + k.betrag; }, 0);
+      kopf.innerHTML = art === "betrag"
+        ? kppKopf("Betrag", "Bestandskunden pro Monat", euro(sb), lb.length + (lb.length === 1 ? " Vertrag" : " Verträge") + (lb.length ? " · Ø " + euro(sb / lb.length) + " · größter: " + lb[0].firma : ""))
+        : kppKopf("Umsatzanteil", "Wer bringt wie viel?", sb ? "Top 3 = " + Math.round(top3 / sb * 100) + " %" : "–", "vom Monatsumsatz der Bestandskunden (" + euro(sb) + ")");
+      var zb = lb.map(function (k, i) {
+        var p = sb ? k.betrag / sb * 100 : 0; kum += p;
+        var klein = art === "betrag" ? esc([k.ort, k.freq].filter(Boolean).join(" · ")) : "kumuliert " + Math.round(kum) + " %";
+        return kppZeile(esc(k.firma) + '<span class="kpp-balken"><i style="width:' + Math.max(p, 1).toFixed(1) + '%;background:' + (art === "betrag" ? "#10b981" : "#0ea5e9") + '"></i></span>',
+          klein, esc(euro(k.betrag)) + '<span class="kpp-klein">' + (p < 1 ? "<1" : Math.round(p)) + ' %</span>', k.id, "", '<span class="kpp-nr">' + (i + 1) + '</span>');
+      });
+      if (zb.length) zb.push(kppSumme(lb, "Summe pro Monat"));
+      body.innerHTML = kppListe(zb, "Noch keine Bestandskunden mit Betrag.");
+      zurListe("bestand", "Bestandskunden in der Liste anzeigen");
+    }
+
+    if (art === "staedte") {
+      var orte = {};
+      aktuell.forEach(function (k) {
+        var name = String(k.ort || "").replace(/\s+/g, " ").trim() || "ohne Ort", key = name.toLowerCase();
+        if (!orte[key]) orte[key] = { n: name, l: [], eur: 0 };
+        orte[key].l.push(k);
+        if (k.art === "bestand") orte[key].eur += k.betrag;
+      });
+      var st = Object.keys(orte).map(function (x) { return orte[x]; }).sort(function (a, b) { return b.l.length - a.l.length || b.eur - a.eur; });
+      kopf.innerHTML = kppKopf("Einsatzgebiet", "Kunden nach Stadt", st.length + (st.length === 1 ? " Stadt" : " Städte"), aktuell.length + " aktuelle Kunden · € pro Monat nur Bestandskunden");
+      body.innerHTML = kppListe(st.map(function (o, i) {
+        return kppZeile(esc(o.n), esc(kppNamen(o.l)), o.l.length + (o.l.length === 1 ? " Kunde" : " Kunden") + '<span class="kpp-klein">' + (o.eur ? esc(euro(o.eur)) + " / Monat" : "–") + '</span>',
+          "", "", '<span class="kpp-nr">' + (i + 1) + '</span>');
+      }), "Noch keine aktuellen Verträge.");
+      zurListe("alle", "Ganze Kundenliste anzeigen");
+    }
+
+    if (art === "haeufigkeit") {
+      var fr = {};
+      aktuell.forEach(function (k) { var f = k.freq || "–"; (fr[f] = fr[f] || []).push(k); });
+      var fl = Object.keys(fr).map(function (f) { return { n: f, l: fr[f] }; }).sort(function (a, b) { return b.l.length - a.l.length; });
+      var einsatz = fl.reduce(function (a, f) { return a + (KPP_MONAT[f.n] || 0) * f.l.length; }, 0);
+      kopf.innerHTML = kppKopf("Häufigkeit", "Reinigungsrhythmus", aktuell.length + (aktuell.length === 1 ? " Vertrag" : " Verträge"), einsatz ? "≈ " + Math.round(einsatz) + " Reinigungen pro Monat" : "");
+      body.innerHTML = kppListe(fl.map(function (f) {
+        var e = KPP_MONAT[f.n];
+        return kppZeile(esc(f.n), esc(kppNamen(f.l)), f.l.length + (f.l.length === 1 ? " Vertrag" : " Verträge") +
+          (e ? '<span class="kpp-klein">≈ ' + (Math.round(e * f.l.length * 10) / 10).toLocaleString("de-DE") + " / Monat</span>" : ""));
+      }), "Noch keine aktuellen Verträge.");
+      zurListe("alle", "Ganze Kundenliste anzeigen");
+    }
+
+    kopf.querySelector(".kpp-zu").addEventListener("click", function () { kppSchliessen(); });
+    Array.prototype.forEach.call(body.querySelectorAll ? [body] : [], function (b) {
+      b.addEventListener("click", function (e) {
+        var z = e.target.closest ? e.target.closest(".kpp-zeile[data-kid]") : null;
+        if (!z) return;
+        var kid = z.getAttribute("data-kid");
+        kppSchliessen(function () {
+          if (kpFiltern) kpFiltern("alle");
+          var karte = document.getElementById("row-" + kid);
+          if (!karte) return;
+          if (!karte.classList.contains("open") && typeof window.toggleKundenCard === "function") window.toggleKundenCard(kid);
+          karte.scrollIntoView({ behavior: kppRuhig() ? "auto" : "smooth", block: "center" });
+        });
       });
     });
+    var zu = kopf.querySelector(".kpp-zu");
+    if (zu && zu.focus) { try { zu.focus({ preventScroll: true }); } catch (e) { zu.focus(); } }
+  }
+
+  function kppRahmen(el, r) {
+    el.style.top = r.top + "px"; el.style.left = r.left + "px"; el.style.width = r.width + "px"; el.style.height = r.height + "px";
+  }
+  function kppOeffnen(karte, art) {
+    if (kppOffen || !KD) return;
+    var r = karte.getBoundingClientRect();
+    var vw = window.innerWidth, vh = window.innerHeight;
+    var w = Math.min(640, vw - 24), h = Math.min(Math.round(vh * 0.86), 760);
+    var ziel = { top: Math.round((vh - h) / 2), left: Math.round((vw - w) / 2), width: w, height: h };
+    var hinter = document.createElement("div");
+    hinter.className = "kpp-hinter no-print";
+    var panel = document.createElement("section");
+    panel.className = "kpp-panel no-print";
+    panel.setAttribute("role", "dialog");
+    panel.setAttribute("aria-modal", "true");
+    panel.innerHTML = '<div class="kpp-inhalt"><div class="kpp-kopf" style="background:' + KPP_FARBE[art] + ';"></div>' +
+      '<div class="kpp-body"></div><div class="kpp-fuss"><button type="button" style="background:' + KPP_FARBE[art] + ';"></button></div></div>';
+    kppRahmen(panel, ziel);
+    document.body.appendChild(hinter);
+    document.body.appendChild(panel);
+    karte.style.visibility = "hidden";
+    kppOffen = { karte: karte, panel: panel, hinter: hinter };
+    hinter.addEventListener("click", function () { kppSchliessen(); });
+    try { kppInhalt(art, panel); } catch (e) { if (window.console) console.warn("Kunden-Details:", e); }
+    if (!kppRuhig() && panel.animate) {
+      var von = { top: r.top + "px", left: r.left + "px", width: r.width + "px", height: r.height + "px", borderRadius: "24px", boxShadow: "0 18px 40px -30px rgba(15,23,42,0.45)" };
+      var nach = { top: ziel.top + "px", left: ziel.left + "px", width: ziel.width + "px", height: ziel.height + "px", borderRadius: "28px", boxShadow: "0 40px 80px -20px rgba(15,23,42,0.45)" };
+      panel.animate([von, nach], { duration: 560, easing: KPP_EASE });
+      panel.querySelector(".kpp-inhalt").animate([{ opacity: 0, transform: "translateY(8px)" }, { opacity: 0, transform: "translateY(8px)", offset: 0.35 }, { opacity: 1, transform: "none" }], { duration: 620, easing: "ease" });
+      hinter.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 420, easing: "ease" });
+    }
+  }
+  function kppSchliessen(danach) {
+    if (!kppOffen) return;
+    var o = kppOffen;
+    kppOffen = null;
+    function fertig() {
+      o.panel.remove();
+      o.hinter.remove();
+      o.karte.style.visibility = "";
+      if (!kppRuhig() && o.karte.animate) o.karte.animate([{ opacity: 0.4 }, { opacity: 1 }], { duration: 220, easing: "ease-out" });
+      if (typeof danach === "function") danach();
+    }
+    if (kppRuhig() || !o.panel.animate) { fertig(); return; }
+    var a = o.panel.getBoundingClientRect(), r = o.karte.getBoundingClientRect();
+    var ani = o.panel.animate([
+      { top: a.top + "px", left: a.left + "px", width: a.width + "px", height: a.height + "px", borderRadius: "28px", opacity: 1 },
+      { top: r.top + "px", left: r.left + "px", width: r.width + "px", height: r.height + "px", borderRadius: "24px", opacity: 0.85 }
+    ], { duration: 480, easing: "cubic-bezier(.4,0,.2,1)", fill: "forwards" });
+    o.panel.querySelector(".kpp-inhalt").animate([{ opacity: 1 }, { opacity: 0 }], { duration: 170, easing: "ease", fill: "forwards" });
+    o.hinter.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 480, easing: "ease", fill: "forwards" });
+    var erledigt = false;
+    function einmal() { if (!erledigt) { erledigt = true; fertig(); } }
+    ani.onfinish = einmal;
+    setTimeout(einmal, 650);
+  }
+  function kppInit() {
+    Array.prototype.forEach.call(document.querySelectorAll("[data-kpp]"), function (karte) {
+      karte.addEventListener("click", function () { kppOeffnen(karte, karte.getAttribute("data-kpp")); });
+      karte.addEventListener("keydown", function (e) {
+        if (e.key === "Enter" || e.key === " ") { e.preventDefault(); kppOeffnen(karte, karte.getAttribute("data-kpp")); }
+      });
+    });
+    document.addEventListener("keydown", function (e) { if (kppOffen && e.key === "Escape") kppSchliessen(); });
   }
 
   // Umsatzanteil je Kunde (aktuelle Verträge) – nur lesend aus der Liste
@@ -2571,6 +2899,7 @@ document.addEventListener("DOMContentLoaded", function () {
         laufzeit: txt(k, ".t-laufzeit").toLowerCase(),
         freq: txt(k, ".t-freq"),
         ort: txt(k, ".t-ort"),
+        id: k.getAttribute("data-id"),
         ende: datum(txt(k, ".t-ende")),
         betrag: zahl(txt(k, ".kunden-price"))
       };
@@ -2688,6 +3017,10 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // 5) Umsatzanteil (nur Bestandskunden)
     anteil(bestand);
+
+    // 6) Detail-Fenster beim Klick auf die Kacheln
+    KD = { kunden: kunden, aktuell: aktuell, bestand: bestand };
+    kppInit();
   }
 
   function sicher() {
