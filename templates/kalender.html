@@ -81,219 +81,27 @@
   .gc-day{padding:30px 2px 2px}
   .gc-event{padding:2px 4px;font-size:11px}
 }
-/* ===== PREMIUM V2 „Graphit“ ===== */
-{% if kalender_mini or request.args.get("embed") == "1" %}
-/* eingebettet (Datenbank-Schnellansicht): keine zweite Kopfleiste im Rahmen */
-.v2-kopfleiste{display:none!important}
-{% endif %}
-{% raw %}
-@media screen{
-/* Grundton: Weiß, feine Linien, Graphit-Schrift, Schrift aus base.html */
-.gc-page{--gc-bg:#ffffff;--gc-surface:#ffffff;--gc-text:#111827;--gc-muted:#6b7280;--gc-line:#eceef1;--gc-hover:#f3f4f6;--gc-blue:#111827;--gc-blue2:#2563eb;--gc-green:#16a34a;--gc-orange:#ea580c;--gc-pink:#db2777;--gc-yellow:#eab308;--gc-purple:#7c3aed;--gc-red:#e11d48;font-family:inherit!important;font-variant-numeric:tabular-nums;background:#fff}
-.gc-page button,.gc-page input,.gc-page select{font-family:inherit!important}
-.gc-modal-bg,.gc-modal-bg button,.gc-modal-bg input,.gc-modal-bg select,.gc-modal-bg textarea{font-family:inherit!important}
-
-/* Kopfzeile */
-.gc-topbar{background:#fff;border-bottom:1px solid #eceef1;gap:10px;padding:0 18px}
-.gc-icon-btn{width:36px;height:36px;border-radius:10px;color:#4b5563}
-.gc-icon-btn:hover{background:#f3f4f6;color:#111827}
-.gc-brand{gap:10px}
-.gc-brand-icon{width:36px;height:38px;border-radius:9px;border:1px solid #e5e7eb;background:#fff;color:#111827;font-size:15px;font-weight:800;padding-top:8px;box-shadow:inset 0 9px 0 #111827,0 1px 2px rgba(16,24,40,.06);letter-spacing:-.02em}
-.gc-brand-title{font-size:20px;font-weight:800;color:#111827;letter-spacing:-.02em}
-.gc-today-btn,.gc-view-btn{height:38px;padding:0 14px;border:1px solid #d1d5db;border-radius:10px;background:#fff;color:#111827;font-size:13.5px;font-weight:700}
-.gc-today-btn:hover,.gc-view-btn:hover{background:#f9fafb}
-.gc-month-title{font-size:21px;font-weight:800;color:#111827;letter-spacing:-.02em;margin-left:6px}
-.gc-search{height:40px;border-radius:10px;background:#fff;border:1px solid #d1d5db;padding:0 12px;gap:8px;color:#9ca3af}
-.gc-search:focus-within{border-color:#111827;box-shadow:0 0 0 3px rgba(17,24,39,.10)}
-.gc-search input{font-size:14px;color:#111827}
-.gc-search input:focus-visible{box-shadow:none!important;border:0!important}
-.gc-avatar{width:32px;height:32px;background:#f3f4f6;color:#374151;font-size:13px;font-weight:700}
-
-/* Ansicht-Menü */
-.gc-view-menu{top:44px;border:1px solid #e5e7eb;border-radius:12px;box-shadow:0 12px 32px -12px rgba(16,24,40,.22),0 1px 2px rgba(16,24,40,.05);padding:6px}
-.gc-view-menu button{height:36px;border-radius:8px;font-size:13.5px;font-weight:600;color:#1f2937}
-.gc-view-menu button:hover{background:#f3f4f6}
-
-/* Seitenleiste */
-.gc-sidebar{padding:16px 16px 20px;background:#fff}
-.gc-create-btn{width:100%;height:40px;border:1px solid #111827;border-radius:10px;background:#111827;color:#fff;padding:0 14px;gap:10px;font-size:13.5px;font-weight:700;box-shadow:0 1px 2px rgba(16,24,40,.12);margin:0 0 20px}
-.gc-create-btn:hover{background:#000;box-shadow:0 1px 2px rgba(16,24,40,.12)}
-.gc-create-plus{font-size:18px;font-weight:500;line-height:1}
-.gc-mini-head{margin:0 2px 8px;font-size:13.5px;font-weight:700;color:#111827}
-.gc-mini-nav{gap:2px}
-.gc-mini-nav button{width:26px;height:26px;border-radius:8px;font-size:17px;color:#4b5563;display:grid;place-items:center;padding:0}
-.gc-mini-nav button:hover{background:#f3f4f6;color:#111827}
-.gc-mini-grid{gap:1px;font-size:11.5px}
-.gc-mini-grid>div{height:28px;border-radius:8px;color:#374151}
-.gc-mini-grid>div[data-date]:hover{background:#f3f4f6}
-.gc-mini-dow{font-weight:600;color:#9ca3af!important;cursor:default!important}
-.gc-mini-other{color:#c4c8cf!important}
-.gc-mini-grid>div.gc-mini-active{background:#111827;color:#fff!important;font-weight:700}
-.gc-mini-grid>div.gc-mini-selected{background:#f3f4f6;color:#111827;font-weight:700;box-shadow:inset 0 0 0 1px #d1d5db}
-.gc-section-title{font-size:13px;font-weight:700;color:#111827;margin-top:18px;padding:8px 2px;border-top:1px solid #f0f1f4}
-.gc-section-title span:last-child{color:#9ca3af;font-weight:500}
-.gc-calendar-list{gap:4px;padding:2px 0}
-.gc-calendar-row{font-size:13.5px;color:#374151;gap:10px;padding:5px 6px;border-radius:8px}
-.gc-calendar-row:hover{background:#f9fafb}
-.gc-checkbox{width:16px;height:16px;border-radius:5px;font-size:11px}
-.gc-calendar-row:has(input[data-calendar="blue"]){--calendar-color:#2563eb!important}
-.gc-calendar-row:has(input[data-calendar="pink"]){--calendar-color:#db2777!important}
-.gc-calendar-row:has(input[data-calendar="orange"]){--calendar-color:#ea580c!important}
-.gc-calendar-row:has(input[data-calendar="green"]){--calendar-color:#16a34a!important}
-.gc-calendar-row:has(input[data-calendar="yellow"]){--calendar-color:#eab308!important}
-.gc-calendar-row:has(input[data-calendar="purple"]){--calendar-color:#7c3aed!important}
-.gc-calendar-row:has(input[data-calendar="red"]){--calendar-color:#e11d48!important}
-.gc-calendar-row input:not(:checked)+.gc-checkbox{border-width:1.5px}
-
-/* Monatsüberblick (neu, nur lesend) */
-.v2-kal-kpi{margin-top:20px;border:1px solid #e5e7eb;border-radius:14px;background:#fff;padding:14px 14px 12px;box-shadow:0 1px 2px rgba(16,24,40,.05)}
-.v2-kal-kpi[hidden]{display:none}
-.v2-kal-kpi-kopf{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:12.5px;font-weight:600;color:#6b7280}
-.v2-kal-kpi-kopf svg{width:16px;height:16px;flex:none;stroke:#2563eb;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-.v2-kal-kpi-kopf span{display:flex;align-items:center;gap:6px;min-width:0}
-.v2-kal-kpi-monat{display:block!important;color:#6b7280;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.v2-kal-kpi-wert{display:flex;align-items:baseline;gap:6px;margin:6px 0 10px}
-.v2-kal-kpi-wert b{font-size:28px;font-weight:800;color:#111827;letter-spacing:-.02em;line-height:1.1}
-.v2-kal-kpi-wert span{font-size:13px;color:#6b7280;font-weight:600}
-.v2-kal-kpi-balken{display:flex;gap:2px;height:6px;border-radius:4px;overflow:hidden;background:#f3f4f6}
-.v2-kal-kpi-balken i{display:block;height:100%;min-width:4px;border-radius:2px}
-.v2-kal-kpi-zeile{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;column-gap:10px;row-gap:2px;margin-top:10px;font-size:12.5px;color:#6b7280}
-.v2-kal-kpi-zeile[hidden]{display:none}
-.v2-kal-kpi-zeile b{margin-left:auto;color:#111827;font-weight:700;white-space:nowrap}
-.v2-kal-kpi-zeile span{white-space:nowrap}
-.v2-kal-kpi-zeile+.v2-kal-kpi-zeile{margin-top:6px}
-.v2-kal-kpi-titel{margin-top:3px;font-size:12.5px;font-weight:600;color:#374151;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.v2-kal-kpi-titel:empty{display:none}
-
-/* Monatsraster */
-.gc-calendar-wrap{padding:14px 14px 16px 0}
-.gc-sidebar[style*="none"]+.gc-calendar-wrap{padding-left:14px}
-.gc-calendar{border:1px solid #e5e7eb;border-radius:14px;box-shadow:0 1px 2px rgba(16,24,40,.05);grid-template-rows:34px minmax(0,1fr)}
-.gc-weekdays{border-bottom:1px solid #e5e7eb}
-.gc-weekdays>div{text-align:left;padding:11px 10px 0;font-size:11px;font-weight:600;color:#6b7280;letter-spacing:.06em}
-.gc-day{padding:34px 6px 6px}
-.gc-grid>.gc-day:nth-child(7n),.gc-grid>.gc-day:nth-child(7n+6){background:#fbfbfc}
-.gc-grid>.gc-day:has(>.gc-date.gc-today){background:#f7f9ff}
-.gc-date{top:6px;left:6px;transform:none;width:24px;height:24px;border-radius:7px;font-size:12px;font-weight:600;color:#374151}
-.gc-date.gc-other{color:#c4c8cf;font-weight:500}
-.gc-date.gc-today{background:#111827;color:#fff;font-weight:700;border-radius:7px}
-
-/* Termine: dezente Chips mit Farbpunkt */
-.gc-event:not(.gc-time-event){position:relative}
-.gc-event{height:22px;border-radius:6px;padding:0 7px 0 17px;margin-bottom:3px;font-size:11.5px;font-weight:600;line-height:22px;background:#f3f4f6;color:#1f2937;--v2c:#64748b}
-.gc-event::before{content:"";position:absolute;left:7px;top:8px;width:6px;height:6px;border-radius:50%;background:var(--v2c)}
-.gc-event:hover{filter:none;box-shadow:inset 0 0 0 1px rgba(17,24,39,.12)}
-.gc-event.gc-blue{--v2c:#2563eb;background:#eff6ff;color:#1e40af}
-.gc-event.gc-orange{--v2c:#ea580c;background:#fff7ed;color:#9a3412}
-.gc-event.gc-green{--v2c:#16a34a;background:#f0fdf4;color:#166534}
-.gc-event.gc-pink{--v2c:#db2777;background:#fdf2f8;color:#9d174d}
-.gc-event.gc-yellow{--v2c:#eab308;background:#fefce8;color:#854d0e}
-.gc-event.gc-purple{--v2c:#7c3aed;background:#f5f3ff;color:#5b21b6}
-.gc-event.gc-red{--v2c:#e11d48;background:#fff1f2;color:#9f1239}
-.gc-time-event{left:3px;right:3px;padding:4px 7px 4px 17px;line-height:1.35;font-size:11.5px;border-radius:7px;box-shadow:inset 0 0 0 1px rgba(17,24,39,.05)}
-.gc-time-event::before{top:9px}
-
-/* Woche / Tag */
-.gc-schedule-head{border-bottom:1px solid #e5e7eb}
-.gc-schedule-head>div{padding:9px 4px 8px;font-size:11px;font-weight:600;color:#6b7280;letter-spacing:.05em;line-height:1.5}
-.gc-schedule-head strong{display:inline-grid;place-items:center;min-width:30px;height:30px;margin-top:2px;border-radius:8px;font-size:17px;font-weight:700;color:#111827;letter-spacing:-.01em}
-.gc-schedule-head .gc-head-today strong{width:auto;min-width:30px;height:30px;border-radius:8px;background:#111827;color:#fff}
-.gc-all-day-label{font-size:11px;color:#9ca3af}
-.gc-time-label{font-size:11px;color:#9ca3af}
-.gc-now-line{height:2px;background:#e11d48}
-.gc-now-line:before{background:#e11d48;left:-4px;top:-3px;width:8px;height:8px}
-
-/* Terminübersicht */
-.gc-calendar:has(>.gc-agenda){grid-template-rows:minmax(0,1fr)}
-.gc-agenda{padding:6px 22px 16px}
-.gc-agenda-day{grid-template-columns:150px minmax(0,1fr);gap:18px;padding:14px 0;border-bottom:1px solid #f0f1f4}
-.gc-agenda-date{font-size:14px;font-weight:700;color:#111827}
-.gc-agenda-date small{font-size:12.5px;color:#6b7280;font-weight:500}
-.gc-agenda-event{gap:10px;padding:9px 12px;border-radius:10px;margin-bottom:6px;background:#fff;border:1px solid #eceef1;font-size:13.5px;color:#1f2937}
-.gc-agenda-event:hover{background:#f9fafb}
-.gc-agenda-event strong{font-weight:700;color:#111827;min-width:66px}
-.gc-agenda-dot{width:8px;height:8px;border-radius:50%}
-.gc-agenda-empty{margin:24px 0;padding:40px;border:1px dashed #e5e7eb;border-radius:14px;font-size:14px;color:#6b7280}
-
-/* Seitenleiste rechts (Zier) */
-.gc-rail{gap:14px;padding-top:20px;color:#9ca3af}
-.gc-rail-dot{width:10px;height:10px;border-radius:50%;opacity:.9}
-
-/* Termin-Editor */
-.gc-modal-bg,.gc-modal{background:#fff;color:#111827}
-.gc-editor-close{border-radius:10px;font-size:24px;color:#374151}
-.gc-editor-close:hover{background:#f3f4f6}
-.gc-title-input{border-bottom:1px solid #d1d5db;font-size:24px;font-weight:700;color:#111827;letter-spacing:-.01em}
-.gc-modal .gc-title-input:focus,.gc-modal .gc-title-input:focus-visible{border-bottom:2px solid #111827!important;box-shadow:none!important;border-top:0!important;border-left:0!important;border-right:0!important}
-.gc-editor-save{height:40px;padding:0 20px;border-radius:10px;background:#111827;font-size:13.5px;font-weight:700}
-.gc-editor-save:hover{background:#000;box-shadow:none}
-#gcDeleteBtn{background:#fef2f2!important;color:#b91c1c!important}
-#gcDeleteBtn:hover{background:#fee2e2!important}
-.gc-date-box,.gc-time-box,.gc-select-box,.gc-text-box,.gc-repeat-select,.gc-detail-control,.gc-guests{border:1px solid #d1d5db;border-radius:10px;background:#fff;color:#111827;font-size:14px}
-.gc-detail-control .gc-description{border:0;border-radius:0 0 10px 10px}
-.gc-date-sep{color:#6b7280}
-.gc-reminder-grid span{white-space:nowrap;color:#4b5563;font-size:13.5px}
-.gc-check input,.gc-guest-check input{accent-color:#111827}
-.gc-calendar-grid{grid-template-columns:210px 76px}
-.gc-card{border:1px solid #e5e7eb;border-radius:14px;box-shadow:0 1px 2px rgba(16,24,40,.05)}
-.gc-tabs,.gc-right-tabs{border-bottom:1px solid #e5e7eb}
-.gc-tab{color:#6b7280;font-weight:600}
-.gc-tab.active{color:#111827;font-weight:700}
-.gc-tab.active:after,.gc-right-tab:after{height:2px;background:#111827}
-.gc-right-tab{color:#111827;font-weight:700}
-.gc-detail-icon{color:#9ca3af}
-.gc-link-btn{color:#2563eb;font-weight:600}
-.gc-formatbar{border-bottom:1px solid #e5e7eb;color:#4b5563}
-.gc-right-title{font-weight:700;color:#111827}
-.gc-status{border-radius:10px;background:#111827;font-weight:600;box-shadow:0 12px 32px -12px rgba(16,24,40,.35)}
-
-/* Uhrzeit-Fenster (Besichtigung / Später) */
-#kgBesichtigungTimeModal>div{border-radius:16px!important;border:1px solid #e5e7eb;box-shadow:0 24px 64px -24px rgba(16,24,40,.35)!important}
-#kgBesichtigungTimeModal>div>div:first-child{color:#111827!important;font-weight:800!important;letter-spacing:-.02em}
-#kgBesichtigungFirmaText{color:#6b7280!important}
-#kgBesichtigungTimeInput{border-radius:10px!important;border-color:#d1d5db!important;background:#fff!important;font-variant-numeric:tabular-nums}
-#kgBesichtigungTimeCancel{height:40px!important;border-radius:10px!important;background:#fff!important;border:1px solid #d1d5db!important;color:#111827!important}
-#kgBesichtigungTimeCancel:hover{background:#f9fafb!important}
-#kgBesichtigungTimeSave{height:40px!important;border-radius:10px!important;background:#111827!important}
-#kgBesichtigungTimeSave:hover{background:#000!important}
-
-/* schmale Bildschirme */
-@media(max-width:1100px){.gc-calendar-wrap{padding-right:12px}}
-@media(max-width:700px){
-  .gc-topbar{padding:8px}
-  .gc-create-btn{height:44px;margin:0}
-  .gc-calendar-wrap{padding:0 4px 8px}
-  .gc-day{padding:30px 2px 2px}
-  .gc-date{top:4px;left:3px;width:22px;height:22px}
-  .gc-event{padding:0 4px 0 13px;font-size:10.5px}
-  .gc-event::before{left:5px}
-  .gc-weekdays>div{padding-left:6px}
-}
-
-/* Dunkelmodus: Graphit-Flächen werden Blau, Graphit-Linien hell */
-html[data-kg-x="on"] .gc-brand-icon{box-shadow:inset 0 9px 0 #2563eb!important}
-html[data-kg-x="on"] .gc-create-btn,
-html[data-kg-x="on"] .gc-editor-save:not(#gcDeleteBtn),
-html[data-kg-x="on"] #kgBesichtigungTimeSave,
-html[data-kg-x="on"] .gc-date.gc-today,
-html[data-kg-x="on"] .gc-mini-grid>div.gc-mini-active,
-html[data-kg-x="on"] .gc-schedule-head .gc-head-today strong{background:#2563eb!important;border-color:#2563eb!important;color:#fff!important}
-html[data-kg-x="on"] .gc-create-btn:hover,
-html[data-kg-x="on"] .gc-editor-save:not(#gcDeleteBtn):hover,
-html[data-kg-x="on"] #kgBesichtigungTimeSave:hover{background:#1d4ed8!important;border-color:#1d4ed8!important}
-html[data-kg-x="on"] .gc-check input,html[data-kg-x="on"] .gc-guest-check input{accent-color:#2563eb}
-html[data-kg-x="on"] .gc-tab.active:after,
-html[data-kg-x="on"] .gc-right-tab:after{background:#60a5fa!important}
-html[data-kg-x="on"] .gc-search:focus-within{border-color:#60a5fa!important;box-shadow:0 0 0 3px rgba(96,165,250,.18)!important}
-html[data-kg-x="on"] .gc-modal .gc-title-input:focus,
-html[data-kg-x="on"] .gc-modal .gc-title-input:focus-visible{border-bottom-color:#60a5fa!important}
-html[data-kg-x="on"] .gc-mini-grid>div.gc-mini-selected{box-shadow:inset 0 0 0 1px rgba(148,163,184,.45)}
-html[data-kg-x="on"] .gc-status{background:#1f2937!important;border:1px solid rgba(148,163,184,.3)}
-/* rgba mit hellem Grundton: wird vom Dunkelmodus-Skript nicht nochmals aufgehellt (auch bei nachgeladenen Tagen) */
-html[data-kg-x="on"] .gc-date.gc-other,html[data-kg-x="on"] .gc-mini-grid>div.gc-mini-other{color:rgba(148,163,184,.42)!important}
-}
-{% endraw %}
 </style>
+
+{% if not (kalender_mini or request.args.get("embed") == "1") %}
+<!-- Kopf wie „Aufgaben“ (Systemblau); der Kalender darunter bleibt unverändert, nur seine Höhe rechnet den Kopf mit ein -->
+<style>
+.kgk-kopf{position:relative;overflow:hidden;margin:16px 16px 0;border-radius:24px;padding:20px 24px;color:#fff;display:flex;align-items:center;gap:16px;flex-wrap:wrap;
+  background:radial-gradient(120% 140% at 100% 0%,#3b82f6 0%,rgba(59,130,246,0) 55%),linear-gradient(135deg,#10286f 0%,#1d4ed8 70%,#2563eb 100%);box-shadow:0 14px 34px rgba(29,78,216,.20);font-family:Inter,"Segoe UI",Arial,sans-serif}
+.kgk-icon{width:54px;height:54px;border-radius:16px;display:grid;place-items:center;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.22);flex:none}
+.kgk-kopf h1{margin:0;font-size:32px;font-weight:900;letter-spacing:-.02em;color:#fff!important;line-height:1.1}
+.kgk-kopf p{margin:4px 0 0;font-size:14px;font-weight:700;color:#dbeafe}
+.kgk-heute{margin-left:auto;padding:10px 18px;border-radius:16px;background:rgba(255,255,255,.10);border:1px solid rgba(255,255,255,.22);font-size:15px;font-weight:900;white-space:nowrap}
+.gc-page{height:calc(100vh - 60px - 126px)!important;min-height:640px!important}
+@media (max-width:760px){.kgk-kopf h1{font-size:26px}.kgk-heute{margin-left:0}}
+</style>
+<section class="kgk-kopf" data-kg-skip>
+  <div class="kgk-icon"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/><path d="M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01"/></svg></div>
+  <div><h1>Kalender</h1><p>Alle Termine im Überblick</p></div>
+  <div class="kgk-heute" id="kgkHeute"></div>
+</section>
+<script>(function(){var e=document.getElementById('kgkHeute');if(!e)return;var d=new Date().toLocaleDateString('de-DE',{weekday:'long',day:'2-digit',month:'long',year:'numeric'});e.textContent=d.charAt(0).toUpperCase()+d.slice(1);})();</script>
+{% endif %}
 
 <div class="gc-page">
 <header class="gc-topbar">
@@ -327,14 +135,6 @@ html[data-kg-x="on"] .gc-date.gc-other,html[data-kg-x="on"] .gc-mini-grid>div.gc
 </div>
 <div class="gc-section-title"><span>Weitere Kalender</span><span>＋ ⌃</span></div>
 <div class="gc-calendar-list"><label class="gc-calendar-row" style="--calendar-color:#d50000"><input checked type="checkbox" data-calendar="red"><span class="gc-checkbox"></span><span>Feiertage in Deutschland</span></label></div>
-<div class="v2-kal-kpi" id="v2KalKpi" hidden>
-<div class="v2-kal-kpi-kopf"><span><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4.5" width="18" height="16" rx="2.5"/><path d="M8 2.5v4M16 2.5v4M3 9.5h18"/></svg><span class="v2-kal-kpi-monat" id="v2KalKpiMonat">Dieser Monat</span></span></div>
-<div class="v2-kal-kpi-wert"><b id="v2KalKpiZahl">0</b><span id="v2KalKpiEinheit">Termine</span></div>
-<div class="v2-kal-kpi-balken" id="v2KalKpiBalken"></div>
-<div class="v2-kal-kpi-zeile" id="v2KalKpiHeuteZeile"><span>Heute</span><b id="v2KalKpiHeute">0</b></div>
-<div class="v2-kal-kpi-zeile"><span>Nächster</span><b id="v2KalKpiNext">–</b></div>
-<div class="v2-kal-kpi-titel" id="v2KalKpiNextTitel"></div>
-</div>
 </aside>
 
 <main class="gc-calendar-wrap"><section class="gc-calendar"><div class="gc-weekdays"><div>MO</div><div>DI</div><div>MI</div><div>DO</div><div>FR</div><div>SA</div><div>SO</div></div><div class="gc-grid" id="gcCalendarGrid"></div></section></main>
@@ -1113,102 +913,5 @@ const payload={
     loadEvents();
 })();
 </script>
-{% raw %}
-<script>
-/* ===== PREMIUM V2 „Graphit“: Monatsüberblick =====
-   Nur lesend: nutzt die Termine, die die Seite selbst schon geladen und zwischengespeichert hat
-   (localStorage "kg-calendar-events-…"). Keine Anfrage, keine Änderung an Terminen. */
-(function(){
-    var karte=document.getElementById("v2KalKpi");
-    if(!karte) return;
-    var FARBEN={orange:"#ea580c",purple:"#7c3aed",blue:"#2563eb",green:"#16a34a",yellow:"#eab308",pink:"#db2777",red:"#e11d48"};
-    var MONATE={};
-    for(var i=0;i<12;i++){ MONATE[new Date(2026,i,1).toLocaleDateString("de-DE",{month:"long"}).toLowerCase()]=i; }
-    function zwei(n){ return String(n).padStart(2,"0"); }
-    function tagKey(d){ return d.getFullYear()+"-"+zwei(d.getMonth()+1)+"-"+zwei(d.getDate()); }
-    function farbe(c){ return FARBEN[c]?c:"blue"; }
-    function box(c){ return document.querySelector('.gc-calendar-row input[data-calendar="'+c+'"]'); }
-    function sichtbar(c){ var el=box(c); return !el||el.checked; }
-    function name(c){ var el=box(c); var s=el&&el.parentNode?el.parentNode.querySelector("span:last-child"):null; return s?s.textContent.trim():c; }
-    function monat(){
-        var t=((document.getElementById("gcMonthTitle")||{}).textContent||"").toLowerCase();
-        var m=t.match(/([a-zäöüß]+)\s+(\d{4})/);
-        if(!m||!(m[1] in MONATE)) return null;
-        return new Date(+m[2],MONATE[m[1]],1);
-    }
-    function setzen(id,text){ var el=document.getElementById(id); if(el&&el.textContent!==text) el.textContent=text; }
-    var letzte="";
-    function zeigen(){
-        try{
-            var start=monat();
-            var roh=null, liste=null;
-            if(start){ try{ roh=localStorage.getItem("kg-calendar-events-"+start.toISOString().slice(0,7)); }catch(e){} }
-            try{ liste=roh?JSON.parse(roh):null; }catch(e){ liste=null; }
-            /* Monatsansicht ohne einen einzigen Termin, Suche leer, aber Zwischenspeicher voll:
-               dann konnte die Seite nicht laden – lieber nichts Veraltetes anzeigen. */
-            var kal=document.querySelector(".gc-calendar");
-            var suche=((document.getElementById("gcSearchInput")||{}).value||"").trim();
-            var monatsAnsicht=kal&&!kal.classList.contains("gc-schedule")&&kal.querySelector(".gc-grid");
-            if(!start||!Array.isArray(liste)||(monatsAnsicht&&!suche&&liste.length&&!kal.querySelector(".gc-event"))){
-                karte.hidden=true; letzte=""; return;
-            }
-            var praefix=start.getFullYear()+"-"+zwei(start.getMonth()+1);
-            var heute=tagKey(new Date()), jetzt=Date.now();
-            var termine=liste.filter(function(e){ return e&&e.start&&String(e.start).slice(0,7)===praefix&&sichtbar(farbe(e.color)); });
-            var proFarbe={};
-            termine.forEach(function(e){ var c=farbe(e.color); proFarbe[c]=(proFarbe[c]||0)+1; });
-            var heuteAnz=termine.filter(function(e){ return String(e.start).slice(0,10)===heute; }).length;
-            var naechster=null, naechsterZeit=Infinity;
-            termine.forEach(function(e){
-                var s=String(e.start), mitZeit=s.indexOf("T")>=0, t;
-                if(mitZeit){ t=new Date(s).getTime(); if(!(t>=jetzt)) return; }
-                else{ if(s.slice(0,10)<heute) return; t=new Date(s.slice(0,10)+"T00:00:00").getTime(); }
-                if(!isNaN(t)&&t<naechsterZeit){ naechsterZeit=t; naechster=e; }
-            });
-            var nextText="–", nextTitel="";
-            if(naechster){
-                var s=String(naechster.start), d=s.indexOf("T")>=0?new Date(s):new Date(s.slice(0,10)+"T12:00:00");
-                nextText=d.toLocaleDateString("de-DE",{weekday:"short",day:"2-digit",month:"2-digit"})+" · "+(s.indexOf("T")>=0?d.toLocaleTimeString("de-DE",{hour:"2-digit",minute:"2-digit"}):"ganztägig");
-                nextTitel=String(naechster.title||"");
-            }
-            var signatur=JSON.stringify([praefix,termine.length,proFarbe,heuteAnz,nextText,nextTitel]);
-            karte.hidden=false;
-            if(signatur===letzte) return;
-            letzte=signatur;
-            setzen("v2KalKpiMonat",start.toLocaleDateString("de-DE",{month:"long",year:"numeric"}));
-            setzen("v2KalKpiZahl",String(termine.length));
-            setzen("v2KalKpiEinheit",termine.length===1?"Termin":"Termine");
-            setzen("v2KalKpiHeute",heuteAnz===1?"1 Termin":heuteAnz+" Termine");
-            var heuteZeile=document.getElementById("v2KalKpiHeuteZeile");
-            if(heuteZeile) heuteZeile.hidden=(praefix!==heute.slice(0,7));
-            setzen("v2KalKpiNext",nextText);
-            setzen("v2KalKpiNextTitel",nextTitel);
-            var balken=document.getElementById("v2KalKpiBalken");
-            if(balken){
-                balken.textContent="";
-                Object.keys(FARBEN).forEach(function(c){
-                    if(!proFarbe[c]) return;
-                    var seg=document.createElement("i");
-                    seg.style.flex=String(proFarbe[c]);
-                    seg.style.background=FARBEN[c];
-                    seg.title=name(c)+": "+proFarbe[c];
-                    balken.appendChild(seg);
-                });
-            }
-        }catch(e){ karte.hidden=true; }
-    }
-    var plan=0;
-    function bald(){ if(plan) return; plan=setTimeout(function(){ plan=0; zeigen(); },120); }
-    if(window.MutationObserver){
-        var kal=document.querySelector(".gc-calendar");
-        if(kal) new MutationObserver(bald).observe(kal,{childList:true});
-        var titel=document.getElementById("gcMonthTitle");
-        if(titel) new MutationObserver(bald).observe(titel,{childList:true,characterData:true,subtree:true});
-    }
-    document.querySelectorAll(".gc-calendar-row input").forEach(function(cb){ cb.addEventListener("change",bald); });
-    bald();
-})();
-</script>
-{% endraw %}
 
 {% endblock %}
