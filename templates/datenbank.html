@@ -11807,9 +11807,11 @@ document.addEventListener("DOMContentLoaded", function() {
         return (p > 0 && p < 10 ? p.toFixed(1).replace(".", ",") : String(Math.round(p))) + " %";
     }
 
-    function kfSvg(d) {
-        const W = 1120, H = 400, nw = 16, oben = 16, gap = 14;
-        const SP = [150, 400, 690, 860, 1020];
+    function kfSvg(d, W) {
+        // W = Breite in Pixeln (mind. 1120): Schrift bleibt in Originalgröße, breite Bildschirme strecken nur die Bänder
+        const H = 400, nw = 16, oben = 16, gap = 14;
+        const sp4 = W - 100, sp3 = sp4 - 160, sp2 = sp3 - 170;
+        const SP = [150, Math.round(150 + (sp2 - 150) * 0.463), sp2, sp3, sp4];
         const e = d.ergebnis || {}, b = d.besichtigung || {};
         const knoten = {};
         const spalte1 = [];
@@ -11913,7 +11915,7 @@ document.addEventListener("DOMContentLoaded", function() {
             ["Besichtigung → Angebot", d.angebot || 0, b.gesamt || 0, KF_FARBE.angebot],
             ["Angebot → Kunde", d.kunde || 0, d.angebot || 0, KF_FARBE.kunde]
         ];
-        const kx0 = 690, ky0 = 170, kw = 202, kh = 100, kg = 16;
+        const kx0 = SP[2], ky0 = 170, kh = 100, kg = 16, kw = Math.floor((W - 10 - kx0 - kg) / 2);
         let karten = "";
         quoten.forEach(function (q, n) {
             const x = kx0 + (n % 2) * (kw + kg), y = ky0 + Math.floor(n / 2) * (kh + kg);
@@ -11937,11 +11939,16 @@ document.addEventListener("DOMContentLoaded", function() {
         kfAnimZeit = performance.now();
     }
 
+    function kfBreite(box) {
+        return Math.max(1120, Math.round(box.clientWidth || 0));
+    }
+
     function kfZeichnen(neu) {
         const box = document.getElementById("kfFlaeche");
         if (!box || !kfDaten) return;
         const d = kfDaten;
-        const schluessel = JSON.stringify(d);
+        const W = kfBreite(box);
+        const schluessel = W + "|" + JSON.stringify(d);
         const vorher = box.dataset.schluessel;
         if (!neu && vorher === schluessel) return;
         box.dataset.schluessel = schluessel;
@@ -11949,7 +11956,7 @@ document.addEventListener("DOMContentLoaded", function() {
             box.innerHTML = '<div class="kf-leer">Im Zeitraum wurde noch keine Firma angerufen.</div>';
             return;
         }
-        box.innerHTML = kfSvg(d);
+        box.innerHTML = kfSvg(d, W);
         if (kfGezeigt && (neu || !vorher || performance.now() - kfAnimZeit < 2500)) kfAnimieren();
     }
 
@@ -11982,6 +11989,11 @@ document.addEventListener("DOMContentLoaded", function() {
         }
         kfLaden(false);
         setInterval(kfLaden, 120000);
+        let kfWarten = null;
+        window.addEventListener("resize", function () {
+            clearTimeout(kfWarten);
+            kfWarten = setTimeout(function () { kfZeichnen(false); }, 200);
+        });
     }
 
     function awStart() {
