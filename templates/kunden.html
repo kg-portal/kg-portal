@@ -73,7 +73,7 @@
     <div class="kp-art" data-kp-filter="jaehrlich" data-kpp="jaehrlich" tabindex="0" role="button" style="--a:#7c3aed;--b:#f5f3ff;--i:2" title="Details: Jährlich">
       <div class="kp-lbl">Jährlich <em>1x / 2x jährlich</em></div>
       <div class="kp-art-zahl"><b id="kpArtJaehrlichN">–</b><span>Kunden</span></div>
-      <div class="kp-art-summe"><b id="kpArtJaehrlichS">–</b><span>Summe Beträge</span></div>
+      <div class="kp-art-summe"><b id="kpArtJaehrlichS">–</b><span>pro Jahr</span></div>
     </div>
     <div class="kp-art" data-kp-filter="einmalig" data-kpp="einmalig" tabindex="0" role="button" style="--a:#d97706;--b:#fffbeb;--i:3" title="Details: Einmalig">
       <div class="kp-lbl">Einmalig <em>Sonderreinigung</em></div>
@@ -151,6 +151,12 @@
     <button type="button" class="kp-r" data-kp-filter="jaehrlich" style="--a:#7c3aed">Jährlich <b id="kpRJaehrlich">–</b></button>
     <button type="button" class="kp-r" data-kp-filter="einmalig" style="--a:#d97706">Einmalig <b id="kpREinmalig">–</b></button>
     <button type="button" class="kp-r" data-kp-filter="gekuendigt" style="--a:#ef4444">Gekündigt <b id="kpRGek">–</b></button>
+    <label class="kp-suche" for="kpSuche">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      <input type="search" id="kpSuche" placeholder="Suchen: Firma, Ort, K-Nr. …" title="Sucht in Firma, Adresse, K-Nr., Ansprechpartner, Telefon, E-Mail" autocomplete="off" aria-label="Kunden suchen">
+      <span class="kp-suche-treffer" id="kpSucheTreffer"></span>
+      <button type="button" class="kp-suche-x" id="kpSucheX" aria-label="Suche leeren" hidden>✕</button>
+    </label>
   </div>
   <div class="kp-reiter-leer no-print" id="kpReiterLeer" hidden>Keine Kunden in dieser Gruppe.</div>
 
@@ -2039,6 +2045,55 @@
       margin-bottom:12px;
     }
     .kunden-card.kp-aus { display:none; }
+    .kp-suche {
+      position:relative;
+      display:flex;
+      align-items:center;
+      gap:8px;
+      margin-left:auto;
+      flex:0 1 360px;
+      min-width:220px;
+      height:40px;
+      padding:0 12px;
+      border:1px solid #dbe3ef;
+      border-radius:12px;
+      background:#ffffff;
+      color:#64748b;
+      cursor:text;
+      transition:border-color .2s, box-shadow .2s;
+    }
+    .kp-suche:focus-within { border-color:#2563eb; box-shadow:0 0 0 4px rgba(37,99,235,0.12); color:#2563eb; }
+    .kp-suche svg { width:18px; height:18px; flex-shrink:0; }
+    .kp-suche input {
+      flex:1;
+      min-width:0;
+      height:100%;
+      border:0;
+      outline:0;
+      background:transparent;
+      font:inherit;
+      font-size:13.5px;
+      font-weight:700;
+      color:#0f172a;
+    }
+    .kp-suche input::-webkit-search-cancel-button { display:none; }
+    .kp-suche-treffer { font-size:12px; font-weight:800; color:#64748b; white-space:nowrap; }
+    .kp-suche-treffer:empty { display:none; }
+    .kp-suche-x {
+      width:24px;
+      height:24px;
+      border:0;
+      border-radius:8px;
+      background:#f1f5f9;
+      color:#475569;
+      font-size:11px;
+      font-weight:900;
+      cursor:pointer;
+    }
+    .kp-suche-x:hover { background:#e2e8f0; }
+    @media (max-width: 760px) {
+      .kp-suche { flex:1 1 100%; margin-left:0; }
+    }
     .kunden-tag.kp-art-jaehrlich { background:#ede9fe; color:#6d28d9; border-color:transparent; }
     .kunden-tag.kp-art-einmalig { background:#fef3c7; color:#b45309; border-color:transparent; }
 
@@ -2562,12 +2617,27 @@ document.addEventListener("DOMContentLoaded", function () {
     return "bestand";
   }
 
+  // Jährliche Kunden: Betrag = Einnahme je Einsatz; „2x jährlich“ zählt zweimal pro Jahr
+  function malProJahr(k) {
+    var m = /(\d+)\s*x/i.exec(String(k.freq || ""));
+    return m ? Math.max(parseInt(m[1], 10), 1) : 1;
+  }
+  function jahresWert(k) { return k.betrag * malProJahr(k); }
+
+  function sucheNorm(t) {
+    t = String(t || "").toLowerCase();
+    if (t.normalize) t = t.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    return t.replace(/ß/g, "ss").replace(/\s+/g, " ").trim();
+  }
+
   function arten(kunden) {
     var n = { bestand: 0, jaehrlich: 0, einmalig: 0, gekuendigt: 0 };
     var s = { bestand: 0, jaehrlich: 0, einmalig: 0 };
     kunden.forEach(function (k) {
       n[k.art]++;
-      if (k.art in s) s[k.art] += k.betrag;
+      if (k.art in s) s[k.art] += k.art === "jaehrlich" ? jahresWert(k) : k.betrag;
+      k.such = sucheNorm([k.firma, txt(k.el, ".t-strasse"), txt(k.el, ".t-plz"), k.ort, txt(k.el, ".t-knr"),
+        txt(k.el, ".t-name"), txt(k.el, ".t-tel"), txt(k.el, ".t-mail"), k.freq].join(" "));
       k.el.setAttribute("data-kp-art", k.art);
       if (k.art === "jaehrlich" || k.art === "einmalig") {
         var tags = k.el.querySelector(".kunden-mini-tags");
@@ -2588,24 +2658,54 @@ document.addEventListener("DOMContentLoaded", function () {
     setz("kpREinmalig", n.einmalig); setz("kpRGek", n.gekuendigt);
 
     var leer = document.getElementById("kpReiterLeer");
-    function filtern(art) {
+    var feld = document.getElementById("kpSuche");
+    var treffer = document.getElementById("kpSucheTreffer");
+    var leeren = document.getElementById("kpSucheX");
+    var aktArt = "alle", worte = [];
+    function anwenden() {
       var sichtbar = 0;
       kunden.forEach(function (k) {
-        var an = art === "alle" || k.art === art;
+        var an = (aktArt === "alle" || k.art === aktArt) &&
+          worte.every(function (w) { return k.such.indexOf(w) !== -1; });
         k.el.classList.toggle("kp-aus", !an);
         if (an) sichtbar++;
       });
-      if (leer) leer.hidden = sichtbar > 0;
+      if (leer) {
+        leer.hidden = sichtbar > 0;
+        leer.textContent = worte.length ? "Keine Kunden gefunden." : "Keine Kunden in dieser Gruppe.";
+      }
+      if (treffer) treffer.textContent = worte.length ? sichtbar + " Treffer" : "";
+      if (leeren) leeren.hidden = !worte.length;
+    }
+    function filtern(art, sucheLeeren) {
+      aktArt = art || "alle";
+      if (sucheLeeren && feld) { feld.value = ""; worte = []; }
+      anwenden();
       Array.prototype.forEach.call(document.querySelectorAll("#kpReiter .kp-r"), function (b) {
-        b.classList.toggle("aktiv", b.getAttribute("data-kp-filter") === art);
+        b.classList.toggle("aktiv", b.getAttribute("data-kp-filter") === aktArt);
       });
       Array.prototype.forEach.call(document.querySelectorAll("#kpKundenArten .kp-art"), function (c) {
-        c.classList.toggle("aktiv", c.getAttribute("data-kp-filter") === art);
+        c.classList.toggle("aktiv", c.getAttribute("data-kp-filter") === aktArt);
       });
     }
     Array.prototype.forEach.call(document.querySelectorAll("#kpReiter .kp-r"), function (b) {
       b.addEventListener("click", function () { filtern(b.getAttribute("data-kp-filter")); });
     });
+    if (feld) {
+      var warte = 0;
+      feld.addEventListener("input", function () {
+        clearTimeout(warte);
+        warte = setTimeout(function () {
+          worte = sucheNorm(feld.value).split(" ").filter(Boolean);
+          anwenden();
+        }, 120);
+      });
+      feld.addEventListener("keydown", function (e) {
+        if (e.key === "Escape" && feld.value) { e.stopPropagation(); feld.value = ""; worte = []; anwenden(); }
+        if (e.key === "Enter") e.preventDefault();
+      });
+    }
+    if (leeren) leeren.addEventListener("click", function () { if (feld) { feld.value = ""; feld.focus(); } worte = []; anwenden(); });
     kpFiltern = filtern;
   }
 
@@ -2649,7 +2749,10 @@ document.addEventListener("DOMContentLoaded", function () {
     return liste.map(function (k, i) {
       var klein = [k.ort, k.freq].filter(Boolean).join(" · ");
       if (k.status === "gekuendigt") klein += (klein ? " · " : "") + (k.ende ? "Vertrag bis " + kppDatum(k.ende) : "gekündigt");
-      return kppZeile(esc(k.firma || "–"), esc(klein), esc(euro(k.betrag)) + (art === "bestand" ? '<span class="kpp-klein">pro Monat</span>' : ""),
+      var wert = art === "jaehrlich"
+        ? esc(euro(jahresWert(k))) + '<span class="kpp-klein">' + (malProJahr(k) > 1 ? malProJahr(k) + " × " + esc(euro(k.betrag)) + " · " : "") + "pro Jahr</span>"
+        : esc(euro(k.betrag)) + (art === "bestand" ? '<span class="kpp-klein">pro Monat</span>' : "");
+      return kppZeile(esc(k.firma || "–"), esc(klein), wert,
         k.id, "", '<span class="kpp-nr">' + (i + 1) + '</span>');
     });
   }
@@ -2677,7 +2780,7 @@ document.addEventListener("DOMContentLoaded", function () {
       fuss.textContent = text;
       fuss.onclick = function () {
         kppSchliessen(function () {
-          if (kpFiltern) kpFiltern(filter);
+          if (kpFiltern) kpFiltern(filter, true);
           var r = document.getElementById("kpReiter");
           if (r && r.scrollIntoView) r.scrollIntoView({ behavior: kppRuhig() ? "auto" : "smooth", block: "start" });
         });
@@ -2687,12 +2790,14 @@ document.addEventListener("DOMContentLoaded", function () {
     if (KPP_ART[art]) {
       var l = alle.filter(function (k) { return k.art === art; });
       l = art === "gekuendigt" ? l.slice().sort(function (a, b) { return (b.ende || 0) - (a.ende || 0); }) : nachBetrag(l);
-      var sum = l.reduce(function (a, k) { return a + k.betrag; }, 0);
+      var sum = l.reduce(function (a, k) { return a + (art === "jaehrlich" ? jahresWert(k) : k.betrag); }, 0);
       var unter = art === "bestand" ? euro(sum) + " pro Monat" + (l.length ? " · Ø " + euro(sum / l.length) : "")
+        : art === "jaehrlich" ? euro(sum) + " pro Jahr"
         : art === "gekuendigt" ? "zählt nicht zum Umsatz" : "Summe Beträge: " + euro(sum);
       kopf.innerHTML = kppKopf("Kundenarten", KPP_ART[art].titel, l.length + (l.length === 1 ? " Kunde" : " Kunden"), unter);
       var z = kppKunden(l, art);
-      if (z.length && art !== "gekuendigt") z.push(kppSumme(l, art === "bestand" ? "Summe pro Monat" : "Summe"));
+      if (z.length && art !== "gekuendigt") z.push(art === "jaehrlich" ? kppZeile("Summe pro Jahr", "", esc(euro(sum)), "", " summe")
+        : kppSumme(l, art === "bestand" ? "Summe pro Monat" : "Summe"));
       body.innerHTML = kppListe(z, KPP_ART[art].leer);
       zurListe(art, "In der Kundenliste anzeigen");
     }
@@ -2773,7 +2878,7 @@ document.addEventListener("DOMContentLoaded", function () {
         if (!z) return;
         var kid = z.getAttribute("data-kid");
         kppSchliessen(function () {
-          if (kpFiltern) kpFiltern("alle");
+          if (kpFiltern) kpFiltern("alle", true);
           var karte = document.getElementById("row-" + kid);
           if (!karte) return;
           if (!karte.classList.contains("open") && typeof window.toggleKundenCard === "function") window.toggleKundenCard(kid);
