@@ -1358,7 +1358,8 @@ new Chart(document.getElementById('yearlyOverviewChart'), {
         datasets: [{
             label: 'Gesamtumsatz',
             data: kgJahresGrafikVerisi,
-            backgroundColor: '#1e40af',
+            // abwechselnd Blau / Grün, damit die 3D-Säulen gut zu unterscheiden sind
+            backgroundColor: kgJahresGrafikVerisi.map((_, i) => (i % 2 ? '#059669' : '#1e40af')),
             borderRadius: 5
         }]
     },
