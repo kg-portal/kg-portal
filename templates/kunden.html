@@ -105,11 +105,9 @@
     </div>
 
     <div class="kp-tile" style="--i:3">
-      <div class="kp-lbl">Vertragsenden <em>nächste 12 Monate</em></div>
-      <div class="kp-ve-kopf"><b id="kpVeN">–</b><span id="kpVeText"></span></div>
-      <svg class="kp-ve-leiste" id="kpVeLeiste" viewBox="0 0 240 64" aria-hidden="true"></svg>
-      <div class="kp-ve-liste" id="kpVeListe"></div>
-      <div class="kp-ve-fuss" id="kpVeUnbef"></div>
+      <div class="kp-lbl">Einsatzgebiet <em>Kunden · € / Monat</em></div>
+      <div class="kp-st-kopf"><b id="kpStN">–</b><span id="kpStText"></span></div>
+      <div class="kp-st-liste" id="kpStListe"></div>
     </div>
 
     <div class="kp-tile" style="--i:4">
@@ -2065,47 +2063,23 @@
     .kp-split i,
     .kp-rang-z s i { animation-name:kpBreiteW; }
 
-    /* ---------- Vertragsenden (ersetzt Laufzeit-Balken) ---------- */
-    .kp-ve-kopf { display:flex; align-items:baseline; gap:8px; margin-top:10px; }
-    .kp-ve-kopf b { font-size:30px; font-weight:900; letter-spacing:-1px; line-height:1.1; }
-    .kp-ve-kopf span { font-size:12.5px; font-weight:700; color:#64748b; line-height:1.3; }
-    .kp-ve-leiste { display:block; width:100%; height:auto; margin-top:6px; overflow:visible; }
-    .kp-ve-liste { display:grid; grid-template-columns:minmax(0,1fr); gap:6px; margin-top:4px; }
-    .kp-ve-item {
-      display:flex;
-      align-items:center;
-      gap:8px;
-      padding:7px 10px;
-      border-radius:12px;
-      background:#f8fafc;
-      border:1px solid #e2e8f0;
-      font-size:12.5px;
-    }
-    .kp-ve-item b { font-weight:800; color:#0f172a; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-    .kp-ve-item span { margin-left:auto; font-weight:900; color:#475569; white-space:nowrap; }
-    .kp-ve-item.bald { background:#fff7ed; border-color:#fed7aa; }
-    .kp-ve-item.bald span { color:#c2410c; }
-    .kp-ve-item.gek span { color:#b91c1c; }
-    .kp-ve-leer {
-      padding:9px 11px;
-      border-radius:12px;
-      background:#f0fdf4;
-      border:1px solid #bbf7d0;
-      font-size:12.5px;
-      font-weight:800;
-      color:#15803d;
-    }
-    .kp-ve-fuss { display:flex; align-items:center; gap:8px; margin-top:10px; font-size:12.5px; font-weight:800; color:#15803d; }
-    .kp-ve-fuss i {
-      width:20px;
-      height:20px;
-      border-radius:7px;
-      background:#dcfce7;
+    /* ---------- Einsatzgebiet: Städte (ersetzt Laufzeit) ---------- */
+    .kp-st-kopf { display:flex; align-items:baseline; gap:8px; margin-top:10px; }
+    .kp-st-kopf b { font-size:30px; font-weight:900; letter-spacing:-1px; line-height:1.1; }
+    .kp-st-kopf span { font-size:12.5px; font-weight:700; color:#64748b; }
+    .kp-st-liste { display:grid; grid-template-columns:minmax(0,1fr); gap:9px; margin-top:12px; }
+    .kp-st-z {
       display:grid;
-      place-items:center;
-      font-style:normal;
-      font-size:12px;
+      grid-template-columns:minmax(0,1fr) auto auto;
+      align-items:baseline;
+      gap:3px 10px;
+      font-size:12.5px;
     }
+    .kp-st-z span { font-weight:800; color:#0f172a; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .kp-st-z b { font-weight:900; color:#0f172a; }
+    .kp-st-z em { font-style:normal; font-weight:700; color:#64748b; min-width:58px; text-align:right; white-space:nowrap; }
+    .kp-st-z s { grid-column:1 / -1; display:block; height:6px; border-radius:3px; background:rgba(100,116,139,0.14); overflow:hidden; text-decoration:none; }
+    .kp-st-z s i { display:block; height:100%; border-radius:3px; animation:kpBreiteW .9s cubic-bezier(.22,1,.36,1) backwards; }
 
     /* ---------- Umsatzanteil (neu, nur lesend) ---------- */
     .kp-tile.kp-anteil { grid-column:span 12; }
@@ -2180,6 +2154,7 @@
     .kp-tile,
     .kp-art,
     .kp-rang-z s i,
+    .kp-st-z s i,
     .kp-seg,
     .kp-bar i,
     .kp-split i,
@@ -2595,6 +2570,7 @@ document.addEventListener("DOMContentLoaded", function () {
         status: txt(k, ".t-status").toLowerCase(),
         laufzeit: txt(k, ".t-laufzeit").toLowerCase(),
         freq: txt(k, ".t-freq"),
+        ort: txt(k, ".t-ort"),
         ende: datum(txt(k, ".t-ende")),
         betrag: zahl(txt(k, ".kunden-price"))
       };
@@ -2641,47 +2617,43 @@ document.addEventListener("DOMContentLoaded", function () {
         '</b><div class="kp-bar"><i style="width:' + Math.max(k.betrag / max * 100, 3).toFixed(1) + '%;animation-delay:' + (350 + i * 120) + 'ms"></i></div></div>';
     }).join("");
 
-    // 3) Vertragsenden: alle Verträge mit Ende in den nächsten 12 Monaten (auch gekündigte, die noch laufen)
-    var unbef = aktuell.filter(function (k) { return k.laufzeit !== "befristet"; }).length;
-    var heute = new Date(); heute.setHours(0, 0, 0, 0);
-    var tag = 86400000, jahr = new Date(heute.getTime() + 365 * tag);
-    var enden = kunden.filter(function (k) { return k.ende && k.ende >= heute && k.ende <= jahr; })
-      .sort(function (a, b) { return a.ende - b.ende; });
-    function tage(k) { return Math.round((k.ende - heute) / tag); }
-    function dmy(d) { return ("0" + d.getDate()).slice(-2) + "." + ("0" + (d.getMonth() + 1)).slice(-2) + "." + d.getFullYear(); }
-    var bald90 = enden.filter(function (k) { return tage(k) <= 90; }).length;
-    document.getElementById("kpVeN").textContent = String(enden.length);
-    document.getElementById("kpVeText").textContent = enden.length
-      ? (enden.length === 1 ? "Vertrag endet" : "Verträge enden") + (bald90 ? " · " + bald90 + " in ≤ 90 Tagen" : "")
-      : "Verträge enden";
-    var L = 8, R = 232, Y = 36;
-    function xp(d) { return L + Math.min(Math.max((d - heute) / (365 * tag), 0), 1) * (R - L); }
-    var MON = ["Jan", "Feb", "Mär", "Apr", "Mai", "Jun", "Jul", "Aug", "Sep", "Okt", "Nov", "Dez"];
-    var g = '<line x1="' + L + '" x2="' + R + '" y1="' + Y + '" y2="' + Y + '" stroke="rgba(100,116,139,0.18)" stroke-width="6" stroke-linecap="round"/>' +
-      '<text x="' + L + '" y="14" font-size="9.5" font-weight="900" fill="#2563eb">heute</text>' +
-      '<circle cx="' + L + '" cy="' + Y + '" r="4" fill="#2563eb"/>';
-    for (var mi = 1; mi <= 12; mi++) {
-      var md = new Date(heute.getFullYear(), heute.getMonth() + mi, 1);
-      if (md > jahr) break;
-      var mx = xp(md);
-      g += '<line x1="' + mx.toFixed(1) + '" x2="' + mx.toFixed(1) + '" y1="' + (Y + 6) + '" y2="' + (Y + 10) + '" stroke="#cbd5e1"/>';
-      if (mi % 3 === 1) g += '<text x="' + mx.toFixed(1) + '" y="' + (Y + 24) + '" text-anchor="middle" font-size="9.5" font-weight="700" fill="#94a3b8">' + MON[md.getMonth()] + '</text>';
-    }
-    enden.forEach(function (k, i) {
-      var x = xp(k.ende), c = k.status === "gekuendigt" ? "#ef4444" : (tage(k) <= 90 ? "#f59e0b" : "#6366f1");
-      g += '<circle cx="' + x.toFixed(1) + '" cy="' + Y + '" r="10" fill="' + c + '" opacity=".18"/>' +
-        '<circle cx="' + x.toFixed(1) + '" cy="' + Y + '" r="6" fill="' + c + '" stroke="#ffffff" stroke-width="2"><title>' + esc(k.firma + " · " + dmy(k.ende)) + '</title></circle>';
-      if (i === 0) g += '<text x="' + Math.min(Math.max(x, 40), 216).toFixed(1) + '" y="14" text-anchor="middle" font-size="10" font-weight="900" fill="' + c + '">' + dmy(k.ende).slice(0, 6) + '</text>';
+    // 3) Einsatzgebiet: aktuelle Kunden je Stadt, € / Monat nur Bestandskunden
+    var orte = {};
+    aktuell.forEach(function (k) {
+      var name = String(k.ort || "").replace(/\s+/g, " ").trim() || "ohne Ort";
+      var key = name.toLowerCase();
+      if (!orte[key]) orte[key] = { n: name, v: 0, eur: 0 };
+      orte[key].v++;
+      if (k.art === "bestand") orte[key].eur += k.betrag;
     });
-    document.getElementById("kpVeLeiste").innerHTML = g;
-    document.getElementById("kpVeListe").innerHTML = enden.length
-      ? enden.slice(0, 2).map(function (k) {
-          var t = tage(k);
-          return '<div class="kp-ve-item' + (k.status === "gekuendigt" ? " gek" : (t <= 90 ? " bald" : "")) + '" title="' + esc(k.firma + " · endet am " + dmy(k.ende)) + '"><b>' + esc(k.firma) +
-            '</b><span>' + (t === 0 ? "heute" : "in " + t + (t === 1 ? " Tag" : " Tagen")) + '</span></div>';
-        }).join("") + (enden.length > 2 ? '<div class="kp-ve-mehr" style="font-size:12px;font-weight:700;color:#64748b">+ ' + (enden.length - 2) + ' weitere</div>' : "")
-      : '<div class="kp-ve-leer">✓ Kein Vertrag endet in den nächsten 12 Monaten</div>';
-    document.getElementById("kpVeUnbef").innerHTML = '<i>✓</i>' + unbef + (unbef === 1 ? " Vertrag" : " Verträge") + " unbefristet";
+    var staedte = Object.keys(orte).map(function (x) { return orte[x]; })
+      .sort(function (a, b) { return b.v - a.v || b.eur - a.eur; });
+    var stListe = document.getElementById("kpStListe");
+    document.getElementById("kpStN").textContent = String(staedte.length);
+    document.getElementById("kpStText").textContent = (staedte.length === 1 ? "Stadt" : "Städte") + " · " +
+      aktuell.length + (aktuell.length === 1 ? " Kunde" : " Kunden");
+    if (!staedte.length) {
+      stListe.innerHTML = '<div class="kp-leer">Noch keine aktuellen Verträge.</div>';
+    } else {
+      var stZeilen = staedte;
+      if (staedte.length > 5) {
+        var stRest = staedte.slice(4);
+        stZeilen = staedte.slice(0, 4).concat([{
+          n: "Weitere (" + stRest.length + " Städte)",
+          v: stRest.reduce(function (a, x) { return a + x.v; }, 0),
+          eur: stRest.reduce(function (a, x) { return a + x.eur; }, 0),
+          rest: true
+        }]);
+      }
+      var stMax = Math.max.apply(null, stZeilen.map(function (x) { return x.v; }));
+      var stFarben = ["#1d4ed8", "#2563eb", "#3b82f6", "#6366f1", "#7c3aed"];
+      stListe.innerHTML = stZeilen.map(function (x, i) {
+        var c = x.rest ? "#64748b" : stFarben[i % stFarben.length];
+        var eur = x.eur ? Math.round(x.eur).toLocaleString("de-DE") + " €" : "–";
+        return '<div class="kp-st-z" title="' + esc(x.n + ": " + x.v + " Kunden · " + euro(x.eur) + " / Monat") + '"><span>' + esc(x.n) + '</span><b>' + x.v + '</b><em>' + eur + '</em>' +
+          '<s><i style="width:' + Math.max(x.v / stMax * 100, 4).toFixed(1) + '%;background:' + c + ';animation-delay:' + (350 + i * 90) + 'ms"></i></s></div>';
+      }).join("");
+    }
 
     // 4) Häufigkeit (Rangliste: alle lesbar, ab 7 Arten Top 5 + „Weitere“)
     var zaehl = {};
