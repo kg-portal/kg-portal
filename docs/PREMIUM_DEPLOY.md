@@ -36,6 +36,19 @@ Nach jedem Umschalten im Browser Strg+F5.
 Wichtig: Vor dem nächsten normalen Einspielen (Schritt 1) erst „Version 2 ansehen“ ausführen,
 sonst bricht `git merge` wegen der umgeschalteten Vorlagen ab (es geht nichts kaputt, nur der neue Stand kommt nicht an).
 
+## 2b. Einzelne Seiten (Seiten-Auswahl, aktueller Weg)
+Der Inhaber wählt Seite für Seite. Gewählte Seiten liegen im Branch; jede wird einzeln eingespielt,
+ohne `git merge` (Rahmen/Menü und alle anderen Seiten bleiben, wie sie auf dem Server sind).
+
+**Kunden** = Version 1 + Grafik „Umsatzanteil“ (Halbring je Kunde, nur lesend aus der Liste):
+```
+ssh root@46.224.155.41 'cd /opt/kg-crm && cp templates/kunden.html /root/kunden_vorher.html && git fetch -q origin claude/nifty-galileo-19dve0 && git checkout FETCH_HEAD -- templates/kunden.html && systemctl restart kg-crm && sleep 5 && systemctl is-active kg-crm'
+```
+Kunden zurück:
+```
+ssh root@46.224.155.41 'cd /opt/kg-crm && git checkout HEAD -- templates/kunden.html && systemctl restart kg-crm && sleep 5 && systemctl is-active kg-crm'
+```
+
 ## 3. Mischen
 Wenn Seiten aus Version 1 und Version 2 gemischt werden sollen (z. B. Startseite V1, Kalender V2):
 Claude stellt den Mix im Repo zusammen, testet ihn und liefert danach wieder einen einzigen Einspiel-Befehl.
