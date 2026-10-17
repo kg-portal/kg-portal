@@ -218,6 +218,36 @@ body {
     margin-bottom: 18px;
 }
 
+/* Leon-Zahlen oben */
+.leon-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 14px;
+    margin-bottom: 18px;
+}
+
+.leon-stats-grid .db-info-box {
+    padding: 16px 18px;
+}
+
+@media (max-width: 1280px) {
+    .leon-stats-grid {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
+
+@media (max-width: 1000px) {
+    .leon-stats-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+@media (max-width: 640px) {
+    .leon-stats-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
 .today-live-label {
     margin: 4px 0 12px 0;
     font-size: 12px;
@@ -2785,7 +2815,47 @@ body {
                 <button class="hero-btn primary" onclick="openApifyLeadModal()">+ Neuer Lead</button>
                 <button class="hero-btn" onclick="openDirectAngebotModal()" style="background:#15803d; border-color:#15803d; color:#ffffff;">+ Direktes Angebot</button>
                 <button class="hero-btn">Import</button>
-                <button class="hero-btn" onclick="showDamlaPage()">Tagesliste öffnen</button>
+                <button class="hero-btn" onclick="showDamlaPage()" style="display:none;">Tagesliste öffnen</button>
+            </div>
+        </div>
+
+        <div class="today-live-label">Leon · Telefonakquise</div>
+
+        <div class="leon-stats-grid" id="leonStatsGrid">
+            <div class="db-info-box">
+                <div class="db-info-label">An Leon gesendet</div>
+                <div class="db-info-value" id="leonGesendet">–</div>
+                <div class="db-info-sub" id="leonGesendetSub">&nbsp;</div>
+            </div>
+            <div class="db-info-box">
+                <div class="db-info-label">Angerufen</div>
+                <div class="db-info-value" id="leonAngerufen">–</div>
+                <div class="db-info-sub" id="leonAngerufenSub">&nbsp;</div>
+            </div>
+            <div class="db-info-box">
+                <div class="db-info-label">Gespräch</div>
+                <div class="db-info-value" id="leonGespraech">–</div>
+                <div class="db-info-sub" id="leonGespraechSub">&nbsp;</div>
+            </div>
+            <div class="db-info-box">
+                <div class="db-info-label">Nicht erreicht</div>
+                <div class="db-info-value" id="leonNichtErreicht">–</div>
+                <div class="db-info-sub" id="leonNichtErreichtSub">Mailbox · besetzt · nicht erreichbar</div>
+            </div>
+            <div class="db-info-box">
+                <div class="db-info-label">Fehler</div>
+                <div class="db-info-value" id="leonFehler">–</div>
+                <div class="db-info-sub" id="leonFehlerSub">technisch abgebrochen</div>
+            </div>
+            <div class="db-info-box">
+                <div class="db-info-label">Interessiert</div>
+                <div class="db-info-value" id="leonInteressiert">–</div>
+                <div class="db-info-sub" id="leonInteressiertSub">&nbsp;</div>
+            </div>
+            <div class="db-info-box">
+                <div class="db-info-label">Besichtigung</div>
+                <div class="db-info-value" id="leonBesichtigung">–</div>
+                <div class="db-info-sub" id="leonBesichtigungSub">&nbsp;</div>
             </div>
         </div>
 
@@ -2819,6 +2889,12 @@ body {
 
         <div class="db-info-grid">
             <div class="db-info-box">
+                <div class="db-info-label">Leon Anrufliste heute</div>
+                <div class="db-info-value" id="leonAnruflisteHeute">–</div>
+                <div class="db-info-sub" id="leonAnruflisteHeuteSub">Firmen in den Kampagnen von heute</div>
+            </div>
+
+            <div class="db-info-box" style="display:none;">
     <div class="db-info-label">Tagesliste</div>
     <div class="db-info-value" id="todayTageslisteLive">{{ datenbank_stats.tagesliste_total }}</div>
     <div class="db-info-sub">heute zu bearbeiten</div>
@@ -2848,6 +2924,15 @@ body {
         <section id="mainView">
             <div class="workflow-grid" id="workflowSortable">
                 <div class="workflow-card card-blue-full">
+                    <div class="workflow-top">
+                        <div class="workflow-count" id="leonAnruflisteWorkflowCount">–</div>
+                    </div>
+                    <div class="workflow-title">Leon Anrufliste</div>
+                    <div class="workflow-text">Firmen in den heutigen Leon-Kampagnen (ChatGPT und manuell angelegt).</div>
+                    <button type="button" class="workflow-btn" onclick="window.location.href='/leon/kampagnen'">Kampagnen öffnen</button>
+                </div>
+
+                <div class="workflow-card card-blue-full" style="display:none;">
                     <div class="workflow-top">
                         <div class="workflow-count" id="tageslisteWorkflowCount">{{ datenbank_stats.tagesliste_total }}</div>
                     </div>
@@ -8877,6 +8962,57 @@ document.addEventListener("DOMContentLoaded", function() {
         </div>
     </div>
 </div>
+
+<script>
+/* Leon-Zahlen oben (nur lesend): /api/datenbank/leon-uebersicht */
+(function () {
+    function setzen(id, wert) {
+        const el = document.getElementById(id);
+        if (el) el.textContent = wert;
+    }
+
+    async function kgLeonUebersichtLaden() {
+        try {
+            const response = await fetch("/api/datenbank/leon-uebersicht");
+            const data = await response.json();
+            if (!data.ok) return;
+
+            const z = data.zahlen || {};
+            const k = data.kampagnen_heute;
+
+            setzen("leonGesendet", z.gesendet || 0);
+            setzen("leonGesendetSub", (z.offen || 0) + " warten noch auf Anruf");
+            setzen("leonAngerufen", z.angerufen || 0);
+            setzen("leonAngerufenSub", "heute: " + (k ? k.heute_angerufen : "–"));
+            setzen("leonGespraech", z.gespraech || 0);
+            setzen("leonGespraechSub", "Rückruf " + (z.rueckruf || 0) + " · Kein Interesse " + (z.kein_interesse || 0));
+            setzen("leonNichtErreicht", z.nicht_erreicht || 0);
+            setzen("leonFehler", z.fehler || 0);
+            setzen("leonInteressiert", z.interessiert || 0);
+            setzen("leonInteressiertSub", "heute: " + (z.heute_interessiert || 0));
+            setzen("leonBesichtigung", z.besichtigung || 0);
+            setzen("leonBesichtigungSub", "heute: " + (z.heute_besichtigung || 0));
+
+            if (k) {
+                setzen("leonAnruflisteHeute", k.firmen);
+                setzen("leonAnruflisteWorkflowCount", k.firmen);
+                setzen("leonAnruflisteHeuteSub", k.kampagnen
+                    ? k.kampagnen + (k.kampagnen === 1 ? " Kampagne" : " Kampagnen") + " heute · " + k.wartend + " warten"
+                    : "heute noch keine Kampagne");
+            } else {
+                setzen("leonAnruflisteHeuteSub", "Leon gerade nicht erreichbar");
+            }
+        } catch (error) {
+            console.error("Leon-Übersicht Fehler:", error);
+        }
+    }
+
+    document.addEventListener("DOMContentLoaded", function () {
+        kgLeonUebersichtLaden();
+        setInterval(kgLeonUebersichtLaden, 120000);
+    });
+})();
+</script>
 
 {% endblock %}
 

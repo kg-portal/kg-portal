@@ -892,6 +892,10 @@ register_mcp_crm_leads(app, get_db_connection, lambda: _leon_routes_mod.leon_cli
 from kampagnen_bericht import register_kampagnen_bericht
 register_kampagnen_bericht(app, login_required, get_db_connection, lambda: _leon_routes_mod.leon_client)
 
+# Datenbank: Leon-Zahlen oben auf der Seite (nur lesend)
+from leon_uebersicht import register_leon_uebersicht
+register_leon_uebersicht(app, login_required, get_db_connection, lambda: _leon_routes_mod.leon_client)
+
 # Arbeitsliste für heute (/heute): jeden Werktag als To-Do-Karte (+ WhatsApp an den Chef); der Agent antwortet dem Chef per WhatsApp
 from tagesliste import register_tagesliste
 register_tagesliste(app, login_required, get_db_connection, lambda: _leon_routes_mod.leon_client)
