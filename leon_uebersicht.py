@@ -120,9 +120,9 @@ def register_leon_uebersicht(app, login_required, get_db_connection, get_leon_cl
 
 
 def _verlauf(get_db_connection):
-    """Tageswerte für die Grafiken: Leon-Anrufe (erreicht) der letzten 9 Tage und der Monat je Tag."""
+    """Tageswerte für die Grafiken: Leon-Anrufe (erreicht) der letzten 63 Tage (je 9 Tage blätterbar) und der Monat je Tag."""
     heute = datetime.now(BERLIN).date()
-    tage = [heute - timedelta(days=i) for i in range(8, -1, -1)]
+    tage = [heute - timedelta(days=i) for i in range(62, -1, -1)]
     monat = [heute.replace(day=d) for d in range(1, heute.day + 1)]
     leon = "tagesliste_id IN (SELECT tagesliste_id FROM leon_links WHERE tagesliste_id IS NOT NULL)"
     conn = get_db_connection()

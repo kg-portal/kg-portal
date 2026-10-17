@@ -579,6 +579,39 @@ body {
 .b4-dgruen { color: #059669; }
 .b4-blauz { color: #2563eb; }
 
+.b4-blaettern {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.b4-pfeil {
+    width: 28px;
+    height: 28px;
+    display: grid;
+    place-items: center;
+    padding: 0;
+    border-radius: 9px;
+    border: 1px solid #e2e8f0;
+    background: #ffffff;
+    color: #1d4ed8;
+    font-size: 17px;
+    font-weight: 900;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.b4-pfeil:hover {
+    background: #eff6ff;
+    border-color: #bfdbfe;
+}
+
+.b4-pfeil:disabled {
+    opacity: 0.35;
+    cursor: default;
+    background: #ffffff;
+}
+
 /* Start-Animationen der Grafiken */
 .b4-saeule {
     transform-box: fill-box;
@@ -589,6 +622,14 @@ body {
 
 .b4-an .b4-saeule {
     transform: scaleY(1);
+}
+
+.b4-an .b4-svg.b4-neu .b4-saeule {
+    transform: scaleY(0);
+}
+
+.b4-an .b4-svg.b4-neu .b4-wert {
+    opacity: 0;
 }
 
 .b4-wert {
@@ -3907,7 +3948,7 @@ body {
             </div>
 
             <div class="b4-t b4-s5" style="--i:3;">
-                <div class="b4-lbl">Leon-Anrufe pro Tag <em>erreicht · letzte 9 Tage</em></div>
+                <div class="b4-lbl">Leon-Anrufe pro Tag <span class="b4-blaettern"><em id="b4Zeitraum">erreicht · letzte 9 Tage</em><button type="button" class="b4-pfeil" id="b4Zurueck" title="9 Tage zurück">‹</button><button type="button" class="b4-pfeil" id="b4Vor" title="9 Tage vor" disabled>›</button></span></div>
                 <div id="b4Saeulen" style="margin-top:12px;"></div>
             </div>
 
@@ -10050,17 +10091,34 @@ document.addEventListener("DOMContentLoaded", function() {
         return d;
     }
 
-    function saeulen(box, tage) {
+    function blauFuer(anteil) {
+        const hell = [147, 197, 253], dunkel = [24, 58, 145];
+        const k = Math.pow(Math.max(0, Math.min(1, anteil)), 0.75);
+        return "rgb(" + hell.map(function (h, i) { return Math.round(h + (dunkel[i] - h) * k); }).join(",") + ")";
+    }
+
+    function isoHeute() {
+        const d = new Date();
+        return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+    }
+
+    function kurzDatum(iso) {
+        const t = String(iso || "").split("-");
+        return t.length === 3 ? t[2] + "." + t[1] + "." : "";
+    }
+
+    function saeulen(box, tage, neu) {
         if (!box || !tage || !tage.length) return;
         const W = 560, H = 210, unten = 38, oben = 24, abstand = 10;
         const n = tage.length, bw = (W - (n - 1) * abstand) / n, hMax = H - unten - oben;
         const mx = Math.max(1, ...tage.map(function (t) { return t.anzahl; }));
-        const svg = svgEl("svg", { viewBox: "0 0 " + W + " " + H, class: "b4-svg" });
+        const heute = isoHeute();
+        const svg = svgEl("svg", { viewBox: "0 0 " + W + " " + H, class: "b4-svg" + (neu ? " b4-neu" : "") });
         tage.forEach(function (t, i) {
             const x = i * (bw + abstand), h = t.anzahl ? Math.max(4, hMax * t.anzahl / mx) : 3, y = H - unten - h;
-            const istHeute = i === n - 1;
+            const istHeute = t.datum === heute;
             svg.appendChild(svgEl("rect", { x: x, y: oben, width: bw, height: hMax, rx: 9, fill: "#2563eb", "fill-opacity": ".07" }));
-            const s = svgEl("rect", { x: x, y: y, width: bw, height: h, rx: 9, fill: istHeute ? "#1e40af" : "#3b82f6", class: "b4-saeule" });
+            const s = svgEl("rect", { x: x, y: y, width: bw, height: h, rx: 9, fill: blauFuer(t.anzahl / mx), class: "b4-saeule" });
             s.style.transitionDelay = (i * 70) + "ms";
             svg.appendChild(s);
             if (t.anzahl) {
@@ -10072,7 +10130,7 @@ document.addEventListener("DOMContentLoaded", function() {
             const teile = String(t.datum).split("-").map(Number);
             const tag = new Date(teile[0], teile[1] - 1, teile[2]);
             const l1 = svgEl("text", { x: x + bw / 2, y: H - 21, "text-anchor": "middle", "font-size": 11.5, "font-weight": 800, fill: "currentColor" });
-            l1.textContent = String(teile[2]).padStart(2, "0") + "." + String(teile[1]).padStart(2, "0") + ".";
+            l1.textContent = kurzDatum(t.datum);
             const l2 = svgEl("text", { x: x + bw / 2, y: H - 6, "text-anchor": "middle", "font-size": 10.5, "font-weight": 700, fill: istHeute ? "#1d4ed8" : "#94a3b8" });
             l2.textContent = istHeute ? "heute" : WTAG[tag.getDay()];
             svg.appendChild(l1);
@@ -10080,6 +10138,28 @@ document.addEventListener("DOMContentLoaded", function() {
         });
         box.innerHTML = "";
         box.appendChild(svg);
+        if (neu) {
+            requestAnimationFrame(function () { requestAnimationFrame(function () { svg.classList.remove("b4-neu"); }); });
+        }
+    }
+
+    /* Blättern im Säulen-Diagramm: je 9 Tage, Seite 0 = die letzten 9 Tage */
+    const PRO_SEITE = 9;
+    let tageAlle = [];
+    let tageSeite = 0;
+
+    function tageZeigen(neu) {
+        const ende = tageAlle.length - tageSeite * PRO_SEITE;
+        const start = Math.max(0, ende - PRO_SEITE);
+        const fenster = tageAlle.slice(start, ende);
+        saeulen(document.getElementById("b4Saeulen"), fenster, neu);
+        const zurueck = document.getElementById("b4Zurueck");
+        const vor = document.getElementById("b4Vor");
+        if (zurueck) zurueck.disabled = start <= 0;
+        if (vor) vor.disabled = tageSeite === 0;
+        if (fenster.length) {
+            setzen("b4Zeitraum", "erreicht · " + kurzDatum(fenster[0].datum) + " – " + kurzDatum(fenster[fenster.length - 1].datum));
+        }
     }
 
     function tacho(box, pct, wert, label) {
@@ -10212,7 +10292,8 @@ document.addEventListener("DOMContentLoaded", function() {
             setzen("b4WartetText", zahlDe(z.offen || 0));
 
             // Anrufe pro Tag
-            saeulen(document.getElementById("b4Saeulen"), v.tage || []);
+            tageAlle = v.tage || [];
+            tageZeigen(false);
 
             // Ergebnis der Gespräche
             donut(document.getElementById("b4Donut"), [
@@ -10468,6 +10549,19 @@ document.addEventListener("DOMContentLoaded", function() {
         ["todayAngerufenLive", "todayInteressiertLive", "todayBesichtigungLive", "monthInteressiertLive", "monthBesichtigungLive", "b4Leads"].forEach(function (id) {
             const el = document.getElementById(id);
             zaehlen(el, zahlAusText(el));
+        });
+
+        const zurueck = document.getElementById("b4Zurueck");
+        const vor = document.getElementById("b4Vor");
+        if (zurueck) zurueck.addEventListener("click", function () {
+            if (tageAlle.length - (tageSeite + 1) * PRO_SEITE <= 0) return;
+            tageSeite += 1;
+            tageZeigen(true);
+        });
+        if (vor) vor.addEventListener("click", function () {
+            if (tageSeite === 0) return;
+            tageSeite -= 1;
+            tageZeigen(true);
         });
 
         document.querySelectorAll(".workflow-card[data-panel]").forEach(function (karte) {
