@@ -218,31 +218,338 @@ body {
     margin-bottom: 18px;
 }
 
-/* Leon-Zahlen oben */
-.leon-stats-grid {
+/* =========================
+   NEUER KOPF (hell, Leon-Trichter, Heute, Monat)
+========================= */
+.db-hero.db-hero-neu {
+    background: #f8fbff;
+    color: #0f172a;
+    padding: 28px 30px 6px 30px;
+}
+
+.dbn-kopf {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-bottom: 22px;
+}
+
+.dbn-titel {
+    margin: 0;
+    font-size: 28px;
+    font-weight: 900;
+    letter-spacing: -0.4px;
+    color: #0f172a;
+}
+
+.dbn-untertitel {
+    margin: 4px 0 0;
+    font-size: 13px;
+    font-weight: 700;
+    color: #64748b;
+}
+
+.dbn-kopf-rechts {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.dbn-uhr {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 9px 14px;
+    font-size: 13px;
+    font-weight: 900;
+    color: #183a91;
+}
+
+.dbn-datum {
+    margin-left: 8px;
+    color: #64748b;
+    font-weight: 700;
+}
+
+.dbn-btn {
+    border: 1px solid #e2e8f0;
+    background: #ffffff;
+    color: #0f172a;
+    border-radius: 12px;
+    padding: 10px 14px;
+    font-size: 13px;
+    font-weight: 900;
+    cursor: pointer;
+}
+
+.dbn-btn-blau {
+    background: #1d4ed8;
+    border-color: #1d4ed8;
+    color: #ffffff;
+}
+
+.dbn-btn-gruen {
+    background: #15803d;
+    border-color: #15803d;
+    color: #ffffff;
+}
+
+.dbn-karte {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 18px;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 8px 24px rgba(15, 23, 42, 0.05);
+}
+
+.dbn-label {
+    margin: 0 0 14px;
+    font-size: 12px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.7px;
+    color: #64748b;
+}
+
+.dbn-oben {
     display: grid;
-    grid-template-columns: repeat(7, 1fr);
-    gap: 14px;
+    grid-template-columns: minmax(0, 1fr) 360px;
+    gap: 18px;
     margin-bottom: 18px;
 }
 
-.leon-stats-grid .db-info-box {
-    padding: 16px 18px;
+.dbn-leon,
+.dbn-heute {
+    padding: 22px 24px;
 }
 
-.leon-stats-grid .leon-rot .db-info-label,
-.leon-stats-grid .leon-rot .db-info-value {
-    color: #dc2626;
+.dbn-trichter {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
 }
 
-.leon-stats-grid .leon-gruen .db-info-label,
-.leon-stats-grid .leon-gruen .db-info-value {
+.dbn-stufe {
+    padding: 4px 18px 4px 0;
+}
+
+.dbn-stufe + .dbn-stufe {
+    padding-left: 24px;
+    border-left: 1px solid #e2e8f0;
+}
+
+.dbn-zahl {
+    font-size: 34px;
+    line-height: 1.1;
+    font-weight: 900;
+    letter-spacing: -0.8px;
+    color: #0f172a;
+}
+
+.dbn-text {
+    margin-top: 4px;
+    font-size: 12px;
+    font-weight: 700;
+    color: #64748b;
+}
+
+.dbn-quote {
+    display: inline-block;
+    margin-top: 8px;
+    padding: 3px 8px;
+    border-radius: 999px;
+    background: #eff6ff;
+    color: #1d4ed8;
+    font-size: 11px;
+    font-weight: 900;
+}
+
+.dbn-gruen .dbn-zahl,
+.dbn-gruen .dbn-mini-zahl,
+.dbn-gruen .dbn-monat-zahl {
     color: #16a34a;
 }
 
-.leon-stats-grid .leon-dunkelgruen .db-info-label,
-.leon-stats-grid .leon-dunkelgruen .db-info-value {
+.dbn-dunkelgruen .dbn-zahl,
+.dbn-dunkelgruen .dbn-mini-zahl,
+.dbn-dunkelgruen .dbn-monat-zahl {
     color: #166534;
+}
+
+.dbn-balken {
+    display: flex;
+    height: 10px;
+    margin: 18px 0 10px;
+    border-radius: 999px;
+    background: #e2e8f0;
+    overflow: hidden;
+}
+
+.dbn-balken i {
+    display: block;
+    height: 100%;
+    width: 0;
+}
+
+.dbn-legende {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-bottom: 14px;
+    font-size: 11.5px;
+    font-weight: 700;
+    color: #64748b;
+}
+
+.dbn-legende b {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    margin-right: 6px;
+    border-radius: 3px;
+    vertical-align: -1px;
+}
+
+.dbn-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.dbn-chip {
+    padding: 7px 11px;
+    border-radius: 999px;
+    border: 1px solid #e2e8f0;
+    background: #f8fafc;
+    color: #334155;
+    font-size: 12px;
+    font-weight: 800;
+}
+
+.dbn-chip-rot {
+    background: #fef2f2;
+    border-color: #fecaca;
+    color: #dc2626;
+}
+
+.dbn-chip-orange {
+    background: #fff7ed;
+    border-color: #fed7aa;
+    color: #ea580c;
+}
+
+.dbn-heute-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+.dbn-mini {
+    padding: 12px 14px;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    background: #f8fafc;
+}
+
+.dbn-mini-akzent {
+    background: #eff6ff;
+    border-color: #bfdbfe;
+}
+
+.dbn-mini-zahl {
+    font-size: 24px;
+    font-weight: 900;
+    color: #0f172a;
+}
+
+.dbn-mini-akzent .dbn-mini-zahl {
+    color: #1d4ed8;
+}
+
+.dbn-mini-text {
+    margin-top: 2px;
+    font-size: 11px;
+    font-weight: 700;
+    color: #64748b;
+}
+
+.dbn-mini-sub {
+    margin-top: 2px;
+    font-size: 10.5px;
+    font-weight: 700;
+    color: #2563eb;
+}
+
+.dbn-monat {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    padding: 16px 8px;
+    margin-bottom: 18px;
+}
+
+.dbn-monat > div {
+    padding: 0 22px;
+}
+
+.dbn-monat > div + div {
+    border-left: 1px solid #e2e8f0;
+}
+
+.dbn-monat-zahl {
+    font-size: 22px;
+    font-weight: 900;
+    color: #0f172a;
+}
+
+.dbn-monat-text {
+    font-size: 12px;
+    font-weight: 700;
+    color: #64748b;
+}
+
+@media (max-width: 1280px) {
+    .dbn-oben {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 1000px) {
+    .dbn-trichter {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        row-gap: 14px;
+    }
+
+    .dbn-stufe:nth-child(4) {
+        border-left: 0;
+        padding-left: 0;
+    }
+
+    .dbn-monat {
+        grid-template-columns: 1fr 1fr;
+        row-gap: 14px;
+    }
+
+    .dbn-monat > div:nth-child(3) {
+        border-left: 0;
+    }
+}
+
+@media (max-width: 640px) {
+    .db-hero.db-hero-neu {
+        padding: 18px 18px 4px 18px;
+    }
+
+    .dbn-trichter {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .dbn-stufe,
+    .dbn-stufe + .dbn-stufe,
+    .dbn-stufe:nth-child(4) {
+        border-left: 0;
+        padding: 0;
+    }
 }
 
 @media (max-width: 1280px) {
@@ -2811,133 +3118,127 @@ body {
 ............................................................. -->
 
 <div class="db-page">
-    <section class="db-hero">
-        <div class="db-title-row">
-            <div class="db-title">
-                <h1>KG PORTAL DATENBANK</h1>
-                <p>CRM-Zentrale für Leads, Tagesliste, Besichtigung und Angebot.</p>
+    <section class="db-hero db-hero-neu">
+        <div class="dbn-kopf">
+            <div>
+                <h1 class="dbn-titel">Datenbank</h1>
+                <p class="dbn-untertitel">Leads · Leon · Besichtigung · Angebot</p>
             </div>
 
-            <div class="db-module-info">
-                <div class="live-date-box">
-                    <div class="live-time-pill" id="liveTimeOnly">00:00</div>
-                    <div class="live-date-main" id="liveDateOnly">Montag, 1. Januar 2026</div>
-                    <div class="live-date-sub" id="liveMonthName">Monatsübersicht Januar</div>
+            <div class="dbn-kopf-rechts">
+                <div class="dbn-uhr"><span id="liveTimeOnly">00:00</span><span class="dbn-datum" id="liveDateOnly">Montag, 1. Januar 2026</span></div>
+                <button class="dbn-btn">Import</button>
+                <button class="dbn-btn dbn-btn-blau" onclick="openApifyLeadModal()">+ Neuer Lead</button>
+                <button class="dbn-btn dbn-btn-gruen" onclick="openDirectAngebotModal()">+ Direktes Angebot</button>
+            </div>
+        </div>
+
+        <div class="dbn-oben">
+            <div class="dbn-karte dbn-leon">
+                <div class="dbn-label">Leon · Telefonakquise (gesamt)</div>
+
+                <div class="dbn-trichter">
+                    <div class="dbn-stufe">
+                        <div class="dbn-zahl" id="leonGesendet">–</div>
+                        <div class="dbn-text">an Leon gesendet</div>
+                        <span class="dbn-quote" id="leonGesendetSub">&nbsp;</span>
+                    </div>
+                    <div class="dbn-stufe">
+                        <div class="dbn-zahl" id="leonAngerufen">–</div>
+                        <div class="dbn-text">angerufen</div>
+                        <span class="dbn-quote" id="leonAngerufenQuote">&nbsp;</span>
+                    </div>
+                    <div class="dbn-stufe">
+                        <div class="dbn-zahl" id="leonGespraech">–</div>
+                        <div class="dbn-text">Gespräch</div>
+                        <span class="dbn-quote" id="leonGespraechQuote">&nbsp;</span>
+                    </div>
+                    <div class="dbn-stufe dbn-gruen">
+                        <div class="dbn-zahl" id="leonInteressiert">–</div>
+                        <div class="dbn-text">interessiert</div>
+                        <span class="dbn-quote" id="leonInteressiertQuote">&nbsp;</span>
+                    </div>
+                    <div class="dbn-stufe dbn-dunkelgruen">
+                        <div class="dbn-zahl" id="leonBesichtigung">–</div>
+                        <div class="dbn-text">Besichtigung</div>
+                        <span class="dbn-quote" id="leonBesichtigungQuote">&nbsp;</span>
+                    </div>
+                </div>
+
+                <div class="dbn-balken">
+                    <i id="leonBalkenGespraech" style="background:#3b82f6;"></i>
+                    <i id="leonBalkenNicht" style="background:#fca5a5;"></i>
+                    <i id="leonBalkenFehler" style="background:#dc2626;"></i>
+                </div>
+                <div class="dbn-legende">
+                    <span><b style="background:#3b82f6;"></b>Gespräch</span>
+                    <span><b style="background:#fca5a5;"></b>nicht erreicht</span>
+                    <span><b style="background:#dc2626;"></b>Fehler</span>
+                    <span><b style="background:#e2e8f0;"></b>wartet</span>
+                </div>
+
+                <div class="dbn-chips">
+                    <span class="dbn-chip dbn-chip-rot">Nicht erreicht <b id="leonNichtErreicht">–</b></span>
+                    <span class="dbn-chip dbn-chip-rot">Fehler <b id="leonFehler">–</b></span>
+                    <span class="dbn-chip dbn-chip-orange">Rückruf <b id="leonRueckruf">–</b></span>
+                    <span class="dbn-chip">Kein Interesse <b id="leonKeinInteresse">–</b></span>
+                    <span class="dbn-chip">ohne Ergebnis <b id="leonOhneErgebnis">–</b></span>
                 </div>
             </div>
 
-            <div class="hero-actions">
-                <button class="hero-btn primary" onclick="openApifyLeadModal()">+ Neuer Lead</button>
-                <button class="hero-btn" onclick="openDirectAngebotModal()" style="background:#15803d; border-color:#15803d; color:#ffffff;">+ Direktes Angebot</button>
-                <button class="hero-btn">Import</button>
-                <button class="hero-btn" onclick="showDamlaPage()" style="display:none;">Tagesliste öffnen</button>
+            <div class="dbn-karte dbn-heute">
+                <div class="dbn-label">Heute</div>
+                <div class="dbn-heute-grid">
+                    <div class="dbn-mini dbn-mini-akzent">
+                        <div class="dbn-mini-zahl" id="leonAnruflisteHeute">–</div>
+                        <div class="dbn-mini-text">Leon Anrufliste</div>
+                        <div class="dbn-mini-sub" id="leonAnruflisteHeuteSub">Kampagnen von heute</div>
+                    </div>
+                    <div class="dbn-mini">
+                        <div class="dbn-mini-zahl" id="todayAngerufenLive">{{ datenbank_stats.today_angerufen }}</div>
+                        <div class="dbn-mini-text">angerufen</div>
+                    </div>
+                    <div class="dbn-mini dbn-gruen">
+                        <div class="dbn-mini-zahl" id="todayInteressiertLive">{{ datenbank_stats.today_interessiert }}</div>
+                        <div class="dbn-mini-text">interessiert</div>
+                    </div>
+                    <div class="dbn-mini dbn-dunkelgruen">
+                        <div class="dbn-mini-zahl" id="todayBesichtigungLive">{{ datenbank_stats.today_besichtigung }}</div>
+                        <div class="dbn-mini-text">Besichtigung</div>
+                    </div>
+                </div>
             </div>
         </div>
 
-        <div class="today-live-label">Leon · Telefonakquise</div>
-
-        <div class="leon-stats-grid" id="leonStatsGrid">
-            <div class="db-info-box">
-                <div class="db-info-label">An Leon gesendet</div>
-                <div class="db-info-value" id="leonGesendet">–</div>
-                <div class="db-info-sub" id="leonGesendetSub">&nbsp;</div>
+        <div class="dbn-karte dbn-monat">
+            <div>
+                <div class="dbn-monat-zahl">{{ "{:,}".format(datenbank_stats.total_leads|int)|replace(",", ".") }}</div>
+                <div class="dbn-monat-text">Leads im System</div>
             </div>
-            <div class="db-info-box">
-                <div class="db-info-label">Angerufen</div>
-                <div class="db-info-value" id="leonAngerufen">–</div>
-                <div class="db-info-sub" id="leonAngerufenSub">&nbsp;</div>
+            <div>
+                <div class="dbn-monat-zahl" id="leonMonatAngerufen">–</div>
+                <div class="dbn-monat-text"><span class="dbn-monatsname">Dieser Monat</span> · von Leon angerufen</div>
             </div>
-            <div class="db-info-box">
-                <div class="db-info-label">Gespräch</div>
-                <div class="db-info-value" id="leonGespraech">–</div>
-                <div class="db-info-sub" id="leonGespraechSub">&nbsp;</div>
+            <div class="dbn-gruen">
+                <div class="dbn-monat-zahl" id="monthInteressiertLive">{{ datenbank_stats.month_interessiert }}</div>
+                <div class="dbn-monat-text"><span class="dbn-monatsname">Dieser Monat</span> · interessiert</div>
             </div>
-            <div class="db-info-box leon-rot">
-                <div class="db-info-label">Nicht erreicht</div>
-                <div class="db-info-value" id="leonNichtErreicht">–</div>
-                <div class="db-info-sub" id="leonNichtErreichtSub">Mailbox · besetzt · nicht erreichbar</div>
-            </div>
-            <div class="db-info-box leon-rot">
-                <div class="db-info-label">Fehler</div>
-                <div class="db-info-value" id="leonFehler">–</div>
-                <div class="db-info-sub" id="leonFehlerSub">technisch abgebrochen</div>
-            </div>
-            <div class="db-info-box leon-gruen">
-                <div class="db-info-label">Interessiert</div>
-                <div class="db-info-value" id="leonInteressiert">–</div>
-                <div class="db-info-sub" id="leonInteressiertSub">&nbsp;</div>
-            </div>
-            <div class="db-info-box leon-dunkelgruen">
-                <div class="db-info-label">Besichtigung</div>
-                <div class="db-info-value" id="leonBesichtigung">–</div>
-                <div class="db-info-sub" id="leonBesichtigungSub">&nbsp;</div>
+            <div class="dbn-dunkelgruen">
+                <div class="dbn-monat-zahl" id="monthBesichtigungLive">{{ datenbank_stats.month_besichtigung }}</div>
+                <div class="dbn-monat-text"><span class="dbn-monatsname">Dieser Monat</span> · Besichtigung</div>
             </div>
         </div>
 
-        <div class="month-stats-grid">
-            <div class="db-info-box">
-                <div class="db-info-label">Gesamt hinzugefügte Leads</div>
-                <div class="db-info-value">{{ datenbank_stats.total_leads }}</div>
-                <div class="db-info-sub" id="monthLeadPoolLabel">im System gespeichert</div>
-            </div>
-
-            <div class="db-info-box">
-    <div class="db-info-label">Dieser Monat · Angerufen</div>
-    <div class="db-info-value" id="leonMonatAngerufen">–</div>
-    <div class="db-info-sub">{{ datenbank_stats.month_label }} · Firmen von Leon angerufen</div>
-</div>
-
-<div class="db-info-box" style="display:none;">
-    <div class="db-info-label">Dieser Monat · Angerufen</div>
-    <div class="db-info-value" id="monthAngerufenLive">{{ datenbank_stats.month_angerufen }}</div>
-    <div class="db-info-sub" id="monthCallsLabel">{{ datenbank_stats.month_label }} gesamt</div>
-</div>
-
-<div class="db-info-box">
-    <div class="db-info-label">Dieser Monat · Interessiert</div>
-    <div class="db-info-value" id="monthInteressiertLive">{{ datenbank_stats.month_interessiert }}</div>
-    <div class="db-info-sub" id="monthInterestedLabel">{{ datenbank_stats.month_label }} gesamt</div>
-</div>
-
-<div class="db-info-box">
-    <div class="db-info-label">Dieser Monat · Besichtigung</div>
-    <div class="db-info-value" id="monthBesichtigungLive">{{ datenbank_stats.month_besichtigung }}</div>
-    <div class="db-info-sub" id="monthVisitsLabel">{{ datenbank_stats.month_label }} gesamt</div>
-</div>
-        </div>
-
-        <div class="today-live-label">Live heute</div>
-
-        <div class="db-info-grid">
-            <div class="db-info-box">
-                <div class="db-info-label">Leon Anrufliste heute</div>
-                <div class="db-info-value" id="leonAnruflisteHeute">–</div>
-                <div class="db-info-sub" id="leonAnruflisteHeuteSub">Firmen in den Kampagnen von heute</div>
-            </div>
-
-            <div class="db-info-box" style="display:none;">
-    <div class="db-info-label">Tagesliste</div>
-    <div class="db-info-value" id="todayTageslisteLive">{{ datenbank_stats.tagesliste_total }}</div>
-    <div class="db-info-sub">heute zu bearbeiten</div>
-</div>
-
-            <div class="db-info-box">
-                <div class="db-info-label">Heute angerufen</div>
-                <div class="db-info-value" id="todayAngerufenLive">{{ datenbank_stats.today_angerufen }}</div>
-                <div class="db-info-sub">live Stand</div>
-            </div>
-
-            <div class="db-info-box">
-                <div class="db-info-label">Heute interessiert</div>
-                <div class="db-info-value" id="todayInteressiertLive">{{ datenbank_stats.today_interessiert }}</div>
-                <div class="db-info-sub">live Stand</div>
-            </div>
-
-            <div class="db-info-box">
-                <div class="db-info-label">Heute Besichtigung</div>
-                <div class="db-info-value" id="todayBesichtigungLive">{{ datenbank_stats.today_besichtigung }}</div>
-                <div class="db-info-sub">live Stand</div>
-            </div>
+        <!-- alte Felder: nur ausgeblendet, die ids bleiben für das bestehende JavaScript -->
+        <div style="display:none;">
+            <span id="liveMonthName"></span>
+            <span id="monthLeadPoolLabel"></span>
+            <span id="monthCallsLabel"></span>
+            <span id="monthInterestedLabel"></span>
+            <span id="monthVisitsLabel"></span>
+            <span id="monthAngerufenLive">{{ datenbank_stats.month_angerufen }}</span>
+            <span id="todayTageslisteLive">{{ datenbank_stats.tagesliste_total }}</span>
+            <button class="hero-btn" onclick="showDamlaPage()">Tagesliste öffnen</button>
         </div>
     </section>
 
@@ -7750,6 +8051,8 @@ async function deleteStatusRecord(event, leadId, statusKey, btn){
 
         if(typeof refreshStatusCounts === "function"){
             refreshStatusCounts();
+        } else if(typeof updateStatusBoardCounts === "function"){
+            updateStatusBoardCounts();
         }
 
     }catch(err){
@@ -8992,6 +9295,22 @@ document.addEventListener("DOMContentLoaded", function() {
         if (el) el.textContent = wert;
     }
 
+    function prozent(teil, ganzes) {
+        if (!ganzes) return "0 %";
+        return (teil * 100 / ganzes).toLocaleString("de-DE", { maximumFractionDigits: 1 }) + " %";
+    }
+
+    function breite(id, teil, ganzes) {
+        const el = document.getElementById(id);
+        if (el) el.style.width = ganzes ? (teil * 100 / ganzes) + "%" : "0";
+    }
+
+    function monatsnamen() {
+        const text = new Date().toLocaleDateString("de-DE", { month: "long" });
+        const name = text.charAt(0).toUpperCase() + text.slice(1);
+        document.querySelectorAll(".dbn-monatsname").forEach(function (el) { el.textContent = name; });
+    }
+
     async function kgLeonUebersichtLaden() {
         try {
             const response = await fetch("/api/datenbank/leon-uebersicht");
@@ -9000,26 +9319,38 @@ document.addEventListener("DOMContentLoaded", function() {
 
             const z = data.zahlen || {};
             const k = data.kampagnen_heute;
+            const gesendet = z.gesendet || 0;
+            const gespraech = z.gespraech || 0;
+            const ohneErgebnis = Math.max(0, gespraech - (z.interessiert || 0) - (z.besichtigung || 0) - (z.rueckruf || 0) - (z.kein_interesse || 0));
 
-            setzen("leonGesendet", z.gesendet || 0);
-            setzen("leonGesendetSub", (z.offen || 0) + " warten noch auf Anruf");
+            setzen("leonGesendet", gesendet);
+            setzen("leonGesendetSub", (z.offen || 0) + " warten");
             setzen("leonAngerufen", z.angerufen || 0);
-            setzen("leonAngerufenSub", "heute: " + (k ? k.heute_angerufen : "–"));
-            setzen("leonMonatAngerufen", z.monat_angerufen || 0);
-            setzen("leonGespraech", z.gespraech || 0);
-            setzen("leonGespraechSub", "Rückruf " + (z.rueckruf || 0) + " · Kein Interesse " + (z.kein_interesse || 0));
+            setzen("leonAngerufenQuote", prozent(z.angerufen || 0, gesendet));
+            setzen("leonGespraech", gespraech);
+            setzen("leonGespraechQuote", prozent(gespraech, z.angerufen || 0) + " erreicht");
+            setzen("leonInteressiert", z.interessiert || 0);
+            setzen("leonInteressiertQuote", prozent(z.interessiert || 0, gespraech));
+            setzen("leonBesichtigung", z.besichtigung || 0);
+            setzen("leonBesichtigungQuote", prozent(z.besichtigung || 0, gespraech));
+
             setzen("leonNichtErreicht", z.nicht_erreicht || 0);
             setzen("leonFehler", z.fehler || 0);
-            setzen("leonInteressiert", z.interessiert || 0);
-            setzen("leonInteressiertSub", "heute: " + (z.heute_interessiert || 0));
-            setzen("leonBesichtigung", z.besichtigung || 0);
-            setzen("leonBesichtigungSub", "heute: " + (z.heute_besichtigung || 0));
+            setzen("leonRueckruf", z.rueckruf || 0);
+            setzen("leonKeinInteresse", z.kein_interesse || 0);
+            setzen("leonOhneErgebnis", ohneErgebnis);
+
+            breite("leonBalkenGespraech", gespraech, gesendet);
+            breite("leonBalkenNicht", z.nicht_erreicht || 0, gesendet);
+            breite("leonBalkenFehler", z.fehler || 0, gesendet);
+
+            setzen("leonMonatAngerufen", z.monat_angerufen || 0);
 
             if (k) {
                 setzen("leonAnruflisteHeute", k.firmen);
                 setzen("leonAnruflisteWorkflowCount", k.firmen);
                 setzen("leonAnruflisteHeuteSub", k.kampagnen
-                    ? k.kampagnen + (k.kampagnen === 1 ? " Kampagne" : " Kampagnen") + " heute · " + k.wartend + " warten"
+                    ? k.kampagnen + (k.kampagnen === 1 ? " Kampagne" : " Kampagnen") + " · " + k.wartend + " warten"
                     : "heute noch keine Kampagne");
             } else {
                 setzen("leonAnruflisteHeuteSub", "Leon gerade nicht erreichbar");
@@ -9030,6 +9361,7 @@ document.addEventListener("DOMContentLoaded", function() {
     }
 
     document.addEventListener("DOMContentLoaded", function () {
+        monatsnamen();
         kgLeonUebersichtLaden();
         setInterval(kgLeonUebersichtLaden, 120000);
     });
