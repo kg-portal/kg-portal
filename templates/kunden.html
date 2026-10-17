@@ -105,13 +105,11 @@
     </div>
 
     <div class="kp-tile" style="--i:3">
-      <div class="kp-lbl">Laufzeit <em>aktuelle Verträge</em></div>
-      <div class="kp-split" id="kpKLaufBar"></div>
-      <ul class="kp-leg" id="kpKLaufLeg" style="margin-top:12px"></ul>
-      <div class="kp-mini">
-        <div class="kp-ico orange"><svg viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2.5M9 2h6"/></svg></div>
-        <div><b id="kpKBald">–</b><span>enden in den nächsten 90 Tagen</span></div>
-      </div>
+      <div class="kp-lbl">Vertragsenden <em>nächste 12 Monate</em></div>
+      <div class="kp-ve-kopf"><b id="kpVeN">–</b><span id="kpVeText"></span></div>
+      <svg class="kp-ve-leiste" id="kpVeLeiste" viewBox="0 0 240 64" aria-hidden="true"></svg>
+      <div class="kp-ve-liste" id="kpVeListe"></div>
+      <div class="kp-ve-fuss" id="kpVeUnbef"></div>
     </div>
 
     <div class="kp-tile" style="--i:4">
@@ -2067,6 +2065,48 @@
     .kp-split i,
     .kp-rang-z s i { animation-name:kpBreiteW; }
 
+    /* ---------- Vertragsenden (ersetzt Laufzeit-Balken) ---------- */
+    .kp-ve-kopf { display:flex; align-items:baseline; gap:8px; margin-top:10px; }
+    .kp-ve-kopf b { font-size:30px; font-weight:900; letter-spacing:-1px; line-height:1.1; }
+    .kp-ve-kopf span { font-size:12.5px; font-weight:700; color:#64748b; line-height:1.3; }
+    .kp-ve-leiste { display:block; width:100%; height:auto; margin-top:6px; overflow:visible; }
+    .kp-ve-liste { display:grid; grid-template-columns:minmax(0,1fr); gap:6px; margin-top:4px; }
+    .kp-ve-item {
+      display:flex;
+      align-items:center;
+      gap:8px;
+      padding:7px 10px;
+      border-radius:12px;
+      background:#f8fafc;
+      border:1px solid #e2e8f0;
+      font-size:12.5px;
+    }
+    .kp-ve-item b { font-weight:800; color:#0f172a; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .kp-ve-item span { margin-left:auto; font-weight:900; color:#475569; white-space:nowrap; }
+    .kp-ve-item.bald { background:#fff7ed; border-color:#fed7aa; }
+    .kp-ve-item.bald span { color:#c2410c; }
+    .kp-ve-item.gek span { color:#b91c1c; }
+    .kp-ve-leer {
+      padding:9px 11px;
+      border-radius:12px;
+      background:#f0fdf4;
+      border:1px solid #bbf7d0;
+      font-size:12.5px;
+      font-weight:800;
+      color:#15803d;
+    }
+    .kp-ve-fuss { display:flex; align-items:center; gap:8px; margin-top:10px; font-size:12.5px; font-weight:800; color:#15803d; }
+    .kp-ve-fuss i {
+      width:20px;
+      height:20px;
+      border-radius:7px;
+      background:#dcfce7;
+      display:grid;
+      place-items:center;
+      font-style:normal;
+      font-size:12px;
+    }
+
     /* ---------- Umsatzanteil (neu, nur lesend) ---------- */
     .kp-tile.kp-anteil { grid-column:span 12; }
     .kp-anteil-row {
@@ -2601,24 +2641,47 @@ document.addEventListener("DOMContentLoaded", function () {
         '</b><div class="kp-bar"><i style="width:' + Math.max(k.betrag / max * 100, 3).toFixed(1) + '%;animation-delay:' + (350 + i * 120) + 'ms"></i></div></div>';
     }).join("");
 
-    // 3) Laufzeit
+    // 3) Vertragsenden: alle Verträge mit Ende in den nächsten 12 Monaten (auch gekündigte, die noch laufen)
     var unbef = aktuell.filter(function (k) { return k.laufzeit !== "befristet"; }).length;
-    var bef = aktuell.length - unbef;
-    var lauf = [
-      { n: "Unbefristet", v: unbef, c: "#2563eb" },
-      { n: "Befristet", v: bef, c: "#f59e0b" }
-    ];
-    var gesamt = Math.max(aktuell.length, 1);
-    document.getElementById("kpKLaufBar").innerHTML = lauf.filter(function (t) { return t.v; }).map(function (t, i) {
-      return '<i style="width:' + (t.v / gesamt * 100).toFixed(1) + '%;background:' + t.c + ';animation-delay:' + (350 + i * 140) + 'ms"></i>';
-    }).join("");
-    legende(document.getElementById("kpKLaufLeg"), lauf);
     var heute = new Date(); heute.setHours(0, 0, 0, 0);
-    var grenze = new Date(heute.getTime() + 90 * 86400000);
-    var bald = aktuell.filter(function (k) { return k.ende && k.ende >= heute && k.ende <= grenze; });
-    var baldEl = document.getElementById("kpKBald");
-    baldEl.textContent = String(bald.length);
-    if (bald.length) baldEl.parentNode.title = bald.map(function (k) { return k.firma; }).join(", ");
+    var tag = 86400000, jahr = new Date(heute.getTime() + 365 * tag);
+    var enden = kunden.filter(function (k) { return k.ende && k.ende >= heute && k.ende <= jahr; })
+      .sort(function (a, b) { return a.ende - b.ende; });
+    function tage(k) { return Math.round((k.ende - heute) / tag); }
+    function dmy(d) { return ("0" + d.getDate()).slice(-2) + "." + ("0" + (d.getMonth() + 1)).slice(-2) + "." + d.getFullYear(); }
+    var bald90 = enden.filter(function (k) { return tage(k) <= 90; }).length;
+    document.getElementById("kpVeN").textContent = String(enden.length);
+    document.getElementById("kpVeText").textContent = enden.length
+      ? (enden.length === 1 ? "Vertrag endet" : "Verträge enden") + (bald90 ? " · " + bald90 + " in ≤ 90 Tagen" : "")
+      : "Verträge enden";
+    var L = 8, R = 232, Y = 36;
+    function xp(d) { return L + Math.min(Math.max((d - heute) / (365 * tag), 0), 1) * (R - L); }
+    var MON = ["Jan", "Feb", "Mär", "Apr", "Mai", "Jun", "Jul", "Aug", "Sep", "Okt", "Nov", "Dez"];
+    var g = '<line x1="' + L + '" x2="' + R + '" y1="' + Y + '" y2="' + Y + '" stroke="rgba(100,116,139,0.18)" stroke-width="6" stroke-linecap="round"/>' +
+      '<text x="' + L + '" y="14" font-size="9.5" font-weight="900" fill="#2563eb">heute</text>' +
+      '<circle cx="' + L + '" cy="' + Y + '" r="4" fill="#2563eb"/>';
+    for (var mi = 1; mi <= 12; mi++) {
+      var md = new Date(heute.getFullYear(), heute.getMonth() + mi, 1);
+      if (md > jahr) break;
+      var mx = xp(md);
+      g += '<line x1="' + mx.toFixed(1) + '" x2="' + mx.toFixed(1) + '" y1="' + (Y + 6) + '" y2="' + (Y + 10) + '" stroke="#cbd5e1"/>';
+      if (mi % 3 === 1) g += '<text x="' + mx.toFixed(1) + '" y="' + (Y + 24) + '" text-anchor="middle" font-size="9.5" font-weight="700" fill="#94a3b8">' + MON[md.getMonth()] + '</text>';
+    }
+    enden.forEach(function (k, i) {
+      var x = xp(k.ende), c = k.status === "gekuendigt" ? "#ef4444" : (tage(k) <= 90 ? "#f59e0b" : "#6366f1");
+      g += '<circle cx="' + x.toFixed(1) + '" cy="' + Y + '" r="10" fill="' + c + '" opacity=".18"/>' +
+        '<circle cx="' + x.toFixed(1) + '" cy="' + Y + '" r="6" fill="' + c + '" stroke="#ffffff" stroke-width="2"><title>' + esc(k.firma + " · " + dmy(k.ende)) + '</title></circle>';
+      if (i === 0) g += '<text x="' + Math.min(Math.max(x, 40), 216).toFixed(1) + '" y="14" text-anchor="middle" font-size="10" font-weight="900" fill="' + c + '">' + dmy(k.ende).slice(0, 6) + '</text>';
+    });
+    document.getElementById("kpVeLeiste").innerHTML = g;
+    document.getElementById("kpVeListe").innerHTML = enden.length
+      ? enden.slice(0, 2).map(function (k) {
+          var t = tage(k);
+          return '<div class="kp-ve-item' + (k.status === "gekuendigt" ? " gek" : (t <= 90 ? " bald" : "")) + '" title="' + esc(k.firma + " · endet am " + dmy(k.ende)) + '"><b>' + esc(k.firma) +
+            '</b><span>' + (t === 0 ? "heute" : "in " + t + (t === 1 ? " Tag" : " Tagen")) + '</span></div>';
+        }).join("") + (enden.length > 2 ? '<div class="kp-ve-mehr" style="font-size:12px;font-weight:700;color:#64748b">+ ' + (enden.length - 2) + ' weitere</div>' : "")
+      : '<div class="kp-ve-leer">✓ Kein Vertrag endet in den nächsten 12 Monaten</div>';
+    document.getElementById("kpVeUnbef").innerHTML = '<i>✓</i>' + unbef + (unbef === 1 ? " Vertrag" : " Verträge") + " unbefristet";
 
     // 4) Häufigkeit (Rangliste: alle lesbar, ab 7 Arten Top 5 + „Weitere“)
     var zaehl = {};
