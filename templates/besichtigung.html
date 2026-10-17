@@ -446,6 +446,100 @@ body{background:#edf2f7;font-family:'Inter',sans-serif;color:#0f172a}
   .card { box-shadow: none !important; border: 1px solid #eee !important; }
   body { background: #fff !important; }
 }
+
+/* =========================================================
+   BESICHTIGUNG IM BENTO-DESIGN (Entwurf 2) – nur Aussehen,
+   alle IDs und Funktionen bleiben wie vorher
+========================================================= */
+body{background:#f4f7fc}
+.layout{gap:16px}
+.bt-grid{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:16px}
+.bt-kachel{position:relative;overflow:hidden;background:#fff;border-radius:24px;padding:20px 22px;border:1px solid #e6ebf2;box-shadow:0 18px 40px -30px rgba(15,23,42,.45);
+  animation:btRein .7s cubic-bezier(.22,1,.36,1) backwards;animation-delay:calc(var(--i,0)*70ms)}
+@keyframes btRein{from{opacity:0;transform:translateY(16px) scale(.985)}to{opacity:1;transform:none}}
+.bt-s3{grid-column:span 3}.bt-s4{grid-column:span 4}.bt-s5{grid-column:span 5}.bt-s8{grid-column:span 8}.bt-s12{grid-column:span 12}
+.bt-lbl{display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:11.5px;font-weight:800;letter-spacing:1.4px;text-transform:uppercase;color:#64748b}
+.bt-lbl em{font-style:normal;letter-spacing:.6px;color:#94a3b8}
+.bt-blau{border:0;color:#fff;background:radial-gradient(520px 230px at 90% -20%,rgba(255,255,255,.26),transparent 60%),radial-gradient(420px 220px at 0 120%,rgba(56,189,248,.25),transparent 60%),linear-gradient(135deg,#1e40af,#2563eb);box-shadow:0 24px 50px -28px rgba(29,78,216,.7)}
+.bt-blau .bt-lbl{color:#bfdbfe}
+.bt-blau .bt-kunde{margin:8px 0 2px;font-size:30px;font-weight:900;letter-spacing:-.8px;line-height:1.15;min-height:34px;word-break:break-word}
+.bt-blau .bt-objekt{display:flex;gap:6px;align-items:center;margin:0 0 16px;color:#dbeafe;font-weight:700;font-size:14px;min-height:20px}
+.bt-knoepfe{display:flex;gap:8px;flex-wrap:wrap}
+.bt-knoepfe button{display:flex;align-items:center;gap:8px;padding:11px 15px;border-radius:13px;font-weight:900;font-size:13px;font-family:inherit;cursor:pointer;background:rgba(255,255,255,.14);color:#fff;border:1px solid rgba(255,255,255,.3);transition:translate .2s,background-color .2s}
+.bt-knoepfe button:hover{translate:0 -2px;background:rgba(255,255,255,.22)}
+.bt-knoepfe button.weiss{background:#fff;color:#1e40af;border-color:#fff}
+.bt-knoepfe button b{display:grid;place-items:center;min-width:20px;height:20px;padding:0 6px;border-radius:7px;background:#fff;color:#1e40af;font-size:11px}
+.bt-termin{display:flex;gap:16px;align-items:center;margin-top:12px}
+.bt-blatt{flex:0 0 84px;border-radius:18px;overflow:hidden;text-align:center;box-shadow:0 10px 24px -14px #1e3a8a;border:1px solid #e2e8f0;background:#fff}
+.bt-blatt em{display:block;font-style:normal;background:linear-gradient(135deg,#ef4444,#dc2626);color:#fff;font-weight:900;font-size:12px;padding:5px;letter-spacing:1px}
+.bt-blatt b{display:block;font-size:36px;font-weight:900;padding:6px 0 0;color:#0f172a}.bt-blatt small{display:block;font-weight:800;color:#64748b;padding-bottom:8px;font-size:11px}
+.bt-termin h4{margin:0;font-size:19px;font-weight:900;color:#0f172a}.bt-termin span{display:block;color:#64748b;font-weight:700;margin-top:3px;font-size:13px}
+.bt-pill{display:inline-flex !important;gap:6px;align-items:center;margin-top:8px !important;padding:5px 10px;border-radius:999px;background:#dcfce7;color:#15803d !important;font-weight:900 !important;font-size:12px !important}
+.bt-pill.grau{background:#f1f5f9;color:#64748b !important}
+.bt-termin .bt-pill span{display:inline;margin:0;color:inherit;font-size:inherit}
+.bt-kontakt{display:flex;gap:14px;align-items:center;margin-top:12px;min-width:0}
+.bt-av{flex:0 0 56px;width:56px;height:56px;border-radius:18px;display:grid;place-items:center;font-weight:900;font-size:20px;color:#fff;background:linear-gradient(135deg,#6366f1,#4338ca)}
+.bt-kontakt h4{margin:0;font-size:16px;font-weight:900;color:#0f172a;word-break:break-word}.bt-kontakt span{display:block;color:#64748b;font-weight:700;font-size:12.5px;margin-top:2px;word-break:break-all}
+.bt-kb{display:flex;gap:8px;margin-top:14px}.bt-kb a{flex:1;display:flex;gap:6px;align-items:center;justify-content:center;padding:10px;border-radius:12px;background:#f1f5f9;font-weight:900;font-size:12.5px;color:#1e40af;text-decoration:none;transition:translate .2s,background-color .2s}
+.bt-kb a:hover{translate:0 -2px;background:#e0e7ff}.bt-kb a.aus{opacity:.45;pointer-events:none}
+/* KG Scan */
+.kg-scan-result-card.bt-kachel{padding:20px 22px;border-radius:24px;box-shadow:0 18px 40px -30px rgba(15,23,42,.45);border-color:#e6ebf2}
+.kg-scan-result-header{margin-bottom:12px}
+.kg-scan-result-title{font-size:11.5px;font-weight:800;letter-spacing:1.4px;text-transform:uppercase;color:#64748b}
+.kg-scan-result-status{color:#16a34a;font-weight:800}
+.kg-scan-3d-view{min-height:520px;border-radius:20px;border:1px solid #e3ebf8;background:radial-gradient(circle at 50% 25%,#fff,#e9f0fc)}
+.bt-aufmass .kg-scan-info-panel{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+.bt-aufmass .kg-scan-info-box{display:flex;gap:10px;align-items:center;padding:13px;border-radius:16px;background:#f8fbff;border:1px solid #e6edf7;min-width:0;transition:translate .2s}
+.bt-aufmass .kg-scan-info-box:hover{translate:0 -2px}
+.bt-aufmass .kg-scan-info-box > div:last-child{min-width:0}
+.bt-ic{flex:0 0 38px;width:38px;height:38px;border-radius:12px;display:grid;place-items:center;color:#fff}
+.bt-aufmass .kg-scan-info-label{font-size:10.5px;letter-spacing:.3px;order:2}
+.bt-aufmass .kg-scan-info-value{font-size:17px;font-weight:900;color:#0f172a;margin-top:0}
+.bt-aufmass .kg-scan-info-box.breit{grid-column:span 2;background:linear-gradient(135deg,#eff6ff,#dbeafe);border-color:#bfdbfe}
+/* Leistungen-Übersicht */
+.bt-lk{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px;margin-top:12px}
+.bt-lk > div{position:relative;border-radius:18px;padding:14px;background:var(--h);overflow:hidden;transition:translate .2s}
+.bt-lk > div:hover{translate:0 -2px}
+.bt-lk h5{margin:0 0 8px;font-size:13px;font-weight:900;color:#0f172a;padding-right:96px}
+.bt-lk b{display:block;font-size:22px;font-weight:900;color:var(--f)}
+.bt-lk span{display:block;font-size:11.5px;font-weight:800;color:#475569;margin-top:3px}
+.bt-lk em{position:absolute;right:12px;top:12px;font-style:normal;font-size:11px;font-weight:900;padding:4px 8px;border-radius:999px;background:#fff;color:var(--f);max-width:100px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bt-leer{padding:18px;border-radius:16px;border:2px dashed #dbe3ef;color:#64748b;font-weight:800;font-size:13px;text-align:center;margin-top:12px}
+/* Elemente / Sonstiges / Kalkulation */
+.bt-el{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px}
+.bt-el > div{border-radius:18px;padding:14px 8px;text-align:center;border:2px solid var(--f);background:#fff;cursor:pointer;transition:translate .2s}
+.bt-el > div:hover{translate:0 -2px}
+.bt-el i{display:grid;place-items:center;width:40px;height:40px;margin:0 auto 6px;border-radius:12px;background:var(--f);color:#fff}
+.bt-el b{display:block;font-size:28px;font-weight:900;color:var(--f)}.bt-el span{font-size:12px;font-weight:800;color:#64748b}
+.bt-so > div{display:flex;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px dashed #e2e8f0;font-size:13px;font-weight:800;color:#0f172a}
+.bt-so > div span{color:#64748b;flex:0 0 auto}.bt-so > div b{text-align:right}
+.bt-tg{display:flex;gap:6px;margin-top:12px;flex-wrap:wrap}.bt-tg span{width:38px;height:38px;border-radius:12px;display:grid;place-items:center;font-weight:900;font-size:12px;background:#f1f5f9;color:#94a3b8}
+.bt-tg span.an{background:linear-gradient(135deg,#3b82f6,#1d4ed8);color:#fff}
+.bt-kk{display:flex;gap:16px;align-items:center;margin-top:8px}
+.bt-donut{flex:0 0 150px}.bt-donut svg{display:block;width:150px;height:150px}
+.bt-kz{min-width:0;flex:1}.bt-kz > b{display:block;font-size:32px;font-weight:900;letter-spacing:-1px;color:#1d4ed8;line-height:1.1}
+.bt-kz > span{display:block;color:#64748b;font-weight:700;font-size:12px}
+.bt-lg{margin-top:8px;max-height:150px;overflow:auto}.bt-lg div{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:800;margin-top:5px;color:#0f172a}
+.bt-lg i{flex:0 0 10px;height:10px;border-radius:3px}.bt-lg div span{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.bt-lg div b{flex:0 0 auto}
+.bt-hinweis{margin-top:10px;font-size:11.5px;font-weight:700;color:#94a3b8}
+.bt-einmalig{margin-top:8px;padding:8px 10px;border-radius:12px;background:#fff7ed;color:#9a3412;font-size:12px;font-weight:800}
+/* Bearbeitungs-Karten im gleichen Stil */
+#sortableSections{display:flex;flex-direction:column;gap:16px}
+#sortableSections > .card{border-radius:24px;border-color:#e6ebf2;box-shadow:0 18px 40px -30px rgba(15,23,42,.45);margin:0}
+/* untere Leiste mit Summen und Speichern / Senden */
+.action-footer.bt-leiste{display:flex !important;align-items:center;gap:14px;background:#fff;border-radius:24px;padding:18px 22px;border:1px solid #e6ebf2;box-shadow:0 18px 40px -30px rgba(15,23,42,.45);margin-top:0}
+.bt-sum{flex:1;display:flex;gap:30px;flex-wrap:wrap}.bt-sum b{display:block;font-size:24px;font-weight:900;color:#0f172a}.bt-sum span{font-size:12px;font-weight:800;color:#64748b}
+.bt-sum .g b{color:#1d4ed8}
+.action-footer.bt-leiste .btn-action{flex:0 0 auto;width:auto;min-width:170px;padding:16px 28px;border-radius:14px;font-size:15px;transition:translate .2s,box-shadow .2s}
+.action-footer.bt-leiste .btn-action:hover{translate:0 -2px}
+.action-footer.bt-leiste .btn-speichern{background:linear-gradient(135deg,#16a34a,#15803d);box-shadow:0 14px 26px -14px #15803d}
+.action-footer.bt-leiste .btn-senden{background:linear-gradient(135deg,#ef4444,#dc2626);box-shadow:0 14px 26px -14px #dc2626}
+/* Besichtigungstermine-Leiste passend */
+.besichtigung-picker{border-radius:24px !important;border-color:#e6ebf2 !important;box-shadow:0 18px 40px -30px rgba(15,23,42,.45) !important}
+@media (max-width:1200px){.bt-s3,.bt-s4{grid-column:span 6}.bt-s5,.bt-s8{grid-column:span 12}}
+@media (max-width:760px){.bt-s3,.bt-s4,.bt-s5,.bt-s8{grid-column:span 12}.action-footer.bt-leiste{flex-wrap:wrap}.action-footer.bt-leiste .btn-action{flex:1}}
+@media (prefers-reduced-motion:reduce){.bt-kachel{animation:none}}
+.bt-aufmass .kg-scan-info-box > div:last-child{display:flex;flex-direction:column}
 </style>
 
 <div class="container">
@@ -475,51 +569,39 @@ body{background:#edf2f7;font-family:'Inter',sans-serif;color:#0f172a}
       </div>
     </div>
 
-        <!-- HERO ALANI -->
-    <div class="card hero">
-      <div class="hero-row">
-        <div class="hero-left-content hero-header-titles">
-          <h1>KG Besichtigungs- & Kalkulationssystem</h1>
-          <h2>Reinigungsanalyse & Angebot</h2>
-        </div>
-        <div class="hero-btn-wrapper">
-          <div class="hero-mini" onclick="toggleLeistungen()">
-            <button type="button" class="hero-mini-plus">+</button>
-            <span class="hero-mini-title">Leistung</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="hero-row">
-        <div class="hero-left-grid">
-          <div class="info-box"><div class="info-label">Kunde</div><div class="info-value" id="besichtigungKundeText">{{Kunde}}</div></div>
-<div class="info-box"><div class="info-label">Objekt</div><div class="info-value" id="besichtigungObjektText">{{Adresse}}, {{Plz}} {{Ort}}</div></div>
-        </div>
-        <div class="hero-btn-wrapper">
-          <div class="hero-mini" onclick="toggleElemente()">
-            <div class="hero-mini-plus">+</div>
-            <span class="hero-mini-title">Elemente</span>
-            <span class="hero-mini-sub">(AP / PC / Müll)</span>
-          </div>
+    <!-- KOPF IM BENTO-DESIGN (IDs wie vorher) -->
+    <div class="bt-grid">
+      <div class="bt-kachel bt-blau bt-s5" data-kg-skip style="--i:0;">
+        <div class="bt-lbl">KG Besichtigung · Kalkulation</div>
+        <div class="bt-kunde" id="besichtigungKundeText">{{Kunde}}</div>
+        <div class="bt-objekt"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s7-7.5 7-13a7 7 0 0 0-14 0c0 5.5 7 13 7 13z"/><circle cx="12" cy="9" r="2.5"/></svg><span id="besichtigungObjektText">{{Adresse}}, {{Plz}} {{Ort}}</span></div>
+        <div class="bt-knoepfe">
+          <button type="button" class="weiss" onclick="toggleLeistungen()"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Leistung</button>
+          <button type="button" onclick="toggleElemente()"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>Elemente</button>
+          <button type="button" onclick="toggleSonstiges()"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 3 1.9 5.8L20 11l-6.1 2.2L12 19l-1.9-5.8L4 11l6.1-2.2z"/></svg>Sonstiges</button>
+          <button type="button" onclick="kgBtTermine()"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>Termine <b id="btTermineZahl">0</b></button>
         </div>
       </div>
-
-      <div class="hero-row">
-        <div class="hero-left-grid">
-          <div class="info-box"><div class="info-label">Ansprechpartner</div><div class="info-value" id="besichtigungAnsprechpartnerText">{{Ansprechpartner}}</div></div>
-<div class="info-box"><div class="info-label">Termin</div><div class="info-value" id="besichtigungTerminText">{{Datum}} – {{Uhrzeit}}</div></div>
+      <div class="bt-kachel bt-s4" style="--i:1;">
+        <div class="bt-lbl">Termin</div>
+        <div class="bt-termin">
+          <div class="bt-blatt"><em id="btBlattMonat">–</em><b id="btBlattTag">–</b><small id="btBlattWochentag">–</small></div>
+          <div style="min-width:0;"><h4 id="btTerminZeit">Besichtigung</h4><span id="btTerminOrt">Noch keine Firma gestartet</span><span class="bt-pill grau" id="btTerminStatus"><span id="besichtigungTerminText">{{Datum}} – {{Uhrzeit}}</span></span></div>
         </div>
-        <div class="hero-btn-wrapper">
-          <div class="hero-mini" onclick="toggleSonstiges()">
-            <div class="hero-mini-plus">+</div>
-            <span class="hero-mini-title">Sonstiges</span>
-          </div>
+      </div>
+      <div class="bt-kachel bt-s3" style="--i:2;">
+        <div class="bt-lbl">Ansprechpartner</div>
+        <div class="bt-kontakt">
+          <div class="bt-av" id="btAvatar">–</div>
+          <div style="min-width:0;"><h4 id="besichtigungAnsprechpartnerText">{{Ansprechpartner}}</h4><span id="btTelefon"></span><span id="btEmail"></span></div>
         </div>
+        <div class="bt-kb"><a id="btAnrufen" class="aus" href="#"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2z"/></svg>Anrufen</a><a id="btMail" class="aus" href="#"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 6L2 7"/></svg>Mail</a></div>
       </div>
     </div>
 
     <!-- KG SCAN 3D ERGEBNIS -->
-    <div class="kg-scan-result-card" id="kgScanResultCard">
+    <div class="bt-grid">
+    <div class="kg-scan-result-card bt-kachel bt-s8" id="kgScanResultCard" style="--i:3;">
       <div class="kg-scan-result-header">
         <div class="kg-scan-result-title">KG Scan · 3D Objekt</div>
         <div class="kg-scan-result-status" id="kgScanResultStatus">
@@ -527,53 +609,56 @@ body{background:#edf2f7;font-family:'Inter',sans-serif;color:#0f172a}
         </div>
       </div>
 
-      <div class="kg-scan-result-body">
-
         <div class="kg-scan-3d-view" id="kgScan3DView">
           <div class="kg-scan-3d-empty" id="kgScan3DEmpty">
             Nach dem iPhone-Scan erscheint hier das 3D-Modell.
           </div>
         </div>
 
+    </div>
+
+    <div class="bt-kachel bt-aufmass bt-s4" style="--i:4;">
+        <div class="bt-lbl">Aufmaß aus dem Scan</div>
         <div class="kg-scan-info-panel">
 
-          <div class="kg-scan-info-box">
-            <div class="kg-scan-info-label">Gesamtfläche</div>
-            <div class="kg-scan-info-value" id="kgScanTotalM2">0,00 m²</div>
+          <div class="kg-scan-info-box"><i class="bt-ic" style="background:linear-gradient(135deg,#2563eb,#2563ebcc)"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3h18v18H3z"/><path d="M3 9h18M9 21V9"/></svg></i><div><div class="kg-scan-info-label">Gesamtfläche</div>
+            <div class="kg-scan-info-value" id="kgScanTotalM2">0,00 m²</div></div>
           </div>
 
-          <div class="kg-scan-info-box">
-            <div class="kg-scan-info-label">Räume</div>
-            <div class="kg-scan-info-value" id="kgScanRoomCount">0</div>
+          <div class="kg-scan-info-box"><i class="bt-ic" style="background:linear-gradient(135deg,#7c3aed,#7c3aedcc)"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 21V8l9-5 9 5v13"/><path d="M9 21v-6h6v6"/></svg></i><div><div class="kg-scan-info-label">Räume</div>
+            <div class="kg-scan-info-value" id="kgScanRoomCount">0</div></div>
           </div>
 
-          <div class="kg-scan-info-box">
-            <div class="kg-scan-info-label">Fenster</div>
-            <div class="kg-scan-info-value" id="kgScanWindowCount">0</div>
+          <div class="kg-scan-info-box"><i class="bt-ic" style="background:linear-gradient(135deg,#0891b2,#0891b2cc)"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="3" width="16" height="18" rx="1.5"/><path d="M12 3v18M4 12h16"/></svg></i><div><div class="kg-scan-info-label">Fenster</div>
+            <div class="kg-scan-info-value" id="kgScanWindowCount">0</div></div>
           </div>
 
-          <div class="kg-scan-info-box">
-            <div class="kg-scan-info-label">Fensterfläche</div>
-            <div class="kg-scan-info-value" id="kgScanWindowM2">0,00 m²</div>
+          <div class="kg-scan-info-box"><i class="bt-ic" style="background:linear-gradient(135deg,#0ea5e9,#0ea5e9cc)"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="3" width="16" height="18" rx="1.5"/><path d="M12 3v18M4 12h16"/></svg></i><div><div class="kg-scan-info-label">Fensterfläche</div>
+            <div class="kg-scan-info-value" id="kgScanWindowM2">0,00 m²</div></div>
           </div>
 
-          <div class="kg-scan-info-box">
-            <div class="kg-scan-info-label">Türen</div>
-            <div class="kg-scan-info-value" id="kgScanDoorCount">0</div>
+          <div class="kg-scan-info-box"><i class="bt-ic" style="background:linear-gradient(135deg,#f59e0b,#f59e0bcc)"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 21V4a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v17M3 21h18"/><circle cx="15" cy="12" r="1"/></svg></i><div><div class="kg-scan-info-label">Türen</div>
+            <div class="kg-scan-info-value" id="kgScanDoorCount">0</div></div>
           </div>
 
-          <div class="kg-scan-info-box">
-            <div class="kg-scan-info-label">WC / Pissoir / Waschbecken</div>
-            <div class="kg-scan-info-value" id="kgScanSanitaer">0 / 0 / 0</div>
+          <div class="kg-scan-info-box"><i class="bt-ic" style="background:linear-gradient(135deg,#ef4444,#ef4444cc)"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 3v8a5 5 0 0 0 10 0V3M5 11h14M9 21h6l-1-5h-4z"/></svg></i><div><div class="kg-scan-info-label">WC / Pissoir / Waschbecken</div>
+            <div class="kg-scan-info-value" id="kgScanSanitaer">0 / 0 / 0</div></div>
           </div>
 
-          <div class="kg-scan-info-box">
-            <div class="kg-scan-info-label">Tische / Stühle / PC</div>
-            <div class="kg-scan-info-value" id="kgScanObjects">0 / 0 / 0</div>
+          <div class="kg-scan-info-box"><i class="bt-ic" style="background:linear-gradient(135deg,#16a34a,#16a34acc)"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 9h18M5 9v11M19 9v11M3 9l2-5h14l2 5"/></svg></i><div><div class="kg-scan-info-label">Tische / Stühle / PC</div>
+            <div class="kg-scan-info-value" id="kgScanObjects">0 / 0 / 0</div></div>
           </div>
+
+          <div class="kg-scan-info-box breit"><i class="bt-ic" style="background:linear-gradient(135deg,#1d4ed8,#1e40af)"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3h18v18H3z"/><path d="M3 9h18M9 21V9"/></svg></i><div><div class="kg-scan-info-label">Erfasst in Leistungen</div><div class="kg-scan-info-value" id="btErfasstM2">0,00 m²</div></div></div>
 
         </div>
-      </div>
+    </div>
+    </div>
+
+    <!-- LEISTUNGEN-ÜBERSICHT (live aus den Eingaben unten) -->
+    <div class="bt-kachel" style="--i:5;">
+      <div class="bt-lbl">Leistungen <em id="btLeistungenSumme">Insgesamt 0,00 m²</em></div>
+      <div id="btLeistungen"><div class="bt-leer">Noch keine Leistung erfasst – oben „+ Leistung“ wählen.</div></div>
     </div>
 
     <!-- SÜRÜKLENEBİLİR ALANLAR -->
@@ -908,6 +993,29 @@ body{background:#edf2f7;font-family:'Inter',sans-serif;color:#0f172a}
       </div>
     </div>
 
+    <!-- ELEMENTE · SONSTIGES · KALKULATION (Übersicht, live) -->
+    <div class="bt-grid">
+      <div class="bt-kachel bt-s4" style="--i:6;">
+        <div class="bt-lbl">Elemente <em>tippen = bearbeiten</em></div>
+        <div class="bt-el">
+          <div style="--f:#2563eb;" onclick="kgBtOeffnen('elementeBox', toggleElemente)"><i><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 9h18M5 9v11M19 9v11M3 9l2-5h14l2 5"/></svg></i><b id="btElA">0</b><span>Arbeitstische</span></div>
+          <div style="--f:#16a34a;" onclick="kgBtOeffnen('elementeBox', toggleElemente)"><i><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/></svg></i><b id="btElB">0</b><span>PC / Monitor</span></div>
+          <div style="--f:#f59e0b;" onclick="kgBtOeffnen('elementeBox', toggleElemente)"><i><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18M8 6V4h8v2M6 6l1 15h10l1-15"/></svg></i><b id="btElC">0</b><span>Müllbehälter</span></div>
+        </div>
+      </div>
+      <div class="bt-kachel bt-s4" style="--i:7;">
+        <div class="bt-lbl">Sonstiges</div>
+        <div class="bt-so" id="btSonstiges"><div><span>Noch nichts gewählt</span><b>–</b></div></div>
+        <div class="bt-tg" id="btTage"></div>
+      </div>
+      <div class="bt-kachel bt-s4" style="--i:8;">
+        <div class="bt-lbl">Kalkulation <em>Richtwert</em></div>
+        <div class="bt-kk"><div class="bt-donut" id="btDonut"></div><div class="bt-kz"><b id="btNetto">0,00 €</b><span>netto / Monat</span><div class="bt-lg" id="btLegende"></div></div></div>
+        <div id="btEinmalig"></div>
+        <div class="bt-hinweis">Zeit aus Flächen, Elementen und Sonstiges · Stundensatz <span id="btSatz">–</span></div>
+      </div>
+    </div>
+
     <!-- ACTION FOOTER BUTTONS -->
     <form method="POST" action="/besichtigung" id="besichtigungForm">
     <input type="hidden" id="besichtigungTageslisteIdInput" name="tagesliste_id" value="">
@@ -923,7 +1031,8 @@ body{background:#edf2f7;font-family:'Inter',sans-serif;color:#0f172a}
   <input type="hidden" id="besichtigungEmailInput" name="email" value="{{Email}}">
   <input type="hidden" id="besichtigungTelefonInput" name="telefon" value="{{Telefon}}">
 
-  <div class="action-footer">
+  <div class="action-footer bt-leiste">
+    <div class="bt-sum"><div class="g"><b id="btSumNetto">0,00 €</b><span>netto / Monat</span></div><div><b id="btSumStd">0,0 Std.</b><span>pro Monat</span></div><div><b id="btSumSatz">–</b><span>Stundensatz</span></div><div><b id="btSumTage">–</b><span>Einsatztage</span></div></div>
         <button type="button" class="btn-action btn-speichern" onclick="finishBesichtigung('speichern')">Speichern</button>
     <button type="button" class="btn-action btn-senden" onclick="finishBesichtigung('senden')">Senden</button>
   </div>
@@ -3927,5 +4036,250 @@ window.addEventListener('DOMContentLoaded', () => {
   if(window.Sortable) new Sortable(document.getElementById('sortableSections'), { animation: 180, handle: '.drag-handle', draggable: '.sortable-section' });
 });
 </script>
+
+
+{% raw %}
+<script>
+/* Besichtigung im Bento-Design: Kopf-Kacheln, Übersichten und Kalkulation (nur lesend, ändert keine Daten) */
+(function () {
+  const WTAG = ["Sonntag", "Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag"];
+  const MON = ["JAN", "FEB", "MÄR", "APR", "MAI", "JUN", "JUL", "AUG", "SEP", "OKT", "NOV", "DEZ"];
+  const FARBE = { "büro": ["#2563eb", "#dbeafe"], "wc": ["#ef4444", "#fee2e2"], "küche": ["#16a34a", "#dcfce7"], "flur": ["#f59e0b", "#fef3c7"],
+    "dusche": ["#0891b2", "#cffafe"], "fenster": ["#0ea5e9", "#e0f2fe"], "jalousien": ["#6366f1", "#e0e7ff"] };
+
+  function el(id) { return document.getElementById(id); }
+  function setze(id, wert) { const e = el(id); if (e) e.textContent = wert; }
+  function esc(t) { return String(t ?? "").replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" }[c]; }); }
+  function zahl(t) { const m = String(t || "").replace(/\./g, "").match(/(\d+(?:,\d+)?)/) || String(t || "").match(/(\d+(?:\.\d+)?)/); return m ? parseFloat(m[1].replace(",", ".")) || 0 : 0; }
+  function m2Zahl(t) { const m = String(t || "").match(/(\d+(?:[.,]\d+)?)/); return m ? parseFloat(m[1].replace(",", ".")) || 0 : 0; }
+  function de(x, n) { return Number(x || 0).toLocaleString("de-DE", { minimumFractionDigits: n, maximumFractionDigits: n }); }
+  function sichtbar(e) { return !!(e && (e.offsetWidth || e.offsetHeight || e.getClientRects().length)); }
+  function leerPlatzhalter(t) { t = String(t || "").trim(); return !t || /\{\{.*\}\}/.test(t) || /^[,\s–—-]*$/.test(t); }
+  function farbeFuer(name) { const n = String(name || "").toLowerCase(); for (const k in FARBE) if (n.indexOf(k) >= 0) return FARBE[k]; return ["#64748b", "#f1f5f9"]; }
+
+  /* ---------- Kopf ---------- */
+  window.kgBtTermine = function () {
+    if (typeof toggleBesichtigungPicker === "function") toggleBesichtigungPicker();
+    const p = el("besichtigungPicker");
+    if (p) p.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
+  window.kgBtOeffnen = function (boxId, fn) {
+    const box = el(boxId);
+    if (box && !sichtbar(box) && typeof fn === "function") fn();
+    const b = el(boxId);
+    if (b) setTimeout(function () { b.scrollIntoView({ behavior: "smooth", block: "center" }); }, 60);
+  };
+
+  function kopf() {
+    const jetzt = new Date();
+    setze("btBlattMonat", MON[jetzt.getMonth()]);
+    setze("btBlattTag", String(jetzt.getDate()));
+    setze("btBlattWochentag", WTAG[jetzt.getDay()]);
+    const kunde = el("besichtigungKundeText"), objekt = el("besichtigungObjektText");
+    const ap = el("besichtigungAnsprechpartnerText"), termin = el("besichtigungTerminText");
+    const gestartet = kunde && !leerPlatzhalter(kunde.textContent);
+    if (kunde && !gestartet && kunde.textContent.indexOf("{{") >= 0) kunde.textContent = "";
+    if (objekt && leerPlatzhalter(objekt.textContent)) objekt.textContent = gestartet ? "" : "Firma oben bei „Termine“ starten";
+    if (ap && leerPlatzhalter(ap.textContent)) ap.textContent = "–";
+    if (termin && leerPlatzhalter(termin.textContent)) termin.textContent = "Noch nicht gestartet";
+    const status = el("btTerminStatus");
+    if (status) status.classList.toggle("grau", !gestartet);
+    setze("btTerminZeit", gestartet ? "Heute vor Ort" : "Besichtigung");
+    setze("btTerminOrt", gestartet ? ((objekt && objekt.textContent) || "") : "Noch keine Firma gestartet");
+    const name = ap ? ap.textContent.trim() : "";
+    const initialen = name && name !== "–" ? name.replace(/^(Herr|Frau|Dr\.?)\s+/i, "").split(/\s+/).filter(Boolean).slice(0, 2).map(function (w) { return w[0]; }).join("").toUpperCase() : "–";
+    setze("btAvatar", initialen || "–");
+    const tel = (el("besichtigungTelefonInput") || {}).value || "";
+    const mail = (el("besichtigungEmailInput") || {}).value || "";
+    const telOk = !leerPlatzhalter(tel), mailOk = !leerPlatzhalter(mail) && mail.indexOf("@") > 0;
+    setze("btTelefon", telOk ? tel : "");
+    setze("btEmail", mailOk ? mail : "");
+    const a = el("btAnrufen"), m = el("btMail");
+    if (a) { a.href = telOk ? "tel:" + tel.replace(/[^\d+]/g, "") : "#"; a.classList.toggle("aus", !telOk); }
+    if (m) { m.href = mailOk ? "mailto:" + mail : "#"; m.classList.toggle("aus", !mailOk); }
+    const anzahl = el("besichtigungPickerCount");
+    setze("btTermineZahl", anzahl ? anzahl.textContent.trim() || "0" : "0");
+  }
+
+  /* ---------- Daten sammeln (wie buildBesichtigungData, plus Boden / Zähler / Felder je Leistung) ---------- */
+  function felderVon(root) {
+    const out = [];
+    root.querySelectorAll(".unterhalt-top-field").forEach(function (f) {
+      const label = (f.querySelector("label") || {}).textContent || "";
+      const values = [];
+      f.querySelectorAll("select").forEach(function (s) { const v = String(s.value || "").trim(); if (v && v !== "Bitte wählen") values.push(v); });
+      f.querySelectorAll("input").forEach(function (i) { if (i.type === "checkbox" && !i.checked) return; const v = String(i.value || "").trim(); if (v) values.push(v); });
+      const active = Array.from(f.querySelectorAll(".device-toggle-btn.active")).map(function (b) { return b.textContent.trim(); }).filter(Boolean);
+      out.push({ label: label.replace(/\s+/g, " ").trim(), values: values, active: active });
+    });
+    return out;
+  }
+
+  function titelVon(section) {
+    return typeof kgBesSectionTitle === "function" ? kgBesSectionTitle(section) : ((section.querySelector(".section-title") || {}).textContent || "").replace("Details", "").trim();
+  }
+
+  function sammeln() {
+    const gruppen = [], leistungenFelder = [];
+    let gid = 0;
+    document.querySelectorAll("#sortableSections .sortable-section").forEach(function (section) {
+      if (!sichtbar(section)) return;
+      const titel = titelVon(section);
+      if (!titel || titel === "Leistungen" || titel === "Elemente" || titel === "Sonstiges") return;
+      leistungenFelder.push({ leistung: titel, felder: felderVon(section) });
+      section.querySelectorAll(".room-group-wrapper").forEach(function (w) {
+        const lbl = w.querySelector(".room-mini-label");
+        if (!lbl) return;
+        const erste = lbl.querySelector("span");
+        const bereich = ((erste || lbl).textContent || "").trim();
+        let boden = "", haeufigkeit = "";
+        w.querySelectorAll(".unterhalt-top-field").forEach(function (f) {
+          const l = ((f.querySelector("label") || {}).textContent || "").toLowerCase();
+          const s = f.querySelector("select");
+          if (!s) return;
+          if (l.indexOf("boden") >= 0 && !boden) boden = s.value;
+          if (l.indexOf("häufig") >= 0 && !haeufigkeit) haeufigkeit = s.value;
+        });
+        let m2 = 0, wc = 0, urinal = 0, wb = 0, raeume = 0;
+        w.querySelectorAll(".room-entry").forEach(function (r) {
+          if (!sichtbar(r)) return;
+          raeume += 1;
+          m2 += m2Zahl((r.querySelector(".measure-target") || {}).textContent);
+          r.querySelectorAll("span[id]").forEach(function (s) {
+            const n = parseInt(s.textContent, 10) || 0;
+            if (s.id.indexOf("wc_") === 0) wc += n;
+            else if (s.id.indexOf("uri_") === 0) urinal += n;
+            else if (s.id.indexOf("wb_") === 0) wb += n;
+          });
+        });
+        if (!raeume) return;
+        gruppen.push({ gid: gid++, leistung: titel, bereich: bereich, boden: boden, haeufigkeit: haeufigkeit, m2: Math.round(m2 * 100) / 100, raeume: raeume, wc: wc, urinal: urinal, wb: wb });
+      });
+    });
+    const so = el("sonstigesBox");
+    const sonstiges = so && sichtbar(so) ? felderVon(so) : [];
+    let tage = [];
+    if (so && sichtbar(so)) {
+      const label = Array.from(so.querySelectorAll("label")).find(function (l) { return l.textContent.toLowerCase().indexOf("einsatztage") >= 0; });
+      if (label && label.parentElement) tage = Array.from(label.parentElement.querySelectorAll(".device-toggle-btn.active")).map(function (b) { return b.textContent.trim(); });
+    }
+    const summe = gruppen.reduce(function (a, g) { return a + (g.m2 || 0); }, 0);
+    return {
+      gruppen: gruppen, leistungen_felder: leistungenFelder, sonstiges: sonstiges, einsatztage: tage.length, tage: tage,
+      elemente: { arbeitstische: (el("a") || {}).textContent || "0", pc_monitor: (el("b") || {}).textContent || "0", muellbehaelter: (el("c") || {}).textContent || "0" },
+      flaeche_gesamt: summe > 0 ? summe : m2Zahl((el("kgScanTotalM2") || {}).textContent)
+    };
+  }
+
+  /* ---------- Anzeigen ---------- */
+  function donut(box, teile, mitte) {
+    if (!box) return;
+    const W = 150, sw = 18, r = (W - sw) / 2, c = W / 2, U = 2 * Math.PI * r;
+    const summe = teile.reduce(function (a, t) { return a + t.wert; }, 0);
+    let pos = 0, s = '<svg viewBox="0 0 150 150"><circle cx="75" cy="75" r="' + r + '" fill="none" stroke="#eef2f7" stroke-width="' + sw + '"/>';
+    teile.forEach(function (t) {
+      if (!summe || !t.wert) return;
+      const l = U * t.wert / summe;
+      s += '<circle cx="75" cy="75" r="' + r + '" fill="none" stroke="' + t.farbe + '" stroke-width="' + sw + '" stroke-dasharray="' + Math.max(l - 2, 1).toFixed(1) + ' ' + U.toFixed(1) + '" stroke-dashoffset="' + (-pos).toFixed(1) + '" transform="rotate(-90 75 75)"/>';
+      pos += l;
+    });
+    s += '<text x="75" y="79" text-anchor="middle" font-size="26" font-weight="900" fill="currentColor">' + esc(mitte) + '</text><text x="75" y="99" text-anchor="middle" font-size="11.5" font-weight="700" fill="#64748b">Std./Monat</text></svg>';
+    box.innerHTML = s;
+  }
+
+  function zeigen(d, e) {
+    // Leistungen-Übersicht
+    const box = el("btLeistungen");
+    const summe = d.gruppen.reduce(function (a, g) { return a + g.m2; }, 0);
+    setze("btLeistungenSumme", "Insgesamt " + de(summe, 2) + " m²");
+    setze("btErfasstM2", de(summe, 2) + " m²");
+    const std = {};
+    ((e && e.zeilen) || []).forEach(function (z) { if (z.gid !== null && z.gid !== undefined) std[z.gid] = z.std_monat; });
+    if (box) {
+      box.innerHTML = d.gruppen.length ? '<div class="bt-lk">' + d.gruppen.map(function (g) {
+        const f = farbeFuer(g.bereich);
+        return '<div style="--f:' + f[0] + ';--h:' + f[1] + ';"><em title="' + esc(g.haeufigkeit || "Häufigkeit fehlt") + '">' + esc(g.haeufigkeit || "Häufigkeit?") + '</em><h5>' + esc(g.bereich) + ' · ' + esc(g.leistung) + '</h5><b>' + de(g.m2, 2) + ' m²</b><span>' + g.raeume + (g.raeume === 1 ? " Raum" : " Räume") + (g.boden ? ' · Boden: ' + esc(g.boden) : '') + '</span><span>' + (std[g.gid] !== undefined ? de(std[g.gid], 1) + ' Std. / Monat' : '–') + '</span></div>';
+      }).join("") + '</div>' : '<div class="bt-leer">Noch keine Leistung erfasst – oben „+ Leistung“ wählen.</div>';
+    }
+    // Elemente
+    setze("btElA", String(parseInt(d.elemente.arbeitstische, 10) || 0));
+    setze("btElB", String(parseInt(d.elemente.pc_monitor, 10) || 0));
+    setze("btElC", String(parseInt(d.elemente.muellbehaelter, 10) || 0));
+    // Sonstiges
+    const so = el("btSonstiges");
+    if (so) {
+      const zeilen = [];
+      const wert = function (wort) { const f = d.sonstiges.find(function (x) { return x.label.toLowerCase().indexOf(wort) >= 0; }); return f ? (f.values[0] || "") : ""; };
+      const nach = function (wort) { const i = d.sonstiges.findIndex(function (x) { return x.label.toLowerCase().indexOf(wort) >= 0; }); for (let k = i + 1; i >= 0 && k < d.sonstiges.length && k <= i + 3; k++) { if (d.sonstiges[k].label.toLowerCase().indexOf("häufig") >= 0) return d.sonstiges[k].values[0] || ""; } return ""; };
+      if (wert("schreibtisch") === "Ja") zeilen.push(["Schreibtische reinigen", nach("schreibtisch")]);
+      if (wert("elektro") === "Mit") { const g = d.sonstiges.find(function (x) { return x.label.toLowerCase().indexOf("welche") >= 0; }); zeilen.push(["Elektrogeräte", ((g && g.active) || []).join(" · ") || "ja"]); }
+      const ge = wert("geschirr"); if (ge && ge !== "Ohne") zeilen.push(["Geschirrspüler", ge]);
+      if (wert("stehlampe") === "Ja") zeilen.push(["Stehlampen", "ja"]);
+      if (wert("regal") === "Ja") zeilen.push(["Regale", "ja"]);
+      const start = d.sonstiges.find(function (x) { return x.label.toLowerCase().indexOf("starttermin") >= 0; });
+      if (start && start.values[0]) zeilen.push(["Starttermin", "ab " + start.values[0]]);
+      so.innerHTML = zeilen.length ? zeilen.map(function (z) { return '<div><span>' + esc(z[0]) + '</span><b>' + esc(z[1] || "–") + '</b></div>'; }).join("") : '<div><span>Noch nichts gewählt</span><b>–</b></div>';
+    }
+    const tg = el("btTage");
+    if (tg) tg.innerHTML = ["Mo", "Di", "Mi", "Do", "Fr", "Sa"].map(function (t) { return '<span class="' + (d.tage.indexOf(t) >= 0 ? "an" : "") + '">' + t + '</span>'; }).join("");
+    setze("btSumTage", d.tage.length ? (d.tage.length > 1 ? d.tage[0] + " – " + d.tage[d.tage.length - 1] : d.tage[0]) : "–");
+    // Kalkulation
+    if (!e) return;
+    const teile = {};
+    (e.zeilen || []).forEach(function (z) {
+      const k = z.gruppe === "Flächen" ? z.name.split(" · ")[0] : z.name;
+      if (!teile[k]) teile[k] = { name: k, farbe: z.farbe, wert: 0 };
+      teile[k].wert += z.std_monat;
+    });
+    const liste = Object.values(teile).sort(function (a, b) { return b.wert - a.wert; });
+    donut(el("btDonut"), liste, de(e.std_monat, 1));
+    setze("btNetto", de(e.netto_monat, 2) + " €");
+    setze("btSatz", de(e.stundensatz, 2) + " €");
+    const lg = el("btLegende");
+    if (lg) lg.innerHTML = liste.length ? liste.map(function (t) { return '<div title="' + esc(t.name) + '"><i style="background:' + t.farbe + '"></i><span>' + esc(t.name) + '</span><b>' + de(t.wert, 1) + '</b></div>'; }).join("") : '<div><span>Noch keine Zeiten</span></div>';
+    const em = el("btEinmalig");
+    if (em) em.innerHTML = (e.einmalig || []).length ? '<div class="bt-einmalig">Einmalig: ' + e.einmalig.map(function (x) { return esc(x.name) + " " + de(x.stunden, 1) + " Std." + (x.stunden ? " (" + de(x.stunden * e.stundensatz, 0) + " €)" : " – " + esc(x.menge)); }).join(" · ") + '</div>' : "";
+    setze("btSumNetto", de(e.netto_monat, 2) + " €");
+    setze("btSumStd", de(e.std_monat, 1) + " Std.");
+    setze("btSumSatz", de(e.stundensatz, 2) + " €");
+  }
+
+  /* ---------- Rechnen (verzögert, damit nicht bei jedem Tastendruck) ---------- */
+  let warten = null, letzter = "", laeuft = 0;
+  function planen() { clearTimeout(warten); warten = setTimeout(rechnen, 350); }
+  async function rechnen() {
+    kopf();
+    const d = sammeln();
+    const schluessel = JSON.stringify(d);
+    if (schluessel === letzter) return;
+    letzter = schluessel;
+    zeigen(d, null);
+    const nr = ++laeuft;
+    try {
+      const resp = await fetch("/api/besichtigung/zeitberechnung", { method: "POST", headers: { "Content-Type": "application/json" }, body: schluessel });
+      const e = await resp.json();
+      if (nr !== laeuft || !e.ok) return;
+      zeigen(d, e);
+    } catch (err) {
+      console.error("Zeitberechnung Fehler:", err);
+    }
+  }
+
+  document.addEventListener("DOMContentLoaded", function () {
+    kopf();
+    rechnen();
+    ["input", "change", "click", "touchend"].forEach(function (t) { document.addEventListener(t, planen, true); });
+    if (window.MutationObserver) {
+      const mo = new MutationObserver(planen);
+      ["sortableSections", "besichtigungKundeText", "besichtigungAnsprechpartnerText", "besichtigungTerminText", "besichtigungPickerCount", "kgScanTotalM2"].forEach(function (id) {
+        const x = el(id);
+        if (x) mo.observe(x, { childList: true, subtree: true, characterData: true, attributes: id === "sortableSections", attributeFilter: id === "sortableSections" ? ["style", "class"] : undefined });
+      });
+    }
+  });
+})();
+</script>
+{% endraw %}
 
 {% endblock %}

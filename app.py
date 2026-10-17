@@ -908,6 +908,11 @@ register_monatsvergleich(app, login_required, get_db_connection)
 from kundenweg_fluss import register_kundenweg_fluss
 register_kundenweg_fluss(app, login_required, get_db_connection)
 
+# Besichtigung: Zeitberechnung mit allen Details für die Kalkulation-Kachel (nur rechnen, speichert nichts)
+from besichtigung_zeit import register_besichtigung_zeit
+import app2 as _app2_mod
+register_besichtigung_zeit(app, login_required, lambda: _app2_mod.ANGEBOT_STUNDENSATZ)
+
 # Arbeitsliste für heute (/heute): jeden Werktag als To-Do-Karte (+ WhatsApp an den Chef); der Agent antwortet dem Chef per WhatsApp
 from tagesliste import register_tagesliste
 register_tagesliste(app, login_required, get_db_connection, lambda: _leon_routes_mod.leon_client)
