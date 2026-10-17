@@ -2,6 +2,8 @@
 
 Bu dosya yeni bir Claude Code oturumunun kaldığı yerden devam etmesi içindir. Repo: `kg-portal/kg-portal`. Branch: `claude/leon-devam-dosyasi-m7z3hz` (ayrıca `kg-ai-mail-test` ve `main`'e de aynı commit push edilir; deploy'u kullanıcı yapar).
 
+**Angebot / Besichtigung / LiDAR (KG Scan) konusu için ayrı dosya: `DEVAM_ANGEBOT_LIDAR.md`.**
+
 ## Kullanıcı
 - Murat Kicci (Özdes Murat Kicci), KG Gebäudereinigung / KG Business sahibi. Worker id 2, tel +491632944220.
 - Türkçe, kısa, sade, "sen". Sesle yazdırır, yazım bozuk olabilir. Çok yorgun ve sabırsız; küfredebilir, kişisel almayın.
