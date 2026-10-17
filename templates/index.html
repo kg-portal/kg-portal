@@ -1172,7 +1172,7 @@
         }
     }
 
-    const kgMonatstrendGrafikVerisi = kgFallbackArray('{{ monatstrend_grafik_verisi | tojson }}', [0, 2500, 5200, 7800, 10000]);
+    const kgMonatstrendGrafikVerisi = kgFallbackArray('{{ (monatstrend_echt or monatstrend_grafik_verisi) | tojson }}', [0, 2500, 5200, 7800, 10000]);
     const kgJahresGrafikVerisi = kgFallbackArray('{{ jahres_grafik_verisi | tojson }}', [10000, 12000, 11000, 13000, 15000, 14000, 14500, 15200, 16000, 17000, 18000, 19000]);
     const kgKundenGrafikVerisi = kgFallbackArray('{{ kunden_grafik_verisi | tojson }}', [12, 18, 24, 30, 34, 38, 44, 50, 56, 63, 70, 76]);
     const kgPersonelGrafikVerisi = kgFallbackArray('{{ personel_grafik_verisi | tojson }}', [4, 5, 6, 7, 8, 8, 9, 10, 11, 12, 13, 14]);
@@ -1185,6 +1185,7 @@
     const kgAkquisePortfolio = kgFallbackArray('{{ (akquise_portfolio_verisi or []) | tojson }}', []);
     const kgAkquiseBesichtigung = kgFallbackArray('{{ (akquise_besichtigung_verisi or []) | tojson }}', []);
     const kgAkquiseVertraege = kgFallbackArray('{{ (akquise_vertraege_verisi or []) | tojson }}', []);
+    const kgAngebotListe = {{ (angebot_liste or []) | tojson }};
     function kgObergrenze(werte) {
         const zahlen = werte.filter(v => typeof v === 'number');
         const max = zahlen.length ? Math.max.apply(null, zahlen) : 0;
@@ -1308,6 +1309,7 @@ new Chart(document.getElementById('monthlyTrendChart'), {
         datasets: [{ 
             label: 'Umsatz (€)', 
             data: kgMonatstrendGrafikVerisi, 
+            spanGaps: true,
             borderColor: '#1e40af', 
             backgroundColor: 'rgba(30, 64, 175, 0.1)', 
             fill: true, 
@@ -1534,7 +1536,14 @@ let todoChart = new Chart(document.getElementById('chart7'), {
             x: { 
                 stacked: true,
                 grid: { display: false },
-                ticks: { autoSkip: false, maxRotation: 0 }
+                ticks: { autoSkip: false, maxRotation: 0, padding: 2, font: { size: 10 },
+                    // wenig Platz: nur die Nummer („40“ statt „KW 40“), damit nichts übereinander steht
+                    callback: function (wert) {
+                        const name = String(this.getLabelForValue(wert));
+                        const n = (this.chart.data.labels || []).length || 1;
+                        const breite = ((this.chart.chartArea && this.chart.chartArea.width) || this.chart.width || 0) / n;
+                        return breite >= 44 ? name : name.replace(/^KW\s*/i, '');
+                    } }
             }, 
             y: { 
                 stacked: true, 
@@ -1923,8 +1932,8 @@ const percent = kgTodoPercent;
                 link: ['/leon/gespraeche', 'Leon-Gespräche öffnen'] };
         }
         if (a === 'angebot') {
-            return { over: 'Angebot', titel: 'Angebote im Überblick', gross: '', unter: 'Wartende Angebote mit Nummer und Betrag',
-                body: '<div class="kgx-kacheln">' + stat(karte) + '</div><div class="kgx-liste" id="kgxAngebotListe" style="margin-top:12px"><div class="kgx-zeile"><span class="kgx-klein">Lade wartende Angebote …</span></div></div>' +
+            return { over: 'Angebot', titel: 'Angebote im Überblick', gross: '', unter: 'Alle Angebote mit Nummer, Stand und Betrag',
+                body: '<div class="kgx-kacheln">' + stat(karte) + '</div><div class="kgx-liste" id="kgxAngebotListe" style="margin-top:12px"></div>' +
                       '<div class="kgx-hinweis">„Bestätigt“ kommt mit dem Schritt Auftrag → Kunde.</div>',
                 link: ['/datenbank', 'Datenbank öffnen'], nachher: angebotListe };
         }
@@ -1941,17 +1950,18 @@ const percent = kgTodoPercent;
 
     function angebotListe(panel) {
         const box = panel.querySelector('#kgxAngebotListe');
-        if (!box || !window.fetch) return;
-        fetch('/api/datenbank/by-status?status=angebot', { cache: 'no-store' }).then(r => r.json()).then(leads => {
-            leads = Array.isArray(leads) ? leads : [];
-            if (!leads.length) { box.innerHTML = '<div class="kgx-zeile"><span class="kgx-klein">Keine wartenden Angebote.</span></div>'; return; }
-            let summe = 0;
-            box.innerHTML = leads.map(l => {
-                summe += Number(l.angebot_netto || 0);
-                return '<div class="kgx-zeile"><span style="flex:1;min-width:0"><b>AN-' + esc(l.angebot_nr || '–') + ' · ' + esc(l.firma || '–') + '</b><span class="kgx-klein">' + esc([l.plz, l.ort].filter(Boolean).join(' ')) + (l.angebot_datum ? ' · ' + esc(l.angebot_datum) : '') + '</span></span>' +
-                    '<span class="kgx-wert" style="color:#4f46e5">' + euro(l.angebot_netto) + '<span class="kgx-klein">netto</span></span></div>';
-            }).join('') + '<div class="kgx-zeile summe"><span style="flex:1">Summe wartend</span><span class="kgx-wert">' + euro(summe) + '</span></div>';
-        }).catch(() => { box.innerHTML = '<div class="kgx-zeile"><span class="kgx-klein">Angebote konnten nicht geladen werden.</span></div>'; });
+        if (!box) return;
+        const alle = liste(() => kgAngebotListe);
+        if (!alle.length) { box.innerHTML = '<div class="kgx-zeile"><span class="kgx-klein">Noch keine Angebote mit Nummer.</span></div>'; return; }
+        const STAND = { wartend: ['Wartend', '#4f46e5', '#eef2ff'], bestaetigt: ['Bestätigt', '#059669', '#ecfdf5'], nicht: ['Nicht bestätigt', '#dc2626', '#fef2f2'] };
+        let summe = 0;
+        box.innerHTML = alle.map(l => {
+            const st = STAND[l.stand] || STAND.wartend;
+            if (l.stand === 'wartend') summe += Number(l.netto || 0);
+            return '<div class="kgx-zeile"><span style="flex:1;min-width:0"><b>AN-' + esc(l.nr || '–') + ' · ' + esc(l.firma || '–') + '</b><span class="kgx-klein">' + esc(l.ort || '') + (l.datum ? (l.ort ? ' · ' : '') + esc(l.datum) : '') + '</span></span>' +
+                '<span style="flex:none;font-size:11px;font-weight:800;padding:3px 9px;border-radius:999px;color:' + st[1] + ';background:' + st[2] + '">' + st[0] + '</span>' +
+                '<span class="kgx-wert" style="color:' + st[1] + '">' + euro(l.netto) + '<span class="kgx-klein">netto</span></span></div>';
+        }).join('') + '<div class="kgx-zeile summe"><span style="flex:1">Summe wartend</span><span class="kgx-wert">' + euro(summe) + '</span></div>';
     }
 
     let offen = null;
