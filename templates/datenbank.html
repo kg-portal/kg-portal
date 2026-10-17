@@ -219,377 +219,440 @@ body {
 }
 
 /* =========================
-   NEUER KOPF (Systemblau, Leon-Trichter, Heute, Monat) + Panels der 4 Karten
+   KOPF „BENTO“ (Entwurf 4) mit animierten Grafiken
 ========================= */
-.db-hero.db-hero-neu {
+.db-hero.db-hero-bento {
     background: #f8fbff;
     color: #0f172a;
-    padding: 24px 26px 4px 26px;
+    padding: 24px 26px 6px 26px;
 }
 
-.dbn-band {
+.b4 {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    gap: 16px;
+}
+
+.b4-t {
     position: relative;
     overflow: hidden;
-    border-radius: 26px;
-    padding: 28px 30px 30px 30px;
+    padding: 20px 22px;
+    border-radius: 24px;
+    background: #ffffff;
+    border: 1px solid #e6ebf2;
+    box-shadow: 0 18px 40px -30px rgba(15, 23, 42, 0.45);
+    color: #0f172a;
+    opacity: 0;
+    transform: translateY(16px) scale(0.985);
+    animation: b4Rein 0.75s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    animation-delay: calc(var(--i, 0) * 85ms);
+}
+
+@keyframes b4Rein {
+    to {
+        opacity: 1;
+        transform: none;
+    }
+}
+
+.b4-s5 { grid-column: span 5; }
+.b4-s4 { grid-column: span 4; }
+.b4-s3 { grid-column: span 3; }
+
+.b4-blau {
+    border: 0;
     color: #ffffff;
     background:
-        radial-gradient(900px 380px at 88% -20%, rgba(255, 255, 255, 0.20), transparent 60%),
-        radial-gradient(600px 300px at 10% 130%, rgba(56, 189, 248, 0.22), transparent 60%),
-        linear-gradient(135deg, #183a91 0%, #1d4ed8 55%, #2563eb 100%);
-    box-shadow: 0 28px 56px -24px rgba(29, 78, 216, 0.55);
+        radial-gradient(520px 230px at 90% -20%, rgba(255, 255, 255, 0.26), transparent 60%),
+        radial-gradient(420px 220px at 0% 120%, rgba(56, 189, 248, 0.25), transparent 60%),
+        linear-gradient(135deg, #1e40af, #2563eb);
+    box-shadow: 0 24px 50px -28px rgba(29, 78, 216, 0.7);
 }
 
-.dbn-band::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background-image:
-        linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
-    background-size: 44px 44px;
-    -webkit-mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.7), transparent 70%);
-    mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.7), transparent 70%);
-    pointer-events: none;
-}
-
-.dbn-kopf {
-    position: relative;
-    z-index: 1;
+.b4-lbl {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 16px;
-    flex-wrap: wrap;
-    margin-bottom: 24px;
-}
-
-.dbn-over {
-    font-size: 11px;
-    font-weight: 900;
-    letter-spacing: 2.4px;
-    text-transform: uppercase;
-    color: #bfdbfe;
-}
-
-.dbn-titel {
-    margin: 6px 0 0;
-    font-size: 32px;
-    font-weight: 900;
-    letter-spacing: -0.8px;
-    color: #ffffff;
-}
-
-.dbn-kopf-rechts {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    flex-wrap: wrap;
-}
-
-.dbn-glas {
-    background: rgba(255, 255, 255, 0.10);
-    border: 1px solid rgba(255, 255, 255, 0.22);
-}
-
-.dbn-uhr {
-    border-radius: 14px;
-    padding: 10px 16px;
-    font-size: 14px;
-    font-weight: 900;
-    color: #ffffff;
-}
-
-.dbn-datum {
-    margin-left: 10px;
-    font-size: 13px;
-    font-weight: 700;
-    opacity: 0.8;
-}
-
-.dbn-btn {
-    border-radius: 14px;
-    padding: 11px 16px;
-    font-size: 13px;
-    font-weight: 900;
-    cursor: pointer;
-    color: #ffffff;
-    background: rgba(255, 255, 255, 0.10);
-    border: 1px solid rgba(255, 255, 255, 0.22);
-}
-
-.dbn-btn-weiss {
-    background: #ffffff;
-    border-color: #ffffff;
-    color: #183a91;
-}
-
-.dbn-btn-gruen {
-    background: linear-gradient(135deg, #16a34a, #22c55e);
-    border-color: transparent;
-    box-shadow: 0 8px 20px -6px rgba(34, 197, 94, 0.6);
-}
-
-.dbn-raster {
-    position: relative;
-    z-index: 1;
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) 340px;
-    gap: 20px;
-}
-
-.dbn-panel {
-    border-radius: 22px;
-    padding: 22px;
-}
-
-.dbn-label {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 14px;
     font-size: 11.5px;
-    font-weight: 900;
-    letter-spacing: 1.6px;
+    font-weight: 800;
+    letter-spacing: 1.4px;
     text-transform: uppercase;
-    color: #dbeafe;
+    color: #64748b;
 }
 
-.dbn-label em {
+.b4-lbl em {
     font-style: normal;
     text-transform: none;
-    letter-spacing: 0.2px;
+    letter-spacing: 0;
     font-weight: 700;
-    color: #bfdbfe;
+    color: #94a3b8;
 }
 
-.dbn-schritte {
-    display: grid;
-    grid-template-columns: repeat(5, minmax(0, 1fr));
-    gap: 12px;
+.b4-blau .b4-lbl {
+    color: #dbeafe;
 }
 
-.dbn-schritt {
-    position: relative;
-    border-radius: 18px;
-    padding: 16px 16px 14px;
-    background: rgba(255, 255, 255, 0.08);
-    border: 1px solid rgba(255, 255, 255, 0.16);
-}
-
-.dbn-schritt:not(:last-child)::after {
-    content: "";
-    position: absolute;
-    right: -10px;
-    top: 50%;
-    width: 9px;
-    height: 9px;
-    border-top: 2px solid rgba(255, 255, 255, 0.45);
-    border-right: 2px solid rgba(255, 255, 255, 0.45);
-    transform: translateY(-50%) rotate(45deg);
-}
-
-.dbn-icon {
-    width: 34px;
-    height: 34px;
-    margin-bottom: 12px;
-    border-radius: 11px;
-    display: grid;
-    place-items: center;
-}
-
-.dbn-icon svg {
-    width: 18px;
-    height: 18px;
-    fill: none;
-    stroke: #ffffff;
-    stroke-width: 2;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-}
-
-.dbn-zahl {
+.b4-titel {
+    margin: 10px 0 0;
     font-size: 36px;
-    line-height: 1;
     font-weight: 900;
-    letter-spacing: -1px;
+    letter-spacing: -0.9px;
     color: #ffffff;
 }
 
-.dbn-text {
-    margin-top: 6px;
-    font-size: 12.5px;
-    font-weight: 700;
+.b4-unter {
+    margin: 6px 0 18px;
+    font-size: 13px;
+    font-weight: 600;
     color: #dbeafe;
 }
 
-.dbn-quote {
-    display: inline-block;
-    margin-top: 10px;
-    padding: 4px 9px;
-    border-radius: 999px;
-    background: rgba(255, 255, 255, 0.16);
-    color: #ffffff;
-    font-size: 11px;
-    font-weight: 900;
-}
-
-.dbn-gruen .dbn-zahl,
-.dbn-gruen .dbn-mini-zahl {
-    color: #86efac;
-}
-
-.dbn-dunkelgruen .dbn-zahl,
-.dbn-dunkelgruen .dbn-mini-zahl {
-    color: #34d399;
-}
-
-.dbn-balken {
-    display: flex;
-    height: 12px;
-    margin: 20px 0 12px;
-    border-radius: 999px;
-    background: rgba(255, 255, 255, 0.18);
-    overflow: hidden;
-}
-
-.dbn-balken i {
-    display: block;
-    width: 0;
-    height: 100%;
-}
-
-.dbn-legende {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 18px;
-    margin-bottom: 14px;
-    font-size: 12px;
-    font-weight: 700;
-    color: #dbeafe;
-}
-
-.dbn-legende b {
-    display: inline-block;
-    width: 10px;
-    height: 10px;
-    margin-right: 7px;
-    border-radius: 3px;
-    vertical-align: -1px;
-}
-
-.dbn-chips {
+.b4-btns {
     display: flex;
     flex-wrap: wrap;
     gap: 8px;
 }
 
-.dbn-chip {
-    padding: 7px 12px;
-    border-radius: 999px;
-    background: rgba(255, 255, 255, 0.10);
-    border: 1px solid rgba(255, 255, 255, 0.22);
+.b4-btn {
+    padding: 10px 15px;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    background: rgba(255, 255, 255, 0.14);
     color: #ffffff;
-    font-size: 12px;
-    font-weight: 800;
-}
-
-.dbn-chip-rot {
-    background: rgba(239, 68, 68, 0.24);
-    border-color: rgba(254, 202, 202, 0.55);
-    color: #fee2e2;
-}
-
-.dbn-chip-orange {
-    background: rgba(249, 115, 22, 0.24);
-    border-color: rgba(254, 215, 170, 0.55);
-    color: #ffedd5;
-}
-
-.dbn-heute-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
-}
-
-.dbn-mini {
-    padding: 14px;
-    border-radius: 16px;
-    background: rgba(255, 255, 255, 0.08);
-    border: 1px solid rgba(255, 255, 255, 0.16);
-}
-
-.dbn-mini-akzent {
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.24), rgba(255, 255, 255, 0.10));
-    border-color: rgba(255, 255, 255, 0.40);
-}
-
-.dbn-mini-zahl {
-    font-size: 28px;
-    line-height: 1;
+    font-size: 13px;
     font-weight: 900;
-    color: #ffffff;
+    cursor: pointer;
 }
 
-.dbn-mini-text {
-    margin-top: 6px;
-    font-size: 12.5px;
+.b4-btn.weiss {
+    background: #ffffff;
+    border-color: #ffffff;
+    color: #1e40af;
+}
+
+.b4-btn.gruen {
+    background: #16a34a;
+    border-color: #16a34a;
+}
+
+.b4-uhr {
+    position: absolute;
+    top: 18px;
+    right: 20px;
+    text-align: right;
+}
+
+.b4-uhr b {
+    display: block;
+    font-size: 32px;
+    font-weight: 900;
+    letter-spacing: -0.5px;
+}
+
+.b4-uhr span {
+    font-size: 12px;
     font-weight: 700;
     color: #dbeafe;
 }
 
-.dbn-mini-sub {
-    margin-top: 6px;
-    font-size: 11px;
-    font-weight: 800;
-    color: #bfdbfe;
+.b4-svg {
+    display: block;
+    width: 100%;
+    height: auto;
+    overflow: visible;
 }
 
-.dbn-monat {
-    display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 18px;
-    margin: 20px 0 18px;
-}
-
-.dbn-m {
+.b4-gauge {
     display: flex;
     align-items: center;
-    gap: 16px;
-    padding: 18px 20px;
-    border-radius: 20px;
-    background: #ffffff;
-    border: 1px solid #e2e8f0;
-    box-shadow: 0 10px 30px -18px rgba(15, 23, 42, 0.35);
+    gap: 18px;
+    margin-top: 10px;
 }
 
-.dbn-m .dbn-icon {
-    width: 44px;
-    height: 44px;
-    margin: 0;
-    border-radius: 14px;
+.b4-gauge #b4Tacho {
+    width: 58%;
+    max-width: 240px;
     flex-shrink: 0;
 }
 
-.dbn-m-zahl {
-    font-size: 26px;
-    line-height: 1.1;
-    font-weight: 900;
-    color: #0f172a;
+.b4-gz {
+    min-width: 0;
 }
 
-.dbn-m-text {
-    margin-top: 2px;
-    font-size: 12.5px;
+.b4-gz b {
+    display: block;
+    font-size: 42px;
+    font-weight: 900;
+    letter-spacing: -1px;
+    line-height: 1;
+}
+
+.b4-gz span {
+    display: block;
+    margin-top: 4px;
+    font-size: 13px;
+    font-weight: 800;
+    color: #475569;
+}
+
+.b4-gz small {
+    display: block;
+    margin-top: 8px;
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1.5;
+    color: #64748b;
+}
+
+.b4-gz small span {
+    display: inline;
+    margin: 0;
+    font-size: inherit;
+    color: inherit;
+}
+
+.b4-mini {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-top: 12px;
+}
+
+.b4-mn {
+    padding: 10px 12px;
+    border-radius: 14px;
+    background: #f8fafc;
+}
+
+.b4-mn b {
+    display: block;
+    font-size: 24px;
+    font-weight: 900;
+}
+
+.b4-mn span {
+    font-size: 11.5px;
     font-weight: 700;
     color: #64748b;
 }
 
-.dbn-m-gruen .dbn-m-zahl {
-    color: #16a34a;
+.b4-mn small {
+    display: block;
+    margin-top: 2px;
+    font-size: 10.5px;
+    font-weight: 700;
+    color: #2563eb;
 }
 
-.dbn-m-dunkelgruen .dbn-m-zahl {
-    color: #047857;
+.b4-schritte {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 14px;
+}
+
+.b4-sch {
+    display: grid;
+    grid-template-columns: 110px 1fr 52px;
+    align-items: center;
+    gap: 10px;
+    font-size: 12.5px;
+    font-weight: 700;
+    color: #475569;
+}
+
+.b4-sch b {
+    text-align: right;
+    color: #0f172a;
+}
+
+.b4-bar {
+    height: 10px;
+    border-radius: 999px;
+    background: #eef2f7;
+    overflow: hidden;
+}
+
+.b4-bar i {
+    display: block;
+    width: 0;
+    height: 100%;
+    border-radius: 999px;
+    transition: width 1.2s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.b4-schritte .b4-sch:nth-child(2) .b4-bar i { transition-delay: 0.1s; }
+.b4-schritte .b4-sch:nth-child(3) .b4-bar i { transition-delay: 0.2s; }
+.b4-schritte .b4-sch:nth-child(4) .b4-bar i { transition-delay: 0.3s; }
+.b4-schritte .b4-sch:nth-child(5) .b4-bar i { transition-delay: 0.4s; }
+
+.b4-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 14px;
+}
+
+.b4-chip {
+    padding: 5px 10px;
+    border-radius: 999px;
+    background: #f1f5f9;
+    color: #475569;
+    font-size: 11.5px;
+    font-weight: 800;
+}
+
+.b4-chip.rot {
+    background: #fef2f2;
+    color: #dc2626;
+}
+
+.b4-chip.orange {
+    background: #fff7ed;
+    color: #ea580c;
+}
+
+.b4-donut {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 14px;
+    margin-top: 10px;
+}
+
+.b4-donut #b4Donut {
+    width: 124px;
+    flex-shrink: 0;
+}
+
+.b4-leg {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    flex: 1;
+    min-width: 150px;
+}
+
+.b4-leg div {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    white-space: nowrap;
+    font-size: 12px;
+    font-weight: 700;
+    color: #475569;
+}
+
+.b4-leg i {
+    width: 9px;
+    height: 9px;
+    border-radius: 3px;
+    flex-shrink: 0;
+}
+
+.b4-leg b {
+    margin-left: auto;
+    color: #0f172a;
+}
+
+.b4-monat {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 12px;
+    margin-top: 10px;
+}
+
+.b4-mz {
+    font-size: 34px;
+    font-weight: 900;
+    letter-spacing: -0.8px;
+    line-height: 1;
+}
+
+.b4-spark {
+    width: 120px;
+    flex-shrink: 0;
+}
+
+.b4-gruen { color: #16a34a; }
+.b4-dgruen { color: #059669; }
+.b4-blauz { color: #2563eb; }
+
+/* Start-Animationen der Grafiken */
+.b4-saeule {
+    transform-box: fill-box;
+    transform-origin: 50% 100%;
+    transform: scaleY(0);
+    transition: transform 0.95s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.b4-an .b4-saeule {
+    transform: scaleY(1);
+}
+
+.b4-wert {
+    opacity: 0;
+    transition: opacity 0.45s ease;
+}
+
+.b4-an .b4-wert {
+    opacity: 1;
+}
+
+.b4-strich {
+    transition: stroke-dashoffset 1.5s cubic-bezier(0.22, 1, 0.36, 1) 0.2s;
+}
+
+.b4-flaeche {
+    opacity: 0;
+    transition: opacity 0.9s ease 0.6s;
+}
+
+.b4-an .b4-flaeche {
+    opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .b4-t {
+        animation: none;
+        opacity: 1;
+        transform: none;
+    }
+
+    .b4-saeule,
+    .b4-wert,
+    .b4-strich,
+    .b4-flaeche,
+    .b4-bar i {
+        transition: none;
+    }
+}
+
+@media (max-width: 1280px) {
+    .b4-s5,
+    .b4-s4,
+    .b4-s3 {
+        grid-column: span 6;
+    }
+}
+
+@media (max-width: 760px) {
+    .db-hero.db-hero-bento {
+        padding: 14px 12px 4px 12px;
+    }
+
+    .b4-s5,
+    .b4-s4,
+    .b4-s3 {
+        grid-column: span 12;
+    }
+
+    .b4-uhr {
+        position: static;
+        text-align: left;
+        margin-top: 14px;
+    }
 }
 
 /* Besichtigung-Karte: gesamt + dieser Monat */
@@ -836,48 +899,6 @@ body {
     font-size: 13.5px;
     font-weight: 900;
     cursor: pointer;
-}
-
-@media (max-width: 1280px) {
-    .dbn-raster {
-        grid-template-columns: 1fr;
-    }
-}
-
-@media (max-width: 1000px) {
-    .dbn-schritte {
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-    }
-
-    .dbn-schritt:nth-child(3)::after {
-        display: none;
-    }
-
-    .dbn-monat {
-        grid-template-columns: 1fr 1fr;
-    }
-}
-
-@media (max-width: 640px) {
-    .db-hero.db-hero-neu {
-        padding: 14px 12px 2px 12px;
-    }
-
-    .dbn-band {
-        padding: 20px 18px;
-    }
-
-    .dbn-schritte {
-        grid-template-columns: 1fr 1fr;
-    }
-
-    .dbn-schritt::after {
-        display: none;
-    }
-
-    .dbn-monat {
-        grid-template-columns: 1fr;
-    }
 }
 
 /* =========================
@@ -3853,133 +3874,95 @@ body {
 ............................................................. -->
 
 <div class="db-page">
-    <section class="db-hero db-hero-neu">
-        <div class="dbn-band">
-            <div class="dbn-kopf">
-                <div>
-                    <div class="dbn-over">KG Portal · CRM-Zentrale</div>
-                    <h1 class="dbn-titel">Datenbank</h1>
+    <section class="db-hero db-hero-bento">
+        <div class="b4" id="b4Kopf">
+            <div class="b4-t b4-blau b4-s5" style="--i:0;">
+                <div class="b4-lbl">KG Portal · CRM-Zentrale</div>
+                <h1 class="b4-titel">Datenbank</h1>
+                <p class="b4-unter">Leads · Leon · Besichtigung · Angebot</p>
+                <div class="b4-btns">
+                    <button class="b4-btn">Import</button>
+                    <button class="b4-btn weiss" onclick="openApifyLeadModal()">+ Neuer Lead</button>
+                    <button class="b4-btn gruen" onclick="openDirectAngebotModal()">+ Direktes Angebot</button>
                 </div>
+                <div class="b4-uhr"><b id="liveTimeOnly">00:00</b><span id="liveDateOnly">Montag, 1. Januar 2026</span></div>
+            </div>
 
-                <div class="dbn-kopf-rechts">
-                    <div class="dbn-uhr dbn-glas"><span id="liveTimeOnly">00:00</span><span class="dbn-datum" id="liveDateOnly">Montag, 1. Januar 2026</span></div>
-                    <button class="dbn-btn">Import</button>
-                    <button class="dbn-btn dbn-btn-weiss" onclick="openApifyLeadModal()">+ Neuer Lead</button>
-                    <button class="dbn-btn dbn-btn-gruen" onclick="openDirectAngebotModal()">+ Direktes Angebot</button>
+            <div class="b4-t b4-s4" style="--i:1;">
+                <div class="b4-lbl">Erreichbarkeit <em>angerufen → Gespräch</em></div>
+                <div class="b4-gauge">
+                    <div id="b4Tacho"></div>
+                    <div class="b4-gz"><b id="b4AngerufenGross">–</b><span>Firmen angerufen</span><small>von <span id="b4GesendetText">–</span> gesendet<br><span id="b4WartetText">–</span> warten noch</small></div>
                 </div>
             </div>
 
-            <div class="dbn-raster">
-                <div class="dbn-panel dbn-glas">
-                    <div class="dbn-label">Leon · Telefonakquise <em>gesamt seit Start</em></div>
-                    <div class="dbn-schritte">
-                        <div class="dbn-schritt">
-                            <div class="dbn-icon" style="background:linear-gradient(135deg,#6366f1,#8b5cf6);"><svg viewBox="0 0 24 24"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4 20-7z"/></svg></div>
-                            <div class="dbn-zahl" id="leonGesendet">–</div>
-                            <div class="dbn-text">an Leon gesendet</div>
-                            <span class="dbn-quote" id="leonGesendetSub">&nbsp;</span>
-                        </div>
-                        <div class="dbn-schritt">
-                            <div class="dbn-icon" style="background:linear-gradient(135deg,#2563eb,#3b82f6);"><svg viewBox="0 0 24 24"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2z"/></svg></div>
-                            <div class="dbn-zahl" id="leonAngerufen">–</div>
-                            <div class="dbn-text">angerufen</div>
-                            <span class="dbn-quote" id="leonAngerufenQuote">&nbsp;</span>
-                        </div>
-                        <div class="dbn-schritt">
-                            <div class="dbn-icon" style="background:linear-gradient(135deg,#0ea5e9,#38bdf8);"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>
-                            <div class="dbn-zahl" id="leonGespraech">–</div>
-                            <div class="dbn-text">Gespräch</div>
-                            <span class="dbn-quote" id="leonGespraechQuote">&nbsp;</span>
-                        </div>
-                        <div class="dbn-schritt dbn-gruen">
-                            <div class="dbn-icon" style="background:linear-gradient(135deg,#16a34a,#22c55e);"><svg viewBox="0 0 24 24"><path d="M7 10v12"/><path d="M15 5.9 14 10h5.8a2 2 0 0 1 2 2.3l-1.4 8A2 2 0 0 1 18.4 22H7V10l4-8a3 3 0 0 1 3 3.9z"/></svg></div>
-                            <div class="dbn-zahl" id="leonInteressiert">–</div>
-                            <div class="dbn-text">interessiert</div>
-                            <span class="dbn-quote" id="leonInteressiertQuote">&nbsp;</span>
-                        </div>
-                        <div class="dbn-schritt dbn-dunkelgruen">
-                            <div class="dbn-icon" style="background:linear-gradient(135deg,#047857,#10b981);"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/><path d="m9 16 2 2 4-4"/></svg></div>
-                            <div class="dbn-zahl" id="leonBesichtigung">–</div>
-                            <div class="dbn-text">Besichtigung</div>
-                            <span class="dbn-quote" id="leonBesichtigungQuote">&nbsp;</span>
-                        </div>
-                    </div>
-
-                    <div class="dbn-balken">
-                        <i id="leonBalkenGespraech" style="background:linear-gradient(90deg,#93c5fd,#bfdbfe);"></i>
-                        <i id="leonBalkenNicht" style="background:#fb7185;"></i>
-                        <i id="leonBalkenFehler" style="background:#ef4444;"></i>
-                    </div>
-                    <div class="dbn-legende">
-                        <span><b style="background:#bfdbfe;"></b>Gespräch</span>
-                        <span><b style="background:#fb7185;"></b>nicht erreicht</span>
-                        <span><b style="background:#ef4444;"></b>Fehler</span>
-                        <span><b style="background:rgba(255,255,255,0.3);"></b>wartet</span>
-                    </div>
-
-                    <div class="dbn-chips">
-                        <span class="dbn-chip dbn-chip-rot">Nicht erreicht <b id="leonNichtErreicht">–</b></span>
-                        <span class="dbn-chip dbn-chip-rot">Fehler <b id="leonFehler">–</b></span>
-                        <span class="dbn-chip dbn-chip-orange">Rückruf <b id="leonRueckruf">–</b></span>
-                        <span class="dbn-chip">Kein Interesse <b id="leonKeinInteresse">–</b></span>
-                        <span class="dbn-chip">ohne Ergebnis <b id="leonOhneErgebnis">–</b></span>
-                    </div>
+            <div class="b4-t b4-s3" style="--i:2;">
+                <div class="b4-lbl">Heute <em class="b4-heute-datum"></em></div>
+                <div class="b4-mini">
+                    <div class="b4-mn"><b class="b4-blauz" id="leonAnruflisteHeute">–</b><span>Leon Anrufliste</span><small id="leonAnruflisteHeuteSub">Kampagnen von heute</small></div>
+                    <div class="b4-mn"><b id="todayAngerufenLive">{{ datenbank_stats.today_angerufen }}</b><span>angerufen</span></div>
+                    <div class="b4-mn"><b class="b4-gruen" id="todayInteressiertLive">{{ datenbank_stats.today_interessiert }}</b><span>interessiert</span></div>
+                    <div class="b4-mn"><b class="b4-dgruen" id="todayBesichtigungLive">{{ datenbank_stats.today_besichtigung }}</b><span>Besichtigung</span></div>
                 </div>
+            </div>
 
-                <div class="dbn-panel dbn-glas">
-                    <div class="dbn-label">Heute</div>
-                    <div class="dbn-heute-grid">
-                        <div class="dbn-mini dbn-mini-akzent">
-                            <div class="dbn-mini-zahl" id="leonAnruflisteHeute">–</div>
-                            <div class="dbn-mini-text">Leon Anrufliste</div>
-                            <div class="dbn-mini-sub" id="leonAnruflisteHeuteSub">Kampagnen von heute</div>
-                        </div>
-                        <div class="dbn-mini">
-                            <div class="dbn-mini-zahl" id="todayAngerufenLive">{{ datenbank_stats.today_angerufen }}</div>
-                            <div class="dbn-mini-text">angerufen</div>
-                        </div>
-                        <div class="dbn-mini dbn-gruen">
-                            <div class="dbn-mini-zahl" id="todayInteressiertLive">{{ datenbank_stats.today_interessiert }}</div>
-                            <div class="dbn-mini-text">interessiert</div>
-                        </div>
-                        <div class="dbn-mini dbn-dunkelgruen">
-                            <div class="dbn-mini-zahl" id="todayBesichtigungLive">{{ datenbank_stats.today_besichtigung }}</div>
-                            <div class="dbn-mini-text">Besichtigung</div>
-                        </div>
+            <div class="b4-t b4-s5" style="--i:3;">
+                <div class="b4-lbl">Leon-Anrufe pro Tag <em>erreicht · letzte 9 Tage</em></div>
+                <div id="b4Saeulen" style="margin-top:12px;"></div>
+            </div>
+
+            <div class="b4-t b4-s4" style="--i:4;">
+                <div class="b4-lbl">Leon · Trichter <em>gesamt seit Start</em></div>
+                <div class="b4-schritte">
+                    <div class="b4-sch">an Leon gesendet<div class="b4-bar"><i id="b4BarGesendet" style="background:#6366f1;"></i></div><b id="leonGesendet">–</b></div>
+                    <div class="b4-sch">angerufen<div class="b4-bar"><i id="b4BarAngerufen" style="background:#2563eb;"></i></div><b id="leonAngerufen">–</b></div>
+                    <div class="b4-sch">Gespräch<div class="b4-bar"><i id="b4BarGespraech" style="background:#0ea5e9;"></i></div><b id="leonGespraech">–</b></div>
+                    <div class="b4-sch">interessiert<div class="b4-bar"><i id="b4BarInteressiert" style="background:#16a34a;"></i></div><b id="leonInteressiert">–</b></div>
+                    <div class="b4-sch">Besichtigung<div class="b4-bar"><i id="b4BarBesichtigung" style="background:#059669;"></i></div><b id="leonBesichtigung">–</b></div>
+                </div>
+                <div class="b4-chips">
+                    <span class="b4-chip rot">Nicht erreicht <b id="leonNichtErreicht">–</b></span>
+                    <span class="b4-chip rot">Fehler <b id="leonFehler">–</b></span>
+                    <span class="b4-chip orange">Rückruf <b id="leonRueckruf">–</b></span>
+                    <span class="b4-chip">Kein Interesse <b id="leonKeinInteresse">–</b></span>
+                    <span class="b4-chip">ohne Ergebnis <b id="leonOhneErgebnis">–</b></span>
+                </div>
+            </div>
+
+            <div class="b4-t b4-s3" style="--i:5;">
+                <div class="b4-lbl">Ergebnis der Gespräche</div>
+                <div class="b4-donut">
+                    <div id="b4Donut"></div>
+                    <div class="b4-leg">
+                        <div><i style="background:#16a34a;"></i>interessiert<b id="b4LegInteressiert">–</b></div>
+                        <div><i style="background:#059669;"></i>Besichtigung<b id="b4LegBesichtigung">–</b></div>
+                        <div><i style="background:#f97316;"></i>Rückruf<b id="b4LegRueckruf">–</b></div>
+                        <div><i style="background:#64748b;"></i>Kein Interesse<b id="b4LegKein">–</b></div>
+                        <div><i style="background:#cbd5e1;"></i>ohne Ergebnis<b id="b4LegOhne">–</b></div>
                     </div>
                 </div>
             </div>
-        </div>
 
-        <div class="dbn-monat">
-        <div class="dbn-m">
-            <div class="dbn-icon" style="background:linear-gradient(135deg,#6366f1,#8b5cf6);"><svg viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14c0 1.7 4 3 9 3s9-1.3 9-3V5"/><path d="M3 12c0 1.7 4 3 9 3s9-1.3 9-3"/></svg></div>
-            <div>
-                <div class="dbn-m-zahl">{{ "{:,}".format(datenbank_stats.total_leads|int)|replace(",", ".") }}</div>
-                <div class="dbn-m-text">Leads im System</div>
+            <div class="b4-t b4-s3" style="--i:6;">
+                <div class="b4-lbl">Leads im System</div>
+                <div class="b4-monat"><div class="b4-mz" id="b4Leads">{{ "{:,}".format(datenbank_stats.total_leads|int)|replace(",", ".") }}</div><div class="b4-spark" id="b4SparkLeads"></div></div>
             </div>
-        </div>
-        <div class="dbn-m">
-            <div class="dbn-icon" style="background:linear-gradient(135deg,#2563eb,#3b82f6);"><svg viewBox="0 0 24 24"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2z"/></svg></div>
-            <div>
-                <div class="dbn-m-zahl" id="leonMonatAngerufen">–</div>
-                <div class="dbn-m-text"><span class="dbn-monatsname">Dieser Monat</span> · von Leon angerufen</div>
+
+            <div class="b4-t b4-s3" style="--i:7;">
+                <div class="b4-lbl"><span><span class="dbn-monatsname">Dieser Monat</span> · von Leon angerufen</span></div>
+                <div class="b4-monat"><div class="b4-mz" id="leonMonatAngerufen">–</div><div class="b4-spark" id="b4SparkAngerufen"></div></div>
             </div>
-        </div>
-        <div class="dbn-m dbn-m-gruen">
-            <div class="dbn-icon" style="background:linear-gradient(135deg,#16a34a,#22c55e);"><svg viewBox="0 0 24 24"><path d="M7 10v12"/><path d="M15 5.9 14 10h5.8a2 2 0 0 1 2 2.3l-1.4 8A2 2 0 0 1 18.4 22H7V10l4-8a3 3 0 0 1 3 3.9z"/></svg></div>
-            <div>
-                <div class="dbn-m-zahl" id="monthInteressiertLive">{{ datenbank_stats.month_interessiert }}</div>
-                <div class="dbn-m-text"><span class="dbn-monatsname">Dieser Monat</span> · interessiert</div>
+
+            <div class="b4-t b4-s3" style="--i:8;">
+                <div class="b4-lbl"><span><span class="dbn-monatsname">Dieser Monat</span> · interessiert</span></div>
+                <div class="b4-monat"><div class="b4-mz b4-gruen" id="monthInteressiertLive">{{ datenbank_stats.month_interessiert }}</div><div class="b4-spark" id="b4SparkInteressiert"></div></div>
             </div>
-        </div>
-        <div class="dbn-m dbn-m-dunkelgruen">
-            <div class="dbn-icon" style="background:linear-gradient(135deg,#047857,#10b981);"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/><path d="m9 16 2 2 4-4"/></svg></div>
-            <div>
-                <div class="dbn-m-zahl" id="monthBesichtigungLive">{{ datenbank_stats.month_besichtigung }}</div>
-                <div class="dbn-m-text"><span class="dbn-monatsname">Dieser Monat</span> · Besichtigung</div>
+
+            <div class="b4-t b4-s3" style="--i:9;">
+                <div class="b4-lbl"><span><span class="dbn-monatsname">Dieser Monat</span> · Besichtigung</span></div>
+                <div class="b4-monat"><div class="b4-mz b4-dgruen" id="monthBesichtigungLive">{{ datenbank_stats.month_besichtigung }}</div><div class="b4-spark" id="b4SparkBesichtigung"></div></div>
             </div>
-        </div>
+
         </div>
 
         <!-- alte Felder: nur ausgeblendet, die ids bleiben für das bestehende JavaScript -->
@@ -9982,16 +9965,6 @@ document.addEventListener("DOMContentLoaded", function() {
         if (el) el.textContent = wert;
     }
 
-    function prozent(teil, ganzes) {
-        if (!ganzes) return "0 %";
-        return (teil * 100 / ganzes).toLocaleString("de-DE", { maximumFractionDigits: 1 }) + " %";
-    }
-
-    function breite(id, teil, ganzes) {
-        const el = document.getElementById(id);
-        if (el) el.style.width = ganzes ? (teil * 100 / ganzes) + "%" : "0";
-    }
-
     function esc(text) {
         return String(text ?? "")
             .replaceAll("&", "&amp;")
@@ -10018,6 +9991,186 @@ document.addEventListener("DOMContentLoaded", function() {
     let leonDaten = null;
     let besichtigungDaten = null;
 
+    /* ---------------- Grafiken im Kopf (Entwurf 4 „Bento“) mit Start-Animation ---------------- */
+
+    const NS = "http://www.w3.org/2000/svg";
+    const WTAG = ["So", "Mo", "Di", "Mi", "Do", "Fr", "Sa"];
+    const RUHIG = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    let ersteMal = true;
+
+    function svgEl(name, attrs) {
+        const el = document.createElementNS(NS, name);
+        Object.keys(attrs || {}).forEach(function (k) { el.setAttribute(k, attrs[k]); });
+        return el;
+    }
+
+    function zahlDe(n) {
+        return Number(n || 0).toLocaleString("de-DE");
+    }
+
+    function zaehlen(el, ziel) {
+        if (!el) return;
+        ziel = Number(ziel || 0);
+        if (!ersteMal || RUHIG || !ziel) {
+            el.textContent = zahlDe(ziel);
+            return;
+        }
+        const start = performance.now();
+        const dauer = 1300;
+        function schritt(t) {
+            const p = Math.min(1, (t - start) / dauer);
+            el.textContent = zahlDe(Math.round(ziel * (1 - Math.pow(1 - p, 3))));
+            if (p < 1) requestAnimationFrame(schritt);
+        }
+        requestAnimationFrame(schritt);
+    }
+
+    function zahlAusText(el) {
+        return el ? Number(String(el.textContent || "").replace(/[^0-9]/g, "")) || 0 : 0;
+    }
+
+    function danach(fn) {
+        if (!ersteMal || RUHIG) {
+            fn();
+            return;
+        }
+        requestAnimationFrame(function () { requestAnimationFrame(fn); });
+    }
+
+    function glatt(punkte) {
+        let d = "M" + punkte[0][0].toFixed(1) + "," + punkte[0][1].toFixed(1);
+        for (let i = 0; i < punkte.length - 1; i++) {
+            const p0 = punkte[i - 1] || punkte[i], p1 = punkte[i], p2 = punkte[i + 1], p3 = punkte[i + 2] || p2;
+            const lo = Math.min(p1[1], p2[1]), hi = Math.max(p1[1], p2[1]);
+            const c1y = Math.min(Math.max(p1[1] + (p2[1] - p0[1]) / 6, lo), hi);
+            const c2y = Math.min(Math.max(p2[1] - (p3[1] - p1[1]) / 6, lo), hi);
+            d += " C" + (p1[0] + (p2[0] - p0[0]) / 6).toFixed(1) + "," + c1y.toFixed(1) + " " +
+                (p2[0] - (p3[0] - p1[0]) / 6).toFixed(1) + "," + c2y.toFixed(1) + " " + p2[0].toFixed(1) + "," + p2[1].toFixed(1);
+        }
+        return d;
+    }
+
+    function saeulen(box, tage) {
+        if (!box || !tage || !tage.length) return;
+        const W = 560, H = 210, unten = 38, oben = 24, abstand = 10;
+        const n = tage.length, bw = (W - (n - 1) * abstand) / n, hMax = H - unten - oben;
+        const mx = Math.max(1, ...tage.map(function (t) { return t.anzahl; }));
+        const svg = svgEl("svg", { viewBox: "0 0 " + W + " " + H, class: "b4-svg" });
+        tage.forEach(function (t, i) {
+            const x = i * (bw + abstand), h = t.anzahl ? Math.max(4, hMax * t.anzahl / mx) : 3, y = H - unten - h;
+            const istHeute = i === n - 1;
+            svg.appendChild(svgEl("rect", { x: x, y: oben, width: bw, height: hMax, rx: 9, fill: "#2563eb", "fill-opacity": ".07" }));
+            const s = svgEl("rect", { x: x, y: y, width: bw, height: h, rx: 9, fill: istHeute ? "#1e40af" : "#3b82f6", class: "b4-saeule" });
+            s.style.transitionDelay = (i * 70) + "ms";
+            svg.appendChild(s);
+            if (t.anzahl) {
+                const w = svgEl("text", { x: x + bw / 2, y: y - 8, "text-anchor": "middle", "font-size": 12.5, "font-weight": 800, fill: "currentColor", class: "b4-wert" });
+                w.textContent = t.anzahl;
+                w.style.transitionDelay = (450 + i * 70) + "ms";
+                svg.appendChild(w);
+            }
+            const teile = String(t.datum).split("-").map(Number);
+            const tag = new Date(teile[0], teile[1] - 1, teile[2]);
+            const l1 = svgEl("text", { x: x + bw / 2, y: H - 21, "text-anchor": "middle", "font-size": 11.5, "font-weight": 800, fill: "currentColor" });
+            l1.textContent = String(teile[2]).padStart(2, "0") + "." + String(teile[1]).padStart(2, "0") + ".";
+            const l2 = svgEl("text", { x: x + bw / 2, y: H - 6, "text-anchor": "middle", "font-size": 10.5, "font-weight": 700, fill: istHeute ? "#1d4ed8" : "#94a3b8" });
+            l2.textContent = istHeute ? "heute" : WTAG[tag.getDay()];
+            svg.appendChild(l1);
+            svg.appendChild(l2);
+        });
+        box.innerHTML = "";
+        box.appendChild(svg);
+    }
+
+    function tacho(box, pct, wert, label) {
+        if (!box) return;
+        const W = 220, sw = 20, r = (W - sw) / 2, cx = W / 2, cy = r + sw / 2 + 2, H = cy + 30;
+        const pfad = "M " + (cx - r) + " " + cy + " A " + r + " " + r + " 0 0 1 " + (cx + r) + " " + cy;
+        const svg = svgEl("svg", { viewBox: "0 0 " + W + " " + H, class: "b4-svg" });
+        const defs = svgEl("defs", {});
+        const grad = svgEl("linearGradient", { id: "b4TachoFarbe", x1: "0", x2: "1" });
+        grad.appendChild(svgEl("stop", { offset: "0", "stop-color": "#60a5fa" }));
+        grad.appendChild(svgEl("stop", { offset: "1", "stop-color": "#1d4ed8" }));
+        defs.appendChild(grad);
+        svg.appendChild(defs);
+        svg.appendChild(svgEl("path", { d: pfad, fill: "none", stroke: "#e2e8f0", "stroke-width": sw, "stroke-linecap": "round" }));
+        if (pct > 0) {
+            const bogen = svgEl("path", { d: pfad, fill: "none", stroke: "url(#b4TachoFarbe)", "stroke-width": sw, "stroke-linecap": "round", pathLength: 100, class: "b4-strich" });
+            bogen.style.strokeDasharray = "100";
+            bogen.style.strokeDashoffset = ersteMal && !RUHIG ? "100" : String(100 - pct);
+            svg.appendChild(bogen);
+            danach(function () { bogen.style.strokeDashoffset = String(100 - pct); });
+        }
+        const t1 = svgEl("text", { x: cx, y: cy - 10, "text-anchor": "middle", "font-size": 34, "font-weight": 900, fill: "currentColor" });
+        t1.textContent = wert;
+        const t2 = svgEl("text", { x: cx, y: cy + 22, "text-anchor": "middle", "font-size": 12.5, "font-weight": 700, fill: "#64748b" });
+        t2.textContent = label;
+        svg.appendChild(t1);
+        svg.appendChild(t2);
+        box.innerHTML = "";
+        box.appendChild(svg);
+    }
+
+    function donut(box, segmente, mitte, unter) {
+        if (!box) return;
+        const W = 150, sw = 18, r = (W - sw) / 2, c = W / 2;
+        const svg = svgEl("svg", { viewBox: "0 0 " + W + " " + W, class: "b4-svg" });
+        svg.appendChild(svgEl("circle", { cx: c, cy: c, r: r, fill: "none", stroke: "#eef2f7", "stroke-width": sw }));
+        const summe = segmente.reduce(function (a, s) { return a + s.wert; }, 0) || 1;
+        let pos = 0;
+        segmente.forEach(function (s, i) {
+            if (!s.wert) return;
+            const l = s.wert * 100 / summe, sicht = Math.max(l - (segmente.length > 1 ? 0.8 : 0), 0.8);
+            const kreis = svgEl("circle", { cx: c, cy: c, r: r, fill: "none", stroke: s.farbe, "stroke-width": sw, pathLength: 100, transform: "rotate(-90 " + c + " " + c + ")" });
+            kreis.style.strokeDashoffset = String(-pos);
+            kreis.style.strokeDasharray = ersteMal && !RUHIG ? "0 100" : sicht + " 100";
+            kreis.style.transition = "stroke-dasharray .9s cubic-bezier(.22,1,.36,1) " + (0.25 + i * 0.18) + "s";
+            svg.appendChild(kreis);
+            danach(function () { kreis.style.strokeDasharray = sicht + " 100"; });
+            pos += l;
+        });
+        const t1 = svgEl("text", { x: c, y: c + 6, "text-anchor": "middle", "font-size": 28, "font-weight": 900, fill: "currentColor" });
+        t1.textContent = mitte;
+        const t2 = svgEl("text", { x: c, y: c + 24, "text-anchor": "middle", "font-size": 11, "font-weight": 700, fill: "#64748b" });
+        t2.textContent = unter;
+        svg.appendChild(t1);
+        svg.appendChild(t2);
+        box.innerHTML = "";
+        box.appendChild(svg);
+    }
+
+    function spark(box, werte, farbe, id) {
+        if (!box || !werte || !werte.length) return;
+        const W = 120, H = 46;
+        const reihe = werte.length > 1 ? werte : [0].concat(werte);
+        const mx = Math.max(1, ...reihe);
+        const punkte = reihe.map(function (v, i) { return [2 + i * (W - 4) / (reihe.length - 1), 4 + (H - 8) * (1 - v / mx)]; });
+        const d = glatt(punkte);
+        const svg = svgEl("svg", { viewBox: "0 0 " + W + " " + H, class: "b4-svg" });
+        const defs = svgEl("defs", {});
+        const grad = svgEl("linearGradient", { id: id, x1: "0", x2: "0", y1: "0", y2: "1" });
+        grad.appendChild(svgEl("stop", { offset: "0", "stop-color": farbe, "stop-opacity": ".32" }));
+        grad.appendChild(svgEl("stop", { offset: "1", "stop-color": farbe, "stop-opacity": "0" }));
+        defs.appendChild(grad);
+        svg.appendChild(defs);
+        svg.appendChild(svgEl("path", { d: d + " L" + punkte[punkte.length - 1][0] + "," + H + " L" + punkte[0][0] + "," + H + " Z", fill: "url(#" + id + ")", class: "b4-flaeche" }));
+        const linie = svgEl("path", { d: d, fill: "none", stroke: farbe, "stroke-width": 2.4, "stroke-linecap": "round", pathLength: 100, class: "b4-strich" });
+        linie.style.strokeDasharray = "100";
+        linie.style.strokeDashoffset = ersteMal && !RUHIG ? "100" : "0";
+        svg.appendChild(linie);
+        box.innerHTML = "";
+        box.appendChild(svg);
+        danach(function () { linie.style.strokeDashoffset = "0"; });
+    }
+
+    function balkenBreite(id, teil, ganzes) {
+        const el = document.getElementById(id);
+        if (!el) return;
+        const ziel = ganzes ? Math.max(teil ? 1.5 : 0, teil * 100 / ganzes) + "%" : "0";
+        danach(function () { el.style.width = ziel; });
+    }
+
+
     async function kgLeonUebersichtLaden() {
         try {
             const response = await fetch("/api/datenbank/leon-uebersicht");
@@ -10027,35 +10180,64 @@ document.addEventListener("DOMContentLoaded", function() {
 
             const z = data.zahlen || {};
             const k = data.kampagnen_heute;
+            const v = data.verlauf || {};
+            const m = v.monat || {};
             const gesendet = z.gesendet || 0;
+            const angerufen = z.angerufen || 0;
             const gespraech = z.gespraech || 0;
             const ohneErgebnis = Math.max(0, gespraech - (z.interessiert || 0) - (z.besichtigung || 0) - (z.rueckruf || 0) - (z.kein_interesse || 0));
 
-            setzen("leonGesendet", gesendet);
-            setzen("leonGesendetSub", (z.offen || 0) + " warten");
-            setzen("leonAngerufen", z.angerufen || 0);
-            setzen("leonAngerufenQuote", prozent(z.angerufen || 0, gesendet));
-            setzen("leonGespraech", gespraech);
-            setzen("leonGespraechQuote", prozent(gespraech, z.angerufen || 0) + " erreicht");
-            setzen("leonInteressiert", z.interessiert || 0);
-            setzen("leonInteressiertQuote", prozent(z.interessiert || 0, gespraech));
-            setzen("leonBesichtigung", z.besichtigung || 0);
-            setzen("leonBesichtigungQuote", prozent(z.besichtigung || 0, gespraech));
-
+            // Trichter
+            zaehlen(document.getElementById("leonGesendet"), gesendet);
+            zaehlen(document.getElementById("leonAngerufen"), angerufen);
+            zaehlen(document.getElementById("leonGespraech"), gespraech);
+            zaehlen(document.getElementById("leonInteressiert"), z.interessiert || 0);
+            zaehlen(document.getElementById("leonBesichtigung"), z.besichtigung || 0);
+            balkenBreite("b4BarGesendet", gesendet, gesendet);
+            balkenBreite("b4BarAngerufen", angerufen, gesendet);
+            balkenBreite("b4BarGespraech", gespraech, gesendet);
+            balkenBreite("b4BarInteressiert", z.interessiert || 0, gesendet);
+            balkenBreite("b4BarBesichtigung", z.besichtigung || 0, gesendet);
             setzen("leonNichtErreicht", z.nicht_erreicht || 0);
             setzen("leonFehler", z.fehler || 0);
             setzen("leonRueckruf", z.rueckruf || 0);
             setzen("leonKeinInteresse", z.kein_interesse || 0);
             setzen("leonOhneErgebnis", ohneErgebnis);
 
-            breite("leonBalkenGespraech", gespraech, gesendet);
-            breite("leonBalkenNicht", z.nicht_erreicht || 0, gesendet);
-            breite("leonBalkenFehler", z.fehler || 0, gesendet);
+            // Erreichbarkeit
+            const quote = angerufen ? Math.round(gespraech * 100 / angerufen) : 0;
+            tacho(document.getElementById("b4Tacho"), quote, quote + " %", zahlDe(gespraech) + " von " + zahlDe(angerufen) + " erreicht");
+            zaehlen(document.getElementById("b4AngerufenGross"), angerufen);
+            setzen("b4GesendetText", zahlDe(gesendet));
+            setzen("b4WartetText", zahlDe(z.offen || 0));
 
-            setzen("leonMonatAngerufen", z.monat_angerufen || 0);
+            // Anrufe pro Tag
+            saeulen(document.getElementById("b4Saeulen"), v.tage || []);
 
+            // Ergebnis der Gespräche
+            donut(document.getElementById("b4Donut"), [
+                { wert: z.interessiert || 0, farbe: "#16a34a" },
+                { wert: z.besichtigung || 0, farbe: "#059669" },
+                { wert: z.rueckruf || 0, farbe: "#f97316" },
+                { wert: z.kein_interesse || 0, farbe: "#64748b" },
+                { wert: ohneErgebnis, farbe: "#cbd5e1" }
+            ], zahlDe(gespraech), "Gespräche");
+            setzen("b4LegInteressiert", z.interessiert || 0);
+            setzen("b4LegBesichtigung", z.besichtigung || 0);
+            setzen("b4LegRueckruf", z.rueckruf || 0);
+            setzen("b4LegKein", z.kein_interesse || 0);
+            setzen("b4LegOhne", ohneErgebnis);
+
+            // Monat
+            zaehlen(document.getElementById("leonMonatAngerufen"), z.monat_angerufen || 0);
+            spark(document.getElementById("b4SparkLeads"), m.leads, "#6366f1", "b4SpLeads");
+            spark(document.getElementById("b4SparkAngerufen"), m.angerufen, "#2563eb", "b4SpAngerufen");
+            spark(document.getElementById("b4SparkInteressiert"), m.interessiert, "#16a34a", "b4SpInteressiert");
+            spark(document.getElementById("b4SparkBesichtigung"), m.besichtigung, "#059669", "b4SpBesichtigung");
+
+            // Heute
             if (k) {
-                setzen("leonAnruflisteHeute", k.firmen);
+                zaehlen(document.getElementById("leonAnruflisteHeute"), k.firmen);
                 setzen("leonAnruflisteWorkflowCount", k.firmen);
                 setzen("leonAnruflisteHeuteSub", k.kampagnen
                     ? k.kampagnen + (k.kampagnen === 1 ? " Kampagne" : " Kampagnen") + " · " + k.wartend + " warten"
@@ -10063,6 +10245,12 @@ document.addEventListener("DOMContentLoaded", function() {
             } else {
                 setzen("leonAnruflisteHeuteSub", "Leon gerade nicht erreichbar");
             }
+
+            danach(function () {
+                const kopf = document.getElementById("b4Kopf");
+                if (kopf) kopf.classList.add("b4-an");
+            });
+            ersteMal = false;
         } catch (error) {
             console.error("Leon-Übersicht Fehler:", error);
         }
@@ -10272,6 +10460,15 @@ document.addEventListener("DOMContentLoaded", function() {
     document.addEventListener("DOMContentLoaded", function () {
         const name = monatsname();
         document.querySelectorAll(".dbn-monatsname").forEach(function (el) { el.textContent = name; });
+        const jetzt = new Date();
+        document.querySelectorAll(".b4-heute-datum").forEach(function (el) {
+            el.textContent = WTAG[jetzt.getDay()] + " " + String(jetzt.getDate()).padStart(2, "0") + "." + String(jetzt.getMonth() + 1).padStart(2, "0") + ".";
+        });
+
+        ["todayAngerufenLive", "todayInteressiertLive", "todayBesichtigungLive", "monthInteressiertLive", "monthBesichtigungLive", "b4Leads"].forEach(function (id) {
+            const el = document.getElementById(id);
+            zaehlen(el, zahlAusText(el));
+        });
 
         document.querySelectorAll(".workflow-card[data-panel]").forEach(function (karte) {
             karte.addEventListener("click", function (e) {

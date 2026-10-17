@@ -1,7 +1,7 @@
 # Datenbank-Seite: Leon-Zahlen oben (nur lesend, ändert nichts).
 # Quelle: leon_links + tagesliste_status_history (CRM) und die Kampagnen-Liste vom Leon-Motor.
 import time
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from zoneinfo import ZoneInfo
 
 from flask import jsonify
@@ -114,5 +114,40 @@ def register_leon_uebersicht(app, login_required, get_db_connection, get_leon_cl
         return jsonify({
             "ok": True,
             "zahlen": zahlen,
+            "verlauf": _verlauf(get_db_connection),
             "kampagnen_heute": _kampagnen_heute(get_leon_client()),
         })
+
+
+def _verlauf(get_db_connection):
+    """Tageswerte für die Grafiken: Leon-Anrufe (erreicht) der letzten 9 Tage und der Monat je Tag."""
+    heute = datetime.now(BERLIN).date()
+    tage = [heute - timedelta(days=i) for i in range(8, -1, -1)]
+    monat = [heute.replace(day=d) for d in range(1, heute.day + 1)]
+    leon = "tagesliste_id IN (SELECT tagesliste_id FROM leon_links WHERE tagesliste_id IS NOT NULL)"
+    conn = get_db_connection()
+
+    def je_tag(sql, ab):
+        try:
+            return {str(r[0])[:10]: int(r[1] or 0) for r in conn.execute(sql, (ab.isoformat(),)).fetchall()}
+        except Exception as exc:
+            print("Leon-Übersicht: Verlauf nicht geladen:", exc)
+            return {}
+
+    try:
+        anrufe = je_tag(f"SELECT datum, COUNT(*) FROM tagesliste_status_history WHERE status = 'angerufen' AND datum >= ? AND {leon} GROUP BY datum", min(tage[0], monat[0]))
+        interessiert = je_tag("SELECT datum, COUNT(*) FROM tagesliste_status_history WHERE status = 'interessiert' AND datum >= ? GROUP BY datum", monat[0])
+        besichtigung = je_tag("SELECT datum, COUNT(*) FROM tagesliste_status_history WHERE status = 'besichtigung' AND datum >= ? GROUP BY datum", monat[0])
+        leads = je_tag("SELECT date(created_at), COUNT(*) FROM leads WHERE created_at >= ? GROUP BY date(created_at)", monat[0])
+    finally:
+        conn.close()
+
+    return {
+        "tage": [{"datum": t.isoformat(), "anzahl": anrufe.get(t.isoformat(), 0)} for t in tage],
+        "monat": {
+            "angerufen": [anrufe.get(t.isoformat(), 0) for t in monat],
+            "interessiert": [interessiert.get(t.isoformat(), 0) for t in monat],
+            "besichtigung": [besichtigung.get(t.isoformat(), 0) for t in monat],
+            "leads": [leads.get(t.isoformat(), 0) for t in monat],
+        },
+    }
