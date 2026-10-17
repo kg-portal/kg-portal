@@ -85,6 +85,17 @@
   .lh-form input, .lh-form textarea { width: 100%; margin-top: 6px; padding: 12px 14px; border: 1px solid #dbe3ef; border-radius: 13px; font-size: 15px; font-family: inherit; color: #0f1d4a; outline: none; background: #fff; }
   .lh-form input:focus, .lh-form textarea:focus { border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37,99,235,.15); }
   .lh-form .zwei { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .lh-gchip { display: inline-flex; align-items: center; gap: 6px; max-width: 100%; margin-top: 6px; margin-left: 4px; padding: 3px 9px; border-radius: 999px; font-size: 11.5px; font-weight: 800; vertical-align: top; }
+  .lh-gchip i { flex: none; width: 8px; height: 8px; border-radius: 50%; }
+  .lh-gchip span { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+  .lh-wahl .lh-klein { margin: 14px 0 7px; }
+  .lh-grp { display: flex; flex-wrap: wrap; gap: 7px; }
+  .lh-grp button { display: inline-flex; align-items: center; gap: 7px; padding: 7px 11px; border-radius: 12px; font-size: 12.5px; font-weight: 800; border: 1px solid #e2e8f0; background: #fff; color: #334155; }
+  .lh-grp button i { width: 10px; height: 10px; border-radius: 50%; }
+  .lh-grp button.an { color: #fff; }
+  .lh-pal { display: flex; flex-wrap: wrap; gap: 9px; }
+  .lh-pal button { width: 28px; height: 28px; border-radius: 50%; border: 0; display: grid; place-items: center; color: #fff; font-weight: 900; font-size: 14px; transition: transform .15s; }
+  .lh-pal button:hover { transform: scale(1.1); }
   .lh-meldung { margin-top: 12px; font-size: 13.5px; font-weight: 800; color: #dc2626; min-height: 18px; }
   @media (max-width: 1750px) { .lh-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
   @media (max-width: 1300px) { .lh-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } .lh-kpis { grid-template-columns: repeat(2, 1fr); } }
@@ -127,6 +138,30 @@
 
   const ICON_AUF = '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg>';
   const ICON_OK = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>';
+
+  // Gruppe und Farbe (wie Google Kalender) – gleiche Liste wie im LifeHub, gespeichert in task.meta
+  const FARBEN = [['tomate', 'Tomate', '#d50000'], ['flamingo', 'Flamingo', '#e67c73'], ['mandarine', 'Mandarine', '#f4511e'], ['banane', 'Banane', '#f6bf26'],
+    ['salbei', 'Salbei', '#33b679'], ['basilikum', 'Basilikum', '#0b8043'], ['pfau', 'Pfau', '#039be5'], ['heidelbeere', 'Heidelbeere', '#3f51b5'],
+    ['lavendel', 'Lavendel', '#7986cb'], ['weintraube', 'Weintraube', '#8e24aa'], ['graphit', 'Graphit', '#616161']];
+  const GRUPPEN = [['Steuern & Finanzamt', 'tomate'], ['Bank & Zahlungen', 'banane'], ['Büro & Verträge', 'pfau'], ['Kunden & Angebote', 'basilikum'], ['Privat', 'weintraube']];
+  const hexVon = k => (FARBEN.find(f => f[0] === k) || [])[2] || null;
+  const gruppeVon = t => (t.meta && t.meta.gruppe) || null;
+  const farbeVon = t => hexVon(t.meta && t.meta.farbe) || hexVon((GRUPPEN.find(g => g[0] === gruppeVon(t)) || [])[1]);
+  const gruppenChip = (name, hex) => '<span class="lh-gchip" style="background:' + hex + '18;color:' + hex + '"><i style="background:' + hex + '"></i><span>' + esc(name) + '</span></span>';
+  function auswahlHtml(w) {
+    return '<div class="lh-klein">GRUPPE</div><div class="lh-grp">' + GRUPPEN.map(g => {
+      const hex = hexVon(g[1]), an = w.gruppe === g[0];
+      return '<button type="button" data-gruppe="' + esc(g[0]) + '" class="' + (an ? 'an' : '') + '"' + (an ? ' style="background:' + hex + ';border-color:' + hex + '"' : '') + '><i style="background:' + (an ? '#fff' : hex) + '"></i>' + esc(g[0]) + '</button>';
+    }).join('') + '</div><div class="lh-klein">FARBE <span style="letter-spacing:0;font-weight:700">· aus der Gruppe, änderbar</span></div><div class="lh-pal">' + FARBEN.map(f =>
+      '<button type="button" data-farbe="' + f[0] + '" title="' + f[1] + '" aria-label="' + f[1] + '" style="background:' + f[2] + (w.farbe === f[0] ? ';box-shadow:0 0 0 2px #fff,0 0 0 4px ' + f[2] : '') + '">' + (w.farbe === f[0] ? '✓' : '') + '</button>').join('') + '</div>';
+  }
+  // Klicks in der Auswahl: Gruppe übernimmt ihre Farbe, Farbe einzeln änderbar (nochmal klicken = abwählen)
+  function auswahlKlick(e, w) {
+    const g = e.target.closest('[data-gruppe]'), f = e.target.closest('[data-farbe]');
+    if (g) { const name = g.dataset.gruppe; if (w.gruppe === name) w.gruppe = null; else { w.gruppe = name; w.farbe = (GRUPPEN.find(x => x[0] === name) || [])[1] || w.farbe; } return true; }
+    if (f) { w.farbe = w.farbe === f.dataset.farbe ? null : f.dataset.farbe; return true; }
+    return false;
+  }
 
   const fertig = t => t.status === 'done';
   const datumVon = t => t.planned_date || t.due_date || null;
@@ -200,8 +235,10 @@
     $('lhZahl').textContent = gezeigt.length + ' von ' + alle.length;
     $('lhListe').innerHTML = gezeigt.length ? '<div class="lh-grid">' + gezeigt.map(t => {
       const st = statusVon(t), fort = fertig(t) ? 100 : (t.subtask_count ? Math.round(t.subtask_done_count / t.subtask_count * 100) : 0);
-      return '<article class="lh-karte' + (fertig(t) ? ' fertig' : '') + '" data-id="' + esc(t.id) + '"><div class="lh-oben"><div class="lh-av">' + esc(kuerzel(t.title)) + '</div><div style="min-width:0"><div class="lh-titel">' + esc(t.title) + '</div><span class="lh-badge ' + st + '">' + STATUS[st] + '</span></div></div>' +
-        kacheln(t) + '<div class="lh-strich"><i style="width:' + fort + '%"></i></div>' +
+      const hex = farbeVon(t), gr = gruppeVon(t);
+      const kStil = hex ? ' style="background:linear-gradient(180deg,' + hex + '14,' + hex + '08);border-color:' + hex + '40"' : '';
+      return '<article class="lh-karte' + (fertig(t) ? ' fertig' : '') + '" data-id="' + esc(t.id) + '"' + kStil + '><div class="lh-oben"><div class="lh-av"' + (hex ? ' style="background:' + hex + ';color:#fff"' : '') + '>' + esc(kuerzel(t.title)) + '</div><div style="min-width:0"><div class="lh-titel">' + esc(t.title) + '</div><span class="lh-badge ' + st + '">' + STATUS[st] + '</span>' + (gr ? gruppenChip(gr, hex || '#2563eb') : '') + '</div></div>' +
+        kacheln(t) + '<div class="lh-strich"><i style="width:' + fort + '%' + (hex ? ';background:' + hex : '') + '"></i></div>' +
         '<div class="lh-fuss"><button type="button" class="lh-auf">' + ICON_AUF + 'Öffnen</button><button type="button" class="lh-ok' + (fertig(t) ? ' an' : '') + '" data-ok="1" title="' + (fertig(t) ? 'Wieder öffnen' : 'Erledigt') + '" aria-label="' + (fertig(t) ? 'Wieder öffnen' : 'Erledigt') + '">' + ICON_OK + '</button></div></article>';
     }).join('') + '</div>'
       : '<div class="lh-hinweis"><b>Hier ist gerade nichts offen.</b><span>Mit „Neue Aufgabe“ anlegen – sie erscheint sofort auch im LifeHub.</span><button type="button" id="lhNeu2">+ Neue Aufgabe</button></div>';
@@ -262,13 +299,24 @@
   document.addEventListener('keydown', e => { if (e.key === 'Escape') schliessen(); });
 
   function oeffnen(t, karte) {
-    const st = statusVon(t);
+    const st = statusVon(t), hex = farbeVon(t);
+    const w = { gruppe: gruppeVon(t), farbe: (t.meta && hexVon(t.meta.farbe)) ? t.meta.farbe : null };
     const panel = fenster(karte,
-      '<div class="lh-pkopf"><button type="button" class="lh-zu" aria-label="Schließen">✕</button><div class="lh-av">' + esc(kuerzel(t.title)) + '</div><h2>' + esc(t.title) + '</h2><span class="lh-badge ' + st + '" style="margin-top:10px">' + STATUS[st] + '</span>' + (t.visibility === 'private' ? ' <span class="lh-badge" style="margin-top:10px;background:rgba(255,255,255,.16);color:#fff">Privat</span>' : '') + '</div>' +
-      '<div class="lh-pbody">' + kacheln(t) + (t.description ? '<div class="lh-klein">NOTIZ</div><div class="lh-notiz">' + esc(t.description) + '</div>' : '') + '</div>' +
+      '<div class="lh-pkopf"><button type="button" class="lh-zu" aria-label="Schließen">✕</button><div class="lh-av" id="lhPanelAv"' + (hex ? ' style="background:' + hex + '"' : '') + '>' + esc(kuerzel(t.title)) + '</div><h2>' + esc(t.title) + '</h2><span class="lh-badge ' + st + '" style="margin-top:10px">' + STATUS[st] + '</span>' + (t.visibility === 'private' ? ' <span class="lh-badge" style="margin-top:10px;background:rgba(255,255,255,.16);color:#fff">Privat</span>' : '') + '</div>' +
+      '<div class="lh-pbody">' + kacheln(t) + '<div class="lh-wahl" id="lhPanelWahl">' + auswahlHtml(w) + '</div>' + (t.description ? '<div class="lh-klein">NOTIZ</div><div class="lh-notiz">' + esc(t.description) + '</div>' : '') + '</div>' +
       '<div class="lh-pfuss"><button type="button" class="' + (fertig(t) ? 'lh-hell' : 'lh-gruen') + '" data-umschalten="1">' + (fertig(t) ? 'Wieder öffnen' : '✓ Erledigt') + '</button><button type="button" class="lh-blau" data-schliessen="1">Schließen</button></div>',
-      560, t.description ? 560 : 420);
+      600, t.description ? 680 : 560);
     if (!panel) return;
+    const wahl = panel.querySelector('#lhPanelWahl');
+    wahl.addEventListener('click', e => {
+      if (!auswahlKlick(e, w)) return;
+      wahl.innerHTML = auswahlHtml(w);
+      const neuHex = hexVon(w.farbe) || hexVon((GRUPPEN.find(g => g[0] === w.gruppe) || [])[1]);
+      panel.querySelector('#lhPanelAv').style.background = neuHex || '';
+      fetch('/api/lifehub/aufgaben/' + encodeURIComponent(t.id) + '/farbe', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(w) })
+        .then(r => r.json()).then(d => { if (!d.ok) throw new Error(d.fehler || 'Fehler'); t.meta = Object.assign({}, t.meta, { gruppe: w.gruppe, farbe: w.farbe }); zeigen(); })
+        .catch(err => alert('Farbe nicht gespeichert: ' + err.message));
+    });
     panel.querySelector('[data-schliessen]').onclick = schliessen;
     panel.querySelector('[data-umschalten]').onclick = e => { umschalten(t, e.currentTarget).then(ok => { if (ok) schliessen(); }); };
   }
@@ -278,11 +326,15 @@
       '<div class="lh-pkopf"><button type="button" class="lh-zu" aria-label="Schließen">✕</button><h2>Neue Aufgabe</h2><div style="margin-top:4px;font-size:13px;font-weight:700;color:#dbeafe">Wird im KG LifeHub gespeichert</div></div>' +
       '<form class="lh-pbody lh-form" id="lhForm"><label>TITEL<input name="titel" maxlength="300" required></label>' +
       '<div class="zwei"><label>DATUM<input type="date" name="datum" value="' + heute + '"></label><label>UHRZEIT<input type="time" name="uhrzeit"></label></div>' +
-      '<label>NOTIZ<textarea name="notiz" rows="4"></textarea></label><div class="lh-meldung" id="lhMeldung"></div></form>' +
+      '<div class="lh-wahl" id="lhNeuWahl"></div>' +
+      '<label>NOTIZ<textarea name="notiz" rows="3"></textarea></label><div class="lh-meldung" id="lhMeldung"></div></form>' +
       '<div class="lh-pfuss"><button type="button" class="lh-hell" data-schliessen="1">Abbrechen</button><button type="button" class="lh-blau" id="lhSpeichern">Speichern</button></div>',
-      520, 520);
+      540, 690);
     if (!panel) return;
     const form = panel.querySelector('#lhForm');
+    const w = { gruppe: null, farbe: null }, wahl = panel.querySelector('#lhNeuWahl');
+    wahl.innerHTML = auswahlHtml(w);
+    wahl.addEventListener('click', e => { if (auswahlKlick(e, w)) wahl.innerHTML = auswahlHtml(w); });
     setTimeout(() => form.titel.focus(), 300);
     panel.querySelector('[data-schliessen]').onclick = schliessen;
     const speichern = () => {
@@ -290,7 +342,7 @@
       if (!titel) { $('lhMeldung').textContent = 'Bitte einen Titel eingeben.'; return; }
       const knopf = panel.querySelector('#lhSpeichern'); knopf.disabled = true; knopf.textContent = 'Speichert …';
       fetch('/api/lifehub/aufgaben', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ titel, datum: form.datum.value, uhrzeit: form.uhrzeit.value, notiz: form.notiz.value }) })
+        body: JSON.stringify({ titel, datum: form.datum.value, uhrzeit: form.uhrzeit.value, notiz: form.notiz.value, gruppe: w.gruppe, farbe: w.farbe }) })
         .then(r => r.json()).then(d => { if (!d.ok) throw new Error(d.fehler || 'Fehler'); schliessen(); laden(); })
         .catch(err => { knopf.disabled = false; knopf.textContent = 'Speichern'; $('lhMeldung').textContent = 'Nicht gespeichert: ' + err.message; });
     };

@@ -1962,10 +1962,13 @@ const percent = kgTodoPercent;
         }
         if (a === 'todo' && lifehub) {
             const tx = iso => { if (!iso) return 'Ohne Datum'; const d = Math.round((Date.parse(iso) - Date.parse(lifehub.heute)) / 86400000); return d === 0 ? 'Heute' : d === 1 ? 'Morgen' : d === -1 ? 'Gestern' : new Date(iso + 'T12:00:00').toLocaleDateString('de-DE', { weekday: 'short', day: '2-digit', month: '2-digit' }); };
+            const LH_HEX = { tomate: '#d50000', flamingo: '#e67c73', mandarine: '#f4511e', banane: '#f6bf26', salbei: '#33b679', basilikum: '#0b8043', pfau: '#039be5', heidelbeere: '#3f51b5', lavendel: '#7986cb', weintraube: '#8e24aa', graphit: '#616161' };
+            const LH_GR = { 'Steuern & Finanzamt': 'tomate', 'Bank & Zahlungen': 'banane', 'Büro & Verträge': 'pfau', 'Kunden & Angebote': 'basilikum', 'Privat': 'weintraube' };
             const lhZeilen = (lifehub.naechste || []).map(t => {
                 const d = t.planned_date || t.due_date, zeit = String(t.planned_time || t.due_time || '').slice(0, 5);
+                const m = t.meta || {}, hex = LH_HEX[m.farbe] || LH_HEX[LH_GR[m.gruppe]] || '';
                 const ueber = t.is_overdue || (d && d < lifehub.heute);
-                return '<div class="kgx-zeile"><span class="kgx-name">' + esc(tx(d)) + '</span><span style="flex:1;min-width:0"><b>' + esc(t.title) + '</b>' + (zeit ? '<span class="kgx-klein">' + esc(zeit) + ' Uhr</span>' : '') + '</span>' +
+                return '<div class="kgx-zeile"><span class="kgx-name">' + esc(tx(d)) + '</span><span style="flex:1;min-width:0"><b>' + (hex ? '<i style="display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:7px;background:' + hex + '"></i>' : '') + esc(t.title) + '</b>' + (zeit || m.gruppe ? '<span class="kgx-klein">' + (zeit ? esc(zeit) + ' Uhr' : '') + (zeit && m.gruppe ? ' · ' : '') + (m.gruppe ? '<span style="color:' + (hex || '#64748b') + '">' + esc(m.gruppe) + '</span>' : '') + '</span>' : '') + '</span>' +
                     '<span class="kgx-wert ' + (ueber ? 'kgx-minus' : '') + '" style="min-width:90px">' + (ueber ? 'Überfällig' : d === lifehub.heute ? 'Heute' : 'Offen') + '</span></div>';
             }).join('');
             return { over: 'To-Do Liste', titel: 'Aufgaben aus dem LifeHub', gross: lifehub.offen + ' offen', unter: lifehub.heute_faellig + ' heute fällig · ' + lifehub.ueberfaellig + ' überfällig',

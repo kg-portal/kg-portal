@@ -15,8 +15,11 @@ from flask import jsonify, render_template, request
 BERLIN = ZoneInfo("Europe/Berlin")
 HORIZONTE = ("today", "this_week", "month", "quarter", "half_year", "year", "two_years")
 FELDER = ("id", "title", "description", "status", "visibility", "planned_date", "planned_time", "due_date",
-          "due_time", "is_overdue", "reminder_count", "subtask_count", "subtask_done_count")
+          "due_time", "is_overdue", "reminder_count", "subtask_count", "subtask_done_count", "meta")
 ID_MUSTER = re.compile(r"[0-9a-fA-F-]{36}")
+# Gruppe und Farbe (wie Google Kalender) – gleiche Liste wie im LifeHub (frontend/src/lib/farben.ts), gespeichert in task.meta
+FARBEN = ("tomate", "flamingo", "mandarine", "banane", "salbei", "basilikum", "pfau", "heidelbeere", "lavendel", "weintraube", "graphit")
+GRUPPEN = ("Steuern & Finanzamt", "Bank & Zahlungen", "Büro & Verträge", "Kunden & Angebote", "Privat")
 WARTEZEIT = 6
 
 
@@ -81,7 +84,16 @@ ZUGANG = _Zugang()
 
 
 def _kurz(t):
-    return {k: t.get(k) for k in FELDER}
+    k = {f: t.get(f) for f in FELDER}
+    meta = t.get("meta") or {}
+    k["meta"] = {x: meta.get(x) for x in ("gruppe", "farbe") if meta.get(x)}
+    return k
+
+
+def _wahl(e):
+    gruppe = e.get("gruppe") if e.get("gruppe") in GRUPPEN else None
+    farbe = e.get("farbe") if e.get("farbe") in FARBEN else None
+    return gruppe, farbe
 
 
 def _offen(t):
@@ -138,6 +150,9 @@ def register_lifehub_bruecke(app, login_required):
         notiz = str(e.get("notiz") or "").strip()
         if notiz:
             neu["description"] = notiz[:20000]
+        gruppe, farbe = _wahl(e)
+        if gruppe or farbe:
+            neu["meta"] = {k: v for k, v in (("gruppe", gruppe), ("farbe", farbe)) if v}
         try:
             t = ZUGANG.anfrage("POST", "/tasks", json=neu)
         except LifeHubFehler as exc:
@@ -151,6 +166,26 @@ def register_lifehub_bruecke(app, login_required):
             return jsonify({"ok": False, "fehler": "Ungültige Anfrage."}), 400
         try:
             t = ZUGANG.anfrage("POST", f"/tasks/{aufgabe_id}/{'complete' if aktion == 'erledigt' else 'reopen'}")
+        except LifeHubFehler as exc:
+            return fehler(exc)
+        return jsonify({"ok": True, "aufgabe": _kurz(t)})
+
+    @app.route("/api/lifehub/aufgaben/<aufgabe_id>/farbe", methods=["POST"])
+    @login_required
+    def lifehub_aufgabe_farbe(aufgabe_id):
+        # Gruppe/Farbe ändern: vorhandene meta-Werte der Aufgabe bleiben erhalten
+        if not ID_MUSTER.fullmatch(aufgabe_id):
+            return jsonify({"ok": False, "fehler": "Ungültige Anfrage."}), 400
+        gruppe, farbe = _wahl(request.get_json(silent=True) or {})
+        try:
+            alt = ZUGANG.anfrage("GET", f"/tasks/{aufgabe_id}")
+            meta = dict(alt.get("meta") or {})
+            for k, v in (("gruppe", gruppe), ("farbe", farbe)):
+                if v:
+                    meta[k] = v
+                else:
+                    meta.pop(k, None)
+            t = ZUGANG.anfrage("PATCH", f"/tasks/{aufgabe_id}", json={"meta": meta})
         except LifeHubFehler as exc:
             return fehler(exc)
         return jsonify({"ok": True, "aufgabe": _kurz(t)})
