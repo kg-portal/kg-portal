@@ -5,6 +5,14 @@
 
 {% include "_leon_tabs.html" %}
 
+<style>
+/* ===== PREMIUM (einheitliches Design) ===== */
+/* Leon-Rahmen: weicher Schatten, runde Ecken, sanftes Einblenden (nur Deckkraft, damit die Höhenberechnung stimmt) */
+@keyframes kgLeonRahmenRein { from { opacity: 0; } to { opacity: 1; } }
+#leonFrame { border-radius: 24px !important; box-shadow: 0 30px 60px -44px rgba(30,64,175,.45), 0 0 0 1px rgba(148,163,184,.22) !important; animation: kgLeonRahmenRein .5s ease backwards; }
+@media (prefers-reduced-motion: reduce) { #leonFrame { animation: none; } }
+</style>
+
 <iframe
     id="leonFrame"
     src="{{ frame_src }}"

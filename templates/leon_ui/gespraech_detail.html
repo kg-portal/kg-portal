@@ -199,6 +199,275 @@
   .nf-btn.nf-fertig{--nf-bg:#f0fdf4;--nf-rand:#bbf7d0;--nf-text:#15803d;cursor:default;transform:none;box-shadow:none}
   .nf-btn:disabled{cursor:default}
 </style>
+<!-- ===== PREMIUM (einheitliches Design) ===== -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap">
+{% raw %}<style id="kg-premium">
+/* ===== PREMIUM (einheitliches Design) ===== */
+/* Nur Aussehen – Schrift, Kopf-Kachel, Kacheln, Tabellen, Knöpfe, Felder, Start-Animation.
+   Keine Funktion, keine IDs/Handler geändert. */
+html, body { font-family: Inter, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !important; }
+
+@keyframes kgRein { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+@keyframes lpWachsen { from { transform: scaleY(0); } to { transform: none; } }
+@keyframes lpBreit { from { transform: scaleX(0); } to { transform: none; } }
+@keyframes lpBogen { from { stroke-dasharray: 0 100; } }
+
+/* Seitenfläche */
+html body .business-portal-card {
+  background:
+    radial-gradient(900px 420px at 100% 0%, rgba(37,99,235,.05), transparent 60%),
+    #f8fbff !important;
+  border-color: #e6ebf2 !important;
+}
+
+/* Kopf-Kachel (Systemblau) */
+html body .business-portal-card .kgb-hero {
+  background:
+    radial-gradient(520px 230px at 90% -20%, rgba(255,255,255,.26), transparent 60%),
+    radial-gradient(420px 220px at 0% 120%, rgba(56,189,248,.25), transparent 60%),
+    linear-gradient(135deg, #1e40af, #2563eb) !important;
+  border-radius: 24px !important;
+  box-shadow: 0 24px 50px -28px rgba(29,78,216,.7) !important;
+  animation: kgRein .6s cubic-bezier(.22,1,.36,1) backwards;
+}
+html body .business-portal-card .kgb-hero::before {
+  content: "Leon · Telefon-KI";
+  display: block;
+  margin: 0 0 8px;
+  font-size: 11.5px;
+  font-weight: 800;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+  color: #bfdbfe;
+}
+html body .business-portal-card .kgb-hero h1,
+html body .business-portal-card .kgb-hero .page-title {
+  font-size: 34px !important;
+  font-weight: 900 !important;
+  letter-spacing: -.9px !important;
+}
+html body .business-portal-card .kgb-hero p,
+html body .business-portal-card .kgb-hero .meta {
+  color: #dbeafe !important;
+  font-size: 13.5px !important;
+  font-weight: 600 !important;
+}
+html body .business-portal-card .kgb-hero button,
+html body .business-portal-card .kgb-hero .btn,
+html body .business-portal-card .kgb-hero .back-btn,
+html body .business-portal-card .kgb-hero a.kg-action {
+  border-radius: 12px !important;
+  font-weight: 900 !important;
+  transition: translate .2s, box-shadow .2s, background-color .2s !important;
+}
+html body .business-portal-card .kgb-hero button:not(:disabled):hover,
+html body .business-portal-card .kgb-hero .back-btn:hover,
+html body .business-portal-card .kgb-hero a.kg-action:hover {
+  translate: 0 -2px;
+  box-shadow: 0 12px 24px -14px rgba(15,23,42,.6) !important;
+}
+html body .business-portal-card .kgb-hero .btn-primary:not(:disabled),
+html body .business-portal-card .kgb-hero .kg-action {
+  background: #ffffff !important;
+  color: #1e40af !important;
+  border-color: #ffffff !important;
+}
+html body .business-portal-card .kgb-hero .kg-pill,
+html body .business-portal-card .kgb-hero .call-status,
+html body .business-portal-card .kgb-hero .saved-status {
+  border-radius: 999px !important;
+  font-weight: 800 !important;
+  backdrop-filter: blur(4px);
+}
+
+/* Kennzahl-Kacheln im Kopf: helle Fläche + farbiges Symbol-Quadrat (wie Leon-Übersicht) */
+html body .business-portal-card .kgb-hero .summary-grid,
+html body .business-portal-card .kgb-hero .kg-grid-4 { gap: 14px !important; }
+html body .business-portal-card .kgb-hero .summary-card,
+html body .business-portal-card .kgb-hero .kg-stat {
+  display: flex !important;
+  flex-direction: column-reverse;
+  justify-content: center;
+  position: relative !important;
+  overflow: hidden !important;
+  min-height: 78px !important;
+  padding: 15px 16px 15px 70px !important;
+  background: #f8fbff !important;
+  border: 1px solid #e6edf7 !important;
+  border-radius: 16px !important;
+  box-shadow: 0 16px 30px -24px rgba(15,23,42,.65) !important;
+  animation: kgRein .6s cubic-bezier(.22,1,.36,1) backwards;
+  animation-delay: calc(var(--i, 0) * 70ms + 80ms);
+  transition: translate .2s, transform .2s, box-shadow .2s;
+}
+html body .business-portal-card .kgb-hero .summary-card:hover,
+html body .business-portal-card .kgb-hero .kg-stat:hover {
+  translate: 0 -2px;
+  box-shadow: 0 22px 36px -24px rgba(15,23,42,.7) !important;
+}
+html body .business-portal-card .kgb-hero .summary-card::after,
+html body .business-portal-card .kgb-hero .kg-stat::after {
+  content: "";
+  position: absolute;
+  top: calc(50% - 19px);
+  left: 17px;
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  background: var(--lp-ic, none) center / 19px 19px no-repeat,
+              linear-gradient(135deg, var(--lp-a, #3b82f6), var(--lp-b, #1d4ed8));
+  box-shadow: 0 10px 18px -10px var(--lp-b, #1d4ed8);
+}
+html body .business-portal-card .kgb-hero .summary-card span,
+html body .business-portal-card .kgb-hero .kg-stat span {
+  display: block !important;
+  margin-top: 6px !important;
+  color: #64748b !important;
+  font-size: 11px !important;
+  font-weight: 800 !important;
+  letter-spacing: 1px !important;
+  line-height: 1.3 !important;
+  text-transform: uppercase !important;
+}
+html body .business-portal-card .kgb-hero .summary-card strong,
+html body .business-portal-card .kgb-hero .kg-stat strong {
+  display: block !important;
+  margin-top: 0 !important;
+  color: #0f172a !important;
+  font-size: 28px !important;
+  font-weight: 900 !important;
+  letter-spacing: -1px !important;
+  line-height: 1 !important;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Tabellen (Bildschirm-Listen) */
+html body .business-portal-card table thead th {
+  background: #f8fafc !important;
+  color: #64748b !important;
+  font-size: 11px !important;
+  font-weight: 800 !important;
+  letter-spacing: .9px !important;
+  text-transform: uppercase !important;
+  border-bottom: 1px solid #e6ebf2 !important;
+}
+html body .business-portal-card table tbody td { border-color: #eef2f7 !important; }
+html body .business-portal-card table tbody tr > td { transition: background-color .15s; }
+html body .business-portal-card table tbody tr:hover > td { background: #f8fbff !important; }
+
+/* Knöpfe */
+html body .business-portal-card button,
+html body .modal button {
+  transition: translate .2s, box-shadow .2s, background-color .2s, border-color .2s, color .2s !important;
+}
+html body .business-portal-card button:not(:disabled):hover,
+html body .modal button:not(:disabled):hover { translate: 0 -2px; }
+html body .business-portal-card .btn-primary:not(:disabled),
+html body .modal .btn-primary:not(:disabled) {
+  background: linear-gradient(135deg, #3b82f6, #1d4ed8) !important;
+  border-color: transparent !important;
+  color: #ffffff !important;
+  border-radius: 12px !important;
+  font-weight: 800 !important;
+  box-shadow: 0 10px 20px -12px rgba(37,99,235,.85) !important;
+}
+html body .business-portal-card .btn-primary:not(:disabled):hover,
+html body .modal .btn-primary:not(:disabled):hover { box-shadow: 0 14px 26px -12px rgba(37,99,235,.9) !important; }
+html body .business-portal-card .btn-secondary,
+html body .modal .btn-secondary {
+  border-radius: 12px !important;
+  font-weight: 800 !important;
+}
+html body .business-portal-card .btn-danger,
+html body .modal .btn-danger {
+  border-radius: 12px !important;
+  font-weight: 800 !important;
+}
+
+/* Eingabefelder */
+html body .business-portal-card input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]),
+html body .business-portal-card select,
+html body .business-portal-card textarea,
+html body .modal input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]),
+html body .modal select,
+html body .modal textarea {
+  border-radius: 12px !important;
+  border-color: #dbe3ef !important;
+  transition: border-color .2s, box-shadow .2s;
+}
+html body .business-portal-card input:focus,
+html body .business-portal-card select:focus,
+html body .business-portal-card textarea:focus,
+html body .modal input:focus,
+html body .modal select:focus,
+html body .modal textarea:focus {
+  outline: none !important;
+  border-color: #2563eb !important;
+  box-shadow: 0 0 0 4px rgba(37,99,235,.12) !important;
+}
+
+/* Fenster (Modals) – nur Form, keine Animation */
+html body .modal {
+  border-radius: 24px !important;
+  border-color: #e6ebf2 !important;
+  box-shadow: 0 40px 80px -40px rgba(15,23,42,.55) !important;
+}
+
+@media (max-width: 760px) {
+  html body .business-portal-card .kgb-hero h1,
+  html body .business-portal-card .kgb-hero .page-title { font-size: 26px !important; }
+}
+@media (prefers-reduced-motion: reduce) {
+  html body .business-portal-card .kgb-hero,
+  html body .business-portal-card .kgb-hero .summary-card,
+  html body .business-portal-card .kgb-hero .kg-stat,
+  html body .lp-t, html body .lp-saeule, html body .lp-bogen, html body .lp-hb-spur > i,
+  html body .lp-anim { animation: none !important; }
+  html body .business-portal-card button, html body .lp-t { transition: none !important; }
+}
+
+html body .business-portal-card .layout > div > .panel {
+  background: #ffffff !important;
+  border: 1px solid #e6ebf2 !important;
+  border-radius: 24px !important;
+  box-shadow: 0 18px 40px -30px rgba(15,23,42,.45) !important;
+  animation: kgRein .6s cubic-bezier(.22,1,.36,1) backwards;
+  animation-delay: calc(var(--i, 0) * 70ms + 160ms);
+  
+}
+
+html body .business-portal-card .layout > div > .panel:nth-child(1) { --i: 1; }
+html body .business-portal-card .layout > div > .panel:nth-child(2) { --i: 2; }
+html body .business-portal-card .layout > div > .panel:nth-child(3) { --i: 3; }
+html body .business-portal-card .layout > div > .panel:nth-child(4) { --i: 4; }
+html body .business-portal-card .layout > div > .panel:nth-child(5) { --i: 5; }
+html body .business-portal-card .panel h2 {
+  font-size: 11.5px !important;
+  font-weight: 800 !important;
+  letter-spacing: 1.4px !important;
+  text-transform: uppercase !important;
+  color: #64748b !important;
+}
+html body .business-portal-card .kgb-hero .back-btn {
+  width: 40px;
+  height: 40px;
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+}
+html body .business-portal-card .bubble { border-radius: 16px !important; box-shadow: 0 8px 18px -16px rgba(15,23,42,.5); }
+html body .business-portal-card .bubble.ki { border-top-left-radius: 6px !important; }
+html body .business-portal-card .bubble.kunde { border-top-right-radius: 6px !important; }
+html body .business-portal-card .bubble-label { font-weight: 800 !important; letter-spacing: 1px !important; }
+html body .business-portal-card .raw-transcript { border-radius: 14px !important; }
+html body .business-portal-card .score-badge { padding: 5px 12px !important; font-size: 12px !important; font-weight: 900 !important; }
+html body .business-portal-card .info-row { border-color: #eef2f7 !important; }
+html body .business-portal-card .nf-btn { border-radius: 14px !important; transition: translate .2s, box-shadow .2s, background-color .2s !important; }
+html body .business-portal-card .nf-btn:not(:disabled):hover { translate: 0 -2px; box-shadow: 0 14px 26px -18px rgba(15,23,42,.55) !important; }
+html body .business-portal-card audio { width: 100%; border-radius: 999px; }
+</style>{% endraw %}
 </head>
 <body>
 <div class="kg-business-shell">
