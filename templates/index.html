@@ -922,6 +922,13 @@
 
 
         <ul id="todoList" class="todo-list"></ul>
+        <!-- Aufgaben aus dem KG LifeHub: erscheint nur, wenn LifeHub antwortet (sonst bleibt die Batterie) -->
+        <div class="dashboard-stat-grid" id="kgLhKacheln" style="display:none">
+            <div class="dashboard-stat-item blue">Offen<span id="kgLhOffen">0</span></div>
+            <div class="dashboard-stat-item green">Heute fällig<span id="kgLhHeute">0</span></div>
+            <div class="dashboard-stat-item red">Überfällig<span id="kgLhUeber">0</span></div>
+            <div class="dashboard-stat-item purple">Erledigt<span id="kgLhErledigt">0</span></div>
+        </div>
     </div>
 
     <div class="chart-box">
@@ -931,6 +938,7 @@
             <div style="flex-grow: 1; height: 180px;"><canvas id="chart7"></canvas></div>
             <button class="nav-btn" id="btnNext">▶</button>
         </div>
+        <div id="kgLhGrafik" style="display:none;position:relative;height:180px"><canvas id="chartLh"></canvas></div>
     </div>
  </div>
 
@@ -1846,6 +1854,42 @@ const percent = kgTodoPercent;
     if (document.fonts && document.fonts.ready) document.fonts.ready.then(gleich);
     gleich();
 
+    // 1b) To-Do aus dem KG LifeHub: Kacheln + Grafik „Fällig – nächste 7 Tage“; ohne Antwort bleibt alles wie bisher
+    let lifehub = null;
+    (function lifehubLaden() {
+        if (!window.fetch) return;
+        fetch('/api/lifehub/startseite', { cache: 'no-store', credentials: 'same-origin' }).then(r => r.json()).then(d => {
+            const kacheln = document.getElementById('kgLhKacheln');
+            if (!d || !d.ok || !kacheln) return;
+            lifehub = d;
+            [['kgLhOffen', d.offen], ['kgLhHeute', d.heute_faellig], ['kgLhUeber', d.ueberfaellig], ['kgLhErledigt', d.erledigt]].forEach(x => { const el = document.getElementById(x[0]); if (el) el.textContent = String(x[1] || 0); });
+            const batterie = document.querySelector('.todo-battery-wrap');
+            if (batterie) batterie.style.display = 'none';
+            const altListe = document.getElementById('todoList');
+            if (altListe && !altListe.children.length) altListe.style.display = 'none';
+            kacheln.style.display = '';
+            const box = document.getElementById('kgLhGrafik'), c7 = document.getElementById('chart7'), alt = c7 && c7.closest('.chart-container-row');
+            if (box && alt && window.Chart) {
+                alt.style.display = 'none'; box.style.display = '';
+                const titel = box.parentElement.querySelector('.chart-title'); if (titel) titel.textContent = 'Fällig – nächste 7 Tage';
+                const tage = d.tage || [];
+                const WT = ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'];
+                const labels = ['Alt'].concat(tage.map(t => WT[new Date(t.datum + 'T12:00:00').getDay()]));
+                const voll = ['Überfällig'].concat(tage.map((t, i) => (i === 0 ? 'Heute, ' : i === 1 ? 'Morgen, ' : '') + new Date(t.datum + 'T12:00:00').toLocaleDateString('de-DE', { weekday: 'long', day: '2-digit', month: '2-digit' })));
+                const werte = [Number(d.ueberfaellig) || 0].concat(tage.map(t => Number(t.anzahl) || 0));
+                new Chart(document.getElementById('chartLh'), {
+                    type: 'bar',
+                    data: { labels: labels, datasets: [{ label: 'Aufgaben', data: werte, borderRadius: 5,
+                        backgroundColor: werte.map((_, i) => (i === 0 ? '#dc2626' : i === 1 ? '#d97706' : (i % 2 ? '#059669' : '#1e40af'))) }] },
+                    options: { responsive: true, maintainAspectRatio: false,
+                        plugins: { legend: { display: false }, tooltip: { callbacks: { title: items => voll[items[0].dataIndex] || '' } } },
+                        scales: { x: { grid: { display: false }, ticks: { autoSkip: false, maxRotation: 0, font: { size: 10 } } }, y: { beginAtZero: true, suggestedMax: 5, ticks: { precision: 0 } } } }
+                });
+            }
+            gleich();
+        }).catch(() => {});
+    })();
+
     // 2) Detail-Fenster
     function art(karte) {
         const t = ((karte.querySelector('.card-month-badge, .card-label') || {}).textContent || '').trim().toLowerCase();
@@ -1915,6 +1959,18 @@ const percent = kgTodoPercent;
             }
             html += '<div class="kgx-zeile summe"><span class="kgx-name">Summe</span><span style="flex:1"><span class="kgx-klein">Einnahmen ' + euro(se) + ' · Ausgaben ' + euro(sa) + '</span></span><span class="kgx-wert">' + euro(se - sa) + '</span></div>';
             return { over: 'Buchhaltung', titel: 'Bilanz ' + jetzt.getFullYear(), gross: euro(se - sa), unter: 'Gewinn Januar – heute (Einnahmen − gewerbliche Ausgaben)', body: '<div class="kgx-liste">' + html + '</div>', link: ['/buchhaltung', 'Buchhaltung öffnen'] };
+        }
+        if (a === 'todo' && lifehub) {
+            const tx = iso => { if (!iso) return 'Ohne Datum'; const d = Math.round((Date.parse(iso) - Date.parse(lifehub.heute)) / 86400000); return d === 0 ? 'Heute' : d === 1 ? 'Morgen' : d === -1 ? 'Gestern' : new Date(iso + 'T12:00:00').toLocaleDateString('de-DE', { weekday: 'short', day: '2-digit', month: '2-digit' }); };
+            const lhZeilen = (lifehub.naechste || []).map(t => {
+                const d = t.planned_date || t.due_date, zeit = String(t.planned_time || t.due_time || '').slice(0, 5);
+                const ueber = t.is_overdue || (d && d < lifehub.heute);
+                return '<div class="kgx-zeile"><span class="kgx-name">' + esc(tx(d)) + '</span><span style="flex:1;min-width:0"><b>' + esc(t.title) + '</b>' + (zeit ? '<span class="kgx-klein">' + esc(zeit) + ' Uhr</span>' : '') + '</span>' +
+                    '<span class="kgx-wert ' + (ueber ? 'kgx-minus' : '') + '" style="min-width:90px">' + (ueber ? 'Überfällig' : d === lifehub.heute ? 'Heute' : 'Offen') + '</span></div>';
+            }).join('');
+            return { over: 'To-Do Liste', titel: 'Aufgaben aus dem LifeHub', gross: lifehub.offen + ' offen', unter: lifehub.heute_faellig + ' heute fällig · ' + lifehub.ueberfaellig + ' überfällig',
+                body: '<div class="kgx-kacheln">' + stat(karte) + '</div><div class="kgx-liste" style="margin-top:12px">' + (lhZeilen || '<div class="kgx-zeile"><span class="kgx-klein">Nichts offen in den nächsten 14 Tagen.</span></div>') + '</div>',
+                link: ['/aufgaben', 'Aufgaben öffnen'] };
         }
         if (a === 'todo') {
             const kw = liste(() => allLabels), er = liste(() => allErledigt), of = liste(() => allOffen);

@@ -908,6 +908,13 @@ register_monatsvergleich(app, login_required, get_db_connection)
 from kundenweg_fluss import register_kundenweg_fluss
 register_kundenweg_fluss(app, login_required, get_db_connection)
 
+# To-Do: Aufgaben aus dem KG LifeHub (Seite /aufgaben, Startseite-Kachel) – alte To-Do-Liste bleibt unverändert
+try:
+    from lifehub_bruecke import register_lifehub_bruecke
+    register_lifehub_bruecke(app, login_required)
+except Exception as exc:
+    print(f"⚠️ LifeHub-Brücke: {exc}")
+
 # Besichtigung: Zeitberechnung mit allen Details für die Kalkulation-Kachel (nur rechnen, speichert nichts)
 from besichtigung_zeit import register_besichtigung_zeit
 import app2 as _app2_mod
