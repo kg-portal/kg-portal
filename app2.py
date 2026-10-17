@@ -4208,6 +4208,29 @@ www.kg-reinigung.de
             tagesliste_id
         ))
 
+        # Statuslisten lesen aus tagesliste_status_backup: dort dieselben Kontaktdaten
+        cursor.execute("""
+            UPDATE tagesliste_status_backup
+            SET
+                ansprechpartner = ?,
+                telefon = ?,
+                email = ?,
+                website = ?
+            WHERE tagesliste_id = ?
+        """, (
+            ansprechpartner,
+            telefon,
+            email,
+            website,
+            tagesliste_id
+        ))
+
+        # Notiz nur, wenn sie mitgeschickt wird (Statusliste); sonst bleibt sie unverändert
+        if "notiz" in data:
+            notiz = str(data.get("notiz") or "").strip()
+            cursor.execute("UPDATE tagesliste_leads SET notiz = ? WHERE id = ?", (notiz, tagesliste_id))
+            cursor.execute("UPDATE tagesliste_status_backup SET notiz = ? WHERE tagesliste_id = ?", (notiz, tagesliste_id))
+
         conn.commit()
         conn.close()
 
@@ -5078,34 +5101,36 @@ www.kg-reinigung.de
         else:
             rows = conn.execute("""
                 SELECT
-                    tagesliste_id AS id,
-                    source_lead_id,
-                    firma,
-                    branche,
-                    ansprechpartner,
-                    strasse,
-                    plz,
-                    ort,
-                    telefon,
-                    email,
-                    website,
-                    quelle,
-                    status,
-                    notiz,
-                    spaeter_datum,
-                    erstellt_am,
-                    angerufen_am,
-                    interessiert_am,
+                    b.tagesliste_id AS id,
+                    b.source_lead_id,
+                    b.firma,
+                    b.branche,
+                    COALESCE(t.ansprechpartner, b.ansprechpartner) AS ansprechpartner,
+                    b.strasse,
+                    b.plz,
+                    b.ort,
+                    COALESCE(t.telefon, b.telefon) AS telefon,
+                    COALESCE(t.email, b.email) AS email,
+                    COALESCE(t.website, b.website) AS website,
+                    b.quelle,
+                    b.status,
+                    COALESCE(t.notiz, b.notiz) AS notiz,
+                    b.spaeter_datum,
+                    b.erstellt_am,
+                    b.angerufen_am,
+                    b.interessiert_am,
                     (
                         SELECT GROUP_CONCAT(b2.status, ',')
                         FROM tagesliste_status_backup b2
-                        WHERE b2.tagesliste_id = tagesliste_status_backup.tagesliste_id
+                        WHERE b2.tagesliste_id = b.tagesliste_id
                     ) AS status_history
-                FROM tagesliste_status_backup
+                FROM tagesliste_status_backup b
+                LEFT JOIN tagesliste_leads t
+                    ON t.id = b.tagesliste_id
 
 
-                WHERE status = ?
-                ORDER BY backup_am DESC, tagesliste_id DESC
+                WHERE b.status = ?
+                ORDER BY b.backup_am DESC, b.tagesliste_id DESC
             """, (status,)).fetchall()
 
         result = [dict(row) for row in rows]

@@ -886,13 +886,13 @@ body {
 .status-company-card.sv2 {
     display: grid;
     grid-template-columns: 380px minmax(0, 1fr);
-    border: 1px solid #e3e9f2;
+    border: 1.5px solid #cbd5e1;
     border-radius: 22px;
-    box-shadow: 0 16px 40px -28px rgba(15, 23, 42, 0.45);
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06), 0 14px 32px -20px rgba(15, 23, 42, 0.35);
 }
 
-.status-company-card.sv2::before {
-    display: none;
+.status-company-card.sv2 + .status-company-card.sv2 {
+    margin-top: 8px;
 }
 
 .status-company-card.sv2:not(.open) {
@@ -910,9 +910,9 @@ body {
 }
 
 .sv2-links {
-    padding: 20px;
-    border-right: 1px solid #eef2f7;
-    background: linear-gradient(180deg, #fbfdff, #ffffff);
+    padding: 20px 20px 20px 24px;
+    border-right: 1.5px solid #e2e8f0;
+    background: #f8fafc;
     cursor: pointer;
     min-width: 0;
 }
@@ -1059,7 +1059,7 @@ body {
     align-items: center;
     gap: 10px;
     padding: 8px 12px;
-    border: 1px solid #eef2f7;
+    border: 1px solid #e2e8f0;
     border-radius: 12px;
     background: #ffffff;
     font-size: 13.5px;
@@ -2220,6 +2220,7 @@ body {
 }
 
 .workflow-btn {
+    border: 0;
     border-radius: 999px;
     padding: 0 14px;
     min-height: 42px;
@@ -8757,16 +8758,22 @@ async function saveStatusContact(event, leadId, btn) {
     btn.disabled = true;
 
     try {
+        const daten = {
+            id: leadId,
+            ansprechpartner: getValue("ansprechpartner"),
+            telefon: getValue("telefon"),
+            email: getValue("email"),
+            website: getValue("website")
+        };
+        const notizFeld = card.querySelector(".status-note");
+        if(notizFeld) {
+            daten.notiz = notizFeld.value;
+        }
+
         const response = await fetch("/datenbank/tagesliste-contact-update", {
             method: "POST",
             headers: {"Content-Type": "application/json"},
-            body: JSON.stringify({
-                id: leadId,
-                ansprechpartner: getValue("ansprechpartner"),
-                telefon: getValue("telefon"),
-                email: getValue("email"),
-                website: getValue("website")
-            })
+            body: JSON.stringify(daten)
         });
 
         const data = await response.json();
