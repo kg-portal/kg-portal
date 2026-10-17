@@ -880,6 +880,430 @@ body {
     }
 }
 
+/* =========================
+   STATUSLISTE: FIRMENKARTE VARIANTE 2 (links Firma + Status, rechts Kontakt)
+========================= */
+.status-company-card.sv2 {
+    display: grid;
+    grid-template-columns: 380px minmax(0, 1fr);
+    border: 1px solid #e3e9f2;
+    border-radius: 22px;
+    box-shadow: 0 16px 40px -28px rgba(15, 23, 42, 0.45);
+}
+
+.status-company-card.sv2::before {
+    display: none;
+}
+
+.status-company-card.sv2:not(.open) {
+    grid-template-columns: 1fr;
+}
+
+.sv2-svg {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+    fill: none;
+    stroke-width: 2.1;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.sv2-links {
+    padding: 20px;
+    border-right: 1px solid #eef2f7;
+    background: linear-gradient(180deg, #fbfdff, #ffffff);
+    cursor: pointer;
+    min-width: 0;
+}
+
+.sv2:not(.open) .sv2-links {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 14px 190px 14px 16px;
+    border-right: 0;
+}
+
+.sv2-kopf {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+}
+
+.sv2:not(.open) .sv2-kopf {
+    flex: 1;
+}
+
+.status-company-drag.sv2-drag {
+    width: 22px;
+    height: 40px;
+    flex-shrink: 0;
+    display: grid;
+    place-items: center;
+    border: 0;
+    background: transparent;
+    border-radius: 8px;
+    color: #94a3b8;
+    font-size: 16px;
+    font-weight: 900;
+    letter-spacing: -3px;
+    cursor: grab;
+    user-select: none;
+}
+
+.status-company-drag.sv2-drag:hover {
+    background: #f1f5f9;
+}
+
+.sv2-av {
+    width: 46px;
+    height: 46px;
+    flex-shrink: 0;
+    display: grid;
+    place-items: center;
+    border-radius: 14px;
+    background: #eff6ff;
+    color: #1d4ed8;
+    font-size: 15px;
+    font-weight: 800;
+}
+
+.sv2-titel {
+    min-width: 0;
+}
+
+.status-company-list .sv2 .company {
+    font-size: 16px;
+    font-weight: 800;
+    letter-spacing: -0.15px;
+    color: #0f172a;
+}
+
+.sv2:not(.open) .company {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.sv2-adr {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    margin-top: 3px;
+    font-size: 12.5px;
+    font-weight: 600;
+    color: #64748b;
+}
+
+.sv2-adr .sv2-svg {
+    width: 13px;
+    height: 13px;
+}
+
+.sv2-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin: 14px 0 16px;
+}
+
+.sv2:not(.open) .sv2-chips {
+    flex-wrap: nowrap;
+    margin: 0;
+}
+
+.sv2-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 11px;
+    border-radius: 999px;
+    background: #f1f5f9;
+    color: #475569;
+    font-size: 12px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.sv2-chip.blau {
+    background: #eff6ff;
+    color: #1d4ed8;
+}
+
+.sv2-chip.gruen {
+    background: #ecfdf5;
+    color: #047857;
+}
+
+.sv2-chip i {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: currentColor;
+}
+
+.sv2-status {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.sv2:not(.open) .sv2-status {
+    display: none;
+}
+
+.sv2-s {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px;
+    border: 1px solid #eef2f7;
+    border-radius: 12px;
+    background: #ffffff;
+    font-size: 13.5px;
+    font-weight: 700;
+}
+
+.sv2-s.an {
+    color: #ffffff;
+}
+
+.sv2-s.an .sv2-svg {
+    margin: 0 5px 0 4px;
+}
+
+.sv2-s b {
+    margin-left: auto;
+}
+
+.sv2-punkt {
+    width: 26px;
+    height: 26px;
+    flex-shrink: 0;
+    display: grid;
+    place-items: center;
+    border-radius: 8px;
+}
+
+.sv2-punkt .sv2-svg {
+    width: 14px;
+    height: 14px;
+}
+
+.sv2-aktionen {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    z-index: 2;
+    display: flex;
+    gap: 6px;
+}
+
+.sv2:not(.open) .sv2-aktionen {
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.sv2-ib {
+    width: 36px;
+    height: 36px;
+    display: grid;
+    place-items: center;
+    border: 1px solid #e2e8f0;
+    border-radius: 11px;
+    background: #ffffff;
+    cursor: pointer;
+    text-decoration: none;
+}
+
+.sv2-ib:hover {
+    background: #f8fafc;
+}
+
+.sv2-ib.tel {
+    background: #ecfdf5;
+    border-color: #bbf7d0;
+}
+
+.sv2-ib.rot:hover {
+    background: #fef2f2;
+    border-color: #fecaca;
+}
+
+.sv2-auf .sv2-svg {
+    transition: transform 0.2s ease;
+}
+
+.sv2:not(.open) .sv2-auf .sv2-svg {
+    transform: rotate(180deg);
+}
+
+.sv2-rechts {
+    min-width: 0;
+    padding: 20px;
+}
+
+.sv2:not(.open) .sv2-rechts {
+    display: none;
+}
+
+.sv2-rechts .save {
+    min-height: 40px;
+    padding: 0 14px;
+    border-radius: 12px;
+}
+
+.sv2-rt {
+    height: 36px;
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+    padding-right: 180px;
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    color: #64748b;
+}
+
+.sv2-form {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+.sv2-label {
+    display: block;
+    margin: 0 0 6px 2px;
+    font-size: 11.5px;
+    font-weight: 700;
+    color: #64748b;
+}
+
+.sv2-in {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    height: 42px;
+    padding: 0 6px 0 12px;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    background: #ffffff;
+}
+
+.sv2-in:focus-within {
+    border-color: #93c5fd;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+
+.sv2-in input {
+    flex: 1;
+    min-width: 0;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    line-height: normal;
+    box-shadow: none;
+    border: 0;
+    outline: 0;
+    background: transparent;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    color: #0f172a;
+}
+
+.sv2-in input::placeholder {
+    color: #94a3b8;
+}
+
+.sv2-oeffnen {
+    width: 30px;
+    height: 30px;
+    flex-shrink: 0;
+    border: 0;
+    border-radius: 9px;
+    background: #eff6ff;
+    color: #1d4ed8;
+    font-weight: 900;
+    cursor: pointer;
+}
+
+.sv2-notiz {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 12px;
+    align-items: end;
+    margin-top: 12px;
+}
+
+.sv2-notiz textarea {
+    min-height: 58px;
+    padding: 11px 12px;
+    resize: vertical;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    outline: 0;
+    background: #ffffff;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    color: #0f172a;
+}
+
+.sv2-notiz textarea:focus {
+    border-color: #93c5fd;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+
+.sv2-speichern {
+    height: 42px;
+    padding: 0 20px;
+    border: 0;
+    border-radius: 12px;
+    background: #1d4ed8;
+    color: #ffffff;
+    font-size: 13.5px;
+    font-weight: 800;
+    cursor: pointer;
+    box-shadow: 0 8px 18px -8px rgba(29, 78, 216, 0.7);
+}
+
+@media (max-width: 1100px) {
+    .status-company-card.sv2 {
+        grid-template-columns: 1fr;
+    }
+
+    .sv2-links {
+        border-right: 0;
+        border-bottom: 1px solid #eef2f7;
+    }
+
+    .sv2-status {
+        flex-direction: row;
+        flex-wrap: wrap;
+    }
+}
+
+@media (max-width: 640px) {
+    .sv2-form,
+    .sv2-notiz {
+        grid-template-columns: 1fr;
+    }
+
+    .sv2:not(.open) .sv2-links {
+        flex-wrap: wrap;
+        padding: 60px 16px 14px 16px;
+    }
+
+    .sv2-rt {
+        padding-right: 0;
+        margin-top: 40px;
+    }
+}
+
 .today-live-label {
     margin: 4px 0 12px 0;
     font-size: 12px;
@@ -7947,6 +8371,26 @@ function closeStatusList() {
    kontak bilgisi kaydetme ve üst status sayaçlarını güncelleme işlemleri buradadır.
 ............................................................. */
 
+/* Statusliste Variante 2: kleine Icons */
+const KG_SV2_PFADE = {
+    check: '<path d="M20 6 9 17l-5-5"/>',
+    daumen: '<path d="M7 10v12"/><path d="M15 5.9 14 10h5.8a2 2 0 0 1 2 2.3l-1.4 8A2 2 0 0 1 18.4 22H7V10l4-8a3 3 0 0 1 3 3.9z"/>',
+    kal: '<rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>',
+    mail: '<rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 6L2 7"/>',
+    uhr: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+    x: '<path d="M18 6 6 18M6 6l12 12"/>',
+    tel: '<path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2z"/>',
+    person: '<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>',
+    web: '<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/>',
+    muell: '<path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/>',
+    auf: '<path d="m18 15-6-6-6 6"/>',
+    pin: '<path d="M12 22s7-6.2 7-12a7 7 0 0 0-14 0c0 5.8 7 12 7 12z"/><circle cx="12" cy="10" r="2.5"/>'
+};
+
+function kgSv2Icon(name, farbe) {
+    return `<svg class="sv2-svg" viewBox="0 0 24 24" style="stroke:${farbe || "currentColor"}">${KG_SV2_PFADE[name] || ""}</svg>`;
+}
+
 async function renderStatusCompanies(statusKey) {
     const list = document.getElementById("statusCompanyList");
     const empty = document.getElementById("statusEmpty");
@@ -7971,7 +8415,7 @@ async function renderStatusCompanies(statusKey) {
 
         leads.forEach((lead) => {
             const card = document.createElement("article");
-            card.className = "status-company-card lead open";
+            card.className = "status-company-card lead open sv2";
 
             const web = lead.website || "";
             const mail = lead.email || "";
@@ -7986,7 +8430,7 @@ async function renderStatusCompanies(statusKey) {
                     <div style="font-size:11px; font-weight:900; letter-spacing:1.2px; text-transform:uppercase; color:#64748b;">
                         Angebot Warteliste
                     </div>
-                    <<div style="font-size:22px; font-weight:950; color:#0f2f78; margin-top:4px;">
+                    <div style="font-size:22px; font-weight:950; color:#0f2f78; margin-top:4px;">
                                                                  AN-${kgAwEscape(lead.angebot_nr || "-")}
                                                      </div>
                     <div style="font-size:13px; font-weight:800; color:#334155; margin-top:4px;">
@@ -8058,93 +8502,47 @@ async function renderStatusCompanies(statusKey) {
 </div>
     `
        : `
-        <div class="details-inner">
+        <div class="sv2-rt">Kontakt</div>
 
-            <div class="kg-contact-dashboard">
-
-                <div class="kg-contact-panel person">
-                    <div class="kg-contact-head">
-                        <div class="kg-contact-icon">♙</div>
-                        <div class="kg-contact-title">Kontaktperson</div>
-                    </div>
-
-                    <input
-                        class="lead-edit-input kg-contact-input status-edit-input"
-                        data-field="ansprechpartner"
-                        value="${kgAwAttr(lead.ansprechpartner || '')}"
-                        placeholder="Ansprechpartner eintragen"
-                        onclick="event.stopPropagation()">
+        <div class="sv2-form">
+            <div class="sv2-feld">
+                <span class="sv2-label">Ansprechpartner</span>
+                <div class="sv2-in">
+                    ${kgSv2Icon("person", "#94a3b8")}
+                    <input class="status-edit-input" data-field="ansprechpartner" value="${kgAwAttr(lead.ansprechpartner || '')}" placeholder="Name eintragen" onclick="event.stopPropagation()">
                 </div>
-
-                <div class="kg-contact-panel phone">
-                    <div class="kg-contact-head">
-                        <div class="kg-contact-icon">☎</div>
-                        <div class="kg-contact-title">Telefon</div>
-                    </div>
-
-                    <input
-                        class="lead-edit-input kg-contact-input status-edit-input"
-                        data-field="telefon"
-                        value="${kgAwAttr(lead.telefon || '')}"
-                        placeholder="Telefonnummer eintragen"
-                        onclick="event.stopPropagation()">
-                </div>
-
-                <div class="kg-contact-panel online">
-                    <div class="kg-contact-head">
-                        <div class="kg-contact-icon">◎</div>
-                        <div class="kg-contact-title">E-Mail & Webseite</div>
-                    </div>
-
-                    <div class="kg-web-stack">
-
-                        <div class="kg-contact-link" onclick="event.stopPropagation()">
-                            <input
-                                class="lead-edit-input kg-contact-input status-edit-input"
-                                data-field="email"
-                                value="${kgAwAttr(mail)}"
-                                placeholder="E-Mail-Adresse">
-
-                            <button
-                                type="button"
-                                class="kg-contact-open"
-                                onclick="openStatusMail(event,this)">↗</button>
-                        </div>
-
-                        <div class="kg-contact-link" onclick="event.stopPropagation()">
-                            <input
-                                class="lead-edit-input kg-contact-input status-edit-input"
-                                data-field="website"
-                                value="${kgAwAttr(web)}"
-                                placeholder="Webseite">
-
-                            <button
-                                type="button"
-                                class="kg-contact-open"
-                                onclick="openStatusWeb(event,this)">↗</button>
-                        </div>
-
-                    </div>
-                </div>
-
             </div>
 
-            <div class="kg-note-dashboard">
-                <div class="kg-note-icon">▤</div>
+            <div class="sv2-feld">
+                <span class="sv2-label">Telefon</span>
+                <div class="sv2-in">
+                    ${kgSv2Icon("tel", "#94a3b8")}
+                    <input class="status-edit-input" data-field="telefon" value="${kgAwAttr(lead.telefon || '')}" placeholder="Telefonnummer eintragen" onclick="event.stopPropagation()">
+                </div>
+            </div>
 
-                <textarea
-                    class="note kg-note-area status-note"
-                    placeholder="Notiz zum Telefonat / nächste Aktion..."
-                    onclick="event.stopPropagation()">${kgAwEscape(lead.notiz || '')}</textarea>
+            <div class="sv2-feld">
+                <span class="sv2-label">E-Mail</span>
+                <div class="sv2-in status-link-wrap" onclick="event.stopPropagation()">
+                    ${kgSv2Icon("mail", "#94a3b8")}
+                    <input class="status-edit-input" data-field="email" value="${kgAwAttr(mail)}" placeholder="E-Mail-Adresse">
+                    <button type="button" class="sv2-oeffnen" title="Mail schreiben" onclick="openStatusMail(event,this)">↗</button>
+                </div>
+            </div>
 
-<button
-    type="button"
-    class="save kg-note-save"
-    onclick="saveStatusContact(event, ${Number(lead.id) || 0}, this)">
-    Kontaktdaten speichern
-</button>
-
+            <div class="sv2-feld">
+                <span class="sv2-label">Webseite</span>
+                <div class="sv2-in status-link-wrap" onclick="event.stopPropagation()">
+                    ${kgSv2Icon("web", "#94a3b8")}
+                    <input class="status-edit-input" data-field="website" value="${kgAwAttr(web)}" placeholder="Webseite">
+                    <button type="button" class="sv2-oeffnen" title="Webseite öffnen" onclick="openStatusWeb(event,this)">↗</button>
+                </div>
+            </div>
         </div>
+
+        <div class="sv2-notiz">
+            <textarea class="status-note" placeholder="Notiz zum Telefonat / nächste Aktion …" onclick="event.stopPropagation()">${kgAwEscape(lead.notiz || '')}</textarea>
+            <button type="button" class="sv2-speichern" onclick="saveStatusContact(event, ${Number(lead.id) || 0}, this)">Speichern</button>
         </div>
     `;
 
@@ -8173,105 +8571,57 @@ async function renderStatusCompanies(statusKey) {
         }
     }
 
+    const sv2Worte = String(lead.firma || "").replace(/[^A-Za-zÄÖÜäöüß0-9 ]/g, " ").trim().split(/\s+/);
+    const sv2Kuerzel = (((sv2Worte[0] || "")[0] || "") + ((sv2Worte[1] || "")[0] || "")).toUpperCase() || "?";
+    const sv2Zeit = statusZeitText
+        ? statusZeitText
+        : statusKey === 'spaeter' && lead.spaeter_datum
+            ? 'Rückruf · ' + lead.spaeter_datum
+            : 'Heute · ' + (statusTitles[statusKey] || 'offen');
+    const sv2Status = [
+        ["angerufen", "Angerufen", "check", "#1d4ed8", "#eff6ff"],
+        ["interessiert", "Interessiert", "daumen", "#059669", "#ecfdf5"],
+        ["besichtigung", "Besichtigung", "kal", "#0284c7", "#f0f9ff"],
+        ["kontaktformular", "Kontaktformular", "mail", "#7c3aed", "#f5f3ff"],
+        ["spaeter", "Später", "uhr", "#ea580c", "#fff7ed"],
+        ["verloren", "Verloren", "x", "#dc2626", "#fef2f2"]
+    ].map(([key, text, icon, farbe, hell]) => statusHistory.includes(key)
+        ? `<div class="sv2-s an" style="background:${farbe}; border-color:${farbe};">${kgSv2Icon(icon, "#ffffff")}<span>${text}</span><b>✓</b></div>`
+        : `<div class="sv2-s" style="color:${farbe};"><span class="sv2-punkt" style="background:${hell};">${kgSv2Icon(icon, farbe)}</span><span>${text}</span></div>`
+    ).join("");
+    const sv2Tel = String(lead.telefon || "").replace(/[^0-9+]/g, "");
+
     card.innerHTML = `
-        <div class="summary" onclick="toggleStatusCompany(this)">
+        <div class="sv2-aktionen">
+            ${sv2Tel ? `<a class="sv2-ib tel" href="tel:${kgAwAttr(sv2Tel)}" title="Anrufen" onclick="event.stopPropagation()">${kgSv2Icon("tel", "#047857")}</a>` : ""}
+            ${mail ? `<a class="sv2-ib" href="mailto:${kgAwAttr(mail)}" title="Mail schreiben" onclick="event.stopPropagation()">${kgSv2Icon("mail", "#475569")}</a>` : ""}
+            <button type="button" class="sv2-ib rot" title="Eintrag löschen" onclick="deleteStatusRecord(event, ${Number(lead.id) || 0}, '${statusKey}', this)">${kgSv2Icon("muell", "#ef4444")}</button>
+            <button type="button" class="sv2-ib sv2-auf" title="Auf- / zuklappen" onclick="event.stopPropagation(); toggleStatusCompany(this)">${kgSv2Icon("auf", "#475569")}</button>
+        </div>
 
-                    <div class="mainrow">
-                        <div class="drag status-company-drag" onclick="event.stopPropagation()">☰</div>
+        <div class="sv2-links" onclick="toggleStatusCompany(this)">
+            <div class="sv2-kopf">
+                <div class="sv2-drag status-company-drag" onclick="event.stopPropagation()" title="Verschieben">⋮⋮</div>
+                <div class="sv2-av">${kgAwEscape(sv2Kuerzel)}</div>
+                <div class="sv2-titel">
+                    <div class="company">${kgAwEscape(lead.firma || '')}</div>
+                    <div class="sv2-adr">${kgSv2Icon("pin", "#94a3b8")}${kgAwEscape(metaText)}</div>
+                </div>
+            </div>
 
-                        <div>
-                            <div class="kicker">
-    <span class="badge">${kgAwEscape(badgeText)}</span>
-<span
-    class="status"
-    ${statusZeitText ? 'style="background:#15803d;color:#ffffff;border-color:#15803d;"' : ''}
->
-    ${
-        statusZeitText
-            ? kgAwEscape(statusZeitText)
-            : statusKey === 'spaeter' && lead.spaeter_datum
-                ? 'Rückruf · ' + kgAwEscape(lead.spaeter_datum)
-                : 'Heute · ' + kgAwEscape(statusTitles[statusKey] || 'offen')
-    }
-</span>
+            <div class="sv2-chips">
+                <span class="sv2-chip blau">${kgAwEscape(badgeText)}</span>
+                <span class="sv2-chip ${statusZeitText ? 'gruen' : ''}"><i></i>${kgAwEscape(sv2Zeit)}</span>
+            </div>
 
-    <button
-        type="button"
-        onclick="deleteStatusRecord(
-            event,
-            ${Number(lead.id) || 0},
-            '${statusKey}',
-            this
-        )"
-        style="
-            margin-left:8px;
-            width:30px;
-            height:30px;
-            border:1px solid #fecaca;
-            border-radius:9px;
-            background:#fef2f2;
-            color:#dc2626;
-            font-size:14px;
-            font-weight:900;
-            cursor:pointer;
-        "
-        title="Eintrag löschen"
-    >🗑</button>
+            <div class="sv2-status">${sv2Status}</div>
+        </div>
 
-</div>
-<div class="company">${kgAwEscape(lead.firma || '')}</div>
-<div class="meta">${kgAwEscape(metaText)}</div>
-</div>
-
-<div class="toggle">⌄</div>
-</div>
-
-<div class="actions">
-
-    <button
-        class="btn blue ${statusHistory.includes('angerufen') ? 'active-blue' : ''}"
-        onclick="event.stopPropagation()">
-        ${statusHistory.includes('angerufen') ? '✓ Angerufen' : '☎ Anrufen'}
-    </button>
-
-    <button
-        class="btn green ${statusHistory.includes('interessiert') ? 'active-green' : ''}"
-        onclick="event.stopPropagation()">
-        ${statusHistory.includes('interessiert') ? '✓ Hat Interesse' : '✓ Interessiert'}
-    </button>
-
-    <button
-        class="btn blue ${statusHistory.includes('besichtigung') ? 'active-blue' : ''}"
-        onclick="event.stopPropagation()">
-        ${statusHistory.includes('besichtigung') ? '▦ Besichtigung' : '📅 Besichtigung'}
-    </button>
-
-    <button
-        class="btn form ${statusHistory.includes('kontaktformular') ? 'active-form' : ''}"
-        onclick="event.stopPropagation()">
-        ${statusHistory.includes('kontaktformular') ? '✓ Kontaktformular' : '✉ Kontaktformular'}
-    </button>
-
-    <button
-        class="btn later ${statusHistory.includes('spaeter') ? 'active-later' : ''}"
-        onclick="event.stopPropagation()">
-        ↷ Später
-    </button>
-
-    <button
-        class="btn red ${statusHistory.includes('verloren') ? 'active-red' : ''}"
-        onclick="event.stopPropagation()">
-        ✕ Verloren
-    </button>
-
-</div>
-
-</div>
-
-<div class="details">
-    ${detailsHtml}
-</div>
-            `;
+        <div class="sv2-rechts">
+            ${statusKey === "angebot" ? '<div class="sv2-rt">Angebot</div>' : ""}
+            ${detailsHtml}
+        </div>
+    `;
 
             list.appendChild(card);
         });
