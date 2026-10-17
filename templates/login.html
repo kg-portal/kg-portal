@@ -5,66 +5,100 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>KG-Portal Login</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap">
     <style>
-        body { 
-            background: linear-gradient(135deg, #1e40af, #3b82f6); 
-            height: 100vh; 
+        * { box-sizing: border-box; }
+        body {
+            min-height: 100vh;
             margin: 0;
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            font-family: 'Inter', sans-serif; 
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            font-family: Inter, "Segoe UI", Roboto, Arial, sans-serif;
+            color: #0f172a;
+            background:
+                radial-gradient(900px 520px at 85% -10%, rgba(255,255,255,.22), transparent 60%),
+                radial-gradient(700px 480px at -10% 110%, rgba(56,189,248,.35), transparent 60%),
+                linear-gradient(135deg, #1e40af 0%, #2563eb 60%, #3b82f6 100%);
+            overflow: hidden;
         }
-        .login-card { 
-            background: white; 
-            padding: 40px; 
-            border-radius: 24px; 
-            box-shadow: 0 20px 40px rgba(0,0,0,0.3); 
+        .blase { position: fixed; border-radius: 50%; background: rgba(255,255,255,.08); pointer-events: none; animation: schweben 12s ease-in-out infinite; }
+        .blase.b1 { width: 420px; height: 420px; right: -120px; top: -140px; }
+        .blase.b2 { width: 300px; height: 300px; left: -90px; bottom: -110px; animation-delay: -4s; }
+        .blase.b3 { width: 160px; height: 160px; left: 18%; top: 12%; background: rgba(255,255,255,.06); animation-delay: -8s; }
+        @keyframes schweben { 0%,100% { transform: translateY(0); } 50% { transform: translateY(18px); } }
+        .login-card {
+            position: relative;
             width: 100%;
-            max-width: 360px; 
-            text-align: center; 
+            max-width: 400px;
+            padding: 34px 32px 26px;
+            border-radius: 28px;
+            background: rgba(255,255,255,.97);
+            box-shadow: 0 40px 80px -30px rgba(15,23,42,.55), 0 0 0 1px rgba(255,255,255,.6);
+            text-align: center;
+            animation: rein .7s cubic-bezier(.22,1,.36,1) backwards;
         }
-        h2 { color: #1e40af; margin-bottom: 25px; font-weight: 800; }
-        input { 
-            width: 100%; 
-            padding: 14px; 
-            margin: 10px 0; 
-            border: 2px solid #e5e7eb; 
-            border-radius: 12px; 
-            box-sizing: border-box; 
+        @keyframes rein { from { opacity: 0; transform: translateY(18px) scale(.98); } to { opacity: 1; transform: none; } }
+        .logo-box { display: inline-block; padding: 14px 20px 10px; margin-bottom: 18px; border-radius: 20px; background: #fff; border: 2px solid #2563eb; box-shadow: 0 16px 30px rgba(37,99,235,.18); }
+        .logo { display: block; width: 170px; max-width: 100%; margin: 0 auto 4px; }
+        .portal { font-size: 11px; font-weight: 800; letter-spacing: 4px; color: #1d4ed8; }
+        h2 { margin: 0 0 4px; font-size: 22px; font-weight: 900; letter-spacing: -.4px; color: #0f172a; }
+        .unter { margin: 0 0 20px; font-size: 13px; font-weight: 600; color: #64748b; }
+        .feld { position: relative; margin: 10px 0; }
+        .feld svg { position: absolute; left: 15px; top: 50%; width: 18px; height: 18px; margin-top: -9px; color: #94a3b8; pointer-events: none; }
+        input {
+            width: 100%;
+            padding: 15px 14px 15px 44px;
+            border: 1.5px solid #dbe3ef;
+            border-radius: 14px;
+            background: #f8fbff;
+            font-family: inherit;
             font-size: 16px;
-            transition: border-color 0.3s;
-        }
-        input:focus { border-color: #3b82f6; outline: none; }
-        button { 
-            width: 100%; 
-            padding: 14px; 
-            background: #1e40af; 
-            color: white; 
-            border: none; 
-            border-radius: 12px; 
-            font-weight: 700; 
-            font-size: 16px;
-            cursor: pointer; 
-            margin-top: 15px;
-            transition: background 0.3s;
-        }
-        button:hover { background: #1e3a8a; }
-        .error { 
-            background: #fee2e2;
-            color: #dc2626; 
-            padding: 10px;
-            border-radius: 8px;
-            font-size: 14px; 
-            margin-bottom: 15px; 
             font-weight: 600;
+            color: #0f172a;
+            transition: border-color .2s, box-shadow .2s, background-color .2s;
         }
+        input:focus { border-color: #2563eb; background: #fff; box-shadow: 0 0 0 4px rgba(37,99,235,.14); outline: none; }
+        button {
+            width: 100%;
+            padding: 15px;
+            margin-top: 14px;
+            border: none;
+            border-radius: 14px;
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            color: #fff;
+            font-family: inherit;
+            font-size: 16px;
+            font-weight: 900;
+            letter-spacing: .2px;
+            cursor: pointer;
+            box-shadow: 0 16px 30px -14px #1d4ed8;
+            transition: translate .2s, box-shadow .2s;
+        }
+        button:hover { translate: 0 -2px; box-shadow: 0 22px 36px -14px #1d4ed8; }
+        .error {
+            background: #fee2e2;
+            color: #b91c1c;
+            padding: 11px 12px;
+            border-radius: 12px;
+            font-size: 14px;
+            margin-bottom: 12px;
+            font-weight: 700;
+        }
+        .fuss { margin-top: 20px; color: #94a3b8; font-size: 12px; font-weight: 600; }
+        @media (prefers-reduced-motion: reduce) { .blase, .login-card { animation: none; } }
     </style>
 </head>
 <body>
+    <div class="blase b1"></div><div class="blase b2"></div><div class="blase b3"></div>
     <div class="login-card">
-        <h2>KG-Portal</h2>
-        
+        <div class="logo-box" data-kg-skip><img class="logo" src="/static/kg_logo_portal.png" alt="KG Gebäudereinigung"><div class="portal">PORTAL</div></div>
+        <h2>Willkommen zurück</h2>
+        <p class="unter">Bitte melde dich an, um fortzufahren.</p>
+
         {% with messages = get_flashed_messages(with_categories=true) %}
           {% if messages %}
             {% for category, message in messages %}
@@ -74,11 +108,11 @@
         {% endwith %}
 
         <form method="POST">
-            <input type="text" name="username" placeholder="Benutzername" required>
-            <input type="password" name="password" placeholder="Passwort" required>
+            <div class="feld"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg><input type="text" name="username" placeholder="Benutzername" required autocomplete="username"></div>
+            <div class="feld"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg><input type="password" name="password" placeholder="Passwort" required autocomplete="current-password"></div>
             <button type="submit">Einloggen</button>
         </form>
-        <p style="margin-top: 20px; color: #64748b; font-size: 12px;">© 2026 KG-Gebäudereinigung</p>
+        <p class="fuss">© 2026 KG-Gebäudereinigung</p>
     </div>
 </body>
 </html>

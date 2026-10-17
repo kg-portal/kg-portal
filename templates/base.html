@@ -6,6 +6,9 @@
     <title>KG Portal V2</title>
     <script src="/static/kg_theme.js"></script>
     <link rel="manifest" href="/static/manifest.json">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
@@ -17,6 +20,7 @@
             --kg-muted:#64748b;
             --kg-hover:#eef2ff;
             --kg-sidebar-width:280px;
+            --kg-font:Inter, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
         }
 
         html,
@@ -25,7 +29,7 @@
             padding:0 !important;
             min-height:100vh !important;
             background:var(--kg-bg) !important;
-            font-family:Arial, Helvetica, sans-serif !important;
+            font-family:var(--kg-font) !important;
             color:var(--kg-text) !important;
             overflow-x:hidden !important;
         }
@@ -36,7 +40,7 @@
         .kg-portal-body input,
         .kg-portal-body select,
         .kg-portal-body textarea {
-            font-family:Arial, Helvetica, sans-serif !important;
+            font-family:var(--kg-font) !important;
         }
 
         *,
@@ -796,6 +800,120 @@
         .kg-logo-titel .portal-title-sub{margin-top:10px}
         .kg-logo-titel .portal-title-sub{color:#1d4ed8;background:transparent;border:0;box-shadow:none}
         @media (max-width:1024px){.portal-title-logo{width:auto;max-height:30px}.kg-logo-titel .portal-title-sub{margin-top:0}.portal-sidebar-title.kg-logo-titel{flex-direction:row;gap:8px;padding:10px 14px}}
+    </style>
+    <style>
+        /* =====================================================
+           PREMIUM (einheitliches Design) – nur Aussehen
+           Menü, Seitenhülle, Scrollbalken, Fokus, Einblenden
+           ===================================================== */
+        .portal-main {
+            background:
+                radial-gradient(900px 420px at 100% 0%, rgba(37,99,235,.06), transparent 60%),
+                radial-gradient(700px 380px at 0% 100%, rgba(56,189,248,.06), transparent 60%),
+                var(--kg-bg);
+        }
+        .portal-card {
+            border-color:#e6ebf2;
+            border-radius:28px;
+            box-shadow:0 30px 60px -48px rgba(30,64,175,.35), 0 1px 0 rgba(15,23,42,.02);
+            animation:kgSeiteRein .45s ease backwards;
+        }
+        @keyframes kgSeiteRein { from { opacity:0; } to { opacity:1; } }
+        ::selection { background:rgba(37,99,235,.18); }
+        .kg-portal-body ::-webkit-scrollbar { width:10px; height:10px; }
+        .kg-portal-body ::-webkit-scrollbar-thumb { background:#cbd5e1; border-radius:999px; border:3px solid transparent; background-clip:padding-box; }
+        .kg-portal-body ::-webkit-scrollbar-thumb:hover { background:#94a3b8; border:3px solid transparent; background-clip:padding-box; }
+        .kg-portal-body ::-webkit-scrollbar-track { background:transparent; }
+        .portal-card input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):focus-visible,
+        .portal-card select:focus-visible,
+        .portal-card textarea:focus-visible {
+            outline:none;
+            border-color:#2563eb;
+            box-shadow:0 0 0 4px rgba(37,99,235,.12);
+        }
+        .portal-card button:focus-visible,
+        .portal-card a:focus-visible {
+            outline:3px solid rgba(37,99,235,.35);
+            outline-offset:2px;
+        }
+
+        /* Menü links (nur breite Bildschirme; Tablet/Handy behalten ihr eigenes Menü) */
+        @media (min-width:1025px) {
+            .portal-sidebar {
+                background:linear-gradient(180deg, #ffffff 0%, #fbfcff 100%);
+                border-right:1px solid #e6ebf2;
+                box-shadow:12px 0 40px -36px rgba(30,64,175,.35);
+                padding-top:40px;
+            }
+            .portal-sidebar-title.kg-logo-titel { margin-bottom:26px; }
+            .portal-nav-group-title {
+                color:#94a3b8;
+                font-size:10.5px;
+                font-weight:800;
+                letter-spacing:1.8px;
+                margin:4px 0 10px 12px;
+            }
+            .portal-nav-item {
+                padding:9px 12px 9px 10px;
+                margin-bottom:6px;
+                border-radius:14px;
+                border:1px solid transparent;
+                background:transparent;
+                box-shadow:none;
+                font-size:14.5px;
+                transition:background-color .2s ease, box-shadow .2s ease, translate .2s ease, border-color .2s ease;
+            }
+            .portal-nav-item::before { opacity:0; transition:opacity .3s ease; }
+            .portal-nav-item:hover {
+                background:#f1f6ff;
+                border-color:#e0e9fb;
+                box-shadow:none;
+                transform:none;
+                translate:3px 0;
+            }
+            .portal-nav-item .portal-nav-content { gap:12px; color:#1e3a8a; font-weight:800; }
+            .portal-nav-item .portal-nav-content i {
+                width:36px;
+                height:36px;
+                display:grid;
+                place-items:center;
+                border-radius:11px;
+                font-size:16px;
+                background:color-mix(in srgb, currentColor 14%, transparent);
+                transition:background-color .2s ease, color .2s ease;
+            }
+            .portal-drag-handle { opacity:0 !important; font-size:13px !important; color:#94a3b8 !important; transition:opacity .2s ease; }
+            .portal-nav-item:hover .portal-drag-handle { opacity:.8 !important; }
+            .portal-nav-item.active {
+                background:radial-gradient(160px 80px at 100% 0%, rgba(255,255,255,.22), transparent 60%), linear-gradient(135deg, #2563eb, #1d4ed8);
+                border:1px solid transparent;
+                box-shadow:0 14px 26px -14px rgba(29,78,216,.85);
+                translate:0 0;
+            }
+            .portal-nav-item.active::before { opacity:1; }
+            .portal-nav-item.active .portal-nav-content { color:#ffffff !important; }
+            .portal-nav-item.active .portal-nav-content i {
+                background:color-mix(in srgb, #ffffff 96%, transparent);
+                color:#1d4ed8 !important;
+            }
+            .portal-nav-item.active .portal-drag-handle { color:#dbeafe !important; }
+            .portal-nav-item[data-nav-key="startseite"] { margin-bottom:22px; }
+            .portal-nav-item[data-nav-key="todo"],
+            .portal-nav-item[data-nav-key="vertrag"],
+            .portal-nav-item[data-nav-key="kunden"],
+            .portal-nav-item[data-nav-key="vertretung"] { margin-bottom:24px; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .portal-card { animation:none; }
+        }
+        /* Druck / PDF (z. B. Leistungsverzeichnis): keine Animationen, Schrift wie bisher */
+        @media print {
+            *, *::before, *::after { animation:none !important; transition:none !important; }
+            .kg-portal-body,
+            .kg-portal-body *:not(i):not(.fa):not(.fa-solid):not(.fa-regular):not(.fa-brands) {
+                font-family:Arial, Helvetica, sans-serif !important;
+            }
+        }
     </style>
 </head>
 <body class="kg-portal-body">
