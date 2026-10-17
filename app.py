@@ -1107,6 +1107,14 @@ def index():
     todo_percent = int((t_er / (t_er + t_of)) * 100) if (t_er + t_of) > 0 else 0
 
     monatstrend_grafik_verisi = [0, 2500, 5000, 7500, monatlicher_umsatz]
+
+    # Verlauf je Monat (Kunden-/Mitarbeiterbestand, Bilanz) – nur lesend
+    try:
+        from startseite_verlauf import startseite_verlauf
+        verlauf = startseite_verlauf(conn, now, jahres_grafik_verisi)
+    except Exception as exc:
+        print(f"⚠️ Startseite-Verlauf: {exc}")
+        verlauf = {}
     conn.close()
 
     page_html = render_template(
@@ -1123,7 +1131,8 @@ def index():
         jahres_umsatz=jahres_umsatz,
         jahres_grafik_verisi=jahres_grafik_verisi,
         initial_todo_index=initial_todo_index,
-        monatstrend_grafik_verisi=monatstrend_grafik_verisi
+        monatstrend_grafik_verisi=monatstrend_grafik_verisi,
+        **verlauf
     )
 
     threading.Thread(

@@ -991,6 +991,27 @@
             }
         });
 
+        // 📅 Monats-Grafiken: alle 12 Monate beschriften (nicht jeden zweiten überspringen)
+        Chart.register({
+            id: 'kgAlleMonate',
+            beforeInit(chart) {
+                const labels = chart.data && chart.data.labels;
+                if (!labels || labels.length !== 12) return;
+                const o = chart.config.options || (chart.config.options = {});
+                o.scales = o.scales || {};
+                o.scales.x = o.scales.x || {};
+                o.scales.x.ticks = Object.assign({ font: { size: 10 } }, o.scales.x.ticks || {}, {
+                    autoSkip: false, minRotation: 0, maxRotation: 0,
+                    // genug Platz: „Jan“, „Feb“ …; sonst nur der erste Buchstabe – alle 12 Monate bleiben sichtbar
+                    callback: function (wert) {
+                        const name = String(this.getLabelForValue(wert));
+                        const breite = ((this.chart.chartArea && this.chart.chartArea.width) || this.chart.width || 0) / 12;
+                        return breite >= 26 ? name : name.charAt(0);
+                    }
+                });
+            }
+        });
+
         // 🧊 3D-Säulen: zeichnet jede Säule als Block (Vorderseite mit Licht, rechte Seite dunkler, Deckel heller).
         // Nur Optik – Daten, Achsen, Tooltips und Klicks bleiben wie sie sind.
         Chart.register({
@@ -1072,6 +1093,16 @@
     const kgJahresGrafikVerisi = kgFallbackArray('{{ jahres_grafik_verisi | tojson }}', [10000, 12000, 11000, 13000, 15000, 14000, 14500, 15200, 16000, 17000, 18000, 19000]);
     const kgKundenGrafikVerisi = kgFallbackArray('{{ kunden_grafik_verisi | tojson }}', [12, 18, 24, 30, 34, 38, 44, 50, 56, 63, 70, 76]);
     const kgPersonelGrafikVerisi = kgFallbackArray('{{ personel_grafik_verisi | tojson }}', [4, 5, 6, 7, 8, 8, 9, 10, 11, 12, 13, 14]);
+    // Bestand je Monat (Kunden/Mitarbeiter) und Bilanz – echte Werte aus der Datenbank
+    const kgKundenBestand = kgFallbackArray('{{ (kunden_bestand_verisi or []) | tojson }}', []);
+    const kgPersonalBestand = kgFallbackArray('{{ (personal_bestand_verisi or []) | tojson }}', []);
+    const kgBilanzEinnahmen = kgFallbackArray('{{ (bilanz_einnahmen_verisi or []) | tojson }}', []);
+    const kgBilanzAusgaben = kgFallbackArray('{{ (bilanz_ausgaben_verisi or []) | tojson }}', []);
+    function kgObergrenze(werte) {
+        const zahlen = werte.filter(v => typeof v === 'number');
+        const max = zahlen.length ? Math.max.apply(null, zahlen) : 0;
+        return Math.max(5, Math.ceil(max * 1.25));
+    }
     const kgTodoKwLabels = kgFallbackArray('{{ todo_kw_labels | tojson }}', ['KW 01', 'KW 02', 'KW 03', 'KW 04', 'KW 05', 'KW 06', 'KW 07', 'KW 08']);
     const kgTodoErledigtVerisi = kgFallbackArray('{{ todo_erledigt_verisi | tojson }}', [2, 4, 3, 5, 6, 4, 7, 5]);
     const kgTodoOffenVerisi = kgFallbackArray('{{ todo_offen_verisi | tojson }}', [5, 3, 4, 2, 1, 3, 2, 4]);
@@ -1271,7 +1302,7 @@ new Chart(document.getElementById('chart3'), {
         labels: ['Jan', 'Feb', 'Mär', 'Apr', 'Mai', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dez'],
         datasets: [{
             label: 'Kunden',
-            data: kgKundenGrafikVerisi,
+            data: kgKundenBestand.length ? kgKundenBestand : kgKundenGrafikVerisi,
             backgroundColor: '#059669',
             borderRadius: 5
         }]
@@ -1298,7 +1329,7 @@ new Chart(document.getElementById('chart3'), {
             }
         },
         scales: {
-            y: { min: 0, max: 150, ticks: { stepSize: 10 } }
+            y: { min: 0, suggestedMax: kgObergrenze(kgKundenBestand.length ? kgKundenBestand : kgKundenGrafikVerisi), ticks: { precision: 0 } }
         }
     }
 });
@@ -1308,7 +1339,7 @@ new Chart(document.getElementById('chart4'), {
         labels: ['Jan', 'Feb', 'Mär', 'Apr', 'Mai', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dez'],
         datasets: [{
             label: 'Mitarbeiter',
-            data: kgPersonelGrafikVerisi,
+            data: kgPersonalBestand.length ? kgPersonalBestand : kgPersonelGrafikVerisi,
             backgroundColor: '#6366f1',
             borderRadius: 5
         }]
@@ -1335,7 +1366,7 @@ new Chart(document.getElementById('chart4'), {
             }
         },
         scales: {
-            y: { min: 0, max: 100, ticks: { stepSize: 10 } }
+            y: { min: 0, suggestedMax: kgObergrenze(kgPersonalBestand.length ? kgPersonalBestand : kgPersonelGrafikVerisi), ticks: { precision: 0 } }
         }
     }
 });
@@ -1467,7 +1498,7 @@ window.ontouchend = () => clearInterval(scrollInterval);
 
 
     // BUCHHALTUNG GRAFİĞİ
-    new Chart(document.getElementById('chart8'), { type: 'bar', data: { labels: ['Jan', 'Feb', 'Mär', 'Apr', 'Mai', 'Jun'], datasets: [{ label: 'Einnahmen', data: [10000, 12000, 11000, 13000, 15000, 14000], backgroundColor: '#1e40af' }, { label: 'Ausgaben', data: [7000, 8000, 7500, 9000, 10000, 9500], backgroundColor: '#dc2626' }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } } });
+    new Chart(document.getElementById('chart8'), { type: 'bar', data: { labels: ['Jan', 'Feb', 'Mär', 'Apr', 'Mai', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dez'], datasets: [{ label: 'Einnahmen', data: kgBilanzEinnahmen, backgroundColor: '#1e40af' }, { label: 'Ausgaben', data: kgBilanzAusgaben, backgroundColor: '#dc2626' }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { callbacks: { label: function(context) { return context.dataset.label + ': ' + Number(context.parsed.y || 0).toLocaleString('de-DE', { minimumFractionDigits: 2 }) + ' €'; } } } } } });
 
 // ..........................................................................................................
 // ..........................................................................................................
