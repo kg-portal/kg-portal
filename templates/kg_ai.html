@@ -148,183 +148,184 @@
     .survey-score-label{padding:10px 0;border-bottom:1px solid #e2e8f0;font-weight:700;color:#334155}
     .survey-score-value{padding:10px 0;border-bottom:1px solid #e2e8f0;text-align:right;font-weight:900;color:#2563eb}
     .survey-comment{margin-top:18px;padding:14px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;white-space:pre-wrap;color:#334155}
-    @media(max-width:850px){.quality-row{grid-template-columns:34px 1fr}.quality-row.head{display:none}.quality-row>div:nth-child(n+3){grid-column:2}.quality-preview-grid{grid-template-columns:1fr}}
-
-    {% raw %}
-    /* ===== PREMIUM V2 „Graphit“ ===== */
-    .kg-ai-page { max-width:1180px; padding:4px 2px 8px; }
-
-    /* Kopf + ruhige Chat-Darstellung (Reihenfolge nur optisch: Antwort oben, Eingabe darunter) */
-    .kg-ai-card { display:flex; flex-direction:column; background:transparent; border:0; border-radius:0; box-shadow:none; padding:0; }
-    .kg-ai-card > .v2c-eyebrow { order:0; display:flex; align-items:center; gap:8px; margin:0 0 10px; font-size:12px; font-weight:700; color:#6b7280; letter-spacing:.01em; }
-    .v2c-quadrat { width:8px; height:8px; border-radius:2px; background:#7c3aed; flex:0 0 auto; }
-    .kg-ai-title { order:1; margin:0 0 6px; font-size:30px; line-height:1.15; font-weight:800; letter-spacing:-.02em; color:#111827; }
-    .kg-ai-subtitle { order:2; margin:0 0 22px; padding-bottom:20px; border-bottom:1px solid #e5e7eb; font-size:14px; line-height:1.55; color:#6b7280; background:radial-gradient(400px 110px at 28% 85%, rgba(124,58,237,.055), transparent 100%), radial-gradient(360px 100px at 60% 80%, rgba(37,99,235,.045), transparent 100%); }
-    .kgai-v2-kopf { order:3; display:flex; align-items:center; gap:10px; margin:0 0 10px; font-size:12.5px; font-weight:500; color:#9ca3af; }
-    .kgai-v2-kopf b { font-size:14px; font-weight:700; color:#111827; }
-    .kgai-v2-avatar { width:34px; height:34px; border-radius:50%; background:#f5f3ff; display:grid; place-items:center; flex:0 0 auto; }
-    .kgai-v2-avatar svg { width:17px; height:17px; display:block; }
-    .kg-ai-output { order:4; margin:0 0 0 44px; min-height:0; padding:14px 18px; background:#f7f8fa; color:#1f2937; border:1px solid #eef0f3; border-radius:4px 16px 16px 16px; font-family:inherit; font-size:14.5px; line-height:1.65; }
-    .kg-ai-textarea { order:5; margin-top:24px; min-height:120px; padding:14px 16px; background:#fff; color:#111827; border:1px solid #d1d5db; border-radius:14px; box-shadow:0 1px 2px rgba(16,24,40,.05); font-family:inherit; font-size:15px; line-height:1.55; transition:border-color .15s ease, box-shadow .15s ease; }
-    .kg-ai-textarea::placeholder { color:#9ca3af; }
-    .kg-ai-textarea:focus { border-color:#111827; box-shadow:0 0 0 3px rgba(17,24,39,.10); }
-    .kg-ai-buttons { order:6; margin-top:12px; gap:8px; align-items:center; }
-    .kg-ai-btn { height:40px; padding:0 16px; border:1px solid transparent; border-radius:10px; font-family:inherit; font-size:13.5px; font-weight:700; display:inline-flex; align-items:center; gap:8px; transition:background-color .15s ease, border-color .15s ease; }
-    .kg-ai-btn-primary { padding:0 18px; background:#111827; border-color:#111827; color:#fff; }
-    .kg-ai-btn-primary::after { content:""; width:15px; height:15px; background:currentColor; -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M21 3 10.5 13.5'/%3E%3Cpath d='M21 3l-6.5 18-4-7.5L3 9.5z'/%3E%3C/svg%3E") center/contain no-repeat; mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M21 3 10.5 13.5'/%3E%3Cpath d='M21 3l-6.5 18-4-7.5L3 9.5z'/%3E%3C/svg%3E") center/contain no-repeat; }
-    .kg-ai-btn-primary:hover { background:#000; border-color:#000; }
-    .kg-ai-btn-secondary { background:#fff; border-color:#d1d5db; color:#111827; }
-    .kg-ai-btn-secondary:hover { background:#f9fafb; }
-    .kgai-v2-hinweis { margin-left:auto; font-size:12px; font-weight:500; color:#9ca3af; }
-    .kgai-v2-hinweis kbd { display:inline-block; min-width:20px; padding:1px 6px; margin:0 1px; border:1px solid #e5e7eb; border-bottom-width:2px; border-radius:6px; background:#fff; font-family:inherit; font-size:11px; font-weight:700; color:#6b7280; text-align:center; }
-    .kg-ai-warning { order:7; position:relative; margin-top:14px; padding:10px 14px 10px 38px; background:#fffbeb; color:#92400e; border:1px solid #fde68a; border-radius:10px; font-size:13px; font-weight:600; line-height:1.5; }
-    .kg-ai-warning::before { content:""; position:absolute; left:13px; top:11px; width:16px; height:16px; background:#d97706; -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 3 4 6v6c0 4.5 3.4 8.3 8 9 4.6-.7 8-4.5 8-9V6z'/%3E%3Cpath d='M12 8v4.5M12 15.8v.01'/%3E%3C/svg%3E") center/contain no-repeat; mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 3 4 6v6c0 4.5 3.4 8.3 8 9 4.6-.7 8-4.5 8-9V6z'/%3E%3Cpath d='M12 8v4.5M12 15.8v.01'/%3E%3C/svg%3E") center/contain no-repeat; }
-
-    /* Kundenpflege & Qualitätskontrolle */
-    .quality-card { margin-top:32px; padding:22px 24px 24px; background:#fff; border:1px solid #e5e7eb; border-radius:16px; box-shadow:0 1px 2px rgba(16,24,40,.05); }
-    .quality-head { align-items:center; }
-    .quality-title { font-size:18px; font-weight:700; letter-spacing:-.01em; color:#111827; }
-    .quality-sub { margin-top:4px; font-size:13px; color:#6b7280; }
-    .quality-badge { display:inline-flex; align-items:center; gap:6px; border-radius:6px; padding:3px 8px; font-size:12px; font-weight:700; line-height:1.4; vertical-align:middle; font-family:inherit; }
-    .quality-badge::before { content:""; width:6px; height:6px; border-radius:50%; background:currentColor; flex:0 0 auto; }
-    .quality-badge.green { background:#ecfdf5; color:#047857; }
-    .quality-badge.red { background:#fef2f2; color:#b91c1c; }
-    .quality-badge.orange { background:#fffbeb; color:#b45309; }
-    .quality-badge.blue { background:#eff6ff; color:#1d4ed8; }
-    .quality-badge.gray { background:#f3f4f6; color:#374151; }
-
-    .kgai-v2-kpis { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:14px; margin:20px 0 4px; }
-    .kgai-v2-kpi { display:grid; grid-template-columns:minmax(0,1fr) auto; grid-template-areas:"label ico" "value value" "viz viz" "sub sub"; align-items:center; align-content:start; padding:16px 18px 14px; background:#fff; border:1px solid #e5e7eb; border-radius:14px; box-shadow:0 1px 2px rgba(16,24,40,.05); }
-    .kgai-v2-label { grid-area:label; font-size:13px; font-weight:600; color:#6b7280; }
-    .kgai-v2-kpi .v2c-ico { grid-area:ico; width:18px; height:18px; display:block; }
-    .kgai-v2-wert { grid-area:value; margin-top:6px; font-size:28px; line-height:1.1; font-weight:800; letter-spacing:-.02em; color:#111827; font-variant-numeric:tabular-nums; }
-    .kgai-v2-wert small { margin-left:2px; font-size:14px; font-weight:600; letter-spacing:0; color:#9ca3af; }
-    .kgai-v2-sub { grid-area:sub; margin-top:9px; font-size:12.5px; font-weight:500; color:#6b7280; }
-    .v2c-viz { grid-area:viz; margin-top:12px; height:34px; display:flex; align-items:flex-end; }
-    .v2c-viz > * { width:100%; }
-    .v2c-anteil { display:flex; align-items:center; gap:10px; padding-bottom:4px; }
-    .v2c-spur { flex:1; height:4px; border-radius:999px; background:#f1f2f4; overflow:hidden; }
-    .v2c-fuell { height:100%; border-radius:999px; transform-origin:left center; }
-    .v2c-proz { min-width:34px; text-align:right; font-size:11px; font-weight:600; color:#9ca3af; font-variant-numeric:tabular-nums; }
-    .v2c-sterne { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:3px; padding-bottom:4px; }
-    .v2c-sterne i { height:4px; border-radius:999px; background:#f1f2f4; overflow:hidden; display:block; }
-    .v2c-sterne i b { display:block; height:100%; background:#16a34a; border-radius:999px; transform-origin:left center; }
-    .v2c-monate { display:grid; grid-template-columns:repeat(6,minmax(0,1fr)); gap:8px; align-items:end; }
-    .v2c-monat { display:flex; flex-direction:column; align-items:center; gap:4px; }
-    .v2c-msaeule { height:20px; width:100%; display:flex; align-items:flex-end; justify-content:center; }
-    .v2c-msaeule i { display:block; width:100%; max-width:16px; border-radius:3px 3px 1px 1px; background:#7c3aed; transform-origin:center bottom; }
-    .v2c-msaeule i.v2c-null { height:2px; border-radius:1px; background:#e5e7eb; }
-    .v2c-monat span { font-size:10px; line-height:1; font-weight:600; color:#9ca3af; }
-    .v2c-monat.ist-jetzt span { color:#111827; font-weight:800; }
-    @keyframes v2c-x { from { transform:scaleX(0); } }
-    @keyframes v2c-y { from { transform:scaleY(0); } }
-    .v2-start .v2c-fuell, .v2-start .v2c-sterne i b { animation:v2c-x .9s cubic-bezier(.2,.7,.2,1) .2s backwards; }
-    .v2-start .v2c-msaeule i:not(.v2c-null) { animation:v2c-y .7s cubic-bezier(.2,.7,.2,1) backwards; }
-    @media (prefers-reduced-motion:reduce) { .v2-start * { animation:none !important; } }
-
-    .quality-tabs { gap:22px; margin:20px 0 16px; border-bottom:1px solid #e5e7eb; }
-    .quality-tab { margin-bottom:-1px; padding:10px 0 11px; background:transparent; border:0; border-radius:0; box-shadow:none; font-family:inherit; font-size:13.5px; font-weight:600; color:#6b7280; transition:color .15s ease, box-shadow .15s ease; }
-    .quality-tab:hover { color:#111827; }
-    .quality-tab.active { background:transparent; color:#111827; border:0; box-shadow:inset 0 -2px 0 #111827; }
-    .quality-toolbar { gap:8px; }
-    .quality-input, .quality-select { height:40px; padding:0 12px; border:1px solid #d1d5db; border-radius:10px; background-color:#fff; color:#111827; font-family:inherit; font-size:13.5px; transition:border-color .15s ease, box-shadow .15s ease; }
-    .quality-input { padding-left:38px; background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%239ca3af' stroke-width='2' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='m20 20-3.5-3.5'/%3E%3C/svg%3E") 13px center/16px no-repeat; }
-    .quality-input::placeholder { color:#9ca3af; }
-    .quality-input:focus, .quality-select:focus { outline:none; border-color:#111827; box-shadow:0 0 0 3px rgba(17,24,39,.10); }
-    .quality-primary, .quality-secondary { height:40px; padding:0 16px; border-radius:10px; font-family:inherit; font-size:13.5px; font-weight:700; transition:background-color .15s ease, border-color .15s ease; }
-    .quality-primary { border:1px solid #111827; background:#111827; color:#fff; }
-    .quality-primary:hover:not(:disabled) { background:#000; border-color:#000; }
-    .quality-primary.danger { background:#fef2f2; border-color:#fecaca; color:#b91c1c; }
-    .quality-primary.danger:hover:not(:disabled) { background:#fee2e2; border-color:#fca5a5; }
-    .quality-primary:disabled { opacity:.45; }
-    .quality-secondary { border:1px solid #d1d5db; background:#fff; color:#111827; }
-    .quality-secondary:hover { background:#f9fafb; }
-
-    .quality-list { border:1px solid #e5e7eb; border-radius:12px; }
-    .quality-row { padding:12px 14px; border-bottom:1px solid #f0f1f4; font-size:13px; color:#374151; transition:background-color .12s ease; }
-    .quality-row:not(.head):hover { background:#f9fafb; }
-    .quality-row.head { background:transparent; border-bottom:1px solid #e5e7eb; font-size:12px; font-weight:600; color:#6b7280; }
-    .quality-row.disabled { background:#fcfcfd; color:#9ca3af; }
-    .quality-company, .quality-company-link { font-weight:700; color:#111827; }
-    .quality-company-link { font-family:inherit; font-size:13.5px; }
-    .quality-company-link:hover { color:#2563eb; }
-    .quality-row > div:nth-child(2) > div { display:flex; flex-wrap:wrap; align-items:center; gap:4px 6px; margin-top:3px; font-size:12.5px; color:#6b7280; }
-    #qualityPanelKunden input[type="checkbox"], #qualityPanelPreview input[type="checkbox"] { width:16px; height:16px; accent-color:#111827; vertical-align:middle; }
-    #qualityPanelKunden > div[style*="dbeafe"] { margin-top:16px !important; padding:16px !important; background:#f9fafb !important; border:1px solid #eef0f3 !important; border-radius:12px !important; }
-    #qualityPanelKunden > div[style*="dbeafe"] > div:first-child { font-size:14px; font-weight:700 !important; color:#111827 !important; margin-bottom:10px !important; }
-    .quality-actions label { display:inline-flex; align-items:center; gap:8px; font-size:13px; font-weight:600 !important; color:#374151; }
-    #qualitySelectedCount { font-size:13px; font-weight:500 !important; font-variant-numeric:tabular-nums; }
-    .quality-status { font-size:13px; font-weight:600; color:#1d4ed8; }
-    .quality-empty { padding:28px 16px; font-size:14px; font-weight:500; color:#6b7280; }
-
-    .quality-preview-grid { gap:14px; }
-    .quality-preview-list { border:1px solid #e5e7eb; border-radius:12px; }
-    .quality-preview-item { padding:11px 14px; border-bottom:1px solid #f0f1f4; font-size:13.5px; color:#111827; transition:background-color .12s ease; }
-    .quality-preview-item:hover { background:#f9fafb; }
-    .quality-preview-item.active { background:#f3f4f6; color:#111827; box-shadow:inset 2px 0 0 #111827; }
-    .quality-mailbox { padding:20px 22px; border:1px solid #e5e7eb; border-radius:12px; background:#fff; }
-    .quality-mail-subject { font-size:16px; font-weight:700; color:#111827; }
-    .quality-mail-body { font-size:14px; line-height:1.65; color:#374151; }
-    .quality-confirm { padding:12px 14px; background:#fffbeb; border:1px solid #fde68a; border-radius:10px; font-size:13px; font-weight:600; color:#92400e; }
-    .quality-confirm label { display:flex; align-items:flex-start; gap:10px; line-height:1.5; }
-    .quality-history { font-size:13px; }
-    .quality-history th { background:transparent; border-bottom:1px solid #e5e7eb; padding:10px 12px; font-size:12px; font-weight:600; color:#6b7280; }
-    .quality-history td { border-bottom:1px solid #f0f1f4; padding:11px 12px; color:#374151; }
-    .quality-history tbody tr:hover td { background:#f9fafb; }
-    .quality-history td:first-child { font-variant-numeric:tabular-nums; color:#6b7280; white-space:nowrap; }
-
-    /* Dialoge */
-    .survey-modal-backdrop { background:rgba(17,24,39,.42); backdrop-filter:blur(3px); -webkit-backdrop-filter:blur(3px); }
-    .survey-modal { padding:24px; border:1px solid #e5e7eb; border-radius:16px; box-shadow:0 24px 64px -16px rgba(16,24,40,.35); }
-    .survey-modal-title { font-size:18px; font-weight:700; letter-spacing:-.01em; color:#111827; }
-    .survey-close { width:34px; height:34px; border:1px solid #e5e7eb; border-radius:10px; background:#fff; color:#374151; font-size:18px; line-height:1; transition:background-color .15s ease; }
-    .survey-close:hover { background:#f9fafb; }
-    .survey-score-label { border-bottom:1px solid #f0f1f4; font-weight:500; color:#374151; }
-    .survey-score-value { border-bottom:1px solid #f0f1f4; font-weight:700; color:#111827; font-variant-numeric:tabular-nums; }
-    .survey-comment { background:#f9fafb; border:1px solid #f0f1f4; border-radius:10px; color:#374151; line-height:1.55; }
-    #qualityCampaignConfirmModal .survey-modal > div[style*="fff7ed"] { background:#fffbeb !important; border-color:#fde68a !important; color:#92400e !important; border-radius:10px !important; font-weight:600 !important; font-size:13.5px; line-height:1.5; }
-
-    @media (max-width:1100px) { .kgai-v2-kpis { grid-template-columns:repeat(2,minmax(0,1fr)); } }
-    @media (max-width:760px) {
-        .kg-ai-title { font-size:26px; }
-        .kg-ai-output { margin-left:0; }
-        .kgai-v2-hinweis { display:none; }
-        .quality-card { padding:16px; }
-        .kgai-v2-kpis { gap:10px; }
-        .quality-input { min-width:0; }
+    /* ===== PREMIUM (KG AI: Systemblau-Kopf, Zufriedenheit, Kundenpflege) ===== */
+    @media screen {
+    .kg-ai-page { max-width:1180px; }
+    .kgx-hero.kg-ai-card {
+        position:relative; overflow:hidden; border:0; border-radius:30px; padding:34px 36px 30px; color:#ffffff;
+        background:
+            radial-gradient(520px 300px at 85% -10%, rgba(255,255,255,0.24), transparent 60%),
+            radial-gradient(520px 300px at 0% 115%, rgba(56,189,248,0.38), transparent 60%),
+            linear-gradient(135deg, #1e40af 0%, #2563eb 100%);
+        box-shadow:0 30px 60px -30px rgba(29,78,216,0.75);
     }
+    .kgx-orb {
+        position:absolute; right:64px; top:34px; width:150px; height:150px; border-radius:50%; pointer-events:none;
+        background:radial-gradient(circle at 34% 28%, #ffffff 0%, #bfdbfe 22%, #60a5fa 48%, #2563eb 72%, #1e3a8a 100%);
+        box-shadow:0 0 70px 18px rgba(147,197,253,0.45), inset -14px -18px 40px rgba(30,58,138,0.45);
+        opacity:0.95;
+    }
+    .kgx-eyebrow { position:relative; font-size:11.5px; font-weight:800; letter-spacing:1.6px; text-transform:uppercase; color:#bfdbfe; }
+    .kgx-hero .kg-ai-title { position:relative; margin:8px 0 4px; font-size:40px; font-weight:900; letter-spacing:-1px; color:#ffffff; }
+    .kgx-hero .kg-ai-subtitle { position:relative; max-width:780px; margin-bottom:22px; font-size:15px; font-weight:600; color:#dbeafe; }
+    .kgx-hero .kg-ai-textarea {
+        position:relative; max-width:860px; display:block; min-height:112px; border-radius:20px; padding:16px 18px;
+        border:1px solid rgba(255,255,255,0.32); background:rgba(255,255,255,0.12); color:#ffffff;
+        font:inherit; font-size:15px; font-weight:600; line-height:1.5;
+        -webkit-backdrop-filter:blur(6px); backdrop-filter:blur(6px);
+        transition:border-color .2s, box-shadow .2s, background-color .2s;
+    }
+    .kgx-hero .kg-ai-textarea::placeholder { color:rgba(255,255,255,0.72); }
+    .kgx-hero .kg-ai-textarea:focus { border-color:#ffffff; background:rgba(255,255,255,0.16); box-shadow:0 0 0 4px rgba(255,255,255,0.18); }
+    .kgx-hero .kg-ai-buttons { position:relative; margin-top:16px; }
+    .kgx-hero .kg-ai-btn {
+        display:inline-flex; align-items:center; gap:8px; height:44px; padding:0 18px; border-radius:13px;
+        font:inherit; font-size:13.5px; font-weight:900; cursor:pointer;
+        transition:translate .2s, box-shadow .2s, background-color .2s;
+    }
+    .kgx-hero .kg-ai-btn::before { content:""; width:16px; height:16px; background:currentColor; -webkit-mask:var(--kgx-ic) center/contain no-repeat; mask:var(--kgx-ic) center/contain no-repeat; }
+    .kgx-hero .kg-ai-btn-primary {
+        border:0; background:#ffffff; color:#1d4ed8; box-shadow:0 14px 28px -14px rgba(15,23,42,0.6);
+        --kgx-ic:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M22 2 11 13'/%3E%3Cpath d='M22 2 15 22l-4-9-9-4 20-7z'/%3E%3C/svg%3E");
+    }
+    .kgx-hero .kg-ai-btn-secondary { border:1px solid rgba(255,255,255,0.3); background:rgba(255,255,255,0.1); color:#ffffff; }
+    .kgx-hero .kg-ai-buttons .kg-ai-btn-secondary:nth-child(2) { --kgx-ic:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M13 2 3 14h9l-1 8 10-12h-9l1-8z'/%3E%3C/svg%3E"); }
+    .kgx-hero .kg-ai-buttons .kg-ai-btn-secondary:nth-child(3) { --kgx-ic:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14'/%3E%3C/svg%3E"); }
+    .kgx-hero .kg-ai-btn:hover { translate:0 -2px; }
+    .kgx-hero .kg-ai-btn-primary:hover { box-shadow:0 18px 32px -14px rgba(15,23,42,0.7); }
+    .kgx-hero .kg-ai-btn-secondary:hover { background:rgba(255,255,255,0.2); }
+    .kgx-hero .kg-ai-output {
+        position:relative; margin-top:18px; min-height:56px; padding:16px 18px; border-radius:18px;
+        background:rgba(15,23,42,0.34); border:1px solid rgba(255,255,255,0.16); color:#e0f2fe;
+        font-family:ui-monospace, SFMono-Regular, Consolas, monospace; font-size:13.5px; line-height:1.6;
+    }
+    .kgx-hero .kg-ai-output::before { content:"kg-ai › "; color:#93c5fd; }
+    .kgx-hero .kg-ai-output::after { content:""; display:inline-block; width:8px; height:16px; margin-left:4px; vertical-align:-3px; background:#bae6fd; animation:kgxBlink 1.1s steps(1) infinite; }
+    @keyframes kgxBlink { 50% { opacity:0; } }
 
-    /* Dunkelmodus: Graphit-Flächen/-Rahmen sichtbar halten, Grafik-Spuren abdunkeln */
-    html[data-kg-x="on"] .kg-ai-btn-primary, html[data-kg-x="on"] .quality-primary:not(.danger) { background:#2563eb !important; border-color:#2563eb !important; color:#fff !important; }
-    html[data-kg-x="on"] .kg-ai-btn-primary:hover, html[data-kg-x="on"] .quality-primary:not(.danger):hover:not(:disabled) { background:#1d4ed8 !important; border-color:#1d4ed8 !important; }
-    html[data-kg-x="on"] .quality-tab.active { box-shadow:inset 0 -2px 0 #60a5fa; }
-    html[data-kg-x="on"] .quality-preview-item.active { box-shadow:inset 2px 0 0 #60a5fa; }
-    html[data-kg-x="on"] .kg-ai-textarea:focus, html[data-kg-x="on"] .quality-input:focus, html[data-kg-x="on"] .quality-select:focus { box-shadow:0 0 0 2px rgba(96,165,250,.55) !important; }
-    html[data-kg-x="on"] #qualityPanelKunden input[type="checkbox"], html[data-kg-x="on"] #qualityPanelPreview input[type="checkbox"] { accent-color:#2563eb; }
-    html[data-kg-x="on"] .v2c-spur, html[data-kg-x="on"] .v2c-sterne i { background:rgba(148,163,184,.2); }
-    html[data-kg-x="on"] .v2c-msaeule i.v2c-null { background:rgba(148,163,184,.3); }
-    html[data-kg-x="on"] .v2c-monat.ist-jetzt span { color:#e5e7eb; }
-    {% endraw %}
+    /* Zufriedenheit & Kampagne */
+    .kgx-stats { display:grid; grid-template-columns:1fr 1.3fr 1fr; gap:16px; margin-top:20px; }
+    .kgx-tile { min-width:0; background:#ffffff; border:1px solid #e6ebf2; border-radius:24px; padding:20px 22px; box-shadow:0 18px 40px -30px rgba(15,23,42,0.45); color:#0f172a; }
+    .kgx-lbl { font-size:11.5px; font-weight:800; letter-spacing:1.4px; text-transform:uppercase; color:#64748b; }
+    .kgx-ring-box { display:grid; place-items:center; margin-top:8px; }
+    .kgx-ring-box svg { width:176px; height:176px; display:block; overflow:visible; }
+    .kgx-ring-z { fill:currentColor; font-size:46px; font-weight:900; letter-spacing:-1.5px; }
+    .kgx-ring-u { fill:#64748b; font-size:12px; font-weight:700; }
+    .kgx-ring-bogen { animation:kgxBogen 1.3s cubic-bezier(.22,1,.36,1) backwards; }
+    @keyframes kgxBogen { from { stroke-dasharray:0 100; } }
+    .kgx-sterne { text-align:center; margin-top:4px; font-size:22px; letter-spacing:4px; color:#f59e0b; }
+    .kgx-sub { text-align:center; font-size:12.5px; font-weight:700; color:#64748b; }
+    .kgx-bereiche { display:grid; gap:14px; margin-top:16px; }
+    .kgx-bz { display:grid; grid-template-columns:150px minmax(0,1fr) 34px; gap:12px; align-items:center; font-size:13px; font-weight:800; color:#334155; }
+    .kgx-bz b { text-align:right; font-weight:900; color:#0f172a; }
+    .kgx-bz s { display:block; height:12px; border-radius:6px; background:rgba(100,116,139,0.14); overflow:hidden; text-decoration:none; }
+    .kgx-bz s i { display:block; height:100%; border-radius:6px; animation:kgxBreite 1s cubic-bezier(.22,1,.36,1) backwards; }
+    @keyframes kgxBreite { from { width:0; } }
+    .kgx-leer { margin-top:16px; padding:18px; border:1px dashed #cbd5e1; border-radius:16px; text-align:center; font-size:13px; font-weight:700; color:#64748b; }
+    .kgx-kamp-kopf { display:flex; align-items:baseline; gap:10px; margin-top:10px; }
+    .kgx-kamp-kopf b { font-size:36px; font-weight:900; letter-spacing:-1px; line-height:1.1; }
+    .kgx-kamp-kopf span { font-size:14px; font-weight:700; color:#64748b; }
+    .kgx-zeit { position:relative; height:64px; margin:34px 4px 4px; }
+    .kgx-zeit::before { content:""; position:absolute; left:0; right:0; top:10px; height:6px; border-radius:3px; background:rgba(100,116,139,0.16); }
+    .kgx-pt { position:absolute; top:2px; width:22px; height:22px; margin-left:-11px; border-radius:50%; border:4px solid #ffffff; box-shadow:0 0 0 2px currentColor; background:currentColor; }
+    .kgx-pl { position:absolute; top:32px; font-size:11.5px; font-weight:800; color:#64748b; white-space:nowrap; transform:translateX(-50%); }
+    .kgx-pl.links { transform:none; } .kgx-pl.rechts { transform:translateX(-100%); }
+    .kgx-pl.oben { top:-18px; color:#2563eb; }
+    .kgx-pills { display:flex; flex-wrap:wrap; gap:6px; }
+    .kgx-pill { padding:4px 10px; border-radius:999px; font-size:11.5px; font-weight:900; }
+    .kgx-pill.gruen { background:#dcfce7; color:#15803d; } .kgx-pill.rot { background:#fee2e2; color:#b91c1c; } .kgx-pill.grau { background:#f1f5f9; color:#475569; }
+
+    /* Kundenpflege */
+    .quality-card { border:1px solid #e6ebf2; border-radius:24px; padding:26px 28px; box-shadow:0 18px 40px -30px rgba(15,23,42,0.45); }
+    .quality-head { align-items:center; }
+    .quality-head > div:first-child::before { content:"Kundenpflege"; display:block; margin-bottom:6px; font-size:11.5px; font-weight:800; letter-spacing:1.4px; text-transform:uppercase; color:#64748b; }
+    .quality-title { font-size:26px; letter-spacing:-.4px; }
+    .kgx-kopfzahlen { display:flex; gap:10px; margin-left:auto; }
+    .kgx-kz { min-width:70px; padding:9px 14px; border-radius:14px; text-align:center; }
+    .kgx-kz b { display:block; font-size:20px; font-weight:900; line-height:1.15; }
+    .kgx-kz span { font-size:11.5px; font-weight:800; color:#64748b; }
+    .quality-tabs { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; margin:20px 0 18px; counter-reset:kgxSchritt; }
+    .quality-tab {
+        counter-increment:kgxSchritt; display:grid; grid-template-columns:38px minmax(0,1fr); align-items:center; column-gap:12px;
+        padding:12px 16px; border-radius:18px; border:1px solid transparent; background:transparent; color:#0f172a;
+        font:inherit; font-size:14.5px; font-weight:900; text-align:left; transition:background-color .2s, border-color .2s;
+    }
+    .quality-tab::before {
+        content:counter(kgxSchritt); grid-row:1 / 3; width:36px; height:36px; border-radius:50%; display:grid; place-items:center;
+        background:#e2e8f0; color:#475569; font-size:14px; font-weight:900;
+    }
+    .quality-tab::after { font-size:12px; font-weight:700; color:#64748b; }
+    .quality-tab:nth-child(1)::after { content:"Suche · Filter · Häkchen"; }
+    .quality-tab:nth-child(2)::after { content:"Mails prüfen & freigeben"; }
+    .quality-tab:nth-child(3)::after { content:"Gesendet · Umfragen"; }
+    .quality-tab:hover { background:#f8fbff; }
+    .quality-tab.active { background:#eff6ff; border-color:#bfdbfe; color:#0f172a; }
+    .quality-tab.active::before { background:#2563eb; color:#ffffff; box-shadow:0 8px 18px -8px rgba(37,99,235,0.8); }
+    .quality-input, .quality-select { height:44px; padding:0 14px; border:1px solid #dbe3ef; border-radius:13px; font:inherit; font-size:14px; font-weight:600; }
+    .quality-input:focus, .quality-select:focus { outline:0; border-color:#2563eb; box-shadow:0 0 0 4px rgba(37,99,235,0.12); }
+    .quality-list { border:0; border-radius:0; }
+    .quality-row { padding:12px 10px; border-bottom:1px solid #f1f5f9; }
+    .quality-row:not(.head):hover { background:#f8fbff; }
+    .quality-row.head { background:transparent; border-bottom:1px solid #e6ebf2; font-size:11.5px; font-weight:800; letter-spacing:1px; text-transform:uppercase; color:#64748b; }
+    .quality-row > div:nth-child(2)[data-kgx-ini] { position:relative; padding-left:50px; min-height:38px; }
+    .quality-row > div:nth-child(2)[data-kgx-ini]::before {
+        content:attr(data-kgx-ini); position:absolute; left:0; top:50%; margin-top:-19px; width:38px; height:38px; border-radius:12px;
+        display:grid; place-items:center; color:#ffffff; font-size:13px; font-weight:900; background:linear-gradient(135deg,#3b82f6,#1d4ed8);
+    }
+    .quality-row > div:nth-child(2)[data-kgx-f="1"]::before { background:linear-gradient(135deg,#8b5cf6,#6d28d9); }
+    .quality-row > div:nth-child(2)[data-kgx-f="2"]::before { background:linear-gradient(135deg,#06b6d4,#0e7490); }
+    .quality-row > div:nth-child(2)[data-kgx-f="3"]::before { background:linear-gradient(135deg,#22c55e,#15803d); }
+    .quality-row > div:nth-child(2)[data-kgx-f="4"]::before { background:linear-gradient(135deg,#f59e0b,#d97706); }
+    .quality-row > div:nth-child(2)[data-kgx-f="5"]::before { background:linear-gradient(135deg,#ec4899,#be185d); }
+    .quality-row.disabled > div:nth-child(2)[data-kgx-ini]::before { background:#cbd5e1; }
+    .quality-company-link { font-size:14px; }
+    .quality-badge { padding:3px 9px; font-size:11.5px; }
+    .quality-primary { display:inline-flex; align-items:center; height:44px; padding:0 20px; border-radius:13px; background:linear-gradient(135deg,#3b82f6,#1d4ed8); box-shadow:0 12px 24px -12px rgba(29,78,216,0.8); transition:translate .2s, box-shadow .2s; }
+    .quality-primary.danger { background:linear-gradient(135deg,#ef4444,#b91c1c); box-shadow:0 12px 24px -12px rgba(185,28,28,0.7); }
+    .quality-primary:not(:disabled):hover { translate:0 -2px; }
+    .quality-secondary { height:44px; padding:0 16px; border:1px solid #e2e8f0; border-radius:13px; font-weight:900; transition:background-color .2s; }
+    .quality-secondary:hover { background:#f8fafc; }
+    html[data-kg-x="on"] .quality-primary { background:#2563eb !important; color:#ffffff !important; }
+    html[data-kg-x="on"] .quality-primary.danger { background:#dc2626 !important; }
+    html[data-kg-x="on"] .quality-tab.active::before { background:#2563eb !important; color:#ffffff !important; }
+
+    @media (max-width: 980px) {
+        .kgx-stats { grid-template-columns:1fr; }
+        .kgx-orb { width:96px; height:96px; right:24px; top:24px; }
+        .quality-tabs { grid-template-columns:1fr; }
+    }
+    @media (max-width: 600px) {
+        .kgx-hero.kg-ai-card { padding:24px 20px 22px; border-radius:24px; }
+        .kgx-orb { width:58px; height:58px; right:16px; top:16px; opacity:0.75; }
+        .kgx-hero .kg-ai-title { font-size:32px; }
+        .kgx-eyebrow { padding-right:70px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+        .kgx-ring-bogen, .kgx-bz s i, .kgx-hero .kg-ai-output::after { animation:none !important; }
+    }
+    }
+    @media(max-width:850px){.quality-row{grid-template-columns:34px 1fr}.quality-row.head{display:none}.quality-row>div:nth-child(n+3){grid-column:2}.quality-preview-grid{grid-template-columns:1fr}}
 
 </style>
 
 <div class="kg-ai-page">
-    <div class="kg-ai-card">
-        <div class="v2c-eyebrow" aria-hidden="true"><span class="v2c-quadrat"></span>KG Portal · Assistent</div>
+    <div class="kg-ai-card kgx-hero" data-kg-skip>
+        <div class="kgx-orb" aria-hidden="true"></div>
+        <div class="kgx-eyebrow">KG Portal · Künstliche Intelligenz</div>
         <div class="kg-ai-title">KG AI</div>
         <div class="kg-ai-subtitle">
-            KG Portal yapay zeka asistanı. Stundenzettel okuyabilir, rapor çıkarabilir ve onaylı toplu WhatsApp duyurusu hazırlayabilir.
+            Liest Stundenzettel, erstellt Berichte und bereitet bestätigte WhatsApp-Rundnachrichten vor.
         </div>
 
         <textarea
             id="kgAiInput"
             class="kg-ai-textarea"
-            placeholder="Örn: Temmuz 2026 işçilerin saatlerini çıkar&#10;Örn: Bütün işçilere WhatsApp mesajı gönder: Merhaba..."
+            placeholder="z. B. Juli 2026 Stunden der Mitarbeiter auswerten&#10;z. B. Urlaub Oktober 2026 anzeigen"
         ></textarea>
 
         <div class="kg-ai-buttons">
             <button type="button" class="kg-ai-btn kg-ai-btn-primary" onclick="sendKgAiChat()">
-                Gönder
+                Senden
             </button>
 
             <button type="button" class="kg-ai-btn kg-ai-btn-secondary" onclick="testOpenAI()">
@@ -332,19 +333,32 @@
             </button>
 
             <button type="button" class="kg-ai-btn kg-ai-btn-secondary" onclick="clearKgAi()">
-                Temizle
+                Leeren
             </button>
-
-            <span class="kgai-v2-hinweis" aria-hidden="true"><kbd>Ctrl</kbd> + <kbd>Enter</kbd> = Gönder</span>
         </div>
 
-        <div class="kg-ai-warning">
-            Toplu WhatsApp mesajı direkt gönderilmez. Önce önizleme gelir, sadece EVET yazarsan gönderim kuyruğuna eklenir.
-        </div>
-
-        <div class="kgai-v2-kopf" aria-hidden="true"><span class="kgai-v2-avatar"><svg viewBox="0 0 24 24" fill="none" stroke="#7c3aed" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5 13.8 9 19.5 10.5 13.8 12.2 12 18 10.2 12.2 4.5 10.5 10.2 9z"/><path d="M19 3v3M17.5 4.5h3M5 17v3M3.5 18.5h3"/></svg></span><b>KG AI</b><span>Antwort</span></div>
-        <div id="kgAiOutput" class="kg-ai-output">Hazır.</div>
+        <div id="kgAiOutput" class="kg-ai-output">Bereit.</div>
     </div>
+
+    <!-- ===== PREMIUM: Zufriedenheit & Kampagne (nur lesend aus der geladenen Kundenliste) ===== -->
+    <section class="kgx-stats" id="kgxStats" aria-label="Kundenzufriedenheit">
+        <div class="kgx-tile">
+            <div class="kgx-lbl">Ø Zufriedenheit</div>
+            <div class="kgx-ring-box"><svg id="kgxRing" viewBox="0 0 200 200" aria-hidden="true"></svg></div>
+            <div class="kgx-sterne" id="kgxSterne">☆☆☆☆☆</div>
+            <div class="kgx-sub" id="kgxRingSub">wird geladen …</div>
+        </div>
+        <div class="kgx-tile">
+            <div class="kgx-lbl">Bewertung nach Bereich</div>
+            <div class="kgx-bereiche" id="kgxBereiche"></div>
+        </div>
+        <div class="kgx-tile">
+            <div class="kgx-lbl">Kampagne</div>
+            <div class="kgx-kamp-kopf"><b id="kgxKampN">–</b><span id="kgxKampText">Kunden</span></div>
+            <div class="kgx-zeit" id="kgxZeit"></div>
+            <div class="kgx-pills" id="kgxPills"></div>
+        </div>
+    </section>
 
     <div class="quality-card">
         <div class="quality-head">
@@ -352,38 +366,8 @@
                 <div class="quality-title">Kundenpflege & Qualitätskontrolle</div>
                 <div class="quality-sub">Bestandskunden auswählen, Qualitätsmail vorbereiten, freigeben und Versandhistorie verfolgen.</div>
             </div>
+            <div class="kgx-kopfzahlen" id="kgxKopfZahlen" aria-hidden="true"></div>
             <span class="quality-badge blue">TEST-BRANCH</span>
-        </div>
-
-        <div class="kgai-v2-kpis v2-start" role="group" aria-label="Kennzahlen Kundenpflege">
-            <div class="kgai-v2-kpi">
-                <div class="kgai-v2-label">Versandfähig</div>
-                <svg class="v2c-ico" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 20v-1.5a3.5 3.5 0 0 0-3.5-3.5h-5A3.5 3.5 0 0 0 4 18.5V20"/><circle cx="10" cy="8" r="3.5"/><path d="M20 20v-1.5a3.5 3.5 0 0 0-2.6-3.4M15.5 4.6a3.5 3.5 0 0 1 0 6.8"/></svg>
-                <div class="kgai-v2-wert" data-v2c-wert="aktiv">–</div>
-                <div class="v2c-viz" data-v2c-viz="aktiv" data-kg-skip aria-hidden="true"></div>
-                <div class="kgai-v2-sub" data-v2c-sub="aktiv">aktive Kunden mit E-Mail</div>
-            </div>
-            <div class="kgai-v2-kpi">
-                <div class="kgai-v2-label">Kontrolle fällig</div>
-                <svg class="v2c-ico" viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15.5" rx="2.5"/><path d="M8 3v4M16 3v4M3.5 10h17M12 13.5v2.5l1.5 1"/></svg>
-                <div class="kgai-v2-wert" data-v2c-wert="faellig">–</div>
-                <div class="v2c-viz" data-v2c-viz="faellig" data-kg-skip aria-hidden="true"></div>
-                <div class="kgai-v2-sub" data-v2c-sub="faellig">nach Intervall</div>
-            </div>
-            <div class="kgai-v2-kpi">
-                <div class="kgai-v2-label">Ø Zufriedenheit</div>
-                <svg class="v2c-ico" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 3.5 2.6 5.3 5.9.9-4.3 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8-4.3-4.1 5.9-.9z"/></svg>
-                <div class="kgai-v2-wert" data-v2c-wert="umfrage">–</div>
-                <div class="v2c-viz" data-v2c-viz="umfrage" data-kg-skip aria-hidden="true"></div>
-                <div class="kgai-v2-sub" data-v2c-sub="umfrage">aus Umfragen</div>
-            </div>
-            <div class="kgai-v2-kpi">
-                <div class="kgai-v2-label">Qualitätsmails</div>
-                <svg class="v2c-ico" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 3 10.5 13.5"/><path d="M21 3l-6.5 18-4-7.5L3 9.5z"/></svg>
-                <div class="kgai-v2-wert" data-v2c-wert="mails">–</div>
-                <div class="v2c-viz" data-v2c-viz="mails" data-kg-skip aria-hidden="true"></div>
-                <div class="kgai-v2-sub" data-v2c-sub="mails">Versandverlauf</div>
-            </div>
         </div>
 
         <div class="quality-tabs">
@@ -785,7 +769,7 @@ function setKgAiOutput(text) {
 function clearKgAi() {
     pendingBulkWhatsappMessage = null;
     document.getElementById("kgAiInput").value = "";
-    setKgAiOutput("Hazır.");
+    setKgAiOutput("Bereit.");
 }
 
 function buildKgAiPayload(msg) {
@@ -935,11 +919,11 @@ async function sendKgAiChat() {
     const msg = input.value.trim();
 
     if (!msg) {
-        setKgAiOutput("Mesaj boş olamaz.");
+        setKgAiOutput("Bitte zuerst eine Nachricht eingeben.");
         return;
     }
 
-    setKgAiOutput("İşleniyor...");
+    setKgAiOutput("Wird bearbeitet …");
 
     try {
         const payload = buildKgAiPayload(msg);
@@ -957,11 +941,11 @@ async function sendKgAiChat() {
         if (data.action === "bulk_whatsapp_preview" && data.ok) {
             pendingBulkWhatsappMessage = msg;
             input.value = "";
-            input.placeholder = "Göndermek için sadece EVET yaz. İptal için HAYIR yaz.";
+            input.placeholder = "Zum Senden der WhatsApp-Nachricht EVET eingeben · zum Abbrechen NEIN eingeben";
         }
 
         if (!data.ok) {
-            setKgAiOutput("HATA:\n" + (data.error || data.answer || "Bilinmeyen hata"));
+            setKgAiOutput("FEHLER:\n" + (data.error || data.answer || "Unbekannter Fehler"));
             return;
         }
 
@@ -980,12 +964,12 @@ async function sendKgAiChat() {
         }
 
     } catch (err) {
-        setKgAiOutput("Bağlantı hatası:\n" + err);
+        setKgAiOutput("Verbindungsfehler:\n" + err);
     }
 }
 
 async function testOpenAI() {
-    setKgAiOutput("OpenAI test ediliyor...");
+    setKgAiOutput("OpenAI wird getestet …");
 
     try {
         const res = await fetch("/api/ai", {
@@ -1001,7 +985,7 @@ async function testOpenAI() {
         const data = await res.json();
 
         if (!data.ok) {
-            setKgAiOutput("HATA:\n" + (data.error || "Test başarısız"));
+            setKgAiOutput("FEHLER:\n" + (data.error || "Test fehlgeschlagen"));
             return;
         }
 
@@ -1016,7 +1000,7 @@ async function testOpenAI() {
         setKgAiOutput(outputText);
 
     } catch (err) {
-        setKgAiOutput("Bağlantı hatası:\n" + err);
+        setKgAiOutput("Verbindungsfehler:\n" + err);
     }
 }
 
@@ -1028,94 +1012,117 @@ document.getElementById("kgAiInput").addEventListener("keydown", function(e) {
 </script>
 {% raw %}
 <script>
-/* ===== PREMIUM V2 „Graphit“ – Kennzahlen Kundenpflege (liest nur die schon geladenen Daten, sendet nichts) ===== */
+/* ===== PREMIUM (KG AI): Zufriedenheit, Kampagne, Avatare – nur LESEND aus qualityCustomers.
+   Bestehende Funktionen bleiben; renderQualityCustomers wird nur ergänzt (erst Original, dann Grafiken). */
 (function () {
-    'use strict';
-    var reihe = document.querySelector('.kgai-v2-kpis');
-    if (!reihe) return;
-    var MONATE = ['Jan', 'Feb', 'Mär', 'Apr', 'Mai', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dez'];
+  "use strict";
+  var BEREICHE = [
+    ["Gesamt", "score_gesamt", "#2563eb"], ["Mitarbeiter", "score_mitarbeiter", "#7c3aed"],
+    ["Sauberkeit", "score_sauberkeit", "#0891b2"], ["Reinigungsmittel", "score_reinigungsmittel", "#16a34a"],
+    ["Kommunikation", "score_kommunikation", "#f59e0b"]
+  ];
+  function esc(v) { return String(v == null ? "" : v).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
+  function zahl(v) { var n = parseFloat(String(v == null ? "" : v).replace(",", ".")); return isFinite(n) ? n : 0; }
+  function de1(n) { return n.toLocaleString("de-DE", { minimumFractionDigits: 1, maximumFractionDigits: 1 }); }
+  function datum(s) { var d = new Date(String(s || "").replace(" ", "T")); return isNaN(d.getTime()) ? null : d; }
+  function dm(d) { return ("0" + d.getDate()).slice(-2) + "." + ("0" + (d.getMonth() + 1)).slice(-2) + "."; }
+  function liste() { try { return Array.isArray(qualityCustomers) ? qualityCustomers : []; } catch (e) { return []; } }
+  function setz(id, html) { var e = document.getElementById(id); if (e) e.innerHTML = html; }
 
-    function setzen(name, html) {
-        var el = reihe.querySelector('[data-v2c-wert="' + name + '"]');
-        if (el) el.innerHTML = html;
-    }
-    function unten(name, text) {
-        var el = reihe.querySelector('[data-v2c-sub="' + name + '"]');
-        if (el) el.textContent = text;
-    }
-    function viz(name, html) {
-        var el = reihe.querySelector('[data-v2c-viz="' + name + '"]');
-        if (el) el.innerHTML = html;
-    }
-    function anteil(n, g, farbe, titel) {
-        var p = g ? Math.round(n / g * 100) : 0;
-        return '<div class="v2c-anteil" title="' + titel + '"><div class="v2c-spur"><div class="v2c-fuell" style="width:' + p + '%;background:' + farbe + '"></div></div><span class="v2c-proz">' + p + ' %</span></div>';
-    }
+  function zeichnen() {
+    var kunden = liste();
+    var umfragen = kunden.filter(function (k) { return k.last_survey_at && BEREICHE.every(function (b) { return zahl(k[b[1]]) > 0; }); });
+    var angeschrieben = kunden.filter(function (k) { return k.last_sent; }).length;
 
-    function kunden() {
-        var liste = (typeof qualityCustomers !== 'undefined' && Array.isArray(qualityCustomers)) ? qualityCustomers : null;
-        if (!liste) return;
-        var box = document.getElementById('qualityCustomerRows');
-        if (!liste.length && box && /Fehler/.test(box.textContent || '')) return;
-        var faellig = function (k) { try { return typeof qualityIsDue === 'function' ? qualityIsDue(k) : !k.last_sent; } catch (e) { return false; } };
-        var aktiv = liste.filter(function (k) { return k.enabled && k.email; });
-        var due = aktiv.filter(faellig);
-        var nie = aktiv.filter(function (k) { return !k.last_sent; }).length;
-        setzen('aktiv', String(aktiv.length));
-        unten('aktiv', 'von ' + liste.length + ' Kunden');
-        viz('aktiv', anteil(aktiv.length, liste.length, '#2563eb', aktiv.length + ' von ' + liste.length + ' Kunden versandfähig'));
-        setzen('faellig', String(due.length));
-        unten('faellig', nie + ' noch nie angeschrieben');
-        viz('faellig', anteil(due.length, aktiv.length, '#d97706', due.length + ' von ' + aktiv.length + ' versandfähigen Kunden fällig'));
+    // 1) Ø Zufriedenheit
+    var schnitt = umfragen.length ? umfragen.reduce(function (a, k) {
+      return a + BEREICHE.reduce(function (s, b) { return s + zahl(k[b[1]]); }, 0) / BEREICHE.length;
+    }, 0) / umfragen.length : 0;
+    var pct = schnitt / 5 * 100;
+    var svg = '<defs><linearGradient id="kgxRingVerlauf" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#f59e0b"/><stop offset="1" stop-color="#16a34a"/></linearGradient></defs>' +
+      '<circle cx="100" cy="100" r="86" fill="none" stroke="rgba(100,116,139,0.16)" stroke-width="18" pathLength="100"/>' +
+      (pct > 0 ? '<circle class="kgx-ring-bogen" cx="100" cy="100" r="86" fill="none" stroke="url(#kgxRingVerlauf)" stroke-width="18" stroke-linecap="round" pathLength="100" stroke-dasharray="' + pct.toFixed(2) + ' 100" transform="rotate(-90 100 100)"/>' : "") +
+      '<text class="kgx-ring-z" x="100" y="108" text-anchor="middle">' + (umfragen.length ? de1(schnitt) : "–") + '</text>' +
+      '<text class="kgx-ring-u" x="100" y="132" text-anchor="middle">von 5 Sternen</text>';
+    var ring = document.getElementById("kgxRing");
+    if (ring && ring.getAttribute("data-kgx") !== svg) { ring.innerHTML = svg; ring.setAttribute("data-kgx", svg); }
+    var voll = Math.round(schnitt);
+    setz("kgxSterne", "★★★★★".slice(0, voll) + "☆☆☆☆☆".slice(0, 5 - voll));
+    setz("kgxRingSub", umfragen.length
+      ? "aus " + umfragen.length + (umfragen.length === 1 ? " Umfrage" : " Umfragen") + (angeschrieben ? " · Antwortquote " + Math.round(umfragen.length / angeschrieben * 100) + " %" : "")
+      : "Noch keine Umfrage beantwortet");
 
-        var schnitte = liste.map(function (k) {
-            var s = [k.score_gesamt, k.score_mitarbeiter, k.score_sauberkeit, k.score_reinigungsmittel, k.score_kommunikation].map(function (v) { return Number(v || 0); });
-            return s.every(function (v) { return v > 0; }) ? s.reduce(function (a, b) { return a + b; }, 0) / s.length : null;
-        }).filter(function (v) { return v !== null; });
-        if (schnitte.length) {
-            var mittel = schnitte.reduce(function (a, b) { return a + b; }, 0) / schnitte.length;
-            setzen('umfrage', mittel.toFixed(1).replace('.', ',') + '<small>/5</small>');
-            viz('umfrage', '<div class="v2c-sterne" title="Ø ' + mittel.toFixed(1).replace('.', ',') + ' von 5">' + [0, 1, 2, 3, 4].map(function (i) {
-                var f = Math.max(0, Math.min(1, mittel - i));
-                return '<i><b style="width:' + Math.round(f * 100) + '%;animation-delay:' + (0.15 + i * 0.08).toFixed(2) + 's"></b></i>';
-            }).join('') + '</div>');
-        } else {
-            setzen('umfrage', '–');
-            viz('umfrage', '<div class="v2c-sterne" title="Noch keine Umfrage"><i></i><i></i><i></i><i></i><i></i></div>');
-        }
-        unten('umfrage', schnitte.length + (schnitte.length === 1 ? ' Umfrage' : ' Umfragen') + ' beantwortet');
+    // 2) Bewertung nach Bereich
+    var ber = document.getElementById("kgxBereiche");
+    if (ber) {
+      var html = umfragen.length ? BEREICHE.map(function (b, i) {
+        var w = umfragen.reduce(function (a, k) { return a + zahl(k[b[1]]); }, 0) / umfragen.length;
+        return '<div class="kgx-bz"><span>' + b[0] + '</span><s><i style="width:' + (w / 5 * 100).toFixed(1) + '%;background:linear-gradient(90deg,' + b[2] + '99,' + b[2] + ');animation-delay:' + (200 + i * 90) + 'ms"></i></s><b>' + de1(w) + '</b></div>';
+      }).join("") : '<div class="kgx-leer">Sobald Kunden die Umfrage beantworten, erscheinen hier die Noten je Bereich.</div>';
+      if (ber.getAttribute("data-kgx") !== html) { ber.innerHTML = html; ber.setAttribute("data-kgx", html); }
     }
 
-    function verlauf() {
-        var zeilen = Array.prototype.filter.call(document.querySelectorAll('#qualityHistoryRows tr'), function (tr) {
-            return tr.children.length >= 6 && !tr.querySelector('td[colspan]');
-        });
-        var jetzt = new Date(), monate = [];
-        for (var i = 5; i >= 0; i--) {
-            var d = new Date(jetzt.getFullYear(), jetzt.getMonth() - i, 1);
-            monate.push({ j: d.getFullYear(), m: d.getMonth(), n: 0 });
-        }
-        zeilen.forEach(function (tr) {
-            var t = /(\d{4})-(\d{2})-(\d{2})/.exec(tr.children[0].textContent || '');
-            if (!t) return;
-            monate.forEach(function (x) { if (x.j === +t[1] && x.m === +t[2] - 1) x.n += 1; });
-        });
-        var summe = monate.reduce(function (a, x) { return a + x.n; }, 0);
-        var max = Math.max.apply(null, monate.map(function (x) { return x.n; }).concat([1]));
-        setzen('mails', String(zeilen.length));
-        unten('mails', summe + ' in den letzten 6 Monaten');
-        viz('mails', '<div class="v2c-monate">' + monate.map(function (x, i) {
-            var s = x.n ? '<i style="height:' + Math.max(4, Math.round(x.n / max * 20)) + 'px;animation-delay:' + (0.15 + i * 0.05).toFixed(2) + 's"></i>' : '<i class="v2c-null"></i>';
-            return '<div class="v2c-monat' + (i === 5 ? ' ist-jetzt' : '') + '" title="' + MONATE[x.m] + ' ' + x.j + ': ' + x.n + '"><div class="v2c-msaeule">' + s + '</div><span>' + MONATE[x.m] + '</span></div>';
-        }).join('') + '</div>');
+    // 3) Kampagne
+    var aktiv = kunden.filter(function (k) { return k.campaign_active; });
+    var takt = {};
+    aktiv.forEach(function (k) { var m = Number(k.campaign_interval_months || k.interval_months || 0); if (m) takt[m] = (takt[m] || 0) + 1; });
+    var haupt = Object.keys(takt).sort(function (a, b) { return takt[b] - takt[a]; })[0];
+    setz("kgxKampN", String(aktiv.length));
+    setz("kgxKampText", (aktiv.length === 1 ? "Kunde" : "Kunden") + (haupt ? " · " + (Number(haupt) === 1 ? "jeden Monat" : "alle " + haupt + " Monate") : " · keine Kampagne aktiv"));
+    var letzte = null, naechste = null;
+    aktiv.forEach(function (k) {
+      var d = datum(k.last_sent);
+      if (!d) return;
+      if (!letzte || d > letzte) letzte = d;
+      var n = new Date(d.getTime()); n.setMonth(n.getMonth() + Number(k.campaign_interval_months || k.interval_months || 2));
+      if (!naechste || n < naechste) naechste = n;
+    });
+    var zeit = "";
+    if (letzte && naechste) {
+      var heute = new Date(), p = Math.max(0, Math.min(1, (heute - letzte) / Math.max(naechste - letzte, 1))) * 100;
+      zeit = '<i class="kgx-pt" style="left:0;color:#16a34a"></i><i class="kgx-pt" style="left:' + p.toFixed(1) + '%;color:#2563eb"></i><i class="kgx-pt" style="left:100%;color:#cbd5e1"></i>' +
+        '<span class="kgx-pl links" style="left:0">' + dm(letzte) + ' gesendet</span>' +
+        '<span class="kgx-pl oben" style="left:' + Math.max(8, Math.min(92, p)).toFixed(1) + '%">heute</span>' +
+        '<span class="kgx-pl rechts" style="left:100%">' + dm(naechste) + ' nächster</span>';
+    } else {
+      zeit = '<span class="kgx-pl links" style="left:0;top:28px">' + (aktiv.length ? "Erste Mail folgt beim nächsten Lauf" : "Noch keine Kampagne gestartet") + '</span>';
     }
+    var z = document.getElementById("kgxZeit");
+    if (z && z.getAttribute("data-kgx") !== zeit) { z.innerHTML = zeit; z.setAttribute("data-kgx", zeit); }
+    var faellig = 0;
+    try { faellig = kunden.filter(function (k) { return k.enabled && k.email && qualityIsDue(k); }).length; } catch (e) {}
+    var abbestellt = kunden.filter(function (k) { return !k.enabled; }).length;
+    var ohne = kunden.filter(function (k) { return !k.email; }).length;
+    setz("kgxPills", '<span class="kgx-pill gruen">' + faellig + ' fällig</span><span class="kgx-pill rot">' + abbestellt + ' abbestellt</span><span class="kgx-pill grau">' + ohne + ' ohne E-Mail</span>');
 
-    var w1 = 0, w2 = 0;
-    var kundenBox = document.getElementById('qualityCustomerRows');
-    var verlaufBox = document.getElementById('qualityHistoryRows');
-    if (kundenBox) new MutationObserver(function () { clearTimeout(w1); w1 = setTimeout(kunden, 30); }).observe(kundenBox, { childList: true });
-    if (verlaufBox) new MutationObserver(function () { clearTimeout(w2); w2 = setTimeout(verlauf, 30); }).observe(verlaufBox, { childList: true });
-    setTimeout(function () { reihe.classList.remove('v2-start'); }, 1700);
+    // Kopfzahlen Kundenpflege
+    setz("kgxKopfZahlen",
+      '<div class="kgx-kz" style="background:#f0fdf4"><b style="color:#15803d">' + aktiv.length + '</b><span>aktiv</span></div>' +
+      '<div class="kgx-kz" style="background:#eff6ff"><b style="color:#1d4ed8">' + faellig + '</b><span>fällig</span></div>' +
+      '<div class="kgx-kz" style="background:#fffbeb"><b style="color:#b45309">' + (umfragen.length ? de1(schnitt) : "–") + '</b><span>Ø Note</span></div>');
+  }
+
+  function avatare() {
+    Array.prototype.forEach.call(document.querySelectorAll("#qualityCustomerRows .quality-row"), function (row) {
+      var zelle = row.children[1], link = zelle && zelle.querySelector(".quality-company-link");
+      if (!link || zelle.hasAttribute("data-kgx-ini")) return;
+      var w = String(link.textContent || "").trim().split(/\s+/).filter(function (x) { return /^[A-Za-zÄÖÜäöü0-9]/.test(x); });
+      var ini = ((w[0] || "?").charAt(0) + (w[1] ? w[1].charAt(0) : "")).toUpperCase();
+      var h = 0, t = link.textContent || "";
+      for (var i = 0; i < t.length; i++) h = (h * 31 + t.charCodeAt(i)) >>> 0;
+      zelle.setAttribute("data-kgx-f", String(h % 6));
+      zelle.setAttribute("data-kgx-ini", ini);
+    });
+  }
+
+  var alt = window.renderQualityCustomers;
+  if (typeof alt === "function") {
+    window.renderQualityCustomers = function () {
+      var r = alt.apply(this, arguments);
+      try { avatare(); zeichnen(); } catch (e) { if (window.console) console.warn("KG AI Premium:", e); }
+      return r;
+    };
+  }
 })();
 </script>
 {% endraw %}

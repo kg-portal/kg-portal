@@ -45,6 +45,13 @@ Karten + Reiter, Art aus „Häufigkeit“, neue Auswahl „einmalig“) + Häuf
 ```
 ssh root@46.224.155.41 'cd /opt/kg-crm && cp templates/kunden.html /root/kunden_vorher.html && git fetch -q origin claude/nifty-galileo-19dve0 && git checkout FETCH_HEAD -- templates/kunden.html && systemctl restart kg-crm && sleep 5 && systemctl is-active kg-crm'
 ```
+**KG AI** = Systemblau-Kopf (Kugel, Glas-Eingabe, Ausgabe im Terminal-Stil), Kacheln Ø Zufriedenheit /
+Bewertung nach Bereich / Kampagne, Kundenpflege in 3 Schritten mit Avataren; Texte auf Deutsch,
+WhatsApp-Hinweistext entfernt (die EVET-Bestätigung selbst bleibt):
+```
+ssh root@46.224.155.41 'cd /opt/kg-crm && git fetch -q origin claude/nifty-galileo-19dve0 && git checkout FETCH_HEAD -- templates/kg_ai.html && systemctl restart kg-crm && sleep 5 && systemctl is-active kg-crm'
+```
+
 Kunden zurück:
 ```
 ssh root@46.224.155.41 'cd /opt/kg-crm && git checkout HEAD -- templates/kunden.html && systemctl restart kg-crm && sleep 5 && systemctl is-active kg-crm'
