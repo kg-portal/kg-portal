@@ -900,6 +900,10 @@ register_leon_uebersicht(app, login_required, get_db_connection, lambda: _leon_r
 from besichtigung_uebersicht import register_besichtigung_uebersicht
 register_besichtigung_uebersicht(app, login_required, get_db_connection)
 
+# Datenbank: Grafik „Monat gegen Vormonat“ unter den Kästen (nur lesend)
+from monatsvergleich import register_monatsvergleich
+register_monatsvergleich(app, login_required, get_db_connection)
+
 # Arbeitsliste für heute (/heute): jeden Werktag als To-Do-Karte (+ WhatsApp an den Chef); der Agent antwortet dem Chef per WhatsApp
 from tagesliste import register_tagesliste
 register_tagesliste(app, login_required, get_db_connection, lambda: _leon_routes_mod.leon_client)
