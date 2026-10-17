@@ -230,6 +230,21 @@ body {
     padding: 16px 18px;
 }
 
+.leon-stats-grid .leon-rot .db-info-label,
+.leon-stats-grid .leon-rot .db-info-value {
+    color: #dc2626;
+}
+
+.leon-stats-grid .leon-gruen .db-info-label,
+.leon-stats-grid .leon-gruen .db-info-value {
+    color: #16a34a;
+}
+
+.leon-stats-grid .leon-dunkelgruen .db-info-label,
+.leon-stats-grid .leon-dunkelgruen .db-info-value {
+    color: #166534;
+}
+
 @media (max-width: 1280px) {
     .leon-stats-grid {
         grid-template-columns: repeat(4, 1fr);
@@ -2837,22 +2852,22 @@ body {
                 <div class="db-info-value" id="leonGespraech">–</div>
                 <div class="db-info-sub" id="leonGespraechSub">&nbsp;</div>
             </div>
-            <div class="db-info-box">
+            <div class="db-info-box leon-rot">
                 <div class="db-info-label">Nicht erreicht</div>
                 <div class="db-info-value" id="leonNichtErreicht">–</div>
                 <div class="db-info-sub" id="leonNichtErreichtSub">Mailbox · besetzt · nicht erreichbar</div>
             </div>
-            <div class="db-info-box">
+            <div class="db-info-box leon-rot">
                 <div class="db-info-label">Fehler</div>
                 <div class="db-info-value" id="leonFehler">–</div>
                 <div class="db-info-sub" id="leonFehlerSub">technisch abgebrochen</div>
             </div>
-            <div class="db-info-box">
+            <div class="db-info-box leon-gruen">
                 <div class="db-info-label">Interessiert</div>
                 <div class="db-info-value" id="leonInteressiert">–</div>
                 <div class="db-info-sub" id="leonInteressiertSub">&nbsp;</div>
             </div>
-            <div class="db-info-box">
+            <div class="db-info-box leon-dunkelgruen">
                 <div class="db-info-label">Besichtigung</div>
                 <div class="db-info-value" id="leonBesichtigung">–</div>
                 <div class="db-info-sub" id="leonBesichtigungSub">&nbsp;</div>
@@ -2867,6 +2882,12 @@ body {
             </div>
 
             <div class="db-info-box">
+    <div class="db-info-label">Dieser Monat · Angerufen</div>
+    <div class="db-info-value" id="leonMonatAngerufen">–</div>
+    <div class="db-info-sub">{{ datenbank_stats.month_label }} · Firmen von Leon angerufen</div>
+</div>
+
+<div class="db-info-box" style="display:none;">
     <div class="db-info-label">Dieser Monat · Angerufen</div>
     <div class="db-info-value" id="monthAngerufenLive">{{ datenbank_stats.month_angerufen }}</div>
     <div class="db-info-sub" id="monthCallsLabel">{{ datenbank_stats.month_label }} gesamt</div>
@@ -8984,6 +9005,7 @@ document.addEventListener("DOMContentLoaded", function() {
             setzen("leonGesendetSub", (z.offen || 0) + " warten noch auf Anruf");
             setzen("leonAngerufen", z.angerufen || 0);
             setzen("leonAngerufenSub", "heute: " + (k ? k.heute_angerufen : "–"));
+            setzen("leonMonatAngerufen", z.monat_angerufen || 0);
             setzen("leonGespraech", z.gespraech || 0);
             setzen("leonGespraechSub", "Rückruf " + (z.rueckruf || 0) + " · Kein Interesse " + (z.kein_interesse || 0));
             setzen("leonNichtErreicht", z.nicht_erreicht || 0);

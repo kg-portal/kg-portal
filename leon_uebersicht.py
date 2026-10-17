@@ -75,6 +75,13 @@ def register_leon_uebersicht(app, login_required, get_db_connection, get_leon_cl
             ).fetchone()
             zahlen = {k: int(z[k] or 0) for k in z.keys()}
             zahlen["nicht_erreicht"] = max(0, zahlen["angerufen"] - zahlen["gespraech"] - zahlen["fehler"])
+
+            # dieser Monat: Firmen, die Leon angerufen hat (aktualisiert_am = Serverzeit, siehe leon_datenbank._now)
+            monat_start = datetime.now(BERLIN).replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+            zahlen["monat_angerufen"] = int(conn.execute(
+                "SELECT COUNT(*) FROM leon_links WHERE COALESCE(letzter_status, '') != '' AND aktualisiert_am >= ?",
+                (monat_start.astimezone().strftime("%Y-%m-%d %H:%M:%S"),),
+            ).fetchone()[0] or 0)
         except Exception as exc:
             conn.close()
             return jsonify({"ok": False, "message": str(exc)})
