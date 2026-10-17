@@ -15,31 +15,12 @@
   .vt-btn { border: 0; border-radius: 12px; padding: 12px 18px; min-height: 44px; font-weight: 800; font-size: 15px; color: #fff; background: #15803d; cursor: pointer; }
   .vt-hint { font-size: 13px; color: #475569; line-height: 1.55; }
   @media (max-width: 800px) { .vt-grid { grid-template-columns: 1fr; } .vt-grid .w2 { grid-column: auto; } }
-  /* ===== PREMIUM V2 „Graphit“ ===== */
-  .vt-wrap { font-family: inherit; max-width: 1120px; padding-top: 8px; }
-  .vt-head { position: relative; background: transparent; color: #111827; border-radius: 0; padding: 4px 2px 20px; border-bottom: 1px solid #e5e7eb; }
-  .vt-head:before { content: "Vertrag · Dokument"; display: inline-flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 700; color: #6b7280; margin-bottom: 8px; }
-  .vt-head:after { content: ""; position: absolute; left: 2px; top: 10px; width: 8px; height: 8px; border-radius: 2px; background: #16a34a; }
-  .vt-head:before { padding-left: 16px; }
-  .vt-head h1 { font-size: 30px; font-weight: 800; letter-spacing: -.02em; color: #111827; }
-  .vt-head p { color: #6b7280; font-size: 14px; max-width: 760px; }
-  .vt-card { border-color: #e5e7eb; border-radius: 14px; padding: 22px 24px; margin-top: 20px; box-shadow: 0 1px 2px rgba(16,24,40,.05); }
-  .vt-card h2 { font-size: 15px; font-weight: 700; color: #111827; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid #f0f1f4; }
-  .vt-grid { gap: 16px 18px; }
-  .vt-grid label { font-size: 13px; font-weight: 600; color: #374151; }
-  .vt-in { height: 42px; padding: 0 12px; border: 1px solid #d1d5db; border-radius: 10px; background: #fff; font-size: 15px; color: #111827; transition: border-color .15s, box-shadow .15s; }
-  textarea.vt-in { height: auto; padding: 10px 12px; }
-  .vt-in:focus { outline: none; border-color: #111827; box-shadow: 0 0 0 3px rgba(17,24,39,.10); }
-  .vt-btn { height: 42px; padding: 0 20px; border-radius: 10px; background: #111827; font-weight: 700; font-size: 14px; transition: background-color .15s; }
-  .vt-btn:hover { background: #000; }
-  html[data-kg-x="on"] .vt-btn { background: #2563eb; }
-  html[data-kg-x="on"] .vt-btn:hover { background: #1d4ed8; }
-  html[data-kg-x="on"] .vt-in:focus { border-color: #60a5fa; }
 </style>
+<link rel="stylesheet" href="/static/kg_seitenkopf.css">
 
 <div class="vt-wrap">
-  <div class="vt-head">
-    <h1>📄 Reinigungsvertrag erstellen</h1>
+  <div class="vt-head kgs-kopf" data-kg-skip>
+    <h1 data-kgs-eyebrow="KG Portal · Verträge">Reinigungsvertrag erstellen</h1>
     <p>Kunde oder Angebot wählen – die Felder werden ausgefüllt. Dann „Vertrag erstellen“: Der Vertrag öffnet sich druckfertig
        (im Browser „Drucken“ → „Als PDF speichern“).</p>
   </div>
