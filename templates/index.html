@@ -776,6 +776,20 @@
     .kgx-kacheln { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
     .kgx-kachel { padding: 14px 16px; border-radius: 16px; background: #f8fbff; border: 1px solid #e6edf7; font-weight: 800; color: #475569; }
     .kgx-kachel b { display: block; margin-top: 4px; font-size: 26px; color: #0f172a; }
+    .kgx-kachel.blue, .kgx-kachel.green, .kgx-kachel.purple, .kgx-kachel.pink, .kgx-kachel.red, .kgx-kachel.gray { border: 0; color: rgba(255,255,255,0.9); box-shadow: 0 12px 24px -16px rgba(15,23,42,0.55); }
+    .kgx-kachel.blue b, .kgx-kachel.green b, .kgx-kachel.purple b, .kgx-kachel.pink b, .kgx-kachel.red b, .kgx-kachel.gray b { color: #ffffff; }
+    .kgx-kachel.blue { background: linear-gradient(135deg, #1e40af, #3b82f6); }
+    .kgx-kachel.green { background: linear-gradient(135deg, #047857, #10b981); }
+    .kgx-kachel.purple { background: linear-gradient(135deg, #4f46e5, #818cf8); }
+    .kgx-kachel.pink { background: linear-gradient(135deg, #be185d, #ec4899); }
+    .kgx-kachel.red { background: linear-gradient(135deg, #b91c1c, #ef4444); }
+    .kgx-kachel.gray { background: linear-gradient(135deg, #475569, #94a3b8); }
+    .kgx-tab { margin-top: 14px; border: 1px solid #dbeafe; border-radius: 18px; overflow: hidden; }
+    .kgx-tz { display: grid; grid-template-columns: 1.4fr repeat(4, 1fr); gap: 8px; padding: 9px 16px; border-top: 1px solid #eff6ff; font-size: 13.5px; font-weight: 800; text-align: right; }
+    .kgx-tz span:first-child { text-align: left; color: #0f172a; }
+    .kgx-tz.kopf { border-top: 0; background: #f8fafc; font-size: 11.5px; letter-spacing: .04em; text-transform: uppercase; color: #64748b; }
+    .kgx-tz.akt { background: #eff6ff; }
+    .c-blue { color: #1d4ed8; } .c-gray { color: #475569; } .c-purple { color: #6366f1; } .c-pink { color: #db2777; }
     .kgx-hinweis { margin-top: 12px; font-size: 12.5px; font-weight: 700; color: #64748b; }
     .kgx-fuss { padding: 12px 16px 16px; }
     .kgx-fuss a { display: block; padding: 12px; border-radius: 14px; text-align: center; text-decoration: none; color: #fff; font-size: 13.5px; font-weight: 900; background: linear-gradient(135deg, #1e40af, #3b82f6); }
@@ -860,7 +874,7 @@
         <div class="kpi-card blue-active" onclick="setActive(this)">
             <div id="current-month-label" class="card-month-badge">April 2026</div>
             <div class="card-label">Monatlicher Umsatz</div>
-            <div class="card-value">{{ "{:,.2f}".format(monatlicher_umsatz) }} €</div>
+            <div class="card-value">{{ "{:,.2f}".format(monatlicher_umsatz).replace(",", "X").replace(".", ",").replace("X", ".") }} €</div>
         </div>
         <div class="chart-box"><div class="chart-title">Monatstrend</div><canvas id="monthlyTrendChart"></canvas></div>
     </div>
@@ -869,7 +883,7 @@
         <div class="kpi-card" onclick="setActive(this)">
             <div id="current-year-label" class="card-month-badge">Jahr 2026</div>
             <div class="card-label">Aktueller Gesamtumsatz</div>
-            <div class="card-value">{{ "{:,.2f}".format(jahres_umsatz) }} €</div>
+            <div class="card-value">{{ "{:,.2f}".format(jahres_umsatz).replace(",", "X").replace(".", ",").replace("X", ".") }} €</div>
         </div> 
         <div class="chart-box"><div id="yearly-overview-title" class="chart-title">Jahresübersicht 2026</div><canvas id="yearlyOverviewChart"></canvas></div>
     </div>
@@ -880,7 +894,7 @@
             <div class="accounting-lines">
                 <div class="accounting-pill income">
                     Einnahmen / <span id="accounting-income-period" class="accounting-period">April 2026</span>
-                    <span class="accounting-amount">10.000 €</span>
+                    <span class="accounting-amount">{{ "{:,.2f}".format(monatlicher_umsatz).replace(",", "X").replace(".", ",").replace("X", ".") }} €</span>
                 </div>
                 <div class="accounting-pill expense">
                     Ausgaben / <span id="accounting-expense-period" class="accounting-period">April 2026</span>
@@ -927,10 +941,11 @@
             <div class="card-label card-month-badge">Telefonakquise</div>
         </div>
         <div class="dashboard-stat-grid">
-            <div class="dashboard-stat-item blue">Anrufe<span>0</span></div>
-            <div class="dashboard-stat-item gray">Portfolio<span>0</span></div>
-            <div class="dashboard-stat-item purple">Besichtigung<span>0</span></div>
-            <div class="dashboard-stat-item pink">Verträge<span>0</span></div>
+            {% set kg_ak = akquise_monat or {} %}
+            <div class="dashboard-stat-item blue">Anrufe<span>{{ kg_ak.get('anrufe', 0) }}</span></div>
+            <div class="dashboard-stat-item gray">Portfolio<span>{{ kg_ak.get('portfolio', 0) }}</span></div>
+            <div class="dashboard-stat-item purple">Besichtigung<span>{{ kg_ak.get('besichtigung', 0) }}</span></div>
+            <div class="dashboard-stat-item pink">Verträge<span>{{ kg_ak.get('vertraege', 0) }}</span></div>
         </div>
     </div>
     <div class="chart-box">
@@ -945,10 +960,11 @@
             <div class="card-label card-month-badge">Angebot</div>
         </div>
         <div class="dashboard-stat-grid">
-            <div class="dashboard-stat-item blue">Gesendet<span>0</span></div>
-            <div class="dashboard-stat-item green">Bestätigt<span>0</span></div>
-            <div class="dashboard-stat-item purple">Wartend<span>0</span></div>
-            <div class="dashboard-stat-item red">Nicht bestätigt<span>0</span></div>
+            {% set kg_an = angebot_zahlen or {} %}
+            <div class="dashboard-stat-item blue">Gesendet<span>{{ kg_an.get('gesendet', 0) }}</span></div>
+            <div class="dashboard-stat-item green">Bestätigt<span>{{ kg_an.get('bestaetigt', 0) }}</span></div>
+            <div class="dashboard-stat-item purple">Wartend<span>{{ kg_an.get('wartend', 0) }}</span></div>
+            <div class="dashboard-stat-item red">Nicht bestätigt<span>{{ kg_an.get('nicht', 0) }}</span></div>
         </div>
     </div>
     <div class="chart-box"><div class="chart-title">Angebot Status</div><div style="position:relative;height:180px"><canvas id="chart5"></canvas></div></div>
@@ -1165,6 +1181,10 @@
     const kgPersonalBestand = kgFallbackArray('{{ (personal_bestand_verisi or []) | tojson }}', []);
     const kgBilanzEinnahmen = kgFallbackArray('{{ (bilanz_einnahmen_verisi or []) | tojson }}', []);
     const kgBilanzAusgaben = kgFallbackArray('{{ (bilanz_ausgaben_verisi or []) | tojson }}', []);
+    const kgAkquiseAnrufe = kgFallbackArray('{{ (akquise_anrufe_verisi or []) | tojson }}', []);
+    const kgAkquisePortfolio = kgFallbackArray('{{ (akquise_portfolio_verisi or []) | tojson }}', []);
+    const kgAkquiseBesichtigung = kgFallbackArray('{{ (akquise_besichtigung_verisi or []) | tojson }}', []);
+    const kgAkquiseVertraege = kgFallbackArray('{{ (akquise_vertraege_verisi or []) | tojson }}', []);
     function kgObergrenze(werte) {
         const zahlen = werte.filter(v => typeof v === 'number');
         const max = zahlen.length ? Math.max.apply(null, zahlen) : 0;
@@ -1437,14 +1457,14 @@ new Chart(document.getElementById('chart4'), {
         }
     }
 });
-    new Chart(document.getElementById('chart5'), { type: 'doughnut', data: { labels: ['Bestätigt', 'Wartend', 'Nicht bestätigt'], datasets: [{ data: [1, 1, 1], backgroundColor: ['#10b981', '#6366f1', '#dc2626'] }] }, options: { responsive: true, maintainAspectRatio: false, animation: { animateRotate: true, animateScale: true, duration: 1400, easing: 'easeOutQuart' }, plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11, weight: 'bold' } } } } } });
+    new Chart(document.getElementById('chart5'), { type: 'doughnut', data: { labels: ['Bestätigt', 'Wartend', 'Nicht bestätigt'], datasets: [{ data: [{{ (angebot_zahlen or {}).get('bestaetigt', 0) }}, {{ (angebot_zahlen or {}).get('wartend', 0) }}, {{ (angebot_zahlen or {}).get('nicht', 0) }}], backgroundColor: ['#10b981', '#6366f1', '#dc2626'] }] }, options: { responsive: true, maintainAspectRatio: false, animation: { animateRotate: true, animateScale: true, duration: 1400, easing: 'easeOutQuart' }, plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11, weight: 'bold' } } } } } });
     new Chart(document.getElementById('chart6'), {
         type: 'bar',
         data: {
             labels: ['Jan', 'Feb', 'Mär', 'Apr', 'Mai', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dez'],
             datasets: [{
                 label: 'Anrufe',
-                data: [20, 45, 30, 60, 80, 50, 90, 110, 70, 100, 120, 140],
+                data: kgAkquiseAnrufe,
                 backgroundColor: '#db2777',
                 borderRadius: 5
             }]
@@ -1471,7 +1491,7 @@ new Chart(document.getElementById('chart4'), {
                 }
             },
             scales: {
-                y: { min: 0, max: 200, ticks: { stepSize: 20 } }
+                y: { min: 0, suggestedMax: kgObergrenze(kgAkquiseAnrufe), ticks: { precision: 0 } }
             }
         }
     });
@@ -1845,8 +1865,18 @@ const percent = kgTodoPercent;
         return Array.from(karte.querySelectorAll('.dashboard-stat-item')).map(el => {
             const z = el.querySelector('span');
             const name = (el.childNodes[0] && el.childNodes[0].textContent || '').trim();
-            return '<div class="kgx-kachel">' + esc(name) + '<b>' + esc(z ? z.textContent.trim() : '–') + '</b></div>';
+            const farbe = ['blue', 'green', 'purple', 'pink', 'red', 'gray'].find(c => el.classList.contains(c)) || 'blue';
+            return '<div class="kgx-kachel ' + farbe + '">' + esc(name) + '<b>' + esc(z ? z.textContent.trim() : '–') + '</b></div>';
         }).join('');
+    }
+    function akquiseTabelle() {
+        const a = liste(() => kgAkquiseAnrufe), p = liste(() => kgAkquisePortfolio), b = liste(() => kgAkquiseBesichtigung), v = liste(() => kgAkquiseVertraege);
+        const bis = jetzt.getMonth(); let html = '<div class="kgx-tab"><div class="kgx-tz kopf"><span>Monat</span><span>Anrufe</span><span>Portfolio</span><span>Besicht.</span><span>Verträge</span></div>';
+        for (let i = bis; i >= 0; i--) {
+            html += '<div class="kgx-tz' + (i === bis ? ' akt' : '') + '"><span>' + MON[i] + '</span><span class="c-blue">' + (a[i] || 0) + '</span><span class="c-gray">' + (p[i] || 0) +
+                '</span><span class="c-purple">' + (b[i] || 0) + '</span><span class="c-pink">' + (v[i] || 0) + '</span></div>';
+        }
+        return html + '</div>';
     }
     function inhalt(a, karte) {
         const wert = ((karte.querySelector('.card-value') || {}).textContent || '').trim();
@@ -1887,10 +1917,16 @@ const percent = kgTodoPercent;
             const proz = ((document.getElementById('todoBatteryText') || {}).textContent || '').trim();
             return { over: 'To-Do Liste', titel: 'Aufgaben nach Woche', gross: proz + ' erledigt', unter: se + ' erledigt · ' + so + ' offen in den angezeigten Wochen', body: '<div class="kgx-liste">' + html + '</div>', link: ['/todo', 'To-Do Liste öffnen'] };
         }
-        if (a === 'telefon' || a === 'angebot') {
-            return { over: a === 'telefon' ? 'Telefonakquise' : 'Angebot', titel: a === 'telefon' ? 'Akquise diesen Monat' : 'Angebote im Überblick', gross: '', unter: '',
-                body: '<div class="kgx-kacheln">' + stat(karte) + '</div><div class="kgx-hinweis">Diese Zahlen sind auf der Startseite noch nicht mit der Datenbank verbunden.</div>',
-                link: a === 'telefon' ? ['/leon/gespraeche', 'Leon-Gespräche öffnen'] : ['/datenbank', 'Datenbank öffnen'] };
+        if (a === 'telefon') {
+            return { over: 'Telefonakquise', titel: 'Akquise ' + MON[jetzt.getMonth()] + ' ' + jetzt.getFullYear(), gross: '', unter: 'Anrufe und Ergebnisse je Monat (Datenbank / Leon)',
+                body: '<div class="kgx-kacheln">' + stat(karte) + '</div>' + akquiseTabelle(),
+                link: ['/leon/gespraeche', 'Leon-Gespräche öffnen'] };
+        }
+        if (a === 'angebot') {
+            return { over: 'Angebot', titel: 'Angebote im Überblick', gross: '', unter: 'Wartende Angebote mit Nummer und Betrag',
+                body: '<div class="kgx-kacheln">' + stat(karte) + '</div><div class="kgx-liste" id="kgxAngebotListe" style="margin-top:12px"><div class="kgx-zeile"><span class="kgx-klein">Lade wartende Angebote …</span></div></div>' +
+                      '<div class="kgx-hinweis">„Bestätigt“ kommt mit dem Schritt Auftrag → Kunde.</div>',
+                link: ['/datenbank', 'Datenbank öffnen'], nachher: angebotListe };
         }
         if (a === 'kunden' || a === 'personal') {
             const w = liste(() => (a === 'kunden' ? kgKundenBestand : kgPersonalBestand));
@@ -1901,6 +1937,21 @@ const percent = kgTodoPercent;
                 link: a === 'kunden' ? ['/kunden', 'Kunden öffnen'] : ['/mitarbeiter', 'Personal öffnen'] };
         }
         return null;
+    }
+
+    function angebotListe(panel) {
+        const box = panel.querySelector('#kgxAngebotListe');
+        if (!box || !window.fetch) return;
+        fetch('/api/datenbank/by-status?status=angebot', { cache: 'no-store' }).then(r => r.json()).then(leads => {
+            leads = Array.isArray(leads) ? leads : [];
+            if (!leads.length) { box.innerHTML = '<div class="kgx-zeile"><span class="kgx-klein">Keine wartenden Angebote.</span></div>'; return; }
+            let summe = 0;
+            box.innerHTML = leads.map(l => {
+                summe += Number(l.angebot_netto || 0);
+                return '<div class="kgx-zeile"><span style="flex:1;min-width:0"><b>AN-' + esc(l.angebot_nr || '–') + ' · ' + esc(l.firma || '–') + '</b><span class="kgx-klein">' + esc([l.plz, l.ort].filter(Boolean).join(' ')) + (l.angebot_datum ? ' · ' + esc(l.angebot_datum) : '') + '</span></span>' +
+                    '<span class="kgx-wert" style="color:#4f46e5">' + euro(l.angebot_netto) + '<span class="kgx-klein">netto</span></span></div>';
+            }).join('') + '<div class="kgx-zeile summe"><span style="flex:1">Summe wartend</span><span class="kgx-wert">' + euro(summe) + '</span></div>';
+        }).catch(() => { box.innerHTML = '<div class="kgx-zeile"><span class="kgx-klein">Angebote konnten nicht geladen werden.</span></div>'; });
     }
 
     let offen = null;
@@ -1921,6 +1972,7 @@ const percent = kgTodoPercent;
         document.body.appendChild(hinter); document.body.appendChild(panel);
         karte.style.visibility = 'hidden';
         offen = { karte: karte, panel: panel, hinter: hinter };
+        if (typeof daten.nachher === 'function') { try { daten.nachher(panel); } catch (e) {} }
         hinter.addEventListener('click', () => schliessen());
         panel.querySelector('.kgx-zu').addEventListener('click', () => schliessen());
         if (!ruhig() && panel.animate) {

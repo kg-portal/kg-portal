@@ -2,6 +2,7 @@
 # - Kunden: Bestand am Monatsende (Vertragsbeginn bis Vertragsende; gekündigte fallen im Endmonat weg)
 # - Mitarbeiter: Bestand am Monatsende (Eintritt; gelöschte bis zu ihrem letzten Stundenzettel-Monat)
 # - Bilanz: Einnahmen (Lexware, wie Jahresübersicht) und gewerbliche Ausgaben je Monat
+# - Telefonakquise (Anrufe, Portfolio, Besichtigung, Verträge) je Monat und Angebot-Zahlen
 # Monate nach dem aktuellen Monat sind None (Grafik zeigt dort keine Säule).
 import calendar
 import datetime
@@ -77,6 +78,49 @@ def startseite_verlauf(conn, now, einnahmen):
     except Exception:
         pass
 
+    # Telefonakquise je Monat (wie die Monatszahlen der Datenbank: Einträge im Status-Verlauf)
+    def je_monat(sql, params=()):
+        werte = [0] * 12
+        try:
+            for r in conn.execute(sql, params).fetchall():
+                d = _datum(str(r[0] or "")[:10])
+                if d and d.year == jahr:
+                    werte[d.month - 1] += 1
+        except Exception:
+            pass
+        return werte
+
+    anrufe = je_monat("SELECT datum FROM tagesliste_status_history WHERE status = 'angerufen'")
+    besichtigungen = je_monat("SELECT datum FROM tagesliste_status_history WHERE status = 'besichtigung'")
+    portfolio = je_monat("SELECT datum FROM tagesliste_status_history WHERE status = 'kontaktformular'")
+    for i, v in enumerate(je_monat("SELECT portfolio_am FROM neue_anfragen WHERE COALESCE(portfolio_am, '') != ''")):
+        portfolio[i] += v
+    vertraege = [0] * 12
+    for r in conn.execute("SELECT vertrag_beginn, created_at FROM kunden").fetchall():
+        d = _datum(r["vertrag_beginn"]) or _datum(str(r["created_at"] or "")[:10])
+        if d and d.year == jahr:
+            vertraege[d.month - 1] += 1
+
+    # Angebote (Tagesliste): gesendet = mit Angebot-Nummer, wartend = Status „angebot“,
+    # nicht bestätigt = mit Nummer und danach „verloren“; „bestätigt“ gibt es erst mit dem Schritt Auftrag → Kunde
+    angebot = {"gesendet": 0, "wartend": 0, "bestaetigt": 0, "nicht": 0, "wartend_netto": 0.0}
+    try:
+        for r in conn.execute("SELECT status, angebot_netto FROM tagesliste_leads WHERE COALESCE(angebot_nr, '') != ''").fetchall():
+            angebot["gesendet"] += 1
+            st = str(r["status"] or "").strip().lower()
+            if st == "angebot":
+                angebot["wartend"] += 1
+                try:
+                    angebot["wartend_netto"] += float(r["angebot_netto"] or 0)
+                except (TypeError, ValueError):
+                    pass
+            elif st == "verloren":
+                angebot["nicht"] += 1
+        angebot["wartend"] = max(angebot["wartend"], int(conn.execute(
+            "SELECT COUNT(*) FROM tagesliste_leads WHERE status = 'angebot'").fetchone()[0] or 0))
+    except Exception:
+        pass
+
     def bis_heute(werte, runden=None):
         return [(round(v, runden) if runden is not None else v) if i < akt else None for i, v in enumerate(werte)]
 
@@ -86,4 +130,12 @@ def startseite_verlauf(conn, now, einnahmen):
         "bilanz_einnahmen_verisi": bis_heute(list(einnahmen), 2),
         "bilanz_ausgaben_verisi": bis_heute(ausgaben, 2),
         "kunden_gekuendigt_ohne_ende": ohne_ende,
+        "akquise_anrufe_verisi": bis_heute(anrufe),
+        "akquise_besichtigung_verisi": bis_heute(besichtigungen),
+        "akquise_portfolio_verisi": bis_heute(portfolio),
+        "akquise_vertraege_verisi": bis_heute(vertraege),
+        "akquise_monat": {"anrufe": anrufe[akt - 1], "portfolio": portfolio[akt - 1],
+                          "besichtigung": besichtigungen[akt - 1], "vertraege": vertraege[akt - 1]},
+        "angebot_zahlen": angebot,
+        "einnahmen_monat": float(einnahmen[akt - 1] or 0),
     }
