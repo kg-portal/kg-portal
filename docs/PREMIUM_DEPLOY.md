@@ -40,7 +40,8 @@ sonst bricht `git merge` wegen der umgeschalteten Vorlagen ab (es geht nichts ka
 Der Inhaber wählt Seite für Seite. Gewählte Seiten liegen im Branch; jede wird einzeln eingespielt,
 ohne `git merge` (Rahmen/Menü und alle anderen Seiten bleiben, wie sie auf dem Server sind).
 
-**Kunden** = Version 1 + Grafik „Umsatzanteil“ (Halbring je Kunde, nur lesend aus der Liste):
+**Kunden** = Version 1 + Grafik „Umsatzanteil“ + Kundenarten (Bestandskunden / Jährlich / Einmalig / Gekündigt,
+Karten + Reiter, Art aus „Häufigkeit“, neue Auswahl „einmalig“) + Häufigkeit als Rangliste:
 ```
 ssh root@46.224.155.41 'cd /opt/kg-crm && cp templates/kunden.html /root/kunden_vorher.html && git fetch -q origin claude/nifty-galileo-19dve0 && git checkout FETCH_HEAD -- templates/kunden.html && systemctl restart kg-crm && sleep 5 && systemctl is-active kg-crm'
 ```
