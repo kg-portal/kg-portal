@@ -91,12 +91,148 @@
     .rr-grid { grid-template-columns:1fr; }
     .rr-search { min-width:0; width:100%; }
   }
+
+  /* ===== PREMIUM (einheitliches Design) ===== */
+  @keyframes kgRein { from { opacity:0; transform:translateY(14px); } to { opacity:1; transform:none; } }
+  .rr-page { font-family:inherit; background:#f8fbff; border-color:#e6ebf2; padding:22px; box-shadow:0 18px 40px -30px rgba(15,23,42,.45); }
+
+  .rr-hero { position:relative; overflow:hidden; border-radius:24px; padding:28px 30px 24px;
+    background:radial-gradient(520px 230px at 90% -20%, rgba(255,255,255,.26), transparent 60%),
+      radial-gradient(420px 220px at 0% 120%, rgba(56,189,248,.25), transparent 60%),
+      linear-gradient(135deg,#1e40af,#2563eb);
+    box-shadow:0 24px 50px -28px rgba(29,78,216,.7);
+    animation:kgRein .6s cubic-bezier(.22,1,.36,1) backwards; }
+  .rr-hero::after { content:""; position:absolute; inset:0; pointer-events:none;
+    background-image:linear-gradient(rgba(255,255,255,.05) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.05) 1px, transparent 1px);
+    background-size:44px 44px;
+    -webkit-mask-image:linear-gradient(180deg, rgba(0,0,0,.7), transparent 70%); mask-image:linear-gradient(180deg, rgba(0,0,0,.7), transparent 70%); }
+  .rr-hero > * { position:relative; z-index:1; }
+  .rr-hero-row { margin-bottom:22px; }
+  .rr-over { margin-bottom:10px; font-size:11px; font-weight:900; letter-spacing:2.4px; text-transform:uppercase; color:#bfdbfe; }
+  .rr-hero h1 { display:flex; align-items:center; gap:14px; font-size:32px; letter-spacing:-.8px; }
+  .rr-hero h1 i { flex:0 0 46px; width:46px; height:46px; display:grid; place-items:center; border-radius:15px; font-size:19px;
+    background:rgba(255,255,255,.14); border:1px solid rgba(255,255,255,.26); box-shadow:inset 0 1px 0 rgba(255,255,255,.18); }
+  .rr-hero p { margin-top:12px; font-size:13.5px; line-height:1.55; color:#dbeafe; opacity:1; }
+  .rr-today { display:inline-flex; align-items:center; gap:9px; border-radius:14px; padding:10px 16px; background:rgba(255,255,255,.12); border-color:rgba(255,255,255,.24); }
+  .rr-today::before { content:""; flex:0 0 16px; width:16px; height:16px;
+    background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='4' width='18' height='18' rx='2'/%3E%3Cpath d='M16 2v4M8 2v4M3 10h18'/%3E%3C/svg%3E") center/contain no-repeat; }
+
+  .rr-stat-grid { gap:14px; }
+  .rr-stat { position:relative; display:grid; grid-template-columns:38px minmax(0,1fr) auto; grid-template-areas:"ico label label" "val val ring" "sub sub ring";
+    column-gap:12px; align-items:center; padding:16px 18px; border-radius:20px; color:#fff;
+    background:rgba(255,255,255,.10); border:1px solid rgba(255,255,255,.20); box-shadow:inset 0 1px 0 rgba(255,255,255,.12);
+    transition:translate .2s, box-shadow .2s, background-color .2s, border-color .2s;
+    animation:kgRein .6s cubic-bezier(.22,1,.36,1) backwards; animation-delay:calc(var(--i,0)*70ms); }
+  .rr-stat:nth-child(1) { --i:1; } .rr-stat:nth-child(2) { --i:2; } .rr-stat:nth-child(3) { --i:3; } .rr-stat:nth-child(4) { --i:4; }
+  .rr-stat:hover { translate:0 -3px; background:rgba(255,255,255,.16); box-shadow:0 18px 30px -18px rgba(15,23,42,.55); }
+  .rr-stat:focus-visible { outline:3px solid #fde68a; outline-offset:3px; }
+  .rr-stat.active { outline:none; background:#fff; border-color:#fff; box-shadow:0 0 0 3px rgba(253,230,138,.95), 0 20px 36px -20px rgba(15,23,42,.6); }
+  .rr-ico { grid-area:ico; width:38px; height:38px; border-radius:12px; display:grid; place-items:center; box-shadow:0 10px 18px -10px rgba(15,23,42,.7); }
+  .rr-ico svg { width:19px; height:19px; fill:none; stroke:#fff; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+  .rr-ico-rot { background:linear-gradient(135deg,#ef4444,#b91c1c); }
+  .rr-ico-orange { background:linear-gradient(135deg,#f59e0b,#d97706); }
+  .rr-ico-cyan { background:linear-gradient(135deg,#06b6d4,#0e7490); }
+  .rr-ico-lila { background:linear-gradient(135deg,#7c3aed,#5b21b6); }
+  .rr-stat-label { grid-area:label; margin:0; font-size:11.5px; font-weight:800; letter-spacing:1.4px; color:#dbeafe; }
+  .rr-stat-value { grid-area:val; margin-top:14px; font-size:34px; line-height:1; letter-spacing:-1px; color:#fff; }
+  .rr-stat-value.red { color:#fecaca; }
+  .rr-stat-value.orange { color:#fde68a; }
+  .rr-stat-sub { grid-area:sub; margin-top:6px; font-size:12px; font-weight:700; color:#bfdbfe; }
+  .rr-stat.active .rr-stat-label { color:#2563eb; }
+  .rr-stat.active .rr-stat-value { color:#1e40af; }
+  .rr-stat.active .rr-stat-value.red { color:#dc2626; }
+  .rr-stat.active .rr-stat-value.orange { color:#d97706; }
+  .rr-stat.active .rr-stat-sub { color:#64748b; }
+  .rr-ring { grid-area:ring; width:50px; height:50px; margin-top:10px; overflow:visible; }
+  .rr-ring circle { fill:none; stroke-width:5; }
+  .rr-ring .bg { stroke:rgba(255,255,255,.2); }
+  .rr-ring .fg { stroke:var(--c); stroke-dasharray:100; stroke-dashoffset:100; transition:stroke-dashoffset 1.1s cubic-bezier(.22,1,.36,1); }
+  .rr-ring .seg { stroke-dasharray:0 100; transition:stroke-dasharray 1.1s cubic-bezier(.22,1,.36,1), stroke-dashoffset 1.1s cubic-bezier(.22,1,.36,1); }
+  .rr-ring text { fill:#fff; font-size:10.5px; font-weight:800; text-anchor:middle; dominant-baseline:central; }
+  .rr-stat.active .rr-ring .bg { stroke:#e6edf7; }
+  .rr-stat.active .rr-ring .fg { stroke:var(--c2); }
+  .rr-stat.active .rr-ring text { fill:#0f172a; }
+  .rr-donut .seg-u { stroke:#fca5a5; } .rr-donut .seg-h { stroke:#fcd34d; } .rr-donut .seg-w { stroke:#67e8f9; } .rr-donut .seg-s { stroke:rgba(255,255,255,.8); }
+  .rr-stat.active .rr-donut .seg-u { stroke:#ef4444; } .rr-stat.active .rr-donut .seg-h { stroke:#f59e0b; }
+  .rr-stat.active .rr-donut .seg-w { stroke:#0891b2; } .rr-stat.active .rr-donut .seg-s { stroke:#94a3b8; }
+
+  .rr-legende { display:flex; flex-wrap:wrap; align-items:center; gap:8px 18px; margin-top:16px; font-size:12px; font-weight:700; color:#dbeafe; }
+  .rr-legende > span { display:inline-flex; align-items:center; gap:7px; }
+  .rr-legende b { width:10px; height:10px; border-radius:3px; background:var(--c); }
+  .rr-legende em { font-style:normal; font-weight:900; color:#fff; font-variant-numeric:tabular-nums; }
+  .rr-legende .rr-leg-titel { font-size:11px; font-weight:900; letter-spacing:1.6px; text-transform:uppercase; color:#bfdbfe; }
+
+  .rr-body { background:transparent; padding:26px 6px 6px; }
+  .rr-head { border-bottom-color:#e6ebf2; animation:kgRein .6s cubic-bezier(.22,1,.36,1) backwards; animation-delay:300ms; }
+  .rr-head h2 { font-size:22px; letter-spacing:-.4px; color:#0f172a; }
+  .rr-search { min-width:300px; padding:12px 14px 12px 40px; border:1px solid #dbe3ef; border-radius:12px; color:#0f172a;
+    background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2.2' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='m20 20-3.5-3.5'/%3E%3C/svg%3E") 14px center/16px no-repeat;
+    transition:border-color .2s, box-shadow .2s; }
+  .rr-search:focus { border-color:#2563eb; box-shadow:0 0 0 4px rgba(37,99,235,.12); }
+  .rr-toast { border-radius:14px; }
+
+  .rr-empty { border:1.5px dashed #c7d7f2; border-radius:24px; padding:40px 24px 36px; background:#fff; color:#64748b;
+    animation:kgRein .6s cubic-bezier(.22,1,.36,1) backwards; animation-delay:360ms; }
+  .rr-empty::before { content:""; display:block; width:58px; height:58px; margin:0 auto 16px; border-radius:18px;
+    background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2z'/%3E%3C/svg%3E") center/26px no-repeat, linear-gradient(135deg,#3b82f6,#1d4ed8);
+    box-shadow:0 16px 28px -14px rgba(29,78,216,.8); }
+
+  .rr-auswahl { padding:12px 16px; border-color:#e6ebf2; border-radius:16px; box-shadow:0 18px 40px -32px rgba(15,23,42,.45);
+    animation:kgRein .6s cubic-bezier(.22,1,.36,1) backwards; animation-delay:340ms; }
+  .rr-list { gap:14px; }
+  .rr-card { --i:5; border-color:#e6ebf2; border-radius:22px; padding:18px 20px 18px 26px; box-shadow:0 18px 40px -30px rgba(15,23,42,.45);
+    transition:translate .2s, box-shadow .2s, border-color .2s, opacity .2s; }
+  /* Einblenden nur beim Seitenstart (Klasse wird danach entfernt) – Filter/Suche lösen keine neue Animation aus */
+  .rr-list.rr-start > .rr-card { animation:kgRein .6s cubic-bezier(.22,1,.36,1) backwards; animation-delay:calc(var(--i,0)*70ms); }
+  .rr-card:nth-child(2) { --i:6; } .rr-card:nth-child(3) { --i:7; } .rr-card:nth-child(4) { --i:8; } .rr-card:nth-child(n+5) { --i:9; }
+  .rr-card:hover { translate:0 -2px; box-shadow:0 26px 46px -30px rgba(15,23,42,.5); }
+  .rr-card.sel, .rr-card.sel:hover { border-color:#3b82f6; box-shadow:0 0 0 3px rgba(37,99,235,.18), 0 18px 40px -30px rgba(15,23,42,.45); }
+  .rr-card::before { top:16px; bottom:16px; }
+  .rr-card.ueberfaellig::before { background:linear-gradient(180deg,#f87171,#dc2626); }
+  .rr-card.heute::before { background:linear-gradient(180deg,#fbbf24,#d97706); }
+  .rr-card.woche::before { background:linear-gradient(180deg,#60a5fa,#2563eb); }
+  .rr-firma { color:#0f172a; }
+  .rr-tag { padding:5px 10px; font-size:11.5px; font-weight:800; background:#f8fbff; border-color:#e6edf7; color:#475569; }
+  .rr-label { font-size:10.5px; font-weight:800; letter-spacing:1.2px; }
+  .rr-zeit { color:#1d4ed8; letter-spacing:-.5px; }
+  .rr-badge { align-items:center; gap:6px; padding:5px 10px; font-size:11.5px; font-weight:900; }
+  .rr-badge::before { content:""; width:6px; height:6px; border-radius:50%; background:currentColor; }
+  .rr-badge.ueberfaellig { background:#fee2e2; color:#b91c1c; border-color:#fee2e2; }
+  .rr-badge.heute { background:#fef3c7; color:#b45309; border-color:#fef3c7; }
+  .rr-badge.woche { background:#dbeafe; color:#1d4ed8; border-color:#dbeafe; }
+  .rr-kontakt i { flex:0 0 26px; width:26px; height:26px; display:inline-grid; place-items:center; border-radius:9px; background:#eff6ff; color:#2563eb; font-size:11.5px; }
+  .rr-notiz { background:#f8fbff; border-color:#e6edf7; border-radius:16px; }
+  .rr-btn { border-radius:13px; transition:translate .2s, box-shadow .2s, background-color .2s; }
+  .rr-btn:not(:disabled):hover { translate:0 -2px; }
+  .rr-btn.call { background:linear-gradient(135deg,#3b82f6,#1d4ed8); box-shadow:0 12px 22px -14px rgba(29,78,216,.9); }
+  .rr-btn.call:not(:disabled):hover { box-shadow:0 16px 28px -14px rgba(29,78,216,.95); }
+  .rr-btn.done:not(:disabled):hover { background:#dbeafe; }
+  .rr-btn.link:hover { background:#eef2f7; }
+  .rr-btn.loeschen:not(:disabled):hover { background:#fee2e2; }
+  .rr-btn.undo:not(:disabled):hover { background:#ffedd5; }
+
+  @media (max-width:1100px) {
+    .rr-stat { padding:14px 14px; column-gap:10px; }
+    .rr-stat-label { font-size:11px; letter-spacing:.6px; }
+  }
+  @media (max-width:760px) {
+    .rr-page { padding:12px; }
+    .rr-hero { padding:20px 18px; }
+    .rr-hero h1 { font-size:26px; }
+    .rr-body { padding:20px 2px 4px; }
+    .rr-search { min-width:0; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .rr-hero, .rr-stat, .rr-head, .rr-empty, .rr-auswahl, .rr-list.rr-start > .rr-card { animation:none; }
+    .rr-ring .fg, .rr-ring .seg { transition:none; }
+  }
 </style>
 
 <div class="rr-page">
-  <section class="rr-hero">
+  <section class="rr-hero" data-kg-skip>
     <div class="rr-hero-row">
       <div>
+        <div class="rr-over">Leon · Rückruf-Zentrale</div>
         <h1><i class="fa-solid fa-phone-volume"></i> Rückrufe</h1>
         <p>Alle geplanten Rückrufe an einem Ort – von Leon aus dem Gespräch übernommen oder in der Datenbank eingetragen. Im Kalender stehen dieselben Termine.</p>
       </div>
@@ -104,26 +240,41 @@
     </div>
 
     <div class="rr-stat-grid" role="group" aria-label="Filter">
-      <button type="button" class="rr-stat" data-filter="ueberfaellig">
+      <button type="button" class="rr-stat" data-kg-skip data-filter="ueberfaellig">
+        <span class="rr-ico rr-ico-rot" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4M12 17h.01"/></svg></span>
         <div class="rr-stat-label">Überfällig</div>
         <div class="rr-stat-value {% if stats.ueberfaellig %}red{% endif %}">{{ stats.ueberfaellig }}</div>
         <div class="rr-stat-sub">Termin verpasst</div>
+        <svg class="rr-ring" viewBox="0 0 44 44" style="--c:#fca5a5;--c2:#ef4444" aria-hidden="true"><circle class="bg" cx="22" cy="22" r="18"/><circle class="fg" cx="22" cy="22" r="18" pathLength="100" transform="rotate(-90 22 22)"/><text x="22" y="22"></text></svg>
       </button>
-      <button type="button" class="rr-stat" data-filter="heute">
+      <button type="button" class="rr-stat" data-kg-skip data-filter="heute">
+        <span class="rr-ico rr-ico-orange" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2z"/></svg></span>
         <div class="rr-stat-label">Heute</div>
         <div class="rr-stat-value {% if stats.heute %}orange{% endif %}">{{ stats.heute }}</div>
         <div class="rr-stat-sub">heute anrufen</div>
+        <svg class="rr-ring" viewBox="0 0 44 44" style="--c:#fcd34d;--c2:#f59e0b" aria-hidden="true"><circle class="bg" cx="22" cy="22" r="18"/><circle class="fg" cx="22" cy="22" r="18" pathLength="100" transform="rotate(-90 22 22)"/><text x="22" y="22"></text></svg>
       </button>
-      <button type="button" class="rr-stat" data-filter="woche">
+      <button type="button" class="rr-stat" data-kg-skip data-filter="woche">
+        <span class="rr-ico rr-ico-cyan" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg></span>
         <div class="rr-stat-label">Diese Woche</div>
         <div class="rr-stat-value">{{ stats.woche }}</div>
         <div class="rr-stat-sub">bis Sonntag</div>
+        <svg class="rr-ring" viewBox="0 0 44 44" style="--c:#67e8f9;--c2:#0891b2" aria-hidden="true"><circle class="bg" cx="22" cy="22" r="18"/><circle class="fg" cx="22" cy="22" r="18" pathLength="100" transform="rotate(-90 22 22)"/><text x="22" y="22"></text></svg>
       </button>
-      <button type="button" class="rr-stat active" data-filter="">
+      <button type="button" class="rr-stat active" data-kg-skip data-filter="">
+        <span class="rr-ico rr-ico-lila" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg></span>
         <div class="rr-stat-label">Alle Rückrufe</div>
         <div class="rr-stat-value">{{ stats.gesamt }}</div>
         <div class="rr-stat-sub">offen</div>
+        <svg class="rr-ring rr-donut" viewBox="0 0 44 44" aria-hidden="true"><circle class="bg" cx="22" cy="22" r="18"/><circle class="seg seg-u" cx="22" cy="22" r="18" pathLength="100" transform="rotate(-90 22 22)"/><circle class="seg seg-h" cx="22" cy="22" r="18" pathLength="100" transform="rotate(-90 22 22)"/><circle class="seg seg-w" cx="22" cy="22" r="18" pathLength="100" transform="rotate(-90 22 22)"/><circle class="seg seg-s" cx="22" cy="22" r="18" pathLength="100" transform="rotate(-90 22 22)"/></svg>
       </button>
+    </div>
+    <div class="rr-legende" aria-hidden="true">
+      <span class="rr-leg-titel">Offen nach Termin</span>
+      <span><b style="--c:#fca5a5"></b>Überfällig <em data-rr="u">–</em></span>
+      <span><b style="--c:#fcd34d"></b>Heute <em data-rr="h">–</em></span>
+      <span><b style="--c:#67e8f9"></b>Diese Woche <em data-rr="w">–</em></span>
+      <span><b style="--c:rgba(255,255,255,.8)"></b>Später <em data-rr="s">–</em></span>
     </div>
   </section>
 
@@ -157,7 +308,7 @@
     </div>
     {% endif %}
 
-    <div class="rr-list" id="rrList">
+    <div class="rr-list rr-start" id="rrList">
       {% for r in rueckrufe %}
       <article class="rr-card {{ r.lage }}" data-lage="{{ r.lage }}"
                data-search="{{ [r.firma, r.kontaktperson, r.entscheider_extra, r.stadt, r.telefon, r.email, r.callback_note] | select | join(' ') | lower }}">
@@ -387,5 +538,50 @@ async function rueckgaengig(leadId, btn) {
     toast('Konnte nicht zurückgenommen werden: ' + err.message, false);
   }
 }
+</script>
+<script>
+/* PREMIUM: Ringe und Verteilung aus den oben angezeigten Zahlen – nur lesend, ändert keine Daten */
+(function () {
+  var grid = document.querySelector('.rr-stat-grid');
+  if (!grid) return;
+  function wert(filter) {
+    var el = grid.querySelector('.rr-stat[data-filter="' + filter + '"] .rr-stat-value');
+    var n = el ? parseInt(el.textContent, 10) : 0;
+    return isNaN(n) ? 0 : n;
+  }
+  function setzeText(el, text) { if (el && el.textContent !== text) el.textContent = text; }
+  function zeichnen() {
+    var u = wert('ueberfaellig'), h = wert('heute'), w = wert('woche'), g = wert('');
+    var basis = Math.max(g, u + h + w);
+    var s = Math.max(0, g - u - h - w);
+    [['ueberfaellig', u], ['heute', h], ['woche', w]].forEach(function (p) {
+      var st = grid.querySelector('.rr-stat[data-filter="' + p[0] + '"]');
+      if (!st) return;
+      var pct = basis ? Math.round(p[1] / basis * 100) : 0;
+      var fg = st.querySelector('.rr-ring .fg');
+      if (fg) fg.style.strokeDashoffset = String(100 - pct);
+      setzeText(st.querySelector('.rr-ring text'), pct + '%');
+    });
+    var start = 0;
+    [['u', u], ['h', h], ['w', w], ['s', s]].forEach(function (p) {
+      var seg = grid.querySelector('.rr-donut .seg-' + p[0]);
+      var len = basis ? p[1] / basis * 100 : 0;
+      if (seg) {
+        seg.style.strokeDasharray = len + ' ' + (100 - len);
+        seg.style.strokeDashoffset = String(-start);
+      }
+      start += len;
+      setzeText(document.querySelector('.rr-legende [data-rr="' + p[0] + '"]'), String(p[1]));
+    });
+  }
+  requestAnimationFrame(function () { requestAnimationFrame(zeichnen); });
+  setTimeout(function () { var l = document.getElementById('rrList'); if (l) l.classList.remove('rr-start'); }, 1700);
+  if (window.MutationObserver) {
+    var beobachter = new MutationObserver(zeichnen);
+    grid.querySelectorAll('.rr-stat-value').forEach(function (el) {
+      beobachter.observe(el, { childList: true, characterData: true, subtree: true });
+    });
+  }
+})();
 </script>
 {% endblock %}

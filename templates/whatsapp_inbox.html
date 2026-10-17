@@ -3,8 +3,9 @@
 
 <div class="wa-card">
 
-    <div class="wa-header">
+    <div class="wa-header" data-kg-skip>
         <div>
+            <div class="wa-over">KG Portal · WhatsApp</div>
             <h1 class="wa-title">
                 WhatsApp Inbox
             </h1>
@@ -32,6 +33,41 @@
             <button class="wa-refresh-btn" onclick="loadWhatsAppMessages()">
                 Yenile
             </button>
+        </div>
+        <div class="wa-kpis" aria-hidden="true">
+            <div class="wa-kpi" style="--i:1">
+                <span class="wa-kpi-ico wa-ico-gruen"><svg viewBox="0 0 24 24"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg></span>
+                <div>
+                    <div class="wa-kpi-label">Gelen</div>
+                    <div class="wa-kpi-zahl" data-wa="gelen">–</div>
+                    <div class="wa-kpi-sub">mesaj · en yenisi üstte</div>
+                </div>
+            </div>
+            <div class="wa-kpi" style="--i:2">
+                <span class="wa-kpi-ico wa-ico-blau"><svg viewBox="0 0 24 24"><path d="m22 2-7 20-4-9-9-4z"/><path d="M22 2 11 13"/></svg></span>
+                <div>
+                    <div class="wa-kpi-label">Giden / Bekleyen</div>
+                    <div class="wa-kpi-zahl" data-wa="giden">–</div>
+                    <div class="wa-kpi-bar" data-kg-skip><i class="ok" data-kg-skip></i><i class="wartet" data-kg-skip></i><i class="fehler" data-kg-skip></i></div>
+                    <div class="wa-kpi-sub" data-wa="giden-sub">–</div>
+                </div>
+            </div>
+            <div class="wa-kpi" style="--i:3">
+                <span class="wa-kpi-ico wa-ico-lila"><svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>
+                <div>
+                    <div class="wa-kpi-label">Kişiler</div>
+                    <div class="wa-kpi-zahl" data-wa="kisi">–</div>
+                    <div class="wa-avatare" data-wa="avatare"></div>
+                </div>
+            </div>
+            <div class="wa-kpi" style="--i:4">
+                <span class="wa-kpi-ico wa-ico-orange"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span>
+                <div>
+                    <div class="wa-kpi-label">Son gelen</div>
+                    <div class="wa-kpi-zahl" data-wa="son">–</div>
+                    <div class="wa-kpi-sub" data-wa="son-sub">–</div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -223,6 +259,151 @@
         flex-direction: column;
     }
 }
+/* ===== PREMIUM (einheitliches Design) ===== */
+@keyframes kgRein { from { opacity:0; transform:translateY(14px); } to { opacity:1; transform:none; } }
+@keyframes waPuls { 0% { box-shadow:0 0 0 0 rgba(255,255,255,.75); } 70% { box-shadow:0 0 0 7px rgba(255,255,255,0); } 100% { box-shadow:0 0 0 0 rgba(255,255,255,0); } }
+
+.wa-card { background:#f8fbff; border-color:#e6ebf2; border-radius:24px; padding:22px; box-shadow:0 18px 40px -30px rgba(15,23,42,.45); }
+
+.wa-header {
+    position:relative; overflow:hidden; flex-wrap:wrap;
+    margin-bottom:20px; padding:28px 30px 24px; border-radius:24px; color:#fff;
+    background:radial-gradient(520px 230px at 90% -20%, rgba(255,255,255,.26), transparent 60%),
+        radial-gradient(420px 220px at 0% 120%, rgba(56,189,248,.25), transparent 60%),
+        linear-gradient(135deg,#1e40af,#2563eb);
+    box-shadow:0 24px 50px -28px rgba(29,78,216,.7);
+    animation:kgRein .6s cubic-bezier(.22,1,.36,1) backwards;
+}
+.wa-header::after {
+    content:""; position:absolute; inset:0; pointer-events:none;
+    background-image:linear-gradient(rgba(255,255,255,.05) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.05) 1px, transparent 1px);
+    background-size:44px 44px;
+    -webkit-mask-image:linear-gradient(180deg, rgba(0,0,0,.7), transparent 70%); mask-image:linear-gradient(180deg, rgba(0,0,0,.7), transparent 70%);
+}
+.wa-header > * { position:relative; z-index:1; }
+.wa-over { margin-bottom:10px; font-size:11px; font-weight:900; letter-spacing:2.4px; text-transform:uppercase; color:#bfdbfe; }
+.wa-title { display:flex; align-items:center; gap:14px; margin-bottom:10px; color:#fff; letter-spacing:-.8px; }
+.wa-title::before {
+    content:""; flex:0 0 46px; width:46px; height:46px; border-radius:15px;
+    background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M21 11.5a8.4 8.4 0 0 1-12.4 7.4L3 21l2.1-5.6A8.4 8.4 0 1 1 21 11.5z'/%3E%3C/svg%3E") center/22px no-repeat, linear-gradient(135deg,#22c55e,#15803d);
+    box-shadow:0 12px 22px -12px rgba(15,23,42,.7), inset 0 0 0 1px rgba(255,255,255,.2);
+}
+.wa-subtitle { color:#dbeafe; font-size:14px; }
+.wa-header-actions { gap:12px; }
+.wa-switch-wrap { padding:5px 5px 5px 16px; border-radius:999px; background:rgba(255,255,255,.12); border:1px solid rgba(255,255,255,.24); }
+.wa-switch-label { color:#fff; font-size:13px; font-weight:800; }
+.wa-connector-toggle {
+    display:inline-flex; align-items:center; justify-content:center; gap:8px; min-width:96px; padding:10px 16px;
+    font-size:13px; letter-spacing:.6px; box-shadow:0 10px 20px -10px rgba(15,23,42,.6);
+    transition:translate .2s, box-shadow .2s, background-color .2s;
+}
+.wa-connector-toggle::before { content:""; flex:0 0 8px; width:8px; height:8px; border-radius:50%; background:#fff; opacity:.9; }
+.wa-connector-toggle.is-on { background:linear-gradient(135deg,#16a34a,#15803d); }
+.wa-connector-toggle.is-on::before { animation:waPuls 1.8s ease-out infinite; }
+.wa-connector-toggle.is-off { background:linear-gradient(135deg,#ef4444,#dc2626); }
+.wa-connector-toggle.is-loading { background:#64748b; }
+.wa-connector-toggle:not(:disabled):hover { translate:0 -2px; box-shadow:0 14px 24px -10px rgba(15,23,42,.65); }
+.wa-refresh-btn {
+    display:inline-flex; align-items:center; gap:8px; padding:12px 16px; border-radius:14px;
+    background:#fff; color:#1e40af; font-weight:900; font-size:13px;
+    box-shadow:0 12px 22px -14px rgba(15,23,42,.7); transition:translate .2s, box-shadow .2s;
+}
+.wa-refresh-btn::before {
+    content:""; flex:0 0 16px; width:16px; height:16px;
+    background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%231e40af' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M21 12a9 9 0 1 1-2.6-6.4L21 8'/%3E%3Cpath d='M21 3v5h-5'/%3E%3C/svg%3E") center/contain no-repeat;
+}
+.wa-refresh-btn:hover { translate:0 -2px; box-shadow:0 16px 28px -14px rgba(15,23,42,.75); }
+
+.wa-kpis { flex:1 0 100%; align-self:stretch; display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:14px; margin-top:6px; }
+.wa-kpi {
+    display:flex; gap:12px; align-items:flex-start; min-width:0; padding:16px; border-radius:20px;
+    background:rgba(255,255,255,.10); border:1px solid rgba(255,255,255,.2); box-shadow:inset 0 1px 0 rgba(255,255,255,.12);
+    transition:translate .2s, background-color .2s, box-shadow .2s;
+    animation:kgRein .6s cubic-bezier(.22,1,.36,1) backwards; animation-delay:calc(var(--i,0)*70ms);
+}
+.wa-kpi:hover { translate:0 -3px; background:rgba(255,255,255,.16); box-shadow:0 18px 30px -18px rgba(15,23,42,.55); }
+.wa-kpi > div { flex:1; min-width:0; }
+.wa-kpi-ico { flex:0 0 38px; width:38px; height:38px; border-radius:12px; display:grid; place-items:center; box-shadow:0 10px 18px -10px rgba(15,23,42,.7), inset 0 0 0 1px rgba(255,255,255,.18); }
+.wa-kpi-ico svg { width:19px; height:19px; fill:none; stroke:#fff; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+.wa-ico-gruen { background:linear-gradient(135deg,#16a34a,#15803d); }
+.wa-ico-blau { background:linear-gradient(135deg,#3b82f6,#1d4ed8); }
+.wa-ico-lila { background:linear-gradient(135deg,#7c3aed,#5b21b6); }
+.wa-ico-orange { background:linear-gradient(135deg,#f59e0b,#d97706); }
+.wa-kpi-label { font-size:11.5px; font-weight:800; letter-spacing:1.4px; text-transform:uppercase; color:#dbeafe; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.wa-kpi-zahl { margin-top:7px; font-size:30px; line-height:1; font-weight:900; letter-spacing:-1px; color:#fff; font-variant-numeric:tabular-nums; }
+.wa-kpi-sub { margin-top:7px; font-size:12px; font-weight:700; color:#bfdbfe; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.wa-kpi-bar { display:flex; height:6px; margin-top:10px; border-radius:999px; overflow:hidden; background:rgba(255,255,255,.18); }
+.wa-kpi-bar i { display:block; width:0; height:100%; transition:width 1s cubic-bezier(.22,1,.36,1); }
+.wa-kpi-bar .ok { background:#86efac; }
+.wa-kpi-bar .wartet { background:#fcd34d; }
+.wa-kpi-bar .fehler { background:#fca5a5; }
+.wa-avatare { display:flex; min-height:26px; margin-top:8px; }
+.wa-avatare span { flex:0 0 28px; width:28px; height:28px; margin-left:-4px; border-radius:50%; display:grid; place-items:center; font-size:10px; font-weight:900; color:#fff; background:var(--av,#64748b); border:2px solid #2563eb; }
+.wa-avatare span:first-child { margin-left:0; }
+.wa-avatare span.mehr { background:rgba(255,255,255,.2); }
+
+.wa-grid { gap:18px; }
+.wa-box {
+    background:radial-gradient(circle at 1px 1px, rgba(37,99,235,.09) 1px, transparent 1.6px) 0 0/18px 18px, #fff;
+    border-color:#e6ebf2; border-radius:24px; padding:20px 20px 22px; box-shadow:0 18px 40px -30px rgba(15,23,42,.45);
+    animation:kgRein .6s cubic-bezier(.22,1,.36,1) backwards; animation-delay:calc(var(--i,0)*70ms);
+}
+.wa-box:nth-child(1) { --i:5; }
+.wa-box:nth-child(2) { --i:6; }
+.wa-box-title { display:flex; align-items:center; gap:12px; margin-bottom:16px; padding-bottom:14px; border-bottom:1px solid #eef2f7; color:#0f172a; font-size:19px; letter-spacing:-.3px; }
+.wa-box-title::before { content:""; flex:0 0 38px; width:38px; height:38px; border-radius:12px; box-shadow:0 10px 18px -10px rgba(15,23,42,.6); }
+.wa-box:nth-child(1) .wa-box-title::before {
+    background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M22 12h-6l-2 3h-4l-2-3H2'/%3E%3Cpath d='M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z'/%3E%3C/svg%3E") center/19px no-repeat, linear-gradient(135deg,#16a34a,#15803d);
+}
+.wa-box:nth-child(2) .wa-box-title::before {
+    background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m22 2-7 20-4-9-9-4z'/%3E%3Cpath d='M22 2 11 13'/%3E%3C/svg%3E") center/19px no-repeat, linear-gradient(135deg,#3b82f6,#1d4ed8);
+}
+.wa-list { gap:12px; }
+.wa-list:not(:has(.wa-item)) {
+    align-items:center; justify-content:center; gap:12px; padding:34px 18px; text-align:center;
+    color:#64748b; font-weight:800; border:1.5px dashed #c7d7f2; border-radius:18px; background:rgba(255,255,255,.75);
+}
+.wa-list:not(:has(.wa-item))::before {
+    content:""; width:52px; height:52px; border-radius:16px;
+    background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%232563eb' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M21 11.5a8.4 8.4 0 0 1-12.4 7.4L3 21l2.1-5.6A8.4 8.4 0 1 1 21 11.5z'/%3E%3C/svg%3E") center/24px no-repeat, #eff6ff;
+}
+.wa-item {
+    position:relative; max-width:min(92%, 640px); padding:12px 15px 10px; border:1px solid #e6ebf2; border-radius:6px 18px 18px 18px;
+    background:#fff; box-shadow:0 12px 24px -20px rgba(15,23,42,.55);
+    transition:translate .2s, box-shadow .2s;
+}
+.wa-item:hover { translate:0 -2px; box-shadow:0 18px 30px -20px rgba(15,23,42,.6); }
+#waInboxList .wa-item { align-self:flex-start; margin-left:46px; }
+#waInboxList .wa-item[data-kg-ini]::before {
+    content:attr(data-kg-ini); position:absolute; left:-46px; top:0; width:36px; height:36px; border-radius:12px;
+    display:grid; place-items:center; font-size:12.5px; font-weight:900; color:#fff;
+    background:var(--av, linear-gradient(135deg,#22c55e,#15803d)); box-shadow:0 10px 18px -10px rgba(15,23,42,.6);
+}
+#waOutboxList .wa-item { align-self:flex-end; border-radius:18px 6px 18px 18px; background:#dcfce7; border-color:#bbf7d0; }
+.wa-name { margin-bottom:2px; font-size:13.5px; }
+.wa-meta { margin-bottom:6px; font-size:11.5px; font-weight:600; }
+.wa-body { font-size:14px; line-height:1.5; color:#1e293b; }
+.wa-status { margin-top:8px; padding:4px 10px; font-size:11.5px; font-weight:900; background:#dbeafe; color:#1d4ed8; }
+.wa-status.wa-st-ok { background:#bbf7d0; color:#15803d; }
+#waInboxList .wa-status.wa-st-ok { background:#dcfce7; }
+.wa-status.wa-st-wartet { background:#fef3c7; color:#b45309; }
+.wa-status.wa-st-fehler { background:#fee2e2; color:#b91c1c; }
+.wa-status.wa-st-anders { background:#f1f5f9; color:#475569; }
+
+@media (max-width:1100px) {
+    .wa-kpis { grid-template-columns:repeat(2,minmax(0,1fr)); }
+}
+@media (max-width:900px) {
+    .wa-header { padding:22px 20px; }
+}
+@media (max-width:560px) {
+    .wa-card { padding:12px; }
+    .wa-kpis { grid-template-columns:1fr; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .wa-header, .wa-kpi, .wa-box, .wa-connector-toggle.is-on::before { animation:none; }
+    .wa-kpi-bar i { transition:none; }
+}
 </style>
 
 <script>
@@ -388,6 +569,124 @@ document.addEventListener("DOMContentLoaded", function () {
     loadWhatsAppConnectorStatus();
     loadWhatsAppMessages();
 });
+</script>
+<script>
+/* PREMIUM: Kennzahlen, Avatare und Status-Farben aus der angezeigten Liste – nur lesend, sendet nichts */
+(function () {
+    var inbox = document.getElementById("waInboxList");
+    var outbox = document.getElementById("waOutboxList");
+    if (!inbox || !outbox) return;
+    var FARBEN = [
+        "linear-gradient(135deg,#22c55e,#15803d)", "linear-gradient(135deg,#3b82f6,#1d4ed8)",
+        "linear-gradient(135deg,#7c3aed,#5b21b6)", "linear-gradient(135deg,#f59e0b,#d97706)",
+        "linear-gradient(135deg,#06b6d4,#0e7490)", "linear-gradient(135deg,#ef4444,#b91c1c)"
+    ];
+    function text(el) { return el ? el.textContent.replace(/\s+/g, " ").trim() : ""; }
+    function kuerzel(name) {
+        var woerter = name.split(" ").filter(function (w) { return /[A-Za-zÀ-ž]/.test(w); });
+        if (woerter.length) return (woerter[0].charAt(0) + (woerter[1] ? woerter[1].charAt(0) : "")).toUpperCase();
+        var ziffern = name.replace(/\D/g, "");
+        return ziffern ? ziffern.slice(-2) : "?";
+    }
+    function farbe(name) {
+        var h = 0;
+        for (var i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) >>> 0;
+        return FARBEN[h % FARBEN.length];
+    }
+    function statusKlasse(s) {
+        s = s.toLowerCase();
+        if (s === "sent" || s === "gesendet") return "wa-st-ok";
+        if (s === "pending" || s === "wartet") return "wa-st-wartet";
+        if (s === "error" || s === "fehler") return "wa-st-fehler";
+        if (s === "neu" || s === "new") return "wa-st-neu";
+        return "wa-st-anders";
+    }
+    function setze(key, wert) {
+        var el = document.querySelector('.wa-kpis [data-wa="' + key + '"]');
+        if (el && el.textContent !== wert) el.textContent = wert;
+    }
+    function anzahl(box, n) {
+        if (n) return String(n);
+        return /Henüz/.test(box.textContent) ? "0" : "–";
+    }
+    function aufbereiten(box, mitAvatar) {
+        Array.prototype.forEach.call(box.querySelectorAll(".wa-item"), function (item, idx) {
+            var body = item.querySelector(".wa-body");
+            if (body) {
+                var t = body.textContent.trim();
+                if (body.textContent !== t) body.textContent = t;
+            }
+            var st = item.querySelector(".wa-status");
+            if (st) st.classList.add(statusKlasse(text(st)));
+            if (mitAvatar) {
+                var name = text(item.querySelector(".wa-name"));
+                item.setAttribute("data-kg-ini", kuerzel(name));
+                item.style.setProperty("--av", farbe(name));
+            }
+        });
+    }
+    function auswerten() {
+        aufbereiten(inbox, true);
+        aufbereiten(outbox, false);
+        var ein = inbox.querySelectorAll(".wa-item");
+        var aus = outbox.querySelectorAll(".wa-item");
+
+        setze("gelen", anzahl(inbox, ein.length));
+
+        var ok = 0, wartet = 0, fehler = 0;
+        Array.prototype.forEach.call(aus, function (it) {
+            var k = statusKlasse(text(it.querySelector(".wa-status")));
+            if (k === "wa-st-ok") ok++;
+            else if (k === "wa-st-wartet") wartet++;
+            else if (k === "wa-st-fehler") fehler++;
+        });
+        setze("giden", anzahl(outbox, aus.length));
+        setze("giden-sub", aus.length ? ok + " gönderildi · " + wartet + " bekliyor · " + fehler + " hata" : "henüz yok");
+        var basis = aus.length || 1;
+        var balken = document.querySelector(".wa-kpi-bar");
+        if (balken) {
+            balken.querySelector(".ok").style.width = (ok / basis * 100) + "%";
+            balken.querySelector(".wartet").style.width = (wartet / basis * 100) + "%";
+            balken.querySelector(".fehler").style.width = (fehler / basis * 100) + "%";
+        }
+
+        var namen = [];
+        Array.prototype.forEach.call(ein, function (it) {
+            var n = text(it.querySelector(".wa-name"));
+            if (n && namen.indexOf(n) < 0) namen.push(n);
+        });
+        setze("kisi", anzahl(inbox, namen.length));
+        var avatare = document.querySelector('.wa-kpis [data-wa="avatare"]');
+        if (avatare) {
+            avatare.textContent = "";
+            namen.slice(0, 5).forEach(function (n) {
+                var s = document.createElement("span");
+                s.setAttribute("data-kg-skip", "");
+                s.textContent = kuerzel(n);
+                s.style.setProperty("--av", farbe(n));
+                avatare.appendChild(s);
+            });
+            if (namen.length > 5) {
+                var mehr = document.createElement("span");
+                mehr.className = "mehr";
+                mehr.setAttribute("data-kg-skip", "");
+                mehr.textContent = "+" + (namen.length - 5);
+                avatare.appendChild(mehr);
+            }
+        }
+
+        var meta = ein.length ? text(ein[0].querySelector(".wa-meta")).split("·")[0] : "";
+        var m = meta.match(/(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2})/);
+        setze("son", m ? m[4] + ":" + m[5] : "–");
+        setze("son-sub", m ? m[3] + "." + m[2] + "." + m[1] : (ein.length ? meta || "–" : "henüz mesaj yok"));
+    }
+    auswerten();
+    if (window.MutationObserver) {
+        var beobachter = new MutationObserver(auswerten);
+        beobachter.observe(inbox, { childList: true });
+        beobachter.observe(outbox, { childList: true });
+    }
+})();
 </script>
 
 {% endblock %}

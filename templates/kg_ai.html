@@ -150,12 +150,182 @@
     .survey-comment{margin-top:18px;padding:14px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;white-space:pre-wrap;color:#334155}
     @media(max-width:850px){.quality-row{grid-template-columns:34px 1fr}.quality-row.head{display:none}.quality-row>div:nth-child(n+3){grid-column:2}.quality-preview-grid{grid-template-columns:1fr}}
 
+    /* ===== PREMIUM (einheitliches Design) ===== */
+    @keyframes kgRein { from { opacity:0; transform:translateY(14px); } to { opacity:1; transform:none; } }
+
+    .kg-ai-page { max-width:1240px; }
+    .kg-ai-card {
+        position:relative; overflow:hidden; padding:25px; border-radius:24px; border-color:#e6ebf2;
+        box-shadow:0 18px 40px -30px rgba(15,23,42,.45);
+        animation:kgRein .6s cubic-bezier(.22,1,.36,1) backwards;
+    }
+    /* Kopf des Chat-Fensters: Titel + Untertitel als Systemblau-Band (gleicher waagrechter Verlauf = nahtlos) */
+    .kg-ai-title, .kg-ai-subtitle { margin-left:-25px; margin-right:-25px; padding-left:100px; padding-right:30px; color:#fff; }
+    .kg-ai-title {
+        position:relative; margin-top:-25px; margin-bottom:0; padding-top:46px; padding-bottom:2px;
+        font-size:30px; font-weight:900; letter-spacing:-.8px;
+        background:radial-gradient(340px 90px at 88% 0%, rgba(255,255,255,.22), transparent 70%), linear-gradient(90deg,#1e40af,#2563eb);
+    }
+    .kg-ai-title::before {
+        content:""; position:absolute; left:30px; top:28px; width:52px; height:52px; border-radius:17px;
+        background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z'/%3E%3Cpath d='M19 15l.9 2.1L22 18l-2.1.9L19 21l-.9-2.1L16 18l2.1-.9z'/%3E%3C/svg%3E") center/26px no-repeat, rgba(255,255,255,.14);
+        border:1px solid rgba(255,255,255,.28); box-shadow:inset 0 1px 0 rgba(255,255,255,.2), 0 12px 24px -14px rgba(15,23,42,.6);
+    }
+    .kg-ai-title::after {
+        content:"KG Portal · KI-Asistan"; position:absolute; left:100px; top:26px;
+        font-size:11px; font-weight:900; letter-spacing:2.4px; text-transform:uppercase; color:#bfdbfe;
+    }
+    .kg-ai-subtitle {
+        margin-bottom:24px; padding-top:6px; padding-bottom:26px; font-size:14px; font-weight:600; line-height:1.55; color:#dbeafe;
+        background:radial-gradient(360px 80px at 0% 135%, rgba(56,189,248,.28), transparent 60%), linear-gradient(90deg,#1e40af,#2563eb);
+    }
+
+    /* Eingabeleiste */
+    .kg-ai-textarea {
+        border:1px solid #dbe3ef; border-radius:18px; padding:16px 18px; background:#f8fbff; color:#0f172a;
+        font-size:15px; line-height:1.55; transition:border-color .2s, box-shadow .2s, background-color .2s;
+    }
+    .kg-ai-textarea:focus { background:#fff; border-color:#2563eb; box-shadow:0 0 0 4px rgba(37,99,235,.12); }
+    .kg-ai-buttons { align-items:center; gap:10px; }
+    .kg-ai-buttons::after { content:"Ctrl + Enter ile gönder"; margin-left:auto; font-size:12px; font-weight:700; color:#94a3b8; }
+    .kg-ai-btn {
+        display:inline-flex; align-items:center; gap:8px; padding:12px 18px; border-radius:13px; font-weight:800;
+        transition:translate .2s, box-shadow .2s, background-color .2s;
+    }
+    .kg-ai-btn::before { content:""; flex:0 0 16px; width:16px; height:16px; background:center/contain no-repeat; }
+    .kg-ai-btn:hover { translate:0 -2px; }
+    .kg-ai-btn-primary { padding-left:20px; padding-right:22px; background:linear-gradient(135deg,#3b82f6,#1d4ed8); box-shadow:0 12px 22px -14px rgba(29,78,216,.9); }
+    .kg-ai-btn-primary:hover { box-shadow:0 16px 28px -14px rgba(29,78,216,.95); }
+    .kg-ai-btn-primary::before { background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m22 2-7 20-4-9-9-4z'/%3E%3Cpath d='M22 2 11 13'/%3E%3C/svg%3E"); }
+    .kg-ai-btn-secondary { background:#fff; border-color:#dbe3ef; color:#0f172a; box-shadow:0 10px 20px -18px rgba(15,23,42,.5); }
+    .kg-ai-btn-secondary:hover { background:#f8fbff; }
+    .kg-ai-btn[onclick^="testOpenAI"]::before { background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%232563eb' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M22 12h-4l-3 9L9 3l-3 9H2'/%3E%3C/svg%3E"); }
+    .kg-ai-btn[onclick^="clearKgAi"]::before { background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6'/%3E%3C/svg%3E"); }
+    .kg-ai-warning {
+        display:flex; align-items:center; gap:10px; margin-top:14px; padding:12px 14px; border-radius:14px;
+        background:#fffbeb; border-color:#fde68a; color:#92400e; font-weight:700;
+    }
+    .kg-ai-warning::before {
+        content:""; flex:0 0 30px; width:30px; height:30px; border-radius:10px;
+        background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z'/%3E%3Cpath d='m9 12 2 2 4-4'/%3E%3C/svg%3E") center/16px no-repeat, linear-gradient(135deg,#f59e0b,#d97706);
+    }
+
+    /* Antwort als Chat-Blase des Assistenten */
+    .kg-ai-output {
+        position:relative; margin:46px 0 4px 60px; padding:18px 20px; min-height:120px;
+        background:#f8fbff; color:#0f172a; border:1px solid #e6edf7; border-radius:6px 22px 22px 22px;
+        font-family:inherit; font-size:14.5px; line-height:1.65; box-shadow:0 16px 30px -26px rgba(15,23,42,.5);
+    }
+    .kg-ai-output::before {
+        content:""; position:absolute; left:-60px; top:0; width:44px; height:44px; border-radius:14px;
+        background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z'/%3E%3C/svg%3E") center/22px no-repeat, linear-gradient(135deg,#3b82f6,#1d4ed8);
+        box-shadow:0 12px 22px -12px rgba(29,78,216,.8);
+    }
+    .kg-ai-output::after {
+        content:"KG AI · Yanıt"; position:absolute; left:2px; top:-24px; white-space:nowrap;
+        font-size:11.5px; font-weight:800; letter-spacing:1.4px; text-transform:uppercase; color:#64748b;
+    }
+
+    /* Kundenpflege & Qualitätskontrolle */
+    .quality-card {
+        border-color:#e6ebf2; border-radius:24px; padding:24px 26px; box-shadow:0 18px 40px -30px rgba(15,23,42,.45);
+        animation:kgRein .6s cubic-bezier(.22,1,.36,1) backwards; animation-delay:140ms;
+    }
+    .quality-title { display:flex; align-items:center; gap:12px; font-size:22px; letter-spacing:-.4px; }
+    .quality-title::before {
+        content:""; flex:0 0 38px; width:38px; height:38px; border-radius:12px; box-shadow:0 10px 18px -10px rgba(21,128,61,.8);
+        background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z'/%3E%3Cpath d='m9 12 2 2 4-4'/%3E%3C/svg%3E") center/19px no-repeat, linear-gradient(135deg,#16a34a,#15803d);
+    }
+    .quality-sub { margin-top:4px; padding-left:50px; }
+    .quality-head > .quality-badge { padding:6px 12px; letter-spacing:.6px; }
+
+    .qk-kpis { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:12px; margin-top:20px; }
+    .qk-kpi {
+        display:flex; align-items:center; gap:12px; min-width:0; padding:14px 16px; border-radius:16px;
+        background:#f8fbff; border:1px solid #e6edf7; transition:translate .2s, box-shadow .2s;
+        animation:kgRein .6s cubic-bezier(.22,1,.36,1) backwards; animation-delay:calc(var(--i,0)*70ms);
+    }
+    .qk-kpi:hover { translate:0 -2px; box-shadow:0 16px 28px -22px rgba(15,23,42,.5); }
+    .qk-kpi > div { flex:1; min-width:0; }
+    .qk-ico { flex:0 0 38px; width:38px; height:38px; border-radius:12px; display:grid; place-items:center; box-shadow:0 10px 18px -10px rgba(15,23,42,.55); }
+    .qk-ico svg { width:19px; height:19px; fill:none; stroke:#fff; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+    .qk-blau { background:linear-gradient(135deg,#3b82f6,#1d4ed8); }
+    .qk-orange { background:linear-gradient(135deg,#f59e0b,#d97706); }
+    .qk-cyan { background:linear-gradient(135deg,#06b6d4,#0e7490); }
+    .qk-gruen { background:linear-gradient(135deg,#16a34a,#15803d); }
+    .qk-label { font-size:11px; line-height:1.3; font-weight:800; letter-spacing:.8px; text-transform:uppercase; color:#64748b; }
+    .qk-zahl { margin-top:4px; font-size:26px; line-height:1.05; font-weight:900; letter-spacing:-.8px; color:#0f172a; font-variant-numeric:tabular-nums; }
+    .qk-zahl small { font-size:13px; font-weight:800; letter-spacing:0; color:#64748b; }
+    .qk-sub { margin-top:3px; font-size:11.5px; line-height:1.35; font-weight:700; color:#64748b; }
+    .qk-ring { flex:0 0 44px; width:44px; height:44px; }
+    .qk-ring circle { fill:none; stroke-width:5; }
+    .qk-ring .bg { stroke:rgba(148,163,184,.22); }
+    .qk-ring .fg { stroke:var(--c); stroke-dasharray:100; stroke-dashoffset:100; transition:stroke-dashoffset 1.1s cubic-bezier(.22,1,.36,1); }
+    .qk-ring text { fill:currentColor; opacity:.8; font-size:10.5px; font-weight:800; text-anchor:middle; dominant-baseline:central; }
+    .qk-sterne { display:flex; gap:3px; margin-top:6px; }
+    .qk-sterne i { display:block; width:14px; height:5px; border-radius:3px; background:rgba(148,163,184,.25); overflow:hidden; }
+    .qk-sterne i b { display:block; height:100%; width:0; background:linear-gradient(90deg,#16a34a,#22c55e); transition:width .9s cubic-bezier(.22,1,.36,1); }
+
+    .quality-tabs { display:inline-flex; gap:4px; padding:5px; margin:20px 0 16px; background:#f1f5f9; border:1px solid #e6ebf2; border-radius:14px; }
+    .quality-tab { border:none; background:transparent; color:#475569; border-radius:10px; padding:9px 16px; font-weight:800; transition:background-color .2s, color .2s, box-shadow .2s; }
+    .quality-tab:hover { background:#fff; color:#0f172a; }
+    .quality-tab.active { background:linear-gradient(135deg,#3b82f6,#1d4ed8); color:#fff; box-shadow:0 10px 18px -12px rgba(29,78,216,.9); }
+    .quality-input, .quality-select { border:1px solid #dbe3ef; border-radius:12px; padding:11px 13px; color:#0f172a; transition:border-color .2s, box-shadow .2s; }
+    .quality-input:focus, .quality-select:focus { outline:none; border-color:#2563eb; box-shadow:0 0 0 4px rgba(37,99,235,.12); }
+    #qualitySearch {
+        padding-left:40px;
+        background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2.2' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='m20 20-3.5-3.5'/%3E%3C/svg%3E") 14px center/16px no-repeat;
+    }
+    .quality-list { border-color:#e6ebf2; border-radius:18px; background:#fff; }
+    .quality-row { border-bottom-color:#eef2f7; transition:background-color .15s; }
+    .quality-row.head { background:#f8fafc; color:#64748b; font-size:11px; font-weight:800; letter-spacing:1.1px; text-transform:uppercase; }
+    #qualityCustomerRows .quality-row:not(.disabled):hover { background:#f8fbff; }
+    .quality-badge { padding:4px 10px; font-size:11.5px; font-weight:800; }
+    .quality-badge.green { background:#dcfce7; color:#15803d; }
+    .quality-badge.red { background:#fee2e2; color:#b91c1c; }
+    .quality-badge.orange { background:#fef3c7; color:#b45309; }
+    .quality-badge.blue { background:#dbeafe; color:#1d4ed8; }
+    .quality-badge.gray { background:#f1f5f9; color:#475569; }
+    .quality-primary { border-radius:13px; padding:12px 18px; background:linear-gradient(135deg,#3b82f6,#1d4ed8); box-shadow:0 12px 22px -14px rgba(29,78,216,.9); transition:translate .2s, box-shadow .2s; }
+    .quality-primary.danger { background:linear-gradient(135deg,#ef4444,#dc2626); box-shadow:0 12px 22px -14px rgba(220,38,38,.9); }
+    .quality-primary:not(:disabled):hover { translate:0 -2px; }
+    .quality-secondary { border-color:#dbe3ef; border-radius:13px; transition:translate .2s, background-color .2s; }
+    .quality-secondary:hover { translate:0 -2px; background:#f8fbff; }
+    .quality-preview-list { border-color:#e6ebf2; border-radius:16px; background:#fff; }
+    .quality-preview-item { border-bottom-color:#eef2f7; transition:background-color .15s; }
+    .quality-preview-item:hover { background:#f8fbff; }
+    .quality-preview-item.active { background:#eff6ff; box-shadow:inset 3px 0 0 #2563eb; }
+    .quality-mailbox { border-color:#e6ebf2; border-radius:18px; box-shadow:0 18px 40px -32px rgba(15,23,42,.45); }
+    .quality-confirm { border-radius:14px; background:#fffbeb; border-color:#fde68a; color:#92400e; }
+    .quality-history th { background:#f8fafc; color:#64748b; font-size:11px; font-weight:800; letter-spacing:1.1px; text-transform:uppercase; border-bottom-color:#e6ebf2; }
+    .quality-history td { border-bottom-color:#eef2f7; }
+    .quality-history tbody tr:hover td { background:#f8fbff; }
+    .survey-modal { border-radius:24px; }
+    .survey-close { transition:background-color .2s; }
+    .survey-close:hover { background:#e2e8f0; }
+
+    @media (max-width:1100px) { .qk-kpis { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+    @media (max-width:640px) {
+        .qk-kpis { grid-template-columns:1fr; }
+        .kg-ai-title, .kg-ai-subtitle { padding-left:30px; }
+        .kg-ai-title { padding-top:96px; }
+        .kg-ai-title::after { left:30px; top:80px; }
+        .kg-ai-output { margin-left:0; margin-top:70px; }
+        .kg-ai-output::before { left:0; top:-56px; width:36px; height:36px; }
+        .kg-ai-output::after { left:46px; top:-44px; }
+        .kg-ai-buttons::after { display:none; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+        .kg-ai-card, .quality-card, .qk-kpi { animation:none; }
+        .qk-ring .fg, .qk-sterne i b { transition:none; }
+    }
+
 </style>
 
 <div class="kg-ai-page">
     <div class="kg-ai-card">
-        <div class="kg-ai-title">KG AI</div>
-        <div class="kg-ai-subtitle">
+        <div class="kg-ai-title" data-kg-skip>KG AI</div>
+        <div class="kg-ai-subtitle" data-kg-skip>
             KG Portal yapay zeka asistanı. Stundenzettel okuyabilir, rapor çıkarabilir ve onaylı toplu WhatsApp duyurusu hazırlayabilir.
         </div>
 
@@ -193,6 +363,43 @@
                 <div class="quality-sub">Bestandskunden auswählen, Qualitätsmail vorbereiten, freigeben und Versandhistorie verfolgen.</div>
             </div>
             <span class="quality-badge blue">TEST-BRANCH</span>
+        </div>
+        <div class="qk-kpis" aria-hidden="true">
+            <div class="qk-kpi" style="--i:3">
+                <span class="qk-ico qk-blau"><svg viewBox="0 0 24 24"><path d="M3 21V7l9-4 9 4v14"/><path d="M9 21v-6h6v6M8 10h.01M12 10h.01M16 10h.01"/></svg></span>
+                <div>
+                    <div class="qk-label">Bestandskunden</div>
+                    <div class="qk-zahl" data-qk="kunden">–</div>
+                    <div class="qk-sub" data-qk="kunden-sub">wird geladen …</div>
+                </div>
+            </div>
+            <div class="qk-kpi" style="--i:4">
+                <span class="qk-ico qk-orange"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span>
+                <div>
+                    <div class="qk-label">Kontrolle fällig</div>
+                    <div class="qk-zahl" data-qk="faellig">–</div>
+                    <div class="qk-sub">von den versandfähigen</div>
+                </div>
+                <svg class="qk-ring" viewBox="0 0 44 44" style="--c:#f59e0b"><circle class="bg" cx="22" cy="22" r="18"/><circle class="fg" data-qk="faellig-ring" cx="22" cy="22" r="18" pathLength="100" transform="rotate(-90 22 22)"/><text x="22" y="22" data-qk="faellig-pct"></text></svg>
+            </div>
+            <div class="qk-kpi" style="--i:5">
+                <span class="qk-ico qk-cyan"><svg viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg></span>
+                <div>
+                    <div class="qk-label">Noch nie angeschrieben</div>
+                    <div class="qk-zahl" data-qk="nie">–</div>
+                    <div class="qk-sub">von allen Kunden</div>
+                </div>
+                <svg class="qk-ring" viewBox="0 0 44 44" style="--c:#0891b2"><circle class="bg" cx="22" cy="22" r="18"/><circle class="fg" data-qk="nie-ring" cx="22" cy="22" r="18" pathLength="100" transform="rotate(-90 22 22)"/><text x="22" y="22" data-qk="nie-pct"></text></svg>
+            </div>
+            <div class="qk-kpi" style="--i:6">
+                <span class="qk-ico qk-gruen"><svg viewBox="0 0 24 24"><path d="M12 2l3.1 6.3 6.9 1-5 4.9 1.2 6.8L12 17.8 5.8 21l1.2-6.8-5-4.9 6.9-1z"/></svg></span>
+                <div>
+                    <div class="qk-label">Ø Zufriedenheit</div>
+                    <div class="qk-zahl"><span data-qk="schnitt">–</span> <small>/ 5</small></div>
+                    <div class="qk-sterne"><i><b></b></i><i><b></b></i><i><b></b></i><i><b></b></i><i><b></b></i></div>
+                    <div class="qk-sub" data-qk="umfragen">–</div>
+                </div>
+            </div>
         </div>
 
         <div class="quality-tabs">
@@ -834,6 +1041,58 @@ document.getElementById("kgAiInput").addEventListener("keydown", function(e) {
         sendKgAiChat();
     }
 });
+</script>
+<script>
+/* PREMIUM: Kennzahlen „Kundenpflege“ aus der bereits geladenen Kundenliste – nur lesend, sendet nichts */
+(function () {
+    var rows = document.getElementById("qualityCustomerRows");
+    if (!rows || !document.querySelector(".qk-kpis")) return;
+    function feld(key) { return document.querySelector('.qk-kpis [data-qk="' + key + '"]'); }
+    function setze(key, wert) { var el = feld(key); if (el && el.textContent !== wert) el.textContent = wert; }
+    function ring(key, anteil) {
+        var pct = Math.round(Math.max(0, Math.min(1, anteil)) * 100);
+        var fg = feld(key + "-ring");
+        if (fg) fg.style.strokeDashoffset = String(100 - pct);
+        setze(key + "-pct", pct + "%");
+    }
+    function auswerten() {
+        var liste;
+        try { liste = qualityCustomers; } catch (e) { return; }
+        if (!Array.isArray(liste)) return;
+        if (!liste.length && /geladen/.test(rows.textContent)) return;
+        var mitMail = 0, ohneMail = 0, abbestellt = 0, versandfaehig = 0, faellig = 0, nie = 0, summe = 0, umfragen = 0;
+        liste.forEach(function (k) {
+            if (k.email) mitMail++; else ohneMail++;
+            if (!k.enabled) abbestellt++;
+            if (k.enabled && k.email) {
+                versandfaehig++;
+                try { if (qualityIsDue(k)) faellig++; } catch (e) {}
+            }
+            if (!k.last_sent) nie++;
+            if (k.last_survey_at) {
+                var s = [k.score_gesamt, k.score_mitarbeiter, k.score_sauberkeit, k.score_reinigungsmittel, k.score_kommunikation].map(function (v) { return Number(v || 0); });
+                if (s.every(function (v) { return v > 0; })) {
+                    summe += s.reduce(function (a, v) { return a + v; }, 0) / s.length;
+                    umfragen++;
+                }
+            }
+        });
+        setze("kunden", String(liste.length));
+        setze("kunden-sub", mitMail + " mit E-Mail · " + ohneMail + " ohne · " + abbestellt + " abbestellt");
+        setze("faellig", String(faellig));
+        ring("faellig", versandfaehig ? faellig / versandfaehig : 0);
+        setze("nie", String(nie));
+        ring("nie", liste.length ? nie / liste.length : 0);
+        var schnitt = umfragen ? summe / umfragen : 0;
+        setze("schnitt", umfragen ? schnitt.toFixed(1).replace(".", ",") : "–");
+        setze("umfragen", umfragen ? umfragen + (umfragen === 1 ? " Umfrage" : " Umfragen") + " ausgewertet" : "noch keine Umfrage");
+        Array.prototype.forEach.call(document.querySelectorAll(".qk-sterne i b"), function (b, i) {
+            b.style.width = Math.max(0, Math.min(1, schnitt - i)) * 100 + "%";
+        });
+    }
+    if (window.MutationObserver) new MutationObserver(auswerten).observe(rows, { childList: true });
+    auswerten();
+})();
 </script>
 
 {% endblock %}

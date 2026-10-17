@@ -816,9 +816,7 @@
             border-color:#e6ebf2;
             border-radius:28px;
             box-shadow:0 30px 60px -48px rgba(30,64,175,.35), 0 1px 0 rgba(15,23,42,.02);
-            animation:kgSeiteRein .45s ease backwards;
         }
-        @keyframes kgSeiteRein { from { opacity:0; } to { opacity:1; } }
         ::selection { background:rgba(37,99,235,.18); }
         .kg-portal-body ::-webkit-scrollbar { width:10px; height:10px; }
         .kg-portal-body ::-webkit-scrollbar-thumb { background:#cbd5e1; border-radius:999px; border:3px solid transparent; background-clip:padding-box; }
@@ -902,9 +900,6 @@
             .portal-nav-item[data-nav-key="vertrag"],
             .portal-nav-item[data-nav-key="kunden"],
             .portal-nav-item[data-nav-key="vertretung"] { margin-bottom:24px; }
-        }
-        @media (prefers-reduced-motion: reduce) {
-            .portal-card { animation:none; }
         }
         /* Druck / PDF (z. B. Leistungsverzeichnis): keine Animationen, Schrift wie bisher */
         @media print {
@@ -1141,5 +1136,36 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 </script>
 
+<script>
+/* Sicherheitsnetz für Start-Animationen (nur Aussehen):
+   kg_theme.js hält beim Einlesen der Farben alle Animationen kurz an. Eine einmalige Start-Animation
+   darf dabei nie hängen bleiben, sonst bleibt ein Element unsichtbar. Endlose Animationen bleiben unberührt. */
+(function () {
+    if (!document.getAnimations) return;
+    var gesehen = new WeakMap();
+    function pruefen() {
+        if (document.documentElement.classList.contains("kgx-scan")) return;
+        var jetzt = performance.now();
+        document.getAnimations().forEach(function (a) {
+            try {
+                var eff = a.effect;
+                if (!eff || !eff.getComputedTiming) return;
+                if (eff.getComputedTiming().iterations === Infinity) return;
+                if (a.playState === "finished" || a.playState === "idle") return;
+                if (a.playState === "paused") {
+                    var el = eff.target;
+                    if (el && String(getComputedStyle(el).animationPlayState).indexOf("paused") >= 0) return;
+                    a.play();
+                    return;
+                }
+                var g = gesehen.get(a);
+                if (!g) { gesehen.set(a, { zeit: jetzt, ct: a.currentTime }); return; }
+                if (jetzt - g.zeit > 4000 && a.currentTime === g.ct) a.finish();
+            } catch (e) {}
+        });
+    }
+    setInterval(pruefen, 900);
+})();
+</script>
 </body>
 </html>

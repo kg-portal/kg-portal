@@ -982,12 +982,161 @@
 
 /* SVG Icons Utility */
 svg { width: 18px; height: 18px; stroke: currentColor; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; fill: none; }
+
+/* ===== PREMIUM (einheitliches Design) ===== */
+/* Nur Aussehen: Systemblau-Kopf, ruhige Ordnerliste, weiche Mail-Karten, Lesebereich, Knöpfe.
+   Farben folgen den Design-Farben aus den Mail-Einstellungen (--primary-*). IDs/Handler unverändert. */
+@keyframes kgRein{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+@keyframes kgMailBalken{from{transform:scaleX(0)}to{transform:none}}
+.kg-mail-page{--kgm-verlauf:linear-gradient(135deg,rgba(255,255,255,.16),rgba(255,255,255,0) 55%),linear-gradient(135deg,var(--primary-main),var(--primary-dark));--kgm-schatten:0 18px 40px -30px rgba(15,23,42,.45);font-family:inherit}
+.kg-mail-page .mail-app{border-color:#e6ebf2;box-shadow:0 30px 60px -44px rgba(15,23,42,.45)}
+
+/* Kopf als Systemblau-Kachel */
+.kg-mail-page .topbar{border-bottom:0;color:#fff;
+  background:linear-gradient(135deg,var(--primary-dark),var(--primary-main));
+  background:radial-gradient(520px 230px at 90% -20%,rgba(255,255,255,.26),transparent 60%),radial-gradient(420px 220px at 0% 120%,rgba(56,189,248,.25),transparent 60%),linear-gradient(135deg,color-mix(in srgb,var(--primary-dark) 60%,var(--primary-main)),var(--primary-main));
+  box-shadow:0 18px 36px -28px rgba(29,78,216,.75);animation:kgRein .6s cubic-bezier(.22,1,.36,1) backwards}
+.kg-mail-page .brand-logo{background:#fff;color:var(--primary-dark);box-shadow:0 12px 24px -12px rgba(15,23,42,.6)}
+.kg-mail-page .brand-title{color:#fff;font-weight:900;letter-spacing:-.4px}
+.kg-mail-page .brand-sub{color:#dbeafe;font-weight:700}
+.kg-mail-page .search svg{color:#dbeafe}
+.kg-mail-page .search input{border-color:rgba(255,255,255,.28);background:rgba(255,255,255,.14);color:#fff;border-radius:14px;font-family:inherit}
+.kg-mail-page .search input::placeholder{color:#dbeafe;opacity:.95}
+.kg-mail-page .search input:focus{background:rgba(255,255,255,.22);border-color:rgba(255,255,255,.55);box-shadow:0 0 0 4px rgba(255,255,255,.14)}
+.kg-mail-page .account-pill{min-width:0;gap:8px;padding:0 12px;background:rgba(255,255,255,.14);border-color:rgba(255,255,255,.3);color:#fff;border-radius:13px;white-space:nowrap}
+.kg-mail-page .account-pill span:last-child{min-width:0;overflow:hidden;text-overflow:ellipsis}
+.kg-mail-page .dot{background:#4ade80;box-shadow:0 0 0 4px rgba(74,222,128,.25)}
+.kg-mail-page .top-btn{border-color:rgba(255,255,255,.3);background:rgba(255,255,255,.14);color:#fff;border-radius:13px;font-weight:800;transition:translate .2s,box-shadow .2s,background-color .2s}
+.kg-mail-page .top-btn:hover{background:rgba(255,255,255,.24);color:#fff;border-color:rgba(255,255,255,.45);translate:0 -2px;box-shadow:0 12px 22px -14px rgba(15,23,42,.6)}
+
+/* Ordnerliste */
+.kg-mail-page .sidebar{background:#f8fbff;border-right-color:#e6ebf2;animation:kgRein .6s cubic-bezier(.22,1,.36,1) backwards;animation-delay:70ms}
+.kg-mail-page .sidebar>*{flex-shrink:0}
+.kg-mail-page .compose{border-radius:16px;background:var(--kgm-verlauf);font-weight:900;font-family:inherit;box-shadow:0 16px 30px -16px color-mix(in srgb,var(--primary-main) 85%,transparent);transition:translate .2s,box-shadow .2s}
+.kg-mail-page .compose:hover{transform:none;translate:0 -2px;box-shadow:0 20px 34px -16px color-mix(in srgb,var(--primary-main) 95%,transparent)}
+.kg-mail-page .nav-title{font-size:11.5px;font-weight:800;letter-spacing:1.4px;color:#64748b}
+.kg-mail-page .nav-btn{border-radius:12px;color:#475569;font-family:inherit;transition:background-color .2s,box-shadow .2s,color .2s,border-color .2s}
+.kg-mail-page .nav-btn svg{color:#94a3b8;transition:color .2s}
+.kg-mail-page .nav-btn:hover{background:#fff;border-color:#e6ebf2;color:#0f172a;box-shadow:0 10px 22px -18px rgba(15,23,42,.5)}
+.kg-mail-page .nav-btn:hover svg{color:var(--primary-main)}
+.kg-mail-page .nav-btn.active{background:#fff;color:var(--primary-dark);border-color:var(--primary-border);box-shadow:inset 3px 0 0 var(--primary-main),0 12px 24px -18px color-mix(in srgb,var(--primary-main) 70%,transparent)}
+.kg-mail-page .nav-btn.active svg{color:var(--primary-main)}
+.kg-mail-page .nav-count{border-radius:999px;background:#eef2f7;color:#475569;font-weight:900}
+.kg-mail-page .nav-btn.active .nav-count{background:var(--kgm-verlauf);color:#fff;box-shadow:0 6px 12px -6px color-mix(in srgb,var(--primary-main) 80%,transparent)}
+.kg-mail-page .routing-card{margin-top:auto;border-color:#e6ebf2;border-radius:20px;background:linear-gradient(180deg,#fff,#f8fbff);box-shadow:var(--kgm-schatten)}
+.kg-mail-page .routing-card h3{color:#0f172a}
+.kg-mail-page .alias-badge{border-radius:999px;background:#dcfce7;border-color:#bbf7d0;color:#15803d}
+
+/* Mail-Liste */
+.kg-mail-page .list{animation:kgRein .6s cubic-bezier(.22,1,.36,1) backwards;animation-delay:140ms}
+.kg-mail-page .list-head{border-bottom-color:#e6ebf2}
+.kg-mail-page .list-head .list-row>div:first-child::before{content:"KG-Mail";display:block;margin-bottom:4px;font-size:11.5px;font-weight:800;letter-spacing:1.4px;text-transform:uppercase;color:#64748b}
+.kg-mail-page .list-head h1{color:#0f172a;letter-spacing:-.7px}
+.kg-mail-page .sync{border-radius:12px;font-weight:900;font-family:inherit;transition:translate .2s,box-shadow .2s,background-color .2s,color .2s}
+.kg-mail-page .sync:hover{translate:0 -2px;box-shadow:0 12px 22px -14px color-mix(in srgb,var(--primary-main) 80%,transparent)}
+.kg-mail-page .filters{border-bottom-color:#e6ebf2}
+.kg-mail-page .filter{border-color:#e6ebf2;background:#fff;color:#64748b;font-weight:800;font-family:inherit;transition:translate .2s,background-color .2s,color .2s,box-shadow .2s}
+.kg-mail-page .filter:hover{background:#f1f5f9;color:#0f172a;translate:0 -1px}
+.kg-mail-page .filter.active{background:var(--kgm-verlauf);border-color:transparent;color:#fff;box-shadow:0 8px 16px -10px color-mix(in srgb,var(--primary-main) 90%,transparent)}
+.kg-mail-page .messages{background:#f6f8fc}
+.kg-mail-page .msg{border-color:#e6ebf2;border-radius:18px;box-shadow:0 12px 26px -22px rgba(15,23,42,.45);transition:translate .2s,box-shadow .2s,border-color .2s,background-color .2s}
+.kg-mail-page .msg:hover{transform:none;translate:0 -2px;border-color:var(--primary-border);box-shadow:0 18px 34px -24px rgba(15,23,42,.5)}
+.kg-mail-page .msg.active{border-color:var(--primary-main);background:#fbfdff;box-shadow:0 0 0 1px var(--primary-main),0 18px 34px -24px color-mix(in srgb,var(--primary-main) 55%,transparent)}
+.kg-mail-page .msg .avatar{border-radius:14px;border-color:#e6edf7;background:linear-gradient(135deg,#f8fbff,#eef3fa);color:#64748b;font-weight:900}
+.kg-mail-page .msg.unread .avatar,.kg-mail-page .msg.active .avatar{background:var(--kgm-verlauf);border-color:transparent;color:#fff;box-shadow:0 8px 16px -10px color-mix(in srgb,var(--primary-main) 90%,transparent)}
+.kg-mail-page .company{color:#0f172a;font-weight:900}
+.kg-mail-page .subject{color:#1e293b}
+.kg-mail-page .tag{border-radius:999px;border-color:transparent;background:#f1f5f9;color:#64748b;font-weight:800}
+.kg-mail-page .tag.blue{background:#dbeafe;color:#1d4ed8}
+.kg-mail-page .tag.green{background:#dcfce7;color:#15803d}
+.kg-mail-page .tag.orange{background:#fef3c7;color:#b45309}
+.kg-mail-page .tag.purple{background:#ede9fe;color:#6d28d9}
+.kg-mail-page .msg-delete{border-radius:12px;transition:translate .2s,background-color .2s,color .2s,border-color .2s}
+.kg-mail-page .msg-delete:hover{translate:0 -2px}
+
+/* Kennzahl-Zeile über der Liste (nur Anzeige, liest die angezeigten Mails) */
+.kgm-kpi{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:14px}
+.kgm-kpi-item{display:flex;align-items:center;gap:8px;min-width:0;padding:8px 10px;border-radius:14px;background:#f8fbff;border:1px solid #e6edf7;transition:translate .2s,box-shadow .2s}
+.kgm-kpi-item:hover{translate:0 -2px;box-shadow:0 12px 22px -18px rgba(15,23,42,.5)}
+.kgm-kpi-item i{flex:0 0 26px;width:26px;height:26px;border-radius:9px;display:grid;place-items:center;font-style:normal;font-size:12px;font-weight:900;color:#fff}
+.kgm-kpi-item i svg{width:14px;height:14px;stroke:#fff;stroke-width:2.4}
+.kgm-kpi-item:nth-child(1) i{background:linear-gradient(135deg,#3b82f6,#1d4ed8)}
+.kgm-kpi-item:nth-child(2) i{background:linear-gradient(135deg,#f59e0b,#d97706)}
+.kgm-kpi-item:nth-child(3) i{background:linear-gradient(135deg,#8b5cf6,#6d28d9)}
+.kgm-kpi-item b{display:block;font-size:17px;line-height:1;font-weight:900;letter-spacing:-.5px;color:#0f172a}
+.kgm-kpi-item span{display:block;margin-top:2px;font-size:10.5px;font-weight:800;color:#64748b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.kgm-kpi-item>div{min-width:0}
+.kgm-kpi-bar{grid-column:1/-1;display:flex;height:6px;border-radius:999px;overflow:hidden;background:#eef2f7}
+.kgm-kpi-bar i{display:block;height:100%;border-radius:999px;transform-origin:left;animation:kgMailBalken .9s cubic-bezier(.22,1,.36,1) backwards;transition:width .5s cubic-bezier(.22,1,.36,1)}
+.kgm-kpi-bar i:first-child{background:linear-gradient(90deg,#f59e0b,#d97706)}
+.kgm-kpi-bar i+i{background:linear-gradient(90deg,#93c5fd,#3b82f6);margin-left:2px;animation-delay:120ms}
+
+/* Lesebereich */
+.kg-mail-page .reader{animation:kgRein .6s cubic-bezier(.22,1,.36,1) backwards;animation-delay:210ms}
+.kg-mail-page .reader-head{border-bottom-color:#e6ebf2}
+.kg-mail-page .rbtn{border-color:#e6ebf2;border-radius:12px;font-weight:800;font-family:inherit;box-shadow:0 8px 18px -16px rgba(15,23,42,.6);transition:translate .2s,box-shadow .2s,background-color .2s,border-color .2s}
+.kg-mail-page .rbtn:hover{transform:none;translate:0 -2px;box-shadow:0 14px 24px -16px rgba(15,23,42,.55)}
+.kg-mail-page .rbtn.primary{background:var(--kgm-verlauf);border-color:transparent;color:#fff;box-shadow:0 12px 24px -14px color-mix(in srgb,var(--primary-main) 85%,transparent)}
+.kg-mail-page .rbtn.primary:hover{background:var(--kgm-verlauf);border-color:transparent}
+.kg-mail-page .reader-subject{color:#0f172a;letter-spacing:-.7px}
+.kg-mail-page .reader-meta .avatar{background:var(--kgm-verlauf);border-color:transparent;color:#fff;box-shadow:0 12px 24px -14px color-mix(in srgb,var(--primary-main) 90%,transparent)}
+.kg-mail-page .meta-name{font-weight:900;color:#0f172a}
+.kg-mail-page .meta-date{padding:6px 12px;border-radius:999px;background:#f1f5f9;font-size:12px;font-weight:800;color:#475569}
+.kg-mail-page .meta-date:empty{display:none}
+.kg-mail-page .reader-scroll{background:#f6f8fc}
+.kg-mail-page .paper{border-color:#e6ebf2;border-radius:24px;box-shadow:var(--kgm-schatten)}
+.kg-mail-page .paper-top{background:#f8fafc;border-bottom-color:#e6ebf2}
+.kg-mail-page .pill{border-radius:999px;padding:6px 12px;font-weight:800;background:#dbeafe;color:#1d4ed8}
+.kg-mail-page .pill.green{background:#dcfce7;color:#15803d;border-color:#bbf7d0}
+.kg-mail-page .paper-body b,.kg-mail-page .paper-body strong{color:#0f172a}
+.kg-mail-page .mail-empty-card{border-color:#e6ebf2;box-shadow:var(--kgm-schatten)}
+.kg-mail-page .mail-empty-icon{background:var(--kgm-verlauf);color:#fff;box-shadow:0 14px 26px -14px color-mix(in srgb,var(--primary-main) 90%,transparent)}
+.kg-mail-page .mail-empty-title{color:#0f172a}
+.kg-mail-page .reply{border-top-color:#e6ebf2}
+.kg-mail-page .reply-box{border-color:#dbe3ef;border-radius:16px;background:#f8fafc}
+.kg-mail-page .reply-box:focus-within{border-color:var(--primary-main);box-shadow:0 0 0 4px color-mix(in srgb,var(--primary-main) 12%,transparent)}
+.kg-mail-page .reply-box input{font-family:inherit}
+.kg-mail-page .send{border-radius:12px;background:var(--kgm-verlauf);font-weight:900;font-family:inherit;box-shadow:0 12px 24px -14px color-mix(in srgb,var(--primary-main) 85%,transparent);transition:translate .2s,box-shadow .2s}
+.kg-mail-page .send:hover{transform:none;translate:0 -2px;box-shadow:0 16px 28px -14px color-mix(in srgb,var(--primary-main) 95%,transparent)}
+
+/* Fenster: Neue Mail / Einstellungen */
+#composeModal .modal{border-color:#e6ebf2;border-radius:24px}
+#composeModal .modal-head,#settingsModal .settings-head{background:radial-gradient(520px 230px at 90% -20%,rgba(255,255,255,.26),transparent 60%),radial-gradient(420px 220px at 0% 120%,rgba(56,189,248,.25),transparent 60%),linear-gradient(135deg,color-mix(in srgb,var(--primary-dark) 60%,var(--primary-main)),var(--primary-main))}
+#composeModal .modal-body{background:#f6f8fc}
+#composeModal .form label{font-size:11.5px;font-weight:800;letter-spacing:1.2px;color:#64748b}
+#composeModal .form input,#composeModal .form select,#composeModal .form textarea{border-color:#dbe3ef;border-radius:12px}
+#composeModal .form input:focus,#composeModal .form select:focus,#composeModal .form textarea:focus{border-color:var(--primary-main);box-shadow:0 0 0 4px color-mix(in srgb,var(--primary-main) 12%,transparent)}
+#composeModal .modal-close,#settingsModal .settings-close{border-radius:12px;transition:background-color .2s,translate .2s}
+#composeModal .modal-close:hover,#settingsModal .settings-close:hover{translate:0 -2px}
+#composeModal .cancel,#composeModal .modal-send,#settingsModal .cancel,#settingsModal .modal-send{border-radius:12px;font-weight:900;transition:translate .2s,box-shadow .2s,background-color .2s}
+#composeModal .modal-send,#settingsModal .modal-send{background:linear-gradient(135deg,#16a34a,#15803d);box-shadow:0 12px 24px -14px rgba(22,163,74,.85)}
+#composeModal .modal-send:hover,#settingsModal .modal-send:hover,#composeModal .cancel:hover,#settingsModal .cancel:hover{transform:none;translate:0 -2px}
+#settingsModal .settings-panel{border-color:#e6ebf2;border-radius:24px}
+#settingsModal .settings-tab{border-radius:12px}
+#settingsModal .settings-tab.active{box-shadow:inset 3px 0 0 var(--primary-main),0 10px 22px -18px color-mix(in srgb,var(--primary-main) 70%,transparent)}
+#settingsModal .settings-label,#settingsModal .settings-field label{font-size:11.5px;font-weight:800;letter-spacing:1.2px;color:#64748b}
+#settingsModal .settings-field input:focus,#settingsModal .settings-field select:focus,#settingsModal .settings-field textarea:focus{border-color:var(--primary-main);box-shadow:0 0 0 4px color-mix(in srgb,var(--primary-main) 12%,transparent)}
+#toast{border-radius:14px;box-shadow:0 24px 50px -20px rgba(15,23,42,.6)}
+
+@media (max-width:1500px){
+  .kgm-kpi{gap:6px;margin-top:12px}
+  .kgm-kpi-item{padding:7px 8px;gap:7px}
+  .kgm-kpi-item i{flex-basis:22px;width:22px;height:22px;border-radius:8px;font-size:11px}
+  .kgm-kpi-item b{font-size:15px}
+}
+/* Tablet/Telefon: geöffnete Mail liegt im Mail-Fenster unter dem blauen Kopf (vorher am Seitenrand, Kopf verdeckt) */
+@media (max-width:1050px){
+  .kg-mail-page .mail-app{position:relative}
+}
+@media (prefers-reduced-motion:reduce){
+  .kg-mail-page .topbar,.kg-mail-page .sidebar,.kg-mail-page .list,.kg-mail-page .reader,.kgm-kpi-bar i{animation:none}
+}
 </style>
 <div class="kg-mail-page">
 <div class="mail-app">
 <header class="topbar">
     <div class="brand">
-        <div class="brand-logo">KG</div>
+        <div class="brand-logo" data-kg-skip>KG</div>
         <div>
             <div class="brand-title" data-i18n="brand_title">KG Portal Mail</div>
             <div class="brand-sub" data-i18n="brand_sub">Gmail API & CRM Ready</div>
@@ -1091,6 +1240,12 @@ svg { width: 18px; height: 18px; stroke: currentColor; stroke-width: 2.5; stroke
     Sync
 </button>
             </button>
+        </div>
+        <div class="kgm-kpi" id="kgmKpi">
+            <div class="kgm-kpi-item"><i><svg viewBox="0 0 24 24"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg></i><div><b id="kgmKpiAlle">0</b><span id="kgmKpiAlleTxt">Mails</span></div></div>
+            <div class="kgm-kpi-item"><i><svg viewBox="0 0 24 24"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg></i><div><b id="kgmKpiNeu">0</b><span id="kgmKpiNeuTxt">Ungelesen</span></div></div>
+            <div class="kgm-kpi-item"><i><svg viewBox="0 0 24 24"><path d="M21.4 11.1 12.2 20.3a6 6 0 0 1-8.5-8.5l9.2-9.2a4 4 0 0 1 5.7 5.7l-9.2 9.2a2 2 0 0 1-2.8-2.8l8.5-8.5"/></svg></i><div><b id="kgmKpiAnh">0</b><span id="kgmKpiAnhTxt">Mit Anhang</span></div></div>
+            <div class="kgm-kpi-bar" id="kgmKpiBar" title="Anteil ungelesen"><i id="kgmKpiBarNeu" style="width:0%"></i><i id="kgmKpiBarRest" style="width:0%"></i></div>
         </div>
     </div>
     <div class="filters">
@@ -2630,6 +2785,38 @@ setupGmailInfiniteScroll();
 loadGmailCounts();
 loadGmailInbox();
 setInterval(()=>syncCurrentBox(true), 30000);
+</script>
+
+<script>
+/* PREMIUM: Kennzahl-Zeile über der Mail-Liste – zählt nur die gerade angezeigten Mails (keine Abfragen, keine Änderungen). */
+(function(){
+    var liste=document.getElementById("messageList");
+    if(!liste||!document.getElementById("kgmKpi")) return;
+    var TEXTE={de:["Mails","Ungelesen","Mit Anhang","Anteil ungelesen"],tr:["Mail","Okunmamış","Ekli","Okunmamış oranı"]};
+    function el(id){ return document.getElementById(id); }
+    function zeichnen(){
+        var karten=[].slice.call(liste.querySelectorAll(".msg")).filter(function(k){ return !!k.querySelector(".msg-top"); });
+        var neu=karten.filter(function(k){ return k.classList.contains("unread"); }).length;
+        var anh=karten.filter(function(k){ return !!k.querySelector('.tags path[d^="m21.44"]'); }).length;
+        var lang="de";
+        try{ if(typeof currentLang!=="undefined"&&TEXTE[currentLang]) lang=currentLang; }catch(e){}
+        var t=TEXTE[lang];
+        el("kgmKpiAlle").textContent=karten.length;
+        el("kgmKpiNeu").textContent=neu;
+        el("kgmKpiAnh").textContent=anh;
+        el("kgmKpiAlleTxt").textContent=t[0];
+        el("kgmKpiNeuTxt").textContent=t[1];
+        el("kgmKpiAnhTxt").textContent=t[2];
+        var p=karten.length?Math.round(neu/karten.length*100):0;
+        el("kgmKpiBar").title=t[3]+": "+p+"%";
+        el("kgmKpiBarNeu").style.width=p+"%";
+        el("kgmKpiBarRest").style.width=(karten.length?100-p:0)+"%";
+    }
+    var timer=0;
+    function planen(){ clearTimeout(timer); timer=setTimeout(zeichnen,60); }
+    try{ new MutationObserver(planen).observe(liste,{childList:true,subtree:true,attributes:true,attributeFilter:["class"]}); }catch(e){}
+    planen();
+})();
 </script>
 
 {% endblock %}
