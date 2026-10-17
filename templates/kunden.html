@@ -73,7 +73,7 @@
     <div class="kp-art" data-kp-filter="jaehrlich" data-kpp="jaehrlich" tabindex="0" role="button" style="--a:#7c3aed;--b:#f5f3ff;--i:2" title="Details: Jährlich">
       <div class="kp-lbl">Jährlich <em>1x / 2x jährlich</em></div>
       <div class="kp-art-zahl"><b id="kpArtJaehrlichN">–</b><span>Kunden</span></div>
-      <div class="kp-art-summe"><b id="kpArtJaehrlichS">–</b><span>pro Jahr</span></div>
+      <div class="kp-art-summe"><b id="kpArtJaehrlichS">–</b><span id="kpArtJaehrlichM">pro Jahr</span></div>
     </div>
     <div class="kp-art" data-kp-filter="einmalig" data-kpp="einmalig" tabindex="0" role="button" style="--a:#d97706;--b:#fffbeb;--i:3" title="Details: Einmalig">
       <div class="kp-lbl">Einmalig <em>Sonderreinigung</em></div>
@@ -84,6 +84,11 @@
       <div class="kp-lbl">Gekündigt <em>alle Arten</em></div>
       <div class="kp-art-zahl"><b id="kpArtGekN">–</b><span>Kunden</span></div>
       <div class="kp-art-summe kp-art-klein"><b>zählt nicht zum Umsatz</b></div>
+    </div>
+    <div class="kp-art" data-kp-filter="fenster" data-kpp="fenster" tabindex="0" role="button" style="--a:#0891b2;--b:#ecfeff;--i:5" title="Details: Fensterreinigung">
+      <div class="kp-lbl">Fensterreinigung <button type="button" class="kp-art-plus" id="kpFensterPlus" title="Fensterreinigung eintragen">+ Eintragen</button></div>
+      <div class="kp-art-zahl"><b id="kpArtFensterN">–</b><span>Kunden</span></div>
+      <div class="kp-art-summe"><b id="kpArtFensterS">–</b><span id="kpArtFensterJ">Ø pro Monat</span></div>
     </div>
   </section>
 
@@ -150,6 +155,7 @@
     <button type="button" class="kp-r" data-kp-filter="bestand" style="--a:#2563eb">Bestandskunden <b id="kpRBestand">–</b></button>
     <button type="button" class="kp-r" data-kp-filter="jaehrlich" style="--a:#7c3aed">Jährlich <b id="kpRJaehrlich">–</b></button>
     <button type="button" class="kp-r" data-kp-filter="einmalig" style="--a:#d97706">Einmalig <b id="kpREinmalig">–</b></button>
+    <button type="button" class="kp-r" data-kp-filter="fenster" style="--a:#0891b2">Fenster <b id="kpRFenster">–</b></button>
     <button type="button" class="kp-r" data-kp-filter="gekuendigt" style="--a:#ef4444">Gekündigt <b id="kpRGek">–</b></button>
     <label class="kp-suche" for="kpSuche">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
@@ -317,6 +323,7 @@
 
   <span class="t-laufzeit">{{ k.vertragslaufzeit or "unbefristet" }}</span>
   <span class="t-status">{{ k.vertragsstatus or "aktuell" }}</span>
+  <span class="t-daten">{{ k.data_json or "" }}</span>
 
   <span class="t-raw-monat">{{ k.monat if k.monat else "" }}</span>
   <span class="t-monat">
@@ -447,6 +454,33 @@
         <div>
           <label class="input-lbl" style="color:#2563eb">Betrag (€)</label>
           <input class="m-input" name="betrag" id="f_monat">
+        </div>
+      </div>
+
+      <!-- 🆕 FENSTERREINIGUNG (zusätzlich, wird mit dem Kunden gespeichert) -->
+      <div class="kp-fenster-feld" id="kpFensterFeld">
+        <label class="input-lbl kp-fenster-titel">Fensterreinigung (zusätzlich, optional)</label>
+        <div class="kp-fenster-grid">
+          <div>
+            <label class="input-lbl" for="f_fenster_betrag">Betrag je Einsatz (€)</label>
+            <input class="m-input" name="fenster_betrag" id="f_fenster_betrag" placeholder="z. B. 350,00" inputmode="decimal" autocomplete="off">
+          </div>
+          <div>
+            <label class="input-lbl" for="f_fenster_mal">Wie oft pro Jahr</label>
+            <select class="m-input" name="fenster_mal" id="f_fenster_mal">
+              <option value="">keine Fensterreinigung</option>
+              <option value="1">1x jährlich</option>
+              <option value="2">2x jährlich</option>
+              <option value="3">3x jährlich</option>
+              <option value="4">4x jährlich</option>
+              <option value="6">6x jährlich</option>
+              <option value="12">12x jährlich</option>
+            </select>
+          </div>
+          <div>
+            <label class="input-lbl" for="f_fenster_notiz">Notiz</label>
+            <input class="m-input" name="fenster_notiz" id="f_fenster_notiz" placeholder="z. B. innen + außen" autocomplete="off">
+          </div>
         </div>
       </div>
 
@@ -1966,7 +2000,7 @@
     /* ---------- Kundenarten + Reiter (neu, nur lesend) ---------- */
     .kp-arten {
       display:grid;
-      grid-template-columns:repeat(4,minmax(0,1fr));
+      grid-template-columns:repeat(5,minmax(0,1fr));
       gap:16px;
       margin-top:18px;
     }
@@ -2096,6 +2130,59 @@
     }
     .kunden-tag.kp-art-jaehrlich { background:#ede9fe; color:#6d28d9; border-color:transparent; }
     .kunden-tag.kp-art-einmalig { background:#fef3c7; color:#b45309; border-color:transparent; }
+    .kunden-tag.kp-art-fenster { background:#cffafe; color:#0e7490; border-color:transparent; }
+    .kp-art .kp-lbl { flex-direction:column; align-items:flex-start; justify-content:flex-start; gap:4px; }
+    .kp-art .kp-lbl em { font-size:11.5px; }
+    .kp-art .kp-art-summe { flex-direction:column; align-items:flex-start; gap:2px; }
+    .kp-art-plus {
+      padding:4px 10px;
+      border:0;
+      border-radius:999px;
+      background:#0891b2;
+      color:#ffffff;
+      font:inherit;
+      font-size:11px;
+      font-weight:900;
+      letter-spacing:0;
+      text-transform:none;
+      cursor:pointer;
+      transition:background-color .2s, box-shadow .2s;
+    }
+    .kp-art-plus:hover { background:#0e7490; box-shadow:0 6px 14px -6px rgba(8,145,178,0.7); }
+    html[data-kg-x="on"] .kp-art-plus { background:#0891b2 !important; color:#ffffff !important; }
+
+    /* Formular: Fensterreinigung */
+    .kp-fenster-feld {
+      margin-top:22px;
+      padding:14px 16px 16px;
+      border:1.5px dashed #a5f3fc;
+      border-radius:16px;
+      background:#f0fdff;
+    }
+    .kp-fenster-titel { color:#0e7490 !important; font-weight:800 !important; }
+    .kp-fenster-grid { display:grid; grid-template-columns:1fr 1fr 1.3fr; gap:12px; margin-top:6px; }
+    @media (max-width: 760px) {
+      .kp-fenster-grid { grid-template-columns:1fr; }
+    }
+    .kp-fenster-feld.kp-hervor { animation:kpHervor 1.2s ease 1; }
+    @keyframes kpHervor { 0% { box-shadow:0 0 0 0 rgba(8,145,178,0.55); } 100% { box-shadow:0 0 0 14px rgba(8,145,178,0); } }
+
+    /* Fenster: Suchfeld im Detail-Fenster */
+    .kpp-suche { margin-bottom:12px; }
+    .kpp-suche input {
+      width:100%;
+      height:42px;
+      padding:0 14px;
+      border:1px solid #dbe3ef;
+      border-radius:12px;
+      font:inherit;
+      font-size:14px;
+      font-weight:700;
+      color:#0f172a;
+      outline:0;
+      box-sizing:border-box;
+    }
+    .kpp-suche input:focus { border-color:#0891b2; box-shadow:0 0 0 4px rgba(8,145,178,0.14); }
 
     /* ---------- Häufigkeit als Rangliste (ersetzt Säulen) ---------- */
     .kp-rang { display:grid; gap:9px; margin-top:16px; }
@@ -2277,7 +2364,7 @@
     }
 
     @media (max-width: 1280px) {
-      .kp-arten { grid-template-columns:repeat(2,minmax(0,1fr)); }
+      .kp-arten { grid-template-columns:repeat(3,minmax(0,1fr)); }
     }
 
     @media (max-width: 760px) {
@@ -2624,6 +2711,41 @@ document.addEventListener("DOMContentLoaded", function () {
   }
   function jahresWert(k) { return k.betrag * malProJahr(k); }
 
+  // Fensterreinigung: steht in den gespeicherten Formulardaten des Kunden (fenster_betrag, fenster_mal, fenster_notiz)
+  function fensterZahl(v) {
+    v = String(v == null ? "" : v).trim();
+    if (!v) return 0;
+    if (v.indexOf(",") !== -1) return zahl(v);
+    var n = parseFloat(v.replace(/[^0-9.\-]/g, ""));
+    return isFinite(n) ? n : 0;
+  }
+  function fensterDaten(text) {
+    try { var d = JSON.parse(text || "{}"); return d && typeof d === "object" ? d : {}; } catch (e) { return {}; }
+  }
+  function fensterLesen(text) {
+    var d = fensterDaten(text);
+    var b = fensterZahl(d.fenster_betrag), m = parseInt(d.fenster_mal, 10) || 0;
+    if (!(b > 0) || !(m > 0)) return null;
+    return { betrag: b, mal: m, notiz: String(d.fenster_notiz || "").trim(), jahr: b * m };
+  }
+  // „Bearbeiten“ bleibt wie es ist; danach werden nur die neuen Fenster-Felder gefüllt
+  (function () {
+    var alt = window.editKunde;
+    if (typeof alt !== "function") return;
+    window.editKunde = function (id) {
+      var r = alt.apply(this, arguments);
+      try {
+        var row = document.getElementById("row-" + id);
+        var d = fensterDaten(row ? txt(row, ".t-daten") : "");
+        var f1 = document.getElementById("f_fenster_betrag"), f2 = document.getElementById("f_fenster_mal"), f3 = document.getElementById("f_fenster_notiz");
+        if (f1) f1.value = d.fenster_betrag || "";
+        if (f2) f2.value = d.fenster_mal || "";
+        if (f3) f3.value = d.fenster_notiz || "";
+      } catch (e) { if (window.console) console.warn("Fensterreinigung-Felder:", e); }
+      return r;
+    };
+  })();
+
   function sucheNorm(t) {
     t = String(t || "").toLowerCase();
     if (t.normalize) t = t.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
@@ -2631,10 +2753,20 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   function arten(kunden) {
-    var n = { bestand: 0, jaehrlich: 0, einmalig: 0, gekuendigt: 0 };
-    var s = { bestand: 0, jaehrlich: 0, einmalig: 0 };
+    var n = { bestand: 0, jaehrlich: 0, einmalig: 0, gekuendigt: 0, fenster: 0 };
+    var s = { bestand: 0, jaehrlich: 0, einmalig: 0, fenster: 0 };
     kunden.forEach(function (k) {
       n[k.art]++;
+      if (k.fenster && k.art !== "gekuendigt") { n.fenster++; s.fenster += k.fenster.jahr; }
+      if (k.fenster) {
+        var ft = k.el.querySelector(".kunden-mini-tags");
+        if (ft && !ft.querySelector(".kp-art-fenster")) {
+          var fe = document.createElement("span");
+          fe.className = "kunden-tag kp-art-fenster";
+          fe.textContent = "Fenster " + k.fenster.mal + "×";
+          ft.appendChild(fe);
+        }
+      }
       if (k.art in s) s[k.art] += k.art === "jaehrlich" ? jahresWert(k) : k.betrag;
       k.such = sucheNorm([k.firma, txt(k.el, ".t-strasse"), txt(k.el, ".t-plz"), k.ort, txt(k.el, ".t-knr"),
         txt(k.el, ".t-name"), txt(k.el, ".t-tel"), txt(k.el, ".t-mail"), k.freq].join(" "));
@@ -2652,6 +2784,9 @@ document.addEventListener("DOMContentLoaded", function () {
     function setz(id, text) { var e = document.getElementById(id); if (e) e.textContent = text; }
     setz("kpArtBestandN", n.bestand); setz("kpArtBestandS", euro(s.bestand));
     setz("kpArtJaehrlichN", n.jaehrlich); setz("kpArtJaehrlichS", euro(s.jaehrlich));
+    setz("kpArtJaehrlichM", "pro Jahr · Ø " + euro(s.jaehrlich / 12) + " / Monat");
+    setz("kpArtFensterN", n.fenster); setz("kpArtFensterS", euro(s.fenster / 12));
+    setz("kpArtFensterJ", "Ø pro Monat · " + euro(s.fenster) + " / Jahr"); setz("kpRFenster", n.fenster);
     setz("kpArtEinmaligN", n.einmalig); setz("kpArtEinmaligS", euro(s.einmalig));
     setz("kpArtGekN", n.gekuendigt);
     setz("kpRAlle", kunden.length); setz("kpRBestand", n.bestand); setz("kpRJaehrlich", n.jaehrlich);
@@ -2665,14 +2800,14 @@ document.addEventListener("DOMContentLoaded", function () {
     function anwenden() {
       var sichtbar = 0;
       kunden.forEach(function (k) {
-        var an = (aktArt === "alle" || k.art === aktArt) &&
+        var an = (aktArt === "alle" || (aktArt === "fenster" ? !!(k.fenster && k.art !== "gekuendigt") : k.art === aktArt)) &&
           worte.every(function (w) { return k.such.indexOf(w) !== -1; });
         k.el.classList.toggle("kp-aus", !an);
         if (an) sichtbar++;
       });
       if (leer) {
         leer.hidden = sichtbar > 0;
-        leer.textContent = worte.length ? "Keine Kunden gefunden." : "Keine Kunden in dieser Gruppe.";
+        leer.textContent = worte.length ? "Keine Kunden gefunden." : (aktArt === "fenster" ? "Noch keine Fensterreinigung eingetragen. Oben bei „Fensterreinigung“ auf „+ Eintragen“ klicken." : "Keine Kunden in dieser Gruppe.");
       }
       if (treffer) treffer.textContent = worte.length ? sichtbar + " Treffer" : "";
       if (leeren) leeren.hidden = !worte.length;
@@ -2721,7 +2856,9 @@ document.addEventListener("DOMContentLoaded", function () {
     betrag: "linear-gradient(135deg,#064e3b 0%,#047857 50%,#10b981 100%)",
     staedte: "linear-gradient(135deg,#1e1b4b 0%,#3730a3 50%,#6366f1 100%)",
     haeufigkeit: "linear-gradient(135deg,#581c87 0%,#7e22ce 50%,#c026d3 100%)",
-    anteil: "linear-gradient(135deg,#0c4a6e 0%,#0369a1 50%,#0ea5e9 100%)"
+    anteil: "linear-gradient(135deg,#0c4a6e 0%,#0369a1 50%,#0ea5e9 100%)",
+    fenster: "linear-gradient(135deg,#164e63 0%,#0e7490 50%,#06b6d4 100%)",
+    fensterneu: "linear-gradient(135deg,#164e63 0%,#0e7490 50%,#06b6d4 100%)"
   };
   var KPP_MONAT = { "1x w": 4.33, "2x w": 8.66, "3x w": 12.99, "4x w": 17.32, "5x w": 21.65, "täglich": 21.65, "6x w": 25.98,
     "1x mtl": 1, "alle 2 Monate": 0.5, "alle 3 Monate": 1 / 3, "1x jährlich": 1 / 12, "2x jährlich": 1 / 6 };
@@ -2750,7 +2887,7 @@ document.addEventListener("DOMContentLoaded", function () {
       var klein = [k.ort, k.freq].filter(Boolean).join(" · ");
       if (k.status === "gekuendigt") klein += (klein ? " · " : "") + (k.ende ? "Vertrag bis " + kppDatum(k.ende) : "gekündigt");
       var wert = art === "jaehrlich"
-        ? esc(euro(jahresWert(k))) + '<span class="kpp-klein">' + (malProJahr(k) > 1 ? malProJahr(k) + " × " + esc(euro(k.betrag)) + " · " : "") + "pro Jahr</span>"
+        ? esc(euro(jahresWert(k))) + '<span class="kpp-klein">' + (malProJahr(k) > 1 ? malProJahr(k) + " × " + esc(euro(k.betrag)) + " · " : "") + "pro Jahr · Ø " + esc(euro(jahresWert(k) / 12)) + " / Monat</span>"
         : esc(euro(k.betrag)) + (art === "bestand" ? '<span class="kpp-klein">pro Monat</span>' : "");
       return kppZeile(esc(k.firma || "–"), esc(klein), wert,
         k.id, "", '<span class="kpp-nr">' + (i + 1) + '</span>');
@@ -2792,11 +2929,11 @@ document.addEventListener("DOMContentLoaded", function () {
       l = art === "gekuendigt" ? l.slice().sort(function (a, b) { return (b.ende || 0) - (a.ende || 0); }) : nachBetrag(l);
       var sum = l.reduce(function (a, k) { return a + (art === "jaehrlich" ? jahresWert(k) : k.betrag); }, 0);
       var unter = art === "bestand" ? euro(sum) + " pro Monat" + (l.length ? " · Ø " + euro(sum / l.length) : "")
-        : art === "jaehrlich" ? euro(sum) + " pro Jahr"
+        : art === "jaehrlich" ? euro(sum) + " pro Jahr · Ø " + euro(sum / 12) + " / Monat"
         : art === "gekuendigt" ? "zählt nicht zum Umsatz" : "Summe Beträge: " + euro(sum);
       kopf.innerHTML = kppKopf("Kundenarten", KPP_ART[art].titel, l.length + (l.length === 1 ? " Kunde" : " Kunden"), unter);
       var z = kppKunden(l, art);
-      if (z.length && art !== "gekuendigt") z.push(art === "jaehrlich" ? kppZeile("Summe pro Jahr", "", esc(euro(sum)), "", " summe")
+      if (z.length && art !== "gekuendigt") z.push(art === "jaehrlich" ? kppZeile("Summe pro Jahr", "Ø " + esc(euro(sum / 12)) + " pro Monat", esc(euro(sum)), "", " summe")
         : kppSumme(l, art === "bestand" ? "Summe pro Monat" : "Summe"));
       body.innerHTML = kppListe(z, KPP_ART[art].leer);
       zurListe(art, "In der Kundenliste anzeigen");
@@ -2871,6 +3008,64 @@ document.addEventListener("DOMContentLoaded", function () {
       zurListe("alle", "Ganze Kundenliste anzeigen");
     }
 
+    if (art === "fenster") {
+      var fl2 = alle.filter(function (k) { return k.fenster && k.art !== "gekuendigt"; })
+        .sort(function (a, b) { return b.fenster.jahr - a.fenster.jahr; });
+      var fj = fl2.reduce(function (a, k) { return a + k.fenster.jahr; }, 0);
+      kopf.innerHTML = kppKopf("Fensterreinigung", "Zusätzlich zur Unterhaltsreinigung", "Ø " + euro(fj / 12) + " / Monat",
+        euro(fj) + " pro Jahr · " + fl2.length + (fl2.length === 1 ? " Kunde" : " Kunden"));
+      var zf = fl2.map(function (k, i) {
+        var klein = k.fenster.mal + "× pro Jahr · " + euro(k.fenster.betrag) + " je Einsatz" + (k.fenster.notiz ? " · " + k.fenster.notiz : "");
+        return kppZeile(esc(k.firma), esc(klein), esc(euro(k.fenster.jahr)) + '<span class="kpp-klein">pro Jahr · Ø ' + esc(euro(k.fenster.jahr / 12)) + ' / Monat</span>',
+          k.id, "", '<span class="kpp-nr">' + (i + 1) + '</span>');
+      });
+      if (zf.length) zf.push(kppZeile("Summe pro Jahr", "Ø " + esc(euro(fj / 12)) + " pro Monat", esc(euro(fj)), "", " summe"));
+      body.innerHTML = kppListe(zf, "Noch keine Fensterreinigung eingetragen.");
+      fuss.textContent = "+ Fensterreinigung eintragen";
+      fuss.onclick = function () {
+        kppSchliessen(function () { var c = document.querySelector('[data-kpp="fenster"]'); if (c) kppOeffnen(c, "fensterneu"); });
+      };
+    }
+
+    if (art === "fensterneu") {
+      var wahl = alle.filter(function (k) { return k.art !== "gekuendigt"; })
+        .sort(function (a, b) { return String(a.firma).localeCompare(String(b.firma), "de"); });
+      kopf.innerHTML = kppKopf("Fensterreinigung", "Eintragen", "Kunde wählen", "Danach öffnet sich das Kundenformular beim Abschnitt „Fensterreinigung“");
+      body.innerHTML = '<div class="kpp-suche"><input type="search" id="kppFensterSuche" placeholder="Kunde suchen …" autocomplete="off" aria-label="Kunde suchen"></div>' +
+        kppListe(wahl.map(function (k) {
+          var klein = [k.ort, k.freq].filter(Boolean).join(" · ") + (k.fenster ? " · Fenster: " + k.fenster.mal + "× " + euro(k.fenster.betrag) : "");
+          return '<div class="kpp-zeile" data-fid="' + esc(k.id) + '" data-such="' + esc(k.such || "") + '" title="Fensterreinigung eintragen"><div class="kpp-haupt"><div class="kpp-name">' + esc(k.firma) +
+            '</div><span class="kpp-klein">' + esc(klein) + '</span></div><div class="kpp-wert">' + (k.fenster ? "ändern" : "+ eintragen") + '</div></div>';
+        }), "Keine aktuellen Kunden.");
+      var sf = body.querySelector("#kppFensterSuche");
+      if (sf) sf.addEventListener("input", function () {
+        var w = sucheNorm(sf.value).split(" ").filter(Boolean);
+        Array.prototype.forEach.call(body.querySelectorAll(".kpp-zeile[data-fid]"), function (z) {
+          var t = z.getAttribute("data-such") || "";
+          z.style.display = w.every(function (x) { return t.indexOf(x) !== -1; }) ? "" : "none";
+        });
+      });
+      body.addEventListener("click", function (e) {
+        var z = e.target.closest ? e.target.closest(".kpp-zeile[data-fid]") : null;
+        if (!z) return;
+        var fid = z.getAttribute("data-fid");
+        kppSchliessen(function () {
+          if (typeof window.editKunde !== "function") return;
+          window.editKunde(fid);
+          setTimeout(function () {
+            var feld = document.getElementById("kpFensterFeld"), b = document.getElementById("f_fenster_betrag");
+            if (feld) {
+              if (feld.scrollIntoView) feld.scrollIntoView({ block: "center" });
+              feld.classList.remove("kp-hervor"); void feld.offsetWidth; feld.classList.add("kp-hervor");
+            }
+            if (b) b.focus();
+          }, 80);
+        });
+      });
+      fuss.textContent = "Neuer Kunde anlegen";
+      fuss.onclick = function () { kppSchliessen(function () { if (typeof window.openNewModal === "function") window.openNewModal(); }); };
+    }
+
     kopf.querySelector(".kpp-zu").addEventListener("click", function () { kppSchliessen(); });
     Array.prototype.forEach.call(body.querySelectorAll ? [body] : [], function (b) {
       b.addEventListener("click", function (e) {
@@ -2886,7 +3081,7 @@ document.addEventListener("DOMContentLoaded", function () {
         });
       });
     });
-    var zu = kopf.querySelector(".kpp-zu");
+    var zu = art === "fensterneu" ? body.querySelector("#kppFensterSuche") : kopf.querySelector(".kpp-zu");
     if (zu && zu.focus) { try { zu.focus({ preventScroll: true }); } catch (e) { zu.focus(); } }
   }
 
@@ -2950,8 +3145,15 @@ document.addEventListener("DOMContentLoaded", function () {
     Array.prototype.forEach.call(document.querySelectorAll("[data-kpp]"), function (karte) {
       karte.addEventListener("click", function () { kppOeffnen(karte, karte.getAttribute("data-kpp")); });
       karte.addEventListener("keydown", function (e) {
+        if (e.target !== karte) return;
         if (e.key === "Enter" || e.key === " ") { e.preventDefault(); kppOeffnen(karte, karte.getAttribute("data-kpp")); }
       });
+    });
+    var plus = document.getElementById("kpFensterPlus");
+    if (plus) plus.addEventListener("click", function (e) {
+      e.stopPropagation();
+      var c = plus.closest ? plus.closest("[data-kpp]") : null;
+      if (c) kppOeffnen(c, "fensterneu");
     });
     document.addEventListener("keydown", function (e) { if (kppOffen && e.key === "Escape") kppSchliessen(); });
   }
@@ -3005,11 +3207,12 @@ document.addEventListener("DOMContentLoaded", function () {
         freq: txt(k, ".t-freq"),
         ort: txt(k, ".t-ort"),
         id: k.getAttribute("data-id"),
+        daten: txt(k, ".t-daten"),
         ende: datum(txt(k, ".t-ende")),
         betrag: zahl(txt(k, ".kunden-price"))
       };
     });
-    kunden.forEach(function (k) { k.art = kundenArt(k); });
+    kunden.forEach(function (k) { k.art = kundenArt(k); k.fenster = fensterLesen(k.daten); });
     arten(kunden);
 
     // Karten: Initialen-Avatar + Farbe für gekündigte Verträge (nur Klassen/Attribute ergänzt)
