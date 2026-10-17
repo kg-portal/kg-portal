@@ -744,6 +744,42 @@
     }
 }
 
+/* ===== Startseite: gleich große obere Kacheln + Detail-Fenster (wächst aus der Kachel) ===== */
+@media screen {
+    .dashboard-grid .chart-box { flex: 1 1 auto; }
+    .dashboard-grid .kpi-card { box-sizing: border-box; border: 1px solid rgba(255, 255, 255, 0.3); transition: box-shadow 0.25s ease, transform 0.25s ease; }
+    .dashboard-grid .kpi-card.blue-active { border: 1px solid rgba(255, 255, 255, 0.3) !important; box-shadow: inset 0 0 0 3px #1e40af; }
+    .dashboard-grid .kpi-card:hover { transform: translateY(-2px); box-shadow: 0 14px 28px -14px rgba(15, 23, 42, 0.55); }
+    .dashboard-grid .kpi-card.blue-active:hover { box-shadow: inset 0 0 0 3px #1e40af, 0 14px 28px -14px rgba(15, 23, 42, 0.55); }
+    .kgx-hinter { position: fixed; inset: 0; z-index: 10000; background: rgba(23, 37, 84, 0.45); -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px); }
+    .kgx-panel { position: fixed; z-index: 10001; overflow: hidden; border-radius: 28px; background: #ffffff; box-shadow: 0 40px 80px -20px rgba(15, 23, 42, 0.45); color: #0f172a; }
+    .kgx-inhalt { display: flex; flex-direction: column; height: 100%; }
+    .kgx-kopf { position: relative; padding: 24px 24px 20px; color: #ffffff; background: radial-gradient(420px 200px at 100% 0%, rgba(255,255,255,0.22), transparent 60%), linear-gradient(135deg, #1e40af 0%, #2563eb 55%, #3b82f6 100%); }
+    .kgx-zu { position: absolute; top: 16px; right: 16px; width: 40px; height: 40px; border: 0; border-radius: 12px; background: rgba(255,255,255,0.16); color: #fff; font-size: 18px; font-weight: 900; cursor: pointer; transition: background-color .2s, transform .2s; }
+    .kgx-zu:hover { background: rgba(255,255,255,0.28); transform: rotate(90deg); }
+    .kgx-over { font-size: 12.5px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; color: rgba(255,255,255,0.82); }
+    .kgx-titel { margin: 4px 0 0; font-size: 24px; font-weight: 900; color: #fff; }
+    .kgx-gross { margin-top: 8px; font-size: 30px; font-weight: 900; }
+    .kgx-unter { margin-top: 2px; font-size: 13px; font-weight: 700; color: rgba(255,255,255,0.9); }
+    .kgx-body { flex: 1; overflow-y: auto; padding: 16px; }
+    .kgx-liste { border: 1px solid #dbeafe; border-radius: 18px; overflow: hidden; }
+    .kgx-zeile { display: flex; align-items: center; gap: 12px; padding: 11px 16px; border-top: 1px solid #eff6ff; font-size: 14px; }
+    .kgx-zeile:first-child { border-top: 0; }
+    .kgx-zeile.akt { background: #eff6ff; }
+    .kgx-zeile.summe { background: #f8fafc; font-weight: 900; }
+    .kgx-name { width: 92px; flex-shrink: 0; font-weight: 800; color: #0f172a; }
+    .kgx-balken { flex: 1; height: 8px; border-radius: 4px; background: #eef2f7; overflow: hidden; }
+    .kgx-balken i { display: block; height: 100%; border-radius: 4px; background: linear-gradient(90deg, #60a5fa, #1d4ed8); }
+    .kgx-wert { min-width: 110px; text-align: right; font-weight: 800; font-variant-numeric: tabular-nums; }
+    .kgx-klein { display: block; font-size: 11.5px; font-weight: 700; color: #64748b; }
+    .kgx-plus { color: #15803d; } .kgx-minus { color: #b91c1c; }
+    .kgx-kacheln { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .kgx-kachel { padding: 14px 16px; border-radius: 16px; background: #f8fbff; border: 1px solid #e6edf7; font-weight: 800; color: #475569; }
+    .kgx-kachel b { display: block; margin-top: 4px; font-size: 26px; color: #0f172a; }
+    .kgx-hinweis { margin-top: 12px; font-size: 12.5px; font-weight: 700; color: #64748b; }
+    .kgx-fuss { padding: 12px 16px 16px; }
+    .kgx-fuss a { display: block; padding: 12px; border-radius: 14px; text-align: center; text-decoration: none; color: #fff; font-size: 13.5px; font-weight: 900; background: linear-gradient(135deg, #1e40af, #3b82f6); }
+}
 </style>
 
 
@@ -1009,6 +1045,37 @@
                         return breite >= 26 ? name : name.charAt(0);
                     }
                 });
+            }
+        });
+
+        // 🔢 Jahresübersicht: Wert über jeder Säule (z. B. 26,7k)
+        Chart.register({
+            id: 'kgWerteOben',
+            beforeInit(chart) {
+                if (!chart.canvas || chart.canvas.id !== 'yearlyOverviewChart') return;
+                const o = chart.config.options || (chart.config.options = {});
+                o.layout = Object.assign({}, o.layout || {}, { padding: { top: 18 } });
+            },
+            afterDatasetsDraw(chart) {
+                if (!chart.canvas || chart.canvas.id !== 'yearlyOverviewChart') return;
+                const ctx = chart.ctx;
+                ctx.save();
+                const platz = ((chart.chartArea && chart.chartArea.width) || chart.width || 0) / 12;
+                ctx.font = '800 ' + (platz >= 30 ? 10 : 9) + 'px Inter, Segoe UI, Arial, sans-serif';
+                ctx.fillStyle = document.documentElement.getAttribute('data-kg-x') === 'on' ? '#bfdbfe' : '#1e3a8a';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'bottom';
+                chart.data.datasets.forEach((ds, di) => {
+                    if (!chart.isDatasetVisible(di)) return;
+                    chart.getDatasetMeta(di).data.forEach((el, i) => {
+                        const v = Number(ds.data[i]);
+                        if (!v || !isFinite(el.y)) return;
+                        const text = v >= 1000 ? (v / 1000).toLocaleString('de-DE', { maximumFractionDigits: platz >= 30 ? 1 : 0 }) + 'k' : Math.round(v).toLocaleString('de-DE');
+                        const d = Math.max(3, Math.min(9, (el.width || 0) * 0.32));
+                        ctx.fillText(text, el.x + d / 2, el.y - d * 0.6 - 3);
+                    });
+                });
+                ctx.restore();
             }
         });
 
@@ -1723,5 +1790,168 @@ const percent = kgTodoPercent;
     }
 
 </script>
+{% raw %}
+<script>
+/* ===== Startseite: gleich große obere Kacheln + Detail-Fenster (nur lesend, nur Anzeige) ===== */
+(function () {
+    'use strict';
+    const MON = ['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni', 'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember'];
+    const jetzt = new Date();
+    const euro = v => Number(v || 0).toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
+    const esc = v => String(v == null ? '' : v).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    const liste = (holen) => { try { const v = holen(); return Array.isArray(v) ? v : []; } catch (e) { return []; } };
+    const ruhig = () => !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+
+    // 1) obere Kacheln gleich hoch
+    function gleich() {
+        const karten = Array.from(document.querySelectorAll('.dashboard-grid .kpi-card'));
+        karten.forEach(k => { k.style.height = ''; });
+        if (window.innerWidth <= 768 || !karten.length) return;
+        const h = Math.max.apply(null, karten.map(k => k.offsetHeight));
+        if (h > 0) karten.forEach(k => { k.style.height = h + 'px'; });
+    }
+    let warte = 0;
+    window.addEventListener('resize', () => { clearTimeout(warte); warte = setTimeout(gleich, 120); });
+    window.addEventListener('load', gleich);
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(gleich);
+    gleich();
+
+    // 2) Detail-Fenster
+    function art(karte) {
+        const t = ((karte.querySelector('.card-month-badge, .card-label') || {}).textContent || '').trim().toLowerCase();
+        if (karte.querySelector('#current-month-label')) return 'monat';
+        if (karte.querySelector('#current-year-label')) return 'jahr';
+        if (karte.querySelector('.accounting-lines')) return 'buch';
+        if (karte.querySelector('#todoBatteryFill')) return 'todo';
+        if (t.indexOf('telefon') === 0) return 'telefon';
+        if (t.indexOf('angebot') === 0) return 'angebot';
+        if (t.indexOf('aktive kunden') === 0) return 'kunden';
+        if (t.indexOf('aktive mitarbeiter') === 0) return 'personal';
+        return '';
+    }
+    function zeilen(werte, fmt, extra) {
+        const bis = jetzt.getMonth();
+        const max = Math.max.apply(null, werte.map(v => Math.abs(Number(v) || 0)).concat([1]));
+        let html = '';
+        for (let i = 0; i <= bis && i < 12; i++) {
+            const v = Number(werte[i]) || 0;
+            html += '<div class="kgx-zeile' + (i === bis ? ' akt' : '') + '"><span class="kgx-name">' + MON[i] + '</span>' +
+                '<span class="kgx-balken"><i style="width:' + Math.max(v / max * 100, v ? 2 : 0).toFixed(1) + '%"></i></span>' +
+                '<span class="kgx-wert">' + fmt(v) + (extra ? extra(i, v) : '') + '</span></div>';
+        }
+        return html;
+    }
+    function stat(karte) {
+        return Array.from(karte.querySelectorAll('.dashboard-stat-item')).map(el => {
+            const z = el.querySelector('span');
+            const name = (el.childNodes[0] && el.childNodes[0].textContent || '').trim();
+            return '<div class="kgx-kachel">' + esc(name) + '<b>' + esc(z ? z.textContent.trim() : '–') + '</b></div>';
+        }).join('');
+    }
+    function inhalt(a, karte) {
+        const wert = ((karte.querySelector('.card-value') || {}).textContent || '').trim();
+        const jahr = liste(() => kgJahresGrafikVerisi);
+        const summe = jahr.slice(0, jetzt.getMonth() + 1).reduce((x, v) => x + (Number(v) || 0), 0);
+        const mitWert = jahr.slice(0, jetzt.getMonth() + 1).filter(v => Number(v) > 0);
+        if (a === 'monat' || a === 'jahr') {
+            const bester = jahr.reduce((b, v, i) => (Number(v) > Number(jahr[b] || 0) ? i : b), 0);
+            const vor = Number(jahr[jetzt.getMonth() - 1]) || 0;
+            return {
+                over: a === 'monat' ? MON[jetzt.getMonth()] + ' ' + jetzt.getFullYear() : 'Jahr ' + jetzt.getFullYear(),
+                titel: a === 'monat' ? 'Monatlicher Umsatz' : 'Aktueller Gesamtumsatz', gross: wert,
+                unter: a === 'monat' ? 'Vormonat ' + euro(vor) + ' · Ø je Monat ' + euro(mitWert.length ? summe / mitWert.length : 0)
+                                     : 'Bester Monat: ' + MON[bester] + ' (' + euro(jahr[bester]) + ') · Ø ' + euro(mitWert.length ? summe / mitWert.length : 0),
+                body: '<div class="kgx-liste">' + zeilen(jahr, euro) + '<div class="kgx-zeile summe"><span class="kgx-name">Summe</span><span class="kgx-balken" style="visibility:hidden"></span><span class="kgx-wert">' + euro(summe) + '</span></div></div>',
+                link: ['/buchhaltung', 'Buchhaltung öffnen']
+            };
+        }
+        if (a === 'buch') {
+            const ein = liste(() => kgBilanzEinnahmen), aus = liste(() => kgBilanzAusgaben);
+            const bis = jetzt.getMonth(); let html = '', se = 0, sa = 0;
+            for (let i = 0; i <= bis; i++) {
+                const e = Number(ein[i]) || 0, u = Number(aus[i]) || 0; se += e; sa += u;
+                html += '<div class="kgx-zeile' + (i === bis ? ' akt' : '') + '"><span class="kgx-name">' + MON[i] + '</span><span style="flex:1"><span class="kgx-klein">Einnahmen ' + euro(e) + ' · Ausgaben ' + euro(u) + '</span></span>' +
+                    '<span class="kgx-wert ' + (e - u >= 0 ? 'kgx-plus' : 'kgx-minus') + '">' + euro(e - u) + '<span class="kgx-klein">Gewinn</span></span></div>';
+            }
+            html += '<div class="kgx-zeile summe"><span class="kgx-name">Summe</span><span style="flex:1"><span class="kgx-klein">Einnahmen ' + euro(se) + ' · Ausgaben ' + euro(sa) + '</span></span><span class="kgx-wert">' + euro(se - sa) + '</span></div>';
+            return { over: 'Buchhaltung', titel: 'Bilanz ' + jetzt.getFullYear(), gross: euro(se - sa), unter: 'Gewinn Januar – heute (Einnahmen − gewerbliche Ausgaben)', body: '<div class="kgx-liste">' + html + '</div>', link: ['/buchhaltung', 'Buchhaltung öffnen'] };
+        }
+        if (a === 'todo') {
+            const kw = liste(() => allLabels), er = liste(() => allErledigt), of = liste(() => allOffen);
+            let start = 0; try { start = Math.max(0, Number(currentIndex) || 0); } catch (e) {}
+            let html = '', se = 0, so = 0;
+            for (let i = start; i < Math.min(start + 5, kw.length); i++) {
+                const e = Number(er[i]) || 0, o = Number(of[i]) || 0; se += e; so += o;
+                html += '<div class="kgx-zeile"><span class="kgx-name">' + esc(kw[i]) + '</span><span class="kgx-balken"><i style="width:' + ((e + o) ? e / (e + o) * 100 : 0).toFixed(0) + '%;background:linear-gradient(90deg,#34d399,#059669)"></i></span><span class="kgx-wert">' + e + ' erledigt · <span class="kgx-minus">' + o + ' offen</span></span></div>';
+            }
+            const proz = ((document.getElementById('todoBatteryText') || {}).textContent || '').trim();
+            return { over: 'To-Do Liste', titel: 'Aufgaben nach Woche', gross: proz + ' erledigt', unter: se + ' erledigt · ' + so + ' offen in den angezeigten Wochen', body: '<div class="kgx-liste">' + html + '</div>', link: ['/todo', 'To-Do Liste öffnen'] };
+        }
+        if (a === 'telefon' || a === 'angebot') {
+            return { over: a === 'telefon' ? 'Telefonakquise' : 'Angebot', titel: a === 'telefon' ? 'Akquise diesen Monat' : 'Angebote im Überblick', gross: '', unter: '',
+                body: '<div class="kgx-kacheln">' + stat(karte) + '</div><div class="kgx-hinweis">Diese Zahlen sind auf der Startseite noch nicht mit der Datenbank verbunden.</div>',
+                link: a === 'telefon' ? ['/leon/gespraeche', 'Leon-Gespräche öffnen'] : ['/datenbank', 'Datenbank öffnen'] };
+        }
+        if (a === 'kunden' || a === 'personal') {
+            const w = liste(() => (a === 'kunden' ? kgKundenBestand : kgPersonalBestand));
+            const zahl = ((karte.querySelector('.dashboard-count-bubble') || {}).textContent || '').trim();
+            const plusminus = (i, v) => { if (i === 0) return ''; const d = v - (Number(w[i - 1]) || 0); return d ? '<span class="kgx-klein ' + (d > 0 ? 'kgx-plus' : 'kgx-minus') + '">' + (d > 0 ? '+' : '') + d + ' zum Vormonat</span>' : '<span class="kgx-klein">unverändert</span>'; };
+            return { over: a === 'kunden' ? 'Aktive Kunden' : 'Aktive Mitarbeiter', titel: a === 'kunden' ? 'Kundenbestand je Monat' : 'Personal je Monat', gross: zahl + (a === 'kunden' ? ' Kunden' : ' Mitarbeiter'), unter: 'Stand am Monatsende ' + jetzt.getFullYear(),
+                body: w.length ? '<div class="kgx-liste">' + zeilen(w, v => String(v), plusminus) + '</div>' : '<div class="kgx-hinweis">Noch keine Daten.</div>',
+                link: a === 'kunden' ? ['/kunden', 'Kunden öffnen'] : ['/mitarbeiter', 'Personal öffnen'] };
+        }
+        return null;
+    }
+
+    let offen = null;
+    function oeffnen(karte) {
+        if (offen) return;
+        const daten = inhalt(art(karte), karte);
+        if (!daten) return;
+        const r = karte.getBoundingClientRect(), vw = window.innerWidth, vh = window.innerHeight;
+        const w = Math.min(600, vw - 24), h = Math.min(Math.round(vh * 0.86), 720);
+        const ziel = { top: Math.round((vh - h) / 2), left: Math.round((vw - w) / 2), width: w, height: h };
+        const hinter = document.createElement('div'); hinter.className = 'kgx-hinter';
+        const panel = document.createElement('section'); panel.className = 'kgx-panel'; panel.setAttribute('role', 'dialog'); panel.setAttribute('aria-modal', 'true');
+        panel.innerHTML = '<div class="kgx-inhalt"><div class="kgx-kopf"><button type="button" class="kgx-zu" aria-label="Schließen">✕</button>' +
+            '<div class="kgx-over">' + esc(daten.over) + '</div><h2 class="kgx-titel">' + esc(daten.titel) + '</h2>' +
+            (daten.gross ? '<div class="kgx-gross">' + esc(daten.gross) + '</div>' : '') + (daten.unter ? '<div class="kgx-unter">' + esc(daten.unter) + '</div>' : '') + '</div>' +
+            '<div class="kgx-body">' + daten.body + '</div><div class="kgx-fuss"><a href="' + daten.link[0] + '">' + esc(daten.link[1]) + '</a></div></div>';
+        Object.assign(panel.style, { top: ziel.top + 'px', left: ziel.left + 'px', width: ziel.width + 'px', height: ziel.height + 'px' });
+        document.body.appendChild(hinter); document.body.appendChild(panel);
+        karte.style.visibility = 'hidden';
+        offen = { karte: karte, panel: panel, hinter: hinter };
+        hinter.addEventListener('click', () => schliessen());
+        panel.querySelector('.kgx-zu').addEventListener('click', () => schliessen());
+        if (!ruhig() && panel.animate) {
+            panel.animate([{ top: r.top + 'px', left: r.left + 'px', width: r.width + 'px', height: r.height + 'px', borderRadius: '20px' },
+                           { top: ziel.top + 'px', left: ziel.left + 'px', width: ziel.width + 'px', height: ziel.height + 'px', borderRadius: '28px' }], { duration: 560, easing: 'cubic-bezier(.22,1,.36,1)' });
+            panel.querySelector('.kgx-inhalt').animate([{ opacity: 0 }, { opacity: 0, offset: 0.35 }, { opacity: 1 }], { duration: 620, easing: 'ease' });
+            hinter.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 420, easing: 'ease' });
+        }
+    }
+    function schliessen() {
+        if (!offen) return;
+        const o = offen; offen = null;
+        const fertig = () => { o.panel.remove(); o.hinter.remove(); o.karte.style.visibility = ''; };
+        if (ruhig() || !o.panel.animate) { fertig(); return; }
+        const a = o.panel.getBoundingClientRect(), r = o.karte.getBoundingClientRect();
+        const ani = o.panel.animate([{ top: a.top + 'px', left: a.left + 'px', width: a.width + 'px', height: a.height + 'px', borderRadius: '28px', opacity: 1 },
+                                     { top: r.top + 'px', left: r.left + 'px', width: r.width + 'px', height: r.height + 'px', borderRadius: '20px', opacity: 0.85 }], { duration: 480, easing: 'cubic-bezier(.4,0,.2,1)', fill: 'forwards' });
+        o.panel.querySelector('.kgx-inhalt').animate([{ opacity: 1 }, { opacity: 0 }], { duration: 170, fill: 'forwards' });
+        o.hinter.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 480, fill: 'forwards' });
+        let erledigt = false; const einmal = () => { if (!erledigt) { erledigt = true; fertig(); } };
+        ani.onfinish = einmal; setTimeout(einmal, 650);
+    }
+    document.addEventListener('keydown', e => { if (offen && e.key === 'Escape') schliessen(); });
+    document.querySelectorAll('.dashboard-grid .kpi-card').forEach(karte => {
+        karte.addEventListener('click', e => {
+            if (e.target.closest('a, button, input, select, textarea')) return;
+            oeffnen(karte);
+        });
+    });
+})();
+</script>
+{% endraw %}
 
 {% endblock %}
