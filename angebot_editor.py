@@ -9,13 +9,14 @@
 # Datenbank vorgeschlagen (Daten werden übernommen); erst „Entwurf“/„Senden“ legt – wie „Direktes Angebot“ in der
 # Datenbank – einen Eintrag in der Besichtigungsliste an.
 import html
+import io
 import json
 import re
 from datetime import datetime
 from urllib.parse import urlencode
 from zoneinfo import ZoneInfo
 
-from flask import jsonify, render_template, request
+from flask import jsonify, render_template, request, send_file
 
 import besichtigung_zeit as bz
 
@@ -34,6 +35,15 @@ def _tabelle(conn):
             felder_json TEXT,
             kalkulation_json TEXT,
             geaendert_am TEXT
+        )
+    """)
+    # vergebene Angebot-Nummern (zuletzt vergebene = Grundlage für die nächste, siehe app2.angebot_next_number)
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS angebot_nummern (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            nr INTEGER NOT NULL,
+            tagesliste_id INTEGER,
+            vergeben_am TEXT
         )
     """)
 
@@ -69,6 +79,12 @@ def _zahl(text):
 
 def _euro(v):
     return f"{float(v or 0):,.2f} €".replace(",", "X").replace(".", ",").replace("X", ".")
+
+
+def _nr(text):
+    """„AN-2267“, „2267“ → „2267“ (sonst leer)."""
+    m = re.search(r"\d{1,8}", str(text or ""))
+    return m.group(0).lstrip("0") or "0" if m else ""
 
 
 def _heute():
@@ -184,6 +200,8 @@ def _sauber(f):
     aus = {k: _txt(f.get(k))[:200] for k in ("firma", "ansprechpartner", "objekt", "adresse", "plz", "ort", "email", "telefon",
                                               "leistungsart", "ausfuehrungszeitraum", "datum")}
     aus["positionen"] = pos
+    aus["nr"] = _nr(f.get("nr"))
+    aus["nr_manuell"] = bool(f.get("nr_manuell")) and bool(aus["nr"])
     return aus
 
 
@@ -277,7 +295,15 @@ def register_angebot_editor(app, login_required, get_db_connection, app2_modul):
         leer = {k: "" for k in ("firma", "ansprechpartner", "strasse", "plz", "ort", "email", "telefon")}
         felder = _sauber(_leer_felder(leer, {}, am))
         felder["positionen"] = [{"text": "", "einheit": "monatlich", "preis": ""} for _ in range(4)]
-        return jsonify({"ok": True, "felder": felder, "aufmass": am, "koeffizienten": koeffizienten(app2_modul.ANGEBOT_STUNDENSATZ)})
+        conn = get_db_connection()
+        try:
+            _tabelle(conn)
+            naechste = app2_modul.angebot_next_number(conn.cursor())
+            conn.commit()
+        finally:
+            conn.close()
+        return jsonify({"ok": True, "felder": felder, "aufmass": am, "koeffizienten": koeffizienten(app2_modul.ANGEBOT_STUNDENSATZ),
+                        "naechste_nr": naechste})
 
     @app.route("/api/angebot-editor/suche")
     @login_required
@@ -341,9 +367,10 @@ def register_angebot_editor(app, login_required, get_db_connection, app2_modul):
                 felder, quelle = _sauber(_felder_aus_vars(vars_, row)), "angebot"
             else:
                 felder, quelle = _sauber(_leer_felder(row, daten, am)), "neu"
+            naechste = "" if nr else app2_modul.angebot_next_number(cur)
             conn.commit()
             return jsonify({
-                "ok": True, "id": tid, "status": status, "aus_backup": aus_backup, "angebot_nr": nr,
+                "ok": True, "id": tid, "status": status, "aus_backup": aus_backup, "angebot_nr": nr, "naechste_nr": naechste,
                 "angebot_datum": (row["angebot_datum"] if "angebot_datum" in keys else "") or "",
                 "felder": felder, "felder_quelle": quelle,
                 "kalkulation": _json(entwurf["kalkulation_json"], {}) if entwurf else {},
@@ -412,7 +439,21 @@ def register_angebot_editor(app, login_required, get_db_connection, app2_modul):
                 row = cur.execute("SELECT * FROM tagesliste_leads WHERE id = ?", (tid,)).fetchone()
                 if not row:
                     return jsonify({"ok": False, "error": "Firma konnte nicht wiederhergestellt werden."}), 500
-            nr = str(row["angebot_nr"] or "").strip() or app2_modul.angebot_next_number(cur)
+            # Nummer: von Hand eingetragen → genau diese (wenn frei); sonst die schon vergebene; sonst die nächste freie
+            alt = _nr(row["angebot_nr"])
+            if f["nr_manuell"] and f["nr"] != alt:
+                belegt = None
+                for r in cur.execute("SELECT id, firma, angebot_nr FROM tagesliste_leads WHERE id != ? AND COALESCE(angebot_nr, '') != ''", (tid,)).fetchall():
+                    if _nr(r["angebot_nr"]) == f["nr"]:
+                        belegt = r
+                        break
+                if belegt:
+                    return jsonify({"ok": False, "error": f"AN-{f['nr']} ist schon vergeben ({belegt['firma'] or 'ohne Firma'})."}), 409
+                nr = f["nr"]
+            else:
+                nr = alt or app2_modul.angebot_next_number(cur)
+            if nr != alt:
+                cur.execute("INSERT INTO angebot_nummern (nr, tagesliste_id, vergeben_am) VALUES (?, ?, ?)", (int(nr), tid, _jetzt()))
             f["datum"] = f["datum"] or str(row["angebot_datum"] or "").strip() or _heute()
             v = vorlage_vars(f, nr)
             netto, mwst, brutto = summen(f)
@@ -432,6 +473,56 @@ def register_angebot_editor(app, login_required, get_db_connection, app2_modul):
                             "mail_url": "/datenbank/mail-mini?" + urlencode(mail)})
         finally:
             conn.close()
+
+    @app.route("/angebot/editor/lv-vorschau")
+    @login_required
+    def angebot_editor_lv_vorschau():
+        """Leistungsverzeichnis (bestehende Seite /leistungsverzeichnis) für die Vorschau – ohne Druckdialog."""
+        ansicht = app.view_functions.get("app2_leistungsverzeichnis")
+        if not ansicht:
+            return "Leistungsverzeichnis nicht verfügbar.", 404
+        seite_html = ansicht()
+        if not isinstance(seite_html, str):
+            return seite_html
+        stopp = "<script>window.print = function () {};</script>"
+        return seite_html.replace("<head>", "<head>" + stopp, 1) if "<head>" in seite_html else stopp + seite_html
+
+    @app.route("/angebot/editor/pdf")
+    @login_required
+    def angebot_editor_pdf():
+        """PDF zum Herunterladen: Angebot (wie die Vorschau) oder Leistungsverzeichnis (gespeicherter Eintrag)."""
+        a = request.args
+        nr = _nr(a.get("nr")) or "Entwurf"
+        firma = re.sub(r"[^A-Za-z0-9ÄÖÜäöüß]+", "_", _txt(a.get("firma")))[:40].strip("_")
+        basis = request.host_url.rstrip("/")
+        if a.get("art") == "lv":
+            tid = a.get("id", type=int) or 0
+            if tid <= 0:
+                return jsonify({"ok": False, "error": "Leistungsverzeichnis gibt es erst nach dem Speichern."}), 400
+            url, name = f"{basis}/angebot/editor/lv-vorschau?angebot_id={tid}&print=1", f"Leistungsverzeichnis_AN-{nr}.pdf"
+        else:
+            werte = [(k, v) for k, v in a.items(multi=True) if k not in ("art", "drucken", "id")]
+            url, name = f"{basis}/angebot/editor/vorschau?" + urlencode(werte), f"Angebot_AN-{nr}" + (f"_{firma}" if firma else "") + ".pdf"
+        try:
+            from playwright.sync_api import sync_playwright
+            keks_name = app.config.get("SESSION_COOKIE_NAME", "session")
+            keks = request.cookies.get(keks_name, "")
+            with sync_playwright() as p:
+                browser = p.chromium.launch(headless=True, args=["--no-sandbox"])
+                try:
+                    ctx = browser.new_context(viewport={"width": 1240, "height": 1754}, device_scale_factor=1)
+                    if keks:
+                        ctx.add_cookies([{"name": keks_name, "value": keks, "url": basis}])
+                    seite = ctx.new_page()
+                    seite.goto(url, wait_until="networkidle", timeout=25000)
+                    seite.emulate_media(media="print")
+                    pdf = seite.pdf(format="A4", print_background=True, prefer_css_page_size=True, scale=1,
+                                    margin={"top": "0mm", "right": "0mm", "bottom": "0mm", "left": "0mm"})
+                finally:
+                    browser.close()
+        except Exception as exc:
+            return jsonify({"ok": False, "error": "PDF konnte nicht erstellt werden: " + str(exc)}), 500
+        return send_file(io.BytesIO(pdf), mimetype="application/pdf", as_attachment=True, download_name=name)
 
     @app.route("/angebot/editor/vorschau")
     @login_required

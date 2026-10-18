@@ -1032,35 +1032,39 @@ def angebot_today_de():
     return datetime.now().strftime("%d.%m.%Y")
 
 
+ANGEBOT_NR_START = 2266  # letzte Nummer vor der neuen Zählung – die nächste ist AN-2267
+
+
 def angebot_next_number(cursor):
-    rows = cursor.execute("""
+    # Angebot-Nummern laufen fortlaufend: nächste = zuletzt vergebene (noch vorhandene) Nummer + 1, besetzte werden
+    # übersprungen. Wird ein Angebot gelöscht oder zurückgesetzt, ist seine Nummer wieder frei (die Zählung fällt zurück).
+    # Von Hand im Angebot-Editor eingetragene Nummern zählen als „zuletzt vergeben“ (Tabelle angebot_nummern).
+    benutzt = set()
+    for row in cursor.execute("""
         SELECT angebot_nr
         FROM tagesliste_leads
         WHERE angebot_nr IS NOT NULL
         AND angebot_nr != ''
-    """).fetchall()
-
-    # Yeni doğru Angebot-Nummer sistemi:
-    # İlk yeni numara AN-2265 olacak.
-    # 2165 gibi hatalı eski numaralar dikkate alınmayacak.
-    max_nr = 2264
-
-    for row in rows:
-        raw = str(row[0] or "")
-        match = re.search(r"(\d+)", raw)
-
+    """).fetchall():
+        match = re.search(r"(\d+)", str(row[0] or ""))
         if match:
-            try:
-                nummer = int(match.group(1))
+            benutzt.add(int(match.group(1)))
 
-                # Sadece yeni doğru seri dikkate alınır: 2265 ve sonrası.
-                if nummer >= 2265 and nummer > max_nr:
-                    max_nr = nummer
+    basis = ANGEBOT_NR_START
+    try:
+        for nr, tid in cursor.execute("SELECT nr, tagesliste_id FROM angebot_nummern ORDER BY id DESC LIMIT 50").fetchall():
+            noch_da = cursor.execute("SELECT angebot_nr FROM tagesliste_leads WHERE id = ?", (tid,)).fetchone()
+            treffer = re.search(r"(\d+)", str(noch_da[0] or "")) if noch_da else None
+            if treffer and int(treffer.group(1)) == int(nr):
+                basis = int(nr)
+                break
+    except sqlite3.OperationalError:
+        pass  # angebot_nummern entsteht mit dem ersten Angebot aus dem Angebot-Editor
 
-            except Exception:
-                pass
-
-    return str(max_nr + 1)
+    nummer = basis + 1
+    while nummer in benutzt:
+        nummer += 1
+    return str(nummer)
 
 
 def angebot_extract_ausfuehrungszeitraum(besichtigung_data):
