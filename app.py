@@ -915,6 +915,13 @@ try:
 except Exception as exc:
     print(f"⚠️ LifeHub-Brücke: {exc}")
 
+# Startseite: Kasten „Objekte“ (Umsatz, Mitarbeiter, Lohn je Objekt) – schreibt nur die eigene Zuordnungstabelle
+try:
+    from startseite_objekte import register_startseite_objekte
+    register_startseite_objekte(app, login_required, get_db_connection)
+except Exception as exc:
+    print(f"⚠️ Startseite-Objekte: {exc}")
+
 # Besichtigung: Zeitberechnung mit allen Details für die Kalkulation-Kachel (nur rechnen, speichert nichts)
 from besichtigung_zeit import register_besichtigung_zeit
 import app2 as _app2_mod

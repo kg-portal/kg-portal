@@ -1238,6 +1238,94 @@ html.kg-st-warten .dashboard-grid > .module-container:not(.kg-st-an) { opacity: 
 </div>
 </div>
 
+<style>
+/* ===== Objekte: Mosaik unter den 8 Kacheln (Fläche = Umsatz / Monat), Klick = Mitarbeiter, Lohn, Ergebnis ===== */
+.kgo-box { margin-top: 20px; }
+.kgo-box .kgo-auge { top: 39px; right: 42px; }
+.kgo-karte { background: #ffffff; border-radius: 20px; padding: 18px 22px 22px; }
+.kgo-kopf { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; min-height: 38px; padding-right: 52px; }
+.kgo-titel { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.kgo-titel .card-month-badge { flex: none; }
+.kgo-titel h3 { margin: 0; font-size: 20px; font-weight: 900; color: #0f172a; letter-spacing: -0.2px; }
+.kgo-monat { display: inline-flex; align-items: center; gap: 4px; margin-left: auto; padding: 4px; border-radius: 13px; background: #eff6ff; }
+.kgo-monat button { width: 30px; height: 30px; border: 0; border-radius: 9px; background: #ffffff; color: #1e40af; font-size: 18px; font-weight: 900; line-height: 1; cursor: pointer; box-shadow: 0 2px 6px rgba(30, 64, 175, 0.14); }
+.kgo-monat button:disabled { opacity: 0.35; cursor: default; }
+.kgo-monat b { min-width: 158px; text-align: center; font-size: 14px; font-weight: 900; color: #1e3a8a; }
+.kgo-zu-text { display: none; margin-left: auto; font-size: 13px; font-weight: 800; color: #64748b; }
+.kgo-box.kgo-zu .kgo-monat, .kgo-box.kgo-zu .kgo-inhalt { display: none; }
+.kgo-box.kgo-zu .kgo-zu-text { display: block; }
+.kgo-inhalt { display: grid; grid-template-columns: 300px minmax(0, 1fr); gap: 22px; margin-top: 16px; }
+.kgo-links { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+.kgo-gross small, .kgo-wert small, .kgo-offen > small { display: block; font-size: 11.5px; font-weight: 900; letter-spacing: 0.12em; text-transform: uppercase; color: #64748b; }
+.kgo-gross b { display: block; margin-top: 4px; font-size: 40px; font-weight: 900; line-height: 1.05; color: #0f172a; letter-spacing: -1px; font-variant-numeric: tabular-nums; }
+.kgo-gross b.plus { color: #047857; } .kgo-gross b.minus { color: #b91c1c; }
+.kgo-gross span { display: block; margin-top: 4px; font-size: 13px; font-weight: 700; color: #64748b; }
+.kgo-balken { display: flex; height: 14px; border-radius: 7px; overflow: hidden; background: #eef2f7; }
+.kgo-balken i { display: block; height: 100%; }
+.kgo-balken .l { background: linear-gradient(90deg, #f87171, #dc2626); }
+.kgo-balken .e { background: linear-gradient(90deg, #34d399, #059669); }
+.kgo-legende { display: flex; justify-content: space-between; gap: 8px; margin-top: -6px; font-size: 12px; font-weight: 800; color: #475569; }
+.kgo-legende span::before { content: ""; display: inline-block; width: 9px; height: 9px; margin-right: 6px; border-radius: 3px; background: var(--f); }
+.kgo-werte { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.kgo-wert { padding: 12px 14px; border-radius: 16px; color: #ffffff; box-shadow: 0 12px 24px -16px rgba(15, 23, 42, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.35); }
+.kgo-wert small { color: rgba(255, 255, 255, 0.86); letter-spacing: 0.06em; }
+.kgo-wert b { display: block; margin-top: 4px; font-size: 19px; font-weight: 900; font-variant-numeric: tabular-nums; }
+.kgo-wert.blau { background: linear-gradient(145deg, #3b82f6, #1e40af); }
+.kgo-wert.rot { background: linear-gradient(145deg, #f87171, #b91c1c); }
+.kgo-offen { padding: 12px 14px; border-radius: 16px; background: #fff7ed; border: 1px dashed #fdba74; }
+.kgo-offen > small { color: #c2410c; }
+.kgo-offen div { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.kgo-ort { border: 0; border-radius: 999px; padding: 6px 11px; background: #ffffff; color: #9a3412; font: inherit; font-size: 12px; font-weight: 800; cursor: pointer; box-shadow: 0 2px 6px rgba(194, 65, 12, 0.15); }
+.kgo-ort:hover { background: #ffedd5; }
+.kgo-mosaik { position: relative; height: 400px; min-width: 0; }
+.kgo-leer { display: grid; place-items: center; height: 100%; border-radius: 16px; background: #f8fafc; color: #64748b; font-weight: 800; text-align: center; padding: 20px; }
+.kgo-k { position: absolute; display: flex; flex-direction: column; align-items: flex-start; justify-content: flex-start; overflow: hidden; margin: 0; border: 0; border-radius: 14px; padding: 12px 14px; color: #ffffff; text-align: left; font: inherit; cursor: pointer;
+    box-shadow: 0 12px 22px -14px rgba(30, 64, 175, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.4); transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease; }
+.kgo-k::after { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 46%; background: linear-gradient(180deg, rgba(255, 255, 255, 0.24), rgba(255, 255, 255, 0)); pointer-events: none; }
+.kgo-k:hover, .kgo-k:focus-visible { transform: translateY(-2px); box-shadow: 0 18px 30px -14px rgba(30, 64, 175, 0.85), inset 0 1px 0 rgba(255, 255, 255, 0.45); filter: brightness(1.06); z-index: 2; outline: none; }
+.kgo-k.gold { color: #3b1d02; box-shadow: 0 14px 28px -14px rgba(217, 119, 6, 0.85), inset 0 1px 0 rgba(255, 255, 255, 0.55); }
+.kgo-k .kgo-n { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; max-width: 100%; font-size: 13px; font-weight: 900; line-height: 1.2; overflow: hidden; overflow-wrap: anywhere; }
+.kgo-k .kgo-b { display: block; margin-top: 4px; font-size: 22px; font-weight: 900; line-height: 1.1; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.kgo-k .kgo-e { position: absolute; left: 12px; bottom: 10px; max-width: calc(100% - 24px); padding: 4px 9px; border-radius: 999px; font-size: 11.5px; font-weight: 900; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; background: rgba(255, 255, 255, 0.2); color: #ffffff; }
+.kgo-k .kgo-e.plus { background: #dcfce7; color: #166534; }
+.kgo-k .kgo-e.minus { background: #fee2e2; color: #991b1b; }
+.kgo-k .kgo-nr { display: block; margin-bottom: 4px; font-size: 10.5px; font-weight: 900; letter-spacing: 0.14em; opacity: 0.85; }
+.kgo-k .kgo-s { display: block; margin-top: 6px; font-size: 12px; font-weight: 800; opacity: 0.9; white-space: nowrap; }
+.kgo-k.klein { padding: 9px 10px; } .kgo-k.klein .kgo-n { font-size: 11.5px; } .kgo-k.klein .kgo-b { font-size: 15px; } .kgo-k.klein .kgo-e { left: 8px; bottom: 7px; font-size: 10.5px; padding: 3px 7px; }
+.kgo-k.mini { padding: 6px 7px; } .kgo-k.mini .kgo-n { font-size: 10.5px; -webkit-line-clamp: 1; } .kgo-k.mini .kgo-b { font-size: 12px; margin-top: 2px; } .kgo-k.mini .kgo-e, .kgo-k.mini .kgo-nr, .kgo-k.klein .kgo-s, .kgo-k.mini .kgo-s, .kgo-k.flach .kgo-s { display: none; }
+.kgo-k.winzig .kgo-b, .kgo-k.winzig .kgo-n { display: none; }
+.kgo-k.flach .kgo-e { display: none; }
+.kgo-k.gold .kgo-e:not(.plus):not(.minus) { background: rgba(59, 29, 2, 0.14); color: #3b1d02; }
+.kgo-box.kgo-wartet .kgo-inhalt { opacity: 0; }
+.kgo-h { margin: 18px 0 8px; font-size: 12.5px; font-weight: 900; letter-spacing: 0.12em; text-transform: uppercase; color: #64748b; }
+.kgo-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.kgo-chip { display: inline-flex; align-items: center; gap: 6px; padding: 7px 8px 7px 12px; border-radius: 999px; background: #eff6ff; color: #1e3a8a; font-size: 13px; font-weight: 800; }
+.kgo-chip button { width: 22px; height: 22px; border: 0; border-radius: 50%; background: #dbeafe; color: #1e40af; font-weight: 900; cursor: pointer; line-height: 1; }
+.kgo-chip button:hover { background: #fecaca; color: #b91c1c; }
+.kgo-wahl { display: flex; gap: 8px; margin-top: 10px; }
+.kgo-wahl select { flex: 1; min-width: 0; padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 12px; font: inherit; font-size: 14px; font-weight: 700; color: #0f172a; background: #ffffff; }
+.kgo-wahl button { flex: none; padding: 10px 16px; border: 0; border-radius: 12px; background: linear-gradient(135deg, #1e40af, #3b82f6); color: #ffffff; font: inherit; font-size: 14px; font-weight: 900; cursor: pointer; }
+.kgo-wahl button:disabled { opacity: 0.5; cursor: default; }
+.kgo-fehler { margin-top: 8px; font-size: 13px; font-weight: 800; color: #b91c1c; }
+@media (max-width: 1100px) { .kgo-inhalt { grid-template-columns: minmax(0, 1fr); } .kgo-mosaik { height: 440px; } }
+@media (max-width: 600px) { .kgo-titel h3 { font-size: 17px; } .kgo-monat { margin-left: 0; } .kgo-monat b { min-width: 130px; } .kgo-mosaik { height: 520px; } }
+@media print { .kgo-box { display: none !important; } }
+</style>
+<section class="module-container kgo-box kgo-zu" id="kgoBox" aria-label="Objekte">
+    <button type="button" class="module-hide-toggle kgo-auge" id="kgoAuge" title="Objekte zeigen / ausblenden" aria-pressed="false"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.8 10.8 0 0 1 12 19c-6.5 0-10.5-7-10.5-7a18.3 18.3 0 0 1 5.06-5.94"></path><path d="M9.9 4.24A10.9 10.9 0 0 1 12 4.99c6.5 0 10.5 7 10.5 7a18.5 18.5 0 0 1-2.2 3.02"></path><path d="M14.12 14.12A3 3 0 0 1 9.88 9.88"></path><path d="M3 3l18 18"></path></svg></button>
+    <div class="kgo-karte">
+        <div class="kgo-kopf">
+            <div class="kgo-titel"><span class="card-month-badge">Objekte</span><h3>Wer dein Geld bringt</h3></div>
+            <div class="kgo-monat"><button type="button" data-schritt="-1" aria-label="Monat zurück">‹</button><b id="kgoMonat">–</b><button type="button" data-schritt="1" aria-label="Monat vor">›</button></div>
+            <div class="kgo-zu-text">Ausgeblendet · Auge antippen zum Zeigen</div>
+        </div>
+        <div class="kgo-inhalt">
+            <div class="kgo-links" id="kgoLinks"></div>
+            <div class="kgo-mosaik" id="kgoMosaik"></div>
+        </div>
+    </div>
+</section>
+
 
 <!--
 ..........................................................................................................
@@ -2228,6 +2316,7 @@ const percent = kgTodoPercent;
 
     // 2) Detail-Fenster
     function art(karte) {
+        if (karte.classList.contains('kgo-k') || karte.classList.contains('kgo-ort')) return 'objekt';
         if (karte.classList.contains('index-kal-box')) return 'kalender';
         if (karte.classList.contains('index-wetter-gross')) return 'wetter';
         const t = ((karte.querySelector('.card-month-badge, .card-label') || {}).textContent || '').trim().toLowerCase();
@@ -2356,6 +2445,7 @@ const percent = kgTodoPercent;
     }
 
     function inhalt(a, karte) {
+        if (a === 'objekt') return window.kgoInhalt ? window.kgoInhalt(karte) : null;
         if (a === 'kalender') return kalenderInhalt();
         if (a === 'wetter') return wetterInhalt();
         const wert = ((karte.querySelector('.card-value') || {}).textContent || '').trim();
@@ -2491,6 +2581,7 @@ const percent = kgTodoPercent;
         ani.onfinish = einmal; setTimeout(einmal, 650);
     }
     document.addEventListener('keydown', e => { if (offen && e.key === 'Escape') schliessen(); });
+    window.kgxOeffnen = oeffnen; // Objekte-Kasten nutzt dasselbe Detail-Fenster
     document.querySelectorAll('.index-kal-box, .index-wetter-gross').forEach(box => box.addEventListener('click', () => oeffnen(box)));
     document.querySelectorAll('.dashboard-grid .kpi-card').forEach(karte => {
         karte.addEventListener('click', e => {
@@ -2623,6 +2714,271 @@ const percent = kgTodoPercent;
     // sobald alles aufgebaut ist (Kacheln umgebaut, Grafiken erstellt) – ohne zusätzliche Wartezeit
     const start = () => los();
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start); else start();
+})();
+</script>
+{% endraw %}
+
+{% raw %}
+<script>
+// Objekte-Kasten: Bestandskunden als Mosaik (Fläche = Umsatz / Monat). Klick öffnet das Detail-Fenster
+// mit Mitarbeitern, Stunden, Lohn und Ergebnis. Standard: ausgeblendet (im Laden sieht Kundschaft mit) – das Auge zeigt ihn.
+(function () {
+    const box = document.getElementById('kgoBox');
+    if (!box) return;
+    const SCHLUESSEL = 'kg_startseite_objekte_sichtbar';
+    const auge = document.getElementById('kgoAuge');
+    const AUGE_ZU = auge.innerHTML;
+    const AUGE_AN = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M1.5 12s4-7 10.5-7 10.5 7 10.5 7-4 7-10.5 7S1.5 12 1.5 12z"></path><circle cx="12" cy="12" r="3"></circle></svg>';
+    const links = document.getElementById('kgoLinks'), mosaik = document.getElementById('kgoMosaik'), monatEl = document.getElementById('kgoMonat');
+    const [zurueck, weiter] = box.querySelectorAll('.kgo-monat button');
+    const ruhig = () => window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    const euro = v => Math.round(Number(v) || 0).toLocaleString('de-DE') + ' €';
+    const vz = v => (Math.round(v) > 0 ? '+' : Math.round(v) < 0 ? '−' : '') + euro(Math.abs(v));
+    const std = v => (Math.round((Number(v) || 0) * 10) / 10).toLocaleString('de-DE') + ' Std';
+    const prozent = (a, b) => (b > 0 ? Math.round(a / b * 100) : 0) + ' %';
+    let daten = null, laedt = false;
+
+    function lesen() { try { return localStorage.getItem(SCHLUESSEL) === '1'; } catch (e) { return false; } }
+    function merken(an) { try { localStorage.setItem(SCHLUESSEL, an ? '1' : '0'); } catch (e) {} }
+
+    function holen(monat) {
+        return fetch('/api/startseite/objekte' + (monat ? '?monat=' + encodeURIComponent(monat) : ''), { credentials: 'same-origin', headers: { Accept: 'application/json' } })
+            .then(r => r.json())
+            .then(d => { if (!d || !d.ok) throw new Error((d && d.error) || 'Fehler'); daten = d; return d; });
+    }
+    function laden(monat, animiert) {
+        if (laedt) return;
+        laedt = true;
+        if (!daten) mosaik.innerHTML = '<div class="kgo-leer">Lädt …</div>';
+        holen(monat)
+            .then(() => { if (!box.classList.contains('kgo-zu')) zeichnen(animiert); })
+            .catch(() => { links.innerHTML = ''; mosaik.innerHTML = '<div class="kgo-leer">Objekte konnten nicht geladen werden.</div>'; })
+            .finally(() => { laedt = false; });
+    }
+    function sichtbar(an, animiert) {
+        box.classList.toggle('kgo-zu', !an);
+        auge.innerHTML = an ? AUGE_AN : AUGE_ZU;
+        auge.setAttribute('aria-pressed', an ? 'true' : 'false');
+        if (!an) { links.innerHTML = ''; mosaik.innerHTML = ''; return; } // ausgeblendet: nichts im Hintergrund stehen lassen
+        laden(daten ? daten.monat : '', animiert);
+    }
+
+    // Mosaik: Rechtecke so quadratisch wie möglich (squarified)
+    function squarify(items, x, y, w, h) {
+        const aus = [], faktor = w * h / items.reduce((a, b) => a + b.v, 0);
+        let rest = items.map(i => Object.assign({}, i, { a: i.v * faktor }));
+        while (rest.length) {
+            const kurz = Math.min(w, h);
+            const schlecht = r => { const s = r.reduce((a, b) => a + b.a, 0), mx = Math.max(...r.map(q => q.a)), mn = Math.min(...r.map(q => q.a)); return Math.max(kurz * kurz * mx / (s * s), s * s / (kurz * kurz * mn)); };
+            let reihe = [rest[0]], i = 1;
+            while (i < rest.length && schlecht(reihe.concat(rest[i])) <= schlecht(reihe)) { reihe.push(rest[i]); i++; }
+            const s = reihe.reduce((a, b) => a + b.a, 0);
+            if (w >= h) { const bw = s / h; let yy = y; reihe.forEach(q => { const bh = q.a / bw; aus.push(Object.assign(q, { x: x, y: yy, w: bw, h: bh })); yy += bh; }); x += bw; w -= bw; }
+            else { const bh = s / w; let xx = x; reihe.forEach(q => { const bw = q.a / bh; aus.push(Object.assign(q, { x: xx, y: y, w: bw, h: bh })); xx += bw; }); y += bh; h -= bh; }
+            rest = rest.slice(i);
+        }
+        return aus;
+    }
+
+    function zeichnen(animiert) {
+        const d = daten, s = d.summe;
+        monatEl.textContent = d.monat_name + (d.laeuft ? ' (läuft)' : '');
+        zurueck.disabled = d.monat <= d.min;
+        weiter.disabled = d.monat >= d.max;
+
+        // links: Ergebnis nach Lohn, Balken, Summen, Orte ohne Objekt
+        const hat = s.objekte_zugeordnet > 0;
+        const lohnTeil = s.umsatz_zugeordnet > 0 ? Math.min(100, s.lohn_zugeordnet / s.umsatz_zugeordnet * 100) : 100;
+        let h = '<div class="kgo-gross"><small>Ergebnis nach Lohn</small>';
+        h += hat ? '<b class="' + (s.ergebnis >= 0 ? 'plus' : 'minus') + '" data-kgo-zahl="' + s.ergebnis + '" data-kgo-vz="1">' + vz(s.ergebnis) + '</b><span>' + prozent(s.ergebnis, s.umsatz_zugeordnet) + ' Marge · ' + s.objekte_zugeordnet + ' von ' + d.kunden.length + ' Objekten mit Einsatzort</span>'
+                 : '<b>–</b><span>Noch kein Einsatzort zugeordnet. Objekt antippen und den Ort aus dem Stundenzettel wählen.</span>';
+        h += '</div>';
+        if (hat) h += '<div class="kgo-balken"><i class="l" style="width:' + lohnTeil + '%"></i><i class="e" style="width:' + (100 - lohnTeil) + '%"></i></div>' +
+            '<div class="kgo-legende"><span style="--f:#dc2626">Lohn ' + euro(s.lohn_zugeordnet) + '</span><span style="--f:#059669">Ergebnis ' + vz(s.ergebnis) + '</span></div>';
+        h += '<div class="kgo-werte"><div class="kgo-wert blau" data-kg-skip><small>Umsatz / Monat</small><b data-kgo-zahl="' + s.umsatz + '">' + euro(s.umsatz) + '</b></div>' +
+            '<div class="kgo-wert rot" data-kg-skip><small>Lohn ' + esc(d.monat_name.split(' ')[0]) + '</small><b data-kgo-zahl="' + s.lohn + '">' + euro(s.lohn) + '</b></div></div>';
+        if (d.offen.length) h += '<div class="kgo-offen"><small>Einsatzorte ohne Objekt</small><div>' +
+            d.offen.map((o, i) => '<button type="button" class="kgo-ort" data-i="' + i + '">' + esc(o.ort) + ' · ' + std(o.stunden) + '</button>').join('') + '</div></div>';
+        links.innerHTML = h;
+        links.querySelectorAll('.kgo-ort').forEach(b => {
+            b._kgo = { typ: 'ort', ort: d.offen[Number(b.dataset.i)] };
+            b.addEventListener('click', () => window.kgxOeffnen && window.kgxOeffnen(b));
+        });
+
+        // rechts: Mosaik
+        const liste = d.kunden.filter(k => k.umsatz > 0);
+        if (!liste.length) { mosaik.innerHTML = '<div class="kgo-leer">Noch keine Bestandskunden mit Betrag je Monat.</div>'; return; }
+        const kacheln = squarify(liste.map((k, i) => ({ k: k, i: i, v: k.umsatz })), 0, 0, mosaik.clientWidth, mosaik.clientHeight);
+        mosaik.innerHTML = '';
+        kacheln.forEach(q => {
+            const k = q.k, el = document.createElement('button'), rand = 3, w = q.w - 2 * rand, hh = q.h - 2 * rand;
+            el.type = 'button';
+            el.className = 'kgo-k';
+            el.setAttribute('data-kg-skip', '');
+            Object.assign(el.style, { left: (q.x + rand) + 'px', top: (q.y + rand) + 'px', width: Math.max(0, w) + 'px', height: Math.max(0, hh) + 'px' });
+            if (q.i === 0) { el.classList.add('gold'); el.style.background = 'linear-gradient(145deg, #fcd34d, #f59e0b 55%, #d97706)'; }
+            else {
+                const t = liste.length > 2 ? (q.i - 1) / (liste.length - 2) : 0;
+                el.style.background = 'linear-gradient(145deg, hsl(217 91% ' + (62 - t * 22) + '%), hsl(224 76% ' + (46 - t * 18) + '%))';
+            }
+            if (w < 46 || hh < 30) el.classList.add('winzig');
+            else if (w < 100 || hh < 58) el.classList.add('mini');
+            else if (w < 170 || hh < 110) el.classList.add('klein');
+            if (hh < 80) el.classList.add('flach');
+            const e = k.ergebnis;
+            el.innerHTML = (q.i === 0 ? '<span class="kgo-nr">★ NR. 1</span>' : '') + '<span class="kgo-n">' + esc(k.firma) + '</span><span class="kgo-b" data-kgo-zahl="' + k.umsatz + '">' + euro(k.umsatz) + '</span>' +
+                (k.orte.length && k.mitarbeiter.length ? '<span class="kgo-s">' + k.mitarbeiter.length + ' ' + (k.mitarbeiter.length === 1 ? 'Person' : 'Personen') + ' · ' + std(k.stunden) + '</span>' : '') +
+                (e === null ? '<span class="kgo-e">Ort zuordnen</span>' : '<span class="kgo-e ' + (e >= 0 ? 'plus' : 'minus') + '">' + vz(e) + ' · ' + prozent(e, k.umsatz) + '</span>');
+            el.title = k.firma + ' · ' + euro(k.umsatz) + ' / Monat';
+            el._kgo = { typ: 'kunde', id: k.id };
+            el.addEventListener('click', () => window.kgxOeffnen && window.kgxOeffnen(el));
+            mosaik.appendChild(el);
+        });
+
+        if (animiert && !ruhig()) {
+            const r = box.getBoundingClientRect();
+            if (r.top < window.innerHeight * 0.92) auftritt();
+            else {
+                box.classList.add('kgo-wartet');
+                const io = new IntersectionObserver(es => { if (es.some(x => x.isIntersecting)) { io.disconnect(); box.classList.remove('kgo-wartet'); auftritt(); } }, { threshold: 0.12 });
+                io.observe(box);
+            }
+        }
+    }
+
+    // Auftritt wie bei der Datenbank: Kacheln wachsen nacheinander, Zahlen laufen hoch
+    function auftritt() {
+        mosaik.querySelectorAll('.kgo-k').forEach((el, i) => {
+            if (el.animate) el.animate([{ opacity: 0, transform: 'scale(.86)' }, { opacity: 1, transform: 'none' }], { duration: 700, delay: Math.min(i, 16) * 60, easing: 'cubic-bezier(.22,1,.36,1)', fill: 'backwards' });
+        });
+        const balken = links.querySelector('.kgo-balken');
+        if (balken && balken.animate) balken.animate([{ clipPath: 'inset(0 100% 0 0 round 7px)' }, { clipPath: 'inset(0 0 0 0 round 7px)' }], { duration: 1200, delay: 200, easing: 'cubic-bezier(.22,1,.36,1)', fill: 'backwards' });
+        box.querySelectorAll('[data-kgo-zahl]').forEach(el => {
+            const ziel = Number(el.dataset.kgoZahl) || 0, mitVz = el.dataset.kgoVz === '1', t0 = performance.now(), dauer = 1500;
+            const schritt = t => {
+                if (!el.isConnected) return;
+                const p = Math.min(1, (t - t0) / dauer), w = ziel * (1 - Math.pow(1 - p, 3));
+                el.textContent = mitVz ? vz(w) : euro(w);
+                if (p < 1) requestAnimationFrame(schritt);
+            };
+            requestAnimationFrame(schritt);
+        });
+    }
+
+    // Detail-Fenster (gleiches Fenster wie Kalender, Wetter und Kacheln)
+    function nachSchliessen(fn) {
+        if (!document.querySelector('.kgx-panel')) { fn(); return; }
+        const mo = new MutationObserver(() => { if (!document.querySelector('.kgx-panel')) { mo.disconnect(); fn(); } });
+        mo.observe(document.body, { childList: true });
+    }
+    function speichern(panel, ort, kundeId) {
+        const body = panel.querySelector('.kgx-body');
+        const fehler = body.querySelector('.kgo-fehler');
+        body.querySelectorAll('button, select').forEach(x => { x.disabled = true; });
+        return fetch('/api/startseite/objekte/zuordnung', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json', Accept: 'application/json' }, body: JSON.stringify({ ort: ort, kunde_id: kundeId }) })
+            .then(r => r.json())
+            .then(r => { if (!r || !r.ok) throw new Error((r && r.error) || 'Fehler'); return holen(daten.monat); })
+            .then(() => { nachSchliessen(() => { if (!box.classList.contains('kgo-zu')) zeichnen(false); }); return true; })
+            .catch(e => {
+                body.querySelectorAll('button, select').forEach(x => { x.disabled = false; });
+                if (fehler) { fehler.textContent = 'Nicht gespeichert: ' + e.message; fehler.hidden = false; }
+                return false;
+            });
+    }
+    function monatKurz() { return daten.monat_name.split(' ')[0]; }
+    function kundeBody(k) {
+        const mitOrt = k.orte.length > 0;
+        let h = '<div class="kgx-kacheln">' +
+            '<div class="kgx-kachel blue">Umsatz / Monat<b>' + euro(k.umsatz) + '</b></div>' +
+            '<div class="kgx-kachel red">Lohn ' + esc(monatKurz()) + '<b>' + (mitOrt ? euro(k.lohn) : '–') + '</b></div>' +
+            '<div class="kgx-kachel ' + (!mitOrt ? 'gray' : k.ergebnis >= 0 ? 'green' : 'red') + '">Ergebnis<b>' + (mitOrt ? vz(k.ergebnis) : '–') + '</b></div>' +
+            '<div class="kgx-kachel purple">Marge<b>' + (mitOrt ? prozent(k.ergebnis, k.umsatz) : '–') + '</b></div></div>';
+        h += '<h4 class="kgo-h">Mitarbeiter an diesem Objekt · ' + esc(daten.monat_name) + '</h4><div class="kgx-liste">';
+        if (!mitOrt) h += '<div class="kgx-zeile"><span class="kgx-klein">Erst unten einen Einsatzort aus dem Stundenzettel zuordnen – dann erscheinen Mitarbeiter, Stunden und Lohn.</span></div>';
+        else if (!k.mitarbeiter.length) h += '<div class="kgx-zeile"><span class="kgx-klein">Keine Stunden in diesem Monat.</span></div>';
+        else {
+            const max = Math.max.apply(null, k.mitarbeiter.map(m => m.stunden).concat([1]));
+            h += k.mitarbeiter.map(m => '<div class="kgx-zeile"><span class="kgx-name" style="width:160px">' + esc(m.name) +
+                '<span class="kgx-klein">' + m.satz.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' € / Std</span></span>' +
+                '<span class="kgx-balken"><i style="width:' + (m.stunden / max * 100) + '%"></i></span>' +
+                '<span class="kgx-wert">' + euro(m.lohn) + '<span class="kgx-klein">' + std(m.stunden) + '</span></span></div>').join('') +
+                '<div class="kgx-zeile summe"><span style="flex:1">Zusammen · ' + k.mitarbeiter.length + ' ' + (k.mitarbeiter.length === 1 ? 'Person' : 'Personen') + '</span>' +
+                '<span class="kgx-wert">' + euro(k.lohn) + '<span class="kgx-klein">' + std(k.stunden) + '</span></span></div>';
+        }
+        h += '</div><h4 class="kgo-h">Einsatzorte aus dem Stundenzettel</h4><div class="kgo-chips">' +
+            (k.orte.length ? k.orte.map((o, i) => '<span class="kgo-chip">' + esc(o) + '<button type="button" data-weg="' + i + '" title="Zuordnung lösen" aria-label="Zuordnung lösen">✕</button></span>').join('')
+                           : '<span class="kgx-klein">Noch keiner zugeordnet.</span>') + '</div>';
+        const passt = o => o.length > 2 && k.firma.toLowerCase().indexOf(o.toLowerCase()) >= 0;
+        const frei = daten.orte_alle.filter(o => o.kunde_id !== k.id)
+            .sort((a, b) => (passt(b.ort) - passt(a.ort)) || ((a.kunde_id ? 1 : 0) - (b.kunde_id ? 1 : 0)) || a.ort.localeCompare(b.ort, 'de'));
+        h += '<div class="kgo-wahl"><select aria-label="Einsatzort wählen"><option value="">Einsatzort hinzufügen …</option>' +
+            frei.map(o => '<option value="' + esc(o.ort) + '">' + (passt(o.ort) ? '★ ' : '') + esc(o.ort) + (o.kunde ? ' (jetzt bei ' + esc(o.kunde) + ')' : '') + '</option>').join('') +
+            '</select><button type="button" data-dazu>Zuordnen</button></div><div class="kgo-fehler" hidden></div>' +
+            '<p class="kgx-hinweis">Lohn = Stunden × Stundenlohn aus dem Stundenzettel (ohne Arbeitgeber-Abgaben). Material und Fahrten sind nicht abgezogen. Ein Einsatzort gehört immer zu genau einem Objekt.</p>';
+        return h;
+    }
+    function kundeBinden(panel, id) {
+        const k = daten.kunden.find(x => x.id === id);
+        if (!k) return;
+        const body = panel.querySelector('.kgx-body');
+        const neu = () => {
+            const k2 = daten.kunden.find(x => x.id === id);
+            if (!k2) { const zu = panel.querySelector('.kgx-zu'); if (zu) zu.click(); return; }
+            body.innerHTML = kundeBody(k2);
+            kundeBinden(panel, id);
+        };
+        body.querySelectorAll('[data-weg]').forEach(b => b.addEventListener('click', () => {
+            speichern(panel, k.orte[Number(b.dataset.weg)], null).then(ok => { if (ok) neu(); });
+        }));
+        const wahl = body.querySelector('.kgo-wahl select'), knopf = body.querySelector('[data-dazu]');
+        knopf.addEventListener('click', () => {
+            if (!wahl.value) { wahl.focus(); return; }
+            speichern(panel, wahl.value, id).then(ok => { if (ok) neu(); });
+        });
+    }
+    function ortInhalt(o) {
+        const passt = k => o.ort.length > 2 && k.firma.toLowerCase().indexOf(o.ort.toLowerCase()) >= 0;
+        const kunden = daten.kunden.slice().sort((a, b) => (passt(b) - passt(a)) || a.firma.localeCompare(b.firma, 'de'));
+        const body = '<div class="kgx-kacheln"><div class="kgx-kachel blue">Stunden<b>' + std(o.stunden) + '</b></div><div class="kgx-kachel red">Lohn<b>' + euro(o.lohn) + '</b></div></div>' +
+            '<h4 class="kgo-h">Zu welchem Objekt gehört dieser Ort?</h4><div class="kgo-wahl"><select aria-label="Objekt wählen"><option value="">Objekt wählen …</option>' +
+            kunden.map(k => '<option value="' + k.id + '">' + (passt(k) ? '★ ' : '') + esc(k.firma) + (k.ort ? ' · ' + esc(k.ort) : '') + '</option>').join('') +
+            '</select><button type="button" data-dazu>Zuordnen</button></div><div class="kgo-fehler" hidden></div>' +
+            '<p class="kgx-hinweis">Danach zählen Stunden und Lohn dieses Ortes zu dem Objekt – in jedem Monat.</p>';
+        return {
+            over: 'Einsatzort · ' + daten.monat_name, titel: o.ort, gross: std(o.stunden),
+            unter: o.mitarbeiter + ' Mitarbeiter · noch keinem Objekt zugeordnet', body: body,
+            nachher: panel => {
+                const b = panel.querySelector('.kgx-body'), wahl = b.querySelector('select');
+                b.querySelector('[data-dazu]').addEventListener('click', () => {
+                    if (!wahl.value) { wahl.focus(); return; }
+                    speichern(panel, o.ort, Number(wahl.value)).then(ok => { if (ok) { const zu = panel.querySelector('.kgx-zu'); if (zu) zu.click(); } });
+                });
+            }
+        };
+    }
+    window.kgoInhalt = function (karte) {
+        const info = karte._kgo;
+        if (!info || !daten) return null;
+        if (info.typ === 'ort') return ortInhalt(info.ort);
+        const k = daten.kunden.find(x => x.id === info.id);
+        if (!k) return null;
+        return {
+            over: 'Objekt · ' + daten.monat_name + (daten.laeuft ? ' (läuft)' : ''), titel: k.firma, gross: euro(k.umsatz) + ' / Monat',
+            unter: [k.ort, k.freq].filter(Boolean).join(' · '), body: kundeBody(k), nachher: panel => kundeBinden(panel, k.id)
+        };
+    };
+
+    zurueck.addEventListener('click', () => { if (daten && !zurueck.disabled) laden(schritt(daten.monat, -1), true); });
+    weiter.addEventListener('click', () => { if (daten && !weiter.disabled) laden(schritt(daten.monat, 1), true); });
+    function schritt(m, n) { const t = m.split('-').map(Number), d = new Date(t[0], t[1] - 1 + n, 1); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0'); }
+    auge.addEventListener('click', e => { e.preventDefault(); const an = box.classList.contains('kgo-zu'); merken(an); sichtbar(an, true); });
+    let breite = 0, warte = 0;
+    window.addEventListener('resize', () => {
+        clearTimeout(warte);
+        warte = setTimeout(() => { if (daten && !box.classList.contains('kgo-zu') && mosaik.clientWidth !== breite && !document.querySelector('.kgx-panel')) { breite = mosaik.clientWidth; zeichnen(false); } }, 200);
+    });
+    sichtbar(lesen(), true);
 })();
 </script>
 {% endraw %}
