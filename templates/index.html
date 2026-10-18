@@ -592,7 +592,7 @@
     color: #1e40af;
 }
 
-/* Wetter: große Temperatur, 4 Tage mit Temperatur-Spanne */
+/* Wetter: große Temperatur oben, darunter das Laufband mit 7 Tagen */
 .index-weather-box.index-wetter-gross {
     display: flex;
     flex-direction: column;
@@ -657,54 +657,13 @@
     height: 68px;
 }
 
-.index-wetter-gross .wg-tage {
-    display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 6px;
+.index-wetter-gross .wg-unten {
     padding-top: 7px;
     border-top: 1px solid #e2e8f0;
 }
 
-.index-wetter-gross .wg-tag {
-    display: grid;
-    justify-items: center;
-    gap: 3px;
-    min-width: 0;
-}
-
-.index-wetter-gross .wg-tag b {
-    font-size: 10.5px;
-    font-weight: 900;
-    color: #1d4ed8;
-}
-
-.index-wetter-gross .wg-tag img {
-    width: 28px;
-    height: 22px;
-    object-fit: contain;
-}
-
-.index-wetter-gross .wg-bahn {
-    position: relative;
-    width: 100%;
-    height: 5px;
-    border-radius: 9px;
-    background: #e2e8f0;
-}
-
-.index-wetter-gross .wg-bahn i {
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    border-radius: 9px;
-    background: linear-gradient(90deg, #60a5fa, #f59e0b);
-}
-
-.index-wetter-gross .wg-tag span {
-    font-size: 10px;
-    font-weight: 800;
-    color: #334155;
-    white-space: nowrap;
+.index-wetter-gross .weather-forecast-window {
+    margin-top: 0;
 }
 
 .index-weather-box .index-weather-main {
@@ -1048,7 +1007,11 @@
                 <img id="weather-icon" src="/static/sunny.png" alt="Wetter">
             </div>
 
-            <div id="weather-forecast-track" class="wg-tage"></div>
+            <div class="wg-unten">
+                <div class="weather-forecast-window">
+                    <div id="weather-forecast-track" class="weather-forecast-track"></div>
+                </div>
+            </div>
         </div>
     </div>
 </section>
@@ -1975,34 +1938,46 @@ function kalenderwoche(d) {
                 "Sa"
             ];
 
-            // 4 Tage (heute + 3) mit Temperatur-Spanne; Balken auf derselben Skala
-            const tage = data.daily.time.slice(0, 4);
-            const tiefs = tage.map((_, i) => Math.round(data.daily.temperature_2m_min[i]));
-            const hochs = tage.map((_, i) => Math.round(data.daily.temperature_2m_max[i]));
-            const skalaMin = Math.min(...tiefs);
-            const skalaSpanne = Math.max(1, Math.max(...hochs) - skalaMin);
-
-            const forecastItems = tage.map((dateValue, index) => {
+            const forecastItems = data.daily.time.map((dateValue, index) => {
                 const date = new Date(dateValue + "T12:00:00");
                 const weather = getWeatherDetails(
                     Number(data.daily.weather_code[index])
                 );
-                const dayName = index === 0 ? "Heute" : dayNames[date.getDay()];
-                const links = (tiefs[index] - skalaMin) / skalaSpanne * 100;
-                const breite = Math.max(8, (hochs[index] - tiefs[index]) / skalaSpanne * 100);
+
+                const dayName =
+                    index === 0
+                        ? "Heute"
+                        : dayNames[date.getDay()];
 
                 return `
-                    <div class="wg-tag">
-                        <b>${dayName}</b>
-                        <img src="${weather.iconPath}" alt="${weather.germanDesc}">
-                        <div class="wg-bahn"><i style="left:${links}%;width:${breite}%"></i></div>
-                        <span>${tiefs[index]}° – ${hochs[index]}°</span>
+                    <div class="weather-forecast-day">
+                        <span class="weather-forecast-name">
+                            ${dayName}
+                        </span>
+
+                        <img
+                            class="weather-forecast-icon"
+                            src="${weather.iconPath}"
+                            alt="${weather.germanDesc}"
+                        >
+
+                        <span class="weather-forecast-temperature">
+                            <span class="weather-forecast-max">
+                                ${Math.round(data.daily.temperature_2m_max[index])}°
+                            </span>
+
+                            /
+
+                            <span class="weather-forecast-min">
+                                ${Math.round(data.daily.temperature_2m_min[index])}°
+                            </span>
+                        </span>
                     </div>
                 `;
             }).join("");
 
             document.getElementById('weather-forecast-track').innerHTML =
-                forecastItems;
+                forecastItems + forecastItems;
 
         } catch (error) {
             document.getElementById('weather-desc').textContent = "Offline";
