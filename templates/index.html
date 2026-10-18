@@ -1,6 +1,21 @@
 {% extends "base.html" %}
 
 {% block content %}
+<style>
+/* Auftritt wie bei der Datenbank: erst fertig aufbauen, dann Kacheln nacheinander weich einblenden */
+html.kg-st-warten .index-hero:not(.kg-st-an),
+html.kg-st-warten .dashboard-grid > .module-container:not(.kg-st-an) { opacity: 0; }
+@media print { html.kg-st-warten .index-hero, html.kg-st-warten .dashboard-grid > .module-container { opacity: 1 !important; } }
+</style>
+<script>
+(function () {
+    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    var h = document.documentElement;
+    h.classList.add('kg-st-warten');
+    // Sicherheitsnetz: falls ein Skript scheitert, nach 4 s alles zeigen
+    setTimeout(function () { if (!h.classList.contains('kg-st-bereit')) h.classList.remove('kg-st-warten'); }, 4000);
+})();
+</script>
 
 <!--
 ..........................................................................................................
@@ -2449,6 +2464,131 @@ const percent = kgTodoPercent;
             oeffnen(karte);
         });
     });
+})();
+</script>
+{% endraw %}
+{% raw %}
+<script>
+/* ===== Startseite: Auftritt wie bei der Datenbank (nur Anzeige, keine Daten werden geändert) ===== */
+(function () {
+    'use strict';
+    const h = document.documentElement;
+    if (!h.classList.contains('kg-st-warten')) return;   // reduzierte Bewegung oder Sicherheitsnetz schon gegriffen
+    const DAUER_ZAHL = 1500, DAUER_GRAFIK = 1700, STAFFEL = 90;
+
+    // Zahl im Text finden („12.200,00 €“, „0%“, „16“) und deutsch formatiert hochzählen
+    function zaehlen(el, verzoegerung) {
+        const text = (el.textContent || '').trim();
+        const m = text.match(/^([^0-9-]*)(-?\d{1,3}(?:\.\d{3})+|-?\d+)(?:,(\d+))?(.*)$/);
+        if (!m) return;
+        const nk = m[3] ? m[3].length : 0;
+        const ziel = Number(m[2].replace(/\./g, '') + (nk ? '.' + m[3] : ''));
+        if (!isFinite(ziel) || ziel === 0) return;
+        const gruppe = m[2].indexOf('.') >= 0 || Math.abs(ziel) < 1000;
+        const fmt = v => m[1] + v.toLocaleString('de-DE', { minimumFractionDigits: nk, maximumFractionDigits: nk, useGrouping: gruppe }) + m[4];
+        let zuletzt = fmt(0);
+        el.textContent = zuletzt;
+        setTimeout(() => {
+            const start = performance.now();
+            function schritt(t) {
+                if (el.textContent !== zuletzt) return;          // ein anderes Skript hat die Zahl inzwischen neu gesetzt
+                const p = Math.min(1, (t - start) / DAUER_ZAHL);
+                zuletzt = p < 1 ? fmt(ziel * (1 - Math.pow(1 - p, 3))) : text;
+                el.textContent = zuletzt;
+                if (p < 1) requestAnimationFrame(schritt);
+            }
+            requestAnimationFrame(schritt);
+        }, verzoegerung);
+    }
+
+    // Akku der To-Do-Liste füllt sich mit
+    function akku(teil, verzoegerung) {
+        const fill = teil.querySelector('#todoBatteryFill');
+        if (!fill) return;
+        const ziel = Number(fill.style.getPropertyValue('--level')) || 0;
+        if (!ziel) return;
+        fill.style.setProperty('--level', 0);
+        setTimeout(() => {
+            const start = performance.now();
+            function schritt(t) {
+                const p = Math.min(1, (t - start) / DAUER_ZAHL);
+                fill.style.setProperty('--level', Math.round(ziel * (1 - Math.pow(1 - p, 3))));
+                if (p < 1) requestAnimationFrame(schritt);
+            }
+            requestAnimationFrame(schritt);
+        }, verzoegerung);
+    }
+
+    // Grafiken neu von null aufbauen, wenn ihre Kachel sichtbar wird
+    function grafiken(teil, verzoegerung) {
+        if (!window.Chart || !Chart.getChart) return;
+        teil.querySelectorAll('canvas').forEach(c => {
+            const ch = Chart.getChart(c);
+            if (!ch) return;
+            setTimeout(() => {
+                const bis = performance.now() + DAUER_GRAFIK + 200;
+                // Farbwechsel (Hell/Dunkel) springt sonst ans Ende – während des Aufbaus weich weiterlaufen lassen
+                if (!ch.$kgStUpdate) {
+                    const orig = ch.update.bind(ch);
+                    ch.$kgStUpdate = orig;
+                    ch.update = function (mode) { return (mode === 'none' && performance.now() < ch.$kgStBis) ? orig() : orig(mode); };
+                }
+                ch.$kgStBis = bis;
+                const anim = ch.options.animation;
+                const vorher = anim ? anim.duration : undefined;
+                if (anim) anim.duration = DAUER_GRAFIK;
+                ch.reset();
+                ch.update();
+                if (anim) setTimeout(() => { anim.duration = vorher; }, 50);
+            }, verzoegerung);
+        });
+    }
+
+    // Einblenden per Web-Animation (läuft auch weiter, wenn der Hell/Dunkel-Umschalter CSS-Animationen kurz anhält)
+    function einblenden(teil, verz) {
+        if (!teil.animate) return;
+        const a = teil.animate([{ opacity: 0, transform: 'translateY(18px) scale(0.985)' }, { opacity: 1, transform: 'none' }],
+                               { duration: 800, delay: verz, easing: 'cubic-bezier(0.22, 1, 0.36, 1)', fill: 'backwards' });
+        setTimeout(() => { if (a.playState !== 'finished') a.finish(); }, verz + 1600);   // nie unsichtbar hängen bleiben
+    }
+
+    function zeigen(teil, i) {
+        if (teil.classList.contains('kg-st-an')) return;
+        const verz = i * STAFFEL;
+        einblenden(teil, verz);
+        teil.classList.add('kg-st-an');
+        const start = verz + 220;
+        teil.querySelectorAll('.kgk-z, .card-value, .dashboard-count-bubble, .dashboard-stat-item > span, #todoBatteryText, .mt-rechts b')
+            .forEach(el => zaehlen(el, start));
+        akku(teil, start);
+        grafiken(teil, verz + 120);
+    }
+
+    function los() {
+        const teile = [document.querySelector('.index-hero')].concat(Array.from(document.querySelectorAll('.dashboard-grid > .module-container'))).filter(Boolean);
+        const hoehe = window.innerHeight;
+        const sofort = teile.filter(t => t.getBoundingClientRect().top < hoehe * 0.95);
+        const spaeter = teile.filter(t => sofort.indexOf(t) < 0);
+        sofort.forEach((t, i) => zeigen(t, i));
+        h.classList.add('kg-st-bereit');
+        if (!spaeter.length) return;
+        if (!window.IntersectionObserver) { spaeter.forEach((t, i) => zeigen(t, i)); return; }
+        let welle = [], warte = null;
+        const io = new IntersectionObserver(eintraege => {
+            eintraege.forEach(e => { if (e.isIntersecting) { io.unobserve(e.target); welle.push(e.target); } });
+            clearTimeout(warte);
+            warte = setTimeout(() => {
+                welle.sort((a, b) => a.getBoundingClientRect().top - b.getBoundingClientRect().top || a.getBoundingClientRect().left - b.getBoundingClientRect().left);
+                welle.forEach((t, i) => zeigen(t, i));
+                welle = [];
+            }, 30);
+        }, { threshold: 0.18 });
+        spaeter.forEach(t => io.observe(t));
+    }
+
+    // erst wenn alles aufgebaut ist (Kacheln umgebaut, Grafiken erstellt) – dann wirkt die Seite nie halbfertig
+    const start = () => requestAnimationFrame(() => requestAnimationFrame(() => setTimeout(los, 60)));
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start); else start();
 })();
 </script>
 {% endraw %}
