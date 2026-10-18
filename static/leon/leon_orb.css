@@ -18,12 +18,12 @@ html body .ldb .ldb-head {
   border: 0 !important;
   border-radius: 30px !important;
   color: #fff !important;
+  /* auf jeder Seite derselbe dunkle Ton (nur %-Angaben, unabhängig von Höhe und Breite des Kopfes) */
   background:
-    repeating-linear-gradient(115deg, rgba(255,255,255,.04) 0 2px, transparent 2px 22px),
-    radial-gradient(600px 300px at 85% -10%, rgba(147,197,253,.55), transparent 60%),
-    radial-gradient(500px 260px at 0% 120%, rgba(56,189,248,.35), transparent 60%),
-    linear-gradient(135deg, #071a4d, #0b2a6f 35%, #1d4ed8 80%, #2563eb) !important;
-  box-shadow: 0 22px 48px rgba(11,42,111,.34) !important;
+    repeating-linear-gradient(115deg, rgba(255,255,255,.035) 0 2px, transparent 2px 22px),
+    radial-gradient(ellipse 45% 90% at 100% 0%, rgba(59,130,246,.28), transparent 70%),
+    linear-gradient(100deg, #06143a 0%, #0a2160 50%, #0e2c7a 100%) !important;
+  box-shadow: 0 22px 48px rgba(6,20,58,.38) !important;
 }
 
 /* Leon-Kugel */
@@ -173,6 +173,12 @@ html body .kgb-hero .danger-clear-button {
 }
 html body .kgb-hero .btn-danger:hover,
 html body .kgb-hero .danger-clear-button:hover { background: rgba(239,68,68,.38) !important; }
+
+/* Breite Seite: Tabellen passen hinein (rechts nichts abgeschnitten); schmal (Laptop/Tablet): weiter seitlich scrollbar */
+@media (min-width: 1400px) {
+  html body .table-scroll > table,
+  html body .table-wrap > table { min-width: 0 !important; }
+}
 
 @keyframes loRing {
   0%, 100% { transform: scale(1); opacity: 1; }
