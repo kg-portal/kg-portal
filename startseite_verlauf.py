@@ -148,6 +148,17 @@ def startseite_verlauf(conn, now, einnahmen):
     monatstrend = [0.0] + [round(sum(trend_tage[:t + 1]), 2) if t <= heute else None for t in (7, 14, 21)] + \
                   [round(float(einnahmen[akt - 1] or 0), 2)]
 
+    # Monatstrend je Tag (aufsummiert bis heute) für die Hochrechnung; Rechnungen ohne lesbares Datum
+    # zählen auf heute, damit der letzte Wert genau der Monatsumsatz der Kachel ist
+    monatstrend_tage = []
+    summe = 0.0
+    for t in range(1, heute + 1):
+        summe += trend_tage[t]
+        monatstrend_tage.append(round(summe, 2))
+    if monatstrend_tage:
+        monatstrend_tage[-1] = round(max(monatstrend_tage[-1], float(einnahmen[akt - 1] or 0)), 2)
+    tage_im_monat = calendar.monthrange(jahr, akt)[1]
+
     def bis_heute(werte, runden=None):
         return [(round(v, runden) if runden is not None else v) if i < akt else None for i, v in enumerate(werte)]
 
@@ -166,5 +177,7 @@ def startseite_verlauf(conn, now, einnahmen):
         "angebot_zahlen": angebot,
         "angebot_liste": angebot_liste,
         "monatstrend_echt": monatstrend,
+        "monatstrend_tage": monatstrend_tage,
+        "monatstrend_tage_im_monat": tage_im_monat,
         "einnahmen_monat": float(einnahmen[akt - 1] or 0),
     }

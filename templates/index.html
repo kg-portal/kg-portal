@@ -276,6 +276,15 @@
     }
 
     .chart-title { font-size: 16px; font-weight: 800; color: #1e40af; margin-bottom: 15px; } 
+
+    /* Monatstrend: Summe und Hochrechnung im Kopf */
+    .chart-title.mt-kopf { display: flex; justify-content: space-between; align-items: flex-start; gap: 6px; min-height: 34px; margin-bottom: 0; }
+    .mt-kopf > div:first-child { min-width: 0; }
+    .mt-kopf small { display: block; margin-top: 2px; font-size: 10.5px; font-weight: 700; color: #64748b; }
+    .mt-rechts { text-align: right; line-height: 1; white-space: nowrap; }
+    .mt-rechts b { display: block; font-size: 16px; font-weight: 900; color: #0f1d4a; }
+    .mt-rechts span { display: inline-block; margin-top: 4px; padding: 2px 6px; border-radius: 999px; background: #eff6ff; color: #1d4ed8; font-size: 9.5px; font-weight: 900; }
+    .mt-rechts span:empty { display: none; }
     canvas { width: 100% !important; height: 180px !important; }
 
     .dashboard-grid {
@@ -1053,7 +1062,7 @@
             <div class="card-label">Monatlicher Umsatz</div>
             <div class="card-value">{{ "{:,.2f}".format(monatlicher_umsatz).replace(",", "X").replace(".", ",").replace("X", ".") }} €</div>
         </div>
-        <div class="chart-box"><div class="chart-title">Monatstrend</div><canvas id="monthlyTrendChart"></canvas></div>
+        <div class="chart-box"><div class="chart-title mt-kopf"><div>Monatstrend<small id="mtUnter">Tag für Tag aufsummiert</small></div><div class="mt-rechts"><b id="mtSumme"></b><span id="mtHoch"></span></div></div><canvas id="monthlyTrendChart"></canvas></div>
     </div>
 
     <div class="module-container">
@@ -1358,6 +1367,8 @@
     }
 
     const kgMonatstrendGrafikVerisi = kgFallbackArray('{{ (monatstrend_echt or monatstrend_grafik_verisi) | tojson }}', [0, 2500, 5200, 7800, 10000]);
+    const kgMonatstrendTage = kgFallbackArray('{{ (monatstrend_tage or []) | tojson }}', []);
+    const kgMonatstrendTageImMonat = Number('{{ monatstrend_tage_im_monat or 0 }}') || new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getDate();
     const kgJahresGrafikVerisi = kgFallbackArray('{{ jahres_grafik_verisi | tojson }}', [10000, 12000, 11000, 13000, 15000, 14000, 14500, 15200, 16000, 17000, 18000, 19000]);
     const kgKundenGrafikVerisi = kgFallbackArray('{{ kunden_grafik_verisi | tojson }}', [12, 18, 24, 30, 34, 38, 44, 50, 56, 63, 70, 76]);
     const kgPersonelGrafikVerisi = kgFallbackArray('{{ personel_grafik_verisi | tojson }}', [4, 5, 6, 7, 8, 8, 9, 10, 11, 12, 13, 14]);
@@ -1486,56 +1497,71 @@
     initDashboardHideSystem();
 
     // GRAFİKLER (Verilere dokunulmadı)
-    // 📈 MONATSTREND - RAKAM GÖSTERME (TOOLTIP) AKTİF
-new Chart(document.getElementById('monthlyTrendChart'), { 
-    type: 'line', 
-    data: { 
-        labels: ['Start', 'W1', 'W2', 'W3', 'Aktuell'], 
-        datasets: [{ 
-            label: 'Umsatz (€)', 
-            data: kgMonatstrendGrafikVerisi, 
-            spanGaps: true,
-            borderColor: '#1e40af', 
-            backgroundColor: 'rgba(30, 64, 175, 0.1)', 
-            fill: true, 
-            tension: 0.4,
-            pointRadius: 5,         // Noktaları belirginleştirdik
-            pointHoverRadius: 8     // Mouse üzerine gelince nokta büyür
-        }] 
-    }, 
-    options: { 
-        responsive: true, 
-        maintainAspectRatio: false, 
-        interaction: {
-            intersect: false,       // Tam noktanın üstünde olmasan da yakalar
-            mode: 'index',
-        },
-        plugins: { 
-            legend: { display: false },
-            tooltip: { 
-                enabled: true,      // 🚀 RAKAMLARI GÖSTEREN AYAR BUDUR
-                backgroundColor: 'rgba(30, 64, 175, 0.9)',
-                titleFont: { size: 14, weight: 'bold' },
-                bodyFont: { size: 14 },
-                callbacks: {
-                    label: function(context) {
-                        // Rakamı 20.253,04 € formatına sokar
-                        return context.parsed.y.toLocaleString('de-DE', { minimumFractionDigits: 2 }) + ' €';
+    // 📈 MONATSTREND – Einnahmen Tag für Tag aufsummiert, gestrichelt die Hochrechnung bis Monatsende
+(function () {
+    const euro = v => Math.round(v).toLocaleString('de-DE') + ' €';
+    // ohne Tageswerte (z. B. andere Seite): nur der heutige Stand als ein Punkt
+    const kum = kgMonatstrendTage.length ? kgMonatstrendTage
+        : Array.from({ length: new Date().getDate() }, (_, i) => i === new Date().getDate() - 1 ? Number(kgMonatstrendGrafikVerisi[4] || 0) : null);
+    const heute = kum.length, tage = Math.max(kgMonatstrendTageImMonat, heute), stand = Number(kum[heute - 1] || 0);
+    const ende = heute ? Math.round(stand / heute * tage) : 0;
+    const labels = Array.from({ length: tage }, (_, i) => i + 1);
+    const prognose = labels.map(d => d < heute ? null : stand + (ende - stand) * (d - heute) / Math.max(1, tage - heute));
+    const zeigeHochrechnung = heute >= 5 && stand > 0 && tage > heute;
+
+    document.getElementById('mtSumme').textContent = euro(stand);
+    document.getElementById('mtUnter').textContent = 'bis heute (' + heute + '.)';
+    document.getElementById('mtHoch').textContent = zeigeHochrechnung ? 'Ende ≈ ' + euro(ende) : '';
+    document.getElementById('mtHoch').title = 'Hochrechnung: Durchschnitt je Tag bis heute × Tage im Monat';
+
+    const leuchten = { id: 'mtLeuchten',
+        beforeDatasetDraw(c, a) { if (a.index === 0) { c.ctx.save(); c.ctx.shadowColor = 'rgba(37,99,235,.55)'; c.ctx.shadowBlur = 12; } },
+        afterDatasetDraw(c, a) { if (a.index === 0) c.ctx.restore(); } };
+    const heutePunkt = { id: 'mtHeute', afterDatasetsDraw(c) {
+        const p = c.getDatasetMeta(0).data[heute - 1]; if (!p || p.skip) return; const x = c.ctx;
+        const farbe = (c.options.scales.y.ticks && c.options.scales.y.ticks.color) || '#0f1d4a';
+        x.save();
+        x.setLineDash([3, 3]); x.strokeStyle = 'rgba(100,116,139,.45)'; x.lineWidth = 1;
+        x.beginPath(); x.moveTo(p.x, p.y + 9); x.lineTo(p.x, c.chartArea.bottom); x.stroke(); x.setLineDash([]);
+        x.beginPath(); x.arc(p.x, p.y, 9, 0, 7); x.fillStyle = 'rgba(37,99,235,.18)'; x.fill();
+        x.beginPath(); x.arc(p.x, p.y, 4.5, 0, 7); x.fillStyle = '#ffffff'; x.fill(); x.lineWidth = 2.5; x.strokeStyle = '#2563eb'; x.stroke();
+        x.fillStyle = farbe; x.font = '900 10px Arial'; x.textAlign = 'center'; x.fillText('heute', p.x, c.chartArea.bottom - 4);
+        x.restore(); } };
+
+    new Chart(document.getElementById('monthlyTrendChart'), {
+        type: 'line',
+        plugins: [leuchten, heutePunkt],
+        data: { labels: labels, datasets: [
+            { label: 'Einnahmen', data: kum, borderColor: '#2563eb', borderWidth: 3, tension: 0.25, fill: true, pointRadius: 0, spanGaps: true,
+              backgroundColor: c => { const g = c.chart.ctx.createLinearGradient(0, c.chart.chartArea ? c.chart.chartArea.top : 0, 0, c.chart.chartArea ? c.chart.chartArea.bottom : 180);
+                  g.addColorStop(0, 'rgba(37,99,235,.33)'); g.addColorStop(1, 'rgba(37,99,235,0)'); return g; } },
+            { label: 'Hochrechnung', data: zeigeHochrechnung ? prognose : [], borderColor: '#94a3b8', borderDash: [5, 5], borderWidth: 2, fill: false,
+              pointRadius: c => c.dataIndex === tage - 1 ? 4 : 0, pointBackgroundColor: '#94a3b8' }
+        ] },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: { intersect: false, mode: 'index' },
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    backgroundColor: 'rgba(30, 64, 175, 0.92)',
+                    filter: item => item.raw !== null && item.raw !== undefined && !(item.datasetIndex === 1 && item.dataIndex === heute - 1),
+                    callbacks: {
+                        title: items => items.length ? items[0].label + '. ' + new Date().toLocaleDateString('de-DE', { month: 'long' }) : '',
+                        label: c => ' ' + (c.datasetIndex === 1 ? 'Hochrechnung ≈ ' : '') + c.parsed.y.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €'
                     }
                 }
-            }
-        },
-        scales: {
-            y: { 
-                beginAtZero: true,
-                ticks: { font: { weight: 'bold' } } 
             },
-            x: { 
-                ticks: { font: { weight: 'bold' } } 
+            scales: {
+                x: { grid: { display: false }, ticks: { autoSkip: false, maxRotation: 0, font: { weight: 'bold' },
+                    callback: (v, i) => [1, 8, 15, 22, 29].includes(i + 1) ? (i + 1) + '.' : '' } },
+                y: { beginAtZero: true, border: { display: false }, ticks: { font: { weight: 'bold' }, maxTicksLimit: 5,
+                    callback: v => v >= 1000 ? (v / 1000).toLocaleString('de-DE') + 'k' : v } }
             }
         }
-    } 
-});
+    });
+})();
 new Chart(document.getElementById('yearlyOverviewChart'), {
     type: 'bar',
     data: {
