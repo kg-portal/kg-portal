@@ -3,9 +3,11 @@
 {% block content %}
 <style>
 /* Auftritt wie bei der Datenbank: erst fertig aufbauen, dann Kacheln nacheinander weich einblenden */
-html.kg-st-warten .index-hero:not(.kg-st-an),
 html.kg-st-warten .dashboard-grid > .module-container:not(.kg-st-an) { opacity: 0; }
-@media print { html.kg-st-warten .index-hero, html.kg-st-warten .dashboard-grid > .module-container { opacity: 1 !important; } }
+/* Wetter: Inhalt erst zeigen, wenn die Daten da sind (kein Platzhalter-Bild) */
+.index-wetter-gross .wg-stand, .index-wetter-gross .wg-oben, .index-wetter-gross .wg-unten { transition: opacity 0.6s ease; }
+.index-wetter-gross.wg-laedt .wg-stand, .index-wetter-gross.wg-laedt .wg-oben, .index-wetter-gross.wg-laedt .wg-unten { opacity: 0; }
+@media print { html.kg-st-warten .dashboard-grid > .module-container { opacity: 1 !important; } }
 </style>
 <script>
 (function () {
@@ -1027,7 +1029,7 @@ html.kg-st-warten .dashboard-grid > .module-container:not(.kg-st-an) { opacity: 
             </div>
         </div>
 
-        <div class="index-weather-box index-wetter-gross">
+        <div class="index-weather-box index-wetter-gross wg-laedt">
             <div class="wg-kopf">
                 <span class="index-weather-title">Wetter Duisburg</span>
                 <span class="wg-stand" title="Zuletzt aktualisiert"><span id="weather-update-time">--:--</span></span>
@@ -1053,6 +1055,22 @@ html.kg-st-warten .dashboard-grid > .module-container:not(.kg-st-an) { opacity: 
         </div>
     </div>
 </section>
+<script>
+/* Kalenderblatt und Uhr sofort beim Laden füllen – später übernimmt updateClock() wie bisher */
+(function () {
+    var n = new Date(), t = new Date(Date.UTC(n.getFullYear(), n.getMonth(), n.getDate())), w = t.getUTCDay() || 7;
+    t.setUTCDate(t.getUTCDate() + 4 - w);
+    var kw = Math.ceil(((t - new Date(Date.UTC(t.getUTCFullYear(), 0, 1))) / 86400000 + 1) / 7);
+    var setze = function (id, v) { var el = document.getElementById(id); if (el) el.textContent = v; };
+    setze('digital-clock', String(n.getHours()).padStart(2, '0') + ':' + String(n.getMinutes()).padStart(2, '0'));
+    setze('kal-monat', n.toLocaleDateString('de-DE', { month: 'long' }));
+    setze('kal-tag', n.getDate());
+    setze('kal-wt', n.toLocaleDateString('de-DE', { weekday: 'long' }));
+    setze('current-date', 'Duisburg\nKW ' + kw + ' · ' + n.getFullYear());
+    // Wetter spätestens nach 6 s zeigen, auch wenn der Dienst nicht antwortet
+    setTimeout(function () { var b = document.querySelector('.index-wetter-gross'); if (b) b.classList.remove('wg-laedt'); }, 6000);
+})();
+</script>
 
 
 <!--
@@ -1229,6 +1247,20 @@ html.kg-st-warten .dashboard-grid > .module-container:not(.kg-st-an) { opacity: 
 ..........................................................................................................
 -->
 
+<style>
+/* Beim frühen Umfärben keine Farbübergänge (sonst blitzen helle Flächen kurz auf) */
+html.kg-st-sofort *, html.kg-st-sofort *::before, html.kg-st-sofort *::after { transition: none !important; }
+/* Platz für den Dunkel/Hell-Schalter freihalten, bis er eingesetzt ist (kein Springen der Navigation) */
+.portal-sidebar [data-kg-theme-slot]:empty { min-height: 52px; }
+</style>
+<script>
+/* Seite sofort zeigen (Hell/Dunkel schon jetzt anwenden), nicht erst nach dem Laden der Grafik-Bibliotheken */
+if (window.__kgTheme) {
+    document.documentElement.classList.add('kg-st-sofort');
+    window.__kgTheme.apply();
+    requestAnimationFrame(function () { requestAnimationFrame(function () { document.documentElement.classList.remove('kg-st-sofort'); }); });
+}
+</script>
 <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
@@ -2041,6 +2073,8 @@ function kalenderwoche(d) {
             document.getElementById('weather-icon').src = "/static/clouds.png";
             document.getElementById('weather-forecast-track').innerHTML = "";
         }
+        const wetterBox = document.querySelector('.index-wetter-gross');
+        if (wetterBox) wetterBox.classList.remove('wg-laedt');
     }
 
     fetchWeather();
@@ -2565,7 +2599,7 @@ const percent = kgTodoPercent;
     }
 
     function los() {
-        const teile = [document.querySelector('.index-hero')].concat(Array.from(document.querySelectorAll('.dashboard-grid > .module-container'))).filter(Boolean);
+        const teile = Array.from(document.querySelectorAll('.dashboard-grid > .module-container'));
         const hoehe = window.innerHeight;
         const sofort = teile.filter(t => t.getBoundingClientRect().top < hoehe * 0.95);
         const spaeter = teile.filter(t => sofort.indexOf(t) < 0);
@@ -2586,8 +2620,8 @@ const percent = kgTodoPercent;
         spaeter.forEach(t => io.observe(t));
     }
 
-    // erst wenn alles aufgebaut ist (Kacheln umgebaut, Grafiken erstellt) – dann wirkt die Seite nie halbfertig
-    const start = () => requestAnimationFrame(() => requestAnimationFrame(() => setTimeout(los, 60)));
+    // sobald alles aufgebaut ist (Kacheln umgebaut, Grafiken erstellt) – ohne zusätzliche Wartezeit
+    const start = () => los();
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start); else start();
 })();
 </script>
