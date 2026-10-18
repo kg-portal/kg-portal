@@ -40,12 +40,12 @@ def _schluessel(ort):
 
 
 def _monat(wert, heute):
-    """'YYYY-MM' → (start, ende_exklusiv). Ohne Angabe: der letzte volle Monat."""
+    """'YYYY-MM' → (start, ende_exklusiv). Ohne Angabe: der laufende Monat."""
     try:
         jahr, mon = [int(x) for x in str(wert or "").split("-")[:2]]
         start = date(jahr, mon, 1)
     except (ValueError, TypeError):
-        start = date(heute.year - (heute.month == 1), (heute.month - 2) % 12 + 1, 1)
+        start = heute.replace(day=1)
     erster = heute.replace(day=1)
     if start > erster:
         start = erster
