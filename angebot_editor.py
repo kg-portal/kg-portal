@@ -5,6 +5,9 @@
 # und öffnet die vorhandene Mail (KG-Mail mit PDF + LV). besichtigung_data_json wird dabei NICHT verändert.
 # Entwürfe liegen in der eigenen Tabelle angebot_editor_entwuerfe.
 # /tablet/angebot zeigt dieselbe Seite ohne CRM-Menü (für das Tablet).
+# Ohne Besichtigung: Formular startet leer („Neues Angebot“). Beim Tippen der Firma werden Kunden und Firmen aus der
+# Datenbank vorgeschlagen (Daten werden übernommen); erst „Entwurf“/„Senden“ legt – wie „Direktes Angebot“ in der
+# Datenbank – einen Eintrag in der Besichtigungsliste an.
 import html
 import json
 import re
@@ -20,6 +23,8 @@ BERLIN = ZoneInfo("Europe/Berlin")
 EINHEITEN = ["monatlich", "einmalig", "pro Durchgang", "jährlich", "pro Stunde"]
 MWST = 0.19
 BEREICHE = [("buero", "Büro"), ("wc", "WC / Sanitär"), ("kueche", "Küche"), ("flur", "Flur / Eingang")]
+STATUS_NAME = {"offen": "Tagesliste", "angerufen": "Angerufen", "interessiert": "Interessiert", "besichtigung": "Besichtigung",
+               "angebot": "Angebot", "kontaktformular": "Kontaktformular", "spaeter": "Später", "verloren": "Verloren", "kunde": "Kunde"}
 
 
 def _tabelle(conn):
@@ -261,6 +266,55 @@ def register_angebot_editor(app, login_required, get_db_connection, app2_modul):
                                             WHERE status = 'angebot' ORDER BY id DESC LIMIT 200""").fetchall()]
             conn.commit()
             return jsonify({"ok": True, "besichtigungen": bes, "angebote": ang})
+        finally:
+            conn.close()
+
+    @app.route("/api/angebot-editor/neu")
+    @login_required
+    def angebot_editor_neu():
+        """Leeres Formular für ein Angebot ohne Besichtigung (nur lesen, legt nichts an)."""
+        am = aufmass({})
+        leer = {k: "" for k in ("firma", "ansprechpartner", "strasse", "plz", "ort", "email", "telefon")}
+        felder = _sauber(_leer_felder(leer, {}, am))
+        felder["positionen"] = [{"text": "", "einheit": "monatlich", "preis": ""} for _ in range(4)]
+        return jsonify({"ok": True, "felder": felder, "aufmass": am, "koeffizienten": koeffizienten(app2_modul.ANGEBOT_STUNDENSATZ)})
+
+    @app.route("/api/angebot-editor/suche")
+    @login_required
+    def angebot_editor_suche():
+        """Vorschläge beim Tippen der Firma: Kunden und Firmen aus der Datenbank (nur lesen)."""
+        q = _txt(request.args.get("q")).lower()[:80]
+        if len(q) < 2:
+            return jsonify({"ok": True, "treffer": []})
+        conn = get_db_connection()
+        try:
+            treffer = []
+            namen = {r[0] for r in conn.execute("SELECT name FROM sqlite_master WHERE type = 'table'").fetchall()}
+            if "kunden" in namen:
+                spalten = {r[1] for r in conn.execute("PRAGMA table_info(kunden)").fetchall()}
+                mail = "COALESCE(NULLIF(rechnung_email, ''), email)" if "rechnung_email" in spalten else "email"
+                for r in conn.execute(f"""SELECT id, firma, ansprechpartner_name, strasse, plz, ort, telefon, {mail} AS mail, vertragsstatus FROM kunden
+                                         WHERE instr(lower(COALESCE(firma, '')), ?) > 0 OR instr(lower(COALESCE(ort, '')), ?) > 0
+                                         ORDER BY instr(lower(COALESCE(firma, '')), ?) = 0, firma COLLATE NOCASE LIMIT 6""", (q, q, q)).fetchall():
+                    treffer.append({"art": "kunde", "id": r["id"], "firma": r["firma"] or "", "ort": r["ort"] or "",
+                                    "stand": "Kunde" + (" · gekündigt" if str(r["vertragsstatus"] or "").lower().startswith("gek") else ""),
+                                    "felder": {"firma": _txt(r["firma"]), "ansprechpartner": _txt(r["ansprechpartner_name"]), "adresse": _txt(r["strasse"]),
+                                               "plz": _txt(r["plz"]), "ort": _txt(r["ort"]), "email": _txt(r["mail"]), "telefon": _txt(r["telefon"])}})
+            if "tagesliste_leads" in namen:
+                for r in conn.execute("""SELECT t.id, t.firma, t.ansprechpartner, t.strasse, t.plz, t.ort, t.telefon, t.email, t.status, t.angebot_nr,
+                                                (SELECT b.status FROM tagesliste_status_backup b WHERE b.tagesliste_id = t.id ORDER BY b.backup_am DESC LIMIT 1) AS liste
+                                         FROM tagesliste_leads t
+                                         WHERE instr(lower(COALESCE(t.firma, '')), ?) > 0 OR instr(lower(COALESCE(t.ort, '')), ?) > 0
+                                         ORDER BY instr(lower(COALESCE(t.firma, '')), ?) = 0, t.id DESC LIMIT 8""", (q, q, q)).fetchall():
+                    st = str(r["status"] or "offen").lower()
+                    art = st if st in ("besichtigung", "angebot") else "lead"
+                    stand = STATUS_NAME.get(st if st != "offen" else str(r["liste"] or "offen").lower(), "Datenbank")
+                    if st == "angebot" and r["angebot_nr"]:
+                        stand += " AN-" + str(r["angebot_nr"])
+                    treffer.append({"art": art, "id": r["id"], "firma": r["firma"] or "", "ort": r["ort"] or "", "stand": "Datenbank · " + stand,
+                                    "felder": {"firma": _txt(r["firma"]), "ansprechpartner": _txt(r["ansprechpartner"]), "adresse": _txt(r["strasse"]),
+                                               "plz": _txt(r["plz"]), "ort": _txt(r["ort"]), "email": _txt(r["email"]), "telefon": _txt(r["telefon"])}})
+            return jsonify({"ok": True, "treffer": treffer})
         finally:
             conn.close()
 

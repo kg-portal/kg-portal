@@ -130,6 +130,18 @@ a.kgae-knopf { display: inline-block; text-decoration: none; }
 .kgae-tablet .kgae-in { min-height: 48px; font-size: 17px; }
 .kgae-tablet .kgae-knopf { min-height: 48px; padding: 12px 18px; font-size: 15px; }
 .kgae-tablet .kgae-e { padding: 14px 14px 14px 18px; }
+/* Neues Angebot: Firma tippen → Vorschläge aus Kunden und Datenbank */
+.kgae-neu-knopf { flex: 0 0 auto; }
+.kgae-firma-wrap { position: relative; }
+.kgae-vorschlag { position: absolute; left: 0; right: 0; top: calc(100% + 4px); z-index: 30; max-height: 340px; overflow-y: auto; padding: 6px; border-radius: 14px; background: #fff; border: 1px solid #bfdbfe; box-shadow: 0 22px 40px -18px rgba(30, 58, 138, .55); }
+.kgae-vorschlag[hidden] { display: none; }
+.kgae-vorschlag button { display: flex; align-items: center; gap: 10px; width: 100%; padding: 9px 10px; border: 0; border-radius: 10px; background: transparent; font: inherit; text-align: left; cursor: pointer; color: #0f172a; }
+.kgae-vorschlag button:hover, .kgae-vorschlag button.an { background: #eff6ff; }
+.kgae-vorschlag button b { display: block; font-size: 14px; }
+.kgae-vorschlag button small { display: block; margin-top: 2px; font-size: 12px; font-weight: 700; color: var(--grau); }
+.kgae-vorschlag button span:first-child { flex: 1; min-width: 0; }
+.kgae-vorschlag .kgae-chip { flex: none; }
+.kgae-vorschlag .kgae-hinweis-neu { padding: 8px 10px; font-size: 12.5px; font-weight: 800; color: var(--grau); }
 @media print { .kgae { display: none !important; } }
 </style>
 
@@ -138,9 +150,9 @@ a.kgae-knopf { display: inline-block; text-decoration: none; }
         <div>
             <small>KG Portal · Angebote</small>
             <h1>Angebot erstellen</h1>
-            <p>Besichtigung wählen · Leistungen und Preis eintragen · rechts sieht man sofort das fertige Angebot</p>
+            <p>Firma eintippen oder Besichtigung wählen · Leistungen und Preis eintragen · rechts sieht man sofort das fertige Angebot</p>
         </div>
-        <div class="kgae-schritte" id="kgaeSchritte"><span class="an">1 Besichtigung</span><span>2 Leistungen &amp; Preis</span><span>3 Senden &amp; E-Mail</span></div>
+        <div class="kgae-schritte" id="kgaeSchritte"><span class="an">1 Kunde</span><span>2 Leistungen &amp; Preis</span><span>3 Senden &amp; E-Mail</span></div>
     </div>
 
     <section class="kgae-karte kgae-liste">
@@ -150,14 +162,15 @@ a.kgae-knopf { display: inline-block; text-decoration: none; }
                 <button type="button" data-tab="angebote" role="tab">Angebote <span id="kgaeAnzA">–</span></button>
             </div>
             <input class="kgae-suche" id="kgaeSuche" type="search" placeholder="Firma, Ort oder AN-Nr suchen …" autocomplete="off">
+            <button type="button" class="kgae-knopf blau kgae-neu-knopf" id="kgaeNeu">+ Neues Angebot</button>
         </div>
         <div class="kgae-eintraege" id="kgaeListe"><div class="kgae-leer">Lädt …</div></div>
     </section>
 
     <div class="kgae-raster">
         <main>
-            <div class="kgae-karte kgae-start" id="kgaeStart"><div><b>Oben eine Besichtigung wählen</b>Die Daten aus der Besichtigung (Kunde, Flächen, KG Scan) werden übernommen.</div></div>
-            <div id="kgaeFormular" hidden>
+            <div class="kgae-karte kgae-start" id="kgaeStart" hidden><div><b>Lädt …</b></div></div>
+            <div id="kgaeFormular">
                 <div class="kgae-karte">
                     <div class="kgae-status">
                         <h3 id="kgaeTitel">–</h3><span class="kgae-nr neu" id="kgaeNr">Nr. wird beim Senden vergeben</span>
@@ -166,7 +179,7 @@ a.kgae-knopf { display: inline-block; text-decoration: none; }
                     </div>
                     <h2><i>1</i>Kunde</h2>
                     <div class="kgae-felder">
-                        <div class="kgae-f w3"><label for="kgae_firma">Firma</label><input class="kgae-in" id="kgae_firma" data-feld="firma"></div>
+                        <div class="kgae-f w3 kgae-firma-wrap"><label for="kgae_firma">Firma</label><input class="kgae-in" id="kgae_firma" data-feld="firma" autocomplete="off" placeholder="Name tippen – Kunden und Datenbank werden vorgeschlagen"><div class="kgae-vorschlag" id="kgaeVorschlag" role="listbox" hidden></div></div>
                         <div class="kgae-f w3"><label for="kgae_ansprechpartner">Ansprechpartner</label><input class="kgae-in" id="kgae_ansprechpartner" data-feld="ansprechpartner" placeholder="z. B. Herr Müller"></div>
                         <div class="kgae-f w3"><label for="kgae_adresse">Straße</label><input class="kgae-in" id="kgae_adresse" data-feld="adresse"></div>
                         <div class="kgae-f w1"><label for="kgae_plz">PLZ</label><input class="kgae-in" id="kgae_plz" data-feld="plz" inputmode="numeric"></div>
@@ -443,6 +456,11 @@ a.kgae-knopf { display: inline-block; text-decoration: none; }
         summen(felderLesen());
         rechnen();
         clearTimeout(vorschauTimer); vorschauTimer = setTimeout(vorschau, 450);
+        if (aktuell.neu) {  // noch kein Eintrag: erst „Entwurf speichern“ / „Senden“ legt ihn an
+            $('kgaeTitel').textContent = $('kgae_firma').value.trim() || 'Neues Angebot';
+            $('kgaeGespeichert').textContent = 'noch nicht gespeichert';
+            return;
+        }
         clearTimeout(speicherTimer); speicherTimer = setTimeout(() => entwurf(true), 1800);
         $('kgaeGespeichert').textContent = 'Änderungen …';
     }
@@ -457,6 +475,7 @@ a.kgae-knopf { display: inline-block; text-decoration: none; }
 
     function entwurf(still) {
         if (!aktuell) return Promise.resolve();
+        if (aktuell.neu) return still ? Promise.resolve() : anlegen().then(ok => (ok ? entwurf(false) : null));
         clearTimeout(speicherTimer);
         return fetch('/api/angebot-editor/' + aktuell.id + '/entwurf', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ felder: felderLesen(), kalkulation: kalkLesen() }) })
             .then(r => r.json()).then(d => {
@@ -468,6 +487,104 @@ a.kgae-knopf { display: inline-block; text-decoration: none; }
             }).catch(() => { $('kgaeGespeichert').textContent = 'Entwurf nicht gespeichert'; });
     }
     $('kgaeEntwurf').addEventListener('click', () => entwurf(false));
+
+    // ---------- Neues Angebot (ohne Besichtigung)
+    function neu() {
+        return fetch('/api/angebot-editor/neu', { credentials: 'same-origin' }).then(r => r.json()).then(d => {
+            if (!d.ok) throw new Error();
+            aktuell = { id: 0, neu: true, status: 'neu', angebot_nr: '', quelle: null, lead: { quelle: '' } };
+            k = d.koeffizienten;
+            $('kgaeStart').hidden = true; $('kgaeFormular').hidden = false;
+            $('kgaeTitel').textContent = 'Neues Angebot';
+            $('kgaeNr').textContent = 'Nr. wird beim Senden vergeben'; $('kgaeNr').classList.add('neu');
+            $('kgaeQuelle').hidden = true;
+            $('kgaeGespeichert').textContent = '';
+            felderSetzen(d.felder);
+            rechnerAufbauen(d.aufmass, {});
+            summen(felderLesen());
+            meldung('', '');
+            schritte(1);
+            geaendert = false;
+            history.replaceState(null, '', location.pathname);
+            blattSkalieren();
+            vorschau();
+            listeZeichnen();
+        }).catch(() => meldung('fehler', 'Formular konnte nicht geladen werden.'));
+    }
+    // Neues Angebot speichern: wie „Direktes Angebot“ in der Datenbank einen Eintrag in der Besichtigungsliste anlegen
+    function anlegen() {
+        const f = felderLesen();
+        if (!f.firma) { meldung('fehler', 'Bitte die Firma eintragen.'); $('kgae_firma').focus(); return Promise.resolve(false); }
+        const kunde = aktuell.quelle && aktuell.quelle.art === 'kunde';
+        if (!kunde && !f.ort) { meldung('fehler', 'Bitte den Ort eintragen.'); $('kgae_ort').focus(); return Promise.resolve(false); }
+        const url = kunde ? '/api/datenbank/direktes-angebot-bestandskunde' : '/api/datenbank/direktes-angebot-neukunde';
+        const daten = kunde ? { kunde_id: aktuell.quelle.id } : { firma: f.firma, ansprechpartner: f.ansprechpartner, strasse: f.adresse, plz: f.plz, ort: f.ort, telefon: f.telefon, email: f.email };
+        return fetch(url, { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(daten) })
+            .then(r => r.json()).then(d => {
+                if (!d.ok || !d.besichtigung_id) throw new Error(d.message || 'Fehler');
+                aktuell.id = Number(d.besichtigung_id); aktuell.neu = false; aktuell.status = 'besichtigung';
+                aktuell.lead = { quelle: kunde ? 'Direktes Angebot · Bestandskunde' : 'Direktes Angebot · Neukunde' };
+                const q = $('kgaeQuelle'); q.hidden = false; q.textContent = aktuell.lead.quelle;
+                history.replaceState(null, '', location.pathname + '?id=' + aktuell.id);
+                schritte(2);
+                listeLaden();
+                return true;
+            }).catch(e => { meldung('fehler', 'Konnte nicht angelegt werden: ' + esc(e.message)); return false; });
+    }
+    $('kgaeNeu').addEventListener('click', () => {
+        if (aktuell && aktuell.neu && geaendert && $('kgae_firma').value.trim() && !window.confirm('Eingaben verwerfen und neu anfangen?')) return;
+        (aktuell && !aktuell.neu && geaendert ? entwurf(true) : Promise.resolve()).then(neu);
+    });
+
+    // Vorschläge beim Tippen der Firma (Kunden + Datenbank)
+    let vorschlagTimer = 0, treffer = [], auswahl = -1;
+    const vbox = $('kgaeVorschlag');
+    function vorschlagZu() { vbox.hidden = true; auswahl = -1; }
+    function vorschlagZeigen() {
+        if (!treffer.length) { vbox.innerHTML = '<div class="kgae-hinweis-neu">Nicht gefunden – wird als neuer Interessent angelegt.</div>'; vbox.hidden = false; return; }
+        vbox.innerHTML = treffer.map((t, i) => '<button type="button" role="option" data-i="' + i + '" class="' + (i === auswahl ? 'an' : '') + '"><span><b>' + esc(t.firma || 'Ohne Firma') + '</b><small>' + esc(t.ort || '–') + '</small></span>' +
+            '<span class="kgae-chip ' + (t.art === 'kunde' ? 'gruen' : t.art === 'angebot' ? 'gelb' : t.art === 'besichtigung' ? '' : 'grau') + '">' + esc(t.stand) + '</span></button>').join('');
+        vbox.hidden = false;
+    }
+    function waehlen(t) {
+        vorschlagZu();
+        if (!t) return;
+        if (t.art === 'besichtigung' || t.art === 'angebot') {
+            if (t.art === 'angebot') { tab = 'angebote'; document.querySelectorAll('.kgae-tabs button').forEach(x => x.classList.toggle('an', x.dataset.tab === 'angebote')); }
+            geaendert = false;
+            oeffnen(t.id);
+            return;
+        }
+        Object.keys(t.felder || {}).forEach(key => { const el = document.querySelector('[data-feld="' + key + '"]'); if (el) el.value = t.felder[key] || ''; });
+        aktuell.quelle = { art: t.art, id: t.id, firma: t.felder.firma };
+        const q = $('kgaeQuelle'); q.hidden = false; q.textContent = t.art === 'kunde' ? 'Bestandskunde' : t.stand;
+        fokus = 'kunde';
+        geaendertMelden();
+        schritte(2);
+        const pos = document.querySelector('[data-pos="1"][data-teil="text"]'); if (pos) pos.focus();
+    }
+    $('kgae_firma').addEventListener('input', () => {
+        if (!aktuell || !aktuell.neu) return;
+        const q = $('kgae_firma').value.trim();
+        if (aktuell.quelle && q !== aktuell.quelle.firma) { aktuell.quelle = null; $('kgaeQuelle').hidden = true; }
+        clearTimeout(vorschlagTimer);
+        if (q.length < 2) { vorschlagZu(); return; }
+        vorschlagTimer = setTimeout(() => {
+            fetch('/api/angebot-editor/suche?q=' + encodeURIComponent(q), { credentials: 'same-origin' }).then(r => r.json()).then(d => {
+                if (!d.ok || $('kgae_firma').value.trim() !== q) return;
+                treffer = d.treffer || []; auswahl = -1;
+                vorschlagZeigen();
+            }).catch(() => {});
+        }, 220);
+    });
+    $('kgae_firma').addEventListener('keydown', e => {
+        if (vbox.hidden || !treffer.length) return;
+        if (e.key === 'ArrowDown' || e.key === 'ArrowUp') { e.preventDefault(); auswahl = (auswahl + (e.key === 'ArrowDown' ? 1 : -1) + treffer.length) % treffer.length; vorschlagZeigen(); }
+        else if (e.key === 'Enter' && auswahl >= 0) { e.preventDefault(); waehlen(treffer[auswahl]); }
+        else if (e.key === 'Escape') vorschlagZu();
+    });
+    vbox.addEventListener('mousedown', e => { const b = e.target.closest('[data-i]'); if (b) { e.preventDefault(); waehlen(treffer[Number(b.dataset.i)]); } });
+    $('kgae_firma').addEventListener('blur', () => setTimeout(vorschlagZu, 150));
 
     function meldung(art, html) { $('kgaeMeldung').innerHTML = html ? '<div class="kgae-meldung ' + art + '">' + html + '</div>' : ''; }
 
@@ -514,6 +631,7 @@ a.kgae-knopf { display: inline-block; text-decoration: none; }
             listeZeichnen();
             if (window.innerWidth <= 1400) $('kgaeFormular').scrollIntoView({ behavior: 'smooth', block: 'start' });
         }).catch(e => meldung('fehler', 'Konnte nicht geöffnet werden: ' + esc(e.message)));
+        if (aktuell && aktuell.neu && geaendert && $('kgae_firma').value.trim() && !window.confirm('Das neue Angebot ist noch nicht gespeichert. Trotzdem wechseln?')) return Promise.resolve();
         if (aktuell && geaendert) return entwurf(true).then(weiter);
         return weiter();
     }
@@ -534,7 +652,9 @@ a.kgae-knopf { display: inline-block; text-decoration: none; }
             pos.map(p => '• ' + p.text + ' · ' + p.einheit + ' · ' + euro(zahl(p.preis))).join('\n') + '\n\nDanach erscheint es in der Angebot-Warteliste und das E-Mail-Fenster öffnet sich.';
         if (!window.confirm(text)) return;
         const knopf = $('kgaeSenden'); knopf.disabled = true; knopf.textContent = 'Wird erstellt …';
-        fetch('/api/angebot-editor/' + aktuell.id + '/senden', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ felder: f, kalkulation: kalkLesen() }) })
+        (aktuell.neu ? anlegen() : Promise.resolve(true)).then(ok => {
+        if (!ok) { knopf.disabled = false; knopf.textContent = 'Angebot senden'; return; }
+        return fetch('/api/angebot-editor/' + aktuell.id + '/senden', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ felder: f, kalkulation: kalkLesen() }) })
             .then(r => r.json()).then(d => {
                 if (!d.ok) throw new Error(d.error || 'Fehler');
                 aktuell.angebot_nr = d.angebot_nr; aktuell.status = 'angebot'; geaendert = false;
@@ -550,6 +670,7 @@ a.kgae-knopf { display: inline-block; text-decoration: none; }
                 vorschau();
             }).catch(e => meldung('fehler', 'Nicht gesendet: ' + esc(e.message)))
             .finally(() => { knopf.disabled = false; knopf.textContent = 'Angebot senden'; });
+        });
     });
     function mailOeffnen(url, nr) {
         $('kgaeMailTitel').textContent = 'Angebot AN-' + nr + ' per E-Mail senden';
@@ -562,13 +683,15 @@ a.kgae-knopf { display: inline-block; text-decoration: none; }
     $('kgaeMailZu').addEventListener('click', mailZu);
     $('kgaeVorschauAuf').addEventListener('click', () => { $('kgaeVorschau').classList.add('offen'); blattSkalieren(); });
     $('kgaeVorschauZu').addEventListener('click', () => $('kgaeVorschau').classList.remove('offen'));
-    window.addEventListener('beforeunload', () => { if (geaendert && aktuell) navigator.sendBeacon && navigator.sendBeacon('/api/angebot-editor/' + aktuell.id + '/entwurf', new Blob([JSON.stringify({ felder: felderLesen(), kalkulation: kalkLesen() })], { type: 'application/json' })); });
+    window.addEventListener('beforeunload', () => { if (geaendert && aktuell && !aktuell.neu) navigator.sendBeacon && navigator.sendBeacon('/api/angebot-editor/' + aktuell.id + '/entwurf', new Blob([JSON.stringify({ felder: felderLesen(), kalkulation: kalkLesen() })], { type: 'application/json' })); });
 
     listeLaden().then(() => {
         const start = Number(wurzel.dataset.start) || 0;
         if (start) {
             if (liste.angebote.some(a => a.id === start)) { tab = 'angebote'; document.querySelectorAll('.kgae-tabs button').forEach(x => x.classList.toggle('an', x.dataset.tab === 'angebote')); listeZeichnen(); }
             oeffnen(start);
+        } else {
+            neu();  // ohne Auswahl: gleich ein leeres Formular, rechts die leere Vorlage
         }
     });
     blattSkalieren();
