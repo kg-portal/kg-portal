@@ -5854,6 +5854,10 @@ www.kg-reinigung.de
 
                 if row:
                     lv_vars = lv_build_vars_from_besichtigung(row)
+                    # Angebot-Editor: dort eingetragene Firma, Adresse, Leistungsart und Häufigkeiten gelten auch hier
+                    anpassen = app.extensions.get("kg_lv_anpassen")
+                    if anpassen:
+                        lv_vars = anpassen(angebot_id_int, lv_vars)
                     return render_template("Leistungsverzeichnis.html", **lv_vars)
 
         return render_template(

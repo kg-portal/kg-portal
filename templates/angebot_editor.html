@@ -507,6 +507,7 @@ a.kgae-knopf { display: inline-block; text-decoration: none; }
         let url;
         if (art === 'lv') {
             if (!aktuell.id || aktuell.neu) { meldung('fehler', 'Das Leistungsverzeichnis gibt es erst nach dem Speichern („Entwurf speichern“).'); return; }
+            if (geaendert) { entwurf(true).then(() => laden(art, knopf)); return; }  // erst den neuesten Stand speichern
             url = '/angebot/editor/pdf?art=lv&id=' + aktuell.id + '&nr=' + encodeURIComponent(f.nr) + '&firma=' + encodeURIComponent(f.firma);
         } else {
             url = vorschauUrl(f).replace('/angebot/editor/vorschau?', '/angebot/editor/pdf?art=angebot&');
@@ -574,6 +575,7 @@ a.kgae-knopf { display: inline-block; text-decoration: none; }
                 geaendert = false;
                 $('kgaeGespeichert').textContent = 'Entwurf gespeichert ' + new Date().toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
                 if (!still) meldung('ok', 'Entwurf gespeichert.');
+                lvLaden();  // Leistungsverzeichnis zeigt den gespeicherten Stand (Firma, Adresse, Häufigkeiten)
                 const e = liste.besichtigungen.find(x => x.id === aktuell.id); if (e && !e.entwurf) { e.entwurf = true; listeZeichnen(); }
             }).catch(() => { $('kgaeGespeichert').textContent = 'Entwurf nicht gespeichert'; });
     }

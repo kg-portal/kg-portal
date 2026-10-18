@@ -230,7 +230,74 @@ def summen(f):
 
 # ---------------------------------------------------------------- Routen
 
+LV_KURZ = {"täglich": "tägl.", "14-tägig": "14-tägl.", "1x monatlich": "1x monatl."}
+LV_FELDER = {"buero": ("Freq_Muell", "Freq_Tueren", "Freq_Boden_Teppich"),
+             "kueche": ("Freq_Kueche_Flaechen", "Freq_Kuechengeraete", "Freq_Kueche_Muell", "Freq_Boden_Kueche"),
+             "wc": ("Freq_WC", "Freq_Waschbecken", "Freq_Auffuellen", "Freq_Sanitaer_Muell", "Freq_Boden_Sanitaer"),
+             "flur": ("Freq_Flur_Kontakt", "Freq_Flur_Sicht", "Freq_Flur_Boden")}
+LV_NAME = {"buero": "Büro", "wc": "WC", "kueche": "Küche", "flur": "Flur"}
+
+
+def _lv_haeufigkeit(h):
+    h = _txt(h)
+    if not h or h.lower() == "keine":
+        return "-"
+    return LV_KURZ.get(h, h.replace("wöchentlich", "wöch."))
+
+
+def lv_mit_editor(v, felder, kalk):
+    """Leistungsverzeichnis-Werte (aus der Besichtigung) mit dem überschreiben, was im Angebot-Editor steht:
+    Firma, Adresse, Leistungsart und die Häufigkeiten aus dem Richtpreis-Rechner – damit LV und Angebot zusammenpassen."""
+    v = dict(v)
+    f = _sauber(felder)
+    if f["firma"]:
+        v["Kunde"] = f["firma"]
+    if f["adresse"] or f["plz"] or f["ort"]:
+        v["Adresse"], v["Plz"], v["Ort"] = f["adresse"], f["plz"], f["ort"]
+    if f["objekt"]:
+        v["Objekt"] = f["objekt"]
+    if f["leistungsart"]:
+        v["Leistungsart"] = f["leistungsart"]
+    if f["nr"] and not _nr(v.get("Nr")):
+        v["Nr"] = f["nr"]
+    oben = []
+    for b in (kalk or {}).get("bereiche") or []:
+        if not isinstance(b, dict) or b.get("key") not in LV_FELDER:
+            continue
+        h = _lv_haeufigkeit(b.get("haeufigkeit"))
+        for name in LV_FELDER[b["key"]]:
+            v[name] = h
+        if b["key"] == "buero":  # Schreibtische / Elektro: aus der Besichtigung, sonst wie das Büro
+            for name in ("Freq_Schreibtische", "Freq_Elektro"):
+                if _txt(v.get(name)) in ("", "-"):
+                    v[name] = h
+        if h != "-":
+            oben.append(f"{LV_NAME[b['key']]}: {h}")
+    if oben:
+        v["Haeufigkeit"] = "<br>".join(oben)
+    return v
+
+
 def register_angebot_editor(app, login_required, get_db_connection, app2_modul):
+
+    def lv_anpassen(tid, v):
+        """Für /leistungsverzeichnis (auch PDF-Anhang der Mail): Werte aus dem gespeicherten Editor-Stand übernehmen."""
+        try:
+            conn = get_db_connection()
+            try:
+                if not conn.execute("SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'angebot_editor_entwuerfe'").fetchone():
+                    return v
+                e = conn.execute("SELECT felder_json, kalkulation_json FROM angebot_editor_entwuerfe WHERE tagesliste_id = ?", (tid,)).fetchone()
+            finally:
+                conn.close()
+            if not e:
+                return v
+            return lv_mit_editor(v, _json(e["felder_json"], {}), _json(e["kalkulation_json"], {}))
+        except Exception as exc:
+            print("Angebot-Editor: LV-Werte nicht übernommen:", exc)
+            return v
+
+    app.extensions["kg_lv_anpassen"] = lv_anpassen
 
     def lead_laden(cur, tid):
         row = cur.execute("SELECT * FROM tagesliste_leads WHERE id = ?", (tid,)).fetchone()
@@ -463,7 +530,8 @@ def register_angebot_editor(app, login_required, get_db_connection, app2_modul):
                         (json.dumps(v, ensure_ascii=False), nr, f["datum"], netto, mwst, brutto, f["email"], f["email"], tid))
             cur.execute("INSERT OR IGNORE INTO tagesliste_status_history (tagesliste_id, status, datum) VALUES (?, 'angebot', date('now','localtime'))", (tid,))
             cur.execute("""INSERT INTO angebot_editor_entwuerfe (tagesliste_id, felder_json, kalkulation_json, geaendert_am) VALUES (?, ?, ?, ?)
-                           ON CONFLICT(tagesliste_id) DO UPDATE SET felder_json = excluded.felder_json, geaendert_am = excluded.geaendert_am""",
+                           ON CONFLICT(tagesliste_id) DO UPDATE SET felder_json = excluded.felder_json,
+                           kalkulation_json = excluded.kalkulation_json, geaendert_am = excluded.geaendert_am""",
                         (tid, json.dumps(f, ensure_ascii=False), json.dumps(d.get("kalkulation") or {}, ensure_ascii=False)[:20000], _jetzt()))
             conn.commit()
             mail = {"modus": "angebot", "angebot_id": tid, "empfaenger": f["email"], "firma": f["firma"], "ansprechpartner": f["ansprechpartner"],
