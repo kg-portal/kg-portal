@@ -1,0 +1,645 @@
+{% extends "base.html" %}
+{% block content %}
+<style>
+/* ===== wie Angebot-Editor (gleiche Bausteine) ===== */
+.kgae { --b1: #1e40af; --b2: #2563eb; --b3: #3b82f6; --rand: #e2e8f0; --grau: #64748b; font-family: Arial, Helvetica, sans-serif; color: #0f172a; }
+.kgae * { box-sizing: border-box; }
+.kgae-kopf { position: relative; overflow: hidden; display: flex; align-items: center; gap: 18px; flex-wrap: wrap; padding: 22px 26px; border-radius: 24px; color: #fff;
+    background: radial-gradient(120% 140% at 100% 0%, #3b82f6 0%, rgba(59, 130, 246, 0) 55%), linear-gradient(135deg, #10286f 0%, #1d4ed8 70%, #2563eb 100%);
+    box-shadow: 0 14px 34px rgba(29, 78, 216, .20); }
+.kgae-kopf small { display: block; font-size: 12px; font-weight: 900; letter-spacing: .16em; text-transform: uppercase; color: rgba(255, 255, 255, .8); }
+.kgae-kopf h1 { margin: 4px 0 0; font-size: 26px; font-weight: 900; letter-spacing: -.3px; }
+.kgae-kopf p { margin: 6px 0 0; font-size: 14px; font-weight: 700; color: rgba(255, 255, 255, .9); }
+.kgae-schritte { display: flex; gap: 8px; flex-wrap: wrap; margin-left: auto; }
+.kgae-schritte span { padding: 8px 12px; border-radius: 999px; background: rgba(255, 255, 255, .16); font-size: 12.5px; font-weight: 800; }
+.kgae-schritte span.an { background: #fff; color: var(--b1); }
+.kgae-raster { display: grid; grid-template-columns: minmax(0, 1fr) 500px; gap: 18px; margin-top: 18px; align-items: start; }
+.kgae-karte { background: #fff; border: 1px solid var(--rand); border-radius: 20px; padding: 18px; box-shadow: 0 14px 30px -26px rgba(30, 58, 138, .45); }
+.kgae-karte + .kgae-karte { margin-top: 14px; }
+.kgae-karte h2 { display: flex; align-items: center; gap: 10px; margin: 0 0 14px; font-size: 16px; font-weight: 900; }
+.kgae-karte h2 i { display: grid; place-items: center; width: 28px; height: 28px; border-radius: 9px; background: linear-gradient(145deg, var(--b3), var(--b1)); color: #fff; font-style: normal; font-size: 13px; box-shadow: inset 0 1px 0 rgba(255,255,255,.35); }
+.kgae-karte h2 em { margin-left: auto; font-style: normal; font-size: 12px; font-weight: 800; color: var(--grau); }
+/* Liste */
+.kgae-liste { margin-top: 18px; padding: 14px; }
+.kgae-liste-kopf { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.kgae-liste-kopf .kgae-tabs { flex: 0 0 auto; min-width: 330px; }
+.kgae-tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; padding: 4px; border-radius: 13px; background: #eff6ff; }
+.kgae-tabs button { border: 0; border-radius: 10px; padding: 9px 6px; background: transparent; color: var(--b1); font: inherit; font-size: 13px; font-weight: 900; cursor: pointer; }
+.kgae-tabs button.an { background: #fff; box-shadow: 0 2px 8px rgba(30, 64, 175, .15); }
+.kgae-suche { flex: 1; min-width: 200px; margin: 0; padding: 10px 12px; border: 1px solid var(--rand); border-radius: 12px; font: inherit; font-size: 14px; background: #f8fafc; }
+.kgae-eintraege { display: flex; gap: 10px; overflow-x: auto; padding: 12px 2px 6px; scroll-snap-type: x proximity; }
+.kgae-eintraege .kgae-e { flex: 0 0 250px; scroll-snap-align: start; }
+.kgae-eintraege .kgae-leer { flex: 1; }
+.kgae-e { position: relative; display: block; width: 100%; text-align: left; border: 1px solid var(--rand); border-radius: 14px; padding: 11px 12px 11px 16px; background: #fff; font: inherit; color: inherit; cursor: pointer; transition: border-color .2s, transform .2s, box-shadow .2s; }
+.kgae-e::before { content: ""; position: absolute; left: 0; top: 10px; bottom: 10px; width: 4px; border-radius: 0 3px 3px 0; background: var(--b2); }
+.kgae-e.angebot::before { background: #059669; }
+.kgae-e:hover { border-color: #93c5fd; transform: translateY(-1px); box-shadow: 0 10px 20px -16px rgba(30, 64, 175, .8); }
+.kgae-e.an { border-color: var(--b2); background: #eff6ff; }
+.kgae-e b { display: block; font-size: 13.5px; line-height: 1.25; }
+.kgae-e small { display: block; margin-top: 3px; font-size: 12px; font-weight: 700; color: var(--grau); }
+.kgae-chips { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
+.kgae-chip { padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 900; background: #eff6ff; color: var(--b1); }
+.kgae-chip.gruen { background: #dcfce7; color: #166534; } .kgae-chip.gelb { background: #fef3c7; color: #92400e; } .kgae-chip.grau { background: #f1f5f9; color: #475569; }
+.kgae-leer { padding: 18px 10px; text-align: center; font-size: 13px; font-weight: 700; color: var(--grau); }
+/* Formular */
+.kgae-start[hidden], #kgaeFormular[hidden] { display: none !important; }
+.kgae-start { display: grid; place-items: center; min-height: 420px; text-align: center; color: var(--grau); font-weight: 800; }
+.kgae-start b { display: block; margin-bottom: 6px; font-size: 20px; color: #0f172a; }
+.kgae-status { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; }
+.kgae-status h3 { margin: 0; font-size: 21px; font-weight: 900; letter-spacing: -.2px; }
+.kgae-nr { padding: 6px 12px; border-radius: 999px; background: linear-gradient(145deg, var(--b3), var(--b1)); color: #fff; font-size: 13px; font-weight: 900; }
+.kgae-nr.neu { background: #f1f5f9; color: #475569; }
+.kgae-gespeichert { margin-left: auto; font-size: 12px; font-weight: 800; color: var(--grau); }
+.kgae-felder { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 12px; }
+.kgae-f { grid-column: span 2; min-width: 0; } .kgae-f.w3 { grid-column: span 3; } .kgae-f.w4 { grid-column: span 4; } .kgae-f.w6 { grid-column: 1 / -1; } .kgae-f.w1 { grid-column: span 1; }
+.kgae-f label { display: block; margin-bottom: 5px; font-size: 11.5px; font-weight: 900; letter-spacing: .06em; text-transform: uppercase; color: #475569; }
+.kgae-in { width: 100%; padding: 10px 12px; border: 1.5px solid var(--rand); border-radius: 12px; background: #f8fafc; font: inherit; font-size: 15px; color: #0f172a; transition: border-color .2s, background .2s; }
+.kgae-in:focus { outline: none; border-color: var(--b3); background: #fff; box-shadow: 0 0 0 3px rgba(59, 130, 246, .15); }
+.kgae-pos { display: grid; grid-template-columns: 34px minmax(0, 1fr) 150px 130px; gap: 8px; align-items: center; }
+.kgae-pos + .kgae-pos { margin-top: 8px; }
+.kgae-pos > b { display: grid; place-items: center; height: 42px; border-radius: 12px; background: #eff6ff; color: var(--b1); font-size: 14px; }
+.kgae-pos .kgae-in.preis { text-align: right; font-weight: 900; }
+.kgae-pos-kopf { display: grid; grid-template-columns: 34px minmax(0, 1fr) 150px 130px; gap: 8px; margin-bottom: 6px; font-size: 11px; font-weight: 900; letter-spacing: .06em; text-transform: uppercase; color: var(--grau); }
+.kgae-summen { display: flex; justify-content: flex-end; gap: 22px; flex-wrap: wrap; margin-top: 14px; padding-top: 12px; border-top: 1px dashed var(--rand); }
+.kgae-summen div { text-align: right; font-size: 12px; font-weight: 800; color: var(--grau); }
+.kgae-summen b { display: block; font-size: 18px; color: #0f172a; }
+.kgae-summen .haupt b { font-size: 24px; color: var(--b1); }
+/* Rechner */
+.kgae-rechner table { width: 100%; border-collapse: separate; border-spacing: 0 6px; }
+.kgae-rechner th { text-align: left; font-size: 11px; font-weight: 900; letter-spacing: .06em; text-transform: uppercase; color: var(--grau); padding: 0 6px; }
+.kgae-rechner td { padding: 0 6px; }
+.kgae-rechner td:first-child { font-weight: 900; font-size: 14px; white-space: nowrap; }
+.kgae-rechner .kgae-in { padding: 8px 9px; font-size: 14px; }
+.kgae-rechner td.std { text-align: right; font-weight: 900; color: var(--b1); white-space: nowrap; }
+.kgae-punkt { display: inline-block; width: 9px; height: 9px; margin-right: 7px; border-radius: 3px; }
+.kgae-stueck { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; margin-top: 8px; }
+.kgae-stueck label { display: block; margin-bottom: 4px; font-size: 11px; font-weight: 900; color: var(--grau); }
+.kgae-ergebnis { display: grid; grid-template-columns: 1fr 1fr 1.2fr auto; gap: 12px; align-items: center; margin-top: 14px; padding: 14px; border-radius: 16px;
+    background: linear-gradient(145deg, #eff6ff, #f8fbff); border: 1px solid #dbeafe; }
+.kgae-ergebnis div small { display: block; font-size: 11px; font-weight: 900; letter-spacing: .08em; text-transform: uppercase; color: var(--grau); }
+.kgae-ergebnis div b { display: block; margin-top: 2px; font-size: 20px; font-weight: 900; }
+.kgae-ergebnis .richt b { font-size: 26px; color: var(--b1); }
+.kgae-formel { margin: 10px 2px 0; font-size: 12px; font-weight: 700; line-height: 1.55; color: var(--grau); }
+.kgae-knopf { border: 0; border-radius: 12px; padding: 11px 16px; font: inherit; font-size: 14px; font-weight: 900; cursor: pointer; white-space: nowrap; transition: transform .15s, box-shadow .2s, filter .2s; }
+.kgae-knopf:hover { transform: translateY(-1px); filter: brightness(1.05); }
+a.kgae-knopf { display: inline-block; text-decoration: none; }
+.kgae-knopf.blau { background: linear-gradient(135deg, var(--b1), var(--b3)); color: #fff; box-shadow: 0 10px 22px -12px rgba(30, 64, 175, .9); }
+.kgae-knopf.hell { background: #eff6ff; color: var(--b1); }
+.kgae-knopf.gruen { background: linear-gradient(135deg, #047857, #10b981); color: #fff; box-shadow: 0 10px 22px -12px rgba(4, 120, 87, .9); }
+.kgae-knopf:disabled { opacity: .55; cursor: default; transform: none; }
+.kgae-aktionen { position: sticky; bottom: 12px; z-index: 5; display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-top: 14px; padding: 12px 14px; border-radius: 18px;
+    background: rgba(255, 255, 255, .92); border: 1px solid var(--rand); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); box-shadow: 0 16px 34px -22px rgba(15, 23, 42, .5); }
+.kgae-aktionen .rechts { margin-left: auto; display: flex; gap: 10px; flex-wrap: wrap; }
+.kgae-meldung { margin-top: 12px; padding: 12px 14px; border-radius: 14px; font-size: 14px; font-weight: 800; }
+.kgae-meldung.ok { background: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0; }
+.kgae-meldung.fehler { background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; }
+.kgae-meldung .kgae-knopf { margin: 8px 8px 0 0; padding: 9px 13px; font-size: 13px; }
+/* Vorschau */
+.kgae-vorschau { position: relative; padding: 14px; will-change: transform; }
+.kgae-blatt { position: relative; height: calc(100vh - 150px); max-height: 980px; min-height: 520px; overflow-x: hidden; overflow-y: auto; border-radius: 14px; background: #e2e8f0; box-shadow: inset 0 0 0 1px #cbd5e1; }
+.kgae-blatt iframe { position: absolute; left: 0; top: 0; width: 820px; border: 0; background: #fff; transform-origin: 0 0; }
+.kgae-vorschau-knoepfe { display: flex; gap: 8px; margin-top: 10px; }
+.kgae-vorschau-knoepfe .kgae-knopf { flex: 1; padding: 10px; font-size: 13px; }
+.kgae-lade { position: absolute; right: 10px; top: 10px; z-index: 2; padding: 5px 10px; border-radius: 999px; background: rgba(15, 23, 42, .75); color: #fff; font-size: 11px; font-weight: 900; opacity: 0; transition: opacity .2s; }
+.kgae-lade.an { opacity: 1; }
+/* Mail-Fenster */
+.kgae-mail { position: fixed; inset: 0; z-index: 10050; display: none; place-items: center; background: rgba(23, 37, 84, .45); -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px); }
+.kgae-mail.an { display: grid; }
+.kgae-mail > div { position: relative; width: min(860px, 96vw); height: min(900px, 94vh); border-radius: 26px; overflow: hidden; background: transparent; display: flex; flex-direction: column; }
+.kgae-mail-zu { position: absolute; top: 8px; right: 8px; z-index: 2; width: 34px; height: 34px; border: 0; border-radius: 50%; background: rgba(15, 23, 42, .55); color: #fff; font-weight: 900; cursor: pointer; }
+.kgae-mail header { display: flex; align-items: center; gap: 10px; padding: 14px 18px; color: #fff; background: linear-gradient(135deg, var(--b1), var(--b3)); font-weight: 900; }
+.kgae-mail header button { margin-left: auto; width: 36px; height: 36px; border: 0; border-radius: 10px; background: rgba(255, 255, 255, .18); color: #fff; font-size: 16px; font-weight: 900; cursor: pointer; }
+.kgae-mail iframe { flex: 1; width: 100%; border: 0; }
+.kgae-nur-schmal { display: none; }
+/* schmaler Bildschirm / Tablet */
+@media (max-width: 1400px) {
+    .kgae-raster { grid-template-columns: minmax(0, 1fr); }
+    .kgae-vorschau { display: none; transform: none !important; }
+    .kgae-vorschau.offen { display: block; position: fixed; inset: 10px; z-index: 10040; overflow: auto; }
+    .kgae-vorschau.offen .kgae-blatt { height: calc(100vh - 110px); }
+    .kgae-nur-schmal { display: inline-flex; }
+}
+@media (max-width: 760px) {
+    .kgae-felder { grid-template-columns: minmax(0, 1fr); } .kgae-f, .kgae-f.w3, .kgae-f.w4, .kgae-f.w1 { grid-column: 1 / -1; }
+    .kgae-pos, .kgae-pos-kopf { grid-template-columns: 30px minmax(0, 1fr); } .kgae-pos select, .kgae-pos .preis { grid-column: 2; }
+    .kgae-pos-kopf span:nth-child(n+3) { display: none; }
+    .kgae-stueck { grid-template-columns: repeat(2, minmax(0, 1fr)); } .kgae-ergebnis { grid-template-columns: 1fr 1fr; }
+    .kgae-rechner { overflow-x: auto; }
+}
+/* Tablet: größere Bedienelemente */
+.kgae-tablet .kgae-in { min-height: 48px; font-size: 17px; }
+.kgae-tablet .kgae-knopf { min-height: 48px; padding: 12px 18px; font-size: 15px; }
+.kgae-tablet .kgae-e { padding: 14px 14px 14px 18px; }
+/* Neues Angebot: Firma tippen → Vorschläge aus Kunden und Datenbank */
+.kgae-neu-knopf { flex: 0 0 auto; }
+.kgae-firma-wrap { position: relative; }
+.kgae-vorschlag { position: absolute; left: 0; right: 0; top: calc(100% + 4px); z-index: 30; max-height: 340px; overflow-y: auto; padding: 6px; border-radius: 14px; background: #fff; border: 1px solid #bfdbfe; box-shadow: 0 22px 40px -18px rgba(30, 58, 138, .55); }
+.kgae-vorschlag[hidden] { display: none; }
+.kgae-vorschlag button { display: flex; align-items: center; gap: 10px; width: 100%; padding: 9px 10px; border: 0; border-radius: 10px; background: transparent; font: inherit; text-align: left; cursor: pointer; color: #0f172a; }
+.kgae-vorschlag button:hover, .kgae-vorschlag button.an { background: #eff6ff; }
+.kgae-vorschlag button b { display: block; font-size: 14px; }
+.kgae-vorschlag button small { display: block; margin-top: 2px; font-size: 12px; font-weight: 700; color: var(--grau); }
+.kgae-vorschlag button span:first-child { flex: 1; min-width: 0; }
+.kgae-vorschlag .kgae-chip { flex: none; }
+/* Angebot-Nummer: vorgeschlagen = nächste freie, von Hand änderbar */
+.kgae-nr { display: inline-flex; align-items: center; gap: 2px; padding: 4px 6px 4px 12px; border-radius: 999px; background: linear-gradient(145deg, var(--b3), var(--b1)); color: #fff; font-size: 13px; font-weight: 900; }
+.kgae-nr input { width: 70px; padding: 3px 6px; border: 0; border-radius: 999px; background: rgba(255, 255, 255, .2); color: #fff; font: inherit; font-size: 14px; font-weight: 900; text-align: center; }
+.kgae-nr input:focus { outline: none; background: #fff; color: var(--b1); }
+.kgae-nr-hinweis { font-size: 12px; font-weight: 800; color: var(--grau); }
+.kgae-nr-hinweis.manuell { color: #b45309; }
+/* Liste: zugeklappt, öffnet mit den Reitern oder der Suche */
+.kgae-eintraege[hidden] { display: none; }
+.kgae-tabs button::after { content: " ▾"; font-size: 11px; opacity: .6; }
+.kgae-liste.offen .kgae-tabs button.an::after { content: " ▴"; }
+/* Vorschau: Angebot und darunter das Leistungsverzeichnis */
+.kgae-pdf-icon { display: inline-grid; place-items: center; width: 30px; height: 34px; flex: none; }
+.kgae-karte h2 i.kgae-pdf-icon { width: 30px; height: 34px; border-radius: 0; background: none; box-shadow: none; }
+.kgae-laden { display: flex; gap: 8px; flex-wrap: wrap; margin: -4px 0 10px; }
+.kgae-laden .kgae-knopf { display: inline-flex; align-items: center; gap: 7px; padding: 8px 12px; font-size: 12.5px; background: #fef2f2; color: #b91c1c; }
+.kgae-laden .kgae-knopf svg { width: 15px; height: 17px; }
+.kgae-laden .kgae-knopf:disabled { background: #f1f5f9; color: #94a3b8; }
+.kgae-seiten { position: relative; }
+.kgae-seiten-innen { position: absolute; left: 0; top: 0; width: 820px; transform-origin: 0 0; }
+.kgae-seiten-innen iframe { position: static; display: block; width: 820px; border: 0; background: #fff; }
+.kgae-trenner { padding: 26px 0 14px; text-align: center; font-size: 22px; font-weight: 900; letter-spacing: .14em; text-transform: uppercase; color: #475569; background: #e2e8f0; }
+.kgae-lv-leer { padding: 60px 40px; text-align: center; font-size: 22px; font-weight: 800; color: #64748b; background: #f8fafc; }
+.kgae-vorschlag .kgae-hinweis-neu { padding: 8px 10px; font-size: 12.5px; font-weight: 800; color: var(--grau); }
+@media print { .kgae { display: none !important; } }
+/* ===== Vertrag-Editor: Ergänzungen ===== */
+.kgve .kgve-tabs { grid-template-columns: 1fr 1fr 1fr; min-width: 420px; }
+.kgve-alt { flex: 0 0 auto; font-size: 12.5px; font-weight: 800; color: var(--grau); text-decoration: underline; }
+.kgve-tab-hinweis { margin-top: 10px; padding: 9px 12px; border-radius: 12px; background: #fffbeb; color: #92400e; font-size: 12.5px; font-weight: 800; }
+.kgve-tab-hinweis[hidden] { display: none; }
+.kgae-e.kgve-angebot::before { background: #f59e0b; }
+.kgve-bestaetigt { display: inline-block; margin-top: 8px; padding: 6px 10px; border-radius: 10px; background: linear-gradient(135deg, #047857, #10b981); color: #fff; font-size: 12px; font-weight: 900; }
+.kgve .kgve-pos { grid-template-columns: 34px minmax(0, 1fr) 150px 150px; align-items: start; }
+.kgve-preis { display: block; }
+.kgve-preis small { display: block; margin-top: 3px; text-align: right; font-size: 11px; font-weight: 800; color: var(--grau); min-height: 13px; }
+.kgve-tage { display: flex; gap: 6px; flex-wrap: wrap; }
+.kgve-tage button { min-width: 46px; padding: 8px 10px; border: 1.5px solid var(--rand); border-radius: 11px; background: #f8fafc; color: #334155; font: inherit; font-size: 13px; font-weight: 900; cursor: pointer; }
+.kgve-tage button.an { background: linear-gradient(135deg, var(--b1), var(--b3)); border-color: var(--b2); color: #fff; box-shadow: 0 8px 16px -10px rgba(30, 64, 175, .9); }
+.kgve-weg { color: #b91c1c !important; background: #fef2f2 !important; }
+@media (max-width: 760px) { .kgve .kgve-tabs { min-width: 0; width: 100%; } .kgve .kgve-pos { grid-template-columns: 30px minmax(0, 1fr); } .kgve-preis { grid-column: 2; } }
+</style>
+
+<div class="kgae kgve" id="kgve" data-start="{{ start_id }}" data-angebot="{{ angebot_id }}">
+    <div class="kgae-kopf" data-kg-skip>
+        <div>
+            <small>KG Portal · Verträge</small>
+            <h1>Vertrag erstellen</h1>
+            <p>Bestätigtes Angebot wählen oder Firma eintippen · Leistungen, Beginn und Reinigungstage prüfen · rechts sieht man sofort den fertigen Vertrag</p>
+        </div>
+        <div class="kgae-schritte" id="kgveSchritte"><span class="an">1 Auftraggeber</span><span>2 Leistungen &amp; Beginn</span><span>3 Senden &amp; E-Mail</span></div>
+    </div>
+
+    <section class="kgae-karte kgae-liste">
+        <div class="kgae-liste-kopf">
+            <div class="kgae-tabs kgve-tabs" role="tablist">
+                <button type="button" class="an" data-tab="wartend" role="tab">Wartend <span id="kgveAnzW">–</span></button>
+                <button type="button" data-tab="angebote" role="tab">Angebote <span id="kgveAnzA">–</span></button>
+                <button type="button" data-tab="gesendet" role="tab">Verschickt <span id="kgveAnzG">–</span></button>
+            </div>
+            <input class="kgae-suche" id="kgveSuche" type="search" placeholder="Firma, Ort oder AN-Nr suchen …" autocomplete="off">
+            <button type="button" class="kgae-knopf blau kgae-neu-knopf" id="kgveNeu">+ Neuer Vertrag</button>
+            <a class="kgve-alt" href="/vertrag">Bisheriges Formular</a>
+        </div>
+        <div class="kgve-tab-hinweis" id="kgveTabHinweis" hidden>Verschickte Angebote: „✓ Bestätigt“ drücken, sobald der Kunde zugesagt hat – dann wartet es hier auf den Vertrag.</div>
+        <div class="kgae-eintraege" id="kgveListe" hidden><div class="kgae-leer">Lädt …</div></div>
+    </section>
+
+    <div class="kgae-raster">
+        <main>
+            <div id="kgveFormular">
+                <div class="kgae-karte">
+                    <div class="kgae-status">
+                        <h3 id="kgveTitel">Neuer Vertrag</h3>
+                        <span class="kgae-chip" id="kgveQuelle" hidden></span>
+                        <span class="kgae-chip" id="kgveStand" hidden></span>
+                        <span class="kgae-gespeichert" id="kgveGespeichert"></span>
+                    </div>
+                    <h2><i>1</i>Auftraggeber</h2>
+                    <div class="kgae-felder">
+                        <div class="kgae-f w3 kgae-firma-wrap"><label for="kgve_firma">Firma / Objekt</label><input class="kgae-in" id="kgve_firma" data-feld="firma" autocomplete="off" placeholder="Name tippen – Angebote, Kunden und Datenbank werden vorgeschlagen"><div class="kgae-vorschlag" id="kgveVorschlag" role="listbox" hidden></div></div>
+                        <div class="kgae-f w3"><label for="kgve_ansprechpartner">Ansprechpartner</label><input class="kgae-in" id="kgve_ansprechpartner" data-feld="ansprechpartner" placeholder="z. B. Herr Müller"></div>
+                        <div class="kgae-f w3"><label for="kgve_adresse">Straße</label><input class="kgae-in" id="kgve_adresse" data-feld="adresse"></div>
+                        <div class="kgae-f w1"><label for="kgve_plz">PLZ</label><input class="kgae-in" id="kgve_plz" data-feld="plz" inputmode="numeric"></div>
+                        <div class="kgae-f"><label for="kgve_ort">Ort</label><input class="kgae-in" id="kgve_ort" data-feld="ort"></div>
+                        <div class="kgae-f w3"><label for="kgve_email">E-Mail (für den Versand)</label><input class="kgae-in" id="kgve_email" data-feld="email" type="email"></div>
+                        <div class="kgae-f w3"><label for="kgve_telefon">Telefon</label><input class="kgae-in" id="kgve_telefon" data-feld="telefon" inputmode="tel"></div>
+                    </div>
+                </div>
+
+                <div class="kgae-karte">
+                    <h2><i>2</i>Leistungen &amp; Vergütung <em>§ 7 · Preise inkl. MwSt. wie in der Vorlage</em></h2>
+                    <div class="kgae-pos-kopf kgve-pos"><span></span><span>Leistung</span><span>Einheit</span><span style="text-align:right">Preis € inkl. MwSt.</span></div>
+                    {% for n in range(1, 5) %}
+                    <div class="kgae-pos kgve-pos">
+                        <b>{{ n }}</b>
+                        <input class="kgae-in" data-pos="{{ n }}" data-teil="text" placeholder="{{ 'z. B. Unterhaltsreinigung' if n == 1 else ('z. B. Glasreinigung' if n == 2 else 'optional') }}">
+                        <select class="kgae-in" data-pos="{{ n }}" data-teil="einheit">{% for e in einheiten %}<option>{{ e }}</option>{% endfor %}</select>
+                        <span class="kgve-preis"><input class="kgae-in preis" data-pos="{{ n }}" data-teil="preis" inputmode="decimal" placeholder="0,00"><small data-netto="{{ n }}"></small></span>
+                    </div>
+                    {% endfor %}
+                    <div class="kgae-summen">
+                        <div class="haupt">inkl. MwSt. / Monat<b id="kgveBrutto">0,00 €</b></div>
+                        <div>davon 19 % MwSt.<b id="kgveMwst">0,00 €</b></div>
+                        <div>netto<b id="kgveNetto">0,00 €</b></div>
+                    </div>
+                </div>
+
+                <div class="kgae-karte">
+                    <h2><i>3</i>Beginn &amp; Reinigungszeiten <em>§ 2 und § 3</em></h2>
+                    <div class="kgae-felder">
+                        <div class="kgae-f"><label for="kgve_startdatum">Vertrag tritt in Kraft ab</label><input class="kgae-in" id="kgve_startdatum" data-feld="startdatum" placeholder="TT.MM.JJJJ"></div>
+                        <div class="kgae-f"><label for="kgve_datum">Vertragsdatum</label><input class="kgae-in" id="kgve_datum" data-feld="datum" placeholder="TT.MM.JJJJ"></div>
+                        <div class="kgae-f"></div>
+                        <div class="kgae-f w6"><label>Wochentage</label>
+                            <div class="kgve-tage" id="kgveTage">{% for t in ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'] %}<button type="button" data-tag="{{ loop.index0 }}">{{ t }}</button>{% endfor %}</div>
+                            <input class="kgae-in" id="kgve_wochentage" data-feld="wochentage" placeholder="z. B. Montag, Mittwoch und Freitag" style="margin-top:8px"></div>
+                        <div class="kgae-f w6"><label for="kgve_zeiten">Die Arbeiten werden jeweils … durchgeführt</label><input class="kgae-in" id="kgve_zeiten" data-feld="zeiten" placeholder="z. B. montags, mittwochs und freitags ab 17:00 Uhr"></div>
+                    </div>
+                </div>
+
+                <div class="kgae-aktionen">
+                    <button type="button" class="kgae-knopf hell kgae-nur-schmal" id="kgveVorschauAuf">Vorschau ansehen</button>
+                    <button type="button" class="kgae-knopf hell" id="kgveSpeichern">Entwurf speichern</button>
+                    <button type="button" class="kgae-knopf hell kgve-weg" id="kgveLoeschen" hidden>Aus der Liste nehmen</button>
+                    <div class="rechts">
+                        <button type="button" class="kgae-knopf hell" id="kgvePdf">PDF ansehen</button>
+                        <button type="button" class="kgae-knopf hell" id="kgveLaden">PDF herunterladen</button>
+                        <button type="button" class="kgae-knopf gruen" id="kgveSenden">Vertrag senden</button>
+                    </div>
+                </div>
+                <div id="kgveMeldung"></div>
+            </div>
+        </main>
+
+        <aside class="kgae-karte kgae-vorschau" id="kgveVorschau">
+            <h2><i class="kgae-pdf-icon"><svg viewBox="0 0 30 34" aria-hidden="true"><path d="M3 2h17l8 8v20a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z" fill="#dc2626"/><path d="M20 2v6a2 2 0 0 0 2 2h6z" fill="#fca5a5"/><text x="14.5" y="25" text-anchor="middle" font-family="Arial, sans-serif" font-size="8.5" font-weight="900" fill="#fff">PDF</text></svg></i>Live-Vorschau <em>Reinigungsvertrag · 4 Seiten</em></h2>
+            <div class="kgae-blatt" id="kgveBlatt"><span class="kgae-lade" id="kgveLade">aktualisiert …</span>
+                <div class="kgae-seiten" id="kgveSeiten"><div class="kgae-seiten-innen" id="kgveSeitenInnen">
+                    <iframe id="kgveFrame" title="Vertrag Vorschau" scrolling="no"></iframe>
+                </div></div>
+            </div>
+            <div class="kgae-vorschau-knoepfe">
+                <button type="button" class="kgae-knopf hell kgae-nur-schmal" id="kgveVorschauZu">Schließen</button>
+            </div>
+        </aside>
+    </div>
+
+    <div class="kgae-mail" id="kgveMail" role="dialog" aria-modal="true" aria-label="Vertrag per E-Mail senden">
+        <div><button type="button" class="kgae-mail-zu" id="kgveMailZu" aria-label="Schließen">✕</button><iframe id="kgveMailFrame" title="E-Mail"></iframe></div>
+    </div>
+</div>
+
+{% raw %}
+<script>
+(function () {
+    const wurzel = document.getElementById('kgve');
+    if (!wurzel) return;
+    const $ = id => document.getElementById(id);
+    const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    const zahl = t => { let s = String(t == null ? '' : t).replace(/€/g, '').replace(/\s/g, ''); if (!s) return 0; if (s.indexOf(',') >= 0) s = s.replace(/\./g, '').replace(',', '.'); const v = parseFloat(s); return isNaN(v) ? 0 : v; };
+    const euro = v => (Number(v) || 0).toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
+    const TAGE = [['Montag', 'montags'], ['Dienstag', 'dienstags'], ['Mittwoch', 'mittwochs'], ['Donnerstag', 'donnerstags'], ['Freitag', 'freitags'], ['Samstag', 'samstags'], ['Sonntag', 'sonntags']];
+    const aufzaehlung = t => t.length <= 1 ? t.join('') : t.slice(0, -1).join(', ') + ' und ' + t[t.length - 1];
+    let liste = { wartend: [], angebote: [], gesendet: [] }, tab = 'wartend', aktuell = null, speicherTimer = 0, vorschauTimer = 0, geaendert = false;
+
+    // ---------- Liste
+    function listeLaden() {
+        return fetch('/api/vertrag-editor/liste', { credentials: 'same-origin' }).then(r => r.json()).then(d => {
+            if (!d.ok) throw new Error();
+            liste = d;
+            $('kgveAnzW').textContent = d.wartend.length; $('kgveAnzA').textContent = d.angebote.length; $('kgveAnzG').textContent = d.gesendet.length;
+            listeZeichnen();
+        }).catch(() => { $('kgveListe').innerHTML = '<div class="kgae-leer">Liste konnte nicht geladen werden.</div>'; });
+    }
+    function listeZeichnen() {
+        const q = $('kgveSuche').value.trim().toLowerCase();
+        $('kgveTabHinweis').hidden = tab !== 'angebote' || $('kgveListe').hidden;
+        const daten = (liste[tab] || []).filter(e => !q || (e.firma + ' ' + e.ort + ' ' + (e.nr || '')).toLowerCase().indexOf(q) >= 0);
+        if (!daten.length) {
+            $('kgveListe').innerHTML = '<div class="kgae-leer">' + ({ wartend: 'Kein Angebot wartet auf einen Vertrag. Unter „Angebote“ ein bestätigtes Angebot übernehmen oder „+ Neuer Vertrag“.', angebote: 'Keine offenen Angebote.', gesendet: 'Noch keine Verträge verschickt.' }[tab]) + '</div>';
+            return;
+        }
+        $('kgveListe').innerHTML = daten.map(e => {
+            const nr = e.nr ? '<span class="kgae-chip">AN-' + esc(e.nr) + '</span>' : '';
+            let chips = '', extra = '';
+            if (tab === 'angebote') {
+                chips = nr + (e.netto ? '<span class="kgae-chip grau">' + esc(euro(e.netto)) + ' netto</span>' : '') + (e.datum ? '<span class="kgae-chip grau">' + esc(e.datum) + '</span>' : '');
+                extra = '<span class="kgve-bestaetigt">✓ Bestätigt</span>';
+            } else if (tab === 'wartend') {
+                chips = nr + (e.start ? '<span class="kgae-chip grau">ab ' + esc(e.start) + '</span>' : '') + (e.entwurf ? '<span class="kgae-chip gelb">Entwurf</span>' : '<span class="kgae-chip gelb">wartet</span>');
+            } else {
+                chips = nr + '<span class="kgae-chip gruen">verschickt ' + esc(String(e.datum || '').split('-').reverse().join('.')) + '</span>';
+            }
+            const art = tab === 'angebote' ? ' kgve-angebot' : (tab === 'gesendet' ? ' angebot' : '');
+            const an = aktuell && ((tab !== 'angebote' && aktuell.id === e.id) || (tab === 'angebote' && aktuell.tagesliste_id === e.id && !aktuell.id));
+            return '<button type="button" class="kgae-e' + art + (an ? ' an' : '') + '" data-id="' + e.id + '"><b>' + esc(e.firma) + '</b><small>' + esc(e.ort || '–') + '</small><span class="kgae-chips">' + chips + '</span>' + extra + '</button>';
+        }).join('');
+        $('kgveListe').querySelectorAll('.kgae-e').forEach(b => b.addEventListener('click', () => {
+            const id = Number(b.dataset.id);
+            if (tab === 'angebote') bestaetigen(id); else oeffnen(id);
+        }));
+    }
+    function listeAuf(auf) { $('kgveListe').hidden = !auf; $('kgveListe').closest('.kgae-liste').classList.toggle('offen', auf); $('kgveTabHinweis').hidden = tab !== 'angebote' || !auf; }
+    function tabSetzen(t) { tab = t; document.querySelectorAll('.kgve-tabs button').forEach(x => x.classList.toggle('an', x.dataset.tab === t)); }
+    document.querySelectorAll('.kgve-tabs button').forEach(b => b.addEventListener('click', () => {
+        const gleich = tab === b.dataset.tab;
+        tabSetzen(b.dataset.tab);
+        listeAuf(!(gleich && !$('kgveListe').hidden));
+        listeZeichnen();
+    }));
+    $('kgveSuche').addEventListener('input', () => { listeAuf(true); listeZeichnen(); });
+
+    // ---------- Formular
+    function felderSetzen(f) {
+        document.querySelectorAll('#kgveFormular [data-feld]').forEach(el => { el.value = f[el.dataset.feld] || ''; });
+        (f.positionen || []).forEach((p, i) => {
+            const n = i + 1;
+            const t = document.querySelector('[data-pos="' + n + '"][data-teil="text"]'), e = document.querySelector('[data-pos="' + n + '"][data-teil="einheit"]'), pr = document.querySelector('[data-pos="' + n + '"][data-teil="preis"]');
+            t.value = p.text || '';
+            if (p.einheit && !Array.from(e.options).some(o => o.value === p.einheit)) { const o = document.createElement('option'); o.textContent = p.einheit; e.appendChild(o); }
+            e.value = p.einheit || 'monatlich';
+            pr.value = p.preis || '';
+        });
+        tageAusText();
+    }
+    function felderLesen() {
+        const f = {};
+        document.querySelectorAll('#kgveFormular [data-feld]').forEach(el => { f[el.dataset.feld] = el.value.trim(); });
+        f.positionen = [1, 2, 3, 4].map(n => ({
+            text: document.querySelector('[data-pos="' + n + '"][data-teil="text"]').value.trim(),
+            einheit: document.querySelector('[data-pos="' + n + '"][data-teil="einheit"]').value,
+            preis: document.querySelector('[data-pos="' + n + '"][data-teil="preis"]').value.trim()
+        }));
+        return f;
+    }
+    function summen(f) {
+        const mon = f.positionen.filter(p => p.einheit === 'monatlich' && zahl(p.preis)).map(p => zahl(p.preis));
+        const alle = f.positionen.filter(p => zahl(p.preis)).map(p => zahl(p.preis));
+        const brutto = (mon.length ? mon : alle).reduce((a, b) => a + b, 0);
+        const netto = Math.round(brutto / 1.19 * 100) / 100;
+        $('kgveBrutto').textContent = euro(brutto); $('kgveMwst').textContent = euro(brutto - netto); $('kgveNetto').textContent = euro(netto);
+        $('kgveBrutto').parentElement.firstChild.textContent = mon.length || !alle.length ? 'inkl. MwSt. / Monat' : 'inkl. MwSt.';
+        f.positionen.forEach((p, i) => { const el = document.querySelector('[data-netto="' + (i + 1) + '"]'); el.textContent = zahl(p.preis) ? '= ' + euro(zahl(p.preis) / 1.19) + ' netto' : ''; });
+    }
+    // Wochentage: Knöpfe Mo–So füllen das Textfeld (Text bleibt frei änderbar)
+    function tageAusText() {
+        const t = $('kgve_wochentage').value.toLowerCase();
+        $('kgveTage').querySelectorAll('button').forEach(b => b.classList.toggle('an', t.indexOf(TAGE[Number(b.dataset.tag)][0].toLowerCase()) >= 0));
+    }
+    $('kgveTage').addEventListener('click', e => {
+        const b = e.target.closest('button'); if (!b) return;
+        b.classList.toggle('an');
+        const an = Array.from($('kgveTage').querySelectorAll('button.an')).map(x => Number(x.dataset.tag)).sort();
+        $('kgve_wochentage').value = aufzaehlung(an.map(i => TAGE[i][0]));
+        const z = $('kgve_zeiten').value, uhr = (z.match(/ab\s+\d{1,2}[:.]\d{2}\s*Uhr/i) || [''])[0];
+        if (!z || TAGE.some(t => z.toLowerCase().indexOf(t[1]) >= 0)) $('kgve_zeiten').value = an.length ? aufzaehlung(an.map(i => TAGE[i][1])) + (uhr ? ' ' + uhr : '') : '';
+        geaendertMelden();
+    });
+    $('kgve_wochentage').addEventListener('input', tageAusText);
+
+    // ---------- Vorschau (Vertragsvorlage, 4 Seiten)
+    function vorschauUrl(f) {
+        const p = new URLSearchParams();
+        ['firma', 'ansprechpartner', 'adresse', 'plz', 'ort', 'email', 'telefon', 'startdatum', 'wochentage', 'zeiten', 'datum'].forEach(k => p.set(k, f[k] || ''));
+        f.positionen.forEach((x, i) => { p.set('l' + (i + 1), x.text); p.set('e' + (i + 1), x.einheit); p.set('p' + (i + 1), x.preis); });
+        return '/vertrag/editor/vorschau?' + p.toString();
+    }
+    function inhaltHoehe(fr) { try { const d = fr.contentDocument; return Math.max(d.documentElement.scrollHeight, d.body ? d.body.scrollHeight : 0); } catch (e) { return 4600; } }
+    function blattSkalieren() {
+        const blatt = $('kgveBlatt'), innen = $('kgveSeitenInnen');
+        const s = (blatt.clientWidth || 820) / 820;
+        innen.style.transform = 'scale(' + s + ')';
+        $('kgveSeiten').style.height = Math.ceil(innen.offsetHeight * s) + 'px';
+        return s;
+    }
+    function vorschau() {
+        if (!aktuell) return;
+        const fr = $('kgveFrame'), blatt = $('kgveBlatt'), y = blatt.scrollTop;
+        $('kgveLade').classList.add('an');
+        fr.onload = () => { $('kgveLade').classList.remove('an'); fr.style.height = inhaltHoehe(fr) + 'px'; blattSkalieren(); blatt.scrollTop = y; };
+        fr.src = vorschauUrl(felderLesen());
+    }
+    window.addEventListener('resize', blattSkalieren);
+    function mitlaufen() {
+        const v = $('kgveVorschau'), raster = v.parentElement;
+        if (window.innerWidth <= 1400) { v.style.transform = ''; return; }
+        const oben = raster.getBoundingClientRect().top + window.scrollY;
+        const platz = raster.offsetHeight - v.offsetHeight;
+        const y = Math.max(0, Math.min(window.scrollY - oben + 14, platz));
+        v.style.transform = y > 0 ? 'translateY(' + y + 'px)' : '';
+    }
+    window.addEventListener('scroll', mitlaufen, { passive: true });
+    window.addEventListener('resize', mitlaufen);
+
+    // ---------- Änderungen: Summen, Vorschau, Speichern automatisch (wenn schon angelegt)
+    function geaendertMelden() {
+        if (!aktuell) return;
+        geaendert = true;
+        summen(felderLesen());
+        clearTimeout(vorschauTimer); vorschauTimer = setTimeout(vorschau, 450);
+        if (!aktuell.id) {
+            $('kgveTitel').textContent = $('kgve_firma').value.trim() || 'Neuer Vertrag';
+            $('kgveGespeichert').textContent = 'noch nicht gespeichert';
+            return;
+        }
+        clearTimeout(speicherTimer); speicherTimer = setTimeout(() => speichern(true), 1800);
+        $('kgveGespeichert').textContent = 'Änderungen …';
+    }
+    $('kgveFormular').addEventListener('input', e => { if (e.target.matches('.kgae-in')) geaendertMelden(); });
+    $('kgveFormular').addEventListener('change', e => { if (e.target.matches('select.kgae-in')) geaendertMelden(); });
+
+    function speichern(still) {
+        if (!aktuell) return Promise.resolve(false);
+        clearTimeout(speicherTimer);
+        const f = felderLesen();
+        if (!aktuell.id && !f.firma) { meldung('fehler', 'Bitte die Firma eintragen.'); $('kgve_firma').focus(); return Promise.resolve(false); }
+        return fetch('/api/vertrag-editor/speichern', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: aktuell.id || 0, tagesliste_id: aktuell.tagesliste_id || 0, felder: f }) })
+            .then(r => r.json()).then(d => {
+                if (!d.ok) throw new Error(d.error || 'Fehler');
+                const neu = !aktuell.id;
+                aktuell.id = d.id; geaendert = false;
+                $('kgveGespeichert').textContent = 'gespeichert ' + new Date().toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
+                if (!still) meldung('ok', 'Entwurf gespeichert.');
+                if (neu) { history.replaceState(null, '', location.pathname + '?id=' + d.id); $('kgveLoeschen').hidden = false; schritte(2); listeLaden(); }
+                return true;
+            }).catch(e => { $('kgveGespeichert').textContent = 'nicht gespeichert'; if (!still) meldung('fehler', 'Nicht gespeichert: ' + esc(e.message)); return false; });
+    }
+    $('kgveSpeichern').addEventListener('click', () => speichern(false));
+
+    function anzeigen(d, quelle) {
+        aktuell = { id: d.id || 0, tagesliste_id: d.tagesliste_id || 0, status: d.status || 'neu', angebot_nr: d.angebot_nr || '' };
+        $('kgveTitel').textContent = d.felder.firma || 'Neuer Vertrag';
+        const q = $('kgveQuelle'); q.hidden = !quelle; q.textContent = quelle || '';
+        const st = $('kgveStand'); st.hidden = !aktuell.id;
+        st.className = 'kgae-chip ' + (aktuell.status === 'gesendet' ? 'gruen' : 'gelb');
+        st.textContent = aktuell.status === 'gesendet' ? 'verschickt' + (d.gesendet_am ? ' am ' + new Date(d.gesendet_am).toLocaleDateString('de-DE') : '') + (d.gesendet_an ? ' an ' + d.gesendet_an : '') : 'wartet auf Versand';
+        $('kgveGespeichert').textContent = d.geaendert_am ? 'gespeichert ' + new Date(d.geaendert_am).toLocaleString('de-DE', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : '';
+        $('kgveLoeschen').hidden = !aktuell.id;
+        felderSetzen(d.felder);
+        summen(felderLesen());
+        meldung('', '');
+        if (aktuell.status === 'gesendet') meldung('ok', 'Dieser Vertrag ist schon verschickt. Änderungen werden gespeichert; „Vertrag senden“ schickt ihn noch einmal.');
+        schritte(aktuell.status === 'gesendet' ? 3 : (aktuell.id ? 2 : 1));
+        geaendert = false;
+        history.replaceState(null, '', location.pathname + (aktuell.id ? '?id=' + aktuell.id : ''));
+        vorschau();
+        listeZeichnen();
+    }
+    function neu() {
+        return fetch('/api/vertrag-editor/neu', { credentials: 'same-origin' }).then(r => r.json()).then(d => {
+            if (!d.ok) throw new Error();
+            anzeigen({ felder: d.felder }, '');
+        }).catch(() => meldung('fehler', 'Formular konnte nicht geladen werden.'));
+    }
+    function wechseln() {
+        if (aktuell && !aktuell.id && geaendert && $('kgve_firma').value.trim() && !window.confirm('Der neue Vertrag ist noch nicht gespeichert. Trotzdem wechseln?')) return Promise.reject();
+        return aktuell && aktuell.id && geaendert ? speichern(true) : Promise.resolve();
+    }
+    function oeffnen(id) {
+        return wechseln().then(() => fetch('/api/vertrag-editor/' + id, { credentials: 'same-origin' })).then(r => r.json()).then(d => {
+            if (!d.ok) throw new Error(d.error || 'Fehler');
+            anzeigen(d, d.angebot_nr ? 'aus Angebot AN-' + d.angebot_nr : 'ohne Angebot');
+            if (window.innerWidth <= 1400) $('kgveFormular').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }).catch(e => { if (e) meldung('fehler', 'Konnte nicht geöffnet werden: ' + esc(e.message)); });
+    }
+    // Angebot bestätigt → wartet auf den Vertrag (Angebot selbst bleibt unverändert)
+    function bestaetigen(tid, ohneFrage) {
+        const a = liste.angebote.find(x => x.id === tid);
+        if (!ohneFrage && !window.confirm('Hat der Kunde das Angebot' + (a && a.nr ? ' AN-' + a.nr : '') + (a ? ' (' + a.firma + ')' : '') + ' bestätigt?\n\nEs kommt in die Liste „Wartend“ und der Vertrag wird mit den Angaben aus dem Angebot vorbereitet.')) return Promise.resolve();
+        return wechseln().then(() => fetch('/api/vertrag-editor/bestaetigen', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ tagesliste_id: tid }) }))
+            .then(r => r.json()).then(d => {
+                if (!d.ok) throw new Error(d.error || 'Fehler');
+                tabSetzen('wartend');
+                return listeLaden().then(() => oeffnen(d.id));
+            }).catch(e => { if (e) meldung('fehler', 'Nicht übernommen: ' + esc(e.message)); });
+    }
+    $('kgveNeu').addEventListener('click', () => { wechseln().then(neu, () => {}); });
+    $('kgveLoeschen').addEventListener('click', () => {
+        if (!aktuell || !aktuell.id) return;
+        if (!window.confirm('Diesen Vertrag aus der Liste nehmen?\n\nDas Angebot selbst bleibt unverändert und steht danach wieder unter „Angebote“.')) return;
+        fetch('/api/vertrag-editor/' + aktuell.id + '/loeschen', { method: 'POST', credentials: 'same-origin' }).then(r => r.json()).then(d => {
+            if (!d.ok) throw new Error();
+            geaendert = false; aktuell = null;
+            listeLaden(); neu();
+        }).catch(() => meldung('fehler', 'Konnte nicht entfernt werden.'));
+    });
+
+    // Vorschläge beim Tippen der Firma: Angebote → Vertrag aus dem Angebot, sonst Daten übernehmen
+    let vorschlagTimer = 0, treffer = [], auswahl = -1;
+    const vbox = $('kgveVorschlag');
+    function vorschlagZu() { vbox.hidden = true; auswahl = -1; }
+    function vorschlagZeigen() {
+        if (!treffer.length) { vbox.innerHTML = '<div class="kgae-hinweis-neu">Nicht gefunden – Angaben einfach eintragen.</div>'; vbox.hidden = false; return; }
+        vbox.innerHTML = treffer.map((t, i) => '<button type="button" role="option" data-i="' + i + '" class="' + (i === auswahl ? 'an' : '') + '"><span><b>' + esc(t.firma || 'Ohne Firma') + '</b><small>' + esc(t.ort || '–') + '</small></span>' +
+            '<span class="kgae-chip ' + (t.art === 'kunde' ? 'gruen' : t.art === 'angebot' ? 'gelb' : t.art === 'besichtigung' ? '' : 'grau') + '">' + esc(t.stand) + '</span></button>').join('');
+        vbox.hidden = false;
+    }
+    function waehlen(t) {
+        vorschlagZu();
+        if (!t) return;
+        if (t.art === 'angebot') {
+            const schon = liste.wartend.concat(liste.gesendet).find(x => x.nr && t.stand.indexOf('AN-' + x.nr) >= 0);
+            if (schon) { oeffnen(schon.id); return; }
+            fetch('/api/vertrag-editor/aus-angebot/' + t.id, { credentials: 'same-origin' }).then(r => r.json()).then(d => {
+                if (!d.ok) throw new Error(d.error);
+                aktuell.tagesliste_id = t.id;
+                felderSetzen(d.felder);
+                $('kgveQuelle').hidden = false; $('kgveQuelle').textContent = 'aus ' + t.stand.replace('Datenbank · ', '');
+                geaendertMelden(); schritte(2);
+            }).catch(() => meldung('fehler', 'Angebot konnte nicht geladen werden.'));
+            return;
+        }
+        Object.keys(t.felder || {}).forEach(key => { const el = document.querySelector('#kgveFormular [data-feld="' + key + '"]'); if (el) el.value = t.felder[key] || ''; });
+        aktuell.tagesliste_id = 0;
+        $('kgveQuelle').hidden = false; $('kgveQuelle').textContent = t.art === 'kunde' ? 'Bestandskunde' : t.stand;
+        geaendertMelden(); schritte(2);
+        const pos = document.querySelector('[data-pos="1"][data-teil="text"]'); if (pos) pos.focus();
+    }
+    $('kgve_firma').addEventListener('input', () => {
+        if (!aktuell || aktuell.id) return;
+        const q = $('kgve_firma').value.trim();
+        clearTimeout(vorschlagTimer);
+        if (q.length < 2) { vorschlagZu(); return; }
+        vorschlagTimer = setTimeout(() => {
+            fetch('/api/angebot-editor/suche?q=' + encodeURIComponent(q), { credentials: 'same-origin' }).then(r => r.json()).then(d => {
+                if (!d.ok || $('kgve_firma').value.trim() !== q) return;
+                treffer = d.treffer || []; auswahl = -1;
+                vorschlagZeigen();
+            }).catch(() => {});
+        }, 220);
+    });
+    $('kgve_firma').addEventListener('keydown', e => {
+        if (vbox.hidden || !treffer.length) return;
+        if (e.key === 'ArrowDown' || e.key === 'ArrowUp') { e.preventDefault(); auswahl = (auswahl + (e.key === 'ArrowDown' ? 1 : -1) + treffer.length) % treffer.length; vorschlagZeigen(); }
+        else if (e.key === 'Enter' && auswahl >= 0) { e.preventDefault(); waehlen(treffer[auswahl]); }
+        else if (e.key === 'Escape') vorschlagZu();
+    });
+    vbox.addEventListener('mousedown', e => { const b = e.target.closest('[data-i]'); if (b) { e.preventDefault(); waehlen(treffer[Number(b.dataset.i)]); } });
+    $('kgve_firma').addEventListener('blur', () => setTimeout(vorschlagZu, 150));
+
+    function meldung(art, html) { $('kgveMeldung').innerHTML = html ? '<div class="kgae-meldung ' + art + '">' + html + '</div>' : ''; }
+    function schritte(n) { $('kgveSchritte').querySelectorAll('span').forEach((s, i) => s.classList.toggle('an', i < n)); }
+
+    // ---------- PDF / Senden / Mail
+    $('kgvePdf').addEventListener('click', () => { if (aktuell) window.open(vorschauUrl(felderLesen()).replace('/vertrag/editor/vorschau?', '/vertrag/editor/vorschau?drucken=1&'), '_blank'); });
+    $('kgveLaden').addEventListener('click', () => {
+        if (!aktuell) return;
+        const knopf = $('kgveLaden'), text = knopf.textContent;
+        knopf.disabled = true; knopf.textContent = 'Wird erstellt …';
+        fetch(vorschauUrl(felderLesen()).replace('/vertrag/editor/vorschau?', '/vertrag/editor/pdf?'), { credentials: 'same-origin' }).then(r => {
+            if (!r.ok) return r.json().then(d => { throw new Error(d.error || 'Fehler'); }, () => { throw new Error('Fehler ' + r.status); });
+            const name = ((r.headers.get('Content-Disposition') || '').match(/filename\*?=(?:UTF-8'')?"?([^";]+)/i) || [])[1];
+            return r.blob().then(b => ({ b, name: name ? decodeURIComponent(name) : 'Reinigungsvertrag.pdf' }));
+        }).then(x => {
+            const a = document.createElement('a'); a.href = URL.createObjectURL(x.b); a.download = x.name;
+            document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1500);
+        }).catch(e => meldung('fehler', 'PDF nicht erstellt: ' + esc(e.message))).finally(() => { knopf.disabled = false; knopf.textContent = text; });
+    });
+    $('kgveSenden').addEventListener('click', () => {
+        if (!aktuell) return;
+        const f = felderLesen(), pos = f.positionen.filter(p => p.text && zahl(p.preis));
+        if (!f.firma) { meldung('fehler', 'Bitte die Firma eintragen.'); return; }
+        if (!pos.length) { meldung('fehler', 'Bitte mindestens eine Leistung mit Preis eintragen.'); return; }
+        if (!f.startdatum) { meldung('fehler', 'Bitte eintragen, ab wann der Vertrag gilt.'); $('kgve_startdatum').focus(); return; }
+        const fehlt = [!f.wochentage && 'Wochentage', !f.zeiten && 'Reinigungszeiten', !f.email && 'E-Mail'].filter(Boolean);
+        if (fehlt.length && !window.confirm('Noch leer: ' + fehlt.join(', ') + '.\n\nTrotzdem weiter zum E-Mail-Fenster?')) return;
+        const knopf = $('kgveSenden'); knopf.disabled = true; knopf.textContent = 'Wird gespeichert …';
+        speichern(true).then(ok => {
+            if (!ok) { meldung('fehler', 'Vertrag konnte nicht gespeichert werden.'); return; }
+            mailOeffnen();
+        }).finally(() => { knopf.disabled = false; knopf.textContent = 'Vertrag senden'; });
+    });
+    function mailOeffnen() { $('kgveMailFrame').src = '/vertrag/editor/mail?id=' + aktuell.id; $('kgveMail').classList.add('an'); }
+    function mailZu() { $('kgveMail').classList.remove('an'); $('kgveMailFrame').src = 'about:blank'; }
+    window.closeAngebotMailInterface = mailZu;
+    window.addEventListener('message', e => {
+        if (!e.data) return;
+        if (e.data.type === 'kg-mail-mini-close') mailZu();
+        if (e.data.type === 'kg-vertrag-gesendet') {
+            listeLaden().then(() => { if (aktuell && aktuell.id === e.data.id) { tabSetzen('gesendet'); oeffnen(e.data.id).then(() => meldung('ok', '✓ Vertrag per E-Mail verschickt.')); } });
+        }
+    });
+    $('kgveMailZu').addEventListener('click', mailZu);
+    $('kgveVorschauAuf').addEventListener('click', () => { $('kgveVorschau').classList.add('offen'); blattSkalieren(); });
+    $('kgveVorschauZu').addEventListener('click', () => $('kgveVorschau').classList.remove('offen'));
+    window.addEventListener('beforeunload', () => { if (geaendert && aktuell && aktuell.id) navigator.sendBeacon && navigator.sendBeacon('/api/vertrag-editor/speichern', new Blob([JSON.stringify({ id: aktuell.id, felder: felderLesen() })], { type: 'application/json' })); });
+
+    listeLaden().then(() => {
+        const start = Number(wurzel.dataset.start) || 0, ang = Number(wurzel.dataset.angebot) || 0;
+        if (start) {
+            if (liste.gesendet.some(x => x.id === start)) tabSetzen('gesendet');
+            oeffnen(start);
+        } else if (ang) {
+            bestaetigen(ang, true);
+        } else {
+            neu();
+        }
+    });
+    blattSkalieren();
+})();
+</script>
+{% endraw %}
+{% endblock %}

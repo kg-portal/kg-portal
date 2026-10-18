@@ -934,6 +934,13 @@ try:
 except Exception as exc:
     print(f"⚠️ Angebot-Editor: {exc}")
 
+# Vertrag-Editor (/vertrag/editor): bestätigtes Angebot → Reinigungsvertrag mit Live-Vorschau und Mail; eigene Tabelle vertrag_editor
+try:
+    from vertrag_editor import register_vertrag_editor
+    register_vertrag_editor(app, login_required, get_db_connection)
+except Exception as exc:
+    print(f"⚠️ Vertrag-Editor: {exc}")
+
 # Arbeitsliste für heute (/heute): jeden Werktag als To-Do-Karte (+ WhatsApp an den Chef); der Agent antwortet dem Chef per WhatsApp
 from tagesliste import register_tagesliste
 register_tagesliste(app, login_required, get_db_connection, lambda: _leon_routes_mod.leon_client)

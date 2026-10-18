@@ -262,6 +262,7 @@ a.kgae-knopf { display: inline-block; text-decoration: none; }
                 <div class="kgae-aktionen">
                     <button type="button" class="kgae-knopf hell kgae-nur-schmal" id="kgaeVorschauAuf">Vorschau ansehen</button>
                     <button type="button" class="kgae-knopf hell" id="kgaeEntwurf">Entwurf speichern</button>
+                    <button type="button" class="kgae-knopf hell" id="kgaeBestaetigt" hidden title="Kunde hat zugesagt: kommt in die Vertrag-Warteliste">✓ Bestätigt → Vertrag</button>
                     <div class="rechts">
                         <button type="button" class="kgae-knopf hell" id="kgaePdf">PDF ansehen</button>
                         <button type="button" class="kgae-knopf hell" data-laden="angebot">PDF herunterladen</button>
@@ -589,6 +590,7 @@ a.kgae-knopf { display: inline-block; text-decoration: none; }
             k = d.koeffizienten;
             $('kgaeStart').hidden = true; $('kgaeFormular').hidden = false;
             $('kgaeTitel').textContent = 'Neues Angebot';
+            $('kgaeBestaetigt').hidden = true;
             nrSetzen(d.naechste_nr, 'nächste freie Nummer', false);
             $('kgaeQuelle').hidden = true;
             $('kgaeGespeichert').textContent = '';
@@ -717,6 +719,7 @@ a.kgae-knopf { display: inline-block; text-decoration: none; }
             meldung('', '');
             if (d.status === 'angebot') meldung('ok', 'Dieses Angebot ist schon verschickt (AN-' + esc(d.angebot_nr) + '). Änderungen werden mit „Angebot senden“ übernommen, die Nummer bleibt.');
             schritte(d.status === 'angebot' ? 3 : 2);
+            $('kgaeBestaetigt').hidden = d.status !== 'angebot';
             geaendert = false;
             history.replaceState(null, '', location.pathname + '?id=' + id);
             vorschau();
@@ -751,6 +754,7 @@ a.kgae-knopf { display: inline-block; text-decoration: none; }
             .then(r => r.json()).then(d => {
                 if (!d.ok) throw new Error(d.error || 'Fehler');
                 aktuell.angebot_nr = d.angebot_nr; aktuell.status = 'angebot'; geaendert = false;
+                $('kgaeBestaetigt').hidden = false;
                 nrSetzen(d.angebot_nr, 'vergeben', false);
                 lvLaden();
                 schritte(3);
@@ -765,6 +769,16 @@ a.kgae-knopf { display: inline-block; text-decoration: none; }
             }).catch(e => meldung('fehler', 'Nicht gesendet: ' + esc(e.message)))
             .finally(() => { knopf.disabled = false; knopf.textContent = 'Angebot senden'; });
         });
+    });
+    // Kunde hat das Angebot bestätigt → Vertrag-Warteliste (/vertrag/editor); das Angebot selbst bleibt unverändert
+    $('kgaeBestaetigt').addEventListener('click', () => {
+        if (!aktuell || aktuell.status !== 'angebot') return;
+        if (!window.confirm('Hat der Kunde das Angebot AN-' + aktuell.angebot_nr + ' bestätigt?\n\nEs kommt in die Vertrag-Warteliste, der Vertrag wird mit diesen Angaben vorbereitet.')) return;
+        fetch('/api/vertrag-editor/bestaetigen', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ tagesliste_id: aktuell.id }) })
+            .then(r => r.json()).then(d => {
+                if (!d.ok) throw new Error(d.error || 'Fehler');
+                meldung('ok', '✓ ' + (d.schon ? 'Steht schon in der Vertrag-Warteliste.' : 'In die Vertrag-Warteliste übernommen.') + '<br><a class="kgae-knopf gruen" href="/vertrag/editor?id=' + d.id + '">Vertrag jetzt erstellen</a>');
+            }).catch(e => meldung('fehler', 'Nicht übernommen: ' + esc(e.message)));
     });
     function mailOeffnen(url, nr) {
         $('kgaeMailTitel').textContent = 'Angebot AN-' + nr + ' per E-Mail senden';
