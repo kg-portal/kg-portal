@@ -927,6 +927,13 @@ from besichtigung_zeit import register_besichtigung_zeit
 import app2 as _app2_mod
 register_besichtigung_zeit(app, login_required, lambda: _app2_mod.ANGEBOT_STUNDENSATZ)
 
+# Angebot-Editor (/angebot/editor, Tablet: /tablet/angebot): Besichtigung → Angebot mit Live-Vorschau; Entwürfe in eigener Tabelle
+try:
+    from angebot_editor import register_angebot_editor
+    register_angebot_editor(app, login_required, get_db_connection, _app2_mod)
+except Exception as exc:
+    print(f"⚠️ Angebot-Editor: {exc}")
+
 # Arbeitsliste für heute (/heute): jeden Werktag als To-Do-Karte (+ WhatsApp an den Chef); der Agent antwortet dem Chef per WhatsApp
 from tagesliste import register_tagesliste
 register_tagesliste(app, login_required, get_db_connection, lambda: _leon_routes_mod.leon_client)

@@ -215,6 +215,10 @@
             <i class="fa-solid fa-pen-to-square"></i>
           </button>
 
+          <button onclick="kgZurBesichtigung('{{ k.id }}', this)" title="Zur Besichtigung schicken (danach Angebot)" class="kunden-icon-btn besichtigung">
+            <i class="fa-solid fa-clipboard-check"></i>
+          </button>
+
           <button onclick="if(confirm('Kunde wirklich löschen?')) window.location.href='/kunden/delete/{{ k.id }}'" title="Löschen" class="kunden-icon-btn delete">
             <i class="fa-solid fa-trash"></i>
           </button>
@@ -3339,4 +3343,39 @@ document.addEventListener("DOMContentLoaded", function () {
 })();
 </script>
 {% endraw %}
+<style>
+  .kunden-icon-btn.besichtigung, .kunden-page .kunden-icon-btn.besichtigung { background:#dbeafe; color:#1d4ed8; }
+  .kg-besichtigung-hinweis { position:fixed; right:18px; bottom:18px; z-index:10060; width:min(380px, calc(100vw - 36px)); padding:16px 18px; border-radius:18px; background:#ffffff;
+      border:1px solid #bfdbfe; box-shadow:0 24px 48px -18px rgba(15, 23, 42, .45); font-family:Arial, Helvetica, sans-serif; color:#0f172a; }
+  .kg-besichtigung-hinweis b { display:block; font-size:15px; }
+  .kg-besichtigung-hinweis p { margin:6px 0 12px; font-size:13px; font-weight:700; color:#475569; line-height:1.45; }
+  .kg-besichtigung-hinweis a { display:inline-block; margin:0 8px 0 0; padding:9px 12px; border-radius:11px; font-size:13px; font-weight:900; text-decoration:none; color:#fff; background:linear-gradient(135deg, #1e40af, #3b82f6); }
+  .kg-besichtigung-hinweis a.hell { background:#eff6ff; color:#1e40af; }
+  .kg-besichtigung-hinweis button { position:absolute; top:10px; right:10px; width:28px; height:28px; border:0; border-radius:9px; background:#f1f5f9; color:#475569; font-weight:900; cursor:pointer; }
+</style>
+<script>
+// Kunde zur Besichtigung schicken: legt wie „+ Direktes Angebot → Bestandskunde“ in der Datenbank einen Besichtigungs-Eintrag an
+function kgZurBesichtigung(id, knopf) {
+  var zeile = document.getElementById("row-" + id);
+  var firma = zeile && zeile.querySelector(".t-firma") ? zeile.querySelector(".t-firma").textContent.trim() : "";
+  if (!window.confirm("„" + (firma || "Kunde") + "“ zur Besichtigung schicken?\n\nDer Kunde erscheint dann in der Besichtigung-Liste (auch in der KG Scan App). Danach geht es im Angebot-Editor weiter.")) return;
+  knopf.disabled = true;
+  fetch("/api/datenbank/direktes-angebot-bestandskunde", { method: "POST", credentials: "same-origin", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ kunde_id: Number(id) }) })
+    .then(function (r) { return r.json(); })
+    .then(function (d) {
+      if (!d || !d.ok) throw new Error((d && d.message) || "Fehler");
+      var alt = document.querySelector(".kg-besichtigung-hinweis"); if (alt) alt.remove();
+      var box = document.createElement("div");
+      box.className = "kg-besichtigung-hinweis";
+      box.innerHTML = '<button type="button" aria-label="Schließen">✕</button><b>✓ Zur Besichtigung geschickt</b><p></p>' +
+        '<a href="/besichtigung">Besichtigung öffnen</a><a class="hell" href="/angebot/editor?id=' + Number(d.besichtigung_id || 0) + '">Angebot-Editor</a>';
+      box.querySelector("p").textContent = (firma || "Der Kunde") + " steht jetzt in der Besichtigung-Liste.";
+      box.querySelector("button").addEventListener("click", function () { box.remove(); });
+      document.body.appendChild(box);
+      setTimeout(function () { if (box.isConnected) box.remove(); }, 15000);
+    })
+    .catch(function (e) { window.alert("Nicht geschickt: " + e.message); })
+    .then(function () { knopf.disabled = false; });
+}
+</script>
 {% endblock %}

@@ -1034,6 +1034,7 @@ body{background:#f4f7fc}
   <div class="action-footer bt-leiste">
     <div class="bt-sum"><div class="g"><b id="btSumNetto">0,00 €</b><span>netto / Monat</span></div><div><b id="btSumStd">0,0 Std.</b><span>pro Monat</span></div><div><b id="btSumSatz">–</b><span>Stundensatz</span></div><div><b id="btSumTage">–</b><span>Einsatztage</span></div></div>
         <button type="button" class="btn-action btn-speichern" onclick="finishBesichtigung('speichern')">Speichern</button>
+    <button type="button" class="btn-action btn-speichern" style="background:linear-gradient(135deg,#047857,#10b981);color:#fff" onclick="kgAngebotEditorOeffnen()">Angebot erstellen</button>
     <button type="button" class="btn-action btn-senden" onclick="finishBesichtigung('senden')">Senden</button>
   </div>
 </form>
@@ -2759,6 +2760,7 @@ function renderBesichtigungTermine() {
       <div class="besichtigung-termin-line">☎ ${escapeHtml(telefon)}</div>
       <div class="besichtigung-termin-line">✉ ${escapeHtml(email)}</div>
       <button type="button" class="besichtigung-start-btn" onclick="startBesichtigung(${index})">Start</button>
+      <a class="besichtigung-start-btn" style="display:block;margin-top:8px;text-align:center;text-decoration:none;background:linear-gradient(135deg,#047857,#10b981)" href="/angebot/editor?id=${Number(lead.id) || 0}">Angebot erstellen</a>
     `;
 
     list.appendChild(card);
@@ -2984,6 +2986,17 @@ function buildBesichtigungData() {
 
     gespeichert_am: new Date().toISOString()
   };
+}
+
+// Neu: Angebot-Editor öffnen – die aktuellen Eingaben dieser Seite gehen mit (nur im Browser, ohne zu speichern)
+function kgAngebotEditorOeffnen() {
+  const id = Number((document.getElementById("besichtigungTageslisteIdInput") || {}).value || 0);
+  if (!id) {
+    alert("Bitte zuerst oben bei einem Termin auf „Start“ tippen.");
+    return;
+  }
+  try { sessionStorage.setItem("kgae_bes_" + id, JSON.stringify(buildBesichtigungData())); } catch (e) {}
+  window.location.href = "/angebot/editor?id=" + id;
 }
 
 async function finishBesichtigung(mode) {
