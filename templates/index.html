@@ -490,6 +490,83 @@
     min-height: 112px;
 }
 
+/* Uhr als Kalenderblatt (Datum links, Uhrzeit rechts) */
+.index-live-box.index-kal-box {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    padding: 12px 16px;
+}
+
+.index-kal-blatt {
+    width: 82px;
+    flex: 0 0 82px;
+    border-radius: 14px;
+    overflow: hidden;
+    background: #ffffff;
+    text-align: center;
+    box-shadow: 0 10px 22px rgba(15,23,42,0.28);
+}
+
+.index-kal-monat {
+    position: relative;
+    padding: 5px 0 4px;
+    background: linear-gradient(180deg, #ef4444, #dc2626);
+    color: #ffffff;
+    font-size: 10px;
+    font-weight: 900;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+}
+
+.index-kal-monat::before,
+.index-kal-monat::after {
+    content: "";
+    position: absolute;
+    top: -4px;
+    width: 7px;
+    height: 11px;
+    border-radius: 4px;
+    background: #334155;
+}
+
+.index-kal-monat::before { left: 18px; }
+.index-kal-monat::after { right: 18px; }
+
+.index-kal-tag {
+    padding-top: 5px;
+    font-size: 38px;
+    line-height: 1;
+    font-weight: 900;
+    color: #0f1d4a;
+}
+
+.index-kal-wt {
+    padding: 3px 2px 7px;
+    font-size: 9.5px;
+    font-weight: 800;
+    letter-spacing: 0.4px;
+    text-transform: uppercase;
+    color: #64748b;
+}
+
+.index-kal-rechts {
+    min-width: 0;
+}
+
+.index-kal-box .index-time {
+    font-size: 40px;
+    letter-spacing: -1px;
+}
+
+.index-kal-box .index-date {
+    margin-top: 7px;
+    font-size: 12.5px;
+    text-align: left;
+    white-space: nowrap;
+}
+
 .index-weather-box {
     justify-self: end;
     width: 100%;
@@ -819,10 +896,16 @@
             </div>
         </div>
 
-        <div class="index-live-box">
-            <div class="index-small-label">Live Übersicht</div>
-            <div id="digital-clock" class="index-time">00:00</div>
-            <div id="current-date" class="index-date">Duisburg, --.--.----</div>
+        <div class="index-live-box index-kal-box">
+            <div class="index-kal-blatt" aria-hidden="true" data-kg-skip>
+                <div id="kal-monat" class="index-kal-monat" data-kg-skip>&nbsp;</div>
+                <div id="kal-tag" class="index-kal-tag" data-kg-skip>--</div>
+                <div id="kal-wt" class="index-kal-wt" data-kg-skip>&nbsp;</div>
+            </div>
+            <div class="index-kal-rechts">
+                <div id="digital-clock" class="index-time">00:00</div>
+                <div id="current-date" class="index-date">Duisburg</div>
+            </div>
         </div>
 
         <div class="index-weather-box">
@@ -1633,11 +1716,21 @@ window.ontouchend = () => clearInterval(scrollInterval);
 // ..........................................................................................................
 
 
-function updateClock() {
+function kalenderwoche(d) {
+        const t = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+        const wt = t.getUTCDay() || 7;
+        t.setUTCDate(t.getUTCDate() + 4 - wt);
+        const jahresanfang = new Date(Date.UTC(t.getUTCFullYear(), 0, 1));
+        return Math.ceil(((t - jahresanfang) / 86400000 + 1) / 7);
+    }
+
+    function updateClock() {
         const now = new Date();
         document.getElementById('digital-clock').textContent = String(now.getHours()).padStart(2, '0') + ":" + String(now.getMinutes()).padStart(2, '0');
-        const options = { day: '2-digit', month: '2-digit', year: 'numeric' };
-        document.getElementById('current-date').textContent = "Duisburg, " + now.toLocaleDateString('de-DE', options);
+        document.getElementById('kal-monat').textContent = now.toLocaleDateString('de-DE', { month: 'long' });
+        document.getElementById('kal-tag').textContent = now.getDate();
+        document.getElementById('kal-wt').textContent = now.toLocaleDateString('de-DE', { weekday: 'long' });
+        document.getElementById('current-date').textContent = "Duisburg · KW " + kalenderwoche(now) + " · " + now.getFullYear();
     }
     setInterval(updateClock, 1000); updateClock();
 
