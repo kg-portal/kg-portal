@@ -16,14 +16,13 @@ html body .ldb .ldb-head {
   min-height: 156px !important;
   padding: 28px 32px 28px 204px !important;
   border: 0 !important;
-  border-radius: 30px !important;
+  border-radius: 24px !important;
   color: #fff !important;
-  /* auf jeder Seite derselbe dunkle Ton (nur %-Angaben, unabhängig von Höhe und Breite des Kopfes) */
+  /* genau wie der Kopf der Startseite (.index-hero): Verlauf #183a91 → #2563eb, heller Kreis oben rechts */
   background:
-    repeating-linear-gradient(115deg, rgba(255,255,255,.035) 0 2px, transparent 2px 22px),
-    radial-gradient(ellipse 45% 90% at 100% 0%, rgba(59,130,246,.28), transparent 70%),
-    linear-gradient(100deg, #06143a 0%, #0a2160 50%, #0e2c7a 100%) !important;
-  box-shadow: 0 22px 48px rgba(6,20,58,.38) !important;
+    radial-gradient(circle at calc(100% - 50px) 30px, rgba(255,255,255,.11) 0 140px, transparent 140.5px),
+    linear-gradient(135deg, #183a91 0%, #2563eb 100%) !important;
+  box-shadow: 0 18px 50px rgba(24,58,145,.18) !important;
 }
 
 /* Leon-Kugel */
