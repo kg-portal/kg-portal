@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% block content %}
+<script src="{{ url_for('static', filename='kg_auftritt.js') }}" data-seite="aufgaben"></script>
 <!-- Aufgaben: gleiche Daten und gleiches Aussehen wie im KG LifeHub („Aufgaben“). Gelesen/geschrieben wird über
      /api/lifehub/… (lifehub_bruecke.py). Die alte To-Do-Liste unter /todo bleibt unverändert. -->
 <style>

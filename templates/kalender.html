@@ -84,6 +84,7 @@
 </style>
 
 {% if not (kalender_mini or request.args.get("embed") == "1") %}
+<script src="{{ url_for('static', filename='kg_auftritt.js') }}" data-seite="kalender"></script>
 <!-- Kopf wie „Aufgaben“ (Systemblau); der Kalender darunter bleibt unverändert, nur seine Höhe rechnet den Kopf mit ein -->
 <style>
 .kgk-kopf{position:relative;overflow:hidden;margin:16px 16px 0;border-radius:24px;padding:20px 24px;color:#fff;display:flex;align-items:center;gap:16px;flex-wrap:wrap;
