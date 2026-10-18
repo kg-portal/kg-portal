@@ -1,198 +1,338 @@
 {% extends "base.html" %}
 {% block content %}
+<script src="{{ url_for('static', filename='kg_auftritt.js') }}" data-seite="vertretung"></script>
+<!-- Vertretung: großer Monatskalender für Urlaub/Krank, offene Einsätze und Vorschläge, wer vertreten kann.
+     Daten: /api/vertretung/monat (vertretung_plan.py). Gespeichert wird über die bestehenden Stundenzettel-Routen
+     (gleiche Urlaubsrechnung wie bisher). -->
 <style>
-  .vr-wrap { max-width: 1180px; margin: 0 auto; padding: 24px 18px 60px; font-family: Arial, Helvetica, sans-serif; }
-  .vr-head { background: linear-gradient(135deg, #0f766e, #14b8a6); color: #fff; border-radius: 22px; padding: 22px 24px; display: flex; flex-wrap: wrap; gap: 14px; justify-content: space-between; align-items: center; }
-  .vr-head h1 { margin: 0; font-size: 26px; }
-  .vr-head p { margin: 6px 0 0; font-size: 14px; line-height: 1.5; max-width: 640px; }
-  .vr-nav { display: flex; gap: 8px; align-items: center; font-weight: 800; }
-  .vr-nav button, .vr-btn { border: 0; border-radius: 10px; padding: 10px 14px; min-height: 40px; font-weight: 800; font-size: 14px; cursor: pointer; color: #fff; background: #0f766e; }
-  .vr-nav button { background: rgba(255,255,255,.2); }
-  .vr-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 18px; padding: 16px 18px; margin-top: 14px; }
-  .vr-card h2 { margin: 0 0 10px; font-size: 17px; color: #134e4a; }
-  .vr-days { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-top: 14px; }
-  .vr-day { background: #fff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 14px; }
-  .vr-day h3 { margin: 0 0 8px; font-size: 15px; color: #0f172a; }
-  .vr-item { border-radius: 12px; padding: 10px 12px; margin-top: 8px; font-size: 14px; line-height: 1.45; }
-  .vr-abw { background: #fef2f2; border: 1px solid #fecaca; color: #7f1d1d; }
-  .vr-ok { background: #f0fdf4; border: 1px solid #bbf7d0; color: #14532d; }
-  .vr-free { font-size: 13px; color: #334155; margin-top: 8px; }
-  .vr-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
-  .vr-in { padding: 9px 10px; border: 2px solid #e2e8f0; border-radius: 10px; font-size: 16px; background: #f8fafc; font-family: inherit; }
-  .vr-msg { margin-top: 8px; font-size: 13px; font-weight: 700; }
-  .vr-msg.ok { color: #15803d; } .vr-msg.err { color: #b91c1c; }
-  .vr-grid { display: grid; grid-template-columns: 1.3fr 1fr 1fr 1fr auto; gap: 10px; align-items: end; }
-  .vr-grid label { display: block; font-size: 12px; font-weight: 800; color: #475569; margin-bottom: 5px; }
-  @media (max-width: 1000px) { .vr-days { grid-template-columns: 1fr 1fr; } .vr-grid { grid-template-columns: 1fr 1fr; } }
-  @media (max-width: 640px) { .vr-days, .vr-grid { grid-template-columns: 1fr; } .vr-head h1 { font-size: 21px; } }
-  /* ===== PREMIUM V2 „Graphit“ ===== */
-  {% raw %}
-  .vr-wrap { font-family: inherit; color: #1f2937; font-variant-numeric: tabular-nums; }
-  .vr-head { position: relative; background: transparent; color: #111827;
-             border-radius: 0; padding: 6px 0 20px; border-bottom: 1px solid #e5e7eb; margin-bottom: 20px; align-items: flex-end; }
-  .vr2-eyebrow { display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 700; color: #6b7280; margin: 0 0 10px; letter-spacing: .01em; }
-  .vr2-eyebrow i { width: 8px; height: 8px; border-radius: 2px; background: #0d9488; flex: none; }
-  .vr-head h1 { font-size: 30px; font-weight: 800; letter-spacing: -.02em; line-height: 1.15; color: #111827; }
-  .vr-head p { margin-top: 8px; font-size: 14px; color: #6b7280; max-width: 620px; }
-  .vr-nav { gap: 2px; padding: 3px; border: 1px solid #e5e7eb; border-radius: 12px; background: #fff; color: #111827; font-weight: 700; font-size: 13.5px;
-            box-shadow: 0 1px 2px rgba(16,24,40,.05); }
-  .vr-nav button { background: transparent; color: #374151; width: 34px; height: 34px; min-height: 34px; padding: 0; border-radius: 9px; font-size: 11px; }
-  .vr-nav button:hover { background: #f3f4f6; }
-  #vrWoche { padding: 0 10px; white-space: nowrap; }
+  .vt { --navy:#0f1d4a; --dunkel:#183a91; --blau:#2563eb; --hell:#eff6ff; --linie:#e6ecf5; --grau:#64748b;
+        --urlaub:#4f46e5; --urlaub-bg:#eef2ff; --krank:#e11d48; --krank-bg:#fff1f2; --ok:#059669; --ok-bg:#ecfdf5; --offen:#dc2626;
+        font-family: Inter, "Segoe UI", Arial, sans-serif; color: var(--navy); }
+  .vt * { box-sizing: border-box; }
+  .vt button { font-family: inherit; cursor: pointer; }
 
-  .vr2-kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; margin: 0 0 20px; }
-  .vr2-kpi { background: #fff; border: 1px solid #e5e7eb; border-radius: 14px; padding: 16px 18px; box-shadow: 0 1px 2px rgba(16,24,40,.05);
-             min-width: 0; display: flex; flex-direction: column; transition: border-color .15s, box-shadow .15s; }
-  .vr2-kpi:hover { border-color: #d1d5db; box-shadow: 0 1px 2px rgba(16,24,40,.05), 0 8px 24px -16px rgba(16,24,40,.25); }
-  .vr2-kpi-kopf { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 13px; font-weight: 600; color: #6b7280; }
-  .vr2-kpi-kopf svg { width: 18px; height: 18px; flex: none; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
-  .vr2-kpi-wert { margin-top: 10px; font-size: 28px; font-weight: 800; line-height: 1.1; letter-spacing: -.02em; color: #111827; white-space: nowrap; }
-  .vr2-kpi-wert small { font-size: 13px; font-weight: 600; color: #6b7280; letter-spacing: 0; margin: 0 10px 0 4px; }
-  .vr2-kpi-wert small:last-child { margin-right: 0; }
-  .vr2-kpi-meta { margin-top: 4px; font-size: 12.5px; color: #6b7280; min-height: 18px; }
-  .vr2-kpi-grafik { margin-top: auto; padding-top: 12px; min-height: 16px; }
-  .vr2-kpi-grafik svg { display: block; width: 100%; overflow: visible; }
-  .vr2-bar-lbl { font-size: 11px; fill: #9ca3af; font-weight: 600; }
-  .vr2-grid { stroke: #f0f1f4; stroke-dasharray: 3 3; }
-  .vr2-linie { height: 4px; border-radius: 4px; background: #f0f1f4; overflow: hidden; }
-  .vr2-linie b { display: block; height: 100%; border-radius: 4px; background: #0d9488; transform-origin: left center; }
-  .vr2-split { display: flex; gap: 2px; height: 6px; }
-  .vr2-split b { display: block; height: 100%; border-radius: 3px; min-width: 4px; transform-origin: left center; }
-  .vr2-legende { display: flex; flex-wrap: wrap; gap: 4px 12px; margin-top: 8px; font-size: 12px; color: #6b7280; }
-  .vr2-legende span { display: inline-flex; align-items: center; gap: 6px; }
-  .vr2-legende i { width: 8px; height: 8px; border-radius: 2px; }
-  .vr2-pill { display: inline-flex; align-items: center; gap: 6px; padding: 3px 8px; border-radius: 6px; font-size: 12px; font-weight: 700; line-height: 1.3;
-              background: #f3f4f6; color: #374151; }
-  .vr2-pill::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
-  .vr2-pill.gruen { background: #ecfdf5; color: #047857; }
-  .vr2-pill.bernstein { background: #fffbeb; color: #b45309; }
+  /* ---------- Kopf ---------- */
+  .vt-kopf { position: relative; overflow: hidden; border-radius: 28px; padding: 28px 30px 30px; color: #fff;
+    background: radial-gradient(circle at calc(100% - 60px) 20px, rgba(255,255,255,.12) 0 150px, transparent 150.5px), linear-gradient(135deg, #183a91 0%, #2563eb 100%);
+    box-shadow: 0 22px 50px rgba(24,58,145,.22); }
+  .vt-kopf-oben { display: flex; align-items: center; justify-content: space-between; gap: 18px; flex-wrap: wrap; margin-bottom: 24px; }
+  .vt-titel { display: flex; align-items: center; gap: 18px; min-width: 0; }
+  .vt-symbol { width: 64px; height: 64px; flex: none; border-radius: 20px; display: grid; place-items: center; background: rgba(255,255,255,.14);
+    border: 1px solid rgba(255,255,255,.26); box-shadow: inset 0 1px 0 rgba(255,255,255,.25), 0 10px 24px rgba(8,20,60,.22); }
+  .vt-titel small { display: block; font-size: 11px; font-weight: 900; letter-spacing: .14em; text-transform: uppercase; color: rgba(219,234,254,.85); }
+  .vt-titel h1 { margin: 2px 0 0; font-size: 34px; font-weight: 900; letter-spacing: -.03em; color: #fff !important; line-height: 1.1; }
+  .vt-titel p { margin: 6px 0 0; font-size: 14px; font-weight: 700; color: #dbeafe; max-width: 620px; }
+  .vt-monat { display: flex; align-items: center; gap: 8px; padding: 8px; border-radius: 18px; background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.24); }
+  .vt-monat button { width: 40px; height: 40px; border: 0; border-radius: 12px; background: rgba(255,255,255,.16); color: #fff; font-size: 20px; font-weight: 900; }
+  .vt-monat button:hover { background: rgba(255,255,255,.28); }
+  .vt-monat b { min-width: 150px; text-align: center; font-size: 17px; font-weight: 900; }
+  .vt-monat .vt-heute { width: auto; padding: 0 14px; font-size: 13px; }
+  .vt-kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
+  .vt-kpi { position: relative; padding: 18px 20px; border-radius: 22px; background: linear-gradient(180deg, #fff 0%, #f7faff 100%); color: var(--navy);
+    border: 1px solid rgba(255,255,255,.7); box-shadow: 0 14px 30px rgba(8,20,60,.16); }
+  .vt-kpi-kopf { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+  .vt-kpi-icon { width: 38px; height: 38px; flex: none; border-radius: 12px; display: grid; place-items: center; color: #fff;
+    background: linear-gradient(145deg, #3b82f6, #1e40af); box-shadow: 0 8px 16px rgba(30,64,175,.28), inset 0 1px 0 rgba(255,255,255,.35); }
+  .vt-kpi.rot .vt-kpi-icon { background: linear-gradient(145deg, #fb7185, #be123c); box-shadow: 0 8px 16px rgba(190,18,60,.26), inset 0 1px 0 rgba(255,255,255,.35); }
+  .vt-kpi.lila .vt-kpi-icon { background: linear-gradient(145deg, #818cf8, #4338ca); box-shadow: 0 8px 16px rgba(67,56,202,.26), inset 0 1px 0 rgba(255,255,255,.35); }
+  .vt-kpi.gruen .vt-kpi-icon { background: linear-gradient(145deg, #34d399, #047857); box-shadow: 0 8px 16px rgba(4,120,87,.26), inset 0 1px 0 rgba(255,255,255,.35); }
+  .vt-kpi small { font-size: 11px; font-weight: 900; letter-spacing: .1em; text-transform: uppercase; color: var(--grau); }
+  .vt-kpi b { display: block; font-size: 30px; font-weight: 900; letter-spacing: -.03em; line-height: 1; font-variant-numeric: tabular-nums; }
+  .vt-kpi i { display: block; margin-top: 8px; font-style: normal; font-size: 12px; font-weight: 700; color: var(--grau); }
 
-  .vr-card { border: 1px solid #e5e7eb; border-radius: 14px; padding: 18px 20px; margin-top: 0; box-shadow: 0 1px 2px rgba(16,24,40,.05); }
-  .vr-card h2 { font-size: 15px; font-weight: 700; color: #111827; margin: 0 0 14px; letter-spacing: -.01em; }
-  .vr-grid { gap: 12px; }
-  .vr-grid label { font-size: 12.5px; font-weight: 600; color: #6b7280; margin-bottom: 6px; }
-  .vr-in { height: 40px; padding: 0 12px; border: 1px solid #d1d5db; border-radius: 10px; background: #fff; color: #111827; font-size: 14px;
-           box-sizing: border-box; transition: border-color .15s, box-shadow .15s; }
-  .vr-in:focus { outline: none; border-color: #111827; box-shadow: 0 0 0 3px rgba(17,24,39,.10); }
-  .vr-btn { height: 40px; min-height: 40px; padding: 0 16px; border-radius: 10px; background: #111827; color: #fff; font-size: 13.5px; font-weight: 700;
-            transition: background .15s; }
-  .vr-btn:hover { background: #000; }
-  .vr-btn:disabled { opacity: .55; cursor: default; }
-  .vr-msg { font-weight: 600; }
+  /* ---------- Leiste zum Ziehen ---------- */
+  .vt-leiste { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin-top: 18px; padding: 14px 16px; background: #fff;
+    border: 1px solid var(--linie); border-radius: 22px; box-shadow: 0 10px 26px rgba(15,29,74,.06); }
+  .vt-modus { display: inline-flex; padding: 4px; gap: 4px; border-radius: 14px; background: #f1f5f9; }
+  .vt-modus button { display: inline-flex; align-items: center; gap: 7px; border: 0; padding: 9px 14px; border-radius: 11px; background: transparent; color: #475569; font-size: 13.5px; font-weight: 800; }
+  .vt-modus button .p { width: 9px; height: 9px; border-radius: 50%; }
+  .vt-modus button[data-grund="Urlaub"] .p { background: var(--urlaub); }
+  .vt-modus button[data-grund="Krank"] .p { background: var(--krank); }
+  .vt-modus button.an { background: #fff; color: var(--navy); box-shadow: 0 6px 14px rgba(15,29,74,.12); }
+  .vt-leiste-text { display: flex; flex-direction: column; min-width: 180px; }
+  .vt-leiste-text b { font-size: 13px; font-weight: 900; color: var(--dunkel); }
+  .vt-leiste-text span { font-size: 12px; font-weight: 600; color: var(--grau); }
+  .vt-chips { display: flex; gap: 8px; flex-wrap: wrap; flex: 1; }
+  .vt-chip { display: inline-flex; align-items: center; gap: 8px; padding: 5px 12px 5px 5px; border-radius: 999px; border: 1px solid var(--linie); background: #f8fbff;
+    font-size: 13px; font-weight: 800; color: var(--navy); cursor: grab; user-select: none; transition: transform .15s, box-shadow .15s, border-color .15s; }
+  .vt-chip:hover { transform: translateY(-2px); box-shadow: 0 10px 18px rgba(15,29,74,.1); border-color: #bfdbfe; }
+  .vt-chip.an { border-color: var(--blau); background: var(--hell); box-shadow: 0 0 0 3px rgba(37,99,235,.18); }
+  .vt-chip small { font-size: 11px; font-weight: 800; color: var(--grau); }
+  .vt-av { width: 30px; height: 30px; flex: none; border-radius: 10px; display: grid; place-items: center; font-size: 11.5px; font-weight: 900; color: #fff; letter-spacing: .02em;
+    background: linear-gradient(145deg, var(--a1, #3b82f6), var(--a2, #1e40af)); box-shadow: 0 6px 12px -6px var(--a2, #1e40af), inset 0 1px 0 rgba(255,255,255,.3); }
+  .vt-btn { display: inline-flex; align-items: center; gap: 8px; border: 0; padding: 11px 16px; border-radius: 13px; font-size: 14px; font-weight: 900; color: #fff;
+    background: linear-gradient(135deg, #1d4ed8, #2563eb); box-shadow: 0 10px 20px -8px rgba(37,99,235,.7); }
+  .vt-btn:hover { filter: brightness(1.07); }
+  .vt-btn:disabled { opacity: .55; cursor: default; }
+  .vt-btn.hell { color: #1e3a8a; background: #fff; border: 1px solid #dbe3ef; box-shadow: none; }
+  .vt-btn.klein { padding: 7px 11px; font-size: 12.5px; border-radius: 10px; }
+  .vt-btn.rot { color: #be123c; background: #fff1f2; border: 1px solid #fecdd3; box-shadow: none; }
 
-  .vr-days { gap: 16px; margin-top: 20px; }
-  .vr-day { border: 1px solid #e5e7eb; border-radius: 14px; padding: 16px; box-shadow: 0 1px 2px rgba(16,24,40,.05); display: flex; flex-direction: column; }
-  .vr-day h3 { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 15px; font-weight: 700; color: #111827;
-               margin: 0 0 4px; letter-spacing: -.01em; }
-  .vr-day h3[data-vr2]::after { content: attr(data-vr2); flex: none; padding: 3px 8px; border-radius: 6px; font-size: 12px; font-weight: 700;
-                                 background: #f3f4f6; color: #374151; }
-  .vr-day h3[data-vr2-ton="offen"]::after { background: #fffbeb; color: #b45309; }
-  .vr-day h3[data-vr2-ton="ok"]::after { background: #ecfdf5; color: #047857; }
-  .vr-item { border-radius: 10px; padding: 12px; margin-top: 10px; font-size: 13.5px; line-height: 1.5; }
-  .vr-abw { position: relative; background: #fff; border: 1px solid #e5e7eb; color: #4b5563; padding-left: 56px; min-height: 60px; box-sizing: border-box; }
-  .vr-abw b { color: #111827; font-weight: 700; }
-  .vr2-ava { position: absolute; left: 12px; top: 12px; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
-             font-size: 12px; font-weight: 700; letter-spacing: .02em; background: #f3f4f6; color: #374151; }
-  .vr2-ava.krank { background: #fff1f2; color: #be123c; }
-  .vr2-ava.urlaub { background: #fffbeb; color: #b45309; }
-  .vr-ok { position: relative; background: transparent; border: 1px dashed #e5e7eb; color: #6b7280; font-size: 13.5px; padding: 11px 12px 11px 30px; }
-  .vr-ok::before { content: ""; position: absolute; left: 13px; top: 50%; width: 7px; height: 7px; margin-top: -3.5px; border-radius: 50%; background: #16a34a; }
-  .vr-row { margin-top: 10px; gap: 8px; }
-  .vr-row .vr-in { height: 36px; font-size: 13.5px; flex: 1 1 140px; min-width: 0; }
-  .vr-row .vr-btn { height: 36px; min-height: 36px; font-size: 13px; padding: 0 12px; }
-  .vr-free { font-size: 12.5px; line-height: 1.5; color: #6b7280; }
-  .vr-free b { color: #374151; font-weight: 600; }
-  .vr-day > .vr-free { margin-top: auto; padding-top: 12px; border-top: 1px solid #f0f1f4; }
-  .vr-day > .vr-item:nth-last-child(2) { margin-bottom: 14px; }
+  /* ---------- Kalender + Seitenleiste ---------- */
+  .vt-haupt { display: grid; grid-template-columns: minmax(0, 1fr) 400px; gap: 18px; margin-top: 18px; align-items: start; }
+  .vt-kal { background: #fff; border: 1px solid var(--linie); border-radius: 26px; padding: 16px; box-shadow: 0 14px 34px rgba(15,29,74,.07); }
+  .vt-kal-kopf { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; padding: 2px 4px 12px; }
+  .vt-kal-kopf h2 { margin: 0; font-size: 20px; font-weight: 900; letter-spacing: -.02em; }
+  .vt-legende { display: flex; gap: 12px; flex-wrap: wrap; font-size: 12px; font-weight: 800; color: var(--grau); }
+  .vt-legende span { display: inline-flex; align-items: center; gap: 6px; }
+  .vt-legende i { width: 10px; height: 10px; border-radius: 4px; display: inline-block; }
+  .vt-wt { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 8px; padding: 0 0 8px; }
+  .vt-wt div { text-align: center; font-size: 11px; font-weight: 900; letter-spacing: .12em; color: var(--grau); }
+  .vt-raster { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 8px; user-select: none; }
+  .vt-tag { position: relative; min-height: 124px; padding: 8px; border-radius: 16px; border: 1px solid var(--linie); background: #fff; cursor: pointer;
+    display: flex; flex-direction: column; gap: 5px; transition: border-color .15s, box-shadow .15s, background-color .15s; touch-action: manipulation; }
+  .vt-tag:hover { border-color: #bfdbfe; box-shadow: 0 10px 22px rgba(15,29,74,.08); }
+  .vt-tag.leer { background: transparent; border: 1px dashed #eef2f7; cursor: default; box-shadow: none; }
+  .vt-tag.we { background: #f8fafc; }
+  .vt-tag.feiertag { background: linear-gradient(180deg, #fff7ed, #fff); border-color: #fed7aa; }
+  .vt-tag.vorbei:not(.gewaehlt) { opacity: .72; }
+  .vt-tag.heute .vt-nr { background: linear-gradient(135deg, #183a91, #2563eb); color: #fff; box-shadow: 0 6px 14px rgba(37,99,235,.35); }
+  .vt-tag.gewaehlt { border-color: var(--blau); box-shadow: 0 0 0 3px rgba(37,99,235,.2), 0 12px 24px rgba(15,29,74,.1); }
+  .vt-tag.markiert { background: linear-gradient(180deg, #e0e7ff, #eef2ff); border-color: #818cf8; }
+  .vt-tag.ziel { background: var(--hell); border-color: var(--blau); border-style: dashed; }
+  .vt-tag-kopf { display: flex; align-items: center; gap: 6px; }
+  .vt-nr { width: 28px; height: 28px; flex: none; border-radius: 10px; display: grid; place-items: center; font-size: 13px; font-weight: 900; color: var(--navy); }
+  .vt-ft { font-size: 10.5px; font-weight: 800; color: #c2410c; line-height: 1.15; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+  .vt-flag { margin-left: auto; display: inline-flex; align-items: center; gap: 4px; padding: 3px 7px; border-radius: 999px; font-size: 10.5px; font-weight: 900; white-space: nowrap; }
+  .vt-flag.offen { background: #fee2e2; color: #b91c1c; }
+  .vt-flag.ok { background: var(--ok-bg); color: #047857; }
+  .vt-abw { display: flex; align-items: center; gap: 6px; padding: 3px 7px 3px 3px; border-radius: 10px; font-size: 11.5px; font-weight: 800; line-height: 1.1; min-width: 0; }
+  .vt-abw .vt-av { width: 20px; height: 20px; border-radius: 7px; font-size: 8.5px; box-shadow: none; }
+  .vt-abw > span:not(.vt-av) { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .vt-abw.urlaub { background: var(--urlaub-bg); color: #3730a3; box-shadow: inset 3px 0 0 var(--urlaub); }
+  .vt-abw.krank { background: var(--krank-bg); color: #9f1239; box-shadow: inset 3px 0 0 var(--krank); }
+  .vt-mehr { font-size: 11px; font-weight: 800; color: var(--grau); padding-left: 4px; }
 
-  .vr2-start .vr2-kpi { animation: vr2-auf .5s cubic-bezier(.2,.7,.2,1) backwards; }
-  .vr2-start .vr2-kpi:nth-child(2) { animation-delay: .06s; }
-  .vr2-start .vr2-kpi:nth-child(3) { animation-delay: .12s; }
-  .vr2-start .vr2-kpi:nth-child(4) { animation-delay: .18s; }
-  .vr2-start .vr2-balken rect.vr2-b { animation: vr2-wachsen .7s cubic-bezier(.2,.7,.2,1) backwards; transform-box: fill-box; transform-origin: 50% 100%; }
-  .vr2-start .vr2-linie b, .vr2-start .vr2-split b { animation: vr2-breit .8s cubic-bezier(.2,.7,.2,1) backwards; }
-  @keyframes vr2-auf { from { opacity: 0; transform: translateY(6px); } }
-  @keyframes vr2-wachsen { from { transform: scaleY(0); } }
-  @keyframes vr2-breit { from { transform: scaleX(0); } }
-  @media (prefers-reduced-motion: reduce) { .vr2-start * { animation: none !important; } }
+  .vt-seite { position: sticky; top: 14px; background: #fff; border: 1px solid var(--linie); border-radius: 26px; padding: 18px; box-shadow: 0 14px 34px rgba(15,29,74,.07);
+    max-height: calc(100vh - 28px); overflow: auto; }
+  .vt-seite-kopf small { display: block; font-size: 11px; font-weight: 900; letter-spacing: .12em; text-transform: uppercase; color: var(--grau); }
+  .vt-seite-kopf h2 { margin: 3px 0 0; font-size: 22px; font-weight: 900; letter-spacing: -.02em; }
+  .vt-seite-kopf .vt-ft { display: inline-block; margin-top: 4px; font-size: 12px; }
+  .vt-abschnitt { margin-top: 16px; }
+  .vt-abschnitt h3 { margin: 0 0 8px; font-size: 12px; font-weight: 900; letter-spacing: .1em; text-transform: uppercase; color: var(--dunkel); }
+  .vt-fall { border: 1px solid var(--linie); border-radius: 18px; padding: 12px; margin-bottom: 10px; background: linear-gradient(180deg, #fff, #f8fbff); }
+  .vt-fall.offen { border-color: #fecaca; box-shadow: inset 4px 0 0 #ef4444; }
+  .vt-fall.ok { border-color: #a7f3d0; box-shadow: inset 4px 0 0 #10b981; }
+  .vt-fall.ziel { border-color: var(--blau); border-style: dashed; background: var(--hell); }
+  .vt-fall-kopf { display: flex; align-items: center; gap: 10px; }
+  .vt-fall-kopf b { font-size: 14.5px; font-weight: 900; }
+  .vt-pill { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; font-size: 11.5px; font-weight: 900; white-space: nowrap; }
+  .vt-pill.urlaub { background: var(--urlaub-bg); color: #3730a3; }
+  .vt-pill.krank { background: var(--krank-bg); color: #9f1239; }
+  .vt-pill.ok { background: var(--ok-bg); color: #047857; }
+  .vt-pill.offen { background: #fee2e2; color: #b91c1c; }
+  .vt-pill.grau { background: #f1f5f9; color: #475569; }
+  .vt-pill.gelb { background: #fef3c7; color: #92400e; }
+  .vt-einsatz { margin-top: 8px; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; font-size: 13px; font-weight: 700; color: #334155; }
+  .vt-einsatz .o { font-weight: 900; color: var(--navy); }
+  .vt-fall-aktionen { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+  .vt-kands { margin-top: 10px; display: flex; flex-direction: column; gap: 8px; }
+  .vt-kand { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 9px 10px; border-radius: 14px; background: #fff;
+    border: 1px solid var(--linie); cursor: grab; transition: transform .15s, box-shadow .15s, border-color .15s; }
+  .vt-kand:hover { transform: translateY(-1px); box-shadow: 0 10px 18px rgba(15,29,74,.08); border-color: #bfdbfe; }
+  .vt-kand.nein { cursor: default; opacity: .62; background: #f8fafc; }
+  .vt-kand.nein:hover { transform: none; box-shadow: none; }
+  .vt-kand b { display: block; font-size: 13.5px; font-weight: 900; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .vt-kand small { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 3px; }
+  .vt-kand small .vt-pill { padding: 2px 7px; font-size: 10.5px; }
+  .vt-nummer { margin-top: 3px; height: 5px; border-radius: 999px; background: #e8eef9; overflow: hidden; }
+  .vt-nummer i { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, #34d399, #059669); }
+  .vt-nummer i.knapp { background: linear-gradient(90deg, #fbbf24, #d97706); }
+  .vt-nummer i.voll { background: linear-gradient(90deg, #fb7185, #e11d48); }
+  .vt-leer { text-align: center; padding: 22px 12px; border: 1px dashed #cbd5e1; border-radius: 18px; color: var(--grau); font-weight: 700; font-size: 13.5px; }
+  .vt-leer b { display: block; font-size: 15px; color: #047857; margin-bottom: 4px; }
+  .vt-mini { display: flex; flex-wrap: wrap; gap: 6px; }
+  .vt-mini > span { display: inline-flex; align-items: center; gap: 6px; padding: 3px 9px 3px 3px; border-radius: 999px; background: #f1f5f9; font-size: 12px; font-weight: 800; }
+  .vt-mini .vt-av { width: 22px; height: 22px; border-radius: 8px; font-size: 9px; box-shadow: none; }
+  .vt-arbeit { display: flex; justify-content: space-between; gap: 10px; padding: 7px 0; border-top: 1px solid #eef2f7; font-size: 12.5px; font-weight: 700; color: #334155; }
+  .vt-arbeit:first-of-type { border-top: 0; }
 
-  @media (max-width: 1100px) { .vr2-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-  @media (max-width: 640px) { .vr2-kpis { grid-template-columns: 1fr; } .vr-head h1 { font-size: 24px; } }
+  /* ---------- Team ---------- */
+  .vt-team { margin-top: 18px; background: #fff; border: 1px solid var(--linie); border-radius: 26px; padding: 18px; box-shadow: 0 14px 34px rgba(15,29,74,.07); }
+  .vt-team-kopf { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 14px; }
+  .vt-team-kopf h2 { margin: 0; font-size: 20px; font-weight: 900; letter-spacing: -.02em; }
+  .vt-team-kopf span { font-size: 12.5px; font-weight: 700; color: var(--grau); }
+  .vt-team-raster { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 14px; }
+  .vt-person { border: 1px solid var(--linie); border-radius: 20px; padding: 14px; background: linear-gradient(180deg, #fff, #f8fbff); cursor: grab; transition: transform .15s, box-shadow .15s; }
+  .vt-person:hover { transform: translateY(-2px); box-shadow: 0 14px 26px rgba(15,29,74,.09); }
+  .vt-person-kopf { display: flex; align-items: center; gap: 10px; }
+  .vt-person-kopf .vt-av { width: 40px; height: 40px; border-radius: 13px; font-size: 13px; }
+  .vt-person-kopf b { display: block; font-size: 15px; font-weight: 900; }
+  .vt-person-kopf small { font-size: 12px; font-weight: 700; color: var(--grau); }
+  .vt-person-kopf .vt-pill { margin-left: auto; }
+  .vt-balken { position: relative; margin-top: 12px; height: 10px; border-radius: 999px; background: #e8eef9; overflow: hidden; }
+  .vt-balken i { position: absolute; top: 0; bottom: 0; left: 0; border-radius: inherit; }
+  .vt-balken i.plan { background: repeating-linear-gradient(135deg, #93c5fd 0 6px, #bfdbfe 6px 12px); }
+  .vt-balken i.ist { background: linear-gradient(90deg, #3b82f6, #1d4ed8); }
+  .vt-balken i.ueber { background: linear-gradient(90deg, #fb7185, #e11d48); }
+  .vt-zahlen { display: flex; justify-content: space-between; gap: 8px; margin-top: 7px; font-size: 12px; font-weight: 800; color: #334155; }
+  .vt-zahlen span:last-child { color: var(--grau); }
+  .vt-person-info { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+  .vt-feste { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 10px; }
+  .vt-feste span { padding: 3px 8px; border-radius: 8px; background: var(--hell); color: #1e3a8a; font-size: 11px; font-weight: 800; }
+  .vt-feste em { font-style: normal; font-size: 11.5px; font-weight: 700; color: var(--grau); }
 
-  /* Dunkelmodus (kg_theme.js): Graphit-Knöpfe sichtbar halten, feine Linien/Grafiken abdunkeln */
-  html[data-kg-x="on"] .vr-btn { background: #2563eb !important; border-color: #2563eb !important; color: #fff !important; }
-  html[data-kg-x="on"] .vr-btn:hover { background: #1d4ed8 !important; }
-  html[data-kg-x="on"] .vr2-grid { stroke: rgba(148,163,184,.18); }
-  html[data-kg-x="on"] .vr2-linie { background: rgba(148,163,184,.18) !important; }
-  html[data-kg-x="on"] .vr-day h3[data-vr2]::after { background: rgba(148,163,184,.16); color: #e5e7eb; }
-  html[data-kg-x="on"] .vr-day h3[data-vr2-ton="offen"]::after { background: rgba(217,119,6,.18); color: #fbbf24; }
-  html[data-kg-x="on"] .vr-day h3[data-vr2-ton="ok"]::after { background: rgba(22,163,74,.18); color: #4ade80; }
-  html[data-kg-x="on"] .vr-day > .vr-free { border-top-color: rgba(148,163,184,.18); }
-  {% endraw %}
+  /* ---------- Fenster ---------- */
+  .vt-dlg-hg { position: fixed; inset: 0; z-index: 2000; display: flex; align-items: center; justify-content: center; padding: 18px; background: rgba(15,23,42,.55); backdrop-filter: blur(6px); }
+  .vt-dlg-hg[hidden] { display: none; }
+  .vt-dlg { width: min(640px, 100%); max-height: calc(100vh - 36px); overflow: auto; background: #fff; border-radius: 26px; box-shadow: 0 30px 70px rgba(15,23,42,.35); font-family: Inter, "Segoe UI", Arial, sans-serif; color: #0f1d4a; }
+  .vt-dlg-kopf { display: flex; align-items: center; justify-content: space-between; padding: 20px 22px; color: #fff; border-radius: 26px 26px 0 0; background: linear-gradient(135deg, #183a91, #2563eb); }
+  .vt-dlg-kopf h3 { margin: 0; font-size: 20px; font-weight: 900; color: #fff !important; }
+  .vt-dlg-kopf.krank { background: linear-gradient(135deg, #9f1239, #e11d48); }
+  .vt-x { width: 36px; height: 36px; border: 0; border-radius: 11px; background: rgba(255,255,255,.18); color: #fff; font-size: 16px; cursor: pointer; }
+  .vt-dlg-felder { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 18px 22px 6px; }
+  .vt-dlg-felder label { display: flex; flex-direction: column; gap: 6px; font-size: 11px; font-weight: 900; letter-spacing: .08em; text-transform: uppercase; color: #64748b; }
+  .vt-dlg-felder select, .vt-dlg-felder input { height: 44px; padding: 0 12px; border: 1px solid #dbe3ef; border-radius: 12px; background: #f8fbff; font: 700 15px Inter, "Segoe UI", Arial, sans-serif; color: #0f1d4a; }
+  .vt-vorschau { margin: 10px 22px 0; border: 1px solid #e6ecf5; border-radius: 16px; overflow: hidden; }
+  .vt-vz { display: grid; grid-template-columns: 74px minmax(0, 1fr); gap: 10px; padding: 9px 12px; border-top: 1px solid #eef2f7; font-size: 13px; font-weight: 700; color: #334155; }
+  .vt-vz:first-child { border-top: 0; }
+  .vt-vz b { font-weight: 900; }
+  .vt-vz.neu b { color: #047857; }
+  .vt-vz.aus { color: #94a3b8; background: #f8fafc; }
+  .vt-vz small { display: block; color: #b45309; font-weight: 800; }
+  .vt-dlg-fuss { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 16px 22px 20px; }
+  .vt-dlg-fuss .info { flex: 1; min-width: 200px; font-size: 13px; font-weight: 800; color: #1e3a8a; }
+  .vt-toast { position: fixed; left: 50%; bottom: 26px; z-index: 2100; transform: translateX(-50%) translateY(20px); opacity: 0; pointer-events: none; padding: 12px 18px; border-radius: 14px;
+    background: #0f1d4a; color: #fff; font: 800 14px Inter, "Segoe UI", Arial, sans-serif; box-shadow: 0 16px 36px rgba(15,23,42,.35); transition: opacity .2s, transform .2s; }
+  .vt-toast.an { opacity: 1; transform: translateX(-50%) translateY(0); }
+  .vt-toast.fehler { background: #be123c; }
+
+  /* Dunkler Modus */
+  html[data-kg-x="on"] .vt-leiste, html[data-kg-x="on"] .vt-kal, html[data-kg-x="on"] .vt-seite, html[data-kg-x="on"] .vt-team { background: #111a2e !important; border-color: #22304d !important; }
+  html[data-kg-x="on"] .vt-tag { background: #0f1729 !important; border-color: #22304d !important; }
+  html[data-kg-x="on"] .vt-tag.leer { background: transparent !important; }
+  html[data-kg-x="on"] .vt-tag.we { background: #0c1322 !important; }
+  html[data-kg-x="on"] .vt-tag.markiert, html[data-kg-x="on"] .vt-tag.ziel { background: #1e2b55 !important; border-color: #6366f1 !important; }
+  html[data-kg-x="on"] .vt-fall, html[data-kg-x="on"] .vt-kand, html[data-kg-x="on"] .vt-person { background: #0f1729 !important; border-color: #22304d !important; }
+  html[data-kg-x="on"] .vt-kpi { background: #111a2e !important; border-color: #22304d !important; }
+  html[data-kg-x="on"] .vt-kpi b, html[data-kg-x="on"] .vt-nr, html[data-kg-x="on"] .vt-person-kopf b, html[data-kg-x="on"] .vt-kand b, html[data-kg-x="on"] .vt-fall-kopf b,
+  html[data-kg-x="on"] .vt-seite-kopf h2, html[data-kg-x="on"] .vt-kal-kopf h2, html[data-kg-x="on"] .vt-team-kopf h2 { color: #e2e8f0 !important; }
+
+  @media (max-width: 1280px) { .vt-haupt { grid-template-columns: minmax(0, 1fr) 340px; } }
+  @media (max-width: 1100px) {
+    .vt-haupt { grid-template-columns: minmax(0, 1fr); } .vt-seite { position: static; max-height: none; } .vt-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .vt-chips { flex-basis: 100%; order: 3; } .vt-leiste > .vt-btn { margin-left: auto; }
+  }
+  @media (max-width: 760px) {
+    .vt-kopf { padding: 22px 18px; border-radius: 22px; }
+    .vt-titel h1 { font-size: 26px; }
+    .vt-symbol { width: 52px; height: 52px; border-radius: 16px; }
+    .vt-monat { width: 100%; justify-content: space-between; }
+    .vt-monat b { min-width: 0; }
+    .vt-kpis { gap: 10px; }
+    .vt-kpi { padding: 14px; }
+    .vt-kpi b { font-size: 24px; }
+    .vt-raster, .vt-wt { gap: 4px; }
+    .vt-tag { min-height: 64px; padding: 4px; border-radius: 11px; gap: 3px; }
+    .vt-nr { width: 22px; height: 22px; font-size: 11px; border-radius: 8px; }
+    .vt-ft, .vt-abw > span:not(.vt-av), .vt-mehr { display: none; }
+    .vt-tag-chips { display: flex; flex-wrap: wrap; gap: 2px; }
+    .vt-abw { padding: 1px; }
+    .vt-flag { margin-left: auto; width: 9px; height: 9px; padding: 0; font-size: 0; border-radius: 50%; }
+    .vt-flag.offen { background: #ef4444; } .vt-flag.ok { background: #10b981; }
+    .vt-wt div { letter-spacing: 0; }
+    .vt-dlg-felder { grid-template-columns: 1fr; }
+  }
+  @media print { .vt-leiste, .vt-seite, .vt-btn { display: none !important; } }
 </style>
 
-<div class="vr-wrap">
-  <div class="vr-head">
-    <div>
-      <div class="vr2-eyebrow"><i></i>Personal · Abwesenheiten</div>
-      <h1>🛡️ Vertretung</h1>
-      <p>Wer fehlt diese Woche (Urlaub/Krank), welche Objekte laut festen Zeiten betroffen sind und wer frei ist.
-         Vertretung mit einem Klick in deren Stundenzettel eintragen.</p>
+<div class="vt" id="vt">
+  <section class="vt-kopf" data-kg-skip>
+    <div class="vt-kopf-oben">
+      <div class="vt-titel">
+        <div class="vt-symbol" aria-hidden="true"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="m16 11 2 2 4-4"/></svg></div>
+        <div>
+          <small>KG Portal · Personal</small>
+          <h1>Vertretung</h1>
+          <p>Urlaub und Krank im großen Kalender – wer fehlt, welche Objekte offen sind und wer vertreten kann.</p>
+        </div>
+      </div>
+      <div class="vt-monat">
+        <button type="button" id="vtVor" aria-label="Voriger Monat">‹</button>
+        <b id="vtMonat">…</b>
+        <button type="button" id="vtNach" aria-label="Nächster Monat">›</button>
+        <button type="button" id="vtHeute" class="vt-heute">Heute</button>
+      </div>
     </div>
-    <div class="vr-nav">
-      <button id="vrPrev" aria-label="Vorige Woche">◀</button>
-      <span id="vrWoche">…</span>
-      <button id="vrNext" aria-label="Nächste Woche">▶</button>
+    <div class="vt-kpis">
+      <div class="vt-kpi rot"><div class="vt-kpi-kopf"><span class="vt-kpi-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="m17 8 5 5M22 8l-5 5"/></svg></span><small id="kFehlenTitel">Fehlen heute</small></div><b id="kFehlen">0</b><i id="kFehlenText">–</i></div>
+      <div class="vt-kpi"><div class="vt-kpi-kopf"><span class="vt-kpi-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M5 21V7l7-4 7 4v14"/><path d="M9 21v-6h6v6"/></svg></span><small>Offene Einsätze</small></div><b id="kOffen">0</b><i id="kOffenText">ohne Vertretung</i></div>
+      <div class="vt-kpi lila"><div class="vt-kpi-kopf"><span class="vt-kpi-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="3"/><path d="M16 2v4M8 2v4M3 10h18"/></svg></span><small>Urlaubstage im Monat</small></div><b id="kUrlaub">0</b><i id="kUrlaubText">Krank: 0 Tage</i></div>
+      <div class="vt-kpi gruen"><div class="vt-kpi-kopf"><span class="vt-kpi-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span><small>Freie Stunden Team</small></div><b id="kFrei">0</b><i>bis 40 Std. / 600 € je Person</i></div>
     </div>
+  </section>
+
+  <section class="vt-leiste">
+    <div class="vt-modus" id="vtModus">
+      <button type="button" data-grund="Urlaub" class="an"><span class="p"></span>Urlaub</button>
+      <button type="button" data-grund="Krank"><span class="p"></span>Krank</button>
+    </div>
+    <div class="vt-leiste-text"><b>Ziehen zum Eintragen</b><span>Mitarbeiter auf einen Tag ziehen oder im Kalender Tage markieren</span></div>
+    <div class="vt-chips" id="vtChips"></div>
+    <button type="button" class="vt-btn" id="vtNeu">+ Abwesenheit</button>
+  </section>
+
+  <div class="vt-haupt">
+    <section class="vt-kal">
+      <div class="vt-kal-kopf">
+        <h2 id="vtKalTitel">Kalender</h2>
+        <div class="vt-legende">
+          <span><i style="background:#4f46e5"></i>Urlaub</span><span><i style="background:#e11d48"></i>Krank</span>
+          <span><i style="background:#fca5a5"></i>Einsatz offen</span><span><i style="background:#6ee7b7"></i>vertreten</span><span><i style="background:#fdba74"></i>Feiertag</span>
+        </div>
+      </div>
+      <div class="vt-wt"><div>MO</div><div>DI</div><div>MI</div><div>DO</div><div>FR</div><div>SA</div><div>SO</div></div>
+      <div class="vt-raster" id="vtRaster"></div>
+    </section>
+    <aside class="vt-seite" id="vtSeite"></aside>
   </div>
 
-  <div class="vr2-kpis vr2-start" id="vr2Kpis">
-    <div class="vr2-kpi">
-      <div class="vr2-kpi-kopf"><span>Abwesenheiten</span><svg viewBox="0 0 24 24" stroke="#e11d48" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 11h-6"/></svg></div>
-      <div class="vr2-kpi-wert" id="vr2AbwWert">–</div>
-      <div class="vr2-kpi-meta" id="vr2AbwMeta">Personentage in dieser Woche</div>
-      <div class="vr2-kpi-grafik" id="vr2AbwGrafik"></div>
-    </div>
-    <div class="vr2-kpi">
-      <div class="vr2-kpi-kopf"><span>Vertretung geregelt</span><svg viewBox="0 0 24 24" stroke="#0d9488" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg></div>
-      <div class="vr2-kpi-wert" id="vr2VertWert">–</div>
-      <div class="vr2-kpi-meta" id="vr2VertMeta">&nbsp;</div>
-      <div class="vr2-kpi-grafik" id="vr2VertGrafik"></div>
-    </div>
-    <div class="vr2-kpi">
-      <div class="vr2-kpi-kopf"><span>Krank · Urlaub</span><svg viewBox="0 0 24 24" stroke="#d97706" aria-hidden="true"><path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z"/></svg></div>
-      <div class="vr2-kpi-wert" id="vr2GrundWert">–</div>
-      <div class="vr2-kpi-meta" id="vr2GrundMeta">&nbsp;</div>
-      <div class="vr2-kpi-grafik" id="vr2GrundGrafik"></div>
-    </div>
-    <div class="vr2-kpi">
-      <div class="vr2-kpi-kopf"><span>Frei im Schnitt</span><svg viewBox="0 0 24 24" stroke="#2563eb" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="m16 11 2 2 4-4"/></svg></div>
-      <div class="vr2-kpi-wert" id="vr2FreiWert">–</div>
-      <div class="vr2-kpi-meta" id="vr2FreiMeta">&nbsp;</div>
-      <div class="vr2-kpi-grafik" id="vr2FreiGrafik"></div>
-    </div>
-  </div>
-
-  <div class="vr-card">
-    <h2>Abwesenheit eintragen</h2>
-    <div class="vr-grid">
-      <div><label for="abwWer">Mitarbeiter</label><select id="abwWer" class="vr-in" style="width:100%"></select></div>
-      <div><label for="abwGrund">Grund</label><select id="abwGrund" class="vr-in" style="width:100%"><option>Krank</option><option>Urlaub</option></select></div>
-      <div><label for="abwVon">Von</label><input id="abwVon" type="date" class="vr-in" style="width:100%"></div>
-      <div><label for="abwBis">Bis</label><input id="abwBis" type="date" class="vr-in" style="width:100%"></div>
-      <div><button class="vr-btn" id="abwSave">Eintragen</button></div>
-    </div>
-    <div class="vr-msg" id="abwMsg"></div>
-  </div>
-
-  <div class="vr-days" id="vrDays"></div>
+  <section class="vt-team">
+    <div class="vt-team-kopf"><h2>Team &amp; freie Stunden</h2><span>Grenze je Monat wie im Stundenzettel: 40 Std. bzw. 600 € · gestreift = noch geplant</span></div>
+    <div class="vt-team-raster" id="vtTeam"></div>
+  </section>
 </div>
+
+<div class="vt-dlg-hg" id="vtDlg" hidden>
+  <div class="vt-dlg" role="dialog" aria-modal="true" aria-labelledby="dlgTitel">
+    <div class="vt-dlg-kopf" id="dlgKopf"><h3 id="dlgTitel">Urlaub eintragen</h3><button type="button" class="vt-x" id="dlgZu" aria-label="Schließen">✕</button></div>
+    <div class="vt-dlg-felder">
+      <label>Mitarbeiter<select id="dlgWer"></select></label>
+      <label>Grund<select id="dlgGrund"><option>Urlaub</option><option>Krank</option></select></label>
+      <label>Von<input type="date" id="dlgVon"></label>
+      <label>Bis<input type="date" id="dlgBis"></label>
+    </div>
+    <div class="vt-vorschau" id="dlgVorschau"></div>
+    <div class="vt-dlg-fuss"><span class="info" id="dlgInfo"></span><button type="button" class="vt-btn hell" id="dlgAbbr">Abbrechen</button><button type="button" class="vt-btn" id="dlgOk">Eintragen</button></div>
+  </div>
+</div>
+<div class="vt-toast" id="vtToast"></div>
 
 <script>
 (function () {
+  "use strict";
+  const $ = (id) => document.getElementById(id);
   const esc = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
-  let von = new Date(); let mitarbeiter = [];
-  const iso = (d) => new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+  const zahl = (x, d = 1) => Number(x || 0).toLocaleString("de-DE", { minimumFractionDigits: 0, maximumFractionDigits: d });
+  const euro = (x) => Number(x || 0).toLocaleString("de-DE", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " €";
+  const FARBEN = [["#3b82f6", "#1e40af"], ["#10b981", "#047857"], ["#8b5cf6", "#6d28d9"], ["#f59e0b", "#b45309"], ["#ec4899", "#be185d"], ["#06b6d4", "#0e7490"], ["#6366f1", "#4338ca"], ["#14b8a6", "#0f766e"]];
+  const WT = ["Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag", "Sonntag"];
+  const MON = ["Januar", "Februar", "März", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober", "November", "Dezember"];
+  const heuteIso = () => { const d = new Date(); return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10); };
+
+  let monat = heuteIso().slice(0, 7), daten = null, gewaehlt = null, grund = "Urlaub", maWahl = null;
+  let markStart = null, markEnde = null, markAktiv = false;
+
+  function farbe(id) { const f = FARBEN[Math.abs(Number(id) || 0) % FARBEN.length]; return `--a1:${f[0]};--a2:${f[1]}`; }
+  function av(m, extra) { return `<span class="vt-av" style="${farbe(m.id)}"${extra || ""}>${esc(m.kuerzel)}</span>`; }
+  function ma(id) { return (daten && daten.mitarbeiter.find((m) => m.id === Number(id))) || null; }
+  function datumLang(iso) { const d = new Date(iso + "T12:00:00"); return `${WT[(d.getDay() + 6) % 7]}, ${d.getDate()}. ${MON[d.getMonth()]}`; }
+  function datumKurz(iso) { return iso.slice(8, 10) + "." + iso.slice(5, 7) + "."; }
+
+  function toast(text, fehler) {
+    const t = $("vtToast"); t.textContent = text; t.className = "vt-toast an" + (fehler ? " fehler" : "");
+    clearTimeout(toast.t); toast.t = setTimeout(() => { t.className = "vt-toast"; }, 3200);
+  }
   async function api(url, body) {
     const opt = body === undefined ? {} : { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) };
     const r = await fetch(url, opt); let d = {};
@@ -201,177 +341,342 @@
     return d;
   }
 
-  function dayCard(t) {
-    let html = `<div class="vr-day" data-datum="${t.datum}"><h3>${esc(t.label)}</h3>`;
-    if (!t.abwesend.length) html += `<div class="vr-item vr-ok">Niemand fehlt.</div>`;
-    t.abwesend.forEach((a) => {
-      html += `<div class="vr-item vr-abw"><b>${esc(a.name)}</b> – ${esc(a.grund)}`;
-      if (a.einsatz) {
-        html += `<br>Objekt: ${esc(a.einsatz.objekt)} · ${esc(a.einsatz.start)}–${esc(a.einsatz.ende)}`;
-        if (a.einsatz.vertretung) html += `<br>✅ Vertretung: ${esc(a.einsatz.vertretung)}`;
-        else {
-          const opts = t.frei.map((f) => `<option value="${f.id}">${esc(f.name)}</option>`).join("");
-          html += opts ? `<div class="vr-row"><select class="vr-in vr-wer">${opts}</select>
-              <button class="vr-btn vr-set" data-abw="${a.id}" data-objekt="${esc(a.einsatz.objekt)}" data-start="${esc(a.einsatz.start)}" data-ende="${esc(a.einsatz.ende)}">Vertretung eintragen</button></div>`
-            : `<br>⚠️ Niemand ist an diesem Tag frei.`;
-        }
-      } else html += `<br>Keine festen Zeiten an diesem Tag hinterlegt.`;
-      html += `<div class="vr-msg"></div></div>`;
-    });
-    html += `<div class="vr-free"><b>Frei:</b> ${t.frei.length ? t.frei.map((f) => esc(f.name)).join(", ") : "niemand"}</div></div>`;
-    return html;
+  // ---------------------------------------------------------------- Laden
+  async function laden(behalten) {
+    try {
+      daten = await api("/api/vertretung/monat?monat=" + monat);
+    } catch (e) {
+      $("vtRaster").innerHTML = `<div class="vt-leer" style="grid-column:1/-1">${esc(e.message)}</div>`;
+      return;
+    }
+    const tageIso = daten.tage.map((t) => t.datum);
+    if (!behalten || !tageIso.includes(gewaehlt)) gewaehlt = tageIso.includes(daten.heute) ? daten.heute : tageIso[0];
+    $("vtMonat").textContent = daten.titel;
+    $("vtKalTitel").textContent = daten.titel;
+    zeichnen();
   }
 
-  async function laden() {
-    try {
-      const d = await api("/api/vertretung/woche?von=" + iso(von));
-      const start = new Date(d.von + "T12:00:00");
-      const ende = new Date(start); ende.setDate(ende.getDate() + 5);
-      document.getElementById("vrWoche").textContent = start.toLocaleDateString("de-DE") + " – " + ende.toLocaleDateString("de-DE");
-      document.getElementById("vrDays").innerHTML = d.tage.map(dayCard).join("");
-      if (!mitarbeiter.length) {
-        mitarbeiter = d.mitarbeiter;
-        document.getElementById("abwWer").innerHTML = mitarbeiter.map((m) => `<option value="${m.id}">${esc(m.name)}</option>`).join("");
+  function zeichnen() { kennzahlen(); chips(); kalender(); seite(); team(); }
+
+  function abwesendAm(iso) {
+    return daten.mitarbeiter.filter((m) => m.tage[iso] && (m.tage[iso].art === "urlaub" || m.tage[iso].art === "krank"));
+  }
+  function einsaetzeAm(iso) { return daten.einsaetze.filter((e) => e.datum === iso); }
+
+  function kennzahlen() {
+    const tag = gewaehlt;
+    const fehlen = abwesendAm(tag);
+    $("kFehlenTitel").textContent = tag === daten.heute ? "Fehlen heute" : "Fehlen am " + datumKurz(tag);
+    $("kFehlen").textContent = fehlen.length;
+    $("kFehlenText").textContent = fehlen.length ? fehlen.map((m) => m.name.split(" ")[0]).join(", ") : "alle da";
+    const ab = daten.tage.some((t) => t.datum === daten.heute) ? daten.heute : "";
+    const offen = daten.einsaetze.filter((e) => !e.vertretung && e.datum >= ab);
+    $("kOffen").textContent = offen.length;
+    $("kOffenText").textContent = offen.length ? "ohne Vertretung" + (ab ? " ab heute" : "") : "alles vertreten";
+    $("kUrlaub").textContent = daten.mitarbeiter.reduce((s, m) => s + m.urlaub_tage, 0);
+    $("kUrlaubText").textContent = "Krank: " + daten.mitarbeiter.reduce((s, m) => s + m.krank_tage, 0) + " Tage";
+    $("kFrei").textContent = zahl(daten.mitarbeiter.reduce((s, m) => s + m.plan.frei_std, 0));
+  }
+
+  function chips() {
+    $("vtChips").innerHTML = daten.mitarbeiter.map((m) => {
+      const rest = m.resturlaub == null ? "" : `<small>Rest ${zahl(m.resturlaub)} T</small>`;
+      return `<span class="vt-chip${maWahl === m.id ? " an" : ""}" draggable="true" data-w="${m.id}" title="Ziehen auf einen Tag – oder antippen und dann Tag wählen">${av(m)}${esc(m.name)}${rest}</span>`;
+    }).join("");
+  }
+
+  function kalender() {
+    const erster = new Date(daten.tage[0].datum + "T12:00:00");
+    const versatz = (erster.getDay() + 6) % 7;
+    let html = "";
+    for (let i = 0; i < versatz; i++) html += `<div class="vt-tag leer" aria-hidden="true"></div>`;
+    daten.tage.forEach((t) => {
+      const fehlen = abwesendAm(t.datum);
+      const ein = einsaetzeAm(t.datum);
+      const offen = ein.filter((e) => !e.vertretung).length, ok = ein.length - offen;
+      const cls = ["vt-tag", t.wt >= 5 ? "we" : "", t.feiertag ? "feiertag" : "", t.datum === daten.heute ? "heute" : "",
+        t.datum === gewaehlt ? "gewaehlt" : "", t.datum < daten.heute ? "vorbei" : ""].filter(Boolean).join(" ");
+      const flag = offen ? `<span class="vt-flag offen" title="${offen} Einsatz/Einsätze ohne Vertretung">${offen} offen</span>`
+        : ok ? `<span class="vt-flag ok" title="${ok} vertreten">✓ ${ok}</span>` : "";
+      const zeigen = fehlen.slice(0, 3).map((m) => {
+        const art = m.tage[t.datum].art;
+        return `<div class="vt-abw ${art}" title="${esc(m.name)} – ${art === "urlaub" ? "Urlaub" : "Krank"}">${av(m)}<span>${esc(m.name.split(" ")[0])}</span></div>`;
+      }).join("");
+      const mehr = fehlen.length > 3 ? `<div class="vt-mehr">+${fehlen.length - 3} weitere</div>` : "";
+      html += `<div class="${cls}" data-datum="${t.datum}" role="button" tabindex="0" aria-label="${esc(datumLang(t.datum))}">
+        <div class="vt-tag-kopf"><span class="vt-nr">${t.tag}</span>${t.feiertag ? `<span class="vt-ft" title="${esc(t.feiertag)}">${esc(t.feiertag)}</span>` : ""}${flag}</div>
+        <div class="vt-tag-chips">${zeigen}${mehr}</div></div>`;
+    });
+    const rest = (7 - ((versatz + daten.tage.length) % 7)) % 7;
+    for (let i = 0; i < rest; i++) html += `<div class="vt-tag leer" aria-hidden="true"></div>`;
+    $("vtRaster").innerHTML = html;
+    markieren();
+  }
+
+  // ---------------------------------------------------------------- Vorschläge
+  function kandidaten(e) {
+    return daten.mitarbeiter.filter((m) => m.id !== e.abwesend_id).map((m) => {
+      const t = m.tage[e.datum];
+      let status = "frei", grund = "";
+      if (t && (t.art === "urlaub" || t.art === "krank")) { status = "abw"; grund = t.art === "urlaub" ? "im Urlaub" : "krank"; }
+      else if (t && t.art === "plan") { status = "arbeitet"; grund = `arbeitet selbst ${t.start}–${t.ende} (${t.ort})`; }
+      else if (t) { status = "arbeitet"; grund = `hat schon Eintrag: ${t.ort} ${t.start ? t.start + "–" + t.ende : ""}`.trim(); }
+      const frei = m.plan.frei_std, nach = frei - e.h, kennt = ((daten.kennt[String(m.id)] || {})[e.objekt]) || 0;
+      const score = (status === "frei" ? 1000 : 0) + (nach >= 0 ? 300 : 0) + Math.min(kennt, 20) * 10 + Math.max(0, frei);
+      return { m, status, grund, frei, nach, kennt, score };
+    }).filter((k) => k.status !== "abw").sort((a, b) => b.score - a.score);
+  }
+
+  function kandHtml(k, e) {
+    const m = k.m, ja = k.status === "frei";
+    const anteil = Math.max(0, Math.min(100, (m.plan.stunden / daten.grenze.stunden) * 100));
+    const balken = `<div class="vt-nummer"><i class="${k.nach < 0 ? "voll" : k.nach < 4 ? "knapp" : ""}" style="width:${anteil}%"></i></div>`;
+    const pills = [];
+    if (ja) pills.push(`<span class="vt-pill ok">frei</span>`); else pills.push(`<span class="vt-pill grau">${esc(k.grund)}</span>`);
+    if (k.kennt) pills.push(`<span class="vt-pill gelb">kennt Objekt ${k.kennt}×</span>`);
+    pills.push(k.nach >= 0 ? `<span class="vt-pill ok">noch ${zahl(k.frei)} Std. frei</span>` : `<span class="vt-pill offen">über Grenze (+${zahl(-k.nach)} Std.)</span>`);
+    const knopf = ja ? `<button type="button" class="vt-btn klein" data-aktion="eintragen" data-w="${m.id}" data-e="${esc(e.datum)}|${e.abwesend_id}">Eintragen</button>` : "";
+    return `<div class="vt-kand${ja ? "" : " nein"}"${ja ? ` draggable="true" data-kand="${m.id}"` : ""}>${av(m)}<div><b>${esc(m.name)}</b><small>${pills.join("")}</small>${balken}</div>${knopf}</div>`;
+  }
+
+  function seite() {
+    const iso = gewaehlt, t = daten.tage.find((x) => x.datum === iso);
+    const fehlen = abwesendAm(iso), ein = einsaetzeAm(iso);
+    let html = `<div class="vt-seite-kopf"><small>${iso === daten.heute ? "Heute" : "Ausgewählter Tag"}</small><h2>${esc(datumLang(iso))}</h2>${t && t.feiertag ? `<span class="vt-ft">${esc(t.feiertag)}</span>` : ""}</div>`;
+    html += `<div class="vt-fall-aktionen"><button type="button" class="vt-btn klein" data-aktion="neu-ab">+ Abwesenheit ab ${esc(datumKurz(iso))}</button></div>`;
+    html += `<div class="vt-abschnitt"><h3>Fehlt (${fehlen.length})</h3>`;
+    if (!fehlen.length) html += `<div class="vt-leer"><b>Niemand fehlt</b>Alle arbeiten wie geplant.</div>`;
+    fehlen.forEach((m) => {
+      const eintrag = m.tage[iso], art = eintrag.art;
+      const e = ein.find((x) => x.abwesend_id === m.id);
+      const cls = e ? (e.vertretung ? "ok" : "offen") : "";
+      html += `<div class="vt-fall ${cls}"${e && !e.vertretung ? ` data-ziel="${esc(e.datum)}|${e.abwesend_id}"` : ""}>
+        <div class="vt-fall-kopf">${av(m)}<b>${esc(m.name)}</b><span class="vt-pill ${art}">${art === "urlaub" ? "Urlaub" : "Krank"}</span></div>`;
+      if (e) {
+        html += `<div class="vt-einsatz"><span class="o">${esc(e.objekt)}</span><span>${esc(e.start)}–${esc(e.ende)}</span><span class="vt-pill grau">${zahl(e.h, 2)} Std.</span></div>`;
+        if (e.vertretung) {
+          const v = ma(e.vertretung.vertreter_id) || { id: e.vertretung.vertreter_id, kuerzel: "?", name: e.vertretung.name };
+          html += `<div class="vt-einsatz"><span class="vt-pill ok">✓ Vertretung</span>${av(v)}<b>${esc(e.vertretung.name)}</b></div>
+            <div class="vt-fall-aktionen"><button type="button" class="vt-btn klein rot" data-aktion="vertretung-weg" data-id="${e.vertretung.id}" data-name="${esc(e.vertretung.name)}">Vertretung entfernen</button>
+            <button type="button" class="vt-btn klein hell" data-aktion="abw-weg" data-w="${m.id}">${art === "urlaub" ? "Urlaub" : "Krank"} entfernen</button></div>`;
+        } else {
+          const liste = kandidaten(e);
+          const ja = liste.filter((k) => k.status === "frei").slice(0, 5), nein = liste.filter((k) => k.status !== "frei").slice(0, 2);
+          html += `<div class="vt-einsatz"><span class="vt-pill offen">Vertretung fehlt</span><span style="font-size:12px;color:#64748b">Vorschlag ziehen oder „Eintragen“</span></div>`;
+          html += `<div class="vt-kands">${ja.map((k) => kandHtml(k, e)).join("") || `<div class="vt-leer">An diesem Tag ist niemand frei.</div>`}${nein.map((k) => kandHtml(k, e)).join("")}</div>`;
+          html += `<div class="vt-fall-aktionen"><button type="button" class="vt-btn klein hell" data-aktion="abw-weg" data-w="${m.id}">${art === "urlaub" ? "Urlaub" : "Krank"} entfernen</button></div>`;
+        }
+      } else {
+        html += `<div class="vt-einsatz"><span class="vt-pill grau">kein fester Einsatz an diesem Tag</span></div>
+          <div class="vt-fall-aktionen"><button type="button" class="vt-btn klein hell" data-aktion="abw-weg" data-w="${m.id}">${art === "urlaub" ? "Urlaub" : "Krank"} entfernen</button></div>`;
       }
+      html += `</div>`;
+    });
+    html += `</div>`;
+    const frei = daten.mitarbeiter.filter((m) => !m.tage[iso]);
+    const arbeiten = daten.mitarbeiter.filter((m) => m.tage[iso] && ["plan", "arbeit", "feiertag"].includes(m.tage[iso].art));
+    html += `<div class="vt-abschnitt"><h3>Frei an diesem Tag (${frei.length})</h3>${frei.length ? `<div class="vt-mini">${frei.map((m) => `<span>${av(m)}${esc(m.name.split(" ")[0])} · ${zahl(m.plan.frei_std)} Std.</span>`).join("")}</div>` : `<div class="vt-leer">Niemand frei.</div>`}</div>`;
+    html += `<div class="vt-abschnitt"><h3>Arbeiten an diesem Tag (${arbeiten.length})</h3>${arbeiten.map((m) => { const x = m.tage[iso];
+      return `<div class="vt-arbeit"><span>${esc(m.name)}</span><span>${esc(x.start)}${x.start ? "–" : ""}${esc(x.ende)} · ${esc(x.ort)}${x.art === "plan" ? " (Plan)" : ""}</span></div>`; }).join("") || `<div class="vt-leer">Keine Einsätze.</div>`}</div>`;
+    $("vtSeite").innerHTML = html;
+  }
+
+  function team() {
+    const g = daten.grenze.stunden;
+    $("vtTeam").innerHTML = daten.mitarbeiter.map((m) => {
+      const istB = Math.min(100, m.ist.stunden / g * 100), planB = Math.min(100, m.plan.stunden / g * 100);
+      const ueber = m.plan.stunden > g;
+      const freiPill = m.plan.frei_std > 0 ? `<span class="vt-pill ok">${zahl(m.plan.frei_std)} Std. frei</span>` : `<span class="vt-pill offen">voll${ueber ? " (+" + zahl(m.plan.extra) + " Std.)" : ""}</span>`;
+      const urlaub = m.urlaub == null && m.resturlaub == null ? `<span class="vt-pill grau">Urlaub: nicht hinterlegt</span>`
+        : `<span class="vt-pill urlaub">Urlaub: ${zahl(m.resturlaub)} von ${zahl(m.urlaub)} Tagen übrig</span>`;
+      const feste = m.feste.length ? m.feste.map((f) => `<span title="${esc(f.ort)}">${esc(f.tag)} ${esc(f.start)}–${esc(f.ende)} · ${esc(f.ort)}</span>`).join("") : `<em>Keine festen Zeiten hinterlegt</em>`;
+      return `<div class="vt-person" draggable="true" data-w="${m.id}" title="Auf einen Tag ziehen, um eine Abwesenheit einzutragen">
+        <div class="vt-person-kopf">${av(m)}<div><b>${esc(m.name)}</b><small>${esc(m.art || "–")} · ${euro(m.lohn)}/Std.</small></div>${freiPill}</div>
+        <div class="vt-balken"><i class="plan" style="width:${planB}%"></i><i class="${ueber ? "ueber" : "ist"}" style="width:${istB}%"></i></div>
+        <div class="vt-zahlen"><span>${zahl(m.plan.stunden, 2)} / ${zahl(g)} Std. · ${euro(m.plan.euro)}</span><span>bisher ${zahl(m.ist.stunden, 2)} Std.</span></div>
+        <div class="vt-person-info">${urlaub}<span class="vt-pill krank">Krank: ${m.krank_tage} Tage</span>${m.gesperrt ? `<span class="vt-pill grau">Monat bestätigt</span>` : ""}</div>
+        <div class="vt-feste">${feste}</div></div>`;
+    }).join("");
+  }
+
+  // ---------------------------------------------------------------- Markieren (Maus)
+  function markieren() {
+    const a = markStart, b = markEnde || markStart;
+    const von = a && b ? (a < b ? a : b) : null, bis = a && b ? (a < b ? b : a) : null;
+    document.querySelectorAll("#vtRaster .vt-tag[data-datum]").forEach((el) => {
+      const d = el.dataset.datum;
+      el.classList.toggle("markiert", !!(markAktiv && von && d >= von && d <= bis && von !== bis));
+    });
+  }
+  const raster = $("vtRaster");
+  raster.addEventListener("pointerdown", (ev) => {
+    const el = ev.target.closest(".vt-tag[data-datum]");
+    if (!el || ev.button !== 0 || ev.pointerType !== "mouse") return;
+    markStart = markEnde = el.dataset.datum; markAktiv = true;
+  });
+  raster.addEventListener("pointermove", (ev) => {
+    if (!markAktiv) return;
+    const el = document.elementFromPoint(ev.clientX, ev.clientY);
+    const tag = el && el.closest && el.closest("#vtRaster .vt-tag[data-datum]");
+    if (tag && tag.dataset.datum !== markEnde) { markEnde = tag.dataset.datum; markieren(); }
+  });
+  window.addEventListener("pointerup", () => {
+    if (!markAktiv) return;
+    markAktiv = false;
+    const a = markStart, b = markEnde;
+    markStart = markEnde = null; markieren();
+    if (a && b && a !== b) dialog(maWahl, a < b ? a : b, a < b ? b : a);
+  });
+  raster.addEventListener("click", (ev) => {
+    const el = ev.target.closest(".vt-tag[data-datum]");
+    if (!el) return;
+    if (maWahl) { dialog(maWahl, el.dataset.datum, el.dataset.datum); return; }
+    tagWaehlen(el.dataset.datum);
+  });
+  raster.addEventListener("keydown", (ev) => {
+    if ((ev.key === "Enter" || ev.key === " ") && ev.target.matches(".vt-tag[data-datum]")) { ev.preventDefault(); tagWaehlen(ev.target.dataset.datum); }
+  });
+  function tagWaehlen(iso) { gewaehlt = iso; kennzahlen(); kalender(); seite(); }
+
+  // ---------------------------------------------------------------- Ziehen (Mitarbeiter → Tag, Vorschlag → Einsatz)
+  let ziehen = false;
+  document.addEventListener("dragstart", (ev) => {
+    const w = ev.target.closest && ev.target.closest(".vt-chip[data-w], .vt-person[data-w]");
+    const k = ev.target.closest && ev.target.closest(".vt-kand[data-kand]");
+    if (w) { ev.dataTransfer.setData("text/plain", "w:" + w.dataset.w); ev.dataTransfer.effectAllowed = "copy"; ziehen = true; }
+    else if (k) { ev.dataTransfer.setData("text/plain", "k:" + k.dataset.kand); ev.dataTransfer.effectAllowed = "copy"; ziehen = true; }
+  });
+  document.addEventListener("dragover", (ev) => {
+    if (!ziehen) return;
+    // während eigenes Ziehen läuft: überall annehmen, aber nur auf Tag/Einsatz ablegen lassen
+    ev.preventDefault();
+    const ziel = ev.target.closest && (ev.target.closest(".vt-tag[data-datum]") || ev.target.closest(".vt-fall[data-ziel]"));
+    ev.dataTransfer.dropEffect = ziel ? "copy" : "none";
+    document.querySelectorAll(".ziel").forEach((x) => x !== ziel && x.classList.remove("ziel"));
+    if (ziel) ziel.classList.add("ziel");
+  });
+  document.addEventListener("dragleave", (ev) => { const z = ev.target.closest && ev.target.closest(".ziel"); if (z && !z.contains(ev.relatedTarget)) z.classList.remove("ziel"); });
+  document.addEventListener("dragend", () => { ziehen = false; document.querySelectorAll(".ziel").forEach((x) => x.classList.remove("ziel")); });
+  document.addEventListener("drop", (ev) => {
+    const tag = ev.target.closest && ev.target.closest(".vt-tag[data-datum]");
+    const fall = ev.target.closest && ev.target.closest(".vt-fall[data-ziel]");
+    if (!ziehen) return;
+    ev.preventDefault();
+    ziehen = false;
+    if (!tag && !fall) return;
+    document.querySelectorAll(".ziel").forEach((x) => x.classList.remove("ziel"));
+    const wert = ev.dataTransfer.getData("text/plain") || "";
+    if (tag && wert.startsWith("w:")) dialog(Number(wert.slice(2)), tag.dataset.datum, tag.dataset.datum);
+    else if (fall && wert.startsWith("k:")) { const [d, a] = fall.dataset.ziel.split("|"); eintragen(Number(wert.slice(2)), d, Number(a)); }
+  });
+
+  // Antippen eines Mitarbeiters: danach Tag antippen (für Tablet/Handy)
+  $("vtChips").addEventListener("click", (ev) => {
+    const c = ev.target.closest(".vt-chip[data-w]"); if (!c) return;
+    const id = Number(c.dataset.w);
+    maWahl = maWahl === id ? null : id;
+    chips();
+    if (maWahl) toast(`${ma(maWahl).name}: jetzt einen Tag im Kalender wählen (oder Tage markieren).`);
+  });
+  $("vtModus").addEventListener("click", (ev) => {
+    const b = ev.target.closest("button[data-grund]"); if (!b) return;
+    grund = b.dataset.grund;
+    $("vtModus").querySelectorAll("button").forEach((x) => x.classList.toggle("an", x === b));
+  });
+
+  // ---------------------------------------------------------------- Seitenleiste: Knöpfe
+  $("vtSeite").addEventListener("click", async (ev) => {
+    const b = ev.target.closest("button[data-aktion]"); if (!b) return;
+    const aktion = b.dataset.aktion;
+    if (aktion === "neu-ab") { dialog(maWahl, gewaehlt, gewaehlt); return; }
+    if (aktion === "eintragen") { const [d, a] = b.dataset.e.split("|"); eintragen(Number(b.dataset.w), d, Number(a)); return; }
+    if (aktion === "vertretung-weg") {
+      if (!confirm(`Vertretung durch ${b.dataset.name} am ${datumKurz(gewaehlt)} entfernen?`)) return;
+      try { const r = await api("/api/vertretung/plan/vertretung/entfernen", { id: Number(b.dataset.id) });
+        toast(r.stundenzettel_geloescht ? "Vertretung entfernt (auch aus dem Stundenzettel)." : "Vertretung entfernt. Der Stundenzettel-Eintrag wurde geändert und bleibt stehen."); laden(true); }
+      catch (e) { toast(e.message, true); }
+      return;
+    }
+    if (aktion === "abw-weg") {
+      const m = ma(b.dataset.w), art = m.tage[gewaehlt].art === "urlaub" ? "Urlaub" : "Krank";
+      if (!confirm(`${art} von ${m.name} am ${datumKurz(gewaehlt)} entfernen?` + (art === "Urlaub" ? " Der Urlaubstag wird wieder gutgeschrieben." : ""))) return;
+      try {
+        const r = await api("/api/vertretung/plan/abwesenheit/entfernen", { worker_id: m.id, datum: gewaehlt });
+        toast(`${art} entfernt.`);
+        if (r.vertretung && confirm(`Am ${datumKurz(gewaehlt)} war ${r.vertretung.name} als Vertretung eingetragen. Vertretung auch entfernen?`)) {
+          await api("/api/vertretung/plan/vertretung/entfernen", { id: r.vertretung.id });
+        }
+        laden(true);
+      } catch (e) { toast(e.message, true); }
+    }
+  });
+
+  async function eintragen(vid, datum, abwesendId) {
+    const e = daten.einsaetze.find((x) => x.datum === datum && x.abwesend_id === abwesendId);
+    const m = ma(vid);
+    if (!e || !m) return;
+    const k = kandidaten(e).find((x) => x.m.id === vid);
+    if (!k || k.status !== "frei") { toast(`${m.name} kann an diesem Tag nicht (${k ? k.grund : "abwesend"}).`, true); return; }
+    let frage = `${m.name} vertritt am ${datumKurz(datum)}: ${e.objekt} ${e.start}–${e.ende} (${zahl(e.h, 2)} Std.)?`;
+    if (k.nach < 0) frage += `\n\nAchtung: ${m.name} kommt damit über 40 Std. / 600 € (+${zahl(-k.nach)} Std.).`;
+    if (!confirm(frage)) return;
+    try {
+      await api("/api/vertretung/plan/eintragen", { vertreter_id: vid, abwesend_id: abwesendId, datum, objekt: e.objekt, start: e.start, ende: e.ende });
+      toast(`Eingetragen: ${m.name} vertritt am ${datumKurz(datum)}.`); laden(true);
+    } catch (err) { toast(err.message, true); }
+  }
+
+  // ---------------------------------------------------------------- Fenster: Abwesenheit
+  let vorschauNr = 0;
+  function dialog(wid, von, bis) {
+    $("dlgWer").innerHTML = daten.mitarbeiter.map((m) => `<option value="${m.id}">${esc(m.name)}</option>`).join("");
+    if (wid) $("dlgWer").value = String(wid);
+    $("dlgGrund").value = grund;
+    $("dlgVon").value = von || gewaehlt; $("dlgBis").value = bis || von || gewaehlt;
+    $("vtDlg").hidden = false;
+    vorschau();
+    setTimeout(() => $("dlgWer").focus(), 30);
+  }
+  function zu() { $("vtDlg").hidden = true; }
+  async function vorschau(speichern) {
+    const nr = ++vorschauNr;
+    const g = $("dlgGrund").value;
+    $("dlgTitel").textContent = g + " eintragen";
+    $("dlgKopf").classList.toggle("krank", g === "Krank");
+    if ($("dlgBis").value < $("dlgVon").value) $("dlgBis").value = $("dlgVon").value;
+    const body = { worker_id: Number($("dlgWer").value), grund: g, von: $("dlgVon").value, bis: $("dlgBis").value, speichern: !!speichern };
+    $("dlgOk").disabled = true;
+    try {
+      const r = await api("/api/vertretung/plan/abwesenheit", body);
+      if (nr !== vorschauNr) return;
+      if (speichern) { zu(); toast(`${r.anzahl} ${r.anzahl === 1 ? "Tag" : "Tage"} ${g} für ${r.name} eingetragen.`); laden(true); return; }
+      $("dlgVorschau").innerHTML = r.tage.map((t) => `<div class="vt-vz ${t.status}"><b>${esc(t.label)}</b><div>${t.status === "neu" ? "✓ " : ""}${esc(t.text)}${t.hinweis ? `<small>${esc(t.hinweis)}</small>` : ""}</div></div>`).join("");
+      let info = r.anzahl ? `${r.anzahl} ${r.anzahl === 1 ? "Tag wird" : "Tage werden"} eingetragen` : "Keine Tage zum Eintragen";
+      if (g === "Urlaub" && r.resturlaub_vorher != null) info += ` · Resturlaub ${zahl(r.resturlaub_vorher)} → ${zahl(r.resturlaub_nachher)} Tage`;
+      if (r.ohne_plan) info += " · keine festen Zeiten hinterlegt (Mo–Sa ohne Stunden)";
+      $("dlgInfo").textContent = info;
+      $("dlgOk").disabled = !r.anzahl;
     } catch (e) {
-      document.getElementById("vrDays").innerHTML = `<div class="vr-card vr-msg err">${esc(e.message)}</div>`;
+      if (nr !== vorschauNr) return;
+      if (speichern) toast(e.message, true);
+      $("dlgInfo").textContent = e.message; $("dlgOk").disabled = !speichern;
     }
   }
+  ["dlgWer", "dlgGrund", "dlgVon", "dlgBis"].forEach((id) => $(id).addEventListener("change", () => vorschau()));
+  $("dlgOk").addEventListener("click", () => vorschau(true));
+  $("dlgAbbr").addEventListener("click", zu);
+  $("dlgZu").addEventListener("click", zu);
+  $("vtDlg").addEventListener("click", (ev) => { if (ev.target === $("vtDlg")) zu(); });
+  document.addEventListener("keydown", (ev) => { if (ev.key === "Escape" && !$("vtDlg").hidden) zu(); });
 
-  document.getElementById("vrPrev").onclick = () => { von.setDate(von.getDate() - 7); laden(); };
-  document.getElementById("vrNext").onclick = () => { von.setDate(von.getDate() + 7); laden(); };
-  document.getElementById("abwVon").value = iso(new Date());
-  document.getElementById("abwBis").value = iso(new Date());
-
-  document.getElementById("abwSave").onclick = async (ev) => {
-    const msg = document.getElementById("abwMsg"); ev.target.disabled = true;
-    try {
-      const r = await api("/api/vertretung/abwesenheit", { worker_id: document.getElementById("abwWer").value,
-        grund: document.getElementById("abwGrund").value, von: document.getElementById("abwVon").value, bis: document.getElementById("abwBis").value });
-      msg.className = "vr-msg ok"; msg.textContent = `${r.tage} Tage eingetragen.`; laden();
-    } catch (e) { msg.className = "vr-msg err"; msg.textContent = e.message; }
-    ev.target.disabled = false;
-  };
-
-  document.getElementById("vrDays").addEventListener("click", async (ev) => {
-    const b = ev.target.closest(".vr-set"); if (!b) return;
-    const box = b.closest(".vr-item"); const msg = box.querySelector(".vr-msg");
-    b.disabled = true;
-    try {
-      await api("/api/vertretung/eintragen", { vertreter_id: box.querySelector(".vr-wer").value, abwesend_id: b.dataset.abw,
-        datum: b.closest(".vr-day").dataset.datum, objekt: b.dataset.objekt, start: b.dataset.start, ende: b.dataset.ende });
-      laden();
-    } catch (e) { msg.className = "vr-msg err"; msg.textContent = e.message; b.disabled = false; }
-  });
+  // ---------------------------------------------------------------- Monat wechseln
+  function schieben(n) { const [j, m] = monat.split("-").map(Number); const d = new Date(j, m - 1 + n, 1); monat = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`; laden(); }
+  $("vtVor").addEventListener("click", () => schieben(-1));
+  $("vtNach").addEventListener("click", () => schieben(1));
+  $("vtHeute").addEventListener("click", () => { monat = heuteIso().slice(0, 7); laden(); });
+  $("vtNeu").addEventListener("click", () => dialog(maWahl, gewaehlt, gewaehlt));
 
   laden();
 })();
-</script>
-<script>
-/* ===== PREMIUM V2 „Graphit“: Kennzahlen und Avatare – liest nur die bereits geladene Wochenansicht (DOM) ===== */
-{% raw %}
-(function () {
-  var tageBox = document.getElementById("vrDays"), kpis = document.getElementById("vr2Kpis");
-  if (!tageBox || !kpis) return;
-  var NS = "http://www.w3.org/2000/svg";
-  function $(id) { return document.getElementById(id); }
-  function zahl(v, st) { return Number(v).toLocaleString("de-DE", { minimumFractionDigits: st || 0, maximumFractionDigits: st || 0 }); }
-  function el(tag, at, txt) {
-    var e = document.createElementNS(NS, tag);
-    for (var k in at) e.setAttribute(k, at[k]);
-    if (txt != null) e.textContent = txt;
-    return e;
-  }
-  function initialen(name) {
-    var w = String(name || "").trim().split(/\s+/).filter(Boolean);
-    return ((w[0] || "?").charAt(0) + (w.length > 1 ? w[w.length - 1].charAt(0) : "")).toUpperCase();
-  }
-  function balken(box, werte, labels, farbe) {
-    box.innerHTML = "";
-    var b = Math.max(box.clientWidth || 220, 120), h = 58, unten = 16, max = Math.max.apply(null, werte.concat([1]));
-    var s = el("svg", { viewBox: "0 0 " + b + " " + h, height: h, class: "vr2-balken", role: "img",
-                        "aria-label": labels.map(function (l, i) { return l + " " + werte[i]; }).join(", ") });
-    s.appendChild(el("line", { x1: 0, x2: b, y1: h - unten + .5, y2: h - unten + .5, class: "vr2-grid" }));
-    s.appendChild(el("line", { x1: 0, x2: b, y1: 2.5, y2: 2.5, class: "vr2-grid" }));
-    var n = werte.length, schritt = b / n, bw = Math.min(22, schritt * .56);
-    werte.forEach(function (v, i) {
-      var x = i * schritt + (schritt - bw) / 2, hh = v ? Math.max(3, (h - unten - 4) * v / max) : 0;
-      if (hh) s.appendChild(el("rect", { x: x, y: h - unten - hh, width: bw, height: hh, rx: 4, fill: farbe, class: "vr2-b",
-                                         style: "animation-delay:" + (i * 50) + "ms" }));
-      else s.appendChild(el("rect", { x: x, y: h - unten - 2, width: bw, height: 2, rx: 1, class: "vr2-grid", fill: "none" }));
-      s.appendChild(el("text", { x: x + bw / 2, y: h - 2, "text-anchor": "middle", class: "vr2-bar-lbl" }, labels[i]));
-    });
-    box.appendChild(s);
-  }
-  function lesen() {
-    return Array.prototype.map.call(tageBox.querySelectorAll(".vr-day"), function (d) {
-      var h3 = d.querySelector("h3"), t = { tag: d, h3: h3, kurz: h3 ? h3.textContent.trim().slice(0, 2) : "", abw: 0, krank: 0, urlaub: 0, offen: 0, geregelt: 0, frei: 0 };
-      d.querySelectorAll(".vr-item.vr-abw").forEach(function (it) {
-        var b = it.querySelector("b"), grund = b && b.nextSibling ? b.nextSibling.textContent : "", txt = it.textContent;
-        t.abw++;
-        var urlaub = /Urlaub/i.test(grund);
-        if (urlaub) t.urlaub++; else t.krank++;
-        if (/Vertretung:/.test(txt)) t.geregelt++;
-        else if (it.querySelector(".vr-set") || /Niemand ist an diesem Tag frei/.test(txt)) t.offen++;
-        if (!it.querySelector(".vr2-ava") && b) {
-          var a = document.createElement("span");
-          a.className = "vr2-ava " + (urlaub ? "urlaub" : "krank");
-          a.setAttribute("aria-hidden", "true");
-          a.textContent = initialen(b.textContent);
-          it.insertBefore(a, it.firstChild);
-        }
-      });
-      var f = d.querySelector(".vr-free"), namen = f ? f.textContent.replace(/^\s*Frei:\s*/, "").trim() : "";
-      t.frei = !namen || namen === "niemand" ? 0 : namen.split(",").filter(function (x) { return x.trim(); }).length;
-      if (h3) {
-        if (t.offen) { h3.setAttribute("data-vr2", t.offen + " offen"); h3.setAttribute("data-vr2-ton", "offen"); }
-        else if (t.geregelt) { h3.setAttribute("data-vr2", "Geregelt"); h3.setAttribute("data-vr2-ton", "ok"); }
-        else if (t.abw) { h3.setAttribute("data-vr2", t.abw + " abwesend"); h3.setAttribute("data-vr2-ton", ""); }
-        else { h3.removeAttribute("data-vr2"); h3.removeAttribute("data-vr2-ton"); }
-      }
-      return t;
-    });
-  }
-  var letzte = [];
-  function zeichnen() {
-    var tage = letzte, n = tage.length;
-    var sum = function (k) { return tage.reduce(function (s, t) { return s + t[k]; }, 0); };
-    if (!n) {
-      ["vr2AbwWert", "vr2VertWert", "vr2GrundWert", "vr2FreiWert"].forEach(function (id) { $(id).textContent = "–"; });
-      ["vr2AbwGrafik", "vr2VertGrafik", "vr2GrundGrafik", "vr2FreiGrafik"].forEach(function (id) { $(id).innerHTML = ""; });
-      return;
-    }
-    var abw = sum("abw"), krank = sum("krank"), urlaub = sum("urlaub"), offen = sum("offen"), geregelt = sum("geregelt"), frei = sum("frei");
-    var labels = tage.map(function (t) { return t.kurz; });
-    $("vr2AbwWert").textContent = zahl(abw);
-    $("vr2AbwMeta").textContent = abw ? "an " + tage.filter(function (t) { return t.abw; }).length + " von " + n + " Tagen" : "Niemand fehlt diese Woche";
-    balken($("vr2AbwGrafik"), tage.map(function (t) { return t.abw; }), labels, "#e11d48");
-
-    var bedarf = offen + geregelt;
-    $("vr2VertWert").innerHTML = bedarf ? zahl(geregelt) + "<small>von " + zahl(bedarf) + "</small>" : "–";
-    $("vr2VertMeta").innerHTML = !bedarf ? "Kein Vertretungsbedarf"
-      : offen ? '<span class="vr2-pill bernstein">' + zahl(offen) + " offen</span>" : '<span class="vr2-pill gruen">Alles geregelt</span>';
-    $("vr2VertGrafik").innerHTML = '<div class="vr2-linie" role="img" aria-label="' + (bedarf ? Math.round(geregelt / bedarf * 100) : 0) + ' % geregelt"><b style="width:' +
-      (bedarf ? Math.round(geregelt / bedarf * 100) : 0) + '%;background:' + (offen ? "#0d9488" : "#16a34a") + '"></b></div>';
-
-    $("vr2GrundWert").innerHTML = zahl(krank) + "<small>Krank</small>" + zahl(urlaub) + "<small>Urlaub</small>";
-    $("vr2GrundMeta").textContent = abw ? Math.round(krank / abw * 100) + " % krankheitsbedingt" : "Keine Einträge";
-    $("vr2GrundGrafik").innerHTML = abw ? '<div class="vr2-split" role="img" aria-label="Krank ' + krank + ', Urlaub ' + urlaub + '">' +
-      (krank ? '<b style="flex:' + krank + ';background:#e11d48"></b>' : "") + (urlaub ? '<b style="flex:' + urlaub + ';background:#d97706"></b>' : "") + "</div>"
-      : '<div class="vr2-linie"></div>';
-
-    var team = ($("abwWer") && $("abwWer").options.length) || 0;
-    $("vr2FreiWert").innerHTML = zahl(frei / n, 1) + "<small>pro Tag</small>";
-    $("vr2FreiMeta").textContent = team ? "Team: " + zahl(team) + " Mitarbeiter" : "ohne feste Zeiten, nicht abwesend";
-    balken($("vr2FreiGrafik"), tage.map(function (t) { return t.frei; }), labels, "#64748b");
-  }
-  function aktualisieren() { letzte = lesen(); zeichnen(); }
-  new MutationObserver(aktualisieren).observe(tageBox, { childList: true });
-  if (tageBox.children.length) aktualisieren();
-  var rt = 0;
-  window.addEventListener("resize", function () { clearTimeout(rt); rt = setTimeout(zeichnen, 150); });
-  setTimeout(function () { kpis.classList.remove("vr2-start"); }, 1500);
-})();
-{% endraw %}
 </script>
 {% endblock %}

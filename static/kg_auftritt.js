@@ -135,6 +135,17 @@
             { sel: '.stz2-werkzeug', bild: 'hoch', d: 550, v: 520 },
             { sel: '.stz2-karte', bild: 'karte', d: 650, v: 580, s: 50, max: 12, neu: true }
         ]),
+        vertretung: kopf('.vt-kopf', '.vt-titel > div:last-child > *', null, '.vt-monat').concat([
+            { sel: '.vt-symbol', bild: 'symbol', d: 850, v: 160 },
+            { sel: '.vt-symbol', bild: 'ring', d: 1100, v: 800, extra: true },
+            { sel: '.vt-kpi', bild: 'karte', d: 650, v: 380, s: 90, max: 4 },
+            { sel: '.vt-leiste', bild: 'hoch', d: 600, v: 440 },
+            { sel: '.vt-chip', bild: 'pop', d: 480, v: 500, s: 40, max: 12, neu: true },
+            { sel: '.vt-kal', bild: 'hoch', d: 650, v: 480 },
+            { sel: '.vt-tag', bild: 'tag', d: 520, v: 560, welle: welle, neu: true },
+            { sel: '.vt-seite', bild: 'rechts', d: 700, v: 560 },
+            { sel: '.vt-person', bild: 'karte', d: 650, v: 700, s: 60, max: 10, neu: true }
+        ]),
         buchhaltung: kopf('.buchhaltung-hero', '.bh-titel > div:last-child > :not(.bh-chips)', '.bh-chips > *', '.live-date-box').concat([
             { sel: '.bh-symbol', bild: 'symbol', d: 850, v: 160 },
             { sel: '.bh-symbol', bild: 'ring', d: 1100, v: 800, extra: true },
@@ -149,7 +160,7 @@
 
     // Glanz über den Kopf (Pseudo-Element, damit der dunkle Modus nichts umfärbt)
     var GLANZ = ['.index-hero::before', '.wa-header::after', '.rr-hero::after', '.in-hero::after', '.kgae-kopf::after', '.lv-hero::after',
-        '.kg-mit-hero::after', '.stz2-hero::before', '.bh-p .buchhaltung-hero::after'];
+        '.kg-mit-hero::after', '.stz2-hero::before', '.bh-p .buchhaltung-hero::after', '.vt-kopf::after'];
     var g2 = GLANZ.map(function (x) { return 'html.kgx-glanz ' + x; }).join(',');
     var css = document.createElement('style');
     css.textContent =
