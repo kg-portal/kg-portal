@@ -1,6 +1,9 @@
 <link rel="stylesheet" href="{{ url_for('static', filename='leon/leon_orb.css') }}">
+<script src="{{ url_for('static', filename='leon/leon_orb.js') }}" defer></script>
 <style>
   /* Leon-Reiter „Orb-Hero“: zwei Reihen mit Gruppen, glänzende 3D-Reiter (nur Optik) */
+  /* Leon-Seiten: hellblaue Fläche wie im Entwurf (nur hier, andere CRM-Seiten bleiben weiß) */
+  .portal-card:has(nav.kg-leon-tabs) { background:linear-gradient(180deg,#eef4ff 0%,#f6f9ff 100%) !important; }
   nav.kg-leon-tabs { display:flex; flex-direction:column; gap:8px; margin:0 0 16px; padding:12px 14px; background:#fff; border:1px solid #e8eefb; border-radius:22px; box-shadow:0 12px 30px rgba(15,29,74,.08); font-family:inherit; }
   nav.kg-leon-tabs .lo-reihe { display:flex; align-items:center; flex-wrap:wrap; gap:8px 12px; }
   nav.kg-leon-tabs .lo-gruppe { display:flex; align-items:center; flex-wrap:wrap; gap:6px; }
