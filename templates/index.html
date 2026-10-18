@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 
 {% block content %}
+<script src="{{ url_for('static', filename='kg_auftritt.js') }}" data-seite="start"></script>
 <style>
 /* Auftritt wie bei der Datenbank: erst fertig aufbauen, dann Kacheln nacheinander weich einblenden */
 html.kg-st-warten .dashboard-grid > .module-container:not(.kg-st-an) { opacity: 0; }

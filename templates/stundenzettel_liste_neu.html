@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% block content %}
+<script src="{{ url_for('static', filename='kg_auftritt.js') }}" data-seite="stundenzettel"></script>
 <!-- Neue Stundenzettel-Liste (Karten + Monatszahlen + Seitenfenster). Bisherige Ansicht: /stundenzettel?alt=1 -->
 <style>
 .stz2,.stz2-drawer{--b1:#071a44;--b2:#123a8f;--b3:#2563eb;--rand:#e2e8f0;--leise:#64748b;--text:#0f172a}
@@ -93,146 +94,14 @@
   .stz2-dkopf .stz2-av,#dVor,#dNach{display:none}
   .stz2-dbtn{width:36px;height:36px}
 }
-{% raw %}
-/* ===== PREMIUM V2 „Graphit“ ===== */
-.stz2.v2s-seite{--g-ink:#111827;--g-text:#1f2937;--g-muted:#6b7280;--g-line:#e5e7eb;--g-soft:#f3f4f6;--g-akzent:#0d9488;font-variant-numeric:tabular-nums}
-/* Seitenkopf: kein Farbblock, Titel links, Aktionen rechts */
-.v2s-seite .stz2-hero{display:grid;grid-template-columns:minmax(0,1fr) auto auto;grid-template-areas:"titel links monat";align-items:center;column-gap:10px;row-gap:14px;background:transparent;color:var(--g-ink);border-radius:0;padding:4px 0 20px;margin-bottom:20px;box-shadow:none;border-bottom:1px solid var(--g-line);overflow:visible}
-.v2s-seite .stz2-hero:after{display:none}
-.v2s-seite .stz2-hero-oben{display:contents}
-.v2s-seite .stz2-titel{grid-area:titel;min-width:0}
-.v2s-seite .stz2-icon{display:none}
-.v2s-eyebrow{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700;color:#6b7280;margin:0 0 6px;letter-spacing:.01em}
-.v2s-eyebrow .v2s-q{width:8px;height:8px;border-radius:2px;background:var(--g-akzent,#0d9488);flex:none}
-.v2s-seite .stz2-titel h2{font-size:30px;font-weight:800;letter-spacing:-.02em;line-height:1.15;color:var(--g-ink)}
-.v2s-seite .stz2-titel p{margin:4px 0 0;font-size:14px;font-weight:500;opacity:1;color:var(--g-muted)}
-.v2s-seite .stz2-monat{grid-area:monat;gap:2px;background:#fff;border:1px solid #d1d5db;border-radius:10px;padding:3px;height:40px;box-shadow:0 1px 2px rgba(16,24,40,.05)}
-.v2s-seite .stz2-monat button{width:32px;height:32px;border-radius:7px;background:transparent;color:#374151;font-size:20px;font-weight:700;transition:background-color .15s}
-.v2s-seite .stz2-monat button:hover{background:var(--g-soft)}
-.v2s-seite .stz2-monat b{min-width:128px;font-size:14px;font-weight:700;color:var(--g-ink)}
-.v2s-seite .stz2-links{grid-area:links;margin:0;gap:8px;flex-wrap:nowrap}
-.v2s-seite .stz2-links a{height:40px;padding:0 14px;border-radius:10px;background:#fff;border:1px solid #d1d5db;color:var(--g-ink);font-size:13.5px;font-weight:700;box-shadow:0 1px 2px rgba(16,24,40,.05);white-space:nowrap;transition:background-color .15s,border-color .15s}
-.v2s-seite .stz2-links a:hover{background:#f9fafb;border-color:#c4c9d1}
-/* KPI-Karten */
-.v2s-seite .stz2-kpis{gap:14px;margin-bottom:24px}
-.v2s-seite .stz2-kpi{position:relative;display:flex;flex-direction:column;min-width:0;background:#fff;border:1px solid var(--g-line);border-radius:14px;padding:16px 18px;box-shadow:0 1px 2px rgba(16,24,40,.05)}
-.v2s-seite .stz2-kpi small{font-size:13px;font-weight:600;color:var(--g-muted);letter-spacing:0;text-transform:none;padding-right:26px}
-.v2s-seite .stz2-kpi b{font-size:28px;font-weight:800;letter-spacing:-.02em;line-height:1.15;color:var(--g-ink);margin-top:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.v2s-seite .stz2-kpi span{font-size:12.5px;font-weight:500;color:var(--g-muted);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.v2s-ic{position:absolute;top:16px;right:16px;width:18px;height:18px;fill:none;stroke:var(--v2s-farbe,#0d9488);stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
-.v2s-kpi:nth-child(1){--v2s-farbe:#7c3aed}.v2s-kpi:nth-child(2){--v2s-farbe:#2563eb}.v2s-kpi:nth-child(3){--v2s-farbe:#0d9488}.v2s-kpi:nth-child(4){--v2s-farbe:#16a34a}
-.v2s-viz{margin-top:auto;padding-top:12px;min-height:44px}
-.v2s-viz svg{display:block;width:100%;overflow:visible}
-.v2s-spur{display:flex;gap:2px;height:6px;border-radius:999px;overflow:hidden;background:#f0f1f4}
-.v2s-spur i{display:block;height:100%;min-width:3px}
-.v2s-linie{position:relative;height:4px;border-radius:999px;background:#f0f1f4;overflow:hidden}
-.v2s-linie i{position:absolute;left:0;top:0;bottom:0;border-radius:999px}
-.v2s-leg{display:flex;flex-wrap:wrap;gap:4px 10px;margin-top:8px;font-size:11px;font-weight:600;color:#6b7280;line-height:1.3}
-.v2s-leg em{font-style:normal;display:inline-flex;align-items:center;gap:5px;white-space:nowrap}
-.v2s-leg em:before{content:"";width:6px;height:6px;border-radius:2px;background:var(--f,#9ca3af)}
-.v2s-leg b,.v2s-seite .stz2-kpi .v2s-viz b{display:inline;margin:0;font-size:11px;font-weight:800;letter-spacing:0;line-height:1.3;color:#374151;white-space:nowrap;overflow:visible}
-.v2s-ref{stroke:#e5e7eb;stroke-width:1;stroke-dasharray:3 3;vector-effect:non-scaling-stroke}
-.v2s-achse{font-size:10px;fill:#9ca3af;font-weight:600}
-/* Werkzeugleiste */
-.v2s-seite .stz2-werkzeug{gap:12px;margin-bottom:16px}
-.v2s-seite .stz2-suche{flex:0 1 380px;height:40px;gap:8px;background:#fff;border:1px solid #d1d5db;border-radius:10px;padding:0 12px;box-shadow:0 1px 2px rgba(16,24,40,.05);transition:border-color .15s,box-shadow .15s}
-.v2s-seite .stz2-suche:focus-within{border-color:var(--g-ink);box-shadow:0 0 0 3px rgba(17,24,39,.10)}
-.v2s-seite .stz2-suche i{color:#9ca3af;font-size:13px}
-.v2s-seite .stz2-suche input{font-size:14px;padding:0;height:38px;color:var(--g-ink)}
-.v2s-seite .stz2-anzahl{margin-left:auto;font-size:12.5px;font-weight:600;color:var(--g-muted)}
-/* Mitarbeiter-Karten */
-.v2s-seite .stz2-grid{gap:16px}
-.v2s-seite .stz2-karte{border:1px solid var(--g-line);border-radius:14px;padding:16px;gap:14px;box-shadow:0 1px 2px rgba(16,24,40,.05);transition:border-color .15s,box-shadow .15s}
-.v2s-seite .stz2-karte:hover{transform:none;border-color:#d1d5db;box-shadow:0 1px 2px rgba(16,24,40,.05),0 8px 24px -12px rgba(16,24,40,.14)}
-.v2s-seite .stz2-av{width:36px;height:36px;border-radius:50%;background:var(--g-soft);color:#374151;font-weight:700;font-size:12.5px;letter-spacing:.02em}
-.v2s-seite .stz2-nm b{font-size:15px;font-weight:700;color:var(--g-ink)}
-.v2s-seite .stz2-badge{display:inline-flex;align-items:center;gap:6px;margin-top:5px;font-size:12px;font-weight:700;border-radius:6px;padding:2px 8px;line-height:1.5}
-.v2s-seite .stz2-badge:before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor;flex:none}
-.v2s-seite .st-offen{background:#f3f4f6;color:#374151}
-.v2s-seite .st-ausgefuellt{background:#eff6ff;color:#1d4ed8}
-.v2s-seite .st-wa_wartet,.v2s-seite .st-anruf_wartet,.v2s-seite .st-anruf_auswertung{background:#fffbeb;color:#b45309}
-.v2s-seite .st-wa_ja,.v2s-seite .st-anruf_ja{background:#ecfdf5;color:#047857}
-.v2s-seite .st-wa_korrigiert,.v2s-seite .st-anruf_korrigiert{background:#f5f3ff;color:#6d28d9}
-.v2s-seite .st-wa_unklar,.v2s-seite .st-wa_nein,.v2s-seite .st-anruf_unklar,.v2s-seite .st-anruf_nicht_erreicht{background:#fef2f2;color:#b91c1c}
-.v2s-seite .st-bestaetigt{background:#047857;color:#fff}
-.v2s-seite .stz2-archiv{width:32px;height:32px;border-radius:8px;color:#9ca3af;font-size:13px;transition:background-color .15s,color .15s}
-.v2s-seite .stz2-archiv:hover{background:#fef2f2;color:#b91c1c}
-.v2s-seite .stz2-zahlen{grid-template-columns:minmax(0,1fr) minmax(0,1.2fr) minmax(0,.7fr);gap:0;padding:12px 0 0;border-top:1px solid #f0f1f3}
-.v2s-seite .stz2-zahlen div{background:transparent;border:0;border-radius:0;padding:0 10px}
-.v2s-seite .stz2-zahlen div:first-child{padding-left:0}
-.v2s-seite .stz2-zahlen div+div{border-left:1px solid #f0f1f3}
-.v2s-seite .stz2-zahlen b{font-size:16px;font-weight:800;letter-spacing:-.01em;color:var(--g-ink)}
-.v2s-seite .stz2-zahlen small{font-size:12px;font-weight:500;color:var(--g-muted)}
-.v2s-seite .stz2-bar{height:4px;border-radius:999px;background:#f0f1f4}
-.v2s-seite .stz2-bar i{border-radius:999px;background:#2563eb}
-.v2s-seite .stz2-tags span{font-size:12px;font-weight:700;border-radius:6px;padding:2px 8px}
-.v2s-seite .tg-kr{background:#fffbeb;color:#b45309}
-.v2s-seite .tg-ur{background:#f0fdfa;color:#0f766e}
-.v2s-seite .tg-ex{background:#f5f3ff;color:#6d28d9}
-.v2s-seite .tg-leer{background:#f3f4f6;color:#6b7280}
-.v2s-seite .stz2-fuss{gap:8px}
-.v2s-seite .stz2-oeffnen{height:38px;padding:0 14px;border-radius:10px;font-size:13.5px;font-weight:700;background:#111827;box-shadow:none;display:inline-flex;align-items:center;justify-content:center;gap:8px;transition:background-color .15s}
-.v2s-seite .stz2-oeffnen:hover{filter:none;background:#000}
-.v2s-seite .stz2-oeffnen:disabled{opacity:.4;cursor:not-allowed}
-.v2s-seite .stz2-oeffnen i{font-size:12px}
-.v2s-seite .stz2-klein{width:38px;height:38px;border-radius:10px;border:1px solid #d1d5db;color:#374151;font-size:14px;transition:background-color .15s}
-.v2s-seite .stz2-klein:hover{background:#f9fafb}
-.v2s-seite .stz2-klein.ok{background:#ecfdf5;border-color:#a7f3d0;color:#047857}
-.v2s-seite .stz2-leer{border:1px dashed var(--g-line);border-radius:14px;padding:36px 20px;font-size:14px;font-weight:500;color:var(--g-muted)}
-.v2s-seite .stz2-alt{margin-top:20px}
-.v2s-seite .stz2-alt a{color:var(--g-muted);font-weight:600;text-decoration:none;border-bottom:1px solid #d1d5db}
-.v2s-seite .stz2-alt a:hover{color:var(--g-ink)}
-/* Seitenfenster */
-.stz2-dim{background:rgba(17,24,39,.38)}
-.stz2-drawer{background:#f4f5f7;box-shadow:-24px 0 48px -12px rgba(16,24,40,.28);border-left:1px solid #e5e7eb}
-.stz2-dkopf{background:#fff;color:#111827;border-bottom:1px solid #e5e7eb;gap:8px;padding:12px 14px}
-.stz2-dkopf .stz2-av{width:36px;height:36px;border-radius:50%;background:#f3f4f6;color:#374151;font-size:12.5px;font-weight:700}
-.stz2-dkopf .stz2-nm b{color:#111827;font-size:15px;font-weight:700}
-.stz2-dkopf .stz2-nm small{color:#6b7280;opacity:1;font-weight:500}
-.stz2-dbtn{width:36px;height:36px;border-radius:10px;border:1px solid #e5e7eb;background:#fff;color:#374151;font-size:13px;transition:background-color .15s}
-.stz2-dbtn:hover{background:#f9fafb}
-.stz2-dbtn.ok{background:#ecfdf5;border-color:#a7f3d0;color:#047857}
-.stz2-drawer iframe{background:#f4f5f7}
-/* Start-Animation nur beim ersten Laden */
-@keyframes v2sAuf{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
-@keyframes v2sZug{from{stroke-dashoffset:100}to{stroke-dashoffset:0}}
-@keyframes v2sWachs{from{transform:scaleY(0)}to{transform:scaleY(1)}}
-@keyframes v2sBreit{from{transform:scaleX(0)}to{transform:scaleX(1)}}
-html.v2-start .v2s-seite .stz2-kpi{animation:v2sAuf .5s cubic-bezier(.2,.7,.2,1) backwards}
-html.v2-start .v2s-seite .stz2-kpi:nth-child(2){animation-delay:.06s}
-html.v2-start .v2s-seite .stz2-kpi:nth-child(3){animation-delay:.12s}
-html.v2-start .v2s-seite .stz2-kpi:nth-child(4){animation-delay:.18s}
-html.v2-start .v2s-zug{stroke-dasharray:100 100;animation:v2sZug 1s cubic-bezier(.2,.7,.2,1) .25s backwards}
-html.v2-start .v2s-balken{transform-box:fill-box;transform-origin:50% 100%;animation:v2sWachs .6s cubic-bezier(.2,.7,.2,1) .2s backwards}
-html.v2-start .v2s-spur,html.v2-start .v2s-linie i{transform-origin:0 50%;animation:v2sBreit .8s cubic-bezier(.2,.7,.2,1) .2s backwards}
-@media (prefers-reduced-motion:reduce){html.v2-start .v2s-seite *{animation:none !important}}
-/* Dunkelmodus: Graphit-Flächen sichtbar halten, SVG-Linien abdunkeln */
-html[data-kg-x="on"] .v2s-seite .stz2-oeffnen{background:#2563eb !important;border-color:#2563eb !important;color:#fff !important}
-html[data-kg-x="on"] .v2s-seite .stz2-oeffnen:hover{background:#1d4ed8 !important}
-html[data-kg-x="on"] .v2s-seite .st-bestaetigt{background:#047857 !important;color:#fff !important}
-html[data-kg-x="on"] .v2s-seite .stz2-suche:focus-within{border-color:#60a5fa !important;box-shadow:0 0 0 3px rgba(96,165,250,.18)}
-html[data-kg-x="on"] .v2s-ref{stroke:#334155}
-html[data-kg-x="on"] .v2s-achse{fill:#94a3b8}
-@media (max-width:1100px){.v2s-seite .stz2-hero{grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"titel monat" "links links"}}
-@media (max-width:640px){
-  .v2s-seite .stz2-hero{grid-template-columns:minmax(0,1fr);grid-template-areas:"titel" "monat" "links";padding:0 0 16px}
-  .v2s-seite .stz2-titel h2{font-size:26px}
-  .v2s-seite .stz2-monat{width:100%;justify-content:space-between}
-  .v2s-seite .stz2-links{flex-wrap:wrap}
-  .v2s-seite .stz2-links a{flex:1 1 220px;justify-content:center}
-  .v2s-seite .stz2-suche{flex:1 1 auto}
-  .v2s-seite .stz2-kpi b{font-size:24px}
-}
-{% endraw %}
 </style>
 
-<div class="stz2 v2s-seite">
+<div class="stz2">
     <section class="stz2-hero">
         <div class="stz2-hero-oben">
             <div class="stz2-titel">
                 <div class="stz2-icon"><i class="fa-solid fa-clock-rotate-left"></i></div>
                 <div>
-                    <div class="v2s-eyebrow"><span class="v2s-q"></span>Personal · Zeiterfassung</div>
                     <h2>Stundenzettel</h2>
                     <p>Monatsübersicht aller Mitarbeiter</p>
                 </div>
@@ -250,10 +119,10 @@ html[data-kg-x="on"] .v2s-achse{fill:#94a3b8}
     </section>
 
     <div class="stz2-kpis">
-        <div class="stz2-kpi v2s-kpi"><small>Mitarbeiter</small><b id="kpiMa">0</b><span>aktiv</span><svg class="v2s-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg><div class="v2s-viz" data-v2s="ma"></div></div>
-        <div class="stz2-kpi v2s-kpi"><small>Stunden</small><b id="kpiStd">0,00</b><span id="kpiExtra">Std im Monat</span><svg class="v2s-ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><div class="v2s-viz" data-v2s="std"></div></div>
-        <div class="stz2-kpi v2s-kpi"><small>Lohn</small><b id="kpiLohn">0,00 €</b><span id="kpiLohnTeile">Lohn 0,00 € / Extra 0,00 €</span><svg class="v2s-ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/><path d="M6 12h.01M18 12h.01"/></svg><div class="v2s-viz" data-v2s="lohn"></div></div>
-        <div class="stz2-kpi v2s-kpi"><small>Bestätigt</small><b id="kpiOk">0 / 0</b><span id="kpiLeer">–</span><svg class="v2s-ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8.5 12.5 2.5 2.5 5-5.5"/></svg><div class="v2s-viz" data-v2s="ok"></div></div>
+        <div class="stz2-kpi"><small>Mitarbeiter</small><b id="kpiMa">0</b><span>aktiv</span></div>
+        <div class="stz2-kpi"><small>Stunden</small><b id="kpiStd">0,00</b><span id="kpiExtra">Std im Monat</span></div>
+        <div class="stz2-kpi"><small>Lohn</small><b id="kpiLohn">0,00 €</b><span id="kpiLohnTeile">Lohn 0,00 € / Extra 0,00 €</span></div>
+        <div class="stz2-kpi"><small>Bestätigt</small><b id="kpiOk">0 / 0</b><span id="kpiLeer">–</span></div>
     </div>
 
     <div class="stz2-werkzeug">
@@ -451,131 +320,5 @@ html[data-kg-x="on"] .v2s-achse{fill:#94a3b8}
 
     zeichnen();
 })();
-</script>
-<script>
-{% raw %}
-/* ===== PREMIUM V2 „Graphit“: Kennzahl-Grafiken =====
-   Nur lesend: Zahlen aus den Karten/Kennzahlen der Seite; ist die Liste gefiltert und der Monat neu,
-   dieselbe GET-Übersicht wie die Seite (/stundenzettel/uebersicht). Nichts wird gespeichert. */
-(function () {
-    var html = document.documentElement;
-    html.classList.add("v2-start");
-    setTimeout(function () { html.classList.remove("v2-start"); }, 1600);
-
-    var grid = document.getElementById("stzGrid");
-    if (!grid) return;
-    var el = function (id) { return document.getElementById(id); };
-    var viz = function (k) { return document.querySelector('.v2s-viz[data-v2s="' + k + '"]'); };
-    var esc = function (s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); };
-    var zahl = function (t) { var n = parseFloat(String(t || "").replace(/[^\d,.\-]/g, "").replace(/\./g, "").replace(",", ".")); return isNaN(n) ? 0 : n; };
-    var de = function (n, d) { return Number(n || 0).toLocaleString("de-DE", { minimumFractionDigits: d || 0, maximumFractionDigits: d || 0 }); };
-    var GRUPPEN = [
-        ["bestätigt", "#16a34a", ["bestaetigt", "wa_ja"]],
-        ["Rückmeldung", "#7c3aed", ["anruf_ja", "wa_korrigiert", "anruf_korrigiert"]],
-        ["wartet", "#d97706", ["wa_wartet", "anruf_wartet", "anruf_auswertung"]],
-        ["prüfen", "#e11d48", ["wa_unklar", "wa_nein", "anruf_unklar", "anruf_nicht_erreicht"]],
-        ["offen", "#94a3b8", []]
-    ];
-
-    function spur(ziel, teile, leer) {
-        var summe = teile.reduce(function (s, t) { return s + t.v; }, 0);
-        var h = '<div class="v2s-spur">' + (summe ? teile.filter(function (t) { return t.v > 0; }).map(function (t) {
-            return '<i style="flex:' + t.v + ' 1 0;background:' + t.f + '" title="' + esc(t.t) + '"></i>';
-        }).join("") : "") + "</div>";
-        h += '<div class="v2s-leg">' + (summe ? teile.filter(function (t) { return t.v > 0; }).map(function (t) {
-            return '<em style="--f:' + t.f + '"><b>' + esc(t.z) + "</b>" + esc(t.l) + "</em>";
-        }).join("") : "<em>" + esc(leer) + "</em>") + "</div>";
-        ziel.innerHTML = h;
-    }
-    function linie(ziel, anteil, farbe, text) {
-        var p = Math.max(0, Math.min(1, anteil || 0));
-        ziel.innerHTML = '<div class="v2s-linie"><i style="width:' + (p * 100).toFixed(1) + "%;background:" + farbe + '"></i></div>' +
-            '<div class="v2s-leg"><em style="--f:' + farbe + '">' + esc(text) + "</em></div>";
-    }
-    function saeulen(ziel, werte, max, unten) {
-        var w = Math.max(120, ziel.clientWidth || 240), hoehe = 34, n = Math.max(werte.length, 1);
-        var luecke = n > 24 ? 2 : 4, bw = Math.max(2, Math.min(14, (w - luecke * (n - 1)) / n));
-        var start = Math.max(0, (w - (bw * n + luecke * (n - 1))) / 2);
-        var s = '<svg viewBox="0 0 ' + w + " " + hoehe + '" height="' + hoehe + '" role="img" aria-label="Stunden je Mitarbeiter">' +
-            '<line class="v2s-ref" x1="0" x2="' + w + '" y1="0.5" y2="0.5"></line>';
-        werte.forEach(function (v, i) {
-            var hh = max ? Math.max(v.v > 0 ? 2 : 1.5, Math.min(1, v.v / max) * (hoehe - 3)) : 1.5;
-            s += '<rect class="v2s-balken" x="' + (start + i * (bw + luecke)).toFixed(1) + '" y="' + (hoehe - hh).toFixed(1) + '" width="' + bw.toFixed(1) +
-                '" height="' + hh.toFixed(1) + '" rx="' + Math.min(3, bw / 2).toFixed(1) + '" fill="' + (v.v > 0 ? "#2563eb" : "#d1d5db") + '"><title>' + esc(v.t) + "</title></rect>";
-        });
-        ziel.innerHTML = s + "</svg>" + '<div class="v2s-leg">' + unten + "</div>";
-    }
-
-    var sigListe = "", sigKpi = "", letzteListe = null, holtMonat = "";
-    function listeZeichnen(liste, monat, erzwingen) {
-        var sig = monat + "|" + JSON.stringify(liste);
-        if (sig === sigListe && !erzwingen) return;
-        sigListe = sig; letzteListe = { liste: liste, monat: monat };
-        var ma = viz("ma"), std = viz("std");
-        if (ma) {
-            spur(ma, GRUPPEN.map(function (g, i) {
-                var n = liste.filter(function (m) { return i === GRUPPEN.length - 1 ? !GRUPPEN.some(function (x) { return x[2].indexOf(m.st) >= 0; }) : g[2].indexOf(m.st) >= 0; }).length;
-                return { v: n, f: g[1], z: n + " ", l: g[0], t: n + " " + g[0] };
-            }), "keine aktiven Mitarbeiter");
-        }
-        if (std) {
-            var summe = liste.reduce(function (s, m) { return s + m.std; }, 0);
-            var max = Math.max(40, liste.reduce(function (s, m) { return Math.max(s, m.std); }, 0));
-            saeulen(std, liste.map(function (m) { return { v: m.std, t: m.name + ": " + de(m.std, 2) + " Std" }; }), max,
-                liste.length ? '<em style="--f:#2563eb">Ø <b>' + de(summe / liste.length, 1) + "</b>&nbsp;Std je Mitarbeiter</em><em style=\"--f:#e5e7eb\">Linie = " + de(max) + " Std</em>" : "<em>keine Mitarbeiter</em>");
-        }
-    }
-    function kpiZeichnen() {
-        var teile = ((el("kpiLohnTeile") || {}).textContent || "").split("/");
-        var lohn = zahl(teile[0]), extra = zahl(teile[1]);
-        var ok = ((el("kpiOk") || {}).textContent || "0 / 0").split("/");
-        var a = zahl(ok[0]), b = zahl(ok[1]);
-        var sig = [lohn, extra, a, b].join("|");
-        if (sig === sigKpi) return;
-        sigKpi = sig;
-        var l = viz("lohn"), o = viz("ok"), sum = lohn + extra;
-        if (l) spur(l, [
-            { v: lohn, f: "#0d9488", z: sum ? de(lohn / sum * 100) + " % " : "", l: "Lohn", t: "Lohn " + de(lohn, 2) + " €" },
-            { v: extra, f: "#7c3aed", z: sum ? de(extra / sum * 100) + " % " : "", l: "Extra", t: "Extra " + de(extra, 2) + " €" }
-        ], "noch keine Beträge");
-        if (o) linie(o, b ? a / b : 0, "#16a34a", b ? de(a / b * 100) + " % bestätigt" : "keine Mitarbeiter");
-    }
-    function ausServer(monatTitel) {
-        var monat = new URL(window.location.href).searchParams.get("monat");
-        if (!monat || holtMonat === monatTitel) return;
-        holtMonat = monatTitel;
-        fetch("/stundenzettel/uebersicht?monat=" + encodeURIComponent(monat), { cache: "no-store" })
-            .then(function (r) { return r.json(); })
-            .then(function (d) {
-                if (!d || !d.mitarbeiter || d.titel !== ((el("stzMonat") || {}).textContent || "")) return;
-                listeZeichnen(d.mitarbeiter.map(function (m) { return { name: m.name, std: Number(m.stunden) || 0, st: m.status || "offen" }; }), d.titel);
-            })
-            .catch(function () {});
-    }
-    function aktualisieren() {
-        kpiZeichnen();
-        var monat = (el("stzMonat") || {}).textContent || "";
-        var karten = grid.querySelectorAll(".stz2-karte");
-        var gesamt = parseInt((el("kpiMa") || {}).textContent, 10) || 0;
-        if (karten.length === gesamt) {
-            holtMonat = "";
-            listeZeichnen(Array.prototype.map.call(karten, function (k) {
-                var b = k.querySelector(".stz2-badge"), m = b && /\bst-([a-z_]+)/.exec(b.className);
-                return { name: ((k.querySelector(".stz2-nm b") || {}).textContent || "").trim(), std: zahl((k.querySelector(".stz2-zahlen b") || {}).textContent), st: m ? m[1] : "offen" };
-            }), monat);
-        } else if (!letzteListe || letzteListe.monat !== monat) {
-            ausServer(monat);   // Suche aktiv und neuer Monat: Grafik aus der Übersicht (nur lesen)
-        }
-    }
-    var t = 0;
-    new MutationObserver(function () { clearTimeout(t); t = setTimeout(aktualisieren, 60); }).observe(grid, { childList: true });
-    var rt = 0;
-    window.addEventListener("resize", function () {
-        clearTimeout(rt);
-        rt = setTimeout(function () { if (letzteListe) listeZeichnen(letzteListe.liste, letzteListe.monat, true); }, 150);
-    });
-    aktualisieren();
-})();
-{% endraw %}
 </script>
 {% endblock %}

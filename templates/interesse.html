@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% block content %}
+<script src="{{ url_for('static', filename='kg_auftritt.js') }}" data-seite="interesse"></script>
 <!-- Interesse (Leon Reinigung) – alle Gespräche mit Ergebnis „Interessiert“, Daten vom Leon-Motor -->
 <style>
   .in-page { width:100%; max-width:1900px; margin:0 auto; background:#fff; border-radius:24px; box-shadow:0 18px 50px rgba(15,23,42,.08); border:1px solid #dbe3f0; overflow:hidden; font-family:Arial, Helvetica, sans-serif; color:#0f172a; }
@@ -102,165 +103,38 @@
     .in-notiz { margin-top:5px; padding:0; border:none; background:none; font-size:8.5pt; line-height:1.35; }
     * { -webkit-print-color-adjust:exact; print-color-adjust:exact; }
   }
-
-  {% raw %}
-  /* ===== PREMIUM V2 „Graphit“ ===== */
-  /* Nur Bildschirm – die Druckansicht (@media print oben) bleibt exakt wie bisher. */
-  @media screen {
-    .in-page { background:transparent; border:0; border-radius:0; box-shadow:none; overflow:visible; font-family:inherit; color:#111827; }
-
-    /* Seitenkopf: typografisch, kein Farbblock */
-    .in-hero { color:#111827; padding:2px 2px 0; background:transparent; }
-    .in-hero-row { align-items:flex-end; gap:16px 24px; margin-bottom:20px; padding-bottom:20px; border-bottom:1px solid #e5e7eb; background:radial-gradient(400px 120px at 28% 82%, rgba(37,99,235,.06), transparent 100%), radial-gradient(360px 110px at 58% 78%, rgba(124,58,237,.04), transparent 100%); }
-    .v2c-eyebrow { display:flex; align-items:center; gap:8px; margin:0 0 10px; font-size:12px; font-weight:700; color:#6b7280; letter-spacing:.01em; }
-    .v2c-quadrat { width:8px; height:8px; border-radius:2px; background:#0d9488; flex:0 0 auto; }
-    .in-hero h1 { font-size:30px; line-height:1.15; font-weight:800; letter-spacing:-.02em; color:#111827; }
-    .in-hero h1 > i { display:none; }
-    .in-hero p { margin-top:6px; font-size:14px; font-weight:500; line-height:1.55; color:#6b7280; opacity:1; max-width:72ch; }
-    .in-today { display:inline-flex; align-items:center; gap:8px; height:38px; padding:0 14px; background:#fff; border:1px solid #e5e7eb; border-radius:10px; box-shadow:0 1px 2px rgba(16,24,40,.05); font-size:13px; font-weight:700; color:#111827; font-variant-numeric:tabular-nums; white-space:nowrap; }
-    .in-today::before { content:""; width:15px; height:15px; background:#6b7280; -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3.5' y='5' width='17' height='15.5' rx='2.5'/%3E%3Cpath d='M8 3v4M16 3v4M3.5 10h17'/%3E%3C/svg%3E") center/contain no-repeat; mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3.5' y='5' width='17' height='15.5' rx='2.5'/%3E%3Cpath d='M8 3v4M16 3v4M3.5 10h17'/%3E%3C/svg%3E") center/contain no-repeat; }
-
-    /* KPI-Karten (Filter) */
-    .in-stat-grid { gap:16px; }
-    .in-stat { display:grid; grid-template-columns:minmax(0,1fr) auto; grid-template-areas:"label ico" "value value" "viz viz" "sub sub"; align-items:center; align-content:start; background:#fff; border:1px solid #e5e7eb; border-radius:14px; padding:16px 18px 14px; box-shadow:0 1px 2px rgba(16,24,40,.05); color:#111827; transition:border-color .15s ease, box-shadow .15s ease, background-color .15s ease; }
-    .in-stat:hover { border-color:#d1d5db; box-shadow:0 1px 2px rgba(16,24,40,.05), 0 8px 20px -14px rgba(16,24,40,.28); }
-    .in-stat.active { outline:none; border-color:#111827; box-shadow:0 0 0 1px #111827, 0 8px 20px -14px rgba(16,24,40,.3); }
-    .in-stat-label { grid-area:label; margin:0; font-size:13px; font-weight:600; letter-spacing:0; text-transform:none; color:#6b7280; }
-    .in-stat .v2c-ico { grid-area:ico; width:18px; height:18px; display:block; }
-    .in-stat-value { grid-area:value; margin-top:6px; font-size:29px; line-height:1.1; font-weight:800; letter-spacing:-.02em; color:#111827; }
-    .in-stat-sub { grid-area:sub; margin-top:9px; font-size:12.5px; font-weight:500; color:#6b7280; }
-
-    /* Feine Grafiken in den KPI-Karten */
-    .v2c-viz { grid-area:viz; margin-top:12px; height:36px; display:flex; align-items:flex-end; }
-    .v2c-viz > * { width:100%; }
-    .v2c-anteil { display:flex; align-items:center; gap:10px; padding-bottom:4px; }
-    .v2c-spur { flex:1; height:4px; border-radius:999px; background:#f1f2f4; overflow:hidden; }
-    .v2c-fuell { height:100%; border-radius:999px; transform-origin:left center; }
-    .v2c-proz { min-width:34px; text-align:right; font-size:11px; font-weight:600; color:#9ca3af; font-variant-numeric:tabular-nums; }
-    .v2c-spark svg { display:block; width:100%; height:24px; overflow:visible; }
-    .v2c-gitter { stroke:#e9ebef; stroke-width:1; stroke-dasharray:2 3; }
-    .v2c-endpunkt { stroke:#fff; stroke-width:1.5; }
-    .v2c-achse { display:flex; justify-content:space-between; margin-top:2px; font-size:10.5px; font-weight:600; color:#9ca3af; font-variant-numeric:tabular-nums; }
-    @keyframes v2c-x { from { transform:scaleX(0); } }
-    @keyframes v2c-strich { from { stroke-dashoffset:100; } }
-    @keyframes v2c-blende { from { opacity:0; } }
-    .v2-start .v2c-fuell { animation:v2c-x .9s cubic-bezier(.2,.7,.2,1) .2s backwards; }
-    .v2-start .v2c-linie { stroke-dasharray:100; animation:v2c-strich 1.1s cubic-bezier(.3,.7,.2,1) .15s backwards; }
-    .v2-start .v2c-flaeche, .v2-start .v2c-endpunkt { animation:v2c-blende .6s ease .7s backwards; }
-    @media (prefers-reduced-motion:reduce) { .v2-start * { animation:none !important; } }
-
-    /* Liste */
-    .in-body { background:transparent; padding:28px 2px 8px; }
-    .in-head { align-items:center; margin-bottom:14px; padding-bottom:0; border-bottom:0; }
-    .in-head h2 { font-size:17px; font-weight:700; letter-spacing:-.01em; color:#111827; }
-    .in-head p { margin-top:3px; font-size:12.5px; font-weight:500; color:#6b7280; }
-    .in-tools { gap:8px; }
-    .in-search { height:40px; padding:0 14px 0 38px; border:1px solid #d1d5db; border-radius:10px; background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%239ca3af' stroke-width='2' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='m20 20-3.5-3.5'/%3E%3C/svg%3E") 13px center/16px no-repeat; font-size:13.5px; color:#111827; min-width:320px; transition:border-color .15s ease, box-shadow .15s ease; }
-    .in-search:focus { border-color:#111827; box-shadow:0 0 0 3px rgba(17,24,39,.10); }
-    .in-search::placeholder { color:#9ca3af; }
-
-    .in-toast { border-radius:10px; font-size:13px; font-weight:600; padding:11px 14px; background:#fef2f2; color:#b91c1c; border:1px solid #fecaca; }
-    .in-empty { background:#fff; border:1px dashed #e5e7eb; border-radius:14px; padding:40px 20px 36px; font-size:14px; font-weight:500; line-height:1.6; color:#6b7280; }
-    .in-empty::before { content:""; display:block; width:28px; height:28px; margin:0 auto 12px; background:#9ca3af; -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M7 10v11M15 5.9 14 10h5.8a2 2 0 0 1 1.9 2.6l-2.3 7A2 2 0 0 1 17.5 21H3V10h4l4-8a3 3 0 0 1 4 3.9z'/%3E%3C/svg%3E") center/contain no-repeat; mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M7 10v11M15 5.9 14 10h5.8a2 2 0 0 1 1.9 2.6l-2.3 7A2 2 0 0 1 17.5 21H3V10h4l4-8a3 3 0 0 1 4 3.9z'/%3E%3C/svg%3E") center/contain no-repeat; }
-
-    .in-list { gap:10px; }
-    .in-card { background:#fff; border:1px solid #e5e7eb; border-radius:14px; padding:18px 20px; box-shadow:0 1px 2px rgba(16,24,40,.05); transition:border-color .15s ease, box-shadow .15s ease; }
-    .in-card::before { display:none; }
-    .in-card:hover { border-color:#d1d5db; box-shadow:0 1px 2px rgba(16,24,40,.05), 0 10px 24px -18px rgba(16,24,40,.3); }
-    .in-grid { gap:20px 24px; }
-    .in-firma { font-size:16px; font-weight:700; letter-spacing:-.01em; color:#111827; }
-    .in-adresse { margin-top:4px; font-size:13px; font-weight:500; color:#6b7280; }
-    .in-adresse i { color:#9ca3af; margin-right:2px; }
-    .in-tags { margin-top:10px; gap:6px; }
-    .in-tag { border:0; border-radius:6px; padding:3px 8px; font-size:12px; font-weight:600; background:#f3f4f6; color:#374151; }
-    .in-grund { gap:6px; font-weight:700; background:#eff6ff; color:#1d4ed8; }
-    .in-grund::before { content:""; width:6px; height:6px; border-radius:50%; background:currentColor; flex:0 0 auto; }
-    .in-grund.angebot { background:#fffbeb; color:#b45309; }
-    .in-grund.rueckruf { background:#f0fdfa; color:#0f766e; }
-    .in-grund.besichtigung { background:#f5f3ff; color:#6d28d9; }
-    .in-grund.preis { background:#ecfdf5; color:#047857; }
-    .in-quelle { background:#fff; color:#374151; box-shadow:inset 0 0 0 1px #e5e7eb; }
-    .in-label { margin-bottom:4px; font-size:12px; font-weight:600; letter-spacing:0; text-transform:none; color:#9ca3af; }
-    .in-datum { font-size:14px; font-weight:700; color:#111827; }
-    .in-zeit { margin-top:2px; font-size:13px; font-weight:500; color:#6b7280; }
-    .in-kontakt { gap:7px; font-size:13px; font-weight:500; color:#374151; }
-    .in-kontakt i { width:14px; color:#9ca3af; }
-    .in-muted { color:#9ca3af; font-weight:500; }
-    .in-actions { gap:8px; min-width:120px; }
-    .in-btn { height:38px; padding:0 14px; border:1px solid transparent; border-radius:10px; font-size:13.5px; font-weight:700; transition:background-color .15s ease, border-color .15s ease, color .15s ease; }
-    .in-btn.print { background:#111827; border-color:#111827; color:#fff; height:40px; }
-    .in-btn.print:hover { background:#000; border-color:#000; }
-    .in-btn.link { background:#fff; border-color:#d1d5db; color:#111827; }
-    .in-btn.link:hover { background:#f9fafb; }
-    .in-notiz { margin-top:14px; padding:12px 14px; background:#f9fafb; border:1px solid #f0f1f4; border-radius:10px; font-size:13px; font-weight:500; line-height:1.55; color:#374151; }
-    .in-notiz strong { color:#111827; font-weight:700; }
-    .in-aktion { font-weight:600; }
-    .in-aktion.ok { color:#047857; }
-    .in-aktion.fehler { color:#b91c1c; }
-  }
-  @media screen and (max-width:760px) {
-    .in-hero, .in-body { padding-left:0; padding-right:0; }
-    .in-hero h1 { font-size:26px; }
-    .in-stat-grid { gap:12px; }
-    .in-stat { padding:14px 14px 12px; }
-    .in-stat-value { font-size:26px; }
-    .in-search { min-width:0; }
-  }
-
-  /* Dunkelmodus: Graphit-Flächen/-Rahmen sichtbar halten, Grafik-Spuren abdunkeln */
-  @media screen {
-    html[data-kg-x="on"] .in-btn.print { background:#2563eb !important; border-color:#2563eb !important; color:#fff !important; }
-    html[data-kg-x="on"] .in-btn.print:hover { background:#1d4ed8 !important; border-color:#1d4ed8 !important; }
-    html[data-kg-x="on"] .in-stat.active { box-shadow:0 0 0 1px #60a5fa, 0 0 0 4px rgba(96,165,250,.16) !important; }
-    html[data-kg-x="on"] .in-search:focus { box-shadow:0 0 0 2px rgba(96,165,250,.55) !important; }
-    html[data-kg-x="on"] .in-today::before { background:#9ca3af; }
-    html[data-kg-x="on"] .in-quelle { box-shadow:inset 0 0 0 1px rgba(148,163,184,.35); }
-    html[data-kg-x="on"] .v2c-spur { background:rgba(148,163,184,.2); }
-    html[data-kg-x="on"] .v2c-gitter { stroke:rgba(148,163,184,.3); }
-    html[data-kg-x="on"] .v2c-endpunkt { stroke:#111827; }
-  }
-  {% endraw %}
 </style>
 
 <div class="in-page">
   <section class="in-hero">
     <div class="in-hero-row">
       <div>
-        <div class="v2c-eyebrow" aria-hidden="true"><span class="v2c-quadrat"></span>Leon · Kundengewinnung</div>
         <h1><i class="fa-solid fa-thumbs-up"></i> Interesse</h1>
         <p>Alle Gespräche, in denen Interesse gezeigt wurde – bisherige und neue erscheinen automatisch. Mit Grund (Angebot, Infos per E-Mail, Rückruf …), je Firma das neueste Gespräch.</p>
       </div>
       <div class="in-today">Heute: {{ heute }}</div>
     </div>
 
-    <div class="in-stat-grid v2-start" role="group" aria-label="Filter">
+    <div class="in-stat-grid" role="group" aria-label="Filter">
       <button type="button" class="in-stat active" data-filter="">
         <div class="in-stat-label">Alle Interessenten</div>
         <div class="in-stat-value">{{ stats.gesamt }}</div>
         <div class="in-stat-sub">Interessiert</div>
-        <svg class="v2c-ico" viewBox="0 0 24 24" fill="none" stroke="#0d9488" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 20v-1.5a3.5 3.5 0 0 0-3.5-3.5h-5A3.5 3.5 0 0 0 4 18.5V20"/><circle cx="10" cy="8" r="3.5"/><path d="M20 20v-1.5a3.5 3.5 0 0 0-2.6-3.4M15.5 4.6a3.5 3.5 0 0 1 0 6.8"/></svg>
-        <div class="v2c-viz" data-v2c-viz="verlauf" data-kg-skip aria-hidden="true"></div>
       </button>
       <button type="button" class="in-stat" data-filter="angebot">
         <div class="in-stat-label">Angebot</div>
         <div class="in-stat-value">{{ stats.angebot }}</div>
         <div class="in-stat-sub">Angebot gewünscht</div>
-        <svg class="v2c-ico" viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h4"/></svg>
-        <div class="v2c-viz" data-v2c-viz="angebot" data-v2c-farbe="#d97706" data-kg-skip aria-hidden="true"></div>
       </button>
       <button type="button" class="in-stat" data-filter="email">
         <div class="in-stat-label">E-Mail</div>
         <div class="in-stat-value">{{ stats.email }}</div>
         <div class="in-stat-sub">Infos per E-Mail</div>
-        <svg class="v2c-ico" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="m3.5 7.5 8.5 6 8.5-6"/></svg>
-        <div class="v2c-viz" data-v2c-viz="email" data-v2c-farbe="#2563eb" data-kg-skip aria-hidden="true"></div>
       </button>
       <button type="button" class="in-stat" data-filter="rueckruf">
         <div class="in-stat-label">Rückruf</div>
         <div class="in-stat-value">{{ stats.rueckruf }}</div>
         <div class="in-stat-sub">möchte Rückruf</div>
-        <svg class="v2c-ico" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2"/><path d="M15 3v5h5M20.5 2.5 15 8"/></svg>
-        <div class="v2c-viz" data-v2c-viz="rueckruf" data-v2c-farbe="#7c3aed" data-kg-skip aria-hidden="true"></div>
       </button>
     </div>
   </section>
@@ -378,71 +252,4 @@ document.querySelectorAll('.in-stat').forEach(btn => btn.addEventListener('click
 document.getElementById('inSearch').addEventListener('input', applyFilter);
 applyFilter();
 </script>
-{% raw %}
-<script>
-/* ===== PREMIUM V2 „Graphit“ – feine Grafiken in den Kennzahl-Karten (liest nur die Seite, ändert nichts) ===== */
-(function () {
-  'use strict';
-  var raster = document.querySelector('.in-stat-grid');
-  if (!raster) return;
-  var NS = 'http://www.w3.org/2000/svg';
-  var TAGE = 14;
-
-  function zahl(filter) {
-    var b = raster.querySelector('.in-stat[data-filter="' + filter + '"] .in-stat-value');
-    return b ? (parseInt(b.textContent, 10) || 0) : 0;
-  }
-  function tagNr(j, m, t) { return Math.round(Date.UTC(j, m, t) / 864e5); }
-
-  function anteil(viz) {
-    var n = zahl(viz.getAttribute('data-v2c-viz')), g = zahl(''), farbe = viz.getAttribute('data-v2c-farbe');
-    var p = g ? Math.round(n / g * 100) : 0;
-    viz.innerHTML = '<div class="v2c-anteil" title="' + n + ' von ' + g + ' Interessenten">' +
-      '<div class="v2c-spur"><div class="v2c-fuell" style="width:' + p + '%;background:' + farbe + '"></div></div>' +
-      '<span class="v2c-proz">' + p + ' %</span></div>';
-  }
-
-  function verlauf(viz) {
-    var d = new Date(), heute = tagNr(d.getFullYear(), d.getMonth(), d.getDate());
-    var werte = []; for (var i = 0; i < TAGE; i++) werte.push(0);
-    document.querySelectorAll('#inList .in-card .in-datum').forEach(function (el) {
-      var m = /(\d{1,2})\.(\d{1,2})\.(\d{4})/.exec(el.textContent || '');
-      if (!m) return;
-      var ab = heute - tagNr(+m[3], +m[2] - 1, +m[1]);
-      if (ab >= 0 && ab < TAGE) werte[TAGE - 1 - ab] += 1;
-    });
-    var summe = werte.reduce(function (a, b) { return a + b; }, 0);
-    var b = Math.max(80, Math.round(viz.clientWidth || 200)), h = 24, oben = 3, unten = 2;
-    var max = Math.max.apply(null, werte.concat([1]));
-    var pts = werte.map(function (v, i) {
-      return [(i / (TAGE - 1)) * (b - 4) + 2, oben + (1 - v / max) * (h - oben - unten)];
-    });
-    var linie = pts.map(function (p, i) { return (i ? 'L' : 'M') + p[0].toFixed(1) + ' ' + p[1].toFixed(1); }).join(' ');
-    var flaeche = linie + ' L' + pts[pts.length - 1][0].toFixed(1) + ' ' + h + ' L' + pts[0][0].toFixed(1) + ' ' + h + ' Z';
-    var letzt = pts[pts.length - 1];
-    viz.innerHTML = '<div class="v2c-spark" title="' + summe + ' Gespräche mit Interesse in den letzten ' + TAGE + ' Tagen">' +
-      '<svg xmlns="' + NS + '" viewBox="0 0 ' + b + ' ' + h + '" width="' + b + '" height="' + h + '" aria-hidden="true">' +
-      '<defs><linearGradient id="v2cInVerlauf" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0d9488" stop-opacity=".14"/><stop offset="1" stop-color="#0d9488" stop-opacity="0"/></linearGradient></defs>' +
-      '<line class="v2c-gitter" x1="0" y1="' + (h - .5) + '" x2="' + b + '" y2="' + (h - .5) + '"/>' +
-      '<path class="v2c-flaeche" d="' + flaeche + '" fill="url(#v2cInVerlauf)"/>' +
-      '<path class="v2c-linie" d="' + linie + '" pathLength="100" fill="none" stroke="#0d9488" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>' +
-      '<circle class="v2c-endpunkt" cx="' + letzt[0].toFixed(1) + '" cy="' + letzt[1].toFixed(1) + '" r="3" fill="#0d9488"/>' +
-      '</svg><div class="v2c-achse"><span>vor 14 Tagen</span><span>heute</span></div></div>';
-  }
-
-  function zeichnen() {
-    raster.querySelectorAll('.v2c-viz').forEach(function (viz) {
-      if (viz.getAttribute('data-v2c-viz') === 'verlauf') verlauf(viz); else anteil(viz);
-    });
-  }
-  zeichnen();
-  setTimeout(function () { raster.classList.remove('v2-start'); }, 1700);
-  var breite = window.innerWidth, warte = 0;
-  window.addEventListener('resize', function () {
-    if (window.innerWidth === breite) return;
-    breite = window.innerWidth; clearTimeout(warte); warte = setTimeout(zeichnen, 150);
-  });
-})();
-</script>
-{% endraw %}
 {% endblock %}

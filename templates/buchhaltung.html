@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% block content %}
+<script src="{{ url_for('static', filename='kg_auftritt.js') }}" data-seite="buchhaltung"></script>
 
 <!--
 ..........................................................................................................
@@ -520,191 +521,6 @@ html {
         line-height:1.2 !important;
     }
 }
-
-{% raw %}
-/* ===== PREMIUM V2 „Graphit“ =====
-   Nur Aussehen. Die Regeln gegen Springen/Zıplama oben bleiben unverändert:
-   keine Übergänge an Reitern/Panels, keine Bewegung beim Überfahren. */
-@media screen {
-.v2b { --g-ink:#111827; --g-muted:#6b7280; --g-line:#e5e7eb; font-variant-numeric:tabular-nums; }
-.buchhaltung-shell.v2b { background:transparent; border:0; border-radius:0; box-shadow:none; }
-.container-fluid.mt-4:has(> .buchhaltung-shell.v2b) { margin-top:0 !important; padding-left:4px; padding-right:4px; }
-
-/* Seitenkopf: kein Farbblock */
-.v2b .buchhaltung-hero { background:transparent; color:var(--g-ink); padding:4px 0 0; }
-.v2b .buchhaltung-hero::before { display:none; }
-.v2b .buchhaltung-title-row { align-items:end; margin-bottom:20px; padding-bottom:20px; border-bottom:1px solid var(--g-line); }
-.v2b-eyebrow { display:flex; align-items:center; gap:8px; font-size:12px; font-weight:700; color:#6b7280; margin:0 0 6px; letter-spacing:.01em; }
-.v2b-eyebrow .v2b-q { width:8px; height:8px; border-radius:2px; background:#2563eb; flex:none; }
-.v2b .buchhaltung-title h1 { font-size:0; line-height:0; letter-spacing:0; color:var(--g-ink); }
-.v2b .buchhaltung-title h1::after { content:"Buchhaltung"; display:block; font-size:30px; line-height:1.15; font-weight:800; letter-spacing:-.02em; color:var(--g-ink); }
-.v2b .buchhaltung-title p { margin:6px 0 0; font-size:14px; font-weight:500; opacity:1; color:var(--g-muted); }
-.v2b .live-date-box { width:auto; max-width:none; justify-items:end; gap:2px; padding:10px 14px; border-radius:12px; background:#fff; border:1px solid var(--g-line); box-shadow:0 1px 2px rgba(16,24,40,.05); backdrop-filter:none; }
-.v2b .live-time-pill { color:var(--g-ink); font-size:20px; font-weight:800; letter-spacing:-.02em; }
-.v2b .live-date-main { color:#374151; font-size:12px; font-weight:600; text-align:right; }
-.v2b .live-date-sub { color:#9ca3af; font-size:11px; font-weight:600; text-align:right; }
-
-/* KPI-Karten */
-.v2b #stats-parent-row { margin-left:-7px; margin-right:-7px; }
-.v2b #default-stats > [class*="col-md-"], .v2b #bank-stats-wrapper > [class*="col-md-"], .v2b #rate-stats > [class*="col-md-"] { padding-left:7px; padding-right:7px; }
-.v2b .buchhaltung-hero .card { position:relative; height:100%; background:#fff !important; border:1px solid var(--g-line) !important; border-radius:14px !important; box-shadow:0 1px 2px rgba(16,24,40,.05) !important; padding:16px 18px !important; }
-.v2b .buchhaltung-hero .card .text-uppercase { font-size:13px !important; font-weight:600 !important; text-transform:none !important; letter-spacing:0 !important; color:var(--g-muted) !important; margin-bottom:0 !important; padding-right:26px; }
-.v2b .buchhaltung-hero .card .h4, .v2b .buchhaltung-hero .card .h2 { margin-top:6px !important; font-size:clamp(20px, 1.9vw, 28px) !important; font-weight:800 !important; letter-spacing:-.02em; line-height:1.15 !important; color:var(--g-ink) !important; white-space:nowrap; }
-.v2b .buchhaltung-hero .card .h4.text-danger, .v2b .buchhaltung-hero .card .h2.text-danger { color:#b91c1c !important; }
-.v2b-ic { position:absolute; top:16px; right:16px; width:18px; height:18px; fill:none; stroke:var(--v2b-farbe, #2563eb); stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
-.v2b #default-stats > div:nth-child(1) .card { --v2b-farbe:#2563eb; }
-.v2b #default-stats > div:nth-child(2) .card { --v2b-farbe:#16a34a; }
-.v2b #default-stats > div:nth-child(3) .card { --v2b-farbe:#e11d48; }
-.v2b #default-stats > div:nth-child(4) .card { --v2b-farbe:#7c3aed; }
-.v2b #bank-stats-wrapper .card { --v2b-farbe:#0d9488; }
-.v2b #rate-stats > div:nth-child(1) .card { --v2b-farbe:#0d9488; }
-.v2b #rate-stats > div:nth-child(2) .card { --v2b-farbe:#d97706; }
-.v2b-viz { margin-top:auto; padding-top:12px; min-height:30px; }
-.v2b-viz svg { display:block; width:100%; overflow:visible; }
-.v2b-linie { position:relative; height:4px; border-radius:999px; background:#f0f1f4; overflow:hidden; }
-.v2b-linie i { position:absolute; left:0; top:0; bottom:0; border-radius:999px; }
-.v2b-spur { display:flex; gap:2px; height:6px; border-radius:999px; overflow:hidden; background:#f0f1f4; }
-.v2b-spur i { display:block; height:100%; min-width:3px; }
-.v2b-leg { display:flex; flex-wrap:wrap; gap:4px 10px; margin-top:8px; font-size:11px; font-weight:600; color:#6b7280; line-height:1.3; }
-.v2b-leg em { font-style:normal; display:inline-flex; align-items:center; gap:5px; white-space:nowrap; max-width:100%; overflow:hidden; text-overflow:ellipsis; }
-.v2b-leg em:before { content:""; flex:none; width:6px; height:6px; border-radius:2px; background:var(--f, #9ca3af); }
-.v2b-leg b { font-weight:800; color:#374151; }
-.v2b-gitter { stroke:#f0f1f4; stroke-width:1; stroke-dasharray:3 3; }
-
-/* Reiter: Unterstrich */
-.v2b .buchhaltung-body { padding:24px 0 8px; background:transparent; }
-.v2b .buchhaltung-body .nav-tabs { background:transparent; border:0; border-bottom:1px solid var(--g-line) !important; border-radius:0; box-shadow:none !important; overflow:visible; }
-.v2b .buchhaltung-body .nav-tabs .nav-item + .nav-item { margin-left:22px; }
-.v2b .buchhaltung-body .nav-tabs .nav-link { padding:12px 0 !important; margin-bottom:-1px; border:0 !important; border-bottom:2px solid transparent !important; border-radius:0 !important; background:transparent !important; color:var(--g-muted) !important; font-size:14px; font-weight:600 !important; }
-.v2b .buchhaltung-body .nav-tabs .nav-link:hover { color:var(--g-ink) !important; }
-.v2b .buchhaltung-body .nav-tabs .nav-link.active { color:var(--g-ink) !important; font-weight:700 !important; border-bottom-color:var(--g-ink) !important; }
-.v2b .buchhaltung-body .nav-tabs .ml-auto { gap:8px !important; padding:0 0 8px !important; }
-.v2b .buchhaltung-body .nav-tabs .custom-nav-btn { height:40px; min-width:92px; padding:0 14px; border-radius:10px; box-shadow:none; }
-.v2b .buchhaltung-body .nav-tabs .custom-nav-btn img { height:28px; }
-.v2b .buchhaltung-body .nav-tabs .custom-nav-btn:hover { transform:none; box-shadow:none; }
-
-/* Inhalt als Karte */
-.v2b .buchhaltung-body .tab-content { margin-top:20px; padding:20px !important; background:#fff !important; border:1px solid var(--g-line) !important; border-top:1px solid var(--g-line) !important; border-radius:14px; box-shadow:0 1px 2px rgba(16,24,40,.05) !important; }
-.v2b .tab-pane .border-left { border-left:1px solid #f0f1f3 !important; }
-.v2b .tab-pane .col-md-3 > h5, .v2b .tab-pane .col-md-2 h5 { font-size:12.5px; font-weight:700 !important; color:var(--g-muted) !important; letter-spacing:.01em; margin-bottom:10px !important; }
-.v2b .tab-pane .col-md-9 h5, .v2b .tab-pane .col-md-10 > h5 { font-size:15px; font-weight:700 !important; color:var(--g-ink) !important; text-transform:none !important; letter-spacing:-.01em; }
-.v2b .tab-pane .col-md-9 > h5, .v2b .tab-pane .col-md-10 > h5 { margin-bottom:14px !important; }
-
-/* Monats-/Kontoliste: schlichte Segmente, aktives Feld weiß */
-.v2b .tab-pane .col-md-3 > .list-group, .v2b #rates .col-md-2 .list-group { background:#f6f7f9; border-radius:12px; padding:4px; box-shadow:none !important; }
-.v2b .tab-pane .col-md-3 .list-group-item, .v2b #rates .col-md-2 .list-group-item { margin:0 0 2px !important; padding:9px 12px !important; border:0 !important; border-radius:9px !important; background:transparent; box-shadow:none !important; color:#4b5563; transition:background-color .15s, color .15s; }
-.v2b .tab-pane .col-md-3 .list-group-item:last-child, .v2b #rates .col-md-2 .list-group-item:last-child { margin-bottom:0 !important; }
-.v2b .tab-pane .col-md-3 .list-group-item h6, .v2b #rates .col-md-2 .list-group-item h6 { font-size:13.5px; font-weight:600 !important; line-height:1.35; }
-.v2b .tab-pane .col-md-3 .list-group-item:hover, .v2b #rates .col-md-2 .list-group-item:hover { background:#eceef2; color:var(--g-ink); }
-.v2b .tab-pane .col-md-3 .list-group-item.active { z-index:auto; background:#fff !important; color:var(--g-ink) !important; box-shadow:0 0 0 1px var(--g-line), 0 1px 2px rgba(16,24,40,.08) !important; }
-.v2b .tab-pane .col-md-3 .list-group-item.active h6 { font-weight:700 !important; }
-.v2b #rates .col-md-2 .list-group-item small { font-size:12px; }
-
-/* Tabellen */
-.v2b .tab-content .table-responsive { box-shadow:none !important; }
-.v2b .tab-content .table { margin-bottom:0; font-size:13.5px; color:#374151; box-shadow:none !important; }
-.v2b .tab-content .table-bordered { border:0 !important; }
-.v2b .tab-content .table thead th { padding:10px 12px !important; background:#fff !important; color:var(--g-muted) !important; font-size:12px; font-weight:600 !important; text-transform:none; white-space:nowrap; vertical-align:bottom; border:0 !important; border-bottom:1px solid var(--g-line) !important; }
-.v2b .tab-content .table thead { background:#fff !important; }
-.v2b .tab-content .table td { padding:11px 12px !important; vertical-align:middle !important; border:0 !important; border-bottom:1px solid #f0f1f3 !important; }
-.v2b .tab-content .table tbody tr { transition:background-color .15s; }
-.v2b .tab-content .table-hover tbody tr:hover { background:#f9fafb; color:inherit; }
-.v2b .tab-content .table th, .v2b .tab-content .table td { text-align:left !important; }
-.v2b #rechnungen .table td:nth-child(n+4):nth-child(-n+7), .v2b #rechnungen .table th:nth-child(n+4):nth-child(-n+7),
-.v2b #rates .table td:nth-child(2), .v2b #rates .table th:nth-child(2), .v2b #rates .table td:nth-child(3), .v2b #rates .table th:nth-child(3),
-.v2b #rates .table td:nth-child(4), .v2b #rates .table th:nth-child(4), .v2b #rates .table td:nth-child(7), .v2b #rates .table th:nth-child(7),
-.v2b #rates .table td:nth-child(8), .v2b #rates .table th:nth-child(8), .v2b #rates .table td:nth-child(9), .v2b #rates .table th:nth-child(9),
-.v2b #rates .table td:nth-child(10),
-.v2b #gewerbliche .table td:nth-child(n+6):nth-child(-n+8), .v2b #gewerbliche .table th:nth-child(n+6):nth-child(-n+8),
-.v2b #private .table td:nth-child(6), .v2b #private .table th:nth-child(6) { text-align:right !important; }
-.v2b #rechnungen .table td:nth-child(4) { color:var(--g-ink); font-weight:700; }
-.v2b #rechnungen .table td.status-paid, .v2b #rechnungen .table td.status-open { background:transparent; font-size:12.5px; font-weight:700; white-space:nowrap; }
-.v2b #rechnungen .table td.status-paid { color:#047857; }
-.v2b #rechnungen .table td.status-open { color:#b91c1c; }
-.v2b #rechnungen .table td.status-paid::before, .v2b #rechnungen .table td.status-open::before { content:""; display:inline-block; width:6px; height:6px; margin-right:7px; border-radius:50%; background:currentColor; vertical-align:middle; position:relative; top:-1px; }
-.v2b #rates .card { border:1px solid var(--g-line) !important; border-radius:12px !important; box-shadow:none !important; }
-.v2b #rates .table td:nth-child(2), .v2b #rates .table td:nth-child(3), .v2b #rates .table td:nth-child(9), .v2b #rechnungen .table td:nth-child(-n+2), .v2b #rechnungen .table td:nth-child(n+4), .v2b #gewerbliche .table td:nth-child(1), .v2b #gewerbliche .table td:nth-child(n+6), .v2b #private .table td:nth-child(1), .v2b #private .table td:nth-child(6) { white-space:nowrap; }
-.v2b #ratenSortable td:not(.drag-handle) { color:#374151; }
-.v2b #ratenSortable td.drag-handle { font-weight:700 !important; }
-.v2b #ratenSortable td:nth-child(9) { color:var(--g-ink); }
-.v2b #rates .table thead th, .v2b #rates .table td { padding-left:10px !important; padding-right:10px !important; }
-.v2b #rates .table thead th { white-space:normal; }
-.v2b .tab-content .badge { border-radius:6px; padding:3px 8px; font-size:11.5px; font-weight:700; }
-.v2b .tab-content .badge-light { background:#f3f4f6; color:#374151; border-color:#e5e7eb !important; }
-.v2b .tab-content .badge-primary { background:#eff6ff; color:#1d4ed8; }
-.v2b .tab-content .badge-info { background:#f0fdfa; color:#0f766e; }
-
-/* Bank-Bewegungen */
-.v2b #bank .col-md-9 .list-group { box-shadow:none !important; border:1px solid var(--g-line); border-radius:12px; overflow:hidden; }
-.v2b #bank .col-md-9 .list-group-item { border:0; border-bottom:1px solid #f0f1f3; border-radius:0; padding:12px 16px !important; }
-.v2b #bank .col-md-9 .list-group-item:last-child { border-bottom:0; }
-.v2b #bank .sticky-top h5 { font-size:15px; }
-
-/* Leere Zustände */
-.v2b #rechnungen .text-center.py-5, .v2b #bank .text-center.py-5 { border:1px dashed var(--g-line); border-radius:14px; padding:36px 16px !important; }
-.v2b #rechnungen .text-center.py-5 p, .v2b #bank .text-center.py-5 p { margin:0; font-size:14px; color:var(--g-muted) !important; }
-.v2b #rechnungen .text-center.py-5::before, .v2b #bank .text-center.py-5::before { content:""; display:block; width:22px; height:22px; margin:0 auto 10px; background:no-repeat center/contain url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%239ca3af' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z'/%3E%3Cpath d='M14 3v5h5M9 13h6M9 17h4'/%3E%3C/svg%3E"); }
-
-/* Knöpfe */
-.v2b .btn { border-radius:10px !important; font-weight:700 !important; font-size:13.5px; box-shadow:none !important; }
-.v2b .btn-primary, .v2b #gewerbliche .btn.shadow-sm, .v2b #private .btn.shadow-sm { min-height:38px; background:#111827 !important; border-color:#111827 !important; color:#fff !important; }
-.v2b .btn-primary:hover, .v2b #gewerbliche .btn.shadow-sm:hover, .v2b #private .btn.shadow-sm:hover { background:#000 !important; border-color:#000 !important; }
-.v2b .btn-light { min-height:38px; background:#fff; border:1px solid #d1d5db; color:var(--g-ink); }
-.v2b .btn-light:hover { background:#f9fafb; }
-.v2b .btn-outline-primary, .v2b .btn-outline-danger { width:32px; height:32px; padding:0; display:inline-flex; align-items:center; justify-content:center; font-size:12.5px; }
-.v2b .btn-outline-primary { background:#fff; border-color:#d1d5db; color:#374151; }
-.v2b .btn-outline-primary:hover { background:#f9fafb; border-color:#c4c9d1; color:var(--g-ink); }
-.v2b .btn-outline-danger { background:#fef2f2; border-color:#fecaca; color:#b91c1c; }
-.v2b .btn-outline-danger:hover { background:#fee2e2; border-color:#fecaca; color:#b91c1c; }
-
-/* Formular Ratenzahlung */
-.v2b #rateModal form { border-radius:16px !important; box-shadow:0 24px 48px -12px rgba(16,24,40,.35) !important; }
-.v2b #rateModal h3 { font-size:20px; font-weight:800 !important; letter-spacing:-.01em; color:var(--g-ink) !important; }
-.v2b #rateModal label { font-size:12.5px; font-weight:600 !important; color:var(--g-muted) !important; }
-.v2b #rateModal .form-control { height:40px; border:1px solid #d1d5db; border-radius:10px !important; font-size:14px; color:var(--g-ink); }
-.v2b #rateModal .form-control:focus { border-color:var(--g-ink); }
-
-/* Start-Animation nur beim ersten Laden (Karten, Linien – nie Reiter/Panels) */
-@keyframes v2bAuf { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:none; } }
-@keyframes v2bZug { from { stroke-dashoffset:100; } to { stroke-dashoffset:0; } }
-@keyframes v2bBreit { from { transform:scaleX(0); } to { transform:scaleX(1); } }
-@keyframes v2bBlende { from { opacity:0; } to { opacity:1; } }
-html.v2-start .v2b .buchhaltung-hero .card { animation:v2bAuf .5s cubic-bezier(.2,.7,.2,1) backwards; }
-html.v2-start .v2b .buchhaltung-hero [class*="col-md-"]:nth-child(2) .card { animation-delay:.06s; }
-html.v2-start .v2b .buchhaltung-hero [class*="col-md-"]:nth-child(3) .card { animation-delay:.12s; }
-html.v2-start .v2b .buchhaltung-hero [class*="col-md-"]:nth-child(4) .card { animation-delay:.18s; }
-html.v2-start .v2b .v2b-zug { stroke-dasharray:100 100; animation:v2bZug 1.1s cubic-bezier(.2,.7,.2,1) .25s backwards; }
-html.v2-start .v2b .v2b-flaeche { animation:v2bBlende .9s ease .5s backwards; }
-html.v2-start .v2b .v2b-linie i, html.v2-start .v2b .v2b-spur { transform-origin:0 50%; animation:v2bBreit .8s cubic-bezier(.2,.7,.2,1) .2s backwards; }
-@media (prefers-reduced-motion:reduce) { html.v2-start .v2b * { animation:none !important; } }
-
-/* Dunkelmodus: Graphit sichtbar halten, SVG-Linien abdunkeln */
-html[data-kg-x="on"] .v2b .btn-primary, html[data-kg-x="on"] .v2b #gewerbliche .btn.shadow-sm, html[data-kg-x="on"] .v2b #private .btn.shadow-sm { background:#2563eb !important; border-color:#2563eb !important; color:#fff !important; }
-html[data-kg-x="on"] .v2b .btn-primary:hover, html[data-kg-x="on"] .v2b #gewerbliche .btn.shadow-sm:hover, html[data-kg-x="on"] .v2b #private .btn.shadow-sm:hover { background:#1d4ed8 !important; border-color:#1d4ed8 !important; }
-html[data-kg-x="on"] .v2b .buchhaltung-body .nav-tabs .nav-link.active { color:#e5e7eb !important; border-bottom-color:#60a5fa !important; }
-html[data-kg-x="on"] .v2b .buchhaltung-title h1::after { color:#e5e7eb; }
-html[data-kg-x="on"] .v2b .v2b-gitter { stroke:#263042; }
-html[data-kg-x="on"] .v2b #rateModal .form-control:focus { border-color:#60a5fa !important; }
-
-@media (max-width:1100px) {
-    .v2b #default-stats > .col-md-3, .v2b #bank-stats-wrapper > .col-md-3 { flex:0 0 50%; max-width:50%; margin-bottom:14px; }
-    .v2b .buchhaltung-hero .card .h4, .v2b .buchhaltung-hero .card .h2 { font-size:24px !important; }
-    .v2b .buchhaltung-body .nav-tabs .nav-item + .nav-item { margin-left:18px; }
-    .v2b .buchhaltung-body .nav-tabs .ml-auto { padding-left:12px !important; }
-    .v2b .buchhaltung-body .nav-tabs .custom-nav-btn { min-width:72px; padding:0 10px; }
-    .v2b .tab-content .table thead th, .v2b .tab-content .table td { padding:10px 8px !important; }
-    .v2b .tab-content .table { font-size:13px; }
-    .v2b #rechnungen .table td:nth-child(n+4):nth-child(-n+7), .v2b #gewerbliche .table td:nth-child(n+6), .v2b #rates .table td:nth-child(n+2) { white-space:normal; }
-    .v2b #rechnungen .table td:nth-child(3) { min-width:110px; }
-}
-@media (max-width:767px) {
-    .v2b #default-stats > .col-md-3, .v2b #bank-stats-wrapper > .col-md-3, .v2b #rate-stats > .col-md-6 { flex:0 0 100%; max-width:100%; margin-bottom:12px; }
-    .v2b .live-date-box { justify-self:start; justify-items:start; }
-    .v2b .live-date-main, .v2b .live-date-sub { text-align:left; }
-    .v2b .buchhaltung-body .nav-tabs .nav-item + .nav-item { margin-left:16px; }
-}
-}
-{% endraw %}
 </style>
 
 <!--
@@ -715,15 +531,216 @@ html[data-kg-x="on"] .v2b #rateModal .form-control:focus { border-color:#60a5fa 
 ..........................................................................................................
 -->
 
+<style>
+/* =====================================================
+   BUCHHALTUNG – PREMIUM-ANSICHT (nur Optik)
+   Alle Reiter, Links, Formulare und Skripte bleiben unverändert.
+   Gilt nur innerhalb von .buchhaltung-shell.bh-p
+   ===================================================== */
+.bh-p { --bh-navy:#0f1d4a; --bh-dunkel:#183a91; --bh-blau:#2563eb; --bh-hell:#eff6ff; --bh-linie:#e6ecf5; --bh-grau:#64748b;
+    font-family:Inter,"Segoe UI",Arial,sans-serif; border:0 !important; background:transparent !important; box-shadow:none !important; border-radius:0 !important; overflow:visible !important; }
+
+/* ---------- Kopf ---------- */
+.bh-p .buchhaltung-hero { border-radius:28px; padding:30px 32px 30px !important; box-shadow:0 22px 50px rgba(24,58,145,.22);
+    background:radial-gradient(circle at calc(100% - 60px) 20px, rgba(255,255,255,.12) 0 150px, transparent 150.5px), linear-gradient(135deg,#183a91 0%,#2563eb 100%) !important; }
+.bh-p .buchhaltung-hero::before { display:none; }
+.bh-p .buchhaltung-title-row { grid-template-columns:minmax(0,1fr) auto; align-items:center; margin-bottom:26px; }
+.bh-p .bh-titel { display:flex; align-items:center; gap:18px; min-width:0; }
+.bh-p .bh-symbol { width:64px; height:64px; flex:none; border-radius:20px; display:grid; place-items:center;
+    background:rgba(255,255,255,.14); border:1px solid rgba(255,255,255,.26); box-shadow:inset 0 1px 0 rgba(255,255,255,.25),0 10px 24px rgba(8,20,60,.22); }
+.bh-p .bh-ober { display:block; font-size:11px; font-weight:900; letter-spacing:.14em; text-transform:uppercase; color:rgba(219,234,254,.85); margin-bottom:4px; }
+.bh-p .buchhaltung-title h1 { font-size:34px; letter-spacing:-.03em; font-weight:900; text-transform:none; }
+.bh-p .buchhaltung-title p { font-size:14px; font-weight:700; color:#dbeafe; opacity:1; margin-top:6px; }
+.bh-p .bh-chips { display:flex; flex-wrap:wrap; gap:8px; margin-top:12px; }
+.bh-p .bh-chips span { display:inline-flex; align-items:center; gap:7px; padding:6px 12px; border-radius:999px; font-size:12px; font-weight:800;
+    background:rgba(255,255,255,.14); border:1px solid rgba(255,255,255,.22); color:#fff; }
+.bh-p .live-date-box { min-width:230px; padding:16px 22px; border-radius:22px; background:rgba(255,255,255,.12); border:1px solid rgba(255,255,255,.24);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.2),0 14px 30px rgba(8,20,60,.18); }
+.bh-p .live-time-pill { font-size:34px; letter-spacing:-.04em; }
+
+/* Kennzahlen im Kopf */
+.bh-p #stats-parent-row { display:block; margin:0; }
+.bh-p #default-stats, .bh-p #bank-stats-wrapper { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:16px; margin:0 !important; }
+.bh-p #rate-stats { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px; margin:0 !important; }
+.bh-p #default-stats > [class*="col-"], .bh-p #bank-stats-wrapper > [class*="col-"], .bh-p #rate-stats > [class*="col-"] { max-width:none; flex:none; width:auto; padding:0; }
+.bh-p .buchhaltung-hero .card.bh-kpi { height:100%; padding:18px 20px !important; border:1px solid rgba(255,255,255,.7) !important; border-radius:22px !important;
+    background:linear-gradient(180deg,#ffffff 0%,#f7faff 100%) !important; box-shadow:0 14px 30px rgba(8,20,60,.16) !important; }
+.bh-p .bh-kpi-kopf { display:flex; align-items:center; gap:10px; margin-bottom:12px; }
+.bh-p .bh-kpi-icon { width:38px; height:38px; flex:none; border-radius:12px; display:grid; place-items:center; color:#fff; font-size:16px;
+    background:linear-gradient(145deg,#3b82f6,#1e40af); box-shadow:0 8px 16px rgba(30,64,175,.28),inset 0 1px 0 rgba(255,255,255,.35); }
+.bh-p .bh-gruen .bh-kpi-icon { background:linear-gradient(145deg,#34d399,#047857); box-shadow:0 8px 16px rgba(4,120,87,.26),inset 0 1px 0 rgba(255,255,255,.35); }
+.bh-p .bh-rot .bh-kpi-icon { background:linear-gradient(145deg,#fb7185,#be123c); box-shadow:0 8px 16px rgba(190,18,60,.26),inset 0 1px 0 rgba(255,255,255,.35); }
+.bh-p .bh-lila .bh-kpi-icon { background:linear-gradient(145deg,#a78bfa,#6d28d9); box-shadow:0 8px 16px rgba(109,40,217,.26),inset 0 1px 0 rgba(255,255,255,.35); }
+.bh-p .buchhaltung-hero .bh-kpi .text-uppercase { margin:0 !important; font-size:11px !important; letter-spacing:.1em !important; color:var(--bh-grau) !important; line-height:1.25 !important; }
+.bh-p .buchhaltung-hero .bh-kpi .h4, .bh-p .buchhaltung-hero .bh-kpi .h2 { font-size:27px !important; letter-spacing:-.03em; color:var(--bh-navy) !important; font-variant-numeric:tabular-nums; }
+.bh-p .buchhaltung-hero .bh-kpi .h4.text-danger, .bh-p .buchhaltung-hero .bh-kpi .h2.text-danger { color:#be123c !important; }
+.bh-p .buchhaltung-hero .bh-kpi .h4.text-success, .bh-p .buchhaltung-hero .bh-kpi .h2.text-success { color:#047857 !important; }
+.bh-p .bh-kpi-unter { margin-top:8px; font-size:12px; font-weight:700; color:var(--bh-grau); }
+.bh-p .bh-balken { margin-top:10px; height:7px; border-radius:999px; background:#e8eef9; overflow:hidden; }
+.bh-p .bh-balken i { display:block; height:100%; border-radius:inherit; background:linear-gradient(90deg,#3b82f6,#1d4ed8); }
+.bh-p .bh-gruen .bh-balken i { background:linear-gradient(90deg,#34d399,#059669); }
+.bh-p .bh-rot .bh-balken i { background:linear-gradient(90deg,#fb7185,#e11d48); }
+
+/* ---------- Inhalt ---------- */
+.bh-p .buchhaltung-body { padding:22px 0 8px !important; background:transparent !important; }
+.bh-p .buchhaltung-body > .nav-tabs { display:flex; flex-wrap:wrap; align-items:center; gap:6px; padding:8px !important; margin:0 0 18px; list-style:none;
+    background:#fff !important; border:1px solid var(--bh-linie) !important; border-radius:20px !important; box-shadow:0 10px 26px rgba(15,29,74,.06) !important; overflow:visible; }
+.bh-p .nav-tabs .nav-item { margin:0; }
+.bh-p .nav-tabs .nav-link { display:inline-flex; align-items:center; gap:9px; margin:0 !important; padding:11px 16px !important; border:0 !important; border-radius:14px !important;
+    font-size:14px; font-weight:800 !important; color:#334155 !important; background:transparent; transition:background .15s, color .15s, box-shadow .15s; }
+.bh-p .nav-tabs .nav-link i { font-size:14px; color:#2563eb; transition:color .15s; }
+.bh-p .nav-tabs .nav-link:hover { background:var(--bh-hell); color:#1e3a8a !important; }
+.bh-p .nav-tabs .nav-link.active { color:#fff !important; background:linear-gradient(135deg,#183a91 0%,#2563eb 100%) !important; box-shadow:0 10px 22px rgba(37,99,235,.32); }
+.bh-p .nav-tabs .nav-link.active i { color:#fff; }
+.bh-p .nav-tabs .ml-auto { padding:0 4px !important; gap:10px !important; }
+.bh-p .custom-nav-btn { height:46px; min-width:108px; padding:6px 18px; border-radius:14px; box-shadow:0 8px 18px rgba(220,38,38,.28); }
+.bh-p .custom-nav-btn img { height:30px; }
+.bh-p .custom-nav-btn:hover { transform:translateY(-2px); }
+
+.bh-p .tab-content { padding:0 !important; border:0 !important; background:transparent !important; box-shadow:none !important; min-height:0; }
+.bh-p .tab-pane > .row { display:flex; flex-direction:column; gap:18px; margin:0; }
+.bh-p .tab-pane > .row > [class*="col-md-"] { max-width:100%; flex:none; width:100%; padding:0; border:0 !important; }
+.bh-p .tab-pane > .row > [class*="col-md-"]:first-child { background:#fff; border:1px solid var(--bh-linie) !important; border-radius:22px; padding:18px 20px 16px; box-shadow:0 10px 26px rgba(15,29,74,.05); }
+.bh-p .tab-pane > .row > [class*="col-md-"]:last-child { max-height:none !important; overflow:visible !important; }
+.bh-p .tab-pane h5 { font-size:13px !important; font-weight:900 !important; letter-spacing:.1em; text-transform:uppercase; color:var(--bh-dunkel) !important; margin-bottom:14px !important; }
+.bh-p .tab-pane .col-md-9 > h5, .bh-p .tab-pane .col-md-10 > h5, .bh-p .tab-pane .bh-kopfzeile h5 { font-size:20px !important; letter-spacing:-.02em; text-transform:none; color:var(--bh-navy) !important; }
+
+/* Monate, Konten, Kredite als Chips */
+.bh-p .tab-pane .col-md-3 .list-group { display:grid; grid-template-columns:repeat(6,minmax(0,1fr)); gap:8px; box-shadow:none !important; }
+.bh-p #bank .col-md-3 .list-group { grid-template-columns:repeat(4,minmax(0,1fr)); }
+.bh-p .tab-pane .col-md-2 .list-group { display:flex; flex-direction:row; flex-wrap:wrap; gap:8px; max-height:none !important; box-shadow:none !important; }
+.bh-p .tab-pane .list-group-item-action { width:auto; min-width:0; margin:0 !important; padding:11px 12px !important; border:1px solid var(--bh-linie) !important; border-radius:14px !important;
+    background:#f8fbff; color:#1e293b; box-shadow:none !important; justify-content:center !important; transition:transform .15s, box-shadow .15s, background .15s; }
+.bh-p .tab-pane .list-group-item-action:hover { transform:translateY(-2px) !important; background:#fff; box-shadow:0 10px 20px rgba(15,29,74,.08) !important; border-color:#bfdbfe !important; }
+.bh-p .tab-pane .list-group-item-action h6 { display:flex; align-items:center; gap:8px; font-size:13.5px; font-weight:800 !important; white-space:nowrap; }
+.bh-p .bh-mnr { display:inline-grid; place-items:center; min-width:26px; height:26px; padding:0 6px; border-radius:9px; background:#e0ebff; color:#1d4ed8; font-size:11.5px; font-weight:900; }
+.bh-p .tab-pane .list-group-item-action.active { background:linear-gradient(135deg,#183a91 0%,#2563eb 100%) !important; border-color:transparent !important; color:#fff !important; box-shadow:0 10px 22px rgba(37,99,235,.32) !important; }
+.bh-p .tab-pane .list-group-item-action.active .bh-mnr { background:rgba(255,255,255,.2); color:#fff; }
+.bh-p #bank .col-md-3 .list-group-item-action { justify-content:flex-start !important; padding:14px 16px !important; }
+.bh-p #bank .list-group-item-action h6 { white-space:normal; line-height:1.3; }
+.bh-p .bh-konto-icon { width:36px; height:36px; flex:none; border-radius:11px; display:grid; place-items:center; background:#e0ebff; color:#1d4ed8; font-size:15px; }
+.bh-p .list-group-item-action.active .bh-konto-icon { background:rgba(255,255,255,.2); color:#fff; }
+.bh-p .bh-konto-stand { display:block; margin-top:3px; font-size:12px; font-weight:800; color:var(--bh-grau); }
+.bh-p .list-group-item-action.active .bh-konto-stand { color:#dbeafe; }
+.bh-p #rates .col-md-2 > .d-flex { flex-direction:row !important; align-items:center !important; justify-content:space-between; }
+.bh-p #rates .col-md-2 > .d-flex h5 { margin:0 !important; }
+.bh-p #rates .col-md-2 .list-group-item-action { flex:0 1 280px; justify-content:flex-start !important; cursor:default; }
+.bh-p #rates .col-md-2 .list-group-item-action small { display:block; margin:4px 0 0 34px; font-weight:700; }
+.bh-p #rates table.table td, .bh-p #rates table.table th { padding-left:12px !important; padding-right:12px !important; }
+.bh-p #rates table.table td:first-child { min-width:170px; }
+.bh-p .btn-primary { border:0; border-radius:12px !important; background:linear-gradient(135deg,#1d4ed8,#2563eb); box-shadow:0 8px 18px rgba(37,99,235,.3); }
+.bh-p .bh-btn-neu { border:0 !important; border-radius:12px !important; background:linear-gradient(135deg,#1d4ed8,#2563eb) !important; box-shadow:0 8px 18px rgba(37,99,235,.3) !important; }
+
+/* Überschrift über den Tabellen */
+.bh-p .bh-kopfzeile { display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; margin-bottom:14px; }
+.bh-p .bh-kopfzeile { justify-content:flex-start !important; }
+.bh-p .bh-kopfzeile h5 { margin:0 !important; text-transform:none !important; }
+.bh-p .bh-kopfzeile .bh-summe { margin-left:auto; }
+.bh-p .bh-kopfzeile .bh-summe + .btn { margin-left:6px; }
+.bh-p .bh-kopfzeile h5 + .btn { margin-left:auto; }
+.bh-p #bank .col-md-9 h5 { font-size:20px !important; letter-spacing:-.02em; text-transform:none; color:var(--bh-navy) !important; }
+.bh-p .bh-zahl { display:inline-flex; align-items:center; gap:6px; margin-left:8px; padding:4px 11px; border-radius:999px; background:var(--bh-hell); color:#1d4ed8; font-size:12.5px; font-weight:900; vertical-align:middle; letter-spacing:0; text-transform:none; }
+.bh-p .bh-summe { font-size:13px; font-weight:800; color:var(--bh-grau); }
+.bh-p .bh-summe b { color:var(--bh-navy); font-size:16px; }
+
+/* Tabellen */
+.bh-p .table-responsive, .bh-p #rates .card { background:#fff; border:1px solid var(--bh-linie) !important; border-radius:22px !important; box-shadow:0 12px 30px rgba(15,29,74,.06) !important; overflow:auto; }
+.bh-p #rechnungen .table-responsive { max-height:760px; }
+.bh-p #rates .card .table-responsive { border:0 !important; border-radius:0 !important; box-shadow:none !important; }
+.bh-p table.table { margin:0 !important; border:0 !important; border-collapse:separate; border-spacing:0; box-shadow:none !important; font-size:14px; color:#1e293b; text-align:left; }
+.bh-p table.table thead th, .bh-p table.table thead { background:#f5f8ff !important; }
+.bh-p table.table thead th { position:sticky; top:0; z-index:2; padding:14px 16px !important; border:0 !important; border-bottom:1px solid var(--bh-linie) !important;
+    color:#475569 !important; font-size:11px !important; font-weight:900 !important; letter-spacing:.09em; text-transform:uppercase; text-align:left; white-space:nowrap; }
+.bh-p table.table thead tr { color:#475569 !important; }
+.bh-p table.table td { padding:14px 16px !important; border:0 !important; border-top:1px solid #eef2f7 !important; vertical-align:middle !important; text-align:left; }
+.bh-p table.table tbody tr:first-child td { border-top:0 !important; }
+.bh-p table.table tbody tr { transition:background .12s; }
+.bh-p table.table tbody tr:hover { background:#f6f9ff; }
+.bh-p table.table .bh-num, .bh-p table.table th.bh-num { text-align:right; font-variant-numeric:tabular-nums; white-space:nowrap; }
+.bh-p .bh-nr { display:inline-block; padding:4px 9px; border-radius:8px; background:#f1f5f9; color:#334155; font-size:12.5px; font-weight:900; letter-spacing:.02em; white-space:nowrap; }
+.bh-p .bh-datum { color:var(--bh-grau); font-weight:700; white-space:nowrap; }
+.bh-p .bh-kunde { display:flex; align-items:center; gap:11px; min-width:200px; font-weight:800; color:var(--bh-navy); }
+.bh-p .bh-av { width:34px; height:34px; flex:none; border-radius:11px; display:grid; place-items:center; background:linear-gradient(145deg,#e0ebff,#c7dbff); color:#1d4ed8; font-size:13px; font-weight:900; }
+.bh-p .bh-stark { font-weight:900; color:var(--bh-navy); }
+.bh-p .bh-offen-rot { color:#be123c; font-weight:900; }
+.bh-p td.status-paid, .bh-p td.status-open { background:transparent !important; text-align:left; }
+.bh-p .bh-pill { display:inline-flex; align-items:center; gap:7px; padding:6px 12px; border-radius:999px; font-size:12.5px; font-weight:900; white-space:nowrap; }
+.bh-p .bh-pill::before { content:""; width:7px; height:7px; border-radius:50%; background:currentColor; }
+.bh-p .bh-pill.ok { background:#dcfce7; color:#15803d; }
+.bh-p .bh-pill.offen { background:#ffe4e6; color:#be123c; }
+.bh-p .badge { border-radius:8px; padding:5px 9px; font-size:11.5px; font-weight:800; }
+.bh-p .badge-light { background:#f1f5f9; border-color:#e2e8f0 !important; color:#334155; }
+.bh-p .badge-primary, .bh-p .badge-info { background:var(--bh-hell); color:#1d4ed8; }
+.bh-p #ratenSortable td.drag-handle { font-weight:900 !important; }
+.bh-p .bh-raten { display:block; margin-top:6px; width:64px; height:6px; border-radius:999px; background:#e8eef9; overflow:hidden; }
+.bh-p .bh-raten i { display:block; height:100%; border-radius:inherit; background:linear-gradient(90deg,#34d399,#059669); }
+.bh-p #ratenSortable .btn-sm { border-radius:10px !important; width:34px; height:34px; padding:0; }
+
+/* Bank-Bewegungen */
+.bh-p #bank .sticky-top { position:static; background:transparent !important; padding:0 !important; }
+.bh-p #bank .list-group.shadow-sm { background:#fff; border:1px solid var(--bh-linie); border-radius:22px; box-shadow:0 12px 30px rgba(15,29,74,.06) !important; overflow:hidden; }
+.bh-p #bank .list-group.shadow-sm .list-group-item { display:flex; align-items:center; justify-content:flex-start !important; gap:14px; margin:0; padding:14px 18px !important; border:0; border-top:1px solid #eef2f7; border-radius:0 !important; transition:background .12s; }
+.bh-p #bank .list-group.shadow-sm .list-group-item:first-child { border-top:0; }
+.bh-p #bank .list-group.shadow-sm .list-group-item:hover { background:#f6f9ff; }
+.bh-p .bh-tx-text { flex:1; min-width:0; max-width:none !important; }
+.bh-p .bh-tx-text + .text-right { margin-left:auto; }
+.bh-p .bh-betrag { display:inline-block; padding:6px 12px; border-radius:999px; font-weight:900; font-variant-numeric:tabular-nums; background:#f1f5f9; color:#0f172a; }
+.bh-p .bh-betrag.plus { background:#dcfce7; color:#15803d !important; }
+.bh-p .bh-betrag.minus { background:#ffe4e6; color:#be123c !important; }
+.bh-p .bh-stand { display:inline-flex; flex-direction:column; align-items:flex-end; padding:10px 16px; border-radius:16px; background:#fff; border:1px solid var(--bh-linie); box-shadow:0 8px 20px rgba(15,29,74,.05); }
+
+/* Leerer Zustand */
+.bh-p .bh-leer { display:flex; flex-direction:column; align-items:center; gap:10px; padding:46px 20px !important; background:#fff; border:1px dashed #cbd5e1; border-radius:22px; text-align:center; }
+.bh-p .bh-leer i { font-size:30px; color:#93c5fd; }
+.bh-p .bh-leer p { margin:0; font-weight:700; color:var(--bh-grau) !important; }
+
+/* Formular „Neue Ratenzahlung“ */
+#rateModal form { border-radius:26px !important; }
+#rateModal h3 { font-weight:900 !important; letter-spacing:-.02em; color:#0f1d4a !important; }
+#rateModal .form-control { height:46px; border:1px solid #dbe3ef; border-radius:12px !important; background:#f8fbff; font-weight:600; }
+#rateModal .form-control:focus { border-color:#93c5fd; background:#fff; box-shadow:0 0 0 4px rgba(59,130,246,.15) !important; }
+#rateModal label { letter-spacing:.06em; text-transform:uppercase; font-size:11px !important; color:#64748b !important; }
+
+/* Dunkler Modus: Kopf bleibt blau, Karten dunkel */
+html[data-kg-x="on"] .bh-p .buchhaltung-hero .card.bh-kpi { background:#111a2e !important; border-color:#22304d !important; }
+html[data-kg-x="on"] .bh-p .buchhaltung-hero .bh-kpi .h4, html[data-kg-x="on"] .bh-p .buchhaltung-hero .bh-kpi .h2 { color:#e2e8f0 !important; }
+
+/* Kleinere Bildschirme */
+@media (max-width:1200px) {
+    .bh-p #default-stats, .bh-p #bank-stats-wrapper { grid-template-columns:repeat(2,minmax(0,1fr)); }
+    .bh-p #bank .col-md-3 .list-group { grid-template-columns:repeat(2,minmax(0,1fr)); }
+}
+@media (max-width:760px) {
+    .bh-p .buchhaltung-hero { padding:22px 18px !important; border-radius:22px; }
+    .bh-p .buchhaltung-title-row { grid-template-columns:minmax(0,1fr); }
+    .bh-p .buchhaltung-title h1 { font-size:26px; }
+    .bh-p .bh-symbol { width:52px; height:52px; border-radius:16px; }
+    .bh-p .live-date-box { justify-self:stretch; min-width:0; }
+    .bh-p #default-stats, .bh-p #bank-stats-wrapper, .bh-p #rate-stats { grid-template-columns:minmax(0,1fr); gap:10px; }
+    .bh-p .nav-tabs .ml-auto { width:100%; justify-content:center; margin-left:0 !important; }
+    .bh-p .tab-pane .col-md-3 .list-group { grid-template-columns:repeat(3,minmax(0,1fr)); }
+    .bh-p #bank .col-md-3 .list-group { grid-template-columns:minmax(0,1fr); }
+    .bh-p .tab-pane .list-group-item-action h6 { font-size:12.5px; }
+    .bh-p .bh-mnr { display:none; }
+}
+@media print {
+    .bh-p .buchhaltung-hero { box-shadow:none; }
+}
+</style>
+
 <div class="container-fluid mt-4">
-<div class="buchhaltung-shell v2b">
+<div class="buchhaltung-shell bh-p">
 
     <section class="buchhaltung-hero">
         <div class="buchhaltung-title-row">
-            <div class="buchhaltung-title">
-                <div class="v2b-eyebrow"><span class="v2b-q"></span>Finanzen · Monatsübersicht</div>
-                <h1>📊 BUCHHALTUNG</h1>
-                <p>Finanzübersicht für Rechnungen, Bank, Ratenzahlungen und Ausgaben.</p>
+            <div class="buchhaltung-title bh-titel">
+                <div class="bh-symbol" aria-hidden="true"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 15l4-4 3 3 6-7"/><path d="M16 7h4v4"/></svg></div>
+                <div>
+                    <small class="bh-ober">KG Portal · Finanzen</small>
+                    <h1>Buchhaltung</h1>
+                    <p>Finanzübersicht für Rechnungen, Bank, Ratenzahlungen und Ausgaben.</p>
+                    <div class="bh-chips"><span><i class="fa-regular fa-calendar"></i>{{ selected_month_name if selected_month_name else 'Januar' }} 2026</span><span><i class="fa-solid fa-file-invoice"></i>{{ (rechnungen or [])|length }} Rechnungen</span></div>
+                </div>
             </div>
 
             <div class="live-date-box">
@@ -737,69 +754,85 @@ html[data-kg-x="on"] .v2b #rateModal .form-control:focus { border-color:#60a5fa 
             <div class="row mb-0" id="stats-parent-row">
         <div id="bank-stats-wrapper" class="row col-12 p-0 m-0 d-none">
             <div class="col-md-3">
-                <div class="card shadow-sm border-0 p-3" style="border-left: 6px solid #007bff;">
-                    <div class="text-uppercase text-primary font-weight-bold small">1- KG-Gebäudereinigung</div>
-                    <div class="h4 font-weight-bold mb-0 {% if all_balances.get('geschäftskonto-kg-gebäudereinigung', 0) >= 0 %}text-success{% else %}text-danger{% endif %}">{{ "{:,.2f}".format(all_balances.get('geschäftskonto-kg-gebäudereinigung', 0)).replace(',', 'X').replace('.', ',').replace('X', '.') }} €</div><svg class="v2b-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10h18L12 4z"/><path d="M5 10v8M9.5 10v8M14.5 10v8M19 10v8M3 20h18"/></svg><div class="v2b-viz" data-v2b="bank"></div>
+                <div class="card shadow-sm border-0 p-3 bh-kpi">
+                    <div class="bh-kpi-kopf"><span class="bh-kpi-icon"><i class="fa-solid fa-building-columns"></i></span><div class="text-uppercase text-primary font-weight-bold small">1- KG-Gebäudereinigung</div></div>
+                    <div class="h4 font-weight-bold mb-0 {% if all_balances.get('geschäftskonto-kg-gebäudereinigung', 0) >= 0 %}text-success{% else %}text-danger{% endif %}">{{ "{:,.2f}".format(all_balances.get('geschäftskonto-kg-gebäudereinigung', 0)).replace(',', 'X').replace('.', ',').replace('X', '.') }} €</div>
+                    <div class="bh-kpi-unter">Kontostand</div>
                 </div>
             </div>
             <div class="col-md-3">
-                <div class="card shadow-sm border-0 p-3" style="border-left: 6px solid #007bff;">
-                    <div class="text-uppercase text-primary font-weight-bold small">2- Amazon - Energie</div>
-                    <div class="h4 font-weight-bold mb-0 {% if all_balances.get('geschäftskonto-amazon-energie', 0) >= 0 %}text-success{% else %}text-danger{% endif %}">{{ "{:,.2f}".format(all_balances.get('geschäftskonto-amazon-energie', 0)).replace(',', 'X').replace('.', ',').replace('X', '.') }} €</div><svg class="v2b-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10h18L12 4z"/><path d="M5 10v8M9.5 10v8M14.5 10v8M19 10v8M3 20h18"/></svg><div class="v2b-viz" data-v2b="bank"></div>
+                <div class="card shadow-sm border-0 p-3 bh-kpi">
+                    <div class="bh-kpi-kopf"><span class="bh-kpi-icon"><i class="fa-solid fa-building-columns"></i></span><div class="text-uppercase text-primary font-weight-bold small">2- Amazon - Energie</div></div>
+                    <div class="h4 font-weight-bold mb-0 {% if all_balances.get('geschäftskonto-amazon-energie', 0) >= 0 %}text-success{% else %}text-danger{% endif %}">{{ "{:,.2f}".format(all_balances.get('geschäftskonto-amazon-energie', 0)).replace(',', 'X').replace('.', ',').replace('X', '.') }} €</div>
+                    <div class="bh-kpi-unter">Kontostand</div>
                 </div>
             </div>
             <div class="col-md-3">
-                <div class="card shadow-sm border-0 p-3" style="border-left: 6px solid #007bff;">
-                    <div class="text-uppercase text-primary font-weight-bold small">3- Damla Privat</div>
-                    <div class="h4 font-weight-bold mb-0 {% if all_balances.get('damla-privat', 0) >= 0 %}text-success{% else %}text-danger{% endif %}">{{ "{:,.2f}".format(all_balances.get('damla-privat', 0)).replace(',', 'X').replace('.', ',').replace('X', '.') }} €</div><svg class="v2b-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10h18L12 4z"/><path d="M5 10v8M9.5 10v8M14.5 10v8M19 10v8M3 20h18"/></svg><div class="v2b-viz" data-v2b="bank"></div>
+                <div class="card shadow-sm border-0 p-3 bh-kpi">
+                    <div class="bh-kpi-kopf"><span class="bh-kpi-icon"><i class="fa-solid fa-building-columns"></i></span><div class="text-uppercase text-primary font-weight-bold small">3- Damla Privat</div></div>
+                    <div class="h4 font-weight-bold mb-0 {% if all_balances.get('damla-privat', 0) >= 0 %}text-success{% else %}text-danger{% endif %}">{{ "{:,.2f}".format(all_balances.get('damla-privat', 0)).replace(',', 'X').replace('.', ',').replace('X', '.') }} €</div>
+                    <div class="bh-kpi-unter">Kontostand</div>
                 </div>
             </div>
             <div class="col-md-3">
-                <div class="card shadow-sm border-0 p-3" style="border-left: 6px solid #007bff;">
-                    <div class="text-uppercase text-primary font-weight-bold small">4- Murat Privat</div>
-                    <div class="h4 font-weight-bold mb-0 {% if all_balances.get('murat-privat', 0) >= 0 %}text-success{% else %}text-danger{% endif %}">{{ "{:,.2f}".format(all_balances.get('murat-privat', 0)).replace(',', 'X').replace('.', ',').replace('X', '.') }} €</div><svg class="v2b-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10h18L12 4z"/><path d="M5 10v8M9.5 10v8M14.5 10v8M19 10v8M3 20h18"/></svg><div class="v2b-viz" data-v2b="bank"></div>
+                <div class="card shadow-sm border-0 p-3 bh-kpi">
+                    <div class="bh-kpi-kopf"><span class="bh-kpi-icon"><i class="fa-solid fa-building-columns"></i></span><div class="text-uppercase text-primary font-weight-bold small">4- Murat Privat</div></div>
+                    <div class="h4 font-weight-bold mb-0 {% if all_balances.get('murat-privat', 0) >= 0 %}text-success{% else %}text-danger{% endif %}">{{ "{:,.2f}".format(all_balances.get('murat-privat', 0)).replace(',', 'X').replace('.', ',').replace('X', '.') }} €</div>
+                    <div class="bh-kpi-unter">Kontostand</div>
                 </div>
             </div>
         </div>
 
+        {% set bh_bezahlt = ((bezahlt_monat / monatsumsatz * 100) if monatsumsatz else 0)|round|int %}
+        {% set bh_offen = ((offene_forderungen / monatsumsatz * 100) if monatsumsatz else 0)|round|int %}
         <div id="default-stats" class="row col-12 p-0 m-0">
             <div class="col-md-3">
-                <div class="card shadow-sm border-left-primary p-3">
-                    <div class="text-uppercase text-primary font-weight-bold">Monatsumsatz</div>
-                    <div class="h4 font-weight-bold">{{ "{:,.2f}".format(monatsumsatz).replace(',', 'X').replace('.', ',').replace('X', '.') }} €</div><svg class="v2b-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/></svg><div class="v2b-viz" data-v2b="umsatz"></div>
+                <div class="card shadow-sm border-left-primary p-3 bh-kpi">
+                    <div class="bh-kpi-kopf"><span class="bh-kpi-icon"><i class="fa-solid fa-chart-line"></i></span><div class="text-uppercase text-primary font-weight-bold">Monatsumsatz</div></div>
+                    <div class="h4 font-weight-bold">{{ "{:,.2f}".format(monatsumsatz).replace(',', 'X').replace('.', ',').replace('X', '.') }} €</div>
+                    <div class="bh-kpi-unter">{{ selected_month_name if selected_month_name else 'Januar' }} 2026 · brutto</div>
                 </div>
             </div>
             <div class="col-md-3">
-                <div class="card shadow-sm border-left-success p-3">
-                    <div class="text-uppercase text-success font-weight-bold">Bezahlt (Monat)</div>
-                    <div class="h4 font-weight-bold">{{ "{:,.2f}".format(bezahlt_monat).replace(',', 'X').replace('.', ',').replace('X', '.') }} €</div><svg class="v2b-ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8.5 12.5 2.5 2.5 5-5.5"/></svg><div class="v2b-viz" data-v2b="bezahlt"></div>
+                <div class="card shadow-sm border-left-success p-3 bh-kpi bh-gruen">
+                    <div class="bh-kpi-kopf"><span class="bh-kpi-icon"><i class="fa-solid fa-circle-check"></i></span><div class="text-uppercase text-success font-weight-bold">Bezahlt (Monat)</div></div>
+                    <div class="h4 font-weight-bold">{{ "{:,.2f}".format(bezahlt_monat).replace(',', 'X').replace('.', ',').replace('X', '.') }} €</div>
+                    <div class="bh-balken"><i style="width:{{ [[bh_bezahlt, 0]|max, 100]|min }}%"></i></div>
+                    <div class="bh-kpi-unter">{{ bh_bezahlt }} % vom Umsatz</div>
                 </div>
             </div>
             <div class="col-md-3">
-                <div class="card shadow-sm border-left-danger p-3">
-                    <div class="text-uppercase text-danger font-weight-bold">Offene Forderungen</div>
-                    <div class="h4 font-weight-bold">{{ "{:,.2f}".format(offene_forderungen).replace(',', 'X').replace('.', ',').replace('X', '.') }} €</div><svg class="v2b-ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><div class="v2b-viz" data-v2b="offen"></div>
+                <div class="card shadow-sm border-left-danger p-3 bh-kpi bh-rot">
+                    <div class="bh-kpi-kopf"><span class="bh-kpi-icon"><i class="fa-solid fa-hourglass-half"></i></span><div class="text-uppercase text-danger font-weight-bold">Offene Forderungen</div></div>
+                    <div class="h4 font-weight-bold">{{ "{:,.2f}".format(offene_forderungen).replace(',', 'X').replace('.', ',').replace('X', '.') }} €</div>
+                    <div class="bh-balken"><i style="width:{{ [[bh_offen, 0]|max, 100]|min }}%"></i></div>
+                    <div class="bh-kpi-unter">{{ bh_offen }} % noch offen</div>
                 </div>
             </div>
             <div class="col-md-3">
-                <div class="card shadow-sm border-left-info p-3">
-                    <div class="text-uppercase text-info font-weight-bold">MwSt Zahllast</div>
-                    <div class="h4 font-weight-bold">{{ "{:,.2f}".format(mwst_zahllast).replace(',', 'X').replace('.', ',').replace('X', '.') }} €</div><svg class="v2b-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 5 5 19"/><circle cx="7" cy="7" r="2.5"/><circle cx="17" cy="17" r="2.5"/></svg><div class="v2b-viz" data-v2b="mwst"></div>
+                <div class="card shadow-sm border-left-info p-3 bh-kpi bh-lila">
+                    <div class="bh-kpi-kopf"><span class="bh-kpi-icon"><i class="fa-solid fa-percent"></i></span><div class="text-uppercase text-info font-weight-bold">MwSt Zahllast</div></div>
+                    <div class="h4 font-weight-bold">{{ "{:,.2f}".format(mwst_zahllast).replace(',', 'X').replace('.', ',').replace('X', '.') }} €</div>
+                    <div class="bh-kpi-unter">Umsatzsteuer aus den Rechnungen</div>
                 </div>
             </div>
         </div>
 
         <div id="rate-stats" class="row col-12 p-0 m-0 d-none">
             <div class="col-md-6">
-                <div class="card shadow-sm border-0 p-4" style="border-left: 8px solid #28a745; border-radius: 15px;">
-                    <div class="text-uppercase text-dark font-weight-bold small mb-1">Gesamtbetrag</div>
-                    <div class="h2 font-weight-bold mb-0">{% set total_g = ratenzahlungen|sum(attribute='gesamtbetrag') %}{{ "{:,.2f}".format(total_g).replace(',', 'X').replace('.', ',').replace('X', '.') }} €</div><svg class="v2b-ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20M6 15h4"/></svg><div class="v2b-viz" data-v2b="gesamt"></div>
+                <div class="card shadow-sm border-0 p-4 bh-kpi">
+                    <div class="bh-kpi-kopf"><span class="bh-kpi-icon"><i class="fa-solid fa-sack-dollar"></i></span><div class="text-uppercase text-dark font-weight-bold small mb-1">Gesamtbetrag</div></div>
+                    <div class="h2 font-weight-bold mb-0">{% set total_g = ratenzahlungen|sum(attribute='gesamtbetrag') %}{{ "{:,.2f}".format(total_g).replace(',', 'X').replace('.', ',').replace('X', '.') }} €</div>
+                    <div class="bh-kpi-unter">{{ ratenzahlungen|length }} Kredite und Ratenzahlungen</div>
                 </div>
             </div>
             <div class="col-md-6">
-                <div class="card shadow-sm border-0 p-4" style="border-left: 8px solid #dc3545; border-radius: 15px;">
-                    <div class="text-uppercase text-success font-weight-bold small mb-1">Restbetrag</div>
-                    <div class="h2 font-weight-bold mb-0 text-success">{% set total_r = ratenzahlungen|sum(attribute='restbetrag') %}{{ "{:,.2f}".format(total_r).replace(',', 'X').replace('.', ',').replace('X', '.') }} €</div><svg class="v2b-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v18"/><path d="M17 7.5c0-1.9-2.2-3-5-3s-5 1.1-5 3 2.2 2.6 5 3.2 5 1.3 5 3.3-2.2 3-5 3-5-1.1-5-3"/></svg><div class="v2b-viz" data-v2b="rest"></div>
+                <div class="card shadow-sm border-0 p-4 bh-kpi bh-gruen">
+                    <div class="bh-kpi-kopf"><span class="bh-kpi-icon"><i class="fa-solid fa-hand-holding-dollar"></i></span><div class="text-uppercase text-success font-weight-bold small mb-1">Restbetrag</div></div>
+                    <div class="h2 font-weight-bold mb-0 text-success">{% set total_r = ratenzahlungen|sum(attribute='restbetrag') %}{{ "{:,.2f}".format(total_r).replace(',', 'X').replace('.', ',').replace('X', '.') }} €</div>
+                    {% set bh_ab = (((total_g - total_r) / total_g * 100) if total_g else 0)|round|int %}
+                    <div class="bh-balken"><i style="width:{{ [[bh_ab, 0]|max, 100]|min }}%"></i></div>
+                    <div class="bh-kpi-unter">{{ bh_ab }} % bereits abbezahlt</div>
                 </div>
             </div>
         </div>
@@ -818,19 +851,19 @@ html[data-kg-x="on"] .v2b #rateModal .form-control:focus { border-color:#60a5fa 
 -->
 <ul class="nav nav-tabs shadow-sm" role="tablist" style="align-items: center; border-bottom: 2px solid #dee2e6;">
     <li class="nav-item">
-        <a class="nav-link active" data-toggle="tab" href="#rechnungen" style="font-weight:700; padding: 15px 20px;">Rechnungen</a>
+        <a class="nav-link active" data-toggle="tab" href="#rechnungen" style="font-weight:700; padding: 15px 20px;"><i class="fa-solid fa-file-invoice"></i>Rechnungen</a>
     </li>
     <li class="nav-item">
-        <a class="nav-link" data-toggle="tab" href="#rates" style="font-weight:700; padding: 15px 20px;">Ratenzahlungen & Kredite</a>
+        <a class="nav-link" data-toggle="tab" href="#rates" style="font-weight:700; padding: 15px 20px;"><i class="fa-solid fa-credit-card"></i>Ratenzahlungen & Kredite</a>
     </li>
     <li class="nav-item">
-        <a class="nav-link" data-toggle="tab" href="#bank" style="font-weight:700; padding: 15px 20px;">Bank</a>
+        <a class="nav-link" data-toggle="tab" href="#bank" style="font-weight:700; padding: 15px 20px;"><i class="fa-solid fa-building-columns"></i>Bank</a>
     </li>
     <li class="nav-item">
-        <a class="nav-link" data-toggle="tab" href="#gewerbliche" style="font-weight:700; padding: 15px 20px;">Gewerbliche Ausgaben</a>
+        <a class="nav-link" data-toggle="tab" href="#gewerbliche" style="font-weight:700; padding: 15px 20px;"><i class="fa-solid fa-briefcase"></i>Gewerbliche Ausgaben</a>
     </li>
     <li class="nav-item">
-        <a class="nav-link" data-toggle="tab" href="#private" style="font-weight:700; padding: 15px 20px;">Private Ausgaben</a>
+        <a class="nav-link" data-toggle="tab" href="#private" style="font-weight:700; padding: 15px 20px;"><i class="fa-solid fa-wallet"></i>Private Ausgaben</a>
     </li>
 
     <li class="nav-item ml-auto d-flex align-items-center" style="gap: 14px; padding: 8px 18px;">
@@ -973,14 +1006,16 @@ setInterval(updateBuchhaltungLiveClock, 30000);
                     <a href="?month={{ m_num }}&year=2026" 
                        class="list-group-item list-group-item-action d-flex justify-content-between align-items-center shadow-sm mb-3 {% if selected_month == m_num %}active text-white{% endif %}"
                        style="border-left: 6px solid #007bff; border-radius: 8px; padding: 18px;">
-                        <h6 class="mb-0 font-weight-bold">{{ loop.index }}- {{ m_name }} 2026</h6>
+                        <h6 class="mb-0 font-weight-bold"><span class="bh-mnr">{{ '%02d'|format(loop.index) }}</span>{{ m_name }}</h6>
                     </a>
                     {% endfor %}
                 </div>
             </div>
 
             <div class="col-md-9 border-left" style="max-height: 800px; overflow-y: auto;">
-                <h5 class="mb-4 text-dark font-weight-bold">Rechnungen – {{ selected_month_name if selected_month_name else 'Januar' }} 2026</h5>
+                <div class="bh-kopfzeile">
+                    <h5 class="mb-4 text-dark font-weight-bold">Rechnungen – {{ selected_month_name if selected_month_name else 'Januar' }} 2026{% if rechnungen %}<span class="bh-zahl">{{ rechnungen|length }}</span>{% endif %}</h5>
+                </div>
                 
                 {% if rechnungen %}
                 <div class="table-responsive">
@@ -990,25 +1025,25 @@ setInterval(updateBuchhaltungLiveClock, 30000);
                                 <th>Rechnung</th>
                                 <th>Datum</th>
                                 <th>Kunde</th>
-                                <th>Brutto</th>
-                                <th>Netto</th>
-                                <th>MwSt</th>
-                                <th>Offen</th>
+                                <th class="bh-num">Brutto</th>
+                                <th class="bh-num">Netto</th>
+                                <th class="bh-num">MwSt</th>
+                                <th class="bh-num">Offen</th>
                                 <th>Status</th>
                             </tr>
                         </thead>
                         <tbody>
                             {% for r in rechnungen %}
                             <tr>
-                                <td>{{ r.nr }}</td>
-                                <td>{{ r.datum }}</td>
-                                <td>{{ r.kunde }}</td>
-                                <td style="padding:15px; font-weight:bold;">{{ "{:,.2f}".format(r.brutto).replace(',', 'X').replace('.', ',').replace('X', '.') }} €</td>
-                                <td>{{ "{:,.2f}".format(r.netto).replace(',', 'X').replace('.', ',').replace('X', '.') }} €</td>
-                                <td>{{ "{:,.2f}".format(r.mwst).replace(',', 'X').replace('.', ',').replace('X', '.') }} €</td>
-                                <td>{{ "{:,.2f}".format(r.offen).replace(',', 'X').replace('.', ',').replace('X', '.') }} €</td>
+                                <td><span class="bh-nr">{{ r.nr }}</span></td>
+                                <td class="bh-datum">{{ r.datum }}</td>
+                                <td><div class="bh-kunde"><span class="bh-av">{{ ((r.kunde or '') ~ '')[:1]|upper }}</span><span>{{ r.kunde }}</span></div></td>
+                                <td class="bh-num bh-stark" style="padding:15px; font-weight:bold;">{{ "{:,.2f}".format(r.brutto).replace(',', 'X').replace('.', ',').replace('X', '.') }} €</td>
+                                <td class="bh-num">{{ "{:,.2f}".format(r.netto).replace(',', 'X').replace('.', ',').replace('X', '.') }} €</td>
+                                <td class="bh-num">{{ "{:,.2f}".format(r.mwst).replace(',', 'X').replace('.', ',').replace('X', '.') }} €</td>
+                                <td class="bh-num{{ ' bh-offen-rot' if r.offen != 0 else '' }}">{{ "{:,.2f}".format(r.offen).replace(',', 'X').replace('.', ',').replace('X', '.') }} €</td>
                                 <td class="{{ 'status-paid' if r.offen == 0 else 'status-open' }}">
-                                    {{ 'Bezahlt' if r.offen == 0 else 'Offen' }}
+                                    <span class="bh-pill {{ 'ok' if r.offen == 0 else 'offen' }}">{{ 'Bezahlt' if r.offen == 0 else 'Offen' }}</span>
                                 </td>
                             </tr>
                             {% endfor %}
@@ -1016,8 +1051,9 @@ setInterval(updateBuchhaltungLiveClock, 30000);
                     </table>
                 </div>
                 {% else %}
-                <div class="text-center py-5">
-                    <p class="text-muted">Keine Rechnungen for diesen Monat gefunden.</p>
+                <div class="text-center py-5 bh-leer">
+                    <i class="fa-regular fa-folder-open"></i>
+                    <p class="text-muted">Keine Rechnungen für diesen Monat gefunden.</p>
                 </div>
                 {% endif %}
             </div>
@@ -1040,7 +1076,7 @@ setInterval(updateBuchhaltungLiveClock, 30000);
                        class="list-group-item list-group-item-action d-flex justify-content-between align-items-center mb-3 shadow-sm"
                        style="border-left: 6px solid #6f42c1; border-radius: 8px; padding: 18px;">
                         <div>
-                            <h6 class="mb-0 font-weight-bold">{{ rate.kreditname }}</h6>
+                            <h6 class="mb-0 font-weight-bold"><span class="bh-mnr" style="background:{{ rate.renk_kodu or '#2563eb' }};color:#fff">{{ loop.index }}</span>{{ rate.kreditname }}</h6>
                             <small class="text-muted">Rate: {{ "{:,.2f}".format(rate.monatliche_rate).replace(',', 'X').replace('.', ',').replace('X', '.') }} €</small>
                         </div>
                     </a>
@@ -1049,7 +1085,7 @@ setInterval(updateBuchhaltungLiveClock, 30000);
             </div>
 
             <div class="col-md-10 border-left">
-    <h5 class="mb-4 text-dark font-weight-bold">Details & Übersicht</h5>
+    <div class="bh-kopfzeile"><h5 class="mb-4 text-dark font-weight-bold">Details & Übersicht{% if ratenzahlungen %}<span class="bh-zahl">{{ ratenzahlungen|length }}</span>{% endif %}</h5></div>
     <div class="card shadow-sm border-0" style="border-radius:15px; overflow:hidden;">
         <div class="table-responsive">
             <table class="table table-hover mb-0 text-center" style="width: 100%; min-width: 100%;">
@@ -1078,7 +1114,7 @@ setInterval(updateBuchhaltungLiveClock, 30000);
     <td style="padding:15px;">{{ rate.laufzeit }} Monate</td>
     <td style="padding:15px;">{{ rate.beginn }}</td>
     <td style="padding:15px;">{{ rate.ende }}</td>
-    <td style="padding:15px;">{{ rate.einzahl_raten }}</td>
+    <td style="padding:15px;">{{ rate.einzahl_raten }}{% set bh_lz = rate.laufzeit|int %}{% if bh_lz > 0 %}<span class="bh-raten" title="bezahlte Raten"><i style="width:{{ [((rate.einzahl_raten|int) * 100 / bh_lz)|round|int, 100]|min }}%"></i></span>{% endif %}</td>
     <td style="padding:15px;">{{ rate.rest_raten }}</td>
     <td style="padding:15px; font-weight:800;">{{ "{:,.2f}".format(rate.restbetrag).replace(',', 'X').replace('.', ',').replace('X', '.') }} €</td>
     <td class="no-print" style="padding:15px; min-width:110px;">
@@ -1106,16 +1142,16 @@ setInterval(updateBuchhaltungLiveClock, 30000);
                 <h5 class="mb-4 text-primary font-weight-bold">Bankkonten</h5>
                 <div class="list-group">
                     <a href="?bank_account=geschäftskonto-kg-gebäudereinigung#bank" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center shadow-sm mb-3 {% if active_bank == 'geschäftskonto-kg-gebäudereinigung' %}active text-white{% endif %}" style="border-left: 6px solid #007bff; border-radius: 8px; padding: 18px;">
-                        <h6 class="mb-0 font-weight-bold">1- Geschäftskonto - KG-Gebäudereinigung</h6>
+                        <h6 class="mb-0 font-weight-bold"><span class="bh-konto-icon"><i class="fa-solid fa-building-columns"></i></span><span>1- Geschäftskonto - KG-Gebäudereinigung<span class="bh-konto-stand">{{ "{:,.2f}".format(all_balances.get('geschäftskonto-kg-gebäudereinigung', 0)).replace(',', 'X').replace('.', ',').replace('X', '.') }} €</span></span></h6>
                     </a>
                     <a href="?bank_account=geschäftskonto-amazon-energie#bank" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center shadow-sm mb-3 {% if active_bank == 'geschäftskonto-amazon-energie' %}active text-white{% endif %}" style="border-left: 6px solid #17a2b8; border-radius: 8px; padding: 18px;">
-                        <h6 class="mb-0 font-weight-bold">2- Geschäftskonto - Amazon - Energie</h6>
+                        <h6 class="mb-0 font-weight-bold"><span class="bh-konto-icon"><i class="fa-solid fa-building-columns"></i></span><span>2- Geschäftskonto - Amazon - Energie<span class="bh-konto-stand">{{ "{:,.2f}".format(all_balances.get('geschäftskonto-amazon-energie', 0)).replace(',', 'X').replace('.', ',').replace('X', '.') }} €</span></span></h6>
                     </a>
                     <a href="?bank_account=damla-privat#bank" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center shadow-sm mb-3 {% if active_bank == 'damla-privat' %}active text-white{% endif %}" style="border-left: 6px solid #e83e8c; border-radius: 8px; padding: 18px;">
-                        <h6 class="mb-0 font-weight-bold">3- Damla Privat</h6>
+                        <h6 class="mb-0 font-weight-bold"><span class="bh-konto-icon"><i class="fa-solid fa-user"></i></span><span>3- Damla Privat<span class="bh-konto-stand">{{ "{:,.2f}".format(all_balances.get('damla-privat', 0)).replace(',', 'X').replace('.', ',').replace('X', '.') }} €</span></span></h6>
                     </a>
                     <a href="?bank_account=murat-privat#bank" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center shadow-sm mb-3 {% if active_bank == 'murat-privat' %}active text-white{% endif %}" style="border-left: 6px solid #6f42c1; border-radius: 8px; padding: 18px;">
-                        <h6 class="mb-0 font-weight-bold">4- Murat Privat</h6>
+                        <h6 class="mb-0 font-weight-bold"><span class="bh-konto-icon"><i class="fa-solid fa-user"></i></span><span>4- Murat Privat<span class="bh-konto-stand">{{ "{:,.2f}".format(all_balances.get('murat-privat', 0)).replace(',', 'X').replace('.', ',').replace('X', '.') }} €</span></span></h6>
                     </a>
                 </div>
             </div>
@@ -1123,8 +1159,8 @@ setInterval(updateBuchhaltungLiveClock, 30000);
             <div class="col-md-9 border-left" style="max-height: 800px; overflow-y: auto;">
                 {% if bank_data %}
                     <div class="d-flex justify-content-between align-items-center mb-4 sticky-top bg-white py-2" style="z-index: 10;">
-                        <h5 class="text-dark font-weight-bold mb-0">Transaktionen</h5>
-                        <div class="text-right">
+                        <h5 class="text-dark font-weight-bold mb-0">Transaktionen<span class="bh-zahl">{{ bank_data|length }}</span></h5>
+                        <div class="text-right bh-stand">
                             <span class="text-muted small font-weight-bold">Aktueller Kontostand</span>
                             <div class="h5 font-weight-bold mb-0 {% if total_bank_balance >= 0 %}text-success{% else %}text-danger{% endif %}">
                                 {{ "{:,.2f}".format(total_bank_balance).replace(',', 'X').replace('.', ',').replace('X', '.') }} €
@@ -1134,13 +1170,14 @@ setInterval(updateBuchhaltungLiveClock, 30000);
                     <div class="list-group shadow-sm">
                         {% for t in bank_data %}
                         <div class="list-group-item d-flex justify-content-between align-items-center py-3">
-                            <div style="max-width: 75%;">
+                            <span class="bh-av">{{ ((t.payee or '') ~ '')[:1]|upper }}</span>
+                            <div class="bh-tx-text" style="max-width: 75%;">
                                 <div class="font-weight-bold text-dark">{{ t.payee }}</div>
                                 <div class="text-muted small text-truncate">{{ t.description }}</div>
                                 <small class="badge badge-light border mt-1">{{ t.date }}</small>
                             </div>
                             <div class="text-right">
-                                <span class="h6 font-weight-bold {{ 'text-success' if t.amount > 0 else 'text-dark' }}">
+                                <span class="h6 font-weight-bold bh-betrag {{ 'plus' if t.amount > 0 else 'minus' }} {{ 'text-success' if t.amount > 0 else 'text-dark' }}">
                                     {{ "{:,.2f}".format(t.amount).replace(',', 'X').replace('.', ',').replace('X', '.') }} €
                                 </span>
                             </div>
@@ -1148,7 +1185,8 @@ setInterval(updateBuchhaltungLiveClock, 30000);
                         {% endfor %}
                     </div>
                 {% else %}
-                    <div class="text-center py-5">
+                    <div class="text-center py-5 bh-leer">
+                        <i class="fa-solid fa-building-columns"></i>
                         <p class="text-muted">Bitte wählen Sie ein Bankkonto aus, um die Bewegungen zu sehen.</p>
                     </div>
                 {% endif %}
@@ -1165,15 +1203,16 @@ setInterval(updateBuchhaltungLiveClock, 30000);
                     <a href="?month={{ m_num }}&year=2026#gewerbliche" 
                        class="list-group-item list-group-item-action d-flex justify-content-between align-items-center shadow-sm mb-3 {% if selected_month == m_num %}active text-white{% endif %}"
                        style="border-left: 6px solid #28a745; border-radius: 8px; padding: 18px;">
-                        <h6 class="mb-0 font-weight-bold">{{ loop.index }}- {{ m_name }} 2026</h6>
+                        <h6 class="mb-0 font-weight-bold"><span class="bh-mnr">{{ '%02d'|format(loop.index) }}</span>{{ m_name }}</h6>
                     </a>
                     {% endfor %}
                 </div>
             </div>
             <div class="col-md-9 border-left">
-                <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h5 class="text-dark font-weight-bold mb-0 text-uppercase">Gewerbliche Ausgaben - {{ selected_month_name if selected_month_name else 'Januar' }} 2026</h5>
-                    <button class="btn shadow-sm" style="background:#007bff; color:#ffffff; border:none; border-radius:10px; font-weight:700; padding: 8px 15px;">+ Ausgabe Hinzufügen</button>
+                <div class="d-flex justify-content-between align-items-center mb-4 bh-kopfzeile">
+                    <h5 class="text-dark font-weight-bold mb-0 text-uppercase">Gewerbliche Ausgaben – {{ selected_month_name if selected_month_name else 'Januar' }} 2026{% if gewerbliche_ausgaben %}<span class="bh-zahl">{{ gewerbliche_ausgaben|length }}</span>{% endif %}</h5>
+                    {% if gewerbliche_ausgaben %}<span class="bh-summe">Summe brutto <b>{{ "{:,.2f}".format(gewerbliche_ausgaben|sum(attribute='brutto')).replace(',', 'X').replace('.', ',').replace('X', '.') }} €</b></span>{% endif %}
+                    <button class="btn shadow-sm bh-btn-neu" style="background:#007bff; color:#ffffff; border:none; border-radius:10px; font-weight:700; padding: 8px 15px;">+ Ausgabe Hinzufügen</button>
                 </div>
                 <div class="table-responsive shadow-sm">
                     <table class="table table-hover table-bordered text-center small">
@@ -1184,23 +1223,23 @@ setInterval(updateBuchhaltungLiveClock, 30000);
                                 <th>Kategorie</th>
                                 <th>Empfänger</th>
                                 <th>Verwendungszweck</th>
-                                <th>Brutto</th>
-                                <th>MwSt €</th>
-                                <th>Netto</th>
+                                <th class="bh-num">Brutto</th>
+                                <th class="bh-num">MwSt €</th>
+                                <th class="bh-num">Netto</th>
                                 <th>Konto</th>
                             </tr>
                         </thead>
                         <tbody>
                             {% for g in gewerbliche_ausgaben %}
                             <tr>
-                                <td>{{ g.datum }}</td>
+                                <td class="bh-datum">{{ g.datum }}</td>
                                 <td><span class="badge badge-light border">{{ g.skr03_kod }}</span></td>
                                 <td>{{ g.kategori }}</td>
-                                <td class="font-weight-bold">{{ g.empfaenger }}</td>
+                                <td class="font-weight-bold"><div class="bh-kunde"><span class="bh-av">{{ ((g.empfaenger or '') ~ '')[:1]|upper }}</span><span>{{ g.empfaenger }}</span></div></td>
                                 <td class="small">{{ g.zweck }}</td>
-                                <td class="font-weight-bold">{{ "{:,.2f}".format(g.brutto).replace(',', 'X').replace('.', ',').replace('X', '.') }} €</td>
-                                <td>{{ "{:,.2f}".format(g.mwst_betrag).replace(',', 'X').replace('.', ',').replace('X', '.') }} €</td>
-                                <td>{{ "{:,.2f}".format(g.netto).replace(',', 'X').replace('.', ',').replace('X', '.') }} €</td>
+                                <td class="font-weight-bold bh-num bh-stark">{{ "{:,.2f}".format(g.brutto).replace(',', 'X').replace('.', ',').replace('X', '.') }} €</td>
+                                <td class="bh-num">{{ "{:,.2f}".format(g.mwst_betrag).replace(',', 'X').replace('.', ',').replace('X', '.') }} €</td>
+                                <td class="bh-num">{{ "{:,.2f}".format(g.netto).replace(',', 'X').replace('.', ',').replace('X', '.') }} €</td>
                                 <td><span class="badge badge-primary">{{ g.konto }}</span></td>
                             </tr>
                             {% endfor %}
@@ -1220,15 +1259,16 @@ setInterval(updateBuchhaltungLiveClock, 30000);
                     <a href="?month={{ m_num }}&year=2026#private" 
                        class="list-group-item list-group-item-action d-flex justify-content-between align-items-center shadow-sm mb-3 {% if selected_month == m_num %}active text-white{% endif %}"
                        style="border-left: 6px solid #e83e8c; border-radius: 8px; padding: 18px;">
-                        <h6 class="mb-0 font-weight-bold">{{ loop.index }}- {{ m_name }} 2026</h6>
+                        <h6 class="mb-0 font-weight-bold"><span class="bh-mnr">{{ '%02d'|format(loop.index) }}</span>{{ m_name }}</h6>
                     </a>
                     {% endfor %}
                 </div>
             </div>
             <div class="col-md-9 border-left">
-                <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h5 class="text-dark font-weight-bold mb-0 text-uppercase">Private Ausgaben - {{ selected_month_name if selected_month_name else 'Januar' }} 2026</h5>
-                    <button class="btn shadow-sm" style="background:#007bff; color:#ffffff; border:none; border-radius:10px; font-weight:700; padding: 8px 15px;">+ Ausgabe Hinzufügen</button>
+                <div class="d-flex justify-content-between align-items-center mb-4 bh-kopfzeile">
+                    <h5 class="text-dark font-weight-bold mb-0 text-uppercase">Private Ausgaben – {{ selected_month_name if selected_month_name else 'Januar' }} 2026{% if private_ausgaben %}<span class="bh-zahl">{{ private_ausgaben|length }}</span>{% endif %}</h5>
+                    {% if private_ausgaben %}<span class="bh-summe">Summe <b>{{ "{:,.2f}".format(private_ausgaben|sum(attribute='betrag')).replace(',', 'X').replace('.', ',').replace('X', '.') }} €</b></span>{% endif %}
+                    <button class="btn shadow-sm bh-btn-neu" style="background:#007bff; color:#ffffff; border:none; border-radius:10px; font-weight:700; padding: 8px 15px;">+ Ausgabe Hinzufügen</button>
                 </div>
                 <div class="table-responsive shadow-sm">
                     <table class="table table-hover table-bordered text-center small">
@@ -1239,7 +1279,7 @@ setInterval(updateBuchhaltungLiveClock, 30000);
                                 <th>Kategorie</th>
                                 <th>Empfänger</th>
                                 <th>Verwendungszweck</th>
-                                <th>Betrag</th>
+                                <th class="bh-num">Betrag</th>
                                 <th>Konto</th>
                                 <th>Notiz</th>
                             </tr>
@@ -1247,12 +1287,12 @@ setInterval(updateBuchhaltungLiveClock, 30000);
                         <tbody>
                             {% for p in private_ausgaben %}
                             <tr>
-                                <td>{{ p.datum }}</td>
+                                <td class="bh-datum">{{ p.datum }}</td>
                                 <td>{{ p.skr03_kod }}</td>
                                 <td>{{ p.kategori }}</td>
-                                <td class="font-weight-bold">{{ p.empfaenger }}</td>
+                                <td class="font-weight-bold"><div class="bh-kunde"><span class="bh-av">{{ ((p.empfaenger or '') ~ '')[:1]|upper }}</span><span>{{ p.empfaenger }}</span></div></td>
                                 <td class="small">{{ p.zweck }}</td>
-                                <td class="text-danger font-weight-bold">{{ "{:,.2f}".format(p.betrag).replace(',', 'X').replace('.', ',').replace('X', '.') }} €</td>
+                                <td class="text-danger font-weight-bold bh-num">{{ "{:,.2f}".format(p.betrag).replace(',', 'X').replace('.', ',').replace('X', '.') }} €</td>
                                 <td><span class="badge badge-info">{{ p.konto }}</span></td>
                                 <td class="text-muted italic small">{{ p.notiz or '-' }}</td>
                             </tr>
@@ -1696,119 +1736,4 @@ document.addEventListener('DOMContentLoaded', function () {
 </div>
 </div>
 </div>
-<script>
-{% raw %}
-/* ===== PREMIUM V2 „Graphit“: Kennzahl-Grafiken (Buchhaltung) =====
-   Nur lesend: Beträge aus den Kennzahl-Karten und Tabellen dieser Seite.
-   Kein Abruf, keine Lexware-/Sparkasse-Aktion, nichts wird gespeichert. */
-(function () {
-    var html = document.documentElement;
-    html.classList.add("v2-start");
-    setTimeout(function () { html.classList.remove("v2-start"); }, 1600);
-    if (!document.querySelector(".v2b")) return;
-
-    var zahl = function (t) { var n = parseFloat(String(t || "").replace(/[^\d,.\-]/g, "").replace(/\./g, "").replace(",", ".")); return isNaN(n) ? 0 : n; };
-    var de = function (n, d) { return Number(n || 0).toLocaleString("de-DE", { minimumFractionDigits: d || 0, maximumFractionDigits: d || 0 }); };
-    var eur = function (n) { return de(n, 2) + " €"; };
-    var esc = function (s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); };
-    var alle = function (sel) { return Array.prototype.slice.call(document.querySelectorAll(sel)); };
-    var pct = function (a, b) { return b ? Math.round(a / b * 100) : 0; };
-
-    function linie(ziel, anteil, farbe, txt) {
-        if (!ziel) return;
-        var p = Math.max(0, Math.min(1, anteil || 0));
-        ziel.innerHTML = '<div class="v2b-linie"><i style="width:' + (p * 100).toFixed(1) + "%;background:" + farbe + '"></i></div>' +
-            '<div class="v2b-leg"><em style="--f:' + farbe + '">' + esc(txt) + "</em></div>";
-    }
-    function spur(ziel, teile, leer, rest) {
-        if (!ziel) return;
-        var da = teile.filter(function (t) { return t.v > 0; });
-        ziel.innerHTML = '<div class="v2b-spur">' + da.map(function (t) {
-            return '<i style="flex:' + t.v + ' 1 0;background:' + t.f + '" title="' + esc(t.l + ": " + eur(t.v)) + '"></i>';
-        }).join("") + '</div><div class="v2b-leg">' + (da.length ? da.slice(0, 3).map(function (t) {
-            return '<em style="--f:' + t.f + '">' + esc(t.l) + "</em>";
-        }).join("") + (da.length > 3 ? "<em>+" + (da.length - 3) + " weitere</em>" : "") : "<em>" + esc(leer) + "</em>") + "</div>";
-    }
-
-    /* ---------- Rechnungen des Monats (Tabelle der Seite) ---------- */
-    var rechnungen = alle("#rechnungen table tbody tr").map(function (tr) {
-        var td = tr.children, m = /(\d{1,2})\.(\d{1,2})\.(\d{4})/.exec(td[1] ? td[1].textContent : "");
-        return { tag: m ? +m[1] : 0, monat: m ? +m[2] : 0, jahr: m ? +m[3] : 0, brutto: zahl(td[3] && td[3].textContent), bezahlt: !!tr.querySelector(".status-paid") };
-    });
-    var kw = alle("#default-stats .card").map(function (c) { var h = c.querySelector(".h4"); return zahl(h && h.textContent); });
-    var umsatz = kw[0] || 0, bezahlt = kw[1] || 0, offen = kw[2] || 0, mwst = kw[3] || 0;
-    var viz = function (k) { return alle('.v2b-viz[data-v2b="' + k + '"]'); };
-
-    var breiteZuletzt = 0;
-    function sparkline() {
-        var ziel = viz("umsatz")[0];
-        if (!ziel) return;
-        var w = Math.round(ziel.clientWidth || 0);
-        if (w && w === breiteZuletzt) return;
-        breiteZuletzt = w;
-        w = w || 260;
-        var h = 38, mitDatum = rechnungen.filter(function (r) { return r.tag && r.monat; });
-        var svg = '<svg viewBox="0 0 ' + w + " " + h + '" height="' + h + '" preserveAspectRatio="none" role="img" aria-label="Umsatz im Monat, aufsummiert">' +
-            '<line class="v2b-gitter" x1="0" x2="' + w + '" y1="' + (h - 0.5) + '" y2="' + (h - 0.5) + '"></line>' +
-            '<line class="v2b-gitter" x1="0" x2="' + w + '" y1="' + (h / 2).toFixed(1) + '" y2="' + (h / 2).toFixed(1) + '"></line>';
-        if (!mitDatum.length) {
-            ziel.innerHTML = svg + '</svg><div class="v2b-leg"><em>keine Rechnungen im Monat</em></div>';
-            return;
-        }
-        var j = mitDatum[0].jahr, mo = mitDatum[0].monat, tage = new Date(j, mo, 0).getDate(), heute = new Date();
-        var bis = heute.getFullYear() === j && heute.getMonth() + 1 === mo ? heute.getDate() : tage;
-        bis = Math.min(tage, Math.max(bis, Math.max.apply(null, mitDatum.map(function (r) { return r.tag; }))));
-        var kum = [], s = 0;
-        for (var t = 0; t <= bis; t++) {
-            mitDatum.forEach(function (r) { if (r.tag === t) s += r.brutto; });
-            kum.push(s);
-        }
-        var max = s || 1, x = function (t) { return t / tage * (w - 4) + 2; }, y = function (v) { return h - 3 - v / max * (h - 8); };
-        var pfad = "M" + kum.map(function (v, t) { return x(t).toFixed(1) + " " + y(v).toFixed(1); }).join(" L");
-        var flaeche = pfad + " L" + x(bis).toFixed(1) + " " + h + " L" + x(0).toFixed(1) + " " + h + " Z";
-        var ex = x(bis), ey = y(kum[kum.length - 1]);
-        svg += '<defs><linearGradient id="v2bUmsatzVerlauf" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2563eb" stop-opacity=".14"></stop><stop offset="1" stop-color="#2563eb" stop-opacity="0"></stop></linearGradient></defs>' +
-            '<path class="v2b-flaeche" d="' + flaeche + '" fill="url(#v2bUmsatzVerlauf)"></path>' +
-            '<path class="v2b-zug" d="' + pfad + '" pathLength="100" fill="none" stroke="#2563eb" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"></path>' +
-            '<circle class="v2b-flaeche" cx="' + ex.toFixed(1) + '" cy="' + ey.toFixed(1) + '" r="5" fill="#2563eb" fill-opacity=".18"></circle>' +
-            '<circle class="v2b-flaeche" cx="' + ex.toFixed(1) + '" cy="' + ey.toFixed(1) + '" r="2.6" fill="#2563eb"><title>' + esc(eur(s)) + " bis " + bis + "." + mo + ".</title></circle>";
-        ziel.innerHTML = svg + '</svg><div class="v2b-leg"><em style="--f:#2563eb"><b>' + mitDatum.length + "</b>&nbsp;" + (mitDatum.length === 1 ? "Rechnung" : "Rechnungen") +
-            "</em><em>Ø " + esc(eur(s / mitDatum.length)) + "</em></div>";
-    }
-    sparkline();
-    var nBezahlt = rechnungen.filter(function (r) { return r.bezahlt; }).length, nOffen = rechnungen.length - nBezahlt;
-    viz("bezahlt").forEach(function (z) { linie(z, umsatz ? bezahlt / umsatz : 0, "#16a34a", umsatz ? pct(bezahlt, umsatz) + " % vom Umsatz · " + nBezahlt + " bezahlt" : "keine Rechnungen"); });
-    viz("offen").forEach(function (z) { linie(z, umsatz ? offen / umsatz : 0, "#e11d48", umsatz ? pct(offen, umsatz) + " % vom Umsatz · " + nOffen + " offen" : "nichts offen"); });
-    viz("mwst").forEach(function (z) { linie(z, umsatz ? mwst / umsatz : 0, "#7c3aed", umsatz ? pct(mwst, umsatz) + " % vom Bruttoumsatz" : "keine Rechnungen"); });
-
-    /* ---------- Bankkonten (Salden der Karten) ---------- */
-    var bank = alle("#bank-stats-wrapper .card").map(function (c) { var h = c.querySelector(".h4"); return zahl(h && h.textContent); });
-    var maxAbs = Math.max.apply(null, bank.map(Math.abs).concat([0])), guthaben = bank.reduce(function (a, b) { return a + Math.max(0, b); }, 0);
-    viz("bank").forEach(function (z, i) {
-        var b = bank[i] || 0;
-        if (!maxAbs) return linie(z, 0, "#0d9488", "kein Saldo");
-        if (b < 0) return linie(z, Math.abs(b) / maxAbs, "#e11d48", "im Minus");
-        if (!b) return linie(z, 0, "#0d9488", "kein Saldo");
-        linie(z, b / maxAbs, "#0d9488", pct(b, guthaben) + " % vom Guthaben");
-    });
-
-    /* ---------- Ratenzahlungen (Karten + Tabelle) ---------- */
-    var rk = alle("#rate-stats .card").map(function (c) { var h = c.querySelector(".h2"); return zahl(h && h.textContent); });
-    var gesamt = rk[0] || 0, rest = rk[1] || 0;
-    viz("gesamt").forEach(function (z) { linie(z, gesamt ? (gesamt - rest) / gesamt : 0, "#0d9488", gesamt ? pct(gesamt - rest, gesamt) + " % getilgt · " + eur(Math.max(0, gesamt - rest)) : "keine Kredite"); });
-    var FARBEN = ["#d97706", "#2563eb", "#7c3aed", "#0d9488", "#e11d48", "#64748b"];
-    var kredite = alle("#ratenSortable tr[data-id]").map(function (tr, i) {
-        var td = tr.children;
-        return { l: String(td[0] ? td[0].textContent : "").replace("☰", "").trim(), v: zahl(td[8] && td[8].textContent), f: FARBEN[i % FARBEN.length] };
-    }).sort(function (a, b) { return b.v - a.v; });
-    viz("rest").forEach(function (z) { spur(z, kredite, "keine offenen Raten"); });
-
-    /* Diagramm neu zeichnen, wenn die Karten sichtbar werden oder sich die Breite ändert (nur Anzeige) */
-    var ds = document.getElementById("default-stats");
-    if (ds && window.MutationObserver) new MutationObserver(function () { if (!ds.classList.contains("d-none")) sparkline(); }).observe(ds, { attributes: true, attributeFilter: ["class"] });
-    var rt = 0;
-    window.addEventListener("resize", function () { clearTimeout(rt); rt = setTimeout(sparkline, 150); });
-})();
-{% endraw %}
-</script>
 {% endblock %}

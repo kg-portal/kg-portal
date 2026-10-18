@@ -686,3 +686,410 @@ html body .business-portal-card .score[data-lo="hoch"], html body .business-port
 html body .business-portal-card .score[data-lo="mittel"], html body .business-portal-card .lo-score[data-lo="mittel"] { background: #fffbeb !important; color: #b45309 !important; box-shadow: inset 0 0 0 2px #fbbf24, 0 4px 10px -4px rgba(245, 158, 11, .5) !important; }
 html body .business-portal-card .score[data-lo="tief"], html body .business-portal-card .lo-score[data-lo="tief"] { background: #fef2f2 !important; color: #b91c1c !important; box-shadow: inset 0 0 0 2px #f87171, 0 4px 10px -4px rgba(239, 68, 68, .5) !important; }
 }
+
+
+/* =========================================================
+   Leon – Premium-Tabellen (nur Optik, keine Funktion):
+   Zeilen als schwebende Karten auf getönter Fläche, Kontakt mit
+   farbigem Kürzel, Datum/Telefon/Dauer mit Symbol, Ergebnis als
+   gefüllte Farbpille, „Öffnen“ als Knopf. leon_orb.js setzt dafür
+   nur data-lo-col / data-lo-av an den Zellen (Text bleibt gleich).
+   ========================================================= */
+@media screen {
+html body .business-portal-card :is(.kg-card, .table-card, .card, .panel, .ldb-card, .leon-card, .na-card, .ak-card, .kbl-box):has(table):not(.kgb-hero *),
+html body .na :is(.kg-card, .table-card, .card, .panel, .ldb-card, .leon-card, .na-card, .ak-card, .kbl-box):has(table),
+html body .ak-page :is(.kg-card, .table-card, .card, .panel, .ldb-card, .leon-card, .na-card, .ak-card, .kbl-box):has(table),
+html body .kbl :is(.kg-card, .table-card, .card, .panel, .ldb-card, .leon-card, .na-card, .ak-card, .kbl-box):has(table),
+html body .kb :is(.kg-card, .table-card, .card, .panel, .ldb-card, .leon-card, .na-card, .ak-card, .kbl-box):has(table),
+html body .leon-wrap :is(.kg-card, .table-card, .card, .panel, .ldb-card, .leon-card, .na-card, .ak-card, .kbl-box):has(table),
+html body .ldb :is(.kg-card, .table-card, .card, .panel, .ldb-card, .leon-card, .na-card, .ak-card, .kbl-box):has(table) {
+  background: linear-gradient(180deg, #f8fbff 0%, #eef4ff 100%) !important;
+  padding: 10px 14px 12px !important;
+}
+html body .business-portal-card table:not(.kgb-hero *),
+html body .na table,
+html body .ak-page table,
+html body .kbl table,
+html body .kb table,
+html body .leon-wrap table,
+html body .ldb table {
+  border-collapse: separate !important;
+  border-spacing: 0 8px !important;
+  background: transparent !important;
+}
+html body .business-portal-card table thead th:not(.kgb-hero *),
+html body .na table thead th,
+html body .ak-page table thead th,
+html body .kbl table thead th,
+html body .kb table thead th,
+html body .leon-wrap table thead th,
+html body .ldb table thead th {
+  background-color: #f6f9ff !important;
+  border: 0 !important;
+  padding-top: 10px !important;
+  padding-bottom: 6px !important;
+}
+html body .business-portal-card table tbody > tr > td:not(.kgb-hero *),
+html body .na table tbody > tr > td,
+html body .ak-page table tbody > tr > td,
+html body .kbl table tbody > tr > td,
+html body .kb table tbody > tr > td,
+html body .leon-wrap table tbody > tr > td,
+html body .ldb table tbody > tr > td {
+  background-color: #fff !important;
+  border: 0 !important;
+  border-top: 1px solid #e3eaf7 !important;
+  border-bottom: 1px solid #e3eaf7 !important;
+  padding-top: 14px !important;
+  padding-bottom: 14px !important;
+  vertical-align: middle !important;
+  color: #1e293b;
+  box-shadow: none;
+  transition: background-color .15s ease, border-color .15s ease, box-shadow .15s ease;
+}
+html body .business-portal-card table tbody > tr > td:first-child:not(.kgb-hero *),
+html body .na table tbody > tr > td:first-child,
+html body .ak-page table tbody > tr > td:first-child,
+html body .kbl table tbody > tr > td:first-child,
+html body .kb table tbody > tr > td:first-child,
+html body .leon-wrap table tbody > tr > td:first-child,
+html body .ldb table tbody > tr > td:first-child {
+  border-left: 1px solid #e3eaf7 !important;
+  border-radius: 16px 0 0 16px !important;
+  box-shadow: inset 4px 0 0 #dbeafe;
+}
+html body .business-portal-card table tbody > tr > td:last-child:not(.kgb-hero *),
+html body .na table tbody > tr > td:last-child,
+html body .ak-page table tbody > tr > td:last-child,
+html body .kbl table tbody > tr > td:last-child,
+html body .kb table tbody > tr > td:last-child,
+html body .leon-wrap table tbody > tr > td:last-child,
+html body .ldb table tbody > tr > td:last-child {
+  border-right: 1px solid #e3eaf7 !important;
+  border-radius: 0 16px 16px 0 !important;
+}
+html body .business-portal-card table tbody > tr > td:only-child:not(.kgb-hero *),
+html body .na table tbody > tr > td:only-child,
+html body .ak-page table tbody > tr > td:only-child,
+html body .kbl table tbody > tr > td:only-child,
+html body .kb table tbody > tr > td:only-child,
+html body .leon-wrap table tbody > tr > td:only-child,
+html body .ldb table tbody > tr > td:only-child {
+  border-radius: 16px !important;
+}
+html body .business-portal-card table tbody > tr:hover > td:not(.kgb-hero *),
+html body .na table tbody > tr:hover > td,
+html body .ak-page table tbody > tr:hover > td,
+html body .kbl table tbody > tr:hover > td,
+html body .kb table tbody > tr:hover > td,
+html body .leon-wrap table tbody > tr:hover > td,
+html body .ldb table tbody > tr:hover > td {
+  background-color: #f7faff !important;
+  border-color: #c7dbff !important;
+}
+html body .business-portal-card table tbody > tr:hover > td:first-child:not(.kgb-hero *),
+html body .na table tbody > tr:hover > td:first-child,
+html body .ak-page table tbody > tr:hover > td:first-child,
+html body .kbl table tbody > tr:hover > td:first-child,
+html body .kb table tbody > tr:hover > td:first-child,
+html body .leon-wrap table tbody > tr:hover > td:first-child,
+html body .ldb table tbody > tr:hover > td:first-child {
+  box-shadow: inset 4px 0 0 #3b82f6;
+}
+html body .business-portal-card table tbody > tr.live-row > td:not(.kgb-hero *),
+html body .na table tbody > tr.live-row > td,
+html body .ak-page table tbody > tr.live-row > td,
+html body .kbl table tbody > tr.live-row > td,
+html body .kb table tbody > tr.live-row > td,
+html body .leon-wrap table tbody > tr.live-row > td,
+html body .ldb table tbody > tr.live-row > td {
+  background-color: #f0fdf4 !important;
+}
+html body .business-portal-card table td strong:not(.kgb-hero *),
+html body .na table td strong,
+html body .ak-page table td strong,
+html body .kbl table td strong,
+html body .kb table td strong,
+html body .leon-wrap table td strong,
+html body .ldb table td strong {
+  color: #0f1d4a;
+  font-weight: 900;
+}
+html body .business-portal-card table td small:not(.kgb-hero *),
+html body .na table td small,
+html body .ak-page table td small,
+html body .kbl table td small,
+html body .kb table td small,
+html body .leon-wrap table td small,
+html body .ldb table td small {
+  color: #64748b;
+  font-weight: 700;
+}
+html body .business-portal-card table td[data-lo-col="datum"]:not(.kgb-hero *),
+html body .na table td[data-lo-col="datum"],
+html body .ak-page table td[data-lo-col="datum"],
+html body .kbl table td[data-lo-col="datum"],
+html body .kb table td[data-lo-col="datum"],
+html body .leon-wrap table td[data-lo-col="datum"],
+html body .ldb table td[data-lo-col="datum"] {
+  padding-left: 38px !important;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='4' width='18' height='18' rx='3'/%3E%3Cpath d='M16 2v4M8 2v4M3 10h18'/%3E%3C/svg%3E") !important;
+  background-repeat: no-repeat !important;
+  background-position: 14px 50% !important;
+  background-size: 15px 15px !important;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  color: #475569;
+}
+html body .business-portal-card table td[data-lo-col="telefon"]:not(.kgb-hero *),
+html body .na table td[data-lo-col="telefon"],
+html body .ak-page table td[data-lo-col="telefon"],
+html body .kbl table td[data-lo-col="telefon"],
+html body .kb table td[data-lo-col="telefon"],
+html body .leon-wrap table td[data-lo-col="telefon"],
+html body .ldb table td[data-lo-col="telefon"] {
+  padding-left: 38px !important;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2360a5fa' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2z'/%3E%3C/svg%3E") !important;
+  background-repeat: no-repeat !important;
+  background-position: 14px 50% !important;
+  background-size: 15px 15px !important;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  color: #1e3a8a;
+}
+html body .business-portal-card table td[data-lo-col="dauer"]:not(.kgb-hero *),
+html body .na table td[data-lo-col="dauer"],
+html body .ak-page table td[data-lo-col="dauer"],
+html body .kbl table td[data-lo-col="dauer"],
+html body .kb table td[data-lo-col="dauer"],
+html body .leon-wrap table td[data-lo-col="dauer"],
+html body .ldb table td[data-lo-col="dauer"] {
+  padding-left: 38px !important;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='9'/%3E%3Cpath d='M12 7v5l3 2'/%3E%3C/svg%3E") !important;
+  background-repeat: no-repeat !important;
+  background-position: 14px 50% !important;
+  background-size: 15px 15px !important;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  color: #475569;
+}
+html body .business-portal-card table td[data-lo-av]:not(.kgb-hero *),
+html body .na table td[data-lo-av],
+html body .ak-page table td[data-lo-av],
+html body .kbl table td[data-lo-av],
+html body .kb table td[data-lo-av],
+html body .leon-wrap table td[data-lo-av],
+html body .ldb table td[data-lo-av] {
+  position: relative !important;
+  padding-left: 64px !important;
+  min-width: 190px;
+}
+html body .business-portal-card table td[data-lo-av]:not(.kgb-hero *)::before,
+html body .na table td[data-lo-av]::before,
+html body .ak-page table td[data-lo-av]::before,
+html body .kbl table td[data-lo-av]::before,
+html body .kb table td[data-lo-av]::before,
+html body .leon-wrap table td[data-lo-av]::before,
+html body .ldb table td[data-lo-av]::before {
+  content: attr(data-lo-av);
+  position: absolute;
+  left: 16px;
+  top: 50%;
+  width: 36px;
+  height: 36px;
+  margin-top: -18px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  font-size: 13px;
+  font-weight: 900;
+  letter-spacing: .02em;
+  color: #fff;
+  background: linear-gradient(145deg, #3b82f6, #1e40af);
+  box-shadow: 0 8px 16px -8px rgba(30, 64, 175, .8), inset 0 1px 0 rgba(255, 255, 255, .35);
+}
+html body .business-portal-card table td[data-lo-farbe="0"]:not(.kgb-hero *)::before,
+html body .na table td[data-lo-farbe="0"]::before,
+html body .ak-page table td[data-lo-farbe="0"]::before,
+html body .kbl table td[data-lo-farbe="0"]::before,
+html body .kb table td[data-lo-farbe="0"]::before,
+html body .leon-wrap table td[data-lo-farbe="0"]::before,
+html body .ldb table td[data-lo-farbe="0"]::before {
+  background: linear-gradient(145deg, #3b82f6, #1e40af);
+}
+html body .business-portal-card table td[data-lo-farbe="1"]:not(.kgb-hero *)::before,
+html body .na table td[data-lo-farbe="1"]::before,
+html body .ak-page table td[data-lo-farbe="1"]::before,
+html body .kbl table td[data-lo-farbe="1"]::before,
+html body .kb table td[data-lo-farbe="1"]::before,
+html body .leon-wrap table td[data-lo-farbe="1"]::before,
+html body .ldb table td[data-lo-farbe="1"]::before {
+  background: linear-gradient(145deg, #10b981, #047857);
+}
+html body .business-portal-card table td[data-lo-farbe="2"]:not(.kgb-hero *)::before,
+html body .na table td[data-lo-farbe="2"]::before,
+html body .ak-page table td[data-lo-farbe="2"]::before,
+html body .kbl table td[data-lo-farbe="2"]::before,
+html body .kb table td[data-lo-farbe="2"]::before,
+html body .leon-wrap table td[data-lo-farbe="2"]::before,
+html body .ldb table td[data-lo-farbe="2"]::before {
+  background: linear-gradient(145deg, #8b5cf6, #6d28d9);
+}
+html body .business-portal-card table td[data-lo-farbe="3"]:not(.kgb-hero *)::before,
+html body .na table td[data-lo-farbe="3"]::before,
+html body .ak-page table td[data-lo-farbe="3"]::before,
+html body .kbl table td[data-lo-farbe="3"]::before,
+html body .kb table td[data-lo-farbe="3"]::before,
+html body .leon-wrap table td[data-lo-farbe="3"]::before,
+html body .ldb table td[data-lo-farbe="3"]::before {
+  background: linear-gradient(145deg, #f59e0b, #b45309);
+}
+html body .business-portal-card table td[data-lo-farbe="4"]:not(.kgb-hero *)::before,
+html body .na table td[data-lo-farbe="4"]::before,
+html body .ak-page table td[data-lo-farbe="4"]::before,
+html body .kbl table td[data-lo-farbe="4"]::before,
+html body .kb table td[data-lo-farbe="4"]::before,
+html body .leon-wrap table td[data-lo-farbe="4"]::before,
+html body .ldb table td[data-lo-farbe="4"]::before {
+  background: linear-gradient(145deg, #ec4899, #be185d);
+}
+html body .business-portal-card table td[data-lo-farbe="5"]:not(.kgb-hero *)::before,
+html body .na table td[data-lo-farbe="5"]::before,
+html body .ak-page table td[data-lo-farbe="5"]::before,
+html body .kbl table td[data-lo-farbe="5"]::before,
+html body .kb table td[data-lo-farbe="5"]::before,
+html body .leon-wrap table td[data-lo-farbe="5"]::before,
+html body .ldb table td[data-lo-farbe="5"]::before {
+  background: linear-gradient(145deg, #06b6d4, #0e7490);
+}
+html body .business-portal-card .call-result-pill:not(.kgb-hero *),
+html body .na .call-result-pill,
+html body .ak-page .call-result-pill,
+html body .kbl .call-result-pill,
+html body .kb .call-result-pill,
+html body .leon-wrap .call-result-pill,
+html body .ldb .call-result-pill {
+  padding: 6px 10px !important;
+  border: 1px solid transparent !important;
+  background: #f1f5f9 !important;
+  color: #94a3b8 !important;
+  font-weight: 800 !important;
+}
+html body .business-portal-card .call-result-pill.interested.active:not(.kgb-hero *),
+html body .na .call-result-pill.interested.active,
+html body .ak-page .call-result-pill.interested.active,
+html body .kbl .call-result-pill.interested.active,
+html body .kb .call-result-pill.interested.active,
+html body .leon-wrap .call-result-pill.interested.active,
+html body .ldb .call-result-pill.interested.active {
+  background: linear-gradient(135deg, #10b981, #047857) !important;
+  color: #fff !important;
+  box-shadow: 0 8px 16px -8px #10b981, inset 0 1px 0 rgba(255, 255, 255, .3) !important;
+}
+html body .business-portal-card .call-result-pill.callback.active:not(.kgb-hero *),
+html body .na .call-result-pill.callback.active,
+html body .ak-page .call-result-pill.callback.active,
+html body .kbl .call-result-pill.callback.active,
+html body .kb .call-result-pill.callback.active,
+html body .leon-wrap .call-result-pill.callback.active,
+html body .ldb .call-result-pill.callback.active {
+  background: linear-gradient(135deg, #3b82f6, #1d4ed8) !important;
+  color: #fff !important;
+  box-shadow: 0 8px 16px -8px #3b82f6, inset 0 1px 0 rgba(255, 255, 255, .3) !important;
+}
+html body .business-portal-card .call-result-pill.invoice.active:not(.kgb-hero *),
+html body .na .call-result-pill.invoice.active,
+html body .ak-page .call-result-pill.invoice.active,
+html body .kbl .call-result-pill.invoice.active,
+html body .kb .call-result-pill.invoice.active,
+html body .leon-wrap .call-result-pill.invoice.active,
+html body .ldb .call-result-pill.invoice.active {
+  background: linear-gradient(135deg, #f59e0b, #c2410c) !important;
+  color: #fff !important;
+  box-shadow: 0 8px 16px -8px #f59e0b, inset 0 1px 0 rgba(255, 255, 255, .3) !important;
+}
+html body .business-portal-card .call-result-pill.no-interest.active:not(.kgb-hero *),
+html body .na .call-result-pill.no-interest.active,
+html body .ak-page .call-result-pill.no-interest.active,
+html body .kbl .call-result-pill.no-interest.active,
+html body .kb .call-result-pill.no-interest.active,
+html body .leon-wrap .call-result-pill.no-interest.active,
+html body .ldb .call-result-pill.no-interest.active {
+  background: linear-gradient(135deg, #f43f5e, #be123c) !important;
+  color: #fff !important;
+  box-shadow: 0 8px 16px -8px #f43f5e, inset 0 1px 0 rgba(255, 255, 255, .3) !important;
+}
+html body .business-portal-card .call-status:not(.kgb-hero *),
+html body .na .call-status,
+html body .ak-page .call-status,
+html body .kbl .call-status,
+html body .kb .call-status,
+html body .leon-wrap .call-status,
+html body .ldb .call-status {
+  padding: 6px 11px !important;
+  font-weight: 800 !important;
+  box-shadow: inset 0 0 0 1px rgba(15, 29, 74, .06);
+}
+html body .business-portal-card table a.kg-link:not(.kgb-hero *),
+html body .na table a.kg-link,
+html body .ak-page table a.kg-link,
+html body .kbl table a.kg-link,
+html body .kb table a.kg-link,
+html body .leon-wrap table a.kg-link,
+html body .ldb table a.kg-link {
+  display: inline-flex !important;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px !important;
+  border-radius: 999px !important;
+  background: #eff6ff !important;
+  border: 1px solid #c7dbff !important;
+  color: #1d4ed8 !important;
+  font-weight: 800 !important;
+  text-decoration: none !important;
+  white-space: nowrap;
+  transition: background .15s ease, color .15s ease, box-shadow .15s ease, transform .15s ease;
+}
+html body .business-portal-card table a.kg-link:hover:not(.kgb-hero *),
+html body .na table a.kg-link:hover,
+html body .ak-page table a.kg-link:hover,
+html body .kbl table a.kg-link:hover,
+html body .kb table a.kg-link:hover,
+html body .leon-wrap table a.kg-link:hover,
+html body .ldb table a.kg-link:hover {
+  background: linear-gradient(135deg, #1e40af, #3b82f6) !important;
+  border-color: transparent !important;
+  color: #fff !important;
+  box-shadow: 0 10px 20px -10px rgba(30, 64, 175, .9) !important;
+  transform: translateY(-1px);
+}
+html body .business-portal-card .kg-toolbar input.kg-input:not(.kgb-hero *),
+html body .na .kg-toolbar input.kg-input,
+html body .ak-page .kg-toolbar input.kg-input,
+html body .kbl .kg-toolbar input.kg-input,
+html body .kb .kg-toolbar input.kg-input,
+html body .leon-wrap .kg-toolbar input.kg-input,
+html body .ldb .kg-toolbar input.kg-input {
+  height: 46px !important;
+  padding-left: 42px !important;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2.4' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='m20 20-3.5-3.5'/%3E%3C/svg%3E") !important;
+  background-repeat: no-repeat !important;
+  background-position: 15px 50% !important;
+  background-size: 17px 17px !important;
+  font-weight: 600;
+}
+html body .business-portal-card .kg-toolbar select.kg-select:not(.kgb-hero *),
+html body .na .kg-toolbar select.kg-select,
+html body .ak-page .kg-toolbar select.kg-select,
+html body .kbl .kg-toolbar select.kg-select,
+html body .kb .kg-toolbar select.kg-select,
+html body .leon-wrap .kg-toolbar select.kg-select,
+html body .ldb .kg-toolbar select.kg-select {
+  height: 46px !important;
+  font-weight: 700;
+  color: #1e3a8a;
+}
+}

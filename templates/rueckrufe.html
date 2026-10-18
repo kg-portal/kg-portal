@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% block content %}
+<script src="{{ url_for('static', filename='kg_auftritt.js') }}" data-seite="rueckrufe"></script>
 <!-- Rückrufe (Leon Reinigung) – gleiche Seite wie in KG Business, Daten vom Leon-Motor -->
 <style>
   .rr-page { width:100%; max-width:1900px; margin:0 auto; background:#fff; border-radius:24px; box-shadow:0 18px 50px rgba(15,23,42,.08); border:1px solid #dbe3f0; overflow:hidden; font-family:Arial, Helvetica, sans-serif; color:#0f172a; }
@@ -91,192 +92,38 @@
     .rr-grid { grid-template-columns:1fr; }
     .rr-search { min-width:0; width:100%; }
   }
-
-  {% raw %}
-  /* ===== PREMIUM V2 „Graphit“ ===== */
-  .rr-page { background:transparent; border:0; border-radius:0; box-shadow:none; overflow:visible; font-family:inherit; color:#111827; }
-
-  /* Seitenkopf: typografisch, kein Farbblock */
-  .rr-hero { color:#111827; padding:2px 2px 0; background:transparent; }
-  .rr-hero-row { align-items:flex-end; gap:16px 24px; margin-bottom:20px; padding-bottom:20px; border-bottom:1px solid #e5e7eb; background:radial-gradient(400px 120px at 28% 82%, rgba(37,99,235,.06), transparent 100%), radial-gradient(360px 110px at 58% 78%, rgba(124,58,237,.04), transparent 100%); }
-  .v2c-eyebrow { display:flex; align-items:center; gap:8px; margin:0 0 10px; font-size:12px; font-weight:700; color:#6b7280; letter-spacing:.01em; }
-  .v2c-quadrat { width:8px; height:8px; border-radius:2px; background:#d97706; flex:0 0 auto; }
-  .rr-hero h1 { font-size:30px; line-height:1.15; font-weight:800; letter-spacing:-.02em; color:#111827; }
-  .rr-hero h1 > i { display:none; }
-  .rr-hero p { margin-top:6px; font-size:14px; font-weight:500; line-height:1.55; color:#6b7280; opacity:1; max-width:72ch; }
-  .rr-today { display:inline-flex; align-items:center; gap:8px; height:38px; padding:0 14px; background:#fff; border:1px solid #e5e7eb; border-radius:10px; box-shadow:0 1px 2px rgba(16,24,40,.05); font-size:13px; font-weight:700; color:#111827; font-variant-numeric:tabular-nums; white-space:nowrap; }
-  .rr-today::before { content:""; width:15px; height:15px; background:#6b7280; -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3.5' y='5' width='17' height='15.5' rx='2.5'/%3E%3Cpath d='M8 3v4M16 3v4M3.5 10h17'/%3E%3C/svg%3E") center/contain no-repeat; mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3.5' y='5' width='17' height='15.5' rx='2.5'/%3E%3Cpath d='M8 3v4M16 3v4M3.5 10h17'/%3E%3C/svg%3E") center/contain no-repeat; }
-
-  /* KPI-Karten (Filter) */
-  .rr-stat-grid { gap:16px; }
-  .rr-stat { display:grid; grid-template-columns:minmax(0,1fr) auto; grid-template-areas:"label ico" "value value" "viz viz" "sub sub"; align-items:center; align-content:start; background:#fff; border:1px solid #e5e7eb; border-radius:14px; padding:16px 18px 14px; box-shadow:0 1px 2px rgba(16,24,40,.05); color:#111827; transition:border-color .15s ease, box-shadow .15s ease, background-color .15s ease; }
-  .rr-stat:hover { border-color:#d1d5db; box-shadow:0 1px 2px rgba(16,24,40,.05), 0 8px 20px -14px rgba(16,24,40,.28); }
-  .rr-stat.active { outline:none; border-color:#111827; box-shadow:0 0 0 1px #111827, 0 8px 20px -14px rgba(16,24,40,.3); }
-  .rr-stat-label { grid-area:label; margin:0; font-size:13px; font-weight:600; letter-spacing:0; text-transform:none; color:#6b7280; }
-  .rr-stat .v2c-ico { grid-area:ico; width:18px; height:18px; display:block; }
-  .rr-stat-value { grid-area:value; margin-top:6px; font-size:29px; line-height:1.1; font-weight:800; letter-spacing:-.02em; color:#111827; }
-  .rr-stat-value.red, .rr-stat-value.orange { color:#111827; }
-  .rr-stat-sub { grid-area:sub; margin-top:9px; font-size:12.5px; font-weight:500; color:#6b7280; }
-
-  /* Feine Grafiken in den KPI-Karten */
-  .v2c-viz { grid-area:viz; margin-top:12px; height:36px; display:flex; align-items:flex-end; }
-  .v2c-viz > * { width:100%; }
-  .v2c-anteil { display:flex; align-items:center; gap:10px; padding-bottom:4px; }
-  .v2c-spur { flex:1; height:4px; border-radius:999px; background:#f1f2f4; overflow:hidden; }
-  .v2c-fuell { height:100%; border-radius:999px; transform-origin:left center; }
-  .v2c-proz { min-width:34px; text-align:right; font-size:11px; font-weight:600; color:#9ca3af; font-variant-numeric:tabular-nums; }
-  .v2c-tagspur { position:relative; height:4px; margin:5px 4px 8px; border-radius:999px; background:#f1f2f4; }
-  .v2c-punkt { position:absolute; top:50%; width:8px; height:8px; margin:-4px 0 0 -4px; border-radius:50%; background:#d97706; box-shadow:0 0 0 2px #fff; }
-  .v2c-jetzt { position:absolute; top:-5px; width:2px; height:14px; margin-left:-1px; border-radius:1px; background:#111827; }
-  .v2c-achse { display:flex; justify-content:space-between; font-size:10.5px; font-weight:600; color:#9ca3af; font-variant-numeric:tabular-nums; }
-  .v2c-woche { display:grid; grid-template-columns:repeat(7,minmax(0,1fr)); gap:6px; align-items:end; }
-  .v2c-wtag { display:flex; flex-direction:column; align-items:center; gap:4px; }
-  .v2c-wsaeule { height:22px; width:100%; display:flex; align-items:flex-end; justify-content:center; }
-  .v2c-wsaeule i { display:block; width:100%; max-width:14px; border-radius:3px 3px 1px 1px; transform-origin:center bottom; }
-  .v2c-wsaeule i.v2c-null { height:2px; border-radius:1px; background:#e5e7eb; }
-  .v2c-wtag span { font-size:10px; line-height:1; font-weight:600; color:#9ca3af; }
-  .v2c-wtag.ist-heute span { color:#111827; font-weight:800; }
-  .v2c-segmente { display:flex; gap:2px; height:4px; }
-  .v2c-segmente i { display:block; height:100%; min-width:4px; border-radius:999px; transform-origin:left center; }
-  .v2c-segmente i.v2c-leer { flex:1 1 0; background:#f1f2f4; }
-  .v2c-legende { display:flex; flex-wrap:wrap; gap:4px 12px; margin-top:8px; font-size:11px; font-weight:600; color:#6b7280; font-variant-numeric:tabular-nums; }
-  .v2c-legende span { display:inline-flex; align-items:center; gap:5px; }
-  .v2c-legende i { width:6px; height:6px; border-radius:2px; }
-  @keyframes v2c-x { from { transform:scaleX(0); } }
-  @keyframes v2c-y { from { transform:scaleY(0); } }
-  @keyframes v2c-auf { from { opacity:0; transform:scale(.3); } }
-  .v2-start .v2c-fuell, .v2-start .v2c-segmente i { animation:v2c-x .9s cubic-bezier(.2,.7,.2,1) .2s backwards; }
-  .v2-start .v2c-wsaeule i:not(.v2c-null) { animation:v2c-y .7s cubic-bezier(.2,.7,.2,1) backwards; }
-  .v2-start .v2c-punkt { animation:v2c-auf .45s cubic-bezier(.2,.7,.2,1) backwards; }
-  @media (prefers-reduced-motion:reduce) { .v2-start * { animation:none !important; } }
-
-  /* Liste */
-  .rr-body { background:transparent; padding:28px 2px 8px; }
-  .rr-head { align-items:center; margin-bottom:14px; padding-bottom:0; border-bottom:0; }
-  .rr-head h2 { font-size:17px; font-weight:700; letter-spacing:-.01em; color:#111827; }
-  .rr-head p { margin-top:3px; font-size:12.5px; font-weight:500; color:#6b7280; }
-  .rr-search { height:40px; padding:0 14px 0 38px; border:1px solid #d1d5db; border-radius:10px; background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%239ca3af' stroke-width='2' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='m20 20-3.5-3.5'/%3E%3C/svg%3E") 13px center/16px no-repeat; font-size:13.5px; color:#111827; min-width:320px; transition:border-color .15s ease, box-shadow .15s ease; }
-  .rr-search:focus { border-color:#111827; box-shadow:0 0 0 3px rgba(17,24,39,.10); }
-  .rr-search::placeholder { color:#9ca3af; }
-
-  .rr-toast { border-radius:10px; font-size:13px; font-weight:600; padding:11px 14px; }
-  .rr-toast.ok { background:#eff6ff; color:#1d4ed8; border:1px solid #dbeafe; }
-  .rr-toast.err { background:#fef2f2; color:#b91c1c; border:1px solid #fecaca; }
-
-  .rr-empty { background:#fff; border:1px dashed #e5e7eb; border-radius:14px; padding:40px 20px 36px; font-size:14px; font-weight:500; line-height:1.6; color:#6b7280; }
-  .rr-empty::before { content:""; display:block; width:28px; height:28px; margin:0 auto 12px; background:#9ca3af; -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2'/%3E%3C/svg%3E") center/contain no-repeat; mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2'/%3E%3C/svg%3E") center/contain no-repeat; }
-
-  .rr-auswahl { gap:12px; margin:0 0 12px; padding:8px 10px 8px 14px; background:#fff; border:1px solid #e5e7eb; border-radius:12px; box-shadow:0 1px 2px rgba(16,24,40,.04); font-size:13px; font-weight:600; color:#374151; }
-  #rrAnzahl { color:#6b7280; font-weight:500; font-variant-numeric:tabular-nums; margin-right:auto; }
-  .rr-sel { width:18px; height:18px; accent-color:#111827; }
-
-  .rr-list { gap:10px; }
-  .rr-card { background:#fff; border:1px solid #e5e7eb; border-radius:14px; padding:18px 20px; box-shadow:0 1px 2px rgba(16,24,40,.05); transition:border-color .15s ease, box-shadow .15s ease; }
-  .rr-card::before { display:none; }
-  .rr-card.ueberfaellig, .rr-card.heute { border-color:#e5e7eb; }
-  .rr-card:hover { border-color:#d1d5db; box-shadow:0 1px 2px rgba(16,24,40,.05), 0 10px 24px -18px rgba(16,24,40,.3); }
-  .rr-card.sel { border-color:#111827; box-shadow:0 0 0 1px #111827; }
-  .rr-card.erledigt { opacity:.55; }
-  .rr-grid { gap:20px 24px; }
-  .rr-firma-row { gap:10px; }
-  .rr-firma { font-size:16px; font-weight:700; letter-spacing:-.01em; color:#111827; }
-  .rr-adresse, .rr-tags { margin-left:28px; }
-  .rr-adresse { margin-top:4px; font-size:13px; font-weight:500; color:#6b7280; }
-  .rr-adresse i { color:#9ca3af; margin-right:2px; }
-  .rr-tags { margin-top:10px; gap:6px; }
-  .rr-tag { border:0; border-radius:6px; padding:3px 8px; font-size:12px; font-weight:600; background:#f3f4f6; color:#374151; }
-  .rr-tag i { color:#6b7280; }
-  .rr-label { margin-bottom:4px; font-size:12px; font-weight:600; letter-spacing:0; text-transform:none; color:#9ca3af; }
-  .rr-datum { font-size:14px; font-weight:600; color:#374151; }
-  .rr-zeit { margin-top:1px; font-size:20px; font-weight:800; letter-spacing:-.01em; color:#111827; }
-  .rr-badge { align-items:center; gap:6px; margin-top:8px; border:0; border-radius:6px; padding:3px 8px; font-size:12px; font-weight:700; }
-  .rr-badge::before { content:""; width:6px; height:6px; border-radius:50%; background:currentColor; }
-  .rr-badge.ueberfaellig { background:#fef2f2; color:#b91c1c; border:0; }
-  .rr-badge.heute { background:#fffbeb; color:#b45309; border:0; }
-  .rr-badge.woche { background:#eff6ff; color:#1d4ed8; border:0; }
-  .rr-kontakt { gap:7px; font-size:13px; font-weight:500; color:#374151; }
-  .rr-kontakt i { width:14px; color:#9ca3af; }
-  .rr-muted { color:#9ca3af; font-weight:500; }
-  .rr-actions { gap:8px; min-width:120px; }
-  .rr-btn { height:38px; padding:0 14px; border:1px solid transparent; border-radius:10px; font-size:13.5px; font-weight:700; transition:background-color .15s ease, border-color .15s ease, color .15s ease; }
-  .rr-btn.call { background:#111827; border-color:#111827; color:#fff; }
-  .rr-btn.call:hover:not(:disabled) { background:#000; border-color:#000; }
-  .rr-btn.done { background:#ecfdf5; border-color:#a7f3d0; color:#047857; }
-  .rr-btn.done:hover:not(:disabled) { background:#d1fae5; }
-  .rr-btn.link, .rr-btn.undo { background:#fff; border-color:#d1d5db; color:#111827; }
-  .rr-btn.link:hover, .rr-btn.undo:hover:not(:disabled) { background:#f9fafb; }
-  .rr-btn.loeschen { background:#fef2f2; border-color:#fecaca; color:#b91c1c; }
-  .rr-btn.loeschen:hover:not(:disabled) { background:#fee2e2; }
-  .rr-btn:disabled { opacity:.45; }
-  .rr-notiz { margin-top:14px; padding:12px 14px; background:#f9fafb; border:1px solid #f0f1f4; border-radius:10px; font-size:13px; font-weight:500; line-height:1.55; color:#374151; }
-  .rr-notiz strong { color:#111827; font-weight:700; }
-
-  @media (max-width:760px) {
-    .rr-hero, .rr-body { padding-left:0; padding-right:0; }
-    .rr-hero h1 { font-size:26px; }
-    .rr-stat-grid { gap:12px; }
-    .rr-stat { padding:14px 14px 12px; }
-    .rr-stat-value { font-size:26px; }
-    .rr-search { min-width:0; }
-    .rr-adresse, .rr-tags { margin-left:0; }
-  }
-
-  /* Dunkelmodus: Graphit-Flächen/-Rahmen sichtbar halten, Grafik-Spuren abdunkeln */
-  html[data-kg-x="on"] .rr-btn.call { background:#2563eb !important; border-color:#2563eb !important; color:#fff !important; }
-  html[data-kg-x="on"] .rr-btn.call:hover:not(:disabled) { background:#1d4ed8 !important; border-color:#1d4ed8 !important; }
-  html[data-kg-x="on"] .rr-stat.active { box-shadow:0 0 0 1px #60a5fa, 0 0 0 4px rgba(96,165,250,.16) !important; }
-  html[data-kg-x="on"] .rr-card.sel { box-shadow:0 0 0 1px #60a5fa !important; }
-  html[data-kg-x="on"] .rr-search:focus { box-shadow:0 0 0 2px rgba(96,165,250,.55) !important; }
-  html[data-kg-x="on"] .rr-sel { accent-color:#2563eb; }
-  html[data-kg-x="on"] .rr-today::before { background:#9ca3af; }
-  html[data-kg-x="on"] .v2c-spur, html[data-kg-x="on"] .v2c-tagspur, html[data-kg-x="on"] .v2c-segmente i.v2c-leer { background:rgba(148,163,184,.2); }
-  html[data-kg-x="on"] .v2c-wsaeule i.v2c-null { background:rgba(148,163,184,.3); }
-  html[data-kg-x="on"] .v2c-punkt { box-shadow:0 0 0 2px #111827; }
-  html[data-kg-x="on"] .v2c-jetzt { background:#e5e7eb; }
-  html[data-kg-x="on"] .v2c-wtag.ist-heute span { color:#e5e7eb; }
-  html[data-kg-x="on"] .v2c-legende { color:#9ca3af; }
-  {% endraw %}
 </style>
 
 <div class="rr-page">
   <section class="rr-hero">
     <div class="rr-hero-row">
       <div>
-        <div class="v2c-eyebrow" aria-hidden="true"><span class="v2c-quadrat"></span>Leon · Kundengewinnung</div>
         <h1><i class="fa-solid fa-phone-volume"></i> Rückrufe</h1>
         <p>Alle geplanten Rückrufe an einem Ort – von Leon aus dem Gespräch übernommen oder in der Datenbank eingetragen. Im Kalender stehen dieselben Termine.</p>
       </div>
       <div class="rr-today">Heute: {{ heute }}</div>
     </div>
 
-    <div class="rr-stat-grid v2-start" role="group" aria-label="Filter">
+    <div class="rr-stat-grid" role="group" aria-label="Filter">
       <button type="button" class="rr-stat" data-filter="ueberfaellig">
         <div class="rr-stat-label">Überfällig</div>
         <div class="rr-stat-value {% if stats.ueberfaellig %}red{% endif %}">{{ stats.ueberfaellig }}</div>
         <div class="rr-stat-sub">Termin verpasst</div>
-        <svg class="v2c-ico" viewBox="0 0 24 24" fill="none" stroke="#e11d48" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7.5v5.5M12 16.5v.01"/></svg>
-        <div class="v2c-viz" data-v2c-viz="ueberfaellig" data-kg-skip aria-hidden="true"></div>
       </button>
       <button type="button" class="rr-stat" data-filter="heute">
         <div class="rr-stat-label">Heute</div>
         <div class="rr-stat-value {% if stats.heute %}orange{% endif %}">{{ stats.heute }}</div>
         <div class="rr-stat-sub">heute anrufen</div>
-        <svg class="v2c-ico" viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.2 2"/></svg>
-        <div class="v2c-viz" data-v2c-viz="heute" data-kg-skip aria-hidden="true"></div>
       </button>
       <button type="button" class="rr-stat" data-filter="woche">
         <div class="rr-stat-label">Diese Woche</div>
         <div class="rr-stat-value">{{ stats.woche }}</div>
         <div class="rr-stat-sub">bis Sonntag</div>
-        <svg class="v2c-ico" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15.5" rx="2.5"/><path d="M8 3v4M16 3v4M3.5 10h17"/></svg>
-        <div class="v2c-viz" data-v2c-viz="woche" data-kg-skip aria-hidden="true"></div>
       </button>
       <button type="button" class="rr-stat active" data-filter="">
         <div class="rr-stat-label">Alle Rückrufe</div>
         <div class="rr-stat-value">{{ stats.gesamt }}</div>
         <div class="rr-stat-sub">offen</div>
-        <svg class="v2c-ico" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2"/></svg>
-        <div class="v2c-viz" data-v2c-viz="alle" data-kg-skip aria-hidden="true"></div>
       </button>
     </div>
   </section>
@@ -542,102 +389,4 @@ async function rueckgaengig(leadId, btn) {
   }
 }
 </script>
-{% raw %}
-<script>
-/* ===== PREMIUM V2 „Graphit“ – feine Grafiken in den Kennzahl-Karten (liest nur die Liste, ändert nichts) ===== */
-(function () {
-  'use strict';
-  var raster = document.querySelector('.rr-stat-grid');
-  if (!raster) return;
-  var FARBE = { ueberfaellig: '#e11d48', heute: '#d97706', woche: '#2563eb', spaeter: '#94a3b8' };
-  var NAME = { ueberfaellig: 'Überfällig', heute: 'Heute', woche: 'Diese Woche', spaeter: 'Später' };
-
-  function tagNr(j, m, t) { return Math.round(Date.UTC(j, m, t) / 864e5); }
-  function heuteNr() { var d = new Date(); return tagNr(d.getFullYear(), d.getMonth(), d.getDate()); }
-  function text(el) { return el ? (el.textContent || '') : ''; }
-
-  function lesen() {
-    return Array.prototype.map.call(document.querySelectorAll('#rrList .rr-card:not(.erledigt)'), function (k) {
-      var dt = /(\d{1,2})\.(\d{1,2})\.(\d{4})/.exec(text(k.querySelector('.rr-datum')));
-      var zt = /(\d{1,2}):(\d{2})/.exec(text(k.querySelector('.rr-zeit')));
-      var lage = k.getAttribute('data-lage') || '';
-      return {
-        lage: (lage === 'ueberfaellig' || lage === 'heute' || lage === 'woche') ? lage : 'spaeter',
-        tag: dt ? tagNr(+dt[3], +dt[2] - 1, +dt[1]) : null,
-        min: zt ? (+zt[1]) * 60 + (+zt[2]) : null
-      };
-    });
-  }
-
-  function anteil(n, gesamt, farbe) {
-    var p = gesamt ? Math.round(n / gesamt * 100) : 0;
-    return '<div class="v2c-anteil" title="' + n + ' von ' + gesamt + ' offenen Rückrufen">' +
-      '<div class="v2c-spur"><div class="v2c-fuell" style="width:' + p + '%;background:' + farbe + '"></div></div>' +
-      '<span class="v2c-proz">' + p + ' %</span></div>';
-  }
-
-  function tageslinie(liste) {
-    var von = 7 * 60, bis = 20 * 60, d = new Date(), jetzt = d.getHours() * 60 + d.getMinutes();
-    function pos(m) { return Math.max(0, Math.min(100, (m - von) / (bis - von) * 100)).toFixed(2); }
-    var punkte = liste.filter(function (x) { return x.min !== null; }).map(function (x, i) {
-      var hh = Math.floor(x.min / 60), mm = x.min % 60;
-      return '<i class="v2c-punkt" title="' + (hh < 10 ? '0' : '') + hh + ':' + (mm < 10 ? '0' : '') + mm + ' Uhr" style="left:' + pos(x.min) + '%;animation-delay:' + (0.25 + i * 0.07).toFixed(2) + 's"></i>';
-    }).join('');
-    var strich = (jetzt >= von && jetzt <= bis) ? '<b class="v2c-jetzt" title="Jetzt" style="left:' + pos(jetzt) + '%"></b>' : '';
-    return '<div><div class="v2c-tagspur">' + strich + punkte + '</div><div class="v2c-achse"><span>07:00</span><span>13:30</span><span>20:00</span></div></div>';
-  }
-
-  function woche(liste) {
-    var h = heuteNr(), mo = h - ((new Date().getDay() + 6) % 7), n = [0, 0, 0, 0, 0, 0, 0];
-    liste.forEach(function (x) { if (x.tag !== null && x.tag >= mo && x.tag < mo + 7) n[x.tag - mo] += 1; });
-    var max = Math.max.apply(null, n.concat([1]));
-    var kurz = ['M', 'D', 'M', 'D', 'F', 'S', 'S'], lang = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'];
-    return '<div class="v2c-woche">' + n.map(function (v, i) {
-      var tag = mo + i, farbe = tag < h ? FARBE.ueberfaellig : (tag === h ? FARBE.heute : FARBE.woche);
-      var saeule = v
-        ? '<i style="height:' + Math.max(4, Math.round(v / max * 22)) + 'px;background:' + farbe + ';animation-delay:' + (0.15 + i * 0.05).toFixed(2) + 's"></i>'
-        : '<i class="v2c-null"></i>';
-      return '<div class="v2c-wtag' + (tag === h ? ' ist-heute' : '') + '" title="' + lang[i] + ': ' + v + ' Rückruf' + (v === 1 ? '' : 'e') + '">' +
-        '<div class="v2c-wsaeule">' + saeule + '</div><span>' + kurz[i] + '</span></div>';
-    }).join('') + '</div>';
-  }
-
-  function verteilung(liste) {
-    var teile = ['ueberfaellig', 'heute', 'woche', 'spaeter'].map(function (k) {
-      return { k: k, n: liste.filter(function (x) { return x.lage === k; }).length };
-    });
-    var balken = liste.length
-      ? teile.filter(function (t) { return t.n; }).map(function (t) {
-          return '<i title="' + NAME[t.k] + ': ' + t.n + '" style="flex:' + t.n + ' 1 0;background:' + FARBE[t.k] + '"></i>';
-        }).join('')
-      : '<i class="v2c-leer"></i>';
-    var legende = teile.map(function (t) {
-      return '<span title="' + NAME[t.k] + '"><i style="background:' + FARBE[t.k] + '"></i>' + t.n + '</span>';
-    }).join('');
-    return '<div><div class="v2c-segmente">' + balken + '</div><div class="v2c-legende">' + legende + '</div></div>';
-  }
-
-  function zeichnen() {
-    var liste = lesen();
-    raster.querySelectorAll('.v2c-viz').forEach(function (v) {
-      var art = v.getAttribute('data-v2c-viz');
-      if (art === 'ueberfaellig') v.innerHTML = anteil(liste.filter(function (x) { return x.lage === 'ueberfaellig'; }).length, liste.length, FARBE.ueberfaellig);
-      else if (art === 'heute') v.innerHTML = tageslinie(liste.filter(function (x) { return x.lage === 'heute'; }));
-      else if (art === 'woche') v.innerHTML = woche(liste);
-      else v.innerHTML = verteilung(liste);
-    });
-  }
-
-  var warte = 0;
-  function bald() { clearTimeout(warte); warte = setTimeout(zeichnen, 30); }
-  // Zahlen oben ändern sich nach „Erledigt“/„Löschen“ – Grafiken ziehen dann mit
-  raster.querySelectorAll('.rr-stat-value').forEach(function (w) {
-    new MutationObserver(bald).observe(w, { childList: true, characterData: true, subtree: true });
-  });
-  zeichnen();
-  setTimeout(function () { raster.classList.remove('v2-start'); }, 1600);
-  setInterval(zeichnen, 300000);
-})();
-</script>
-{% endraw %}
 {% endblock %}
