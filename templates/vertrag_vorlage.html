@@ -1,410 +1,165 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Reinigungsvertrag{% if Objekt %} – {{ Objekt }}{% endif %}</title>
-  <!-- Reinigungsvertrag (Vorlage: Vertrag_Vorlage 1–4). Platzhalter kommen aus vertrag_editor.vorlage_vars. -->
+  <!-- Reinigungsvertrag nach dem Original „Vertrag_Vorlage.pdf“ (Stellen, Schrift, fett/blau, Logo, Stempel mit Unterschrift).
+       Platzhalter kommen aus vertrag_editor.vorlage_vars. -->
   <style>
-    :root { --vertrag-block-y: -9mm; }
     * { box-sizing: border-box; }
-    body { margin: 0; background: #dfe3e8; font-family: Arial, Helvetica, sans-serif; color: #000; font-size: 10pt; line-height: 1.22; }
-    .page { width: 210mm; height: 297mm; margin: 18px auto; background: #fff; position: relative; overflow: hidden; box-shadow: 0 8px 26px rgba(15, 23, 42, 0.22); }
-    .page-number { position: absolute; bottom: 5mm; right: 16mm; font-size: 10pt; text-align: right; }
-    .ph { color: #0000ee; font-weight: 700; white-space: nowrap; }
-    .ph.lst { white-space: normal; }
-
-    /* ---------- Seite 1 ---------- */
-    .vp1 { font-size: 10.5pt; line-height: 1.25; }
-    .vp1 .company-link { position: absolute; top: 15mm; left: 16mm; font-weight: 400; text-decoration: underline; font-size: 10.5pt; letter-spacing: 0.1px; }
-    .vp1 .top-logo { position: absolute; top: 13mm; left: 50%; transform: translateX(-50%); width: 46mm; text-align: center; line-height: 1; }
-    .vp1 .top-logo img { width: 46mm; height: auto; display: block; }
-    .vp1 .contact { position: absolute; top: 47mm; right: 16mm; width: 58mm; text-align: right; font-size: 10pt; line-height: 1.18; }
-    .vp1 .contact-title { font-weight: 700; margin-bottom: 2mm; }
-    .vp1 .contact a { color: #0000ee; text-decoration: underline; }
-    .vp1 .client-address { position: absolute; top: 90mm; left: 16mm; width: 55mm; font-size: 10pt; line-height: 1.1; color: #000; }
-    .vp1 .client-address .ph { font-weight: 400; }
-    .vp1 .date-top { position: absolute; top: 113mm; right: 16mm; font-size: 10pt; white-space: nowrap; color: #000; }
-    .vp1 .date-top .ph { font-weight: 400; }
-    .vp1 h1 { position: absolute; top: calc(142mm + var(--vertrag-block-y)); left: 0; width: 100%; margin: 0; text-align: center; font-size: 19pt; font-weight: 700; text-decoration: underline; line-height: 1; }
-    .vp1 .between { position: absolute; top: calc(155mm + var(--vertrag-block-y)); left: 0; width: 100%; text-align: center; font-size: 10pt; }
-    .vp1 .auftraggeber { position: absolute; top: calc(161mm + var(--vertrag-block-y)); left: 0; width: 100%; text-align: center; font-size: 10pt; line-height: 1.18; }
-    .vp1 .ag-role { position: absolute; top: calc(188mm + var(--vertrag-block-y)); left: 0; width: 100%; text-align: center; font-size: 10pt; }
-    .vp1 .und { position: absolute; top: calc(198mm + var(--vertrag-block-y)); left: 0; width: 100%; text-align: center; font-size: 10pt; font-weight: 700; }
-    .vp1 .middle-logo { position: absolute; top: calc(202mm + var(--vertrag-block-y)); left: 50%; transform: translateX(-50%); width: 25mm; text-align: center; line-height: 1; }
-    .vp1 .middle-logo img { width: 22mm; height: auto; display: block; }
-    .vp1 .auftragnehmer { position: absolute; top: calc(224mm + var(--vertrag-block-y)); left: 0; width: 100%; text-align: center; font-size: 10pt; line-height: 1.25; }
-    .vp1 .an-role { position: absolute; top: calc(254mm + var(--vertrag-block-y)); left: 0; width: 100%; text-align: center; font-size: 10pt; }
-    .vp1 .contract-text { position: absolute; top: 269mm; left: 16mm; width: 190mm; font-size: 9.6pt; line-height: 1.38; text-align: left; }
-    .vp1 .ph { color: #000; font-weight: 700; white-space: nowrap; }
-    .vp1 .ph.lst { white-space: normal; }
-    .vp1 .contract-text .ph { color: #0000ee; }
-
-    /* ---------- Seite 2 ---------- */
-    .vp2 .content { position: absolute; top: 15mm; left: 16mm; width: 178mm; font-size: 9.7pt; line-height: 1.22; }
-    .vp2 h2 { font-size: 10.4pt; margin: 0 0 2.3mm 0; padding: 0; font-weight: 700; }
-    .vp2 .section { margin-bottom: 4.2mm; }
-    .vp2 .item { display: flex; align-items: flex-start; gap: 2mm; margin-bottom: 2mm; }
-    .vp2 .nr { width: 5mm; flex: 0 0 5mm; }
-    .vp2 .txt { flex: 1; }
-
-    /* ---------- Seite 3 ---------- */
-    .vp3 .content { position: absolute; top: 15mm; left: 16mm; width: 178mm; font-size: 9.35pt; line-height: 1.18; }
-    .vp3 h2 { font-size: 10.4pt; margin: 0 0 2.1mm 0; padding: 0; font-weight: 700; }
-    .vp3 .section { margin-bottom: 3.6mm; }
-    .vp3 .item { display: flex; align-items: flex-start; gap: 2mm; margin-bottom: 1.8mm; }
-    .vp3 .nr { width: 5mm; flex: 0 0 5mm; }
-    .vp3 .txt { flex: 1; }
-    .vp3 .price-block { margin: 2.5mm 0 2.5mm 7mm; width: 150mm; }
-    .vp3 .price-row { display: grid; grid-template-columns: 1.45fr 0.8fr 1.35fr; column-gap: 4mm; margin-bottom: 1.7mm; align-items: baseline; }
-    .vp3 .price-row > div { white-space: nowrap; }
-    .vp3 .price-row > div:first-child { white-space: normal; }
-    .vp3 .payment-text { margin-left: 7mm; margin-top: 1mm; }
-
-    /* ---------- Seite 4 ---------- */
-    .vp4 .content { position: absolute; top: 14mm; left: 16mm; width: 178mm; font-size: 9.7pt; line-height: 1.24; }
-    .vp4 h2 { font-size: 10.4pt; margin: 0 0 3.2mm 0; padding: 0; font-weight: 700; text-align: center; }
-    .vp4 .section { margin-bottom: 8mm; }
-    .vp4 .item { display: flex; align-items: flex-start; gap: 3mm; margin-bottom: 2.3mm; }
-    .vp4 .nr { width: 5mm; flex: 0 0 5mm; font-weight: 400; }
-    .vp4 .txt { flex: 1; text-align: left; }
-    .vp4 .signature-area { position: absolute; left: 16mm; right: 16mm; top: 228mm; font-size: 10pt; }
-    .vp4 .signature-row { display: grid; grid-template-columns: 1fr 1fr; column-gap: 22mm; align-items: end; margin-bottom: 26mm; }
-    .vp4 .date-line { font-weight: 700; }
-    .vp4 .sign-box { position: relative; text-align: right; }
-    .vp4 .auftraggeber-stamp-img { position: absolute; right: 0mm; bottom: 8mm; width: 72mm; height: auto; pointer-events: none; z-index: 2; }
-    .vp4 .sign-line { display: inline-block; width: 72mm; border-bottom: 1px solid #000; text-align: left; padding-bottom: 1mm; }
-    .vp4 .sign-label { width: 72mm; margin-left: auto; margin-top: 1.5mm; text-align: right; font-weight: 700; }
-
+    body { margin: 0; background: #dfe3e8; }
+    .page { width: 210mm; height: 297mm; margin: 18px auto; background: #fff; position: relative; overflow: hidden;
+             box-shadow: 0 8px 26px rgba(15, 23, 42, .22); font-family: Arial, "Liberation Sans", Helvetica, sans-serif;
+             font-size: 10pt; line-height: 4.9mm; color: #000; }
+    .abs { position: absolute; white-space: nowrap; }
+    .abs[style*="width"] { white-space: normal; }
+    .rechts { text-align: right; }
+    .mitte { left: 17.8mm; width: 176.8mm; text-align: center; white-space: normal; }
+    .zeilen42 { line-height: 4.2mm; }
+    .kopfzeile { font-size: 12pt; text-decoration: underline; }
+    .titel { font-size: 20pt; line-height: 8mm; font-weight: 700; text-decoration: underline; }
+    .bl { color: #0000ff; }
+    .seitennr { font-size: 12pt; }
+    .spalte { position: absolute; }
+    .spalte h2 { width: 173.8mm; font-size: 10pt; line-height: 4.9mm; font-weight: 700; text-align: center; }
+    .it { display: flex; }
+    .it > b { flex: none; width: 9.3mm; }
+    .it > p { flex: 1; margin: 0; text-align: justify; }
+    .preise { margin: 8.5mm 0 0 0.9mm; line-height: 4.2mm; }
+    .preis { display: grid; grid-template-columns: 85.7mm 43.1mm 23.5mm auto; }
+    .preis > span:first-child { padding-right: 3mm; }
+    .zahlung { margin-left: 10.3mm; line-height: 4.2mm; }
+    .strich { border-bottom: .35mm solid #000; line-height: 3.9mm; }
     @page { size: A4 portrait; margin: 0; }
     @media print {
       body { background: #fff; }
-      .page { margin: 0; box-shadow: none; width: 210mm; height: 297mm; break-after: page; page-break-after: always; }
+      .page { margin: 0; box-shadow: none; break-after: page; page-break-after: always; }
       .page:last-of-type { break-after: auto; page-break-after: auto; }
     }
   </style>
 </head>
 <body>
-  <main class="page vp1">
-    <div class="company-link">KG-Gebäudereinigung - Duisburg</div>
-
-    <div class="top-logo">
-      <img src="{{ url_for('static', filename='KG Yeni Logo.png') }}" alt="KG-Gebäudereinigung Logo">
-    </div>
-
-    <div class="contact">
-      <div class="contact-title">Kontakt:</div>
+  <main class="page s1">
+    <div class="abs kopfzeile" style="left:19.3mm;top:11.6mm">KG-Gebäudereinigung - Duisburg</div>
+    <img class="abs" src="{{ url_for('static', filename='vertrag/kg_logo.jpg') }}" alt="KG-Gebäudereinigung" style="left:147.7mm;top:9.6mm;width:44.8mm;height:44.8mm">
+    <div class="abs rechts zeilen42" style="right:22.5mm;top:56.3mm">
+      <div><b>Kontakt:</b></div>
       <div>Fliederstraße 59</div>
       <div>47055 Duisburg</div>
       <div>Telefon: 0203 47 96 68 22</div>
       <div>Mobil: 0163 194 70 55</div>
-      <div>Email: <a href="mailto:info@kg-reinigung.de">info@kg-reinigung.de</a></div>
-      <div>Webseite: <a href="https://www.kg-reinigung.de">www.kg-reinigung.de</a></div>
+      <div>Email: <span class="bl">info@kg-reinigung.de</span></div>
+      <div>Webseite: <span class="bl">www.kg-reinigung.de</span></div>
     </div>
-
-    <div class="client-address">
-      {% if Objekt %}<div><span class="ph">{{Objekt}}</span></div>{% endif %}
-      {% if Kunde %}<div><span class="ph">{{Kunde}}</span></div>{% endif %}
-      {% if Adresse %}<div><span class="ph">{{Adresse}}</span></div>{% endif %}
-      <div><span class="ph">{{Plz}}</span> <span class="ph">{{Ort}}</span></div>
+    <div class="abs zeilen42" style="left:17.8mm;top:94.0mm;width:80mm">
+      {% if Objekt %}<div>{{ Objekt }}</div>{% endif %}
+      {% if Kunde %}<div>{{ Kunde }}</div>{% endif %}
+      {% if Adresse %}<div>{{ Adresse }}</div>{% endif %}
+      <div>{{ Plz }} {{ Ort }}</div>
     </div>
-
-    <div class="date-top"><span class="ph">{{Ort}}</span>, <span class="ph">{{Datum}}</span></div>
-
-    <h1>Reinigungsvertrag</h1>
-
-    <div class="between">Zwischen</div>
-
-    <div class="auftraggeber">
-      <div><span class="ph">{{Objekt}}</span></div>
-      <div><span class="ph">{{Adresse}}</span></div>
-      <div><span class="ph">{{Plz}}</span> <span class="ph">{{Ort}}</span></div>
+    <div class="abs rechts" style="right:30.7mm;top:124.0mm">{{ Ort }}, {{ Datum }}</div>
+    <div class="abs mitte titel" style="top:136.1mm">Reinigungsvertrag</div>
+    <div class="abs mitte zeilen42" style="top:148.7mm">
+      <div>Zwischen</div>
+      <div>{{ Objekt }}</div>
+      <div>{{ Adresse }}</div>
+      <div>{{ Plz }} {{ Ort }}</div>
     </div>
-
-    <div class="ag-role">-nachfolgend Auftraggeber- genannt</div>
-
-    <div class="und">und</div>
-
-    <div class="middle-logo">
-      <img src="{{ url_for('static', filename='KG Yeni Logo.png') }}" alt="KG-Gebäudereinigung Logo">
-    </div>
-
-    <div class="auftragnehmer">
-      <div><strong>KG-Gebäudereinigung</strong></div>
+    <div class="abs mitte" style="top:184.7mm">-nachfolgend Auftraggeber- genannt</div>
+    <div class="abs mitte" style="top:193.1mm">und</div>
+    <img class="abs" src="{{ url_for('static', filename='vertrag/kg_logo.jpg') }}" alt="KG-Gebäudereinigung" style="left:95.0mm;top:203.1mm;width:20.1mm;height:20.1mm">
+    <div class="abs mitte" style="top:225.2mm">
+      <div><b>KG-Gebäudereinigung</b></div>
       <div>Frau Damla Kicci</div>
       <div>-Inhaberin-</div>
       <div>Fliederstraße 59</div>
       <div>47055 Duisburg</div>
     </div>
-
-    <div class="an-role">-nachfolgend Auftragnehmer- genannt</div>
-
-    <div class="contract-text">
-      wird über folgendes <strong>Objekt:</strong>
-      <span class="ph">{{Adresse}}</span>,
-      <span class="ph">{{Plz}}</span>
-      <span class="ph">{{Ort}}</span>
-      ein Reinigungsvertrag für die
-      {% for l in leistungen_satz %}{% if not loop.first %}{{ ' und' if loop.last else ',' }} {% endif %}<span class="ph lst">{{ l }}</span>{% endfor %}
-      abgeschlossen.
-    </div>
-
-    <div class="page-number">Seite 1/4</div>
+    <div class="abs mitte" style="top:254.9mm">-nachfolgend Auftragnehmer- genannt</div>
+    <div class="abs" style="left:22.0mm;top:264.7mm;width:172mm">wird über folgendes <b>Objekt: {{ Adresse }}, {{ Plz }} {{ Ort }}</b> ein Reinigungsvertrag für die {% for l in leistungen_satz %}{% if not loop.first %} und {% endif %}<span class="bl">{{ l }}</span>{% endfor %} abgeschlossen.</div>
+    <div class="abs seitennr" style="left:17.8mm;top:277.7mm">1</div>
   </main>
 
-  <main class="page vp2">
-    <div class="content">
-      <div class="section">
-        <h2>§ 1 Vertragsgegenstand</h2>
-        <div class="item">
-          <div class="nr">1.</div>
-          <div class="txt">Der Auftragnehmer übernimmt die Reinigungsarbeiten im Objekt: <span class="ph">{{Adresse}}</span>, <span class="ph">{{Plz}}</span> <span class="ph">{{Ort}}</span></div>
-        </div>
-        <div class="item">
-          <div class="nr">2.</div>
-          <div class="txt">Art und Umfang der Leistungen bestimmen sich nach dem anliegenden Leistungsverzeichnis gemäß Anlage 1, das einen Bestandteil dieses Vertrages bildet.</div>
-        </div>
-      </div>
-
-      <div class="section">
-        <h2>§ 2 Vertragsdauer und Kündigung</h2>
-        <div class="item">
-          <div class="nr">1.</div>
-          <div class="txt">Der Vertrag tritt ab dem <span class="ph">{{Startdatum}}</span> in Kraft.</div>
-        </div>
-        <div class="item">
-          <div class="nr">2.</div>
-          <div class="txt">Der Vertrag kann mit einer Frist von drei Monaten vom Auftraggeber oder Auftragnehmer gekündigt werden. Die Reinigungsarbeiten werden nach Einreichung einer schriftlichen Kündigung noch drei Monate bis zum Ende des dritten Monats erfolgen. Für diesen Zeitraum sind die Rechnungsbeträge in voller Höhe fällig. Die Rechnungssumme für die letzten drei Monate und bis einschließlich Ende des dritten Monats der Kündigungsfrist ist in voller Höhe zu zahlen - unabhängig davon, ob die Reinigungsleistungen tatsächlich aktiv bis zum Ende des dritten Monats in Anspruch genommen werden oder nicht und ob der Vertrag aufgrund von Meinungsverschiedenheiten oder sonstigen Gründen faktisch nicht weitergeführt wird. Eine vorzeitige Beendigung oder Aussetzung der Leistungen entbindet den Auftraggeber nicht von der Zahlungspflicht für diesen Zeitraum.</div>
-        </div>
-        <div class="item">
-          <div class="nr">3.</div>
-          <div class="txt">Die Probezeit ist 1 Monat. Innerhalb des Zeitraums kann eine schriftliche Kündigung beiderseits eingereicht werden, so dass die Reinigungsarbeiten sofort beendet werden.</div>
-        </div>
-        <div class="item">
-          <div class="nr">4.</div>
-          <div class="txt">Eine ordentliche oder außerordentliche Kündigung dieses Vertrages ist nur wirksam, wenn sie schriftlich erfolgt.</div>
-        </div>
-      </div>
-
-      <div class="section">
-        <h2>§ 3 Ausführung der Reinigung</h2>
-        <div class="item">
-          <div class="nr">1.</div>
-          <div class="txt">Die Reinigungsarbeiten erfolgen an den Wochentagen: <span class="ph">{{Wochentagen}}</span> die genauen Reinigungstage und dessen Inhalt ist dem Leistungsverzeichnis in Anlage 1 zu entnehmen.</div>
-        </div>
-        <div class="item">
-          <div class="nr">2.</div>
-          <div class="txt">Die Arbeiten werden jeweils <span class="ph">{{Zeiten}}</span> durchgeführt.</div>
-        </div>
-        <div class="item">
-          <div class="nr">3.</div>
-          <div class="txt">Der Auftragnehmer darf Reinigungsarbeiten nur mit vorheriger schriftlicher Zustimmung des Auftraggebers an Nachunternehmen vergeben werden. Für einen Nachunternehmer haftet der Auftragnehmer in gleicher Weise wie für seine eigenen Arbeitskräfte.</div>
-        </div>
-        <div class="item">
-          <div class="nr">4.</div>
-          <div class="txt">Mehr- und Sonderleistungen aufgrund besonderer Ereignisse dürfen nur mit vorheriger Zustimmung des Auftraggebers vorgenommen werden. Diese werden für diesen Fall gesondert berechnet.</div>
-        </div>
-        <div class="item">
-          <div class="nr">5.</div>
-          <div class="txt">Der Auftragnehmer verpflichtet sich, auf Verlangen des Auftraggebers zusätzliche Reinigungsflächen in dem unter §1 aufgeführten Reinigungsobjekt zu übernehmen. Für diese zusätzlichen Flächen gelten entsprechend die dem Vergütungsangebot zu Grunde liegenden Konditionen.</div>
-        </div>
-      </div>
-
-      <div class="section">
-        <h2>§ 4 Gestellung von Maschinen, Geräten und Materialien</h2>
-        <div class="item">
-          <div class="nr">1.</div>
-          <div class="txt">Alle für die Durchführung der Reinigungsarbeiten benötigten Maschinen, Geräte und Materialien stellt der Auftragnehmer. Dem Auftragnehmer werden Abstellräume für die Verwahrung der Personalbekleidung, der Maschinen, Geräte und Materialien kostenlos zur Verfügung gestellt. Für die in den Räumen abgestellten Gegenstände übernimmt der Auftraggeber keine Haftung.</div>
-        </div>
-        <div class="item">
-          <div class="nr">2.</div>
-          <div class="txt">Es dürfen nur solche Reinigungsmethoden angewandt und nur solche Materialien verwendet werden, die umweltfreundlich und nicht zu einer Beschädigung der zu behandelnden Flächen oder Einrichtungen führen können. Der Auftraggeber behält sich vor, die Anwendung bestimmter Reinigungsverfahren oder die Verwendung bestimmter Reinigungs- oder Pflegemittel zu verlangen oder zu untersagen.</div>
-        </div>
-        <div class="item">
-          <div class="nr">3.</div>
-          <div class="txt">Für die Durchführungen der Reinigungsarbeiten verwendete elektrische Maschinen und Geräte müssen den VDE-Vorschriften entsprechen und sich in einwandfreiem Zustand befinden.</div>
-        </div>
-      </div>
-
-      <div class="section">
-        <h2>§ 5 Einsatz der Reinigungskräfte</h2>
-        <div class="item">
-          <div class="nr">1.</div>
-          <div class="txt">Durch den An- und Abtransport des Reinigungspersonals darf der ordnungsgemäße Betriebsablauf nicht gestört werden. Nach Beendigung der Reinigungsarbeiten haben sämtliche Reinigungskräfte den Betrieb des Auftraggebers geschlossen zu verlassen.</div>
-        </div>
-      </div>
+  <main class="page s2">
+    <div class="spalte" style="left:15.6mm;width:178.2mm;top:10.4mm">
+      <h2 style="margin-top:0mm;margin-bottom:3.6mm">§ 1 Vertragsgegenstand</h2>
+      <div class="it"><b>1.</b><p>Der Auftragnehmer übernimmt die Reinigungsarbeiten im Objekt: <span class="bl">{{ Adresse }}, {{ Plz }} {{ Ort }}</span></p></div>
+      <div class="it"><b>2.</b><p>Art und Umfang der Leistungen bestimmen sich nach dem anliegenden Leistungsverzeichnis gemäß Anlage 1, das einen Bestandteil dieses Vertrages bildet.</p></div>
+      <h2 style="margin-top:4.3mm;margin-bottom:3.6mm">§ 2 Vertragsdauer und Kündigung</h2>
+      <div class="it"><b>1.</b><p>Der Vertrag tritt ab dem <span class="bl">{{ Startdatum }}</span> in Kraft.</p></div>
+      <div class="it"><b>2.</b><p>Der Vertrag kann mit einer Frist von <span class="bl">drei Monaten vom Auftraggeber oder Auftragnehmer</span> gekündigt werden. Die Reinigungsarbeiten werden nach Einreichung einer <b>schriftlichen</b> Kündigung <b>noch drei Monate bis zum Ende des dritten Monats</b> erfolgen. Für diesen Zeitraum sind die Rechnungsbeträge in voller Höhe fällig. Die Rechnungssumme für die letzten drei Monate und bis einschließlich Ende des dritten Monats der Kündigungsfrist ist in voller Höhe zu zahlen - unabhängig davon, ob die Reinigungsleistungen tatsächlich aktiv bis zum Ende des dritten Monats in Anspruch genommen werden oder nicht und ob der Vertrag aufgrund von Meinungsverschiedenheiten oder sonstigen Gründen faktisch nicht weitergeführt wird. Eine vorzeitige Beendigung oder Aussetzung der Leistungen entbindet den Auftraggeber nicht von der Zahlungspflicht für diesen Zeitraum.</p></div>
+      <div class="it"><b>3.</b><p><span class="bl">Die Probezeit ist 1 Monat.</span> Innerhalb des Zeitraums kann eine <b>schriftliche</b> Kündigung beiderseits eingereicht werden, so dass die Reinigungsarbeiten <b>sofort</b> beendet werden.</p></div>
+      <div class="it"><b>4.</b><p>Eine ordentliche oder außerordentliche Kündigung dieses Vertrages ist nur wirksam, wenn sie schriftlich erfolgt.</p></div>
+      <h2 style="margin-top:4.3mm;margin-bottom:3.6mm">§ 3 Ausführung der Reinigung</h2>
+      <div class="it"><b>1.</b><p>Die Reinigungsarbeiten erfolgen an den <span class="bl">Wochentagen:</span> <span class="bl">{{ Wochentagen }}</span> die genauen Reinigungstage und dessen Inhalt ist dem Leistungsverzeichnis in Anlage 1 zu entnehmen.</p></div>
+      <div class="it"><b>2.</b><p>Die Arbeiten werden jeweils <span class="bl">{{ Zeiten }}</span> durchgeführt.</p></div>
+      <div class="it"><b>3.</b><p>Der Auftragnehmer darf Reinigungsarbeiten nur mit vorheriger schriftlicher Zustimmung des Auftraggebers an Nachunternehmen vergeben werden. Für einen Nachunternehmer haftet der Auftragnehmer in gleicher Weise wie für seine eigenen Arbeitskräfte.</p></div>
+      <div class="it"><b>4.</b><p>Mehr- und Sonderleistungen aufgrund besonderer Ereignisse dürfen nur mit vorheriger Zustimmung des Auftraggebers vorgenommen werden. Diese werden für diesen Fall gesondert berechnet.</p></div>
+      <div class="it"><b>5.</b><p>Der Auftragnehmer verpflichtet sich, auf Verlangen des Auftraggebers zusätzliche Reinigungsflächen in dem unter §1 aufgeführten Reinigungsobjekt zu übernehmen. Für diese zusätzlichen Flächen gelten entsprechend die dem Vergütungsangebot zu Grunde liegenden Konditionen.</p></div>
+      <h2 style="margin-top:4.3mm;margin-bottom:3.6mm">§ 4 Gestellung von Maschinen, Geräten und Materialien</h2>
+      <div class="it"><b>1.</b><p>Alle für die Durchführung der Reinigungsarbeiten benötigten Maschinen, Geräte und Materialien stellt der Auftragnehmer. Dem Auftragnehmer werden Abstellräume für die Verwahrung der Personalbekleidung, der Maschinen, Geräte und Materialien kostenlos zur Verfügung gestellt. Für die in den Räumen abgestellten Gegenstände übernimmt der Auftraggeber keine Haftung.</p></div>
+      <div class="it"><b>2.</b><p>Es dürfen nur solche Reinigungsmethoden angewandt und nur solche Materialien verwendet werden, die umweltfreundlich und nicht zu einer Beschädigung der zu behandelnden Flächen oder Einrichtungen führen können. Der Auftraggeber behält sich vor, die Anwendung bestimmter Reinigungsverfahren oder die Verwendung bestimmter Reinigungs- oder Pflegemittel zu verlangen oder zu untersagen.</p></div>
+      <div class="it"><b>3.</b><p>Für die Durchführungen der Reinigungsarbeiten verwendete elektrische Maschinen und Geräte müssen den VDE-Vorschriften entsprechen und sich in einwandfreiem Zustand befinden.</p></div>
+      <h2 style="margin-top:8.9mm;margin-bottom:3.6mm">§ 5 Einsatz der Reinigungskräfte</h2>
+      <div class="it"><b>1.</b><p>Durch den An- und Abtransport des Reinigungspersonals darf der ordnungsgemäße Betriebsablauf nicht gestört werden. Nach Beendigung der Reinigungsarbeiten haben sämtliche Reinigungskräfte den Betrieb des Auftraggebers geschlossen zu verlassen.</p></div>
     </div>
-
-    <div class="page-number">Seite 2/4</div>
+    <div class="abs seitennr" style="left:17.4mm;top:277.1mm">2</div>
   </main>
 
-  <main class="page vp3">
-    <div class="content">
-      <div class="section">
-        <div class="item">
-          <div class="nr">1.</div>
-          <div class="txt">Der Auftragnehmer setzt die für eine gute und sachgemäße Reinigung erforderlichen Arbeitskräfte sowie die für eine ordnungsgemäße Kontrolle notwendigen Aufsichtspersonen ein. Durch Personalausfälle dürfen die Reinigungsarbeiten nicht beeinträchtigt werden.</div>
-        </div>
-        <div class="item">
-          <div class="nr">2.</div>
-          <div class="txt">Der Auftragnehmer darf nur fachkundige, zuverlässige und gesunde Arbeitskräfte einsetzen. Der Auftraggeber ist berechtigt, das eingesetzte Personal auf seine Zuverlässigkeit zu überprüfen und bestimmte Personen ohne Angabe von Gründen abzulehnen.</div>
-        </div>
+  <main class="page s3">
+    <div class="spalte" style="left:16.5mm;width:177.4mm;top:9.3mm">
+      <div class="it"><b>1.</b><p>Der Auftragnehmer setzt die für eine gute und sachgemäße Reinigung erforderlichen Arbeitskräfte sowie die für eine ordnungsgemäße Kontrolle notwendigen Aufsichtspersonen ein. Durch Personalausfälle dürfen die Reinigungsarbeiten nicht beeinträchtigt werden.</p></div>
+      <div class="it"><b>2.</b><p>Der Auftragnehmer darf nur fachkundige, zuverlässige und gesunde Arbeitskräfte einsetzen. Der Auftraggeber ist berechtigt, das eingesetzte Personal auf seine Zuverlässigkeit zu überprüfen und bestimmte Personen ohne Angabe von Gründen abzulehnen.</p></div>
+      <h2 style="margin-top:3.9mm;margin-bottom:4.3mm">§ 6 Verschwiegenheitspflicht</h2>
+      <div class="it"><b>1.</b><p>Der Auftragnehmer hat sämtliche zum Einsatz kommenden Reinigungskräfte und Aufsichtspersonen schriftlich zur Verschwiegenheit hinsichtlich aller Wahrnehmungen zu verpflichten, die sie in den Räumen des Auftraggebers machen. Er hat ihnen ferner schriftlich zu untersagen, Einblick in Schriftstücke oder Aufzeichnungen der Betriebsangehörigen des Auftraggebers zu nehmen sowie hiervon Abschriften, Ablichtungen o.ä. zu fertigen.</p></div>
+      <div class="it"><b>2.</b><p>Reinigungskräfte und Aufsichtspersonen, die gegen diese Verpflichtungen verstoßen, hat der Auftragnehmer sogleich durch geeignete andere Personen zu ersetzen.</p></div>
+      <h2 style="margin-top:0mm;margin-bottom:4.3mm">§ 7 Vergütung</h2>
+      <div class="it"><b>1.</b><p>Die Vergütung für die nach dem Leistungsverzeichnis gemäß Anlage 1 auszuführenden Reinigungsarbeiten beträgt für die:</p></div>
+      <div class="preise">
+        {% for p in preise %}
+        <div class="preis"><span>{{ p.Leistung }}</span><span class="bl">{{ p.Einheiten }}</span><span class="bl">{{ p.Preis }}</span><span class="bl">inkl. Mwst.</span></div>
+        {% endfor %}
       </div>
-
-      <div class="section">
-        <h2>§ 6 Verschwiegenheitspflicht</h2>
-        <div class="item">
-          <div class="nr">1.</div>
-          <div class="txt">Der Auftragnehmer hat sämtliche zum Einsatz kommenden Reinigungskräfte und Aufsichtspersonen schriftlich zur Verschwiegenheit hinsichtlich aller Wahrnehmungen zu verpflichten, die sie in den Räumen des Auftraggebers machen. Er hat ihnen ferner schriftlich zu untersagen, Einblick in Schriftstücke oder Aufzeichnungen der Betriebsangehörigen des Auftraggebers zu nehmen sowie hiervon Abschriften, Ablichtungen o.ä. zu fertigen.</div>
-        </div>
-        <div class="item">
-          <div class="nr">2.</div>
-          <div class="txt">Reinigungskräfte und Aufsichtspersonen, die gegen diese Verpflichtungen verstoßen, hat der Auftragnehmer sogleich durch geeignete andere Personen zu ersetzen.</div>
-        </div>
-      </div>
-
-      <div class="section">
-        <h2>§ 7 Vergütung</h2>
-        <div class="item">
-          <div class="nr">1.</div>
-          <div class="txt">Die Vergütung für die nach dem Leistungsverzeichnis gemäß Anlage 1 auszuführenden Reinigungsarbeiten beträgt für die:</div>
-        </div>
-
-        <div class="price-block">
-          {% for p in preise %}
-          <div class="price-row">
-            <div><span class="ph lst">{{ p.Leistung }}</span></div>
-            <div><span class="ph">{{ p.Einheiten }}</span></div>
-            <div><span class="ph">{{ p.Preis }}</span> inkl. MwSt.</div>
-          </div>
-          {% endfor %}
-        </div>
-
-        <div class="payment-text">
-          Die Vergütung wird 7 Tage nach Erhalt der Rechnung per Überweisung beglichen oder per SEPA Lastschrift bezahlt.<br>
-          Bei verspäteter Zahlung darf der Auftragnehmer für jede schriftliche Mahnung eine Gebühr von 10,00 € erheben.
-        </div>
-      </div>
-
-      <div class="section">
-        <h2>§ 8 Anpassung der Vergütung</h2>
-        <div class="item">
-          <div class="nr">1.</div>
-          <div class="txt">Werden nach Vertragsabschluss Lohnerhöhungen für die Arbeitskräfte des Auftragnehmers tariflich vereinbart oder werden sonstige tarifliche Vereinbarungen getroffen, die sich auf die Lohnkosten des Auftragnehmers unmittelbar auswirken, so ist der Auftragnehmer berechtigt eine angemessene Erhöhung der Vergütung vorzunehmen. Bei Bedarf einer Preisänderung (wie bei einer "Coronasituation") wird gegenseitig abgesprochen.</div>
-        </div>
-        <div class="item">
-          <div class="nr">2.</div>
-          <div class="txt">Basierend auf den allgemeinen Kostensteigerungen und gemäß dem Verbraucherpreisindex wird der vereinbarte Preis jährlich dementsprechend angepasst.</div>
-        </div>
-        <div class="item">
-          <div class="nr">3.</div>
-          <div class="txt">Die vereinbarte monatliche Zahlung ist unabhängig von Feiertagen, Weihnachts- und Betriebsferien oder sonstigen arbeitsfreien Tagen zu leisten. Diese Zahlung stellt eine pauschale Monatsvergütung dar und ist nicht an die tatsächliche Anzahl der geleisteten Arbeitstage gebunden.</div>
-        </div>
-      </div>
-
-      <div class="section">
-        <h2>§ 9 Mehrarbeiten</h2>
-        <div class="item">
-          <div class="nr">1.</div>
-          <div class="txt">Für Reinigungsarbeiten, die durch kleinere bauliche Instandsetzungen und Schönheitsreparaturen im Betriebsgebäude anfallen, hat der Auftraggeber eine zusätzliche Vergütung nicht zu leisten. Dasselbe gilt, wenn aus anderen Gründen, z.B. infolge des Umzugs einzelner Betriebsabteilungen, die zu reinigenden Flächen und Gegenstände stärker als gewöhnlich verschmutzt sind.</div>
-        </div>
-        <div class="item">
-          <div class="nr">2.</div>
-          <div class="txt">Darüber hinaus notwendige Mehrarbeiten kann der Auftragnehmer nicht ablehnen. Art, Umfang und Vergütung sind von Fall zu Fall zu vereinbaren.</div>
-        </div>
-      </div>
+      <div class="zahlung" style="margin-top:{{ (5 - preise|length) * 4.2 + 12.7 if preise|length < 5 else 12.7 }}mm">Die Vergütung wird <b>7 Tage</b> nach Erhalt der Rechnung <b>per Überweisung</b> beglichen oder<br><b>per SEPA Lastschrift</b>&nbsp; bezahlt.<br>Bei verspäteter Zahlung darf der Auftragnehmer für jede schriftliche Mahnung eine Gebühr von <b>10,00 €</b><br>erheben.</div>
+      <h2 style="margin-top:0mm;margin-bottom:3.5mm">§ 8 Anpassung der Vergütung</h2>
+      <div class="it"><b>1.</b><p>Werden nach Vertragsabschluss Lohnerhöhungen für die Arbeitskräfte des Auftragnehmers tariflich vereinbart oder werden sonstige tarifliche Vereinbarungen getroffen, die sich auf die Lohnkosten des Auftragnehmers unmittelbar auswirken, so ist der Auftragnehmer berechtigt eine angemessene Erhöhung der Vergütung vorzunehmen. Bei Bedarf einer Preisänderung (wie bei einer "Coronasituation") wird gegenseitig abgesprochen.</p></div>
+      <div class="it"><b>2.</b><p>Basierend auf den allgemeinen Kostensteigerungen und gemäß dem Verbraucherpreisindex wird der vereinbarte Preis jährlich dementsprechend angepasst.</p></div>
+      <div class="it"><b>3.</b><p>Die vereinbarte monatliche Zahlung ist unabhängig von Feiertagen, Weihnachts- und Betriebsferien oder sonstigen arbeitsfreien Tagen zu leisten. Diese Zahlung stellt eine pauschale Monatsvergütung dar und ist nicht an die tatsächliche Anzahl der geleisteten Arbeitstage gebunden.</p></div>
+      <h2 style="margin-top:0mm;margin-bottom:3.6mm">§ 9 Mehrarbeiten</h2>
+      <div class="it"><b>1.</b><p>Für Reinigungsarbeiten, die durch <u>kleinere</u> bauliche Instandsetzungen und Schönheitsreparaturen im Betriebsgebäude anfallen, hat der Auftraggeber eine zusätzliche Vergütung nicht zu leisten. Dasselbe gilt, wenn aus anderen Gründen, z.B. infolge des Umzugs einzelner Betriebsabteilungen, die zu reinigenden Flächen und Gegenstände stärker als gewöhnlich verschmutzt sind.</p></div>
+      <div class="it"><b>2.</b><p>Darüber hinaus notwendige Mehrarbeiten kann der Auftragnehmer nicht ablehnen. Art, Umfang und Vergütung sind von Fall zu Fall zu vereinbaren.</p></div>
     </div>
-
-    <div class="page-number">Seite 3/4</div>
+    <div class="abs seitennr" style="left:17.4mm;top:282.0mm">3</div>
   </main>
 
-  <main class="page vp4">
-    <div class="content">
-      <div class="section">
-        <h2>§ 10 Gewährleistungsansprüche des Auftraggebers</h2>
-        <div class="item">
-          <div class="nr">1.</div>
-          <div class="txt">Der Auftragnehmer haftet für die fach- und fristgemäße Durchführung der ihm übertragen Arbeiten.</div>
-        </div>
-        <div class="item">
-          <div class="nr">2.</div>
-          <div class="txt">Führt der Auftraggeber eine Abnahme der geleisteten Arbeiten durch und werden dabei Mängel festgestellt, so hat der Auftragnehmer die Mängel unverzüglich zu beseitigen.</div>
-        </div>
-        <div class="item">
-          <div class="nr">3.</div>
-          <div class="txt">Sollten etwaige Mängel der Arbeitsleistung auf vom Auftraggeber zu vertretenden Umstände zurückzuführen sein, wird der Auftragnehmer auf Wunsch des Auftraggebers zu jeweils zu vereinbarenden angemessenen Preisen und Bedingungen eine Beseitigung vornehmen.</div>
-        </div>
-      </div>
-
-      <div class="section">
-        <h2>§ 11 Haftung des Auftragnehmers</h2>
-        <div class="item">
-          <div class="nr">1.</div>
-          <div class="txt">Der Auftragnehmer haftet ohne Rücksicht auf Verschulden für jeden durch sein Personal verursachten Schaden, es sei denn, dass der Schaden auf alleinigem Verschulden eines Betriebsangehörigen des Auftraggebers beruht. Von etwaigen Schadensersatzansprüchen Dritter hat der Auftragnehmer, soweit ihn die Haftung trifft, den Auftraggeber freizustellen.</div>
-        </div>
-        <div class="item">
-          <div class="nr">2.</div>
-          <div class="txt">Mängel und Schäden in den Räumen und an den Einrichtungsgegenständen im Betriebsgebäude, die vom Personal des Auftragnehmers festgestellt werden, sind dem Auftraggeber unverzüglich mitzuteilen, ohne Rücksicht auf die Frage einer Haftung.</div>
-        </div>
-      </div>
-
-      <div class="section">
-        <h2>§ 12 Leistungen und Haftung des Auftraggebers</h2>
-        <div class="item">
-          <div class="nr">1.</div>
-          <div class="txt">Das für die Reinigungsarbeiten erforderliche Wasser und den notwendigen elektrischen Strom stellt der Auftraggeber auf seine Kosten zur Verfügung. Der Auftragnehmer hat sein Personal anzuweisen, auf sparsamen Verbrauch zu achten.</div>
-        </div>
-        <div class="item">
-          <div class="nr">2.</div>
-          <div class="txt">Der Auftraggeber haftet dem Auftragnehmer nicht für irgendwelche Schäden, die ihm oder seinen Arbeitskräften im Zusammenhang mit den Reinigungsarbeiten entstehen. Ebenso haftet der Auftraggeber nicht für Schäden durch Verlust, Zerstörung oder Beschädigung eingebrachter Gegenstände des Auftragnehmers oder seines Personals.</div>
-        </div>
-      </div>
-
-      <div class="section">
-        <h2>§ 13 Fundgegenstände</h2>
-        <div class="item">
-          <div class="nr">1.</div>
-          <div class="txt">Der Auftragnehmer hat das eingesetzte Personal zu verpflichten, alle im Reinigungsbereich aufgefundenen Gegenstände unverzüglich einem Beauftragten des Auftraggebers gegen Quittung zu übergeben.</div>
-        </div>
-      </div>
-
-      <div class="section">
-        <h2>§ 14 Sonstiges</h2>
-        <div class="item">
-          <div class="nr">1.</div>
-          <div class="txt">Mündliche Nebenanreden bestehen nicht.</div>
-        </div>
-        <div class="item">
-          <div class="nr">2.</div>
-          <div class="txt">Änderungen oder Ergänzungen dieses Vertrages sind nur dann rechtswirksam, wenn sie schriftlich getroffen werden.</div>
-        </div>
-        <div class="item">
-          <div class="nr">3.</div>
-          <div class="txt">Schlüssel werden in Absprache ausgehändigt.</div>
-        </div>
-      </div>
+  <main class="page s4">
+    <div class="spalte" style="left:15.8mm;width:177.8mm;top:10.4mm">
+      <h2 style="margin-top:0mm;margin-bottom:3.6mm">§ 10 Gewährleistungsansprüche des Auftraggebers</h2>
+      <div class="it"><b>1.</b><p>Der Auftragnehmer haftet für die fach- und fristgemäße Durchführung der ihm übertragen Arbeiten.</p></div>
+      <div class="it"><b>2.</b><p>Führt der Auftraggeber eine Abnahme der geleisteten Arbeiten durch und werden dabei Mängel festgestellt, so hat der Auftragnehmer die Mängel unverzüglich zu beseitigen.</p></div>
+      <div class="it"><b>3.</b><p>Sollten etwaige Mängel der Arbeitsleistung auf vom Auftraggeber zu vertretenden Umstände zurückzuführen sein, wird der Auftragnehmer auf Wunsch des Auftraggebers zu jeweils zu vereinbarenden angemessenen Preisen und Bedingungen eine Beseitigung vornehmen.</p></div>
+      <h2 style="margin-top:4.3mm;margin-bottom:3.5mm">§ 11 Haftung des Auftragnehmers</h2>
+      <div class="it"><b>1.</b><p>Der Auftragnehmer haftet ohne Rücksicht auf Verschulden für jeden durch sein Personal verursachten Schaden, es sei denn, dass der Schaden auf alleinigem Verschulden eines Betriebsangehörigen des Auftraggebers beruht. Von etwaigen Schadensersatzansprüchen Dritter hat der Auftragnehmer, soweit ihn die Haftung trifft, den Auftraggeber freizustellen.</p></div>
+      <div class="it"><b>2.</b><p>Mängel und Schäden in den Räumen und an den Einrichtungsgegenständen im Betriebsgebäude, die vom Personal des Auftragnehmers festgestellt werden, sind dem Auftraggeber unverzüglich mitzuteilen, ohne Rücksicht auf die Frage einer Haftung.</p></div>
+      <h2 style="margin-top:8.5mm;margin-bottom:3.6mm">§ 12 Leistungen und Haftung des Auftraggebers</h2>
+      <div class="it"><b>1.</b><p>Das für die Reinigungsarbeiten erforderliche Wasser und den notwendigen elektrischen Strom stellt der Auftraggeber auf seine Kosten zur Verfügung. Der Auftragnehmer hat sein Personal anzuweisen, auf sparsamen Verbrauch zu achten.</p></div>
+      <div class="it"><b>2.</b><p>Der Auftraggeber haftet dem Auftragnehmer nicht für irgendwelche Schäden, die ihm oder seinen Arbeitskräften im Zusammenhang mit den Reinigungsarbeiten entstehen. Ebenso haftet der Auftraggeber nicht für Schäden durch Verlust, Zerstörung oder Beschädigung eingebrachter Gegenstände des Auftragnehmers oder seines Personals.</p></div>
+      <h2 style="margin-top:3.9mm;margin-bottom:3.6mm">§ 13 Fundgegenstände</h2>
+      <div class="it"><b>1.</b><p>Der Auftragnehmer hat das eingesetzte Personal zu verpflichten, alle im Reinigungsbereich aufgefundenen Gegenstände unverzüglich einem Beauftragten des Auftraggebers gegen Quittung zu übergeben.</p></div>
+      <h2 style="margin-top:8.5mm;margin-bottom:4.3mm">§ 14 Sonstiges</h2>
+      <div class="it"><b>1.</b><p>Mündliche Nebenanreden bestehen nicht.</p></div>
+      <div class="it"><b>2.</b><p>Änderungen oder Ergänzungen dieses Vertrages sind nur dann rechtswirksam, wenn sie schriftlich getroffen werden.</p></div>
+      <div class="it"><b>3.</b><p>Schlüssel werden in Absprache ausgehändigt.</p></div>
     </div>
-
-    <div class="signature-area">
-      <div class="signature-row">
-        <div class="date-line"><span class="ph">{{Ort}}</span>, den <span class="ph">{{Datum}}</span></div>
-        <div class="sign-box">
-          <img class="auftraggeber-stamp-img" src="data:image/webp;base64,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" alt="KG Stempel und Unterschrift">
-          <div class="sign-line">X</div>
-          <div class="sign-label">Auftraggeber</div>
-        </div>
-      </div>
-
-      <div class="signature-row" style="margin-bottom:0;">
-        <div class="date-line"><span class="ph">{{Ort}}</span>, den <span class="ph">{{Datum}}</span></div>
-        <div class="sign-box">
-          <div class="sign-line">X</div>
-          <div class="sign-label">Auftragnehmer</div>
-        </div>
-      </div>
-    </div>
-
-    <div class="page-number">Seite 4/4</div>
+    <img class="abs" src="{{ url_for('static', filename='vertrag/kg_stempel_unterschrift.png') }}" alt="KG Stempel und Unterschrift" style="left:121.4mm;top:137.2mm;width:81.8mm;height:105.9mm">
+    <div class="abs" style="left:31.3mm;top:235.1mm"><b>{{ Ort }}, den {{ Datum }}</b></div>
+    <div class="abs strich" style="left:125.4mm;top:235.1mm;width:67.1mm"><b>X</b></div>
+    <div class="abs rechts" style="right:17.7mm;top:239.4mm"><b>Auftraggeber</b></div>
+    <div class="abs" style="left:31.7mm;top:264.8mm"><b>{{ Ort }}, den {{ Datum }}</b></div>
+    <div class="abs strich" style="left:127.9mm;top:264.8mm;width:64.7mm">&nbsp;</div>
+    <div class="abs rechts" style="right:17.4mm;top:269.0mm"><b>Auftragnehmer</b></div>
+    <div class="abs seitennr" style="left:17.4mm;top:277.4mm">4</div>
   </main>
 {% if drucken %}
   <script>window.addEventListener("load", function () { setTimeout(function () { window.print(); }, 300); });</script>
