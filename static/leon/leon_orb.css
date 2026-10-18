@@ -1,0 +1,265 @@
+/* =========================================================
+   Leon „Orb-Hero“ (CRM) – nur Optik, keine Funktion.
+   Kopfbereich aller Leon-Reiter: dunkelblauer Verlauf, leuchtende
+   Leon-Kugel links, Sprachwelle neben dem Titel, Kennzahlen als Glas.
+   Wird nach kg_page_theme.css bzw. mit _leon_tabs.html geladen.
+   ========================================================= */
+@media screen {
+html body .kgb-hero,
+html body .na .na-hero,
+html body .ak-page .ak-hero,
+html body .kbl .kbl-hero,
+html body .kb .kb-hero,
+html body .leon-wrap .leon-head,
+html body .ldb .ldb-head {
+  position: relative !important;
+  min-height: 156px !important;
+  padding: 28px 32px 28px 204px !important;
+  border: 0 !important;
+  border-radius: 30px !important;
+  color: #fff !important;
+  background:
+    repeating-linear-gradient(115deg, rgba(255,255,255,.04) 0 2px, transparent 2px 22px),
+    radial-gradient(600px 300px at 85% -10%, rgba(147,197,253,.55), transparent 60%),
+    radial-gradient(500px 260px at 0% 120%, rgba(56,189,248,.35), transparent 60%),
+    linear-gradient(135deg, #071a4d, #0b2a6f 35%, #1d4ed8 80%, #2563eb) !important;
+  box-shadow: 0 22px 48px rgba(11,42,111,.34) !important;
+}
+
+/* Leon-Kugel */
+html body .kgb-hero::before,
+html body .na .na-hero::before,
+html body .ak-page .ak-hero::before,
+html body .kbl .kbl-hero::before,
+html body .kb .kb-hero::before,
+html body .leon-wrap .leon-head::before,
+html body .ldb .ldb-head::before {
+  content: "" !important;
+  display: block !important;
+  position: absolute !important;
+  left: 54px !important; top: 50% !important; right: auto !important; bottom: auto !important;
+  width: 96px !important; height: 96px !important;
+  margin-top: -48px !important;
+  border-radius: 50% !important;
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2z'/%3E%3C/svg%3E") center / 30px 30px no-repeat,
+    radial-gradient(circle at 32% 28%, #fff 0, #bfdbfe 10%, #3b82f6 38%, #1d4ed8 62%, #0b2a6f 100%) !important;
+  box-shadow: 0 0 34px rgba(96,165,250,.85), 0 0 64px rgba(59,130,246,.45), inset -10px -14px 30px rgba(11,42,111,.7) !important;
+  pointer-events: none !important;
+  z-index: 0 !important;
+}
+
+/* Ringe um die Kugel */
+html body .kgb-hero::after,
+html body .na .na-hero::after,
+html body .ak-page .ak-hero::after,
+html body .kbl .kbl-hero::after,
+html body .kb .kb-hero::after,
+html body .leon-wrap .leon-head::after,
+html body .ldb .ldb-head::after {
+  content: "" !important;
+  display: block !important;
+  position: absolute !important;
+  left: 40px !important; top: 50% !important; right: auto !important; bottom: auto !important;
+  width: 120px !important; height: 120px !important;
+  margin-top: -62px !important;
+  border-radius: 50% !important;
+  border: 2px solid rgba(147,197,253,.45) !important;
+  outline: 2px solid rgba(147,197,253,.18) !important;
+  outline-offset: 12px !important;
+  background: none !important;
+  pointer-events: none !important;
+  animation: loRing 3.2s ease-in-out infinite !important;
+}
+
+html body .kgb-hero h1,
+html body .na .na-hero h1,
+html body .ak-page .ak-hero h1,
+html body .kbl .kbl-hero h1,
+html body .kb .kb-hero h1,
+html body .leon-wrap .leon-head h1,
+html body .ldb .ldb-head h1,
+html body .kgb-hero .page-title {
+  color: #fff !important;
+  -webkit-text-fill-color: #fff !important;
+  background: none !important;
+  font-size: 32px !important;
+  font-weight: 900 !important;
+  letter-spacing: -.02em !important;
+  text-shadow: 0 2px 18px rgba(147,197,253,.35) !important;
+}
+html body .kgb-hero h1 i,
+html body .na .na-hero h1 i,
+html body .ak-page .ak-hero h1 i,
+html body .kbl .kbl-hero h1 i,
+html body .kb .kb-hero h1 i,
+html body .leon-wrap .leon-head h1 i,
+html body .ldb .ldb-head h1 i { color: #bfdbfe !important; }
+
+/* Sprachwelle neben dem Titel */
+html body .kgb-hero h1::after,
+html body .na .na-hero h1::after,
+html body .ak-page .ak-hero h1::after,
+html body .kbl .kbl-hero h1::after,
+html body .kb .kb-hero h1::after,
+html body .leon-wrap .leon-head h1::after,
+html body .ldb .ldb-head h1::after,
+html body .kgb-hero .page-title::after {
+  content: "";
+  display: inline-block;
+  width: 132px; height: 28px;
+  margin-left: 18px;
+  vertical-align: middle;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 150 30'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop offset='0' stop-color='%23e0f2fe'/%3E%3Cstop offset='1' stop-color='%2360a5fa'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cstyle%3Erect%7Bfill:url(%23g);transform-box:fill-box;transform-origin:center;animation:w 1.3s ease-in-out infinite%7D%40keyframes w%7B50%25%7Btransform:scaleY(.45)%7D%7D%3C/style%3E%3Crect x='0' y='12.5' width='3' height='5.0' rx='1.5' style='animation-delay:0.00s'/%3E%3Crect x='5' y='10.7' width='3' height='8.7' rx='1.5' style='animation-delay:0.06s'/%3E%3Crect x='10' y='8.2' width='3' height='13.6' rx='1.5' style='animation-delay:0.12s'/%3E%3Crect x='15' y='5.7' width='3' height='18.6' rx='1.5' style='animation-delay:0.18s'/%3E%3Crect x='20' y='9.4' width='3' height='11.2' rx='1.5' style='animation-delay:0.24s'/%3E%3Crect x='25' y='3.8' width='3' height='22.3' rx='1.5' style='animation-delay:0.30s'/%3E%3Crect x='30' y='1.4' width='3' height='27.3' rx='1.5' style='animation-delay:0.36s'/%3E%3Crect x='35' y='6.3' width='3' height='17.4' rx='1.5' style='animation-delay:0.42s'/%3E%3Crect x='40' y='10.0' width='3' height='9.9' rx='1.5' style='animation-delay:0.48s'/%3E%3Crect x='45' y='7.6' width='3' height='14.9' rx='1.5' style='animation-delay:0.54s'/%3E%3Crect x='50' y='3.2' width='3' height='23.6' rx='1.5' style='animation-delay:0.60s'/%3E%3Crect x='55' y='0.7' width='3' height='28.5' rx='1.5' style='animation-delay:0.66s'/%3E%3Crect x='60' y='4.5' width='3' height='21.1' rx='1.5' style='animation-delay:0.72s'/%3E%3Crect x='65' y='8.8' width='3' height='12.4' rx='1.5' style='animation-delay:0.78s'/%3E%3Crect x='70' y='11.3' width='3' height='7.4' rx='1.5' style='animation-delay:0.84s'/%3E%3Crect x='75' y='6.9' width='3' height='16.1' rx='1.5' style='animation-delay:0.90s'/%3E%3Crect x='80' y='2.6' width='3' height='24.8' rx='1.5' style='animation-delay:0.96s'/%3E%3Crect x='85' y='5.1' width='3' height='19.8' rx='1.5' style='animation-delay:1.02s'/%3E%3Crect x='90' y='9.4' width='3' height='11.2' rx='1.5' style='animation-delay:1.08s'/%3E%3Crect x='95' y='11.9' width='3' height='6.2' rx='1.5' style='animation-delay:1.14s'/%3E%3Crect x='100' y='8.2' width='3' height='13.6' rx='1.5' style='animation-delay:1.20s'/%3E%3Crect x='105' y='5.7' width='3' height='18.6' rx='1.5' style='animation-delay:1.26s'/%3E%3Crect x='110' y='10.7' width='3' height='8.7' rx='1.5' style='animation-delay:1.32s'/%3E%3Crect x='115' y='12.5' width='3' height='5.0' rx='1.5' style='animation-delay:1.38s'/%3E%3Crect x='120' y='9.4' width='3' height='11.2' rx='1.5' style='animation-delay:1.44s'/%3E%3Crect x='125' y='6.3' width='3' height='17.4' rx='1.5' style='animation-delay:1.50s'/%3E%3Crect x='130' y='3.8' width='3' height='22.3' rx='1.5' style='animation-delay:1.56s'/%3E%3Crect x='135' y='7.6' width='3' height='14.9' rx='1.5' style='animation-delay:1.62s'/%3E%3Crect x='140' y='10.7' width='3' height='8.7' rx='1.5' style='animation-delay:1.68s'/%3E%3Crect x='145' y='12.5' width='3' height='5.0' rx='1.5' style='animation-delay:1.74s'/%3E%3C/svg%3E") center / contain no-repeat;
+  filter: drop-shadow(0 0 6px rgba(147,197,253,.75));
+}
+
+html body .kgb-hero p,
+html body .na .na-hero p,
+html body .ak-page .ak-hero p,
+html body .kbl .kbl-hero p,
+html body .kb .kb-hero p,
+html body .leon-wrap .leon-head p,
+html body .ldb .ldb-head p,
+html body .kgb-hero .meta,
+html body .kb .kb-hero .kb-zeit,
+html body .kb .kb-hero small {
+  color: #bfdbfe !important;
+  opacity: 1 !important;
+}
+
+/* Kennzahlen im Kopf: Glas-Pillen */
+html body .kgb-hero .summary-card,
+html body .kgb-hero .kg-stat {
+  background: linear-gradient(160deg, rgba(255,255,255,.18), rgba(255,255,255,.06)) !important;
+  border: 1px solid rgba(255,255,255,.28) !important;
+  border-radius: 18px !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.35) !important;
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+}
+html body .kgb-hero .summary-card span,
+html body .kgb-hero .kg-stat span { color: #bfdbfe !important; }
+html body .kgb-hero .summary-card strong,
+html body .kgb-hero .kg-stat strong { color: #fff !important; text-shadow: 0 2px 14px rgba(147,197,253,.6) !important; }
+
+/* Knöpfe im Kopf */
+html body .kgb-hero button,
+html body .kgb-hero .btn,
+html body .kgb-hero .back-btn,
+html body .kgb-hero a.kg-action {
+  background: rgba(255,255,255,.12) !important;
+  color: #fff !important;
+  border: 1px solid rgba(255,255,255,.35) !important;
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+}
+html body .kgb-hero button:hover,
+html body .kgb-hero .btn:hover,
+html body .kgb-hero .back-btn:hover { background: rgba(255,255,255,.22) !important; }
+html body .kgb-hero .btn-primary,
+html body .kgb-hero .kg-action,
+html body .kgb-hero .archive-action-button {
+  background: #fff !important;
+  color: #1d4ed8 !important;
+  border-color: #fff !important;
+  box-shadow: 0 8px 20px rgba(7,26,77,.35) !important;
+}
+html body .kgb-hero .btn-danger,
+html body .kgb-hero .danger-clear-button {
+  background: rgba(239,68,68,.22) !important;
+  color: #fff !important;
+  border-color: rgba(252,165,165,.55) !important;
+}
+html body .kgb-hero .btn-danger:hover,
+html body .kgb-hero .danger-clear-button:hover { background: rgba(239,68,68,.38) !important; }
+
+@keyframes loRing {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.05); opacity: .6; }
+}
+
+/* Laptop / Tablet: kleinere Kugel */
+@media (max-width: 1100px) {
+html body .kgb-hero,
+html body .na .na-hero,
+html body .ak-page .ak-hero,
+html body .kbl .kbl-hero,
+html body .kb .kb-hero,
+html body .leon-wrap .leon-head,
+html body .ldb .ldb-head { padding-left: 150px !important; min-height: 120px !important; }
+html body .kgb-hero::before,
+html body .na .na-hero::before,
+html body .ak-page .ak-hero::before,
+html body .kbl .kbl-hero::before,
+html body .kb .kb-hero::before,
+html body .leon-wrap .leon-head::before,
+html body .ldb .ldb-head::before { left: 40px !important; width: 70px !important; height: 70px !important; margin-top: -35px !important; background-size: 22px 22px, auto !important; }
+html body .kgb-hero::after,
+html body .na .na-hero::after,
+html body .ak-page .ak-hero::after,
+html body .kbl .kbl-hero::after,
+html body .kb .kb-hero::after,
+html body .leon-wrap .leon-head::after,
+html body .ldb .ldb-head::after { left: 30px !important; width: 90px !important; height: 90px !important; margin-top: -47px !important; outline-offset: 8px !important; }
+}
+
+/* Telefon: ohne Kugel und Welle */
+@media (max-width: 760px) {
+html body .kgb-hero,
+html body .na .na-hero,
+html body .ak-page .ak-hero,
+html body .kbl .kbl-hero,
+html body .kb .kb-hero,
+html body .leon-wrap .leon-head,
+html body .ldb .ldb-head { padding: 18px !important; min-height: 0 !important; border-radius: 20px !important; }
+html body .kgb-hero::before,
+html body .na .na-hero::before,
+html body .ak-page .ak-hero::before,
+html body .kbl .kbl-hero::before,
+html body .kb .kb-hero::before,
+html body .leon-wrap .leon-head::before,
+html body .ldb .ldb-head::before,
+html body .kgb-hero::after,
+html body .na .na-hero::after,
+html body .ak-page .ak-hero::after,
+html body .kbl .kbl-hero::after,
+html body .kb .kb-hero::after,
+html body .leon-wrap .leon-head::after,
+html body .ldb .ldb-head::after { display: none !important; }
+html body .kgb-hero h1::after,
+html body .na .na-hero h1::after,
+html body .ak-page .ak-hero h1::after,
+html body .kbl .kbl-hero h1::after,
+html body .kb .kb-hero h1::after,
+html body .leon-wrap .leon-head h1::after,
+html body .ldb .ldb-head h1::after,
+html body .kgb-hero .page-title::after { display: none; }
+html body .kgb-hero h1,
+html body .na .na-hero h1,
+html body .ak-page .ak-hero h1,
+html body .kbl .kbl-hero h1,
+html body .kb .kb-hero h1,
+html body .leon-wrap .leon-head h1,
+html body .ldb .ldb-head h1,
+html body .kgb-hero .page-title { font-size: 24px !important; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+html body .kgb-hero::after,
+html body .na .na-hero::after,
+html body .ak-page .ak-hero::after,
+html body .kbl .kbl-hero::after,
+html body .kb .kb-hero::after,
+html body .leon-wrap .leon-head::after,
+html body .ldb .ldb-head::after { animation: none !important; }
+html body .kgb-hero h1::after,
+html body .na .na-hero h1::after,
+html body .ak-page .ak-hero h1::after,
+html body .kbl .kbl-hero h1::after,
+html body .kb .kb-hero h1::after,
+html body .leon-wrap .leon-head h1::after,
+html body .ldb .ldb-head h1::after,
+html body .kgb-hero .page-title::after { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 150 30'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop offset='0' stop-color='%23e0f2fe'/%3E%3Cstop offset='1' stop-color='%2360a5fa'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cstyle%3Erect%7Bfill:url(%23g);transform-box:fill-box;transform-origin:center;%7D%40keyframes w%7B50%25%7Btransform:scaleY(.45)%7D%7D%3C/style%3E%3Crect x='0' y='12.5' width='3' height='5.0' rx='1.5' style='animation-delay:0.00s'/%3E%3Crect x='5' y='10.7' width='3' height='8.7' rx='1.5' style='animation-delay:0.06s'/%3E%3Crect x='10' y='8.2' width='3' height='13.6' rx='1.5' style='animation-delay:0.12s'/%3E%3Crect x='15' y='5.7' width='3' height='18.6' rx='1.5' style='animation-delay:0.18s'/%3E%3Crect x='20' y='9.4' width='3' height='11.2' rx='1.5' style='animation-delay:0.24s'/%3E%3Crect x='25' y='3.8' width='3' height='22.3' rx='1.5' style='animation-delay:0.30s'/%3E%3Crect x='30' y='1.4' width='3' height='27.3' rx='1.5' style='animation-delay:0.36s'/%3E%3Crect x='35' y='6.3' width='3' height='17.4' rx='1.5' style='animation-delay:0.42s'/%3E%3Crect x='40' y='10.0' width='3' height='9.9' rx='1.5' style='animation-delay:0.48s'/%3E%3Crect x='45' y='7.6' width='3' height='14.9' rx='1.5' style='animation-delay:0.54s'/%3E%3Crect x='50' y='3.2' width='3' height='23.6' rx='1.5' style='animation-delay:0.60s'/%3E%3Crect x='55' y='0.7' width='3' height='28.5' rx='1.5' style='animation-delay:0.66s'/%3E%3Crect x='60' y='4.5' width='3' height='21.1' rx='1.5' style='animation-delay:0.72s'/%3E%3Crect x='65' y='8.8' width='3' height='12.4' rx='1.5' style='animation-delay:0.78s'/%3E%3Crect x='70' y='11.3' width='3' height='7.4' rx='1.5' style='animation-delay:0.84s'/%3E%3Crect x='75' y='6.9' width='3' height='16.1' rx='1.5' style='animation-delay:0.90s'/%3E%3Crect x='80' y='2.6' width='3' height='24.8' rx='1.5' style='animation-delay:0.96s'/%3E%3Crect x='85' y='5.1' width='3' height='19.8' rx='1.5' style='animation-delay:1.02s'/%3E%3Crect x='90' y='9.4' width='3' height='11.2' rx='1.5' style='animation-delay:1.08s'/%3E%3Crect x='95' y='11.9' width='3' height='6.2' rx='1.5' style='animation-delay:1.14s'/%3E%3Crect x='100' y='8.2' width='3' height='13.6' rx='1.5' style='animation-delay:1.20s'/%3E%3Crect x='105' y='5.7' width='3' height='18.6' rx='1.5' style='animation-delay:1.26s'/%3E%3Crect x='110' y='10.7' width='3' height='8.7' rx='1.5' style='animation-delay:1.32s'/%3E%3Crect x='115' y='12.5' width='3' height='5.0' rx='1.5' style='animation-delay:1.38s'/%3E%3Crect x='120' y='9.4' width='3' height='11.2' rx='1.5' style='animation-delay:1.44s'/%3E%3Crect x='125' y='6.3' width='3' height='17.4' rx='1.5' style='animation-delay:1.50s'/%3E%3Crect x='130' y='3.8' width='3' height='22.3' rx='1.5' style='animation-delay:1.56s'/%3E%3Crect x='135' y='7.6' width='3' height='14.9' rx='1.5' style='animation-delay:1.62s'/%3E%3Crect x='140' y='10.7' width='3' height='8.7' rx='1.5' style='animation-delay:1.68s'/%3E%3Crect x='145' y='12.5' width='3' height='5.0' rx='1.5' style='animation-delay:1.74s'/%3E%3C/svg%3E"); }
+}
+}
