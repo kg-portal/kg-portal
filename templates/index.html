@@ -1239,64 +1239,59 @@ html.kg-st-warten .dashboard-grid > .module-container:not(.kg-st-an) { opacity: 
 </div>
 
 <style>
-/* ===== Objekte: Mosaik unter den 8 Kacheln (Fläche = Umsatz / Monat), Klick = Mitarbeiter, Lohn, Ergebnis ===== */
+/* ===== Cockpit unter den 8 Kacheln: Rundinstrumente + Objekte (Klick = Mitarbeiter, Lohn, Ergebnis) ===== */
 .kgo-box { margin-top: 20px; }
-.kgo-box .kgo-auge { top: 39px; right: 42px; }
-.kgo-karte { background: #ffffff; border-radius: 20px; padding: 18px 22px 22px; }
-.kgo-kopf { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; min-height: 38px; padding-right: 52px; }
-.kgo-titel { display: flex; align-items: center; gap: 12px; min-width: 0; }
-.kgo-titel .card-month-badge { flex: none; }
-.kgo-titel h3 { margin: 0; font-size: 20px; font-weight: 900; color: #0f172a; letter-spacing: -0.2px; }
+.kgo-box .kgo-auge { top: 39px; right: 42px; z-index: 7; }
+.kgo-karte { position: relative; overflow: hidden; border-radius: 20px; padding: 18px 22px 24px; background: radial-gradient(900px 260px at 50% 0%, #eef5ff 0%, rgba(238, 245, 255, 0) 70%), #ffffff; }
+.kgo-kopf { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; min-height: 38px; padding-right: 52px; }
+.kgo-kopf .card-month-badge { flex: none; }
+.kgo-kopf h3 { margin: 0; font-size: 20px; font-weight: 900; color: #0f172a; letter-spacing: -0.2px; }
+.kgo-kopf .kgo-stand { margin-left: auto; font-size: 12.5px; font-weight: 800; color: #64748b; }
+.kgo-inhalt { transition: filter 0.35s ease; }
+.kgo-box.kgo-zu .kgo-inhalt { filter: blur(16px) saturate(0.8); pointer-events: none; user-select: none; }
+.kgo-zu-text { display: none; position: absolute; left: 50%; top: 52%; transform: translate(-50%, -50%); z-index: 6; padding: 12px 22px; border-radius: 999px; background: rgba(255, 255, 255, 0.96); color: #1e40af; font-size: 14px; font-weight: 900; box-shadow: 0 14px 30px rgba(15, 23, 42, 0.18); white-space: nowrap; }
+.kgo-box.kgo-zu .kgo-zu-text { display: block; }
+.kgo-uhren { display: grid; grid-template-columns: 1fr 1.25fr 1fr; gap: 18px; align-items: end; margin-top: 8px; }
+.kgo-uhr { display: flex; flex-direction: column; align-items: center; min-width: 0; text-align: center; }
+.kgo-uhr .kgo-ueber { font-size: 12px; font-weight: 900; letter-spacing: 0.16em; text-transform: uppercase; color: #1e40af; }
+.kgo-uhr svg { display: block; width: 100%; max-width: 290px; height: auto; margin-top: 6px; overflow: visible; }
+.kgo-uhr.gross svg { max-width: 370px; }
+.kgo-anzeige { margin-top: -14px; padding: 9px 20px; border-radius: 15px; background: linear-gradient(145deg, #2563eb, #1e3a8a); color: #ffffff; font-size: 22px; font-weight: 900; font-variant-numeric: tabular-nums; letter-spacing: -0.3px; box-shadow: 0 14px 26px -14px rgba(30, 64, 175, 0.9), inset 0 1px 0 rgba(255, 255, 255, 0.35); position: relative; z-index: 1; }
+.kgo-uhr.gross .kgo-anzeige { font-size: 28px; padding: 10px 26px; }
+.kgo-anzeige.plus { background: linear-gradient(145deg, #10b981, #047857); box-shadow: 0 14px 26px -14px rgba(4, 120, 87, 0.9), inset 0 1px 0 rgba(255, 255, 255, 0.35); }
+.kgo-anzeige.minus { background: linear-gradient(145deg, #ef4444, #b91c1c); }
+.kgo-unter { margin-top: 8px; font-size: 12.5px; font-weight: 800; color: #64748b; line-height: 1.4; }
+.kgo-unter b { color: #0f172a; }
+.kgo-abschnitt { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin: 26px 0 12px; padding-top: 18px; border-top: 1px solid #e6eefb; }
+.kgo-abschnitt h4 { margin: 0; font-size: 17px; font-weight: 900; color: #0f172a; }
+.kgo-abschnitt span { font-size: 12.5px; font-weight: 800; color: #64748b; }
 .kgo-monat { display: inline-flex; align-items: center; gap: 4px; margin-left: auto; padding: 4px; border-radius: 13px; background: #eff6ff; }
 .kgo-monat button { width: 30px; height: 30px; border: 0; border-radius: 9px; background: #ffffff; color: #1e40af; font-size: 18px; font-weight: 900; line-height: 1; cursor: pointer; box-shadow: 0 2px 6px rgba(30, 64, 175, 0.14); }
 .kgo-monat button:disabled { opacity: 0.35; cursor: default; }
 .kgo-monat b { min-width: 158px; text-align: center; font-size: 14px; font-weight: 900; color: #1e3a8a; }
-.kgo-zu-text { display: none; margin-left: auto; font-size: 13px; font-weight: 800; color: #64748b; }
-.kgo-box.kgo-zu .kgo-monat, .kgo-box.kgo-zu .kgo-inhalt { display: none; }
-.kgo-box.kgo-zu .kgo-zu-text { display: block; }
-.kgo-inhalt { display: grid; grid-template-columns: 300px minmax(0, 1fr); gap: 22px; margin-top: 16px; }
-.kgo-links { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
-.kgo-gross small, .kgo-wert small, .kgo-offen > small { display: block; font-size: 11.5px; font-weight: 900; letter-spacing: 0.12em; text-transform: uppercase; color: #64748b; }
-.kgo-gross b { display: block; margin-top: 4px; font-size: 40px; font-weight: 900; line-height: 1.05; color: #0f172a; letter-spacing: -1px; font-variant-numeric: tabular-nums; }
-.kgo-gross b.plus { color: #047857; } .kgo-gross b.minus { color: #b91c1c; }
-.kgo-gross span { display: block; margin-top: 4px; font-size: 13px; font-weight: 700; color: #64748b; }
-.kgo-balken { display: flex; height: 14px; border-radius: 7px; overflow: hidden; background: #eef2f7; }
-.kgo-balken i { display: block; height: 100%; }
-.kgo-balken .l { background: linear-gradient(90deg, #f87171, #dc2626); }
-.kgo-balken .e { background: linear-gradient(90deg, #34d399, #059669); }
-.kgo-legende { display: flex; justify-content: space-between; gap: 8px; margin-top: -6px; font-size: 12px; font-weight: 800; color: #475569; }
-.kgo-legende span::before { content: ""; display: inline-block; width: 9px; height: 9px; margin-right: 6px; border-radius: 3px; background: var(--f); }
-.kgo-werte { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-.kgo-wert { padding: 12px 14px; border-radius: 16px; color: #ffffff; box-shadow: 0 12px 24px -16px rgba(15, 23, 42, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.35); }
-.kgo-wert small { color: rgba(255, 255, 255, 0.86); letter-spacing: 0.06em; }
-.kgo-wert b { display: block; margin-top: 4px; font-size: 19px; font-weight: 900; font-variant-numeric: tabular-nums; }
-.kgo-wert.blau { background: linear-gradient(145deg, #3b82f6, #1e40af); }
-.kgo-wert.rot { background: linear-gradient(145deg, #f87171, #b91c1c); }
-.kgo-offen { padding: 12px 14px; border-radius: 16px; background: #fff7ed; border: 1px dashed #fdba74; }
-.kgo-offen > small { color: #c2410c; }
-.kgo-offen div { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
-.kgo-ort { border: 0; border-radius: 999px; padding: 6px 11px; background: #ffffff; color: #9a3412; font: inherit; font-size: 12px; font-weight: 800; cursor: pointer; box-shadow: 0 2px 6px rgba(194, 65, 12, 0.15); }
-.kgo-ort:hover { background: #ffedd5; }
-.kgo-mosaik { position: relative; height: 400px; min-width: 0; }
-.kgo-leer { display: grid; place-items: center; height: 100%; border-radius: 16px; background: #f8fafc; color: #64748b; font-weight: 800; text-align: center; padding: 20px; }
-.kgo-k { position: absolute; display: flex; flex-direction: column; align-items: flex-start; justify-content: flex-start; overflow: hidden; margin: 0; border: 0; border-radius: 14px; padding: 12px 14px; color: #ffffff; text-align: left; font: inherit; cursor: pointer;
-    box-shadow: 0 12px 22px -14px rgba(30, 64, 175, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.4); transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease; }
-.kgo-k::after { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 46%; background: linear-gradient(180deg, rgba(255, 255, 255, 0.24), rgba(255, 255, 255, 0)); pointer-events: none; }
-.kgo-k:hover, .kgo-k:focus-visible { transform: translateY(-2px); box-shadow: 0 18px 30px -14px rgba(30, 64, 175, 0.85), inset 0 1px 0 rgba(255, 255, 255, 0.45); filter: brightness(1.06); z-index: 2; outline: none; }
-.kgo-k.gold { color: #3b1d02; box-shadow: 0 14px 28px -14px rgba(217, 119, 6, 0.85), inset 0 1px 0 rgba(255, 255, 255, 0.55); }
-.kgo-k .kgo-n { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; max-width: 100%; font-size: 13px; font-weight: 900; line-height: 1.2; overflow: hidden; overflow-wrap: anywhere; }
-.kgo-k .kgo-b { display: block; margin-top: 4px; font-size: 22px; font-weight: 900; line-height: 1.1; white-space: nowrap; font-variant-numeric: tabular-nums; }
-.kgo-k .kgo-e { position: absolute; left: 12px; bottom: 10px; max-width: calc(100% - 24px); padding: 4px 9px; border-radius: 999px; font-size: 11.5px; font-weight: 900; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; background: rgba(255, 255, 255, 0.2); color: #ffffff; }
+.kgo-objekte { display: grid; grid-template-columns: repeat(auto-fill, minmax(255px, 1fr)); gap: 12px; }
+.kgo-leer { padding: 22px; border-radius: 16px; background: #f8fafc; color: #64748b; font-weight: 800; text-align: center; }
+.kgo-k { position: relative; display: grid; grid-template-columns: 66px minmax(0, 1fr); gap: 12px; align-items: center; margin: 0; padding: 14px 14px 14px 12px; border: 1px solid #dbe7fb; border-radius: 18px; background: linear-gradient(180deg, #ffffff, #f4f8ff); color: #0f172a; font: inherit; text-align: left; cursor: pointer;
+    box-shadow: 0 12px 26px -20px rgba(30, 64, 175, 0.7); transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease; }
+.kgo-k:hover, .kgo-k:focus-visible { transform: translateY(-3px); border-color: #93c5fd; box-shadow: 0 20px 34px -20px rgba(30, 64, 175, 0.85); outline: none; }
+.kgo-k.gold { border-color: #fcd34d; background: linear-gradient(180deg, #ffffff, #fffbeb); }
+.kgo-k .kgo-ring { width: 66px; height: 66px; display: block; }
+.kgo-k .kgo-n { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; overflow-wrap: anywhere; font-size: 14px; font-weight: 900; line-height: 1.2; padding-right: 4px; }
+.kgo-k.gold .kgo-n { padding-right: 58px; }
+.kgo-k .kgo-b { display: block; margin-top: 3px; font-size: 17px; font-weight: 900; color: #1e40af; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.kgo-k .kgo-b small { font-size: 11.5px; font-weight: 800; color: #64748b; }
+.kgo-k .kgo-zeile { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
+.kgo-k .kgo-e { padding: 3px 9px; border-radius: 999px; font-size: 11.5px; font-weight: 900; white-space: nowrap; background: #eff6ff; color: #1e40af; }
 .kgo-k .kgo-e.plus { background: #dcfce7; color: #166534; }
 .kgo-k .kgo-e.minus { background: #fee2e2; color: #991b1b; }
-.kgo-k .kgo-nr { display: block; margin-bottom: 4px; font-size: 10.5px; font-weight: 900; letter-spacing: 0.14em; opacity: 0.85; }
-.kgo-k .kgo-s { display: block; margin-top: 6px; font-size: 12px; font-weight: 800; opacity: 0.9; white-space: nowrap; }
-.kgo-k.klein { padding: 9px 10px; } .kgo-k.klein .kgo-n { font-size: 11.5px; } .kgo-k.klein .kgo-b { font-size: 15px; } .kgo-k.klein .kgo-e { left: 8px; bottom: 7px; font-size: 10.5px; padding: 3px 7px; }
-.kgo-k.mini { padding: 6px 7px; } .kgo-k.mini .kgo-n { font-size: 10.5px; -webkit-line-clamp: 1; } .kgo-k.mini .kgo-b { font-size: 12px; margin-top: 2px; } .kgo-k.mini .kgo-e, .kgo-k.mini .kgo-nr, .kgo-k.klein .kgo-s, .kgo-k.mini .kgo-s, .kgo-k.flach .kgo-s { display: none; }
-.kgo-k.winzig .kgo-b, .kgo-k.winzig .kgo-n { display: none; }
-.kgo-k.flach .kgo-e { display: none; }
-.kgo-k.gold .kgo-e:not(.plus):not(.minus) { background: rgba(59, 29, 2, 0.14); color: #3b1d02; }
-.kgo-box.kgo-wartet .kgo-inhalt { opacity: 0; }
+.kgo-k .kgo-s { font-size: 11.5px; font-weight: 800; color: #64748b; white-space: nowrap; }
+.kgo-k .kgo-nr { position: absolute; top: 10px; right: 10px; padding: 3px 8px; border-radius: 999px; background: linear-gradient(145deg, #fcd34d, #f59e0b); color: #451a03; font-size: 10.5px; font-weight: 900; letter-spacing: 0.06em; box-shadow: 0 6px 14px -6px rgba(217, 119, 6, 0.8); }
+.kgo-mehr { display: block; margin: 12px auto 0; padding: 9px 18px; border: 0; border-radius: 12px; background: #eff6ff; color: #1e40af; font: inherit; font-size: 13.5px; font-weight: 900; cursor: pointer; }
+.kgo-mehr:hover { background: #dbeafe; }
+.kgo-offen { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 14px; padding: 12px 14px; border-radius: 16px; background: #fff7ed; border: 1px dashed #fdba74; }
+.kgo-offen > small { font-size: 11.5px; font-weight: 900; letter-spacing: 0.1em; text-transform: uppercase; color: #c2410c; margin-right: 4px; }
+.kgo-ort { border: 0; border-radius: 999px; padding: 6px 11px; background: #ffffff; color: #9a3412; font: inherit; font-size: 12px; font-weight: 800; cursor: pointer; box-shadow: 0 2px 6px rgba(194, 65, 12, 0.15); }
+.kgo-ort:hover { background: #ffedd5; }
 .kgo-h { margin: 18px 0 8px; font-size: 12.5px; font-weight: 900; letter-spacing: 0.12em; text-transform: uppercase; color: #64748b; }
 .kgo-chips { display: flex; flex-wrap: wrap; gap: 8px; }
 .kgo-chip { display: inline-flex; align-items: center; gap: 6px; padding: 7px 8px 7px 12px; border-radius: 999px; background: #eff6ff; color: #1e3a8a; font-size: 13px; font-weight: 800; }
@@ -1307,22 +1302,32 @@ html.kg-st-warten .dashboard-grid > .module-container:not(.kg-st-an) { opacity: 
 .kgo-wahl button { flex: none; padding: 10px 16px; border: 0; border-radius: 12px; background: linear-gradient(135deg, #1e40af, #3b82f6); color: #ffffff; font: inherit; font-size: 14px; font-weight: 900; cursor: pointer; }
 .kgo-wahl button:disabled { opacity: 0.5; cursor: default; }
 .kgo-fehler { margin-top: 8px; font-size: 13px; font-weight: 800; color: #b91c1c; }
-@media (max-width: 1100px) { .kgo-inhalt { grid-template-columns: minmax(0, 1fr); } .kgo-mosaik { height: 440px; } }
-@media (max-width: 600px) { .kgo-titel h3 { font-size: 17px; } .kgo-monat { margin-left: 0; } .kgo-monat b { min-width: 130px; } .kgo-mosaik { height: 520px; } }
+.kgo-box.kgo-wartet .kgo-anzeige, .kgo-box.kgo-wartet .kgo-objekte { opacity: 0; }
+@media (max-width: 1100px) { .kgo-uhren { grid-template-columns: 1fr 1fr; } .kgo-uhr.gross { grid-column: 1 / -1; order: -1; } }
+@media (max-width: 600px) { .kgo-uhren { grid-template-columns: minmax(0, 1fr); } .kgo-kopf h3 { font-size: 17px; } .kgo-kopf .kgo-stand { display: none; } .kgo-monat { margin-left: 0; } .kgo-monat b { min-width: 130px; } .kgo-zu-text { white-space: normal; text-align: center; } }
 @media print { .kgo-box { display: none !important; } }
 </style>
-<section class="module-container kgo-box kgo-zu" id="kgoBox" aria-label="Objekte">
-    <button type="button" class="module-hide-toggle kgo-auge" id="kgoAuge" title="Objekte zeigen / ausblenden" aria-pressed="false"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.8 10.8 0 0 1 12 19c-6.5 0-10.5-7-10.5-7a18.3 18.3 0 0 1 5.06-5.94"></path><path d="M9.9 4.24A10.9 10.9 0 0 1 12 4.99c6.5 0 10.5 7 10.5 7a18.5 18.5 0 0 1-2.2 3.02"></path><path d="M14.12 14.12A3 3 0 0 1 9.88 9.88"></path><path d="M3 3l18 18"></path></svg></button>
+<section class="module-container kgo-box" id="kgoBox" aria-label="Cockpit">
+    <button type="button" class="module-hide-toggle kgo-auge" id="kgoAuge" title="Cockpit ausblenden / zeigen" aria-pressed="true"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M1.5 12s4-7 10.5-7 10.5 7 10.5 7-4 7-10.5 7S1.5 12 1.5 12z"></path><circle cx="12" cy="12" r="3"></circle></svg></button>
     <div class="kgo-karte">
         <div class="kgo-kopf">
-            <div class="kgo-titel"><span class="card-month-badge">Objekte</span><h3>Wer dein Geld bringt</h3></div>
-            <div class="kgo-monat"><button type="button" data-schritt="-1" aria-label="Monat zurück">‹</button><b id="kgoMonat">–</b><button type="button" data-schritt="1" aria-label="Monat vor">›</button></div>
-            <div class="kgo-zu-text">Ausgeblendet · Auge antippen zum Zeigen</div>
+            <span class="card-month-badge">Cockpit</span><h3>Zusammenfassung</h3>
+            <span class="kgo-stand" id="kgoStand"></span>
         </div>
         <div class="kgo-inhalt">
-            <div class="kgo-links" id="kgoLinks"></div>
-            <div class="kgo-mosaik" id="kgoMosaik"></div>
+            <div class="kgo-uhren">
+                <div class="kgo-uhr" id="kgoU1"></div>
+                <div class="kgo-uhr gross" id="kgoU2"></div>
+                <div class="kgo-uhr" id="kgoU3"></div>
+            </div>
+            <div class="kgo-abschnitt">
+                <h4>Objekte</h4><span>Wer dein Geld bringt · antippen für Mitarbeiter, Lohn und Ergebnis</span>
+                <div class="kgo-monat"><button type="button" data-schritt="-1" aria-label="Monat zurück">‹</button><b id="kgoMonat">–</b><button type="button" data-schritt="1" aria-label="Monat vor">›</button></div>
+            </div>
+            <div class="kgo-objekte" id="kgoObjekte"></div>
+            <div id="kgoUnten"></div>
         </div>
+        <div class="kgo-zu-text">Ausgeblendet · Auge antippen zum Zeigen</div>
     </div>
 </section>
 
@@ -2720,153 +2725,254 @@ const percent = kgTodoPercent;
 
 {% raw %}
 <script>
-// Objekte-Kasten: Bestandskunden als Mosaik (Fläche = Umsatz / Monat). Klick öffnet das Detail-Fenster
-// mit Mitarbeitern, Stunden, Lohn und Ergebnis. Standard: ausgeblendet (im Laden sieht Kundschaft mit) – das Auge zeigt ihn.
+// Cockpit unter den 8 Kacheln: drei Rundinstrumente (Umsatz Monat, Jahresumsatz, Marge nach Lohn) und die Objekte
+// als Karten. Klick auf ein Objekt öffnet das Detail-Fenster mit Mitarbeitern, Stunden, Lohn und Ergebnis.
+// Das Auge legt einen Schleier darüber (im Laden sieht Kundschaft mit) – im Browser gemerkt.
 (function () {
     const box = document.getElementById('kgoBox');
     if (!box) return;
     const SCHLUESSEL = 'kg_startseite_objekte_sichtbar';
     const auge = document.getElementById('kgoAuge');
-    const AUGE_ZU = auge.innerHTML;
-    const AUGE_AN = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M1.5 12s4-7 10.5-7 10.5 7 10.5 7-4 7-10.5 7S1.5 12 1.5 12z"></path><circle cx="12" cy="12" r="3"></circle></svg>';
-    const links = document.getElementById('kgoLinks'), mosaik = document.getElementById('kgoMosaik'), monatEl = document.getElementById('kgoMonat');
+    const AUGE_AN = auge.innerHTML;
+    const AUGE_ZU = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.8 10.8 0 0 1 12 19c-6.5 0-10.5-7-10.5-7a18.3 18.3 0 0 1 5.06-5.94"></path><path d="M9.9 4.24A10.9 10.9 0 0 1 12 4.99c6.5 0 10.5 7 10.5 7a18.5 18.5 0 0 1-2.2 3.02"></path><path d="M14.12 14.12A3 3 0 0 1 9.88 9.88"></path><path d="M3 3l18 18"></path></svg>';
+    const objekteEl = document.getElementById('kgoObjekte'), untenEl = document.getElementById('kgoUnten'), monatEl = document.getElementById('kgoMonat');
     const [zurueck, weiter] = box.querySelectorAll('.kgo-monat button');
+    const MON = ['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni', 'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember'];
     const ruhig = () => window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
     const euro = v => Math.round(Number(v) || 0).toLocaleString('de-DE') + ' €';
     const vz = v => (Math.round(v) > 0 ? '+' : Math.round(v) < 0 ? '−' : '') + euro(Math.abs(v));
     const std = v => (Math.round((Number(v) || 0) * 10) / 10).toLocaleString('de-DE') + ' Std';
     const prozent = (a, b) => (b > 0 ? Math.round(a / b * 100) : 0) + ' %';
-    let daten = null, laedt = false;
+    const kurz = v => v === 0 ? '0' : v >= 1000 ? (v / 1000).toLocaleString('de-DE', { maximumFractionDigits: 1 }) + 'k' : String(Math.round(v));
+    let daten = null, laedt = false, alle = false, erstesMal = true;
 
-    function lesen() { try { return localStorage.getItem(SCHLUESSEL) === '1'; } catch (e) { return false; } }
+    function lesen() { try { return localStorage.getItem(SCHLUESSEL) !== '0'; } catch (e) { return true; } }
     function merken(an) { try { localStorage.setItem(SCHLUESSEL, an ? '1' : '0'); } catch (e) {} }
 
+    // ---- Rundinstrument (SVG): Lünette, blaues Zifferblatt, leuchtender Bogen, Nadel
+    const A0 = 135, A1 = 405, CX = 130, CY = 130, R = 100;
+    let nr = 0;
+    const pt = (r, a) => [CX + r * Math.cos(a * Math.PI / 180), CY + r * Math.sin(a * Math.PI / 180)];
+    const bogen = (r, a, b) => { if (b - a < 0.01) b = a + 0.01; const p = pt(r, a), q = pt(r, b); return 'M' + p[0].toFixed(2) + ',' + p[1].toFixed(2) + ' A' + r + ',' + r + ' 0 ' + (b - a > 180 ? 1 : 0) + ' 1 ' + q[0].toFixed(2) + ',' + q[1].toFixed(2); };
+    function skala(x, teile) {
+        const roh = Math.max(x, 1) / teile, p = Math.pow(10, Math.floor(Math.log10(roh)));
+        const schritt = [1, 2, 2.5, 5, 10].map(f => f * p).find(v => v >= roh - 1e-9);
+        return { max: schritt * teile, schritt: schritt };
+    }
+    function uhrSvg(o) {
+        const id = 'kgoG' + (++nr), A = v => A0 + (A1 - A0) * Math.max(0, Math.min(v, o.max)) / o.max;
+        let s = '<svg viewBox="0 0 260 246" role="img" aria-label="' + esc(o.titel) + '"><defs>' +
+            '<linearGradient id="' + id + 'b" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset=".45" stop-color="#cbd5e1"/><stop offset=".55" stop-color="#94a3b8"/><stop offset="1" stop-color="#eef2f7"/></linearGradient>' +
+            '<radialGradient id="' + id + 'f" cx=".5" cy=".3" r=".78"><stop offset="0" stop-color="#3b82f6"/><stop offset=".5" stop-color="#1d4ed8"/><stop offset="1" stop-color="#172554"/></radialGradient>' +
+            '<linearGradient id="' + id + 'a" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#60a5fa"/><stop offset="1" stop-color="#a5f3fc"/></linearGradient>' +
+            '<linearGradient id="' + id + 'n" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#fdba74"/><stop offset="1" stop-color="#ea580c"/></linearGradient>' +
+            '<filter id="' + id + 'g" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="3.2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>' +
+            '<filter id="' + id + 's" x="-30%" y="-30%" width="160%" height="160%"><feDropShadow dx="0" dy="8" stdDeviation="8" flood-color="#1e3a8a" flood-opacity=".35"/></filter></defs>';
+        s += '<circle cx="' + CX + '" cy="' + CY + '" r="' + (R + 14) + '" fill="url(#' + id + 'b)" filter="url(#' + id + 's)"/>' +
+            '<circle cx="' + CX + '" cy="' + CY + '" r="' + (R + 8) + '" fill="#0b1a45"/><circle cx="' + CX + '" cy="' + CY + '" r="' + (R + 6) + '" fill="url(#' + id + 'f)"/>' +
+            '<path d="M' + (CX - 78) + ',' + (CY - 40) + ' A' + (R + 2) + ',' + (R + 2) + ' 0 0 1 ' + (CX + 78) + ',' + (CY - 40) + ' Q' + CX + ',' + (CY - 70) + ' ' + (CX - 78) + ',' + (CY - 40) + ' Z" fill="#ffffff" opacity=".07"/>';
+        s += '<path d="' + bogen(R - 10, A0, A1) + '" fill="none" stroke="#ffffff" stroke-opacity=".13" stroke-width="10" stroke-linecap="round"/>';
+        (o.zonen || []).forEach(z => { s += '<path d="' + bogen(R - 10, A(z[0]), A(z[1])) + '" fill="none" stroke="' + z[2] + '" stroke-opacity=".5" stroke-width="10"/>'; });
+        s += '<path class="kgo-bogen" d="' + bogen(R - 10, A0, A0) + '" fill="none" stroke="url(#' + id + 'a)" stroke-width="10" stroke-linecap="round" filter="url(#' + id + 'g)"/>';
+        for (let v = 0; v <= o.max + 1e-9; v += o.schritt / 2) {
+            const gross = Math.abs(v / o.schritt - Math.round(v / o.schritt)) < 1e-6, a = A(v), p = pt(R - 22, a), q = pt(R - (gross ? 34 : 28), a);
+            s += '<line x1="' + p[0].toFixed(2) + '" y1="' + p[1].toFixed(2) + '" x2="' + q[0].toFixed(2) + '" y2="' + q[1].toFixed(2) + '" stroke="#ffffff" stroke-opacity="' + (gross ? .95 : .45) + '" stroke-width="' + (gross ? 2.4 : 1.4) + '" stroke-linecap="round"/>';
+            if (gross) { const t = pt(R - 48, a); s += '<text x="' + t[0].toFixed(2) + '" y="' + (t[1] + 4).toFixed(2) + '" text-anchor="middle" font-size="11.5" font-weight="800" fill="#dbeafe" font-family="Arial, sans-serif">' + esc(o.fmt(v)) + '</text>'; }
+        }
+        if (o.geist != null && o.geist > 0) {
+            const p = pt(R - 3, A(o.geist)), q = pt(R - 19, A(o.geist));
+            s += '<line x1="' + p[0].toFixed(2) + '" y1="' + p[1].toFixed(2) + '" x2="' + q[0].toFixed(2) + '" y2="' + q[1].toFixed(2) + '" stroke="#67e8f9" stroke-width="4" stroke-linecap="round" filter="url(#' + id + 'g)"><title>' + esc(o.geistText || '') + '</title></line>';
+        }
+        if (o.einheit) s += '<text x="' + CX + '" y="' + (CY + 68) + '" text-anchor="middle" font-size="10" font-weight="900" letter-spacing="2" fill="#93c5fd" font-family="Arial, sans-serif">' + esc(o.einheit) + '</text>';
+        s += '<g class="kgo-nadel" transform="rotate(' + A0 + ' ' + CX + ' ' + CY + ')" filter="url(#' + id + 'g)"><path d="M' + (CX - 18) + ',' + (CY - 4.5) + ' L' + (CX + R - 20) + ',' + (CY - 1.2) + ' L' + (CX + R - 20) + ',' + (CY + 1.2) + ' L' + (CX - 18) + ',' + (CY + 4.5) + ' Z" fill="url(#' + id + 'n)"/></g>' +
+            '<circle cx="' + CX + '" cy="' + CY + '" r="12" fill="url(#' + id + 'b)"/><circle cx="' + CX + '" cy="' + CY + '" r="4.5" fill="#0b1a45"/></svg>';
+        return s;
+    }
+    function uhrSetzen(el, anteil) {
+        const svg = el.querySelector('svg'); if (!svg) return;
+        const a = A0 + (A1 - A0) * Math.max(0, Math.min(anteil, 1.04));
+        svg.querySelector('.kgo-nadel').setAttribute('transform', 'rotate(' + a.toFixed(2) + ' ' + CX + ' ' + CY + ')');
+        svg.querySelector('.kgo-bogen').setAttribute('d', bogen(R - 10, A0, Math.min(a, A1)));
+    }
+    function uhrBauen(el, o) {
+        el.innerHTML = '<div class="kgo-ueber">' + esc(o.titel) + '</div>' + uhrSvg(o) +
+            '<div class="kgo-anzeige' + (o.klasse ? ' ' + o.klasse : '') + '" data-kg-skip' + (o.zahl != null ? ' data-kgo-zahl="' + o.zahl + '"' + (o.vz ? ' data-kgo-vz="1"' : '') + (o.prozent ? ' data-kgo-p="1"' : '') : '') + '>' + esc(o.anzeige) + '</div>' +
+            '<div class="kgo-unter">' + o.unter + '</div>';
+        el._anteil = o.max > 0 ? Math.max(0, o.wert) / o.max : 0;
+        uhrSetzen(el, el._anteil);
+    }
+
+    // ---- Daten der Seite (Lexware-Umsatz wie in den Kacheln oben)
+    function seitenZahlen() {
+        const jahr = (typeof kgJahresGrafikVerisi !== 'undefined' && Array.isArray(kgJahresGrafikVerisi) ? kgJahresGrafikVerisi : []).map(v => Number(v) || 0);
+        const jetzt = new Date(), m = jetzt.getMonth();
+        const kum = typeof kgMonatstrendTage !== 'undefined' && Array.isArray(kgMonatstrendTage) ? kgMonatstrendTage : [];
+        const tage = typeof kgMonatstrendTageImMonat !== 'undefined' && kgMonatstrendTageImMonat ? kgMonatstrendTageImMonat : new Date(jetzt.getFullYear(), m + 1, 0).getDate();
+        const heute = kum.length || jetzt.getDate();
+        const monat = Math.max(jahr[m] || 0, kum.length ? Number(kum[kum.length - 1]) || 0 : 0);
+        const hoch = heute >= 5 && monat > 0 ? monat / heute * tage : 0;
+        const voll = jahr.slice(0, m);
+        const mitWert = voll.filter(v => v > 0);
+        const schnitt = mitWert.length ? mitWert.reduce((a, b) => a + b, 0) / mitWert.length : 0;
+        const summe = voll.reduce((a, b) => a + b, 0) + monat;
+        const hochJahr = voll.reduce((a, b) => a + b, 0) + Math.max(hoch, monat) + schnitt * (11 - m);
+        return { m: m, jahr: jetzt.getFullYear(), heute: heute, tage: tage, monat: monat, hoch: hoch, vormonat: m > 0 ? jahr[m - 1] : 0,
+                 bester: Math.max.apply(null, jahr.slice(0, m + 1).concat([0])), summe: summe, hochJahr: hochJahr };
+    }
+
+    function uhrenZeichnen() {
+        const z = seitenZahlen();
+        document.getElementById('kgoStand').textContent = MON[z.m] + ' läuft · Tag ' + z.heute + ' von ' + z.tage;
+        const s1 = skala(Math.max(z.bester, z.hoch, z.monat, 1000) * 1.1, 6);
+        uhrBauen(document.getElementById('kgoU1'), {
+            titel: 'Umsatz ' + MON[z.m], wert: z.monat, max: s1.max, schritt: s1.schritt, fmt: kurz, einheit: 'EURO',
+            geist: z.hoch, geistText: 'Hochrechnung', anzeige: euro(z.monat), zahl: z.monat,
+            unter: (z.hoch ? 'Hochrechnung <b>≈ ' + euro(z.hoch) + '</b><br>' : '') + 'Vormonat ' + euro(z.vormonat)
+        });
+        const s2 = skala(Math.max(z.hochJahr, z.summe, 1000) * 1.08, 6);
+        uhrBauen(document.getElementById('kgoU2'), {
+            titel: 'Jahresumsatz ' + z.jahr, wert: z.summe, max: s2.max, schritt: s2.schritt, fmt: kurz, einheit: 'EURO',
+            geist: z.hochJahr, geistText: 'Hochrechnung Jahresende', anzeige: euro(z.summe), zahl: z.summe,
+            unter: 'Hochrechnung Jahresende <b>≈ ' + euro(Math.round(z.hochJahr / 100) * 100) + '</b>'
+        });
+        margeZeichnen();
+        if (!ruhig()) ['kgoU1', 'kgoU2'].forEach(x => uhrSetzen(document.getElementById(x), 0));
+    }
+    function margeZeichnen() {
+        const el = document.getElementById('kgoU3');
+        const s = daten && daten.summe;
+        const hat = s && s.objekte_zugeordnet > 0 && s.umsatz_zugeordnet > 0;
+        const p = hat ? s.ergebnis / s.umsatz_zugeordnet * 100 : 0;
+        uhrBauen(el, {
+            titel: 'Marge nach Lohn', wert: p, max: 100, schritt: 20, fmt: v => String(v), einheit: 'PROZENT',
+            zonen: [[0, 20, '#ef4444'], [20, 40, '#f59e0b'], [40, 100, '#10b981']],
+            anzeige: hat ? Math.round(p) + ' %' : '–', zahl: hat ? p : null, prozent: true, klasse: hat ? (p >= 0 ? 'plus' : 'minus') : '',
+            unter: !daten ? 'Lädt …' : hat ? 'Ergebnis <b>' + vz(s.ergebnis) + '</b> · ' + esc(daten.monat_name) + '<br>' + s.objekte_zugeordnet + ' von ' + daten.kunden.length + ' Objekten mit Einsatzort'
+                : 'Noch kein Einsatzort zugeordnet<br>Objekt antippen und Ort wählen'
+        });
+    }
+
+    // ---- Objekte als Karten
+    function ring(k) {
+        const C = 2 * Math.PI * 26;
+        if (k.ergebnis === null) return '<svg class="kgo-ring" viewBox="0 0 66 66" aria-hidden="true"><circle cx="33" cy="33" r="26" fill="none" stroke="#94a3b8" stroke-opacity=".45" stroke-width="7" stroke-dasharray="4 5"/><text x="33" y="38" text-anchor="middle" font-size="16" font-weight="900" fill="#94a3b8" font-family="Arial, sans-serif">?</text></svg>';
+        const p = k.umsatz > 0 ? k.ergebnis / k.umsatz * 100 : 0, f = p >= 40 ? '#10b981' : p >= 20 ? '#f59e0b' : '#ef4444';
+        return '<svg class="kgo-ring" viewBox="0 0 66 66" aria-hidden="true"><circle cx="33" cy="33" r="26" fill="none" stroke="#94a3b8" stroke-opacity=".25" stroke-width="7"/>' +
+            '<circle class="kgo-ring-wert" cx="33" cy="33" r="26" fill="none" stroke="' + f + '" stroke-width="7" stroke-linecap="round" transform="rotate(-90 33 33)" stroke-dasharray="' + C.toFixed(2) + '" stroke-dashoffset="' + (C * (1 - Math.max(0, Math.min(p, 100)) / 100)).toFixed(2) + '" data-ziel="' + (C * (1 - Math.max(0, Math.min(p, 100)) / 100)).toFixed(2) + '" data-voll="' + C.toFixed(2) + '"/>' +
+            '<text x="33" y="37.5" text-anchor="middle" font-size="13" font-weight="900" fill="currentColor" font-family="Arial, sans-serif">' + Math.round(p) + '%</text></svg>';
+    }
+    function objekteZeichnen() {
+        const d = daten;
+        monatEl.textContent = d.monat_name + (d.laeuft ? ' (läuft)' : '');
+        zurueck.disabled = d.monat <= d.min;
+        weiter.disabled = d.monat >= d.max;
+        const liste = d.kunden;
+        if (!liste.length) { objekteEl.innerHTML = '<div class="kgo-leer">Noch keine Bestandskunden mit Betrag je Monat.</div>'; untenEl.innerHTML = ''; return; }
+        const zeigen = alle ? liste : liste.slice(0, 8);
+        objekteEl.innerHTML = '';
+        zeigen.forEach((k, i) => {
+            const el = document.createElement('button');
+            el.type = 'button';
+            el.className = 'kgo-k' + (i === 0 && k.umsatz > 0 ? ' gold' : '');
+            const e = k.ergebnis;
+            el.innerHTML = ring(k) + '<span style="min-width:0">' +
+                '<span class="kgo-n">' + esc(k.firma) + '</span>' +
+                '<span class="kgo-b">' + euro(k.umsatz) + ' <small>/ Monat</small></span>' +
+                '<span class="kgo-zeile">' + (e === null ? '<span class="kgo-e">Ort zuordnen</span>' : '<span class="kgo-e ' + (e >= 0 ? 'plus' : 'minus') + '">' + vz(e) + '</span>') +
+                (e !== null && k.mitarbeiter.length ? '<span class="kgo-s">' + k.mitarbeiter.length + ' ' + (k.mitarbeiter.length === 1 ? 'Person' : 'Personen') + ' · ' + std(k.stunden) + '</span>' : '') + '</span></span>' +
+                (i === 0 && k.umsatz > 0 ? '<span class="kgo-nr">★ Nr. 1</span>' : '');
+            el.title = k.firma + ' · ' + euro(k.umsatz) + ' / Monat';
+            el._kgo = { typ: 'kunde', id: k.id };
+            el.addEventListener('click', () => window.kgxOeffnen && window.kgxOeffnen(el));
+            objekteEl.appendChild(el);
+        });
+        let h = '';
+        if (liste.length > 8) h += '<button type="button" class="kgo-mehr">' + (alle ? 'Weniger zeigen' : 'Alle ' + liste.length + ' Objekte zeigen') + '</button>';
+        if (d.offen.length) h += '<div class="kgo-offen"><small>Einsatzorte ohne Objekt</small>' + d.offen.map((o, i) => '<button type="button" class="kgo-ort" data-i="' + i + '">' + esc(o.ort) + ' · ' + std(o.stunden) + '</button>').join('') + '</div>';
+        untenEl.innerHTML = h;
+        const mehr = untenEl.querySelector('.kgo-mehr');
+        if (mehr) mehr.addEventListener('click', () => { alle = !alle; objekteZeichnen(); });
+        untenEl.querySelectorAll('.kgo-ort').forEach(b => {
+            b._kgo = { typ: 'ort', ort: d.offen[Number(b.dataset.i)] };
+            b.addEventListener('click', () => window.kgxOeffnen && window.kgxOeffnen(b));
+        });
+    }
+
+    // ---- Auftritt wie bei der Datenbank: Nadeln schwingen hoch, Zahlen laufen, Karten erscheinen nacheinander
+    const federnd = p => { const c1 = 1.2, c3 = c1 + 1; return 1 + c3 * Math.pow(p - 1, 3) + c1 * Math.pow(p - 1, 2); };
+    function auftritt(nurUnten) {
+        if (ruhig()) return;
+        const uhren = nurUnten ? [document.getElementById('kgoU3')] : ['kgoU1', 'kgoU2', 'kgoU3'].map(x => document.getElementById(x));
+        uhren.forEach((el, i) => {
+            const ziel = el._anteil || 0, t0 = performance.now() + i * 150, dauer = 1700;
+            uhrSetzen(el, 0);
+            const schritt = t => {
+                if (!el.isConnected) return;
+                const p = Math.max(0, Math.min(1, (t - t0) / dauer));
+                uhrSetzen(el, ziel * federnd(p));
+                if (p < 1) requestAnimationFrame(schritt);
+            };
+            requestAnimationFrame(schritt);
+        });
+        uhren.map(el => el.querySelector('[data-kgo-zahl]')).filter(Boolean).forEach(el => {
+            const ziel = Number(el.dataset.kgoZahl) || 0, t0 = performance.now(), dauer = 1600;
+            const fmt = v => el.dataset.kgoP === '1' ? Math.round(v) + ' %' : el.dataset.kgoVz === '1' ? vz(v) : euro(v);
+            const schritt = t => {
+                if (!el.isConnected) return;
+                const p = Math.min(1, (t - t0) / dauer);
+                el.textContent = fmt(ziel * (1 - Math.pow(1 - p, 3)));
+                if (p < 1) requestAnimationFrame(schritt);
+            };
+            requestAnimationFrame(schritt);
+        });
+        objekteEl.querySelectorAll('.kgo-k').forEach((el, i) => {
+            if (el.animate) el.animate([{ opacity: 0, transform: 'translateY(14px) scale(.97)' }, { opacity: 1, transform: 'none' }], { duration: 650, delay: 250 + i * 70, easing: 'cubic-bezier(.22,1,.36,1)', fill: 'backwards' });
+            const r = el.querySelector('.kgo-ring-wert');
+            if (r && r.animate) r.animate([{ strokeDashoffset: r.dataset.voll }, { strokeDashoffset: r.dataset.ziel }], { duration: 1300, delay: 350 + i * 70, easing: 'cubic-bezier(.22,1,.36,1)', fill: 'backwards' });
+        });
+    }
+    function zeigenWennSichtbar() {
+        if (ruhig()) return;
+        const r = box.getBoundingClientRect();
+        if (r.top < window.innerHeight * 0.85) { auftritt(false); return; }
+        box.classList.add('kgo-wartet');
+        ['kgoU1', 'kgoU2', 'kgoU3'].forEach(x => uhrSetzen(document.getElementById(x), 0));
+        const io = new IntersectionObserver(es => {
+            if (!es.some(x => x.isIntersecting)) return;
+            io.disconnect(); box.classList.remove('kgo-wartet'); auftritt(false);
+        }, { threshold: 0.2 });
+        io.observe(box);
+    }
+
+    // ---- Laden
     function holen(monat) {
         return fetch('/api/startseite/objekte' + (monat ? '?monat=' + encodeURIComponent(monat) : ''), { credentials: 'same-origin', headers: { Accept: 'application/json' } })
             .then(r => r.json())
             .then(d => { if (!d || !d.ok) throw new Error((d && d.error) || 'Fehler'); daten = d; return d; });
     }
-    function laden(monat, animiert) {
+    function laden(monat) {
         if (laedt) return;
         laedt = true;
-        if (!daten) mosaik.innerHTML = '<div class="kgo-leer">Lädt …</div>';
         holen(monat)
-            .then(() => { if (!box.classList.contains('kgo-zu')) zeichnen(animiert); })
-            .catch(() => { links.innerHTML = ''; mosaik.innerHTML = '<div class="kgo-leer">Objekte konnten nicht geladen werden.</div>'; })
+            .then(() => {
+                objekteZeichnen();
+                margeZeichnen();
+                if (erstesMal) { erstesMal = false; zeigenWennSichtbar(); } else auftritt(true);
+            })
+            .catch(() => {
+                objekteEl.innerHTML = '<div class="kgo-leer">Objekte konnten nicht geladen werden.</div>';
+                if (erstesMal) { erstesMal = false; zeigenWennSichtbar(); }
+            })
             .finally(() => { laedt = false; });
     }
-    function sichtbar(an, animiert) {
+    function sichtbar(an) {
         box.classList.toggle('kgo-zu', !an);
         auge.innerHTML = an ? AUGE_AN : AUGE_ZU;
         auge.setAttribute('aria-pressed', an ? 'true' : 'false');
-        if (!an) { links.innerHTML = ''; mosaik.innerHTML = ''; return; } // ausgeblendet: nichts im Hintergrund stehen lassen
-        laden(daten ? daten.monat : '', animiert);
     }
 
-    // Mosaik: Rechtecke so quadratisch wie möglich (squarified)
-    function squarify(items, x, y, w, h) {
-        const aus = [], faktor = w * h / items.reduce((a, b) => a + b.v, 0);
-        let rest = items.map(i => Object.assign({}, i, { a: i.v * faktor }));
-        while (rest.length) {
-            const kurz = Math.min(w, h);
-            const schlecht = r => { const s = r.reduce((a, b) => a + b.a, 0), mx = Math.max(...r.map(q => q.a)), mn = Math.min(...r.map(q => q.a)); return Math.max(kurz * kurz * mx / (s * s), s * s / (kurz * kurz * mn)); };
-            let reihe = [rest[0]], i = 1;
-            while (i < rest.length && schlecht(reihe.concat(rest[i])) <= schlecht(reihe)) { reihe.push(rest[i]); i++; }
-            const s = reihe.reduce((a, b) => a + b.a, 0);
-            if (w >= h) { const bw = s / h; let yy = y; reihe.forEach(q => { const bh = q.a / bw; aus.push(Object.assign(q, { x: x, y: yy, w: bw, h: bh })); yy += bh; }); x += bw; w -= bw; }
-            else { const bh = s / w; let xx = x; reihe.forEach(q => { const bw = q.a / bh; aus.push(Object.assign(q, { x: xx, y: y, w: bw, h: bh })); xx += bw; }); y += bh; h -= bh; }
-            rest = rest.slice(i);
-        }
-        return aus;
-    }
-
-    function zeichnen(animiert) {
-        const d = daten, s = d.summe;
-        monatEl.textContent = d.monat_name + (d.laeuft ? ' (läuft)' : '');
-        zurueck.disabled = d.monat <= d.min;
-        weiter.disabled = d.monat >= d.max;
-
-        // links: Ergebnis nach Lohn, Balken, Summen, Orte ohne Objekt
-        const hat = s.objekte_zugeordnet > 0;
-        const lohnTeil = s.umsatz_zugeordnet > 0 ? Math.min(100, s.lohn_zugeordnet / s.umsatz_zugeordnet * 100) : 100;
-        let h = '<div class="kgo-gross"><small>Ergebnis nach Lohn</small>';
-        h += hat ? '<b class="' + (s.ergebnis >= 0 ? 'plus' : 'minus') + '" data-kgo-zahl="' + s.ergebnis + '" data-kgo-vz="1">' + vz(s.ergebnis) + '</b><span>' + prozent(s.ergebnis, s.umsatz_zugeordnet) + ' Marge · ' + s.objekte_zugeordnet + ' von ' + d.kunden.length + ' Objekten mit Einsatzort</span>'
-                 : '<b>–</b><span>Noch kein Einsatzort zugeordnet. Objekt antippen und den Ort aus dem Stundenzettel wählen.</span>';
-        h += '</div>';
-        if (hat) h += '<div class="kgo-balken"><i class="l" style="width:' + lohnTeil + '%"></i><i class="e" style="width:' + (100 - lohnTeil) + '%"></i></div>' +
-            '<div class="kgo-legende"><span style="--f:#dc2626">Lohn ' + euro(s.lohn_zugeordnet) + '</span><span style="--f:#059669">Ergebnis ' + vz(s.ergebnis) + '</span></div>';
-        h += '<div class="kgo-werte"><div class="kgo-wert blau" data-kg-skip><small>Umsatz / Monat</small><b data-kgo-zahl="' + s.umsatz + '">' + euro(s.umsatz) + '</b></div>' +
-            '<div class="kgo-wert rot" data-kg-skip><small>Lohn ' + esc(d.monat_name.split(' ')[0]) + '</small><b data-kgo-zahl="' + s.lohn + '">' + euro(s.lohn) + '</b></div></div>';
-        if (d.offen.length) h += '<div class="kgo-offen"><small>Einsatzorte ohne Objekt</small><div>' +
-            d.offen.map((o, i) => '<button type="button" class="kgo-ort" data-i="' + i + '">' + esc(o.ort) + ' · ' + std(o.stunden) + '</button>').join('') + '</div></div>';
-        links.innerHTML = h;
-        links.querySelectorAll('.kgo-ort').forEach(b => {
-            b._kgo = { typ: 'ort', ort: d.offen[Number(b.dataset.i)] };
-            b.addEventListener('click', () => window.kgxOeffnen && window.kgxOeffnen(b));
-        });
-
-        // rechts: Mosaik
-        const liste = d.kunden.filter(k => k.umsatz > 0);
-        if (!liste.length) { mosaik.innerHTML = '<div class="kgo-leer">Noch keine Bestandskunden mit Betrag je Monat.</div>'; return; }
-        const kacheln = squarify(liste.map((k, i) => ({ k: k, i: i, v: k.umsatz })), 0, 0, mosaik.clientWidth, mosaik.clientHeight);
-        mosaik.innerHTML = '';
-        kacheln.forEach(q => {
-            const k = q.k, el = document.createElement('button'), rand = 3, w = q.w - 2 * rand, hh = q.h - 2 * rand;
-            el.type = 'button';
-            el.className = 'kgo-k';
-            el.setAttribute('data-kg-skip', '');
-            Object.assign(el.style, { left: (q.x + rand) + 'px', top: (q.y + rand) + 'px', width: Math.max(0, w) + 'px', height: Math.max(0, hh) + 'px' });
-            if (q.i === 0) { el.classList.add('gold'); el.style.background = 'linear-gradient(145deg, #fcd34d, #f59e0b 55%, #d97706)'; }
-            else {
-                const t = liste.length > 2 ? (q.i - 1) / (liste.length - 2) : 0;
-                el.style.background = 'linear-gradient(145deg, hsl(217 91% ' + (62 - t * 22) + '%), hsl(224 76% ' + (46 - t * 18) + '%))';
-            }
-            if (w < 46 || hh < 30) el.classList.add('winzig');
-            else if (w < 100 || hh < 58) el.classList.add('mini');
-            else if (w < 170 || hh < 110) el.classList.add('klein');
-            if (hh < 80) el.classList.add('flach');
-            const e = k.ergebnis;
-            el.innerHTML = (q.i === 0 ? '<span class="kgo-nr">★ NR. 1</span>' : '') + '<span class="kgo-n">' + esc(k.firma) + '</span><span class="kgo-b" data-kgo-zahl="' + k.umsatz + '">' + euro(k.umsatz) + '</span>' +
-                (k.orte.length && k.mitarbeiter.length ? '<span class="kgo-s">' + k.mitarbeiter.length + ' ' + (k.mitarbeiter.length === 1 ? 'Person' : 'Personen') + ' · ' + std(k.stunden) + '</span>' : '') +
-                (e === null ? '<span class="kgo-e">Ort zuordnen</span>' : '<span class="kgo-e ' + (e >= 0 ? 'plus' : 'minus') + '">' + vz(e) + ' · ' + prozent(e, k.umsatz) + '</span>');
-            el.title = k.firma + ' · ' + euro(k.umsatz) + ' / Monat';
-            el._kgo = { typ: 'kunde', id: k.id };
-            el.addEventListener('click', () => window.kgxOeffnen && window.kgxOeffnen(el));
-            mosaik.appendChild(el);
-        });
-
-        if (animiert && !ruhig()) {
-            const r = box.getBoundingClientRect();
-            if (r.top < window.innerHeight * 0.92) auftritt();
-            else {
-                box.classList.add('kgo-wartet');
-                const io = new IntersectionObserver(es => { if (es.some(x => x.isIntersecting)) { io.disconnect(); box.classList.remove('kgo-wartet'); auftritt(); } }, { threshold: 0.12 });
-                io.observe(box);
-            }
-        }
-    }
-
-    // Auftritt wie bei der Datenbank: Kacheln wachsen nacheinander, Zahlen laufen hoch
-    function auftritt() {
-        mosaik.querySelectorAll('.kgo-k').forEach((el, i) => {
-            if (el.animate) el.animate([{ opacity: 0, transform: 'scale(.86)' }, { opacity: 1, transform: 'none' }], { duration: 700, delay: Math.min(i, 16) * 60, easing: 'cubic-bezier(.22,1,.36,1)', fill: 'backwards' });
-        });
-        const balken = links.querySelector('.kgo-balken');
-        if (balken && balken.animate) balken.animate([{ clipPath: 'inset(0 100% 0 0 round 7px)' }, { clipPath: 'inset(0 0 0 0 round 7px)' }], { duration: 1200, delay: 200, easing: 'cubic-bezier(.22,1,.36,1)', fill: 'backwards' });
-        box.querySelectorAll('[data-kgo-zahl]').forEach(el => {
-            const ziel = Number(el.dataset.kgoZahl) || 0, mitVz = el.dataset.kgoVz === '1', t0 = performance.now(), dauer = 1500;
-            const schritt = t => {
-                if (!el.isConnected) return;
-                const p = Math.min(1, (t - t0) / dauer), w = ziel * (1 - Math.pow(1 - p, 3));
-                el.textContent = mitVz ? vz(w) : euro(w);
-                if (p < 1) requestAnimationFrame(schritt);
-            };
-            requestAnimationFrame(schritt);
-        });
-    }
-
-    // Detail-Fenster (gleiches Fenster wie Kalender, Wetter und Kacheln)
+    // ---- Detail-Fenster (gleiches Fenster wie Kalender, Wetter und Kacheln)
     function nachSchliessen(fn) {
         if (!document.querySelector('.kgx-panel')) { fn(); return; }
         const mo = new MutationObserver(() => { if (!document.querySelector('.kgx-panel')) { mo.disconnect(); fn(); } });
@@ -2879,7 +2985,7 @@ const percent = kgTodoPercent;
         return fetch('/api/startseite/objekte/zuordnung', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json', Accept: 'application/json' }, body: JSON.stringify({ ort: ort, kunde_id: kundeId }) })
             .then(r => r.json())
             .then(r => { if (!r || !r.ok) throw new Error((r && r.error) || 'Fehler'); return holen(daten.monat); })
-            .then(() => { nachSchliessen(() => { if (!box.classList.contains('kgo-zu')) zeichnen(false); }); return true; })
+            .then(() => { nachSchliessen(() => { objekteZeichnen(); margeZeichnen(); auftritt(true); }); return true; })
             .catch(e => {
                 body.querySelectorAll('button, select').forEach(x => { x.disabled = false; });
                 if (fehler) { fehler.textContent = 'Nicht gespeichert: ' + e.message; fehler.hidden = false; }
@@ -2959,7 +3065,7 @@ const percent = kgTodoPercent;
     }
     window.kgoInhalt = function (karte) {
         const info = karte._kgo;
-        if (!info || !daten) return null;
+        if (!info || !daten || box.classList.contains('kgo-zu')) return null;
         if (info.typ === 'ort') return ortInhalt(info.ort);
         const k = daten.kunden.find(x => x.id === info.id);
         if (!k) return null;
@@ -2969,16 +3075,14 @@ const percent = kgTodoPercent;
         };
     };
 
-    zurueck.addEventListener('click', () => { if (daten && !zurueck.disabled) laden(schritt(daten.monat, -1), true); });
-    weiter.addEventListener('click', () => { if (daten && !weiter.disabled) laden(schritt(daten.monat, 1), true); });
     function schritt(m, n) { const t = m.split('-').map(Number), d = new Date(t[0], t[1] - 1 + n, 1); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0'); }
-    auge.addEventListener('click', e => { e.preventDefault(); const an = box.classList.contains('kgo-zu'); merken(an); sichtbar(an, true); });
-    let breite = 0, warte = 0;
-    window.addEventListener('resize', () => {
-        clearTimeout(warte);
-        warte = setTimeout(() => { if (daten && !box.classList.contains('kgo-zu') && mosaik.clientWidth !== breite && !document.querySelector('.kgx-panel')) { breite = mosaik.clientWidth; zeichnen(false); } }, 200);
-    });
-    sichtbar(lesen(), true);
+    zurueck.addEventListener('click', () => { if (daten && !zurueck.disabled) laden(schritt(daten.monat, -1)); });
+    weiter.addEventListener('click', () => { if (daten && !weiter.disabled) laden(schritt(daten.monat, 1)); });
+    auge.addEventListener('click', e => { e.preventDefault(); const an = box.classList.contains('kgo-zu'); merken(an); sichtbar(an); });
+
+    sichtbar(lesen());
+    uhrenZeichnen();
+    laden('');
 })();
 </script>
 {% endraw %}
