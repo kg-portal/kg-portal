@@ -959,6 +959,20 @@
     .c-blue { color: #1d4ed8; } .c-gray { color: #475569; } .c-purple { color: #6366f1; } .c-pink { color: #db2777; }
     .kgx-hinweis { margin-top: 12px; font-size: 12.5px; font-weight: 700; color: #64748b; }
     .kgx-fuss { padding: 12px 16px 16px; }
+    .index-kal-box, .index-wetter-gross { cursor: pointer; transition: transform 0.25s ease, box-shadow 0.25s ease; }
+    .index-kal-box:hover, .index-wetter-gross:hover { transform: translateY(-2px); box-shadow: 0 16px 30px -14px rgba(15, 23, 42, 0.55); }
+    .kgx-kal { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; padding: 14px; border: 1px solid #dbeafe; border-radius: 18px; }
+    .kgx-kal span { text-align: center; font-size: 11px; font-weight: 900; color: #94a3b8; }
+    .kgx-kal i { position: relative; display: grid; place-items: center; height: 38px; border-radius: 11px; font-style: normal; font-size: 14px; font-weight: 800; color: #0f172a; background: #f8fbff; }
+    .kgx-kal i.leer { background: transparent; }
+    .kgx-kal i.we { color: #64748b; background: #f1f5f9; }
+    .kgx-kal i.vorbei { opacity: .55; }
+    .kgx-kal i.fei { color: #b91c1c; background: #fef2f2; }
+    .kgx-kal i.fei::after { content: ""; position: absolute; bottom: 5px; width: 5px; height: 5px; border-radius: 50%; background: #dc2626; }
+    .kgx-kal i.heute { color: #fff; background: linear-gradient(135deg, #1e40af, #3b82f6); box-shadow: 0 8px 16px -8px rgba(30, 64, 175, .8); opacity: 1; }
+    .kgx-wt-icon { width: 30px; height: 26px; object-fit: contain; flex-shrink: 0; }
+    .kgx-spanne { position: relative; flex: 1; height: 8px; border-radius: 4px; background: #eef2f7; }
+    .kgx-spanne i { position: absolute; top: 0; bottom: 0; border-radius: 4px; background: linear-gradient(90deg, #60a5fa, #f59e0b); }
     .kgx-fuss a { display: block; padding: 12px; border-radius: 14px; text-align: center; text-decoration: none; color: #fff; font-size: 13.5px; font-weight: 900; background: linear-gradient(135deg, #1e40af, #3b82f6); }
 }
 </style>
@@ -1914,8 +1928,8 @@ function kalenderwoche(d) {
                 'https://api.open-meteo.com/v1/forecast' +
                 '?latitude=51.4344' +
                 '&longitude=6.7623' +
-                '&current=temperature_2m,weather_code' +
-                '&daily=weather_code,temperature_2m_max,temperature_2m_min' +
+                '&current=temperature_2m,weather_code,apparent_temperature,relative_humidity_2m,wind_speed_10m' +
+                '&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,sunrise,sunset' +
                 '&forecast_days=7' +
                 '&timezone=Europe%2FBerlin'
             );
@@ -1925,6 +1939,7 @@ function kalenderwoche(d) {
             }
 
             const data = await response.json();
+            window.kgWetter = data; // für das Detail-Fenster (Klick auf die Wetter-Box)
 
             const temp = Math.round(data.current.temperature_2m);
             const currentCode = Number(data.current.weather_code);
@@ -2164,6 +2179,8 @@ const percent = kgTodoPercent;
 
     // 2) Detail-Fenster
     function art(karte) {
+        if (karte.classList.contains('index-kal-box')) return 'kalender';
+        if (karte.classList.contains('index-wetter-gross')) return 'wetter';
         const t = ((karte.querySelector('.card-month-badge, .card-label') || {}).textContent || '').trim().toLowerCase();
         if (karte.querySelector('#current-month-label')) return 'monat';
         if (karte.querySelector('#current-year-label')) return 'jahr';
@@ -2204,7 +2221,94 @@ const percent = kgTodoPercent;
         }
         return html + '</div>';
     }
+    // Feiertage NRW (Ostern nach Gauß)
+    function feiertage(jahr) {
+        const a = jahr % 19, b = Math.floor(jahr / 100), c = jahr % 100, d = Math.floor(b / 4), e = b % 4, f = Math.floor((b + 8) / 25),
+              g = Math.floor((b - f + 1) / 3), h = (19 * a + b - d - g + 15) % 30, i = Math.floor(c / 4), k = c % 4,
+              l = (32 + 2 * e + 2 * i - h - k) % 7, m = Math.floor((a + 11 * h + 22 * l) / 451),
+              monat = Math.floor((h + l - 7 * m + 114) / 31), tag = ((h + l - 7 * m + 114) % 31) + 1;
+        const plus = n => new Date(jahr, monat - 1, tag + n);
+        return [[new Date(jahr, 0, 1), 'Neujahr'], [plus(-2), 'Karfreitag'], [plus(1), 'Ostermontag'], [new Date(jahr, 4, 1), 'Tag der Arbeit'],
+                [plus(39), 'Christi Himmelfahrt'], [plus(50), 'Pfingstmontag'], [plus(60), 'Fronleichnam'], [new Date(jahr, 9, 3), 'Tag der Deutschen Einheit'],
+                [new Date(jahr, 10, 1), 'Allerheiligen'], [new Date(jahr, 11, 25), '1. Weihnachtstag'], [new Date(jahr, 11, 26), '2. Weihnachtstag']];
+    }
+    function kalenderInhalt() {
+        const n = new Date(), j = n.getFullYear(), mo = n.getMonth(), heute = n.getDate();
+        const schluessel = d => d.getFullYear() + '-' + d.getMonth() + '-' + d.getDate();
+        const fei = {}; feiertage(j).concat(feiertage(j + 1)).forEach(x => { fei[schluessel(x[0])] = x[1]; });
+        const tage = new Date(j, mo + 1, 0).getDate(), erster = (new Date(j, mo, 1).getDay() + 6) % 7;
+        let raster = '<div class="kgx-kal">' + ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'].map(t => '<span>' + t + '</span>').join('');
+        for (let i = 0; i < erster; i++) raster += '<i class="leer"></i>';
+        let arbeit = 0, arbeitRest = 0;
+        for (let t = 1; t <= tage; t++) {
+            const d = new Date(j, mo, t), wt = (d.getDay() + 6) % 7, name = fei[schluessel(d)];
+            const klasse = [t === heute ? 'heute' : '', name ? 'fei' : (wt >= 5 ? 'we' : ''), t < heute ? 'vorbei' : ''].filter(Boolean).join(' ');
+            if (wt < 5 && !name) { arbeit++; if (t >= heute) arbeitRest++; }
+            raster += '<i class="' + klasse + '"' + (name ? ' title="' + esc(name) + '"' : '') + '>' + t + '</i>';
+        }
+        raster += '</div>';
+        let naechster = null;
+        Object.keys(fei).forEach(k => { const [y, m, d] = k.split('-').map(Number), dat = new Date(y, m, d);
+            if (dat >= new Date(j, mo, heute) && (!naechster || dat < naechster[0])) naechster = [dat, fei[k]]; });
+        const inTagen = naechster ? Math.round((naechster[0] - new Date(j, mo, heute)) / 86400000) : 0;
+        const tagImJahr = Math.round((new Date(j, mo, heute) - new Date(j, 0, 1)) / 86400000) + 1, jahrTage = new Date(j, 1, 29).getMonth() === 1 ? 366 : 365;
+        const kw = kalenderwoche(n), wtName = n.toLocaleDateString('de-DE', { weekday: 'long' });
+        return {
+            over: 'Heute · KW ' + kw, titel: wtName + ', ' + heute + '. ' + MON[mo] + ' ' + j,
+            gross: String(n.getHours()).padStart(2, '0') + ':' + String(n.getMinutes()).padStart(2, '0') + ' Uhr',
+            unter: 'Duisburg · Tag ' + tagImJahr + ' von ' + jahrTage + ' · noch ' + (jahrTage - tagImJahr) + ' Tage im Jahr',
+            body: '<div class="kgx-kacheln" style="margin-bottom:12px">' +
+                  '<div class="kgx-kachel blue">Arbeitstage ' + esc(MON[mo]) + '<b>' + arbeit + '</b></div>' +
+                  '<div class="kgx-kachel green">Davon noch<b>' + arbeitRest + '</b></div>' +
+                  '<div class="kgx-kachel purple">Kalenderwoche<b>' + kw + '</b></div>' +
+                  '<div class="kgx-kachel pink">Nächster Feiertag<b style="font-size:17px">' + (naechster ? esc(naechster[1]) : '–') + '</b>' +
+                  (naechster ? '<span class="kgx-klein" style="color:rgba(255,255,255,.9)">' + naechster[0].toLocaleDateString('de-DE', { weekday: 'short', day: '2-digit', month: '2-digit' }) + (inTagen === 0 ? ' · heute' : ' · in ' + inTagen + ' Tagen') + '</span>' : '') + '</div></div>' +
+                  raster + '<div class="kgx-hinweis">Rot = Feiertag in NRW · Arbeitstage = Mo–Fr ohne Feiertage.</div>',
+            link: ['/kalender', 'Kalender öffnen']
+        };
+    }
+    function wetterInhalt() {
+        const w = window.kgWetter;
+        const tagName = ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'];
+        if (!w || !w.daily || typeof getWeatherDetails !== 'function') {
+            return { over: 'Wetter Duisburg', titel: 'Keine Wetterdaten', unter: 'Der Wetterdienst antwortet gerade nicht – später noch einmal öffnen.',
+                     body: '<div class="kgx-hinweis">Es werden nur Daten angezeigt, die gerade geladen sind.</div>', link: null };
+        }
+        const c = w.current || {}, d = w.daily, jetzt = getWeatherDetails(Number(c.weather_code));
+        const zeit = v => v ? String(v).slice(11, 16) : '–';
+        const tiefs = d.temperature_2m_min.map(Math.round), hochs = d.temperature_2m_max.map(Math.round);
+        const lo = Math.min(...tiefs), spanne = Math.max(1, Math.max(...hochs) - lo);
+        const regen = d.precipitation_probability_max || [];
+        let liste = '<div class="kgx-liste">';
+        d.time.forEach((t, i) => {
+            const dat = new Date(t + 'T12:00:00'), info = getWeatherDetails(Number(d.weather_code[i]));
+            liste += '<div class="kgx-zeile' + (i === 0 ? ' akt' : '') + '"><span class="kgx-name" style="width:128px">' + (i === 0 ? 'Heute' : tagName[dat.getDay()] + ' ' + dat.getDate() + '.' + (dat.getMonth() + 1) + '.') +
+                '<span class="kgx-klein">' + esc(info.germanDesc) + '</span>' + (regen[i] != null ? '<span class="kgx-klein">Regenrisiko ' + regen[i] + ' %</span>' : '') + '</span>' +
+                '<img class="kgx-wt-icon" src="' + info.iconPath + '" alt="">' +
+                '<span class="kgx-spanne"><i style="left:' + ((tiefs[i] - lo) / spanne * 100).toFixed(1) + '%;width:' + Math.max(6, (hochs[i] - tiefs[i]) / spanne * 100).toFixed(1) + '%"></i></span>' +
+                '<span class="kgx-wert" style="min-width:76px"><span class="kgx-minus">' + hochs[i] + '°</span> / <span style="color:#2563eb">' + tiefs[i] + '°</span></span></div>';
+        });
+        liste += '</div>';
+        const trocken = d.time.map((t, i) => [t, regen[i]]).filter(x => x[1] != null && x[1] < 30)
+            .map(x => tagName[new Date(x[0] + 'T12:00:00').getDay()]);
+        const tipp = !regen.length ? '' : (trocken.length ? 'Gute Tage für Fenster- und Außenarbeiten (Regenrisiko unter 30 %): <b>' + trocken.join(', ') + '</b>.'
+                                                           : 'Die ganze Woche Regenrisiko – Fenster- und Außenarbeiten flexibel planen.');
+        return {
+            over: 'Wetter Duisburg', titel: jetzt.germanDesc, gross: Math.round(c.temperature_2m) + ' °C',
+            unter: 'Heute ↑ ' + hochs[0] + '° ↓ ' + tiefs[0] + '° · Sonne ' + zeit(d.sunrise && d.sunrise[0]) + '–' + zeit(d.sunset && d.sunset[0]),
+            body: '<div class="kgx-kacheln" style="margin-bottom:12px">' +
+                  '<div class="kgx-kachel blue">Gefühlt<b>' + (c.apparent_temperature != null ? Math.round(c.apparent_temperature) + ' °C' : '–') + '</b></div>' +
+                  '<div class="kgx-kachel gray">Wind<b>' + (c.wind_speed_10m != null ? Math.round(c.wind_speed_10m) + ' km/h' : '–') + '</b></div>' +
+                  '<div class="kgx-kachel purple">Luftfeuchte<b>' + (c.relative_humidity_2m != null ? Math.round(c.relative_humidity_2m) + ' %' : '–') + '</b></div>' +
+                  '<div class="kgx-kachel ' + ((regen[0] || 0) >= 50 ? 'red' : 'green') + '">Regenrisiko heute<b>' + (regen[0] != null ? regen[0] + ' %' : '–') + '</b></div></div>' +
+                  liste + (tipp ? '<div class="kgx-hinweis">' + tipp + '</div>' : ''),
+            link: null
+        };
+    }
+
     function inhalt(a, karte) {
+        if (a === 'kalender') return kalenderInhalt();
+        if (a === 'wetter') return wetterInhalt();
         const wert = ((karte.querySelector('.card-value') || {}).textContent || '').trim();
         const jahr = liste(() => kgJahresGrafikVerisi);
         const summe = jahr.slice(0, jetzt.getMonth() + 1).reduce((x, v) => x + (Number(v) || 0), 0);
@@ -2309,7 +2413,7 @@ const percent = kgTodoPercent;
         panel.innerHTML = '<div class="kgx-inhalt"><div class="kgx-kopf"><button type="button" class="kgx-zu" aria-label="Schließen">✕</button>' +
             '<div class="kgx-over">' + esc(daten.over) + '</div><h2 class="kgx-titel">' + esc(daten.titel) + '</h2>' +
             (daten.gross ? '<div class="kgx-gross">' + esc(daten.gross) + '</div>' : '') + (daten.unter ? '<div class="kgx-unter">' + esc(daten.unter) + '</div>' : '') + '</div>' +
-            '<div class="kgx-body">' + daten.body + '</div><div class="kgx-fuss"><a href="' + daten.link[0] + '">' + esc(daten.link[1]) + '</a></div></div>';
+            '<div class="kgx-body">' + daten.body + '</div>' + (daten.link ? '<div class="kgx-fuss"><a href="' + daten.link[0] + '">' + esc(daten.link[1]) + '</a></div>' : '') + '</div>';
         Object.assign(panel.style, { top: ziel.top + 'px', left: ziel.left + 'px', width: ziel.width + 'px', height: ziel.height + 'px' });
         document.body.appendChild(hinter); document.body.appendChild(panel);
         karte.style.visibility = 'hidden';
@@ -2338,6 +2442,7 @@ const percent = kgTodoPercent;
         ani.onfinish = einmal; setTimeout(einmal, 650);
     }
     document.addEventListener('keydown', e => { if (offen && e.key === 'Escape') schliessen(); });
+    document.querySelectorAll('.index-kal-box, .index-wetter-gross').forEach(box => box.addEventListener('click', () => oeffnen(box)));
     document.querySelectorAll('.dashboard-grid .kpi-card').forEach(karte => {
         karte.addEventListener('click', e => {
             if (e.target.closest('a, button, input, select, textarea')) return;
