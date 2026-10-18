@@ -22,6 +22,19 @@ def _tabelle(conn):
     """)
 
 
+def _betrag(wert):
+    """Betrag wie im Formular eingegeben: „450“, „450,50“, „1.250,00 €“, „1250.5“ → Zahl (sonst 0)."""
+    t = str(wert or "").replace("€", "").replace("\u00a0", "").replace(" ", "").strip()
+    if "," in t:
+        t = t.replace(".", "").replace(",", ".")
+    elif t.count(".") > 1:
+        t = t.replace(".", "")
+    try:
+        return float(t or 0)
+    except ValueError:
+        return 0.0
+
+
 def _schluessel(ort):
     return " ".join(str(ort or "").split()).lower()
 
@@ -59,10 +72,7 @@ def objekte_daten(conn, monat=None):
 
     kunden = {}
     for k in conn.execute("SELECT id, firma, ort, monat, haeufigkeit, vertragsstatus FROM kunden").fetchall():
-        try:
-            betrag = float(k["monat"] or 0)
-        except (TypeError, ValueError):
-            betrag = 0.0
+        betrag = _betrag(k["monat"])
         kunden[k["id"]] = {
             "id": k["id"], "firma": (k["firma"] or "").strip() or "Ohne Namen", "ort": (k["ort"] or "").strip(),
             "freq": (k["haeufigkeit"] or "").strip(), "bestand": _kundenart(k) == "bestand",
@@ -91,9 +101,8 @@ def objekte_daten(conn, monat=None):
         h = _stunden(z["start_time"], z["end_time"])
         if h <= 0:
             continue
-        try:
-            satz = float(z["stundenlohn"]) if z["stundenlohn"] and float(z["stundenlohn"]) > 0 else STUNDENLOHN
-        except (TypeError, ValueError):
+        satz = _betrag(z["stundenlohn"]) or STUNDENLOHN
+        if satz < 0:
             satz = STUNDENLOHN
         name = " ".join(x for x in ((z["vorname"] or "").strip(), (z["nachname"] or "").strip()) if x) or f"Mitarbeiter {z['worker_id']}"
         lohn_gesamt += h * satz
