@@ -592,6 +592,121 @@
     color: #1e40af;
 }
 
+/* Wetter: große Temperatur, 4 Tage mit Temperatur-Spanne */
+.index-weather-box.index-wetter-gross {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 6px;
+    min-height: 207px;
+    padding: 13px 15px 12px;
+}
+
+.index-wetter-gross .wg-kopf {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.index-wetter-gross .index-weather-title {
+    font-size: 12px;
+    font-weight: 900;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+}
+
+.index-wetter-gross .wg-stand {
+    font-size: 10px;
+    font-weight: 800;
+    color: #94a3b8;
+}
+
+.index-wetter-gross .wg-oben {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.index-wetter-gross .wg-temp {
+    font-size: 52px;
+    line-height: 0.95;
+    font-weight: 900;
+    letter-spacing: -2px;
+    color: #0f1d4a;
+}
+
+.index-wetter-gross .wg-text {
+    margin-top: 4px;
+    font-size: 12px;
+    font-weight: 800;
+    color: #475569;
+    white-space: nowrap;
+}
+
+.index-wetter-gross .wg-hoch {
+    color: #dc2626;
+}
+
+.index-wetter-gross .wg-tief {
+    color: #2563eb;
+}
+
+.index-wetter-gross #weather-icon {
+    width: 82px;
+    height: 68px;
+}
+
+.index-wetter-gross .wg-tage {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 6px;
+    padding-top: 7px;
+    border-top: 1px solid #e2e8f0;
+}
+
+.index-wetter-gross .wg-tag {
+    display: grid;
+    justify-items: center;
+    gap: 3px;
+    min-width: 0;
+}
+
+.index-wetter-gross .wg-tag b {
+    font-size: 10.5px;
+    font-weight: 900;
+    color: #1d4ed8;
+}
+
+.index-wetter-gross .wg-tag img {
+    width: 28px;
+    height: 22px;
+    object-fit: contain;
+}
+
+.index-wetter-gross .wg-bahn {
+    position: relative;
+    width: 100%;
+    height: 5px;
+    border-radius: 9px;
+    background: #e2e8f0;
+}
+
+.index-wetter-gross .wg-bahn i {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    border-radius: 9px;
+    background: linear-gradient(90deg, #60a5fa, #f59e0b);
+}
+
+.index-wetter-gross .wg-tag span {
+    font-size: 10px;
+    font-weight: 800;
+    color: #334155;
+    white-space: nowrap;
+}
+
 .index-weather-box .index-weather-main {
     color: #172554;
 }
@@ -915,37 +1030,25 @@
             </div>
         </div>
 
-        <div class="index-weather-box">
-            <div class="index-weather-title">Wetter Duisburg</div>
+        <div class="index-weather-box index-wetter-gross">
+            <div class="wg-kopf">
+                <span class="index-weather-title">Wetter Duisburg</span>
+                <span class="wg-stand" title="Zuletzt aktualisiert"><span id="weather-update-time">--:--</span></span>
+            </div>
 
-            <div class="index-weather-main">
+            <div class="wg-oben">
+                <div class="wg-links">
+                    <div id="weather-temp" class="wg-temp">--°</div>
+                    <div class="wg-text">
+                        <span id="weather-desc">Laden...</span>
+                        · <span class="wg-hoch">↑<span id="weather-max">--</span>°</span>
+                        <span class="wg-tief">↓<span id="weather-min">--</span>°</span>
+                    </div>
+                </div>
                 <img id="weather-icon" src="/static/sunny.png" alt="Wetter">
-
-                <span>
-                    <span id="weather-desc">Laden...</span>
-                    <span id="weather-temp"></span>
-                </span>
             </div>
 
-            <div class="index-small-label weather-current-info">
-                <div>
-                    <span class="weather-high">
-                        ↑ <span id="weather-max">--</span>°C
-                    </span>
-                    &nbsp;&nbsp;
-                    <span class="weather-low">
-                        ↓ <span id="weather-min">--</span>°C
-                    </span>
-                </div>
-
-                <div class="weather-update-line">
-                    Aktualisiert: <span id="weather-update-time">--:--</span>
-                </div>
-            </div>
-
-            <div class="weather-forecast-window">
-                <div id="weather-forecast-track" class="weather-forecast-track"></div>
-            </div>
+            <div id="weather-forecast-track" class="wg-tage"></div>
         </div>
     </div>
 </section>
@@ -1842,10 +1945,10 @@ function kalenderwoche(d) {
             const minTemp = Math.round(data.daily.temperature_2m_min[0]);
 
             document.getElementById('weather-desc').textContent =
-                currentWeather.germanDesc + " ";
+                currentWeather.germanDesc;
 
             document.getElementById('weather-temp').textContent =
-                temp + "°C";
+                temp + "°";
 
             document.getElementById('weather-icon').src =
                 currentWeather.iconPath;
@@ -1872,50 +1975,38 @@ function kalenderwoche(d) {
                 "Sa"
             ];
 
-            const forecastItems = data.daily.time.map((dateValue, index) => {
+            // 4 Tage (heute + 3) mit Temperatur-Spanne; Balken auf derselben Skala
+            const tage = data.daily.time.slice(0, 4);
+            const tiefs = tage.map((_, i) => Math.round(data.daily.temperature_2m_min[i]));
+            const hochs = tage.map((_, i) => Math.round(data.daily.temperature_2m_max[i]));
+            const skalaMin = Math.min(...tiefs);
+            const skalaSpanne = Math.max(1, Math.max(...hochs) - skalaMin);
+
+            const forecastItems = tage.map((dateValue, index) => {
                 const date = new Date(dateValue + "T12:00:00");
                 const weather = getWeatherDetails(
                     Number(data.daily.weather_code[index])
                 );
-
-                const dayName =
-                    index === 0
-                        ? "Heute"
-                        : dayNames[date.getDay()];
+                const dayName = index === 0 ? "Heute" : dayNames[date.getDay()];
+                const links = (tiefs[index] - skalaMin) / skalaSpanne * 100;
+                const breite = Math.max(8, (hochs[index] - tiefs[index]) / skalaSpanne * 100);
 
                 return `
-                    <div class="weather-forecast-day">
-                        <span class="weather-forecast-name">
-                            ${dayName}
-                        </span>
-
-                        <img
-                            class="weather-forecast-icon"
-                            src="${weather.iconPath}"
-                            alt="${weather.germanDesc}"
-                        >
-
-                        <span class="weather-forecast-temperature">
-                            <span class="weather-forecast-max">
-                                ${Math.round(data.daily.temperature_2m_max[index])}°
-                            </span>
-
-                            /
-
-                            <span class="weather-forecast-min">
-                                ${Math.round(data.daily.temperature_2m_min[index])}°
-                            </span>
-                        </span>
+                    <div class="wg-tag">
+                        <b>${dayName}</b>
+                        <img src="${weather.iconPath}" alt="${weather.germanDesc}">
+                        <div class="wg-bahn"><i style="left:${links}%;width:${breite}%"></i></div>
+                        <span>${tiefs[index]}° – ${hochs[index]}°</span>
                     </div>
                 `;
             }).join("");
 
             document.getElementById('weather-forecast-track').innerHTML =
-                forecastItems + forecastItems;
+                forecastItems;
 
         } catch (error) {
             document.getElementById('weather-desc').textContent = "Offline";
-            document.getElementById('weather-temp').textContent = "";
+            document.getElementById('weather-temp').textContent = "--°";
             document.getElementById('weather-icon').src = "/static/clouds.png";
             document.getElementById('weather-forecast-track').innerHTML = "";
         }
