@@ -449,8 +449,16 @@ _WOCHENTAGE = ("montag", "dienstag", "mittwoch", "donnerstag", "freitag", "samst
 
 
 def _haeufigkeit(wochentage, bes_text):
-    """„Dienstag und Freitag“ → 2x w; sonst aus der Besichtigung („2x wöchentlich“)."""
-    n = sum(1 for t in _WOCHENTAGE if t in _txt(wochentage).lower())
+    """„Dienstag und Freitag“ → 2x w; sonst aus der Besichtigung („2x wöchentlich“).
+    „Freitag oder Samstag“ / „Freitag/Samstag“ ist nur ein Einsatz (Mo–Do + Fr oder Sa → 5 Tage → täglich)."""
+    tage = _txt(wochentage).lower()
+    tag = "(" + "|".join(_WOCHENTAGE) + ")"
+    while True:
+        kurz = re.sub(tag + r"\s*(?:/|\boder\b)\s*" + tag, r"\1", tage)
+        if kurz == tage:
+            break
+        tage = kurz
+    n = sum(1 for t in _WOCHENTAGE if t in tage)
     if n:
         return {5: "täglich", 6: "6x w", 7: "täglich"}.get(n, f"{n}x w")
     t = _txt(bes_text).lower()

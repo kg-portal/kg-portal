@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>Schlüsselübergabe{% if firma %} – {{ firma }}{% endif %}</title>
+<!-- Schlüsselübergabeprotokoll (eine A4-Seite), Inhalt wie das bisherige KG-Formular, farbig mit Logo.
+     Logo: static/kg_logo_farbe.png (neues Logo, freigestellt). Variablen (schluessel.py): logo, firma, adresse, plz, ort, name, ort_datum, zeilen[9] mit anw/art/hinweis/anzahl. -->
+<style>
+  @page { size: A4; margin: 0; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: #fff; }
+  body { font-family: Arial, Helvetica, sans-serif; color: #0f172a; font-size: 10pt; line-height: 1.35; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .blatt { position: relative; width: 210mm; height: 297mm; padding: 0 15mm; overflow: hidden; }
+  .band { position: absolute; left: 0; right: 0; top: 0; height: 4.5mm; background: linear-gradient(90deg, #0f1d4a 0%, #1d4ed8 70%, #ea580c 70%, #f97316 100%); }
+
+  .kopf { display: flex; justify-content: space-between; align-items: flex-start; padding-top: 9mm; }
+  .firma { padding-top: 3mm; }
+  .firma b { display: block; font-size: 13pt; color: #0f1d4a; letter-spacing: .2px; }
+  .firma span { display: block; margin-top: 1.2mm; font-size: 8.5pt; color: #475569; }
+  .logo { width: 46mm; }
+  .logo img { display: block; width: 46mm; height: auto; }
+
+  .titel { margin-top: 3mm; display: flex; align-items: flex-end; gap: 4mm; }
+  .titel h1 { margin: 0; font-size: 25pt; line-height: 1; color: #0f1d4a; letter-spacing: -.3px; }
+  .titel small { margin-bottom: 1mm; padding: 1mm 3mm; border-radius: 99mm; background: #fff7ed; border: .3mm solid #fdba74; color: #c2410c; font-size: 8pt; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; }
+  .linie { margin-top: 2.5mm; height: 1mm; width: 22mm; border-radius: 1mm; background: linear-gradient(90deg, #ea580c, #f59e0b); }
+
+  .box { margin-top: 4.2mm; border: .35mm solid #c7d2e3; border-radius: 2.5mm; overflow: hidden; }
+  .box table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+  .box th { padding: 1.6mm 3mm; text-align: left; font-size: 10pt; color: #fff; background: #1d4ed8; }
+  .box.kunde th { background: #ea580c; }
+  .box.zurueck th { background: #0f1d4a; }
+  .box td { padding: 1.6mm 3mm; border-top: .3mm solid #d5deeb; vertical-align: top; }
+  .box td + td { border-left: .3mm solid #d5deeb; }
+  .box td.lab { background: #f3f6fb; color: #334155; font-weight: 700; font-size: 9pt; }
+  .box td.wert { color: #0f1d4a; }
+  .box td.ein { color: #1d4ed8; font-weight: 700; }
+  .unterschrift { position: relative; }
+  .unterschrift .x { position: absolute; left: 3mm; bottom: 1.4mm; font-weight: 700; color: #64748b; }
+  .unterschrift .strich { position: absolute; left: 7mm; right: 6mm; bottom: 2.2mm; border-bottom: .3mm dotted #94a3b8; }
+
+  .satz { margin-top: 4.5mm; font-size: 9.5pt; color: #0f1d4a; }
+  .schluessel { margin-top: 2mm; }
+  .schluessel th { background: #1d4ed8; }
+  .schluessel th:nth-child(n+2) { border-left: .3mm solid rgba(255, 255, 255, .35); }
+  .schluessel tbody tr:nth-child(even) td { background: #f8fafc; }
+  .schluessel td { height: 6.6mm; padding: 1mm 3mm; color: #1d4ed8; font-weight: 700; }
+
+  .fuss { position: absolute; left: 15mm; right: 15mm; bottom: 8mm; padding-top: 2mm; border-top: .3mm solid #1d4ed8;
+          display: flex; justify-content: space-between; font-size: 7.6pt; color: #1e3a8a; }
+</style>
+</head>
+<body>
+<div class="blatt">
+  <div class="band"></div>
+  <div class="kopf">
+    <div class="firma"><b>KG-Gebäudereinigung</b><span>Fliederstr. 59 · 47055 Duisburg</span></div>
+    <div class="logo"><img src="{{ logo }}" alt="KG Gebäudereinigung"></div>
+  </div>
+
+  <div class="titel"><h1>Schlüsselübergabe</h1><small>Protokoll</small></div>
+  <div class="linie"></div>
+
+  <div class="box">
+    <table>
+      <colgroup><col style="width:38mm"><col><col style="width:20mm"><col style="width:46mm"></colgroup>
+      <tr><th colspan="4">Schlüssel-Empfang durch</th></tr>
+      <tr style="height:16mm"><td class="lab">Firmenname,<br>Anschrift</td><td class="wert">KG-Gebäudereinigung<br>Fliederstr. 59<br>47055 Duisburg</td><td class="lab">Name</td><td class="wert">Frau Kicci</td></tr>
+      <tr style="height:12mm"><td class="lab">Datum, Unterschrift</td><td colspan="3" class="unterschrift"><span class="x">x</span><span class="strich"></span></td></tr>
+    </table>
+  </div>
+
+  <div class="box kunde">
+    <table>
+      <colgroup><col style="width:38mm"><col><col style="width:20mm"><col style="width:46mm"></colgroup>
+      <tr><th colspan="4">Schlüssel-Übergabe durch</th></tr>
+      <tr style="height:16mm"><td class="lab">Firmenname,<br>Anschrift</td>
+        <td class="ein">{{ firma }}{% if adresse %}<br>{{ adresse }}{% endif %}{% if plz or ort %}<br>{{ plz }} {{ ort }}{% endif %}</td>
+        <td class="lab">Name</td><td class="ein">{{ name }}</td></tr>
+      <tr style="height:8.5mm"><td class="lab">Ort, Datum</td><td class="ein">{{ ort_datum }}</td><td></td><td></td></tr>
+      <tr style="height:12mm"><td class="lab">Unterschrift</td><td colspan="3" class="unterschrift"><span class="x">x</span><span class="strich"></span></td></tr>
+    </table>
+  </div>
+
+  <div class="satz">Der Schlüsselempfänger bestätigt den Erhalt der folgenden Schlüssel, Zugangscodes oder Karten:</div>
+  <div class="box schluessel">
+    <table>
+      <colgroup><col><col style="width:28mm"><col style="width:40mm"><col style="width:20mm"></colgroup>
+      <thead><tr><th>Anwendung für</th><th>Art</th><th>Hinweis</th><th>Anzahl</th></tr></thead>
+      <tbody>
+      {% for z in zeilen %}<tr><td>{{ z.anw }}</td><td>{{ z.art }}</td><td>{{ z.hinweis }}</td><td>{{ z.anzahl }}</td></tr>{% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <div class="box zurueck">
+    <table>
+      <colgroup><col style="width:38mm"><col><col style="width:20mm"><col style="width:46mm"></colgroup>
+      <tr><th colspan="4">Schlüssel-Rückgabe an</th></tr>
+      <tr style="height:16mm"><td class="lab">Firmenname, Anschrift<br>Nachname, Vorname</td><td></td><td></td><td></td></tr>
+      <tr style="height:8.5mm"><td class="lab">Ort, Datum</td><td colspan="3"></td></tr>
+      <tr style="height:12mm"><td class="lab">Unterschrift</td><td class="unterschrift"><span class="x">x</span><span class="strich"></span></td><td></td><td></td></tr>
+    </table>
+  </div>
+
+  <div class="fuss"><span>KG-Gebäudereinigung · Fliederstr. 59 · 47055 Duisburg · Tel. 0203 47966822 · info@kg-reinigung.de</span><span>Seite 1 von 1</span></div>
+</div>
+</body>
+</html>

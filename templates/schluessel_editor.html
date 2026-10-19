@@ -1,0 +1,147 @@
+{% extends "base.html" %}
+{% block content %}
+<!-- Schlüsselübergabeprotokoll bearbeiten (schluessel.py): Kundendaten aus dem Vertrag, Schlüssel von Hand, Live-Vorschau, PDF.
+     Es wird nichts gespeichert und nichts verschickt. -->
+<style>
+  .sp { --navy:#0f1d4a; --blau:#2563eb; --linie:#e2e8f0; --grau:#64748b; --orange:#ea580c; font-family: Inter, "Segoe UI", Arial, sans-serif; color: var(--navy); }
+  .sp * { box-sizing: border-box; }
+  .sp a { text-decoration: none; }
+  .sp button { font-family: inherit; cursor: pointer; }
+
+  .sp-kopf { position: relative; overflow: hidden; display: flex; align-items: center; gap: 18px; border-radius: 28px; padding: 24px 28px; color: #fff;
+    background: radial-gradient(circle at calc(100% - 60px) 20px, rgba(255,255,255,.12) 0 150px, transparent 150.5px), linear-gradient(135deg, #183a91 0%, #2563eb 100%);
+    box-shadow: 0 22px 50px rgba(24,58,145,.22); }
+  .sp-sym { width: 60px; height: 60px; flex: none; border-radius: 18px; display: grid; place-items: center; font-size: 27px;
+    background: linear-gradient(135deg, #f97316, #c2410c); border: 2px solid rgba(255,255,255,.4); }
+  .sp-kopf small { display: block; font-size: 11px; font-weight: 900; letter-spacing: .14em; text-transform: uppercase; color: rgba(219,234,254,.85); }
+  .sp-kopf h1 { margin: 2px 0 0; font-size: 28px; font-weight: 900; letter-spacing: -.02em; color: #fff !important; overflow-wrap: anywhere; }
+  .sp-kopf p { margin: 6px 0 0; font-size: 14px; font-weight: 700; color: #dbeafe; }
+  .sp-zurueck { margin-left: auto; flex: none; display: inline-flex; align-items: center; gap: 8px; height: 44px; padding: 0 16px; border-radius: 14px;
+    background: rgba(255,255,255,.14); border: 1px solid rgba(255,255,255,.28); color: #fff; font-weight: 800; font-size: 14px; white-space: nowrap; }
+
+  .sp-raster { display: grid; grid-template-columns: minmax(340px, 480px) minmax(0, 1fr); gap: 18px; margin-top: 18px; align-items: start; }
+  .sp-karte { background: #fff; border: 1px solid var(--linie); border-radius: 22px; padding: 20px; box-shadow: 0 14px 32px rgba(15,23,42,.06); }
+  .sp-karte h2 { display: flex; align-items: center; gap: 8px; margin: 0 0 12px; font-size: 16px; font-weight: 900; color: var(--navy); }
+  .sp-karte h2 i { width: 10px; height: 10px; border-radius: 50%; background: var(--orange); }
+  .sp-reihe { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+  .sp-reihe.eins { grid-template-columns: 1fr; }
+  .sp-reihe.drei { grid-template-columns: 0.8fr 1.2fr; }
+  .sp label { display: block; font-size: 12px; font-weight: 800; color: #475569; margin: 0 0 4px; }
+  .sp input[type=text] { width: 100%; height: 42px; padding: 0 12px; border: 1.5px solid #dbe3ef; border-radius: 12px; background: #fff;
+    font: inherit; font-size: 15px; font-weight: 700; color: var(--navy); outline: none; }
+  .sp input[type=text]:focus { border-color: var(--blau); box-shadow: 0 0 0 3px rgba(37,99,235,.12); }
+  .sp-trenn { height: 1px; background: var(--linie); margin: 14px 0; }
+  .sp-zeilen { display: grid; gap: 6px; }
+  .sp-zeile { display: grid; grid-template-columns: 1.6fr 1fr 1.2fr 64px; gap: 6px; }
+  .sp-zeile.kopf span { font-size: 11px; font-weight: 900; letter-spacing: .06em; text-transform: uppercase; color: var(--grau); padding-left: 4px; }
+  .sp-zeile input[type=text] { height: 36px; padding: 0 9px; font-size: 13.5px; border-radius: 10px; }
+  .sp-hinweis { margin-top: 8px; font-size: 12.5px; font-weight: 700; color: var(--grau); }
+  .sp-knoepfe { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 16px; }
+  .sp-pdf { flex: 1 1 200px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 50px; padding: 0 18px; border-radius: 14px;
+    background: linear-gradient(135deg, #f97316, #c2410c); color: #fff; font-size: 15px; font-weight: 900; box-shadow: 0 12px 24px -10px rgba(194,65,12,.65); }
+  .sp-ansehen { flex: 1 1 140px; display: inline-flex; align-items: center; justify-content: center; height: 50px; padding: 0 16px; border-radius: 14px;
+    background: #eff6ff; border: 1px solid #bfdbfe; color: #1d4ed8; font-size: 14px; font-weight: 900; }
+
+  .sp-vorschau { padding: 14px; }
+  .sp-vorschau-kopf { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin: 2px 4px 10px; font-size: 13px; font-weight: 800; color: var(--grau); }
+  .sp-blatt { position: relative; width: 100%; overflow: hidden; border-radius: 10px; background: #fff; border: 1px solid var(--linie); box-shadow: 0 10px 26px rgba(15,23,42,.10); }
+  .sp-blatt iframe { position: absolute; left: 0; top: 0; width: 794px; height: 1123px; border: 0; transform-origin: 0 0; background: #fff; }
+
+  @media (max-width: 1100px) { .sp-raster { grid-template-columns: 1fr; } }
+  @media (max-width: 760px) {
+    .sp-kopf { flex-wrap: wrap; padding: 20px; border-radius: 22px; } .sp-kopf h1 { font-size: 23px; }
+    .sp-zurueck { margin-left: 0; }
+    .sp-karte { padding: 16px; }
+    .sp-reihe, .sp-reihe.drei { grid-template-columns: 1fr; }
+    .sp-zeile { grid-template-columns: 1fr 1fr; }
+    .sp-zeile.kopf { display: none; }
+  }
+</style>
+
+<div class="sp">
+  <div class="sp-kopf kgs-kopf" data-kg-skip>
+    <div class="sp-sym">🔑</div>
+    <div>
+      <small>KG Portal · Vertrag</small>
+      <h1>Schlüsselübergabeprotokoll{% if f.firma %} – {{ f.firma }}{% endif %}</h1>
+      <p>Kundendaten aus dem Vertrag · Schlüssel, Chips und Codes hier eintragen</p>
+    </div>
+    <a class="sp-zurueck" href="/vertrag/editor">← Vertrag</a>
+  </div>
+
+  <div class="sp-raster">
+    <form class="sp-karte" id="spForm" onsubmit="return false">
+      <h2><i></i>Schlüssel-Übergabe durch (Kunde)</h2>
+      <div class="sp-reihe eins"><div><label for="sp_firma">Firmenname</label><input type="text" id="sp_firma" name="firma" value="{{ f.firma }}"></div></div>
+      <div class="sp-reihe eins"><div><label for="sp_adresse">Straße + Nr.</label><input type="text" id="sp_adresse" name="adresse" value="{{ f.adresse }}"></div></div>
+      <div class="sp-reihe drei">
+        <div><label for="sp_plz">PLZ</label><input type="text" id="sp_plz" name="plz" value="{{ f.plz }}" inputmode="numeric"></div>
+        <div><label for="sp_ort">Ort</label><input type="text" id="sp_ort" name="ort" value="{{ f.ort }}"></div>
+      </div>
+      <div class="sp-reihe">
+        <div><label for="sp_name">Name</label><input type="text" id="sp_name" name="name" value="{{ f.name }}" placeholder="z. B. Herr Müller"></div>
+        <div><label for="sp_ort_datum">Ort, Datum</label><input type="text" id="sp_ort_datum" name="ort_datum" value="{{ f.ort_datum }}" placeholder="leer = von Hand"></div>
+      </div>
+
+      <div class="sp-trenn"></div>
+      <h2><i></i>Schlüssel, Zugangscodes oder Karten</h2>
+      <div class="sp-zeilen">
+        <div class="sp-zeile kopf"><span>Anwendung für</span><span>Art</span><span>Hinweis</span><span>Anzahl</span></div>
+        {% for z in f.zeilen %}{% set n = loop.index %}
+        <div class="sp-zeile">
+          <input type="text" name="anw{{ n }}" value="{{ z.anw }}" placeholder="{{ 'z. B. Haupteingang' if n == 1 else '' }}" aria-label="Anwendung für {{ n }}">
+          <input type="text" name="art{{ n }}" value="{{ z.art }}" placeholder="{{ 'Schlüssel / Chip' if n == 1 else '' }}" aria-label="Art {{ n }}">
+          <input type="text" name="hinweis{{ n }}" value="{{ z.hinweis }}" placeholder="{{ 'Nr. 12' if n == 1 else '' }}" aria-label="Hinweis {{ n }}">
+          <input type="text" name="anzahl{{ n }}" value="{{ z.anzahl }}" placeholder="{{ '1' if n == 1 else '' }}" inputmode="numeric" aria-label="Anzahl {{ n }}">
+        </div>
+        {% endfor %}
+      </div>
+      <div class="sp-hinweis">Leere Zeilen bleiben im PDF frei und können von Hand ausgefüllt werden.</div>
+
+      <div class="sp-knoepfe">
+        <a class="sp-pdf" id="spPdf" href="#">⬇ PDF herunterladen</a>
+        <a class="sp-ansehen" id="spAnsehen" href="#" target="_blank" rel="noopener">PDF ansehen</a>
+      </div>
+    </form>
+
+    <div class="sp-karte sp-vorschau">
+      <div class="sp-vorschau-kopf"><span>Vorschau</span><span id="spStand">aktuell</span></div>
+      <div class="sp-blatt" id="spBlatt"><iframe id="spFrame" title="Vorschau Schlüsselübergabe"></iframe></div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  var form = document.getElementById("spForm"), frame = document.getElementById("spFrame"), blatt = document.getElementById("spBlatt");
+  function werte() {
+    var p = new URLSearchParams();
+    Array.prototype.forEach.call(form.querySelectorAll("input[name]"), function (el) { if (el.value.trim()) p.set(el.name, el.value.trim()); });
+    return p.toString();
+  }
+  function links() {
+    var q = werte();
+    document.getElementById("spPdf").href = "/schluessel/protokoll/pdf?" + q;
+    document.getElementById("spAnsehen").href = "/schluessel/protokoll/pdf?ansehen=1&" + q;
+    return q;
+  }
+  var t = 0;
+  function neu() {
+    var q = links();
+    document.getElementById("spStand").textContent = "lädt …";
+    clearTimeout(t);
+    t = setTimeout(function () { frame.src = "/schluessel/protokoll/vorschau?" + q; }, 350);
+  }
+  frame.addEventListener("load", function () { document.getElementById("spStand").textContent = "aktuell"; });
+  form.addEventListener("input", neu);
+  function passen() {
+    var s = blatt.clientWidth / 794;
+    frame.style.transform = "scale(" + s + ")";
+    blatt.style.height = Math.ceil(1123 * s) + "px";
+  }
+  window.addEventListener("resize", passen);
+  passen();
+  frame.src = "/schluessel/protokoll/vorschau?" + links();
+})();
+</script>
+{% endblock %}

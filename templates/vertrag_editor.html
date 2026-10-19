@@ -177,6 +177,12 @@ a.kgae-knopf { display: inline-block; text-decoration: none; }
 .kgve-preis { display: block; }
 .kgve-preis small { display: block; margin-top: 3px; text-align: right; font-size: 11px; font-weight: 800; color: var(--grau); min-height: 13px; }
 .kgve-tage { display: flex; gap: 6px; flex-wrap: wrap; }
+/* Schlüsselübergabeprotokoll: oranger Knopf unter dem Auftraggeber */
+.kgve-schluessel { margin-top: 12px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.kgve-schluessel button { display: inline-flex; align-items: center; gap: 8px; height: 44px; padding: 0 18px; border: none; border-radius: 13px; cursor: pointer;
+    background: linear-gradient(135deg, #f97316, #c2410c); color: #fff; font: inherit; font-size: 14px; font-weight: 900; box-shadow: 0 10px 20px -10px rgba(194, 65, 12, .75); }
+.kgve-schluessel button:hover { filter: brightness(1.05); }
+.kgve-schluessel small { font-size: 12.5px; font-weight: 700; color: #64748b; }
 .kgve-tage button { min-width: 46px; padding: 8px 10px; border: 1.5px solid var(--rand); border-radius: 11px; background: #f8fafc; color: #334155; font: inherit; font-size: 13px; font-weight: 900; cursor: pointer; }
 .kgve-tage button.an { background: linear-gradient(135deg, var(--b1), var(--b3)); border-color: var(--b2); color: #fff; box-shadow: 0 8px 16px -10px rgba(30, 64, 175, .9); }
 /* Uhrzeit je Wochentag (+ „oder“) – erzeugt die Texte für § 3 */
@@ -240,6 +246,7 @@ a.kgae-knopf { display: inline-block; text-decoration: none; }
                         <div class="kgae-f w3"><label for="kgve_email">E-Mail (für den Versand)</label><input class="kgae-in" id="kgve_email" data-feld="email" type="email"></div>
                         <div class="kgae-f w3"><label for="kgve_telefon">Telefon</label><input class="kgae-in" id="kgve_telefon" data-feld="telefon" inputmode="tel"></div>
                     </div>
+                    <div class="kgve-schluessel"><button type="button" id="kgveSchluessel">🔑 Schlüsselübergabeprotokoll</button><small>öffnet das Protokoll mit diesen Kundendaten</small></div>
                 </div>
 
                 <div class="kgae-karte">
@@ -493,6 +500,14 @@ a.kgae-knopf { display: inline-block; text-decoration: none; }
         textAusPlan();
     });
     $('kgve_wochentage').addEventListener('input', () => { tageAusText(); uhrenZeichnen(); planSpeichern(); });
+
+    // Schlüsselübergabeprotokoll mit den Kundendaten aus dem Formular (neuer Tab, nichts wird gespeichert)
+    $('kgveSchluessel').addEventListener('click', () => {
+        const p = new URLSearchParams();
+        [['firma', 'kgve_firma'], ['adresse', 'kgve_adresse'], ['plz', 'kgve_plz'], ['ort', 'kgve_ort'], ['name', 'kgve_ansprechpartner']]
+            .forEach(([k, id]) => { const v = $(id).value.trim(); if (v) p.set(k, v); });
+        window.open('/schluessel/protokoll?' + p.toString(), '_blank');
+    });
 
     // ---------- Vorschau (Vertragsvorlage, 4 Seiten)
     function vorschauUrl(f) {
