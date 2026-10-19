@@ -178,9 +178,15 @@ def kalk_ergebnis(text):
     return aus if aus["kosten"] > 0 else None
 
 
+# Leistungen der Besichtigung → Überschrift „Leistungsart“ im Angebot
+_LEISTUNGSART = {"Treppenhaus": "Treppenhausreinigung", "Fitnessstudio": "Fitnessstudioreinigung"}
+
+
 def _leer_felder(row, daten, am):
     kunde = daten.get("kunde") if isinstance(daten.get("kunde"), dict) else {}
-    leistungsart = " und ".join(am["leistungen"][:2]) or "Büroreinigung"
+    # aus der Besichtigung gewählt → vorbelegt; sonst leer, der Editor zeigt die Liste zum Auswählen
+    gewaehlt = " und ".join(_LEISTUNGSART.get(x, x) for x in am["leistungen"][:2])
+    leistungsart = gewaehlt or "Büroreinigung"
     m2 = sum(b["m2"] for b in am["bereiche"])
     freq = next((b["haeufigkeit"] for b in am["bereiche"] if b["key"] == "buero" and b["haeufigkeit"]), "") or \
         next((b["haeufigkeit"] for b in am["bereiche"] if b["haeufigkeit"]), "")
@@ -196,7 +202,7 @@ def _leer_felder(row, daten, am):
         "ort": _txt(kunde.get("ort") or row["ort"]),
         "email": _txt(kunde.get("email") or row["email"]),
         "telefon": _txt(kunde.get("telefon") or row["telefon"]),
-        "leistungsart": leistungsart,
+        "leistungsart": gewaehlt,
         "positionen": [{"text": text, "einheit": "monatlich", "preis": ""}] + [{"text": "", "einheit": "monatlich", "preis": ""} for _ in range(3)],
         "ausfuehrungszeitraum": "nach Vereinbarung",
         "datum": _heute(),

@@ -347,7 +347,7 @@ a.kgae-knopf { display: inline-block; text-decoration: none; }
                 <div class="kgae-karte">
                     <h2><i>2</i>Leistungen &amp; Preis <em>Preise netto · MwSt. steht fest in der Vorlage</em></h2>
                     <div class="kgae-felder" style="margin-bottom:14px">
-                        <div class="kgae-f w4"><label for="kgae_leistungsart">Leistungsart (Überschrift)</label><input class="kgae-in" id="kgae_leistungsart" data-feld="leistungsart" placeholder="z. B. Büroreinigung"></div>
+                        <div class="kgae-f w4 kgae-firma-wrap"><label for="kgae_leistungsart">Leistungsart (Überschrift)</label><input class="kgae-in" id="kgae_leistungsart" data-feld="leistungsart" autocomplete="off" placeholder="Bitte wählen – oder selbst schreiben"><div class="kgae-vorschlag" id="kgaeLaListe" role="listbox" hidden></div></div>
                         <div class="kgae-f"><label for="kgae_datum">Datum</label><input class="kgae-in" id="kgae_datum" data-feld="datum" placeholder="TT.MM.JJJJ"></div>
                     </div>
                     <div class="kgae-pos-kopf"><span></span><span>Leistung</span><span>Einheit</span><span style="text-align:right">Preis € netto</span></div>
@@ -1100,7 +1100,8 @@ a.kgae-knopf { display: inline-block; text-decoration: none; }
                 .then(r => r.json()).then(x => {
                     if (!x.ok) return d;
                     const alt = d.aufmass || { stueck: {} };
-                    d.aufmass = x.aufmass; d.kalkulation = {};
+                    // Gespeicherter Entwurf: dessen Rechner-Werte (Fläche, Häufigkeit, Aufschlag …) bleiben – sonst frisch aus der Besichtigung
+                    d.aufmass = x.aufmass; if (!(d.kalkulation && (d.kalkulation.bereiche || []).length)) d.kalkulation = {};
                     // Stückzahlen aus dem KG Scan behalten, wenn die Seite keine eigenen hat
                     Object.keys(alt.stueck || {}).forEach(s => { if (!d.aufmass.stueck[s]) d.aufmass.stueck[s] = alt.stueck[s]; });
                     d.aufmass.scan = d.aufmass.scan || alt.scan;
@@ -1144,11 +1145,34 @@ a.kgae-knopf { display: inline-block; text-decoration: none; }
         if (!aktuell) return;
         window.open(aktuell.status === 'angebot' && !geaendert ? '/angebotvorlage?angebot_id=' + aktuell.id + '&print=1' : vorschauUrl(felderLesen()).replace('/angebot/editor/vorschau?', '/angebot/editor/vorschau?drucken=1&'), '_blank');
     });
+    // Leistungsart: fertige Liste (aus der Besichtigung vorbelegt), Text bleibt änderbar; „+“ hängt eine zweite Leistung an
+    const LEISTUNGSARTEN = ['Unterhaltsreinigung', 'Büroreinigung', 'Praxisreinigung', 'Treppenhausreinigung', 'Grundreinigung', 'Bauendreinigung', 'Fensterreinigung', 'Jalousienreinigung'];
+    const laFeld = $('kgae_leistungsart'), laListe = $('kgaeLaListe');
+    function laZeigen() {
+        const jetzt = laFeld.value.trim();
+        laListe.innerHTML = LEISTUNGSARTEN.map(x => '<button type="button" role="option" data-la="' + esc(x) + '"' + (jetzt === x ? ' class="an"' : '') + '><span><b>' + esc(x) + '</b></span>' +
+            (jetzt && jetzt !== x && jetzt.indexOf(x) < 0 ? '<span class="kgae-chip grau" data-dazu="1">+ dazu</span>' : '') + '</button>').join('');
+        laListe.hidden = false;
+    }
+    laFeld.addEventListener('focus', laZeigen);
+    laFeld.addEventListener('click', laZeigen);
+    laFeld.addEventListener('keydown', e => { if (e.key === 'Escape' || e.key === 'Tab') laListe.hidden = true; });
+    laListe.addEventListener('mousedown', e => e.preventDefault());
+    laListe.addEventListener('click', e => {
+        const b = e.target.closest('[data-la]'); if (!b) return;
+        const dazu = e.target.closest('[data-dazu]') && laFeld.value.trim();
+        laFeld.value = dazu ? laFeld.value.trim() + ' und ' + b.dataset.la : b.dataset.la;
+        laListe.hidden = true;
+        laFeld.dispatchEvent(new Event('input', { bubbles: true }));
+    });
+    document.addEventListener('click', e => { if (!e.target.closest('#kgaeLaListe') && e.target !== laFeld) laListe.hidden = true; });
+
     $('kgaeSenden').addEventListener('click', () => {
         if (!aktuell) return;
         const f = felderLesen();
         const pos = f.positionen.filter(p => p.text && zahl(p.preis));
         if (!f.firma) { meldung('fehler', 'Bitte die Firma eintragen.'); return; }
+        if (!f.leistungsart) { meldung('fehler', 'Bitte die Leistungsart wählen.'); laFeld.focus(); return; }
         if (!pos.length) { meldung('fehler', 'Bitte mindestens eine Leistung mit Preis eintragen.'); return; }
         const text = (aktuell.angebot_nr ? 'Angebot AN-' + aktuell.angebot_nr + ' aktualisieren' : 'Angebot AN-' + (f.nr || '…') + ' jetzt erstellen') + ' für ' + f.firma + '?\n\n' +
             pos.map(p => '• ' + p.text + ' · ' + p.einheit + ' · ' + euro(zahl(p.preis))).join('\n') + '\n\nDanach erscheint es in der Angebot-Warteliste und das E-Mail-Fenster öffnet sich.';

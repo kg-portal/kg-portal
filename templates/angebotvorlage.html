@@ -229,6 +229,7 @@ body {
 
 .page1 .line p {
     font-size: 20px;
+    overflow-wrap: anywhere;
     margin: 0;
     color: #000000;
     line-height: 1.6;
@@ -928,6 +929,27 @@ body {
 </div>
 
 <script>
+// Seite 1: lange Firmennamen/Adressen – passt der Text nicht in den Kasten, wächst der Kasten mit (kurze Texte bleiben wie bisher);
+// wird es bis zur Fußzeile zu eng, wird die Schrift in den Kästen etwas kleiner
+(function () {
+    function seiteEinsPassen() {
+        var seite = document.querySelector(".page1");
+        if (!seite) return;
+        var fuss = seite.querySelector(".footer"), boxen = seite.querySelectorAll(".highlight-box");
+        if (!fuss || !boxen.length) return;
+        boxen.forEach(function (b) { if (b.scrollHeight > b.clientHeight + 4) b.style.height = "auto"; });
+        var groesse = 20;
+        while (boxen[boxen.length - 1].getBoundingClientRect().bottom > fuss.getBoundingClientRect().top - 24 && groesse > 14) {
+            groesse -= 1;
+            seite.querySelectorAll(".highlight-box .line p").forEach(function (p) { p.style.fontSize = groesse + "px"; p.style.lineHeight = "1.45"; });
+        }
+    }
+    if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", seiteEinsPassen); else seiteEinsPassen();
+    window.addEventListener("beforeprint", seiteEinsPassen);
+    var druck = window.matchMedia ? window.matchMedia("print") : null;  // PDF: Druckansicht hat etwas andere Maße
+    if (druck && druck.addEventListener) druck.addEventListener("change", seiteEinsPassen);
+    else if (druck && druck.addListener) druck.addListener(seiteEinsPassen);
+})();
 document.addEventListener("DOMContentLoaded", function () {
     const params = new URLSearchParams(window.location.search);
 
