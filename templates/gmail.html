@@ -983,6 +983,22 @@
 /* SVG Icons Utility */
 svg { width: 18px; height: 18px; stroke: currentColor; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; fill: none; }
 </style>
+<script src="{{ url_for('static', filename='kg_auftritt.js') }}" data-seite="mail"></script>
+<!-- Kopf wie Kalender/Aufgaben (Systemblau); die Mail-App darunter bleibt unverändert, nur ihre Höhe rechnet den Kopf mit ein -->
+<style>
+.kgk-kopf{position:relative;overflow:hidden;margin:0 0 16px;border-radius:24px;padding:20px 24px;color:#fff;display:flex;align-items:center;gap:16px;flex-wrap:wrap;
+  background:radial-gradient(120% 140% at 100% 0%,#3b82f6 0%,rgba(59,130,246,0) 55%),linear-gradient(135deg,#10286f 0%,#1d4ed8 70%,#2563eb 100%);box-shadow:0 14px 34px rgba(29,78,216,.20);font-family:Inter,"Segoe UI",Arial,sans-serif}
+.kgk-icon{width:54px;height:54px;border-radius:16px;display:grid;place-items:center;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.22);flex:none}
+.kgk-icon svg{width:26px!important;height:26px!important;stroke:#fff!important}
+.kgk-kopf h1{margin:0;font-size:32px;font-weight:900;letter-spacing:-.02em;color:#fff!important;line-height:1.1}
+.kgk-kopf p{margin:4px 0 0;font-size:14px;font-weight:700;color:#dbeafe}
+@media (min-width:1051px){.mail-app{height:calc(100vh - 230px)!important;min-height:620px!important}}
+@media (max-width:760px){.kgk-kopf h1{font-size:26px}}
+</style>
+<section class="kgk-kopf" data-kg-skip>
+  <div class="kgk-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg></div>
+  <div><h1>KG-Mail</h1><p>Posteingang und Antworten im Überblick</p></div>
+</section>
 <div class="kg-mail-page">
 <div class="mail-app">
 <header class="topbar">

@@ -1,16 +1,73 @@
+<link rel="stylesheet" href="{{ url_for('static', filename='leon/leon_orb.css') }}">
+<script src="{{ url_for('static', filename='leon/leon_orb.js') }}" defer></script>
+<script src="{{ url_for('static', filename='kg_auftritt.js') }}" data-seite="leon"></script>
 <style>
-  /* Leon-Reiter wie in KG Business: eine Leiste, eine Zeile (CRM-Farben) */
-  .kg-leon-tabs { display:flex; align-items:center; gap:8px; margin:0 0 14px; padding:8px; background:#fff; border:1px solid #dbe3f0; border-radius:18px; overflow-x:auto; scrollbar-width:thin; font-family:Arial, Helvetica, sans-serif; }
-  .kg-leon-tabs-title { display:inline-flex; align-items:center; gap:7px; padding:8px 12px 8px 6px; font-weight:900; font-size:15px; color:#1e3a8a; white-space:nowrap; border-right:2px solid #e2e8f0; margin-right:2px; }
-  .kg-leon-tabs a { flex:0 0 auto; padding:9px 14px; border-radius:12px; font-weight:800; font-size:14px; color:#1e293b; text-decoration:none; white-space:nowrap; }
-  .kg-leon-tabs a:hover { background:#eff6ff; color:#1e3a8a; }
-  .kg-leon-tabs a.on { background:#2563eb; color:#fff; }
-  @media (max-width:760px) { .kg-leon-tabs { margin-bottom:8px; border-radius:14px; } .kg-leon-tabs a { padding:8px 11px; font-size:13px; } }
+  /* Leon-Reiter „Orb-Hero“: zwei Reihen mit Gruppen, glänzende 3D-Reiter (nur Optik) */
+  /* Leon-Seiten: hellblaue Fläche wie im Entwurf (nur hier, andere CRM-Seiten bleiben weiß) */
+  .portal-card:has(nav.kg-leon-tabs) { background:linear-gradient(180deg,#eef4ff 0%,#f6f9ff 100%) !important; }
+  nav.kg-leon-tabs { display:flex; flex-direction:column; gap:8px; margin:0 0 16px; padding:12px 14px; background:#fff; border:1px solid #e8eefb; border-radius:22px; box-shadow:0 12px 30px rgba(15,29,74,.08); font-family:inherit; }
+  nav.kg-leon-tabs .lo-reihe { display:flex; align-items:center; flex-wrap:wrap; gap:8px 12px; }
+  nav.kg-leon-tabs .lo-gruppe { display:flex; align-items:center; flex-wrap:wrap; gap:6px; }
+  nav.kg-leon-tabs .lo-gruppe + .lo-gruppe { padding-left:12px; border-left:1px solid #dbe3ef; }
+  nav.kg-leon-tabs .lo-name { min-width:108px; padding-right:8px; flex:none; font-size:11px; font-weight:900; letter-spacing:.1em; text-transform:uppercase; color:#1e3a8a; }
+  nav.kg-leon-tabs .lo-gruppe + .lo-gruppe .lo-name { min-width:0; margin-right:2px; }
+  nav.kg-leon-tabs a { position:relative; overflow:hidden; display:inline-flex; align-items:center; gap:7px; padding:8px 13px; border-radius:999px; font-size:12.5px; font-weight:900; line-height:1.2; color:#fff; text-decoration:none; white-space:nowrap;
+    background:linear-gradient(145deg,#3b82f6,#1e40af); box-shadow:0 6px 14px rgba(30,64,175,.35),inset 0 1px 0 rgba(255,255,255,.4); transition:transform .15s ease, box-shadow .15s ease, filter .15s ease; }
+  nav.kg-leon-tabs a i { font-size:12px; opacity:.95; }
+  nav.kg-leon-tabs a:hover { transform:translateY(-1px); filter:brightness(1.08); box-shadow:0 10px 20px rgba(30,64,175,.42),inset 0 1px 0 rgba(255,255,255,.4); }
+  nav.kg-leon-tabs a.on { background:linear-gradient(135deg,#183a91 0%,#183a91 35%,#1e40af 100%); box-shadow:0 0 0 3px #fff,0 0 0 5px #3b82f6,0 10px 24px rgba(24,58,145,.4); }
+  nav.kg-leon-tabs a:focus-visible { outline:2px solid #1d4ed8; outline-offset:3px; }
+  html[data-kg-x="on"] nav.kg-leon-tabs { background:#111827 !important; border-color:rgba(147,197,253,.16) !important; box-shadow:0 12px 30px rgba(0,0,0,.35) !important; }
+  html[data-kg-x="on"] nav.kg-leon-tabs .lo-gruppe + .lo-gruppe { border-left-color:rgba(255,255,255,.12) !important; }
+  html[data-kg-x="on"] nav.kg-leon-tabs a.on { box-shadow:0 0 0 3px #111827,0 0 0 5px #60a5fa,0 10px 24px rgba(24,58,145,.4) !important; }
+  @media (max-width:1700px) {
+    nav.kg-leon-tabs .lo-reihe { gap:8px 10px; }
+    nav.kg-leon-tabs .lo-gruppe { gap:5px; }
+    nav.kg-leon-tabs .lo-gruppe + .lo-gruppe { padding-left:10px; }
+    nav.kg-leon-tabs .lo-name { min-width:94px; padding-right:6px; font-size:10px; letter-spacing:.06em; }
+    nav.kg-leon-tabs a { padding:7px 9px; font-size:11.5px; gap:5px; }
+    nav.kg-leon-tabs a i { font-size:11px; }
+  }
+  @media (max-width:1450px) {
+    nav.kg-leon-tabs .lo-name { display:none; }
+  }
+  /* Telefon: eine Zeile, seitlich scrollbar (wie bisher) */
+  @media (max-width:760px) {
+    nav.kg-leon-tabs { flex-direction:row; align-items:center; gap:6px; margin-bottom:10px; padding:10px 8px; border-radius:16px; overflow-x:auto; scrollbar-width:none; }
+    nav.kg-leon-tabs::-webkit-scrollbar { display:none; }
+    nav.kg-leon-tabs .lo-reihe, nav.kg-leon-tabs .lo-gruppe { display:contents; }
+    nav.kg-leon-tabs .lo-name { display:none; }
+    nav.kg-leon-tabs a { flex:0 0 auto; }
+  }
+  @media (prefers-reduced-motion: reduce) { nav.kg-leon-tabs a { transition:none; } nav.kg-leon-tabs a:hover { transform:none; } }
 </style>
+{% set lo_reihen = [
+  [("Anruf", ["anfrage", "gespraeche", "live", "anrufe"]), ("Kampagne", ["kampagnen", "auto", "datenbank", "leads"])],
+  [("Auswertung", ["ergebnisse", "berichte", "archiv", "uebersicht"]), ("Einstellungen", ["agent", "system"])]
+] %}
+{% set lo_symbol = {"anfrage": "fa-plus", "gespraeche": "fa-phone", "live": "fa-wave-square", "anrufe": "fa-list", "kampagnen": "fa-flag",
+  "auto": "fa-robot", "datenbank": "fa-database", "leads": "fa-users", "ergebnisse": "fa-chart-column", "berichte": "fa-file-lines",
+  "archiv": "fa-box-archive", "uebersicht": "fa-table-cells-large", "agent": "fa-gear", "system": "fa-clock"} %}
+{% set lo_reiter = {} %}
+{% for key, href, label in leon_tabs %}{% if lo_reiter.update({key: (href, label)}) %}{% endif %}{% endfor %}
+{% set lo_vergeben = [] %}
 <nav class="kg-leon-tabs" aria-label="Leon">
-  <span class="kg-leon-tabs-title"><i class="fa-solid fa-headset"></i> Leon</span>
-  {% for key, href, label in leon_tabs %}
-  <a href="{{ href }}" class="{{ 'on' if key == leon_tab else '' }}">{{ label }}</a>
+  {% for reihe in lo_reihen %}
+  <div class="lo-reihe">
+    {% for gruppe, keys in reihe %}
+    <div class="lo-gruppe">
+      <span class="lo-name">{{ gruppe }}</span>
+      {% for key in keys %}{% if key in lo_reiter %}{% if lo_vergeben.append(key) %}{% endif %}
+      <a href="{{ lo_reiter[key][0] }}" class="{{ 'on' if key == leon_tab else '' }}"><i class="fa-solid {{ lo_symbol.get(key, 'fa-circle') }}"></i>{{ lo_reiter[key][1] }}</a>
+      {% endif %}{% endfor %}
+      {% if loop.last and reihe is sameas lo_reihen[-1] %}
+      {% for key, href, label in leon_tabs %}{% if key not in lo_vergeben %}
+      <a href="{{ href }}" class="{{ 'on' if key == leon_tab else '' }}"><i class="fa-solid {{ lo_symbol.get(key, 'fa-circle') }}"></i>{{ label }}</a>
+      {% endif %}{% endfor %}
+      {% endif %}
+    </div>
+    {% endfor %}
+  </div>
   {% endfor %}
 </nav>
 <script>

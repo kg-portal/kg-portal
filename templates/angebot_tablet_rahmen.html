@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>KG · Angebot (Tablet)</title>
+<style>
+  html, body { margin: 0; background: #eef3fb; font-family: Arial, Helvetica, sans-serif; color: #0f172a; -webkit-text-size-adjust: 100%; }
+  .kgt-leiste { position: sticky; top: 0; z-index: 50; display: flex; align-items: center; gap: 12px; padding: 12px 18px;
+      background: linear-gradient(135deg, #1e40af, #2563eb 60%, #3b82f6); color: #fff; box-shadow: 0 8px 24px -14px rgba(30, 64, 175, .9); }
+  .kgt-leiste b { font-size: 18px; letter-spacing: -.2px; }
+  .kgt-leiste span { font-size: 12px; font-weight: 800; padding: 4px 10px; border-radius: 999px; background: rgba(255, 255, 255, .2); }
+  .kgt-leiste a { margin-left: auto; color: #fff; font-weight: 800; font-size: 14px; text-decoration: none; padding: 8px 12px; border-radius: 10px; background: rgba(255, 255, 255, .15); }
+  .kgt-inhalt { padding: 14px; }
+</style>
+</head>
+<body class="kgae-tablet">
+<div class="kgt-leiste"><b>KG · Angebot</b><span>Tablet · Test</span><a href="/">CRM öffnen</a></div>
+<div class="kgt-inhalt">
+{% block content %}{% endblock %}
+</div>
+</body>
+</html>

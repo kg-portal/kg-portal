@@ -1,0 +1,810 @@
+{% extends layout %}
+{% block content %}
+<script src="{{ url_for('static', filename='kg_auftritt.js') }}" data-seite="angebot"></script>
+<style>
+/* ===== Angebot-Editor: Liste · Formular · Live-Vorschau ===== */
+.kgae { --b1: #1e40af; --b2: #2563eb; --b3: #3b82f6; --rand: #e2e8f0; --grau: #64748b; font-family: Arial, Helvetica, sans-serif; color: #0f172a; }
+.kgae * { box-sizing: border-box; }
+.kgae-kopf { position: relative; overflow: hidden; display: flex; align-items: center; gap: 18px; flex-wrap: wrap; padding: 22px 26px; border-radius: 24px; color: #fff;
+    background: radial-gradient(120% 140% at 100% 0%, #3b82f6 0%, rgba(59, 130, 246, 0) 55%), linear-gradient(135deg, #10286f 0%, #1d4ed8 70%, #2563eb 100%);
+    box-shadow: 0 14px 34px rgba(29, 78, 216, .20); }
+.kgae-kopf small { display: block; font-size: 12px; font-weight: 900; letter-spacing: .16em; text-transform: uppercase; color: rgba(255, 255, 255, .8); }
+.kgae-kopf h1 { margin: 4px 0 0; font-size: 26px; font-weight: 900; letter-spacing: -.3px; }
+.kgae-kopf p { margin: 6px 0 0; font-size: 14px; font-weight: 700; color: rgba(255, 255, 255, .9); }
+.kgae-schritte { display: flex; gap: 8px; flex-wrap: wrap; margin-left: auto; }
+.kgae-schritte span { padding: 8px 12px; border-radius: 999px; background: rgba(255, 255, 255, .16); font-size: 12.5px; font-weight: 800; }
+.kgae-schritte span.an { background: #fff; color: var(--b1); }
+.kgae-raster { display: grid; grid-template-columns: minmax(0, 1fr) 500px; gap: 18px; margin-top: 18px; align-items: start; }
+.kgae-karte { background: #fff; border: 1px solid var(--rand); border-radius: 20px; padding: 18px; box-shadow: 0 14px 30px -26px rgba(30, 58, 138, .45); }
+.kgae-karte + .kgae-karte { margin-top: 14px; }
+.kgae-karte h2 { display: flex; align-items: center; gap: 10px; margin: 0 0 14px; font-size: 16px; font-weight: 900; }
+.kgae-karte h2 i { display: grid; place-items: center; width: 28px; height: 28px; border-radius: 9px; background: linear-gradient(145deg, var(--b3), var(--b1)); color: #fff; font-style: normal; font-size: 13px; box-shadow: inset 0 1px 0 rgba(255,255,255,.35); }
+.kgae-karte h2 em { margin-left: auto; font-style: normal; font-size: 12px; font-weight: 800; color: var(--grau); }
+/* Liste */
+.kgae-liste { margin-top: 18px; padding: 14px; }
+.kgae-liste-kopf { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.kgae-liste-kopf .kgae-tabs { flex: 0 0 auto; min-width: 330px; }
+.kgae-tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; padding: 4px; border-radius: 13px; background: #eff6ff; }
+.kgae-tabs button { border: 0; border-radius: 10px; padding: 9px 6px; background: transparent; color: var(--b1); font: inherit; font-size: 13px; font-weight: 900; cursor: pointer; }
+.kgae-tabs button.an { background: #fff; box-shadow: 0 2px 8px rgba(30, 64, 175, .15); }
+.kgae-suche { flex: 1; min-width: 200px; margin: 0; padding: 10px 12px; border: 1px solid var(--rand); border-radius: 12px; font: inherit; font-size: 14px; background: #f8fafc; }
+.kgae-eintraege { display: flex; gap: 10px; overflow-x: auto; padding: 12px 2px 6px; scroll-snap-type: x proximity; }
+.kgae-eintraege .kgae-e { flex: 0 0 250px; scroll-snap-align: start; }
+.kgae-eintraege .kgae-leer { flex: 1; }
+.kgae-e { position: relative; display: block; width: 100%; text-align: left; border: 1px solid var(--rand); border-radius: 14px; padding: 11px 12px 11px 16px; background: #fff; font: inherit; color: inherit; cursor: pointer; transition: border-color .2s, transform .2s, box-shadow .2s; }
+.kgae-e::before { content: ""; position: absolute; left: 0; top: 10px; bottom: 10px; width: 4px; border-radius: 0 3px 3px 0; background: var(--b2); }
+.kgae-e.angebot::before { background: #059669; }
+.kgae-e:hover { border-color: #93c5fd; transform: translateY(-1px); box-shadow: 0 10px 20px -16px rgba(30, 64, 175, .8); }
+.kgae-e.an { border-color: var(--b2); background: #eff6ff; }
+.kgae-e b { display: block; font-size: 13.5px; line-height: 1.25; }
+.kgae-e small { display: block; margin-top: 3px; font-size: 12px; font-weight: 700; color: var(--grau); }
+.kgae-chips { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
+.kgae-chip { padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 900; background: #eff6ff; color: var(--b1); }
+.kgae-chip.gruen { background: #dcfce7; color: #166534; } .kgae-chip.gelb { background: #fef3c7; color: #92400e; } .kgae-chip.grau { background: #f1f5f9; color: #475569; }
+.kgae-leer { padding: 18px 10px; text-align: center; font-size: 13px; font-weight: 700; color: var(--grau); }
+/* Formular */
+.kgae-start[hidden], #kgaeFormular[hidden] { display: none !important; }
+.kgae-start { display: grid; place-items: center; min-height: 420px; text-align: center; color: var(--grau); font-weight: 800; }
+.kgae-start b { display: block; margin-bottom: 6px; font-size: 20px; color: #0f172a; }
+.kgae-status { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; }
+.kgae-status h3 { margin: 0; font-size: 21px; font-weight: 900; letter-spacing: -.2px; }
+.kgae-nr { padding: 6px 12px; border-radius: 999px; background: linear-gradient(145deg, var(--b3), var(--b1)); color: #fff; font-size: 13px; font-weight: 900; }
+.kgae-nr.neu { background: #f1f5f9; color: #475569; }
+.kgae-gespeichert { margin-left: auto; font-size: 12px; font-weight: 800; color: var(--grau); }
+.kgae-felder { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 12px; }
+.kgae-f { grid-column: span 2; min-width: 0; } .kgae-f.w3 { grid-column: span 3; } .kgae-f.w4 { grid-column: span 4; } .kgae-f.w6 { grid-column: 1 / -1; } .kgae-f.w1 { grid-column: span 1; }
+.kgae-f label { display: block; margin-bottom: 5px; font-size: 11.5px; font-weight: 900; letter-spacing: .06em; text-transform: uppercase; color: #475569; }
+.kgae-in { width: 100%; padding: 10px 12px; border: 1.5px solid var(--rand); border-radius: 12px; background: #f8fafc; font: inherit; font-size: 15px; color: #0f172a; transition: border-color .2s, background .2s; }
+.kgae-in:focus { outline: none; border-color: var(--b3); background: #fff; box-shadow: 0 0 0 3px rgba(59, 130, 246, .15); }
+.kgae-pos { display: grid; grid-template-columns: 34px minmax(0, 1fr) 150px 130px; gap: 8px; align-items: center; }
+.kgae-pos + .kgae-pos { margin-top: 8px; }
+.kgae-pos > b { display: grid; place-items: center; height: 42px; border-radius: 12px; background: #eff6ff; color: var(--b1); font-size: 14px; }
+.kgae-pos .kgae-in.preis { text-align: right; font-weight: 900; }
+.kgae-pos-kopf { display: grid; grid-template-columns: 34px minmax(0, 1fr) 150px 130px; gap: 8px; margin-bottom: 6px; font-size: 11px; font-weight: 900; letter-spacing: .06em; text-transform: uppercase; color: var(--grau); }
+.kgae-summen { display: flex; justify-content: flex-end; gap: 22px; flex-wrap: wrap; margin-top: 14px; padding-top: 12px; border-top: 1px dashed var(--rand); }
+.kgae-summen div { text-align: right; font-size: 12px; font-weight: 800; color: var(--grau); }
+.kgae-summen b { display: block; font-size: 18px; color: #0f172a; }
+.kgae-summen .haupt b { font-size: 24px; color: var(--b1); }
+/* Rechner */
+.kgae-rechner table { width: 100%; border-collapse: separate; border-spacing: 0 6px; }
+.kgae-rechner th { text-align: left; font-size: 11px; font-weight: 900; letter-spacing: .06em; text-transform: uppercase; color: var(--grau); padding: 0 6px; }
+.kgae-rechner td { padding: 0 6px; }
+.kgae-rechner td:first-child { font-weight: 900; font-size: 14px; white-space: nowrap; }
+.kgae-rechner .kgae-in { padding: 8px 9px; font-size: 14px; }
+.kgae-rechner td.std { text-align: right; font-weight: 900; color: var(--b1); white-space: nowrap; }
+.kgae-punkt { display: inline-block; width: 9px; height: 9px; margin-right: 7px; border-radius: 3px; }
+.kgae-stueck { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; margin-top: 8px; }
+.kgae-stueck label { display: block; margin-bottom: 4px; font-size: 11px; font-weight: 900; color: var(--grau); }
+.kgae-ergebnis { display: grid; grid-template-columns: 1fr 1fr 1.2fr auto; gap: 12px; align-items: center; margin-top: 14px; padding: 14px; border-radius: 16px;
+    background: linear-gradient(145deg, #eff6ff, #f8fbff); border: 1px solid #dbeafe; }
+.kgae-ergebnis div small { display: block; font-size: 11px; font-weight: 900; letter-spacing: .08em; text-transform: uppercase; color: var(--grau); }
+.kgae-ergebnis div b { display: block; margin-top: 2px; font-size: 20px; font-weight: 900; }
+.kgae-ergebnis .richt b { font-size: 26px; color: var(--b1); }
+.kgae-formel { margin: 10px 2px 0; font-size: 12px; font-weight: 700; line-height: 1.55; color: var(--grau); }
+.kgae-knopf { border: 0; border-radius: 12px; padding: 11px 16px; font: inherit; font-size: 14px; font-weight: 900; cursor: pointer; white-space: nowrap; transition: transform .15s, box-shadow .2s, filter .2s; }
+.kgae-knopf:hover { transform: translateY(-1px); filter: brightness(1.05); }
+a.kgae-knopf { display: inline-block; text-decoration: none; }
+.kgae-knopf.blau { background: linear-gradient(135deg, var(--b1), var(--b3)); color: #fff; box-shadow: 0 10px 22px -12px rgba(30, 64, 175, .9); }
+.kgae-knopf.hell { background: #eff6ff; color: var(--b1); }
+.kgae-knopf.gruen { background: linear-gradient(135deg, #047857, #10b981); color: #fff; box-shadow: 0 10px 22px -12px rgba(4, 120, 87, .9); }
+.kgae-knopf:disabled { opacity: .55; cursor: default; transform: none; }
+.kgae-aktionen { position: sticky; bottom: 12px; z-index: 5; display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-top: 14px; padding: 12px 14px; border-radius: 18px;
+    background: rgba(255, 255, 255, .92); border: 1px solid var(--rand); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); box-shadow: 0 16px 34px -22px rgba(15, 23, 42, .5); }
+.kgae-aktionen .rechts { margin-left: auto; display: flex; gap: 10px; flex-wrap: wrap; }
+.kgae-meldung { margin-top: 12px; padding: 12px 14px; border-radius: 14px; font-size: 14px; font-weight: 800; }
+.kgae-meldung.ok { background: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0; }
+.kgae-meldung.fehler { background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; }
+.kgae-meldung .kgae-knopf { margin: 8px 8px 0 0; padding: 9px 13px; font-size: 13px; }
+/* Vorschau */
+.kgae-vorschau { position: relative; padding: 14px; will-change: transform; }
+.kgae-blatt { position: relative; height: calc(100vh - 150px); max-height: 980px; min-height: 520px; overflow-x: hidden; overflow-y: auto; border-radius: 14px; background: #e2e8f0; box-shadow: inset 0 0 0 1px #cbd5e1; }
+.kgae-blatt iframe { position: absolute; left: 0; top: 0; width: 820px; border: 0; background: #fff; transform-origin: 0 0; }
+.kgae-vorschau-knoepfe { display: flex; gap: 8px; margin-top: 10px; }
+.kgae-vorschau-knoepfe .kgae-knopf { flex: 1; padding: 10px; font-size: 13px; }
+.kgae-lade { position: absolute; right: 10px; top: 10px; z-index: 2; padding: 5px 10px; border-radius: 999px; background: rgba(15, 23, 42, .75); color: #fff; font-size: 11px; font-weight: 900; opacity: 0; transition: opacity .2s; }
+.kgae-lade.an { opacity: 1; }
+/* Mail-Fenster */
+.kgae-mail { position: fixed; inset: 0; z-index: 10050; display: none; place-items: center; background: rgba(23, 37, 84, .45); -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px); }
+.kgae-mail.an { display: grid; }
+.kgae-mail > div { position: relative; width: min(860px, 96vw); height: min(900px, 94vh); border-radius: 26px; overflow: hidden; background: transparent; display: flex; flex-direction: column; }
+.kgae-mail-zu { position: absolute; top: 8px; right: 8px; z-index: 2; width: 34px; height: 34px; border: 0; border-radius: 50%; background: rgba(15, 23, 42, .55); color: #fff; font-weight: 900; cursor: pointer; }
+.kgae-mail header { display: flex; align-items: center; gap: 10px; padding: 14px 18px; color: #fff; background: linear-gradient(135deg, var(--b1), var(--b3)); font-weight: 900; }
+.kgae-mail header button { margin-left: auto; width: 36px; height: 36px; border: 0; border-radius: 10px; background: rgba(255, 255, 255, .18); color: #fff; font-size: 16px; font-weight: 900; cursor: pointer; }
+.kgae-mail iframe { flex: 1; width: 100%; border: 0; }
+.kgae-nur-schmal { display: none; }
+/* schmaler Bildschirm / Tablet */
+@media (max-width: 1400px) {
+    .kgae-raster { grid-template-columns: minmax(0, 1fr); }
+    .kgae-vorschau { display: none; transform: none !important; }
+    .kgae-vorschau.offen { display: block; position: fixed; inset: 10px; z-index: 10040; overflow: auto; }
+    .kgae-vorschau.offen .kgae-blatt { height: calc(100vh - 110px); }
+    .kgae-nur-schmal { display: inline-flex; }
+}
+@media (max-width: 760px) {
+    .kgae-felder { grid-template-columns: minmax(0, 1fr); } .kgae-f, .kgae-f.w3, .kgae-f.w4, .kgae-f.w1 { grid-column: 1 / -1; }
+    .kgae-pos, .kgae-pos-kopf { grid-template-columns: 30px minmax(0, 1fr); } .kgae-pos select, .kgae-pos .preis { grid-column: 2; }
+    .kgae-pos-kopf span:nth-child(n+3) { display: none; }
+    .kgae-stueck { grid-template-columns: repeat(2, minmax(0, 1fr)); } .kgae-ergebnis { grid-template-columns: 1fr 1fr; }
+    .kgae-rechner { overflow-x: auto; }
+}
+/* Tablet: größere Bedienelemente */
+.kgae-tablet .kgae-in { min-height: 48px; font-size: 17px; }
+.kgae-tablet .kgae-knopf { min-height: 48px; padding: 12px 18px; font-size: 15px; }
+.kgae-tablet .kgae-e { padding: 14px 14px 14px 18px; }
+/* Neues Angebot: Firma tippen → Vorschläge aus Kunden und Datenbank */
+.kgae-neu-knopf { flex: 0 0 auto; }
+.kgae-firma-wrap { position: relative; }
+.kgae-vorschlag { position: absolute; left: 0; right: 0; top: calc(100% + 4px); z-index: 30; max-height: 340px; overflow-y: auto; padding: 6px; border-radius: 14px; background: #fff; border: 1px solid #bfdbfe; box-shadow: 0 22px 40px -18px rgba(30, 58, 138, .55); }
+.kgae-vorschlag[hidden] { display: none; }
+.kgae-vorschlag button { display: flex; align-items: center; gap: 10px; width: 100%; padding: 9px 10px; border: 0; border-radius: 10px; background: transparent; font: inherit; text-align: left; cursor: pointer; color: #0f172a; }
+.kgae-vorschlag button:hover, .kgae-vorschlag button.an { background: #eff6ff; }
+.kgae-vorschlag button b { display: block; font-size: 14px; }
+.kgae-vorschlag button small { display: block; margin-top: 2px; font-size: 12px; font-weight: 700; color: var(--grau); }
+.kgae-vorschlag button span:first-child { flex: 1; min-width: 0; }
+.kgae-vorschlag .kgae-chip { flex: none; }
+/* Angebot-Nummer: vorgeschlagen = nächste freie, von Hand änderbar */
+.kgae-nr { display: inline-flex; align-items: center; gap: 2px; padding: 4px 6px 4px 12px; border-radius: 999px; background: linear-gradient(145deg, var(--b3), var(--b1)); color: #fff; font-size: 13px; font-weight: 900; }
+.kgae-nr input { width: 70px; padding: 3px 6px; border: 0; border-radius: 999px; background: rgba(255, 255, 255, .2); color: #fff; font: inherit; font-size: 14px; font-weight: 900; text-align: center; }
+.kgae-nr input:focus { outline: none; background: #fff; color: var(--b1); }
+.kgae-nr-hinweis { font-size: 12px; font-weight: 800; color: var(--grau); }
+.kgae-nr-hinweis.manuell { color: #b45309; }
+/* Liste: zugeklappt, öffnet mit den Reitern oder der Suche */
+.kgae-eintraege[hidden] { display: none; }
+.kgae-tabs button::after { content: " ▾"; font-size: 11px; opacity: .6; }
+.kgae-liste.offen .kgae-tabs button.an::after { content: " ▴"; }
+/* Vorschau: Angebot und darunter das Leistungsverzeichnis */
+.kgae-pdf-icon { display: inline-grid; place-items: center; width: 30px; height: 34px; flex: none; }
+.kgae-karte h2 i.kgae-pdf-icon { width: 30px; height: 34px; border-radius: 0; background: none; box-shadow: none; }
+.kgae-laden { display: flex; gap: 8px; flex-wrap: wrap; margin: -4px 0 10px; }
+.kgae-laden .kgae-knopf { display: inline-flex; align-items: center; gap: 7px; padding: 8px 12px; font-size: 12.5px; background: #fef2f2; color: #b91c1c; }
+.kgae-laden .kgae-knopf svg { width: 15px; height: 17px; }
+.kgae-laden .kgae-knopf:disabled { background: #f1f5f9; color: #94a3b8; }
+.kgae-seiten { position: relative; }
+.kgae-seiten-innen { position: absolute; left: 0; top: 0; width: 820px; transform-origin: 0 0; }
+.kgae-seiten-innen iframe { position: static; display: block; width: 820px; border: 0; background: #fff; }
+.kgae-trenner { padding: 26px 0 14px; text-align: center; font-size: 22px; font-weight: 900; letter-spacing: .14em; text-transform: uppercase; color: #475569; background: #e2e8f0; }
+.kgae-lv-leer { padding: 60px 40px; text-align: center; font-size: 22px; font-weight: 800; color: #64748b; background: #f8fafc; }
+.kgae-vorschlag .kgae-hinweis-neu { padding: 8px 10px; font-size: 12.5px; font-weight: 800; color: var(--grau); }
+@media print { .kgae { display: none !important; } }
+</style>
+
+<div class="kgae{% if tablet %} kgae-tablet{% endif %}" id="kgae" data-start="{{ start_id }}" data-tablet="{{ 1 if tablet else 0 }}">
+    <div class="kgae-kopf" data-kg-skip>
+        <div>
+            <small>KG Portal · Angebote</small>
+            <h1>Angebot erstellen</h1>
+            <p>Firma eintippen oder Besichtigung wählen · Leistungen und Preis eintragen · rechts sieht man sofort das fertige Angebot</p>
+        </div>
+        <div class="kgae-schritte" id="kgaeSchritte"><span class="an">1 Kunde</span><span>2 Leistungen &amp; Preis</span><span>3 Senden &amp; E-Mail</span></div>
+    </div>
+
+    <section class="kgae-karte kgae-liste">
+        <div class="kgae-liste-kopf">
+            <div class="kgae-tabs" role="tablist">
+                <button type="button" class="an" data-tab="besichtigungen" role="tab">Besichtigungen <span id="kgaeAnzB">–</span></button>
+                <button type="button" data-tab="angebote" role="tab">Angebote <span id="kgaeAnzA">–</span></button>
+            </div>
+            <input class="kgae-suche" id="kgaeSuche" type="search" placeholder="Firma, Ort oder AN-Nr suchen …" autocomplete="off">
+            <button type="button" class="kgae-knopf blau kgae-neu-knopf" id="kgaeNeu">+ Neues Angebot</button>
+        </div>
+        <div class="kgae-eintraege" id="kgaeListe" hidden><div class="kgae-leer">Lädt …</div></div>
+    </section>
+
+    <div class="kgae-raster">
+        <main>
+            <div class="kgae-karte kgae-start" id="kgaeStart" hidden><div><b>Lädt …</b></div></div>
+            <div id="kgaeFormular">
+                <div class="kgae-karte">
+                    <div class="kgae-status">
+                        <h3 id="kgaeTitel">–</h3><label class="kgae-nr" id="kgaeNr" title="Angebot-Nummer: vorgeschlagen ist die nächste freie – von Hand änderbar">AN-<input id="kgaeNrIn" inputmode="numeric" maxlength="8" autocomplete="off" aria-label="Angebot-Nummer"></label><span class="kgae-nr-hinweis" id="kgaeNrHinweis"></span>
+                        <span class="kgae-chip" id="kgaeQuelle" hidden></span>
+                        <span class="kgae-gespeichert" id="kgaeGespeichert"></span>
+                    </div>
+                    <h2><i>1</i>Kunde</h2>
+                    <div class="kgae-felder">
+                        <div class="kgae-f w3 kgae-firma-wrap"><label for="kgae_firma">Firma</label><input class="kgae-in" id="kgae_firma" data-feld="firma" autocomplete="off" placeholder="Name tippen – Kunden und Datenbank werden vorgeschlagen"><div class="kgae-vorschlag" id="kgaeVorschlag" role="listbox" hidden></div></div>
+                        <div class="kgae-f w3"><label for="kgae_ansprechpartner">Ansprechpartner</label><input class="kgae-in" id="kgae_ansprechpartner" data-feld="ansprechpartner" placeholder="z. B. Herr Müller"></div>
+                        <div class="kgae-f w3"><label for="kgae_adresse">Straße</label><input class="kgae-in" id="kgae_adresse" data-feld="adresse"></div>
+                        <div class="kgae-f w1"><label for="kgae_plz">PLZ</label><input class="kgae-in" id="kgae_plz" data-feld="plz" inputmode="numeric"></div>
+                        <div class="kgae-f"><label for="kgae_ort">Ort</label><input class="kgae-in" id="kgae_ort" data-feld="ort"></div>
+                        <div class="kgae-f w3"><label for="kgae_email">E-Mail (für den Versand)</label><input class="kgae-in" id="kgae_email" data-feld="email" type="email"></div>
+                        <div class="kgae-f w3"><label for="kgae_telefon">Telefon</label><input class="kgae-in" id="kgae_telefon" data-feld="telefon" inputmode="tel"></div>
+                        <div class="kgae-f w6"><label for="kgae_objekt">Objekt (nur wenn abweichend von der Adresse)</label><input class="kgae-in" id="kgae_objekt" data-feld="objekt" placeholder="z. B. Bürogebäude Hinterhaus, 2. OG"></div>
+                    </div>
+                </div>
+
+                <div class="kgae-karte">
+                    <h2><i>2</i>Leistungen &amp; Preis <em>Preise netto · MwSt. steht fest in der Vorlage</em></h2>
+                    <div class="kgae-felder" style="margin-bottom:14px">
+                        <div class="kgae-f w4"><label for="kgae_leistungsart">Leistungsart (Überschrift)</label><input class="kgae-in" id="kgae_leistungsart" data-feld="leistungsart" placeholder="z. B. Büroreinigung"></div>
+                        <div class="kgae-f"><label for="kgae_datum">Datum</label><input class="kgae-in" id="kgae_datum" data-feld="datum" placeholder="TT.MM.JJJJ"></div>
+                    </div>
+                    <div class="kgae-pos-kopf"><span></span><span>Leistung</span><span>Einheit</span><span style="text-align:right">Preis € netto</span></div>
+                    {% for n in range(1, 5) %}
+                    <div class="kgae-pos">
+                        <b>{{ n }}</b>
+                        <input class="kgae-in" data-pos="{{ n }}" data-teil="text" placeholder="{{ 'z. B. 2x wöchentliche Büroreinigung (240 m²)' if n == 1 else ('z. B. Einmalige Grundreinigung' if n == 2 else 'optional') }}">
+                        <select class="kgae-in" data-pos="{{ n }}" data-teil="einheit">{% for e in einheiten %}<option>{{ e }}</option>{% endfor %}</select>
+                        <input class="kgae-in preis" data-pos="{{ n }}" data-teil="preis" inputmode="decimal" placeholder="0,00">
+                    </div>
+                    {% endfor %}
+                    <div class="kgae-felder" style="margin-top:14px">
+                        <div class="kgae-f w6"><label for="kgae_ausfuehrungszeitraum">Ausführungszeitraum</label><input class="kgae-in" id="kgae_ausfuehrungszeitraum" data-feld="ausfuehrungszeitraum" placeholder="nach Vereinbarung"></div>
+                    </div>
+                    <div class="kgae-summen">
+                        <div class="haupt">netto / Monat<b id="kgaeNetto">0,00 €</b></div>
+                        <div>+ 19 % MwSt.<b id="kgaeMwst">0,00 €</b></div>
+                        <div>brutto<b id="kgaeBrutto">0,00 €</b></div>
+                    </div>
+                </div>
+
+                <div class="kgae-karte kgae-rechner">
+                    <h2><i>€</i>Richtpreis-Rechner <em id="kgaeAufmassQuelle"></em></h2>
+                    <table>
+                        <thead><tr><th>Bereich</th><th>m²</th><th>Häufigkeit</th><th>m²/Std</th><th>Verschmutzung</th><th style="text-align:right">Std / Monat</th></tr></thead>
+                        <tbody id="kgaeBereiche"></tbody>
+                    </table>
+                    <div class="kgae-stueck">
+                        <div><label for="kgae_s_wc">WC</label><input class="kgae-in" id="kgae_s_wc" data-stueck="wc" inputmode="numeric"></div>
+                        <div><label for="kgae_s_urinal">Urinal</label><input class="kgae-in" id="kgae_s_urinal" data-stueck="urinal" inputmode="numeric"></div>
+                        <div><label for="kgae_s_wb">Waschbecken</label><input class="kgae-in" id="kgae_s_wb" data-stueck="wb" inputmode="numeric"></div>
+                        <div><label for="kgae_s_schreibtisch">Schreibtische</label><input class="kgae-in" id="kgae_s_schreibtisch" data-stueck="schreibtisch" inputmode="numeric"></div>
+                        <div><label for="kgae_s_muell">Mülleimer</label><input class="kgae-in" id="kgae_s_muell" data-stueck="muell" inputmode="numeric"></div>
+                    </div>
+                    <div class="kgae-ergebnis">
+                        <div><small>Stunden / Monat</small><b id="kgaeStd">0,0</b></div>
+                        <div><small>Stundensatz €</small><input class="kgae-in" id="kgaeSatz" inputmode="decimal" style="margin-top:2px;font-weight:900"></div>
+                        <div class="richt"><small>Richtpreis / Monat</small><b id="kgaeRicht">0,00 €</b></div>
+                        <button type="button" class="kgae-knopf blau" id="kgaeUebernehmen">In Leistung 1 übernehmen</button>
+                    </div>
+                    <p class="kgae-formel" id="kgaeFormel"></p>
+                </div>
+
+                <div class="kgae-aktionen">
+                    <button type="button" class="kgae-knopf hell kgae-nur-schmal" id="kgaeVorschauAuf">Vorschau ansehen</button>
+                    <button type="button" class="kgae-knopf hell" id="kgaeEntwurf">Entwurf speichern</button>
+                    <button type="button" class="kgae-knopf hell" id="kgaeBestaetigt" hidden title="Kunde hat zugesagt: kommt in die Vertrag-Warteliste">✓ Bestätigt → Vertrag</button>
+                    <div class="rechts">
+                        <button type="button" class="kgae-knopf hell" id="kgaePdf">PDF ansehen</button>
+                        <button type="button" class="kgae-knopf hell" data-laden="angebot">PDF herunterladen</button>
+                        <button type="button" class="kgae-knopf gruen" id="kgaeSenden">Angebot senden</button>
+                    </div>
+                </div>
+                <div id="kgaeMeldung"></div>
+            </div>
+        </main>
+
+        <aside class="kgae-karte kgae-vorschau" id="kgaeVorschau">
+            <h2><i class="kgae-pdf-icon"><svg viewBox="0 0 30 34" aria-hidden="true"><path d="M3 2h17l8 8v20a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z" fill="#dc2626"/><path d="M20 2v6a2 2 0 0 0 2 2h6z" fill="#fca5a5"/><text x="14.5" y="25" text-anchor="middle" font-family="Arial, sans-serif" font-size="8.5" font-weight="900" fill="#fff">PDF</text></svg></i>Live-Vorschau <em>Angebot und Leistungsverzeichnis</em></h2>
+            <div class="kgae-laden">
+                <button type="button" class="kgae-knopf" data-laden="angebot"><svg viewBox="0 0 30 34" aria-hidden="true"><path d="M3 2h17l8 8v20a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z" fill="#dc2626"/><path d="M20 2v6a2 2 0 0 0 2 2h6z" fill="#fca5a5"/><text x="14.5" y="25" text-anchor="middle" font-family="Arial, sans-serif" font-size="8.5" font-weight="900" fill="#fff">PDF</text></svg>Angebot herunterladen</button>
+                <button type="button" class="kgae-knopf" data-laden="lv" id="kgaeLvLaden"><svg viewBox="0 0 30 34" aria-hidden="true"><path d="M3 2h17l8 8v20a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z" fill="#dc2626"/><path d="M20 2v6a2 2 0 0 0 2 2h6z" fill="#fca5a5"/><text x="14.5" y="25" text-anchor="middle" font-family="Arial, sans-serif" font-size="8.5" font-weight="900" fill="#fff">PDF</text></svg>Leistungsverzeichnis herunterladen</button>
+            </div>
+            <div class="kgae-blatt" id="kgaeBlatt"><span class="kgae-lade" id="kgaeLade">aktualisiert …</span>
+                <div class="kgae-seiten" id="kgaeSeiten"><div class="kgae-seiten-innen" id="kgaeSeitenInnen">
+                    <iframe id="kgaeFrame" title="Angebot Vorschau" scrolling="no"></iframe>
+                    <div class="kgae-trenner">Leistungsverzeichnis</div>
+                    <iframe id="kgaeFrameLv" title="Leistungsverzeichnis Vorschau" scrolling="no" hidden></iframe>
+                    <div class="kgae-lv-leer" id="kgaeLvLeer">Das Leistungsverzeichnis erscheint hier, sobald das Angebot gespeichert ist („Entwurf speichern“).</div>
+                </div></div>
+            </div>
+            <div class="kgae-vorschau-knoepfe">
+                <button type="button" class="kgae-knopf hell kgae-nur-schmal" id="kgaeVorschauZu">Schließen</button>
+            </div>
+        </aside>
+    </div>
+
+    <div class="kgae-mail" id="kgaeMail" role="dialog" aria-modal="true" aria-label="Angebot per E-Mail senden">
+        <div><button type="button" class="kgae-mail-zu" id="kgaeMailZu" aria-label="Schließen">✕</button><span id="kgaeMailTitel" hidden></span><iframe id="kgaeMailFrame" title="E-Mail"></iframe></div>
+    </div>
+</div>
+
+{% raw %}
+<script>
+(function () {
+    const wurzel = document.getElementById('kgae');
+    if (!wurzel) return;
+    const $ = id => document.getElementById(id);
+    const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    const zahl = t => { let s = String(t == null ? '' : t).replace(/€/g, '').replace(/\s/g, ''); if (!s) return 0; if (s.indexOf(',') >= 0) s = s.replace(/\./g, '').replace(',', '.'); const v = parseFloat(s); return isNaN(v) ? 0 : v; };
+    const euro = v => (Number(v) || 0).toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
+    const eins = v => (Math.round((Number(v) || 0) * 10) / 10).toLocaleString('de-DE', { minimumFractionDigits: 1 });
+    const FARBE = { buero: '#2563eb', wc: '#ef4444', kueche: '#16a34a', flur: '#f59e0b' };
+    let liste = { besichtigungen: [], angebote: [] }, tab = 'besichtigungen', aktuell = null, k = null, speicherTimer = 0, vorschauTimer = 0, geaendert = false, fokus = '';
+
+    // ---------- Liste
+    function listeLaden() {
+        return fetch('/api/angebot-editor/liste', { credentials: 'same-origin' }).then(r => r.json()).then(d => {
+            if (!d.ok) throw new Error();
+            liste = d;
+            $('kgaeAnzB').textContent = d.besichtigungen.length;
+            $('kgaeAnzA').textContent = d.angebote.length;
+            listeZeichnen();
+        }).catch(() => { $('kgaeListe').innerHTML = '<div class="kgae-leer">Liste konnte nicht geladen werden.</div>'; });
+    }
+    function listeZeichnen() {
+        const q = $('kgaeSuche').value.trim().toLowerCase();
+        const daten = (liste[tab] || []).filter(e => !q || (e.firma + ' ' + e.ort + ' ' + (e.nr || '')).toLowerCase().indexOf(q) >= 0);
+        if (!daten.length) { $('kgaeListe').innerHTML = '<div class="kgae-leer">' + (tab === 'angebote' ? 'Noch keine Angebote.' : 'Keine offenen Besichtigungen.') + '</div>'; return; }
+        $('kgaeListe').innerHTML = daten.map(e => {
+            let chips = '';
+            if (tab === 'angebote') chips = '<span class="kgae-chip gruen">AN-' + esc(e.nr) + '</span>' + (e.netto ? '<span class="kgae-chip">' + esc(euro(e.netto)) + '</span>' : '') + (e.datum ? '<span class="kgae-chip grau">' + esc(e.datum) + '</span>' : '');
+            else chips = (e.scan ? '<span class="kgae-chip">KG Scan</span>' : '') + (e.raeume ? '<span class="kgae-chip grau">' + e.raeume + ' Räume</span>' : '') + (e.entwurf ? '<span class="kgae-chip gelb">Entwurf</span>' : '');
+            return '<button type="button" class="kgae-e' + (tab === 'angebote' ? ' angebot' : '') + (aktuell && aktuell.id === e.id ? ' an' : '') + '" data-id="' + e.id + '"><b>' + esc(e.firma) + '</b><small>' + esc(e.ort || '–') + (e.quelle ? ' · ' + esc(e.quelle) : '') + '</small><span class="kgae-chips">' + chips + '</span></button>';
+        }).join('');
+        $('kgaeListe').querySelectorAll('.kgae-e').forEach(b => b.addEventListener('click', () => oeffnen(Number(b.dataset.id))));
+    }
+    function listeAuf(auf) { $('kgaeListe').hidden = !auf; $('kgaeListe').closest('.kgae-liste').classList.toggle('offen', auf); }
+    document.querySelectorAll('.kgae-tabs button').forEach(b => b.addEventListener('click', () => {
+        const gleich = tab === b.dataset.tab;
+        tab = b.dataset.tab;
+        document.querySelectorAll('.kgae-tabs button').forEach(x => x.classList.toggle('an', x === b));
+        listeAuf(!(gleich && !$('kgaeListe').hidden));
+        listeZeichnen();
+    }));
+    $('kgaeSuche').addEventListener('input', () => { listeAuf(true); listeZeichnen(); });
+
+    // ---------- Formular
+    // Angebot-Nummer: vorgeschlagen (nächste freie) oder von Hand eingetragen
+    let nrManuell = false;
+    function nrSetzen(nr, hinweis, manuell) {
+        $('kgaeNrIn').value = nr || '';
+        nrManuell = !!manuell;
+        $('kgaeNrHinweis').textContent = manuell ? 'von Hand eingetragen' : (hinweis || '');
+        $('kgaeNrHinweis').classList.toggle('manuell', !!manuell);
+    }
+    function felderSetzen(f) {
+        document.querySelectorAll('[data-feld]').forEach(el => { el.value = f[el.dataset.feld] || ''; });
+        if (f.nr && f.nr_manuell) nrSetzen(f.nr, '', true);
+        (f.positionen || []).forEach((p, i) => {
+            const n = i + 1;
+            const t = document.querySelector('[data-pos="' + n + '"][data-teil="text"]'), e = document.querySelector('[data-pos="' + n + '"][data-teil="einheit"]'), pr = document.querySelector('[data-pos="' + n + '"][data-teil="preis"]');
+            t.value = p.text || '';
+            if (p.einheit && !Array.from(e.options).some(o => o.value === p.einheit)) { const o = document.createElement('option'); o.textContent = p.einheit; e.appendChild(o); }
+            e.value = p.einheit || 'monatlich';
+            pr.value = p.preis || '';
+        });
+    }
+    function felderLesen() {
+        const f = {};
+        document.querySelectorAll('[data-feld]').forEach(el => { f[el.dataset.feld] = el.value.trim(); });
+        f.positionen = [1, 2, 3, 4].map(n => ({
+            text: document.querySelector('[data-pos="' + n + '"][data-teil="text"]').value.trim(),
+            einheit: document.querySelector('[data-pos="' + n + '"][data-teil="einheit"]').value,
+            preis: document.querySelector('[data-pos="' + n + '"][data-teil="preis"]').value.trim()
+        }));
+        f.nr = $('kgaeNrIn').value.replace(/\D/g, '');
+        f.nr_manuell = nrManuell;
+        return f;
+    }
+    function summen(f) {
+        const mon = f.positionen.filter(p => p.einheit === 'monatlich' && zahl(p.preis)).map(p => zahl(p.preis));
+        const alle = f.positionen.filter(p => zahl(p.preis)).map(p => zahl(p.preis));
+        const netto = (mon.length ? mon : alle).reduce((a, b) => a + b, 0);
+        $('kgaeNetto').textContent = euro(netto); $('kgaeMwst').textContent = euro(netto * 0.19); $('kgaeBrutto').textContent = euro(netto * 1.19);
+        $('kgaeNetto').parentElement.firstChild.textContent = mon.length || !alle.length ? 'netto / Monat' : 'netto';
+    }
+
+    // ---------- Richtpreis-Rechner
+    function einsaetze(h) {
+        const t = String(h || '').toLowerCase().trim();
+        if (k && k.einsaetze && Object.prototype.hasOwnProperty.call(k.einsaetze, h)) return k.einsaetze[h] || 0;
+        if (!t || t === 'keine') return 0;
+        if (t.indexOf('einmalig') >= 0) return 0;
+        if (t.indexOf('täglich') >= 0 && t.indexOf('14') < 0) return 5 * k.monat;
+        if (t.indexOf('14') >= 0) return k.monat / 2;
+        let m = /(\d+)\s*x\s*wöchentlich/.exec(t); if (m) return Number(m[1]) * k.monat;
+        m = /(\d+)\s*x\s*monatlich/.exec(t); if (m) return Number(m[1]);
+        return 0;
+    }
+    function rechnerAufbauen(am, kalk) {
+        const zeilen = (am.bereiche || []).map(b => {
+            const alt = (kalk.bereiche || []).find(x => x.key === b.key) || {};
+            const h = alt.haeufigkeit != null ? alt.haeufigkeit : (b.haeufigkeit || (b.m2 ? '1x wöchentlich' : 'keine'));
+            const opts = k.haeufigkeiten.slice(); if (h && opts.indexOf(h) < 0) opts.unshift(h);
+            return '<tr data-key="' + b.key + '"><td><span class="kgae-punkt" style="background:' + FARBE[b.key] + '"></span>' + esc(b.name) + '</td>' +
+                '<td><input class="kgae-in" data-r="m2" inputmode="decimal" value="' + esc(alt.m2 != null ? alt.m2 : (b.m2 ? String(b.m2).replace('.', ',') : '')) + '" placeholder="0"></td>' +
+                '<td><select class="kgae-in" data-r="h">' + opts.map(o => '<option' + (o === h ? ' selected' : '') + '>' + esc(o) + '</option>').join('') + '</select></td>' +
+                '<td><input class="kgae-in" data-r="lw" inputmode="numeric" value="' + esc(alt.lw != null ? alt.lw : k.leistungswert[b.key]) + '"></td>' +
+                '<td><select class="kgae-in" data-r="v">' + Object.keys(k.verschmutzung).map(v => '<option value="' + esc(v) + '"' + ((alt.v || 'leicht') === v ? ' selected' : '') + '>' + esc(v) + ' ×' + String(k.verschmutzung[v]).replace('.', ',') + '</option>').join('') + '</select></td>' +
+                '<td class="std" data-r="std">0,0</td></tr>';
+        }).join('');
+        $('kgaeBereiche').innerHTML = zeilen;
+        const st = Object.assign({}, am.stueck || {}, kalk.stueck || {});
+        document.querySelectorAll('[data-stueck]').forEach(el => { el.value = st[el.dataset.stueck] ? String(st[el.dataset.stueck]) : ''; });
+        $('kgaeSatz').value = String(kalk.satz != null ? kalk.satz : k.stundensatz).replace('.', ',');
+        $('kgaeAufmassQuelle').textContent = am.scan ? 'Flächen aus KG Scan' : (am.bereiche.some(b => b.m2) ? 'Flächen aus der Besichtigung' : 'Flächen bitte eintragen');
+        rechnen();
+    }
+    function kalkLesen() {
+        return {
+            bereiche: Array.from($('kgaeBereiche').querySelectorAll('tr')).map(tr => ({ key: tr.dataset.key, m2: tr.querySelector('[data-r="m2"]').value, haeufigkeit: tr.querySelector('[data-r="h"]').value, lw: tr.querySelector('[data-r="lw"]').value, v: tr.querySelector('[data-r="v"]').value })),
+            stueck: Object.fromEntries(Array.from(document.querySelectorAll('[data-stueck]')).map(el => [el.dataset.stueck, zahl(el.value)])),
+            satz: zahl($('kgaeSatz').value) || k.stundensatz
+        };
+    }
+    function rechnen() {
+        if (!k) return 0;
+        const kal = kalkLesen(), m = k.minuten, st = kal.stueck;
+        let summe = 0, maxE = 0;
+        $('kgaeBereiche').querySelectorAll('tr').forEach(tr => {
+            const key = tr.dataset.key, m2 = zahl(tr.querySelector('[data-r="m2"]').value), lw = zahl(tr.querySelector('[data-r="lw"]').value) || 1;
+            const e = einsaetze(tr.querySelector('[data-r="h"]').value), fv = k.verschmutzung[tr.querySelector('[data-r="v"]').value] || 1;
+            let min = m2 / lw * 60 * fv;
+            if (key === 'wc') min += (st.wc || 0) * m.wc + (st.urinal || 0) * m.urinal + (st.wb || 0) * m.wb;
+            if (key === 'buero') min += (st.schreibtisch || 0) * m.schreibtisch + (st.muell || 0) * m.muell;
+            const std = e ? min * e / 60 : 0;
+            if (e && min) maxE = Math.max(maxE, e);
+            summe += std;
+            tr.querySelector('[data-r="std"]').textContent = eins(std);
+        });
+        const ruest = maxE * m.ruest / 60;
+        summe += ruest;
+        const richt = summe * kal.satz;
+        $('kgaeStd').textContent = eins(summe);
+        $('kgaeRicht').textContent = euro(richt);
+        $('kgaeFormel').innerHTML = 'Minuten je Einsatz = m² ÷ Leistungswert × 60 × Verschmutzung (+ WC ' + String(m.wc).replace('.', ',') + ' · Urinal ' + String(m.urinal).replace('.', ',') + ' · Waschbecken ' + String(m.wb).replace('.', ',') +
+            ' · Schreibtisch ' + String(m.schreibtisch).replace('.', ',') + ' · Mülleimer ' + String(m.muell).replace('.', ',') + ' Min je Stück) · Einsätze/Monat = x/Woche × ' + String(k.monat).replace('.', ',') +
+            ' · + Rüstzeit ' + m.ruest + ' Min je Einsatz (' + eins(ruest) + ' Std) · <b>Richtpreis = Std/Monat × Stundensatz</b>. Der Preis im Angebot ist immer der, den du oben einträgst.';
+        return richt;
+    }
+    $('kgaeUebernehmen').addEventListener('click', () => {
+        const richt = rechnen();
+        if (!richt) return;
+        const p = document.querySelector('[data-pos="1"][data-teil="preis"]');
+        p.value = (Math.round(richt * 100) / 100).toFixed(2).replace('.', ',');
+        document.querySelector('[data-pos="1"][data-teil="einheit"]').value = 'monatlich';
+        fokus = 'leistung';
+        geaendertMelden();
+        p.focus();
+    });
+
+    // ---------- Vorschau (echte Angebotsvorlage)
+    function vorschauUrl(f) {
+        const p = new URLSearchParams({ print: '1', nr: f.nr || '…', firma: f.firma, ansprechpartner: f.ansprechpartner, objekt: f.objekt, adresse: f.adresse, plz: f.plz, ort: f.ort, leistungsart: f.leistungsart, zeitraum: f.ausfuehrungszeitraum, datum: f.datum });
+        f.positionen.forEach((x, i) => { p.set('l' + (i + 1), x.text); p.set('e' + (i + 1), x.einheit); p.set('p' + (i + 1), x.preis); });
+        return '/angebot/editor/vorschau?' + p.toString();
+    }
+    // Seiten in voller Höhe untereinander (Angebot, dann Leistungsverzeichnis), verkleinert; das Blatt scrollt
+    function inhaltHoehe(fr) {
+        try { const d = fr.contentDocument; return Math.max(d.documentElement.scrollHeight, d.body ? d.body.scrollHeight : 0); } catch (e) { return 1200; }
+    }
+    function blattSkalieren() {
+        const blatt = $('kgaeBlatt'), innen = $('kgaeSeitenInnen');
+        const s = (blatt.clientWidth || 820) / 820;
+        innen.style.transform = 'scale(' + s + ')';
+        $('kgaeSeiten').style.height = Math.ceil(innen.offsetHeight * s) + 'px';
+        return s;
+    }
+    function vorschau() {
+        if (!aktuell) return;
+        const fr = $('kgaeFrame'), blatt = $('kgaeBlatt');
+        const y = blatt.scrollTop;
+        $('kgaeLade').classList.add('an');
+        fr.onload = () => {
+            $('kgaeLade').classList.remove('an');
+            fr.style.height = inhaltHoehe(fr) + 'px';
+            const s = blattSkalieren();
+            try {
+                const ziel = fokus === 'leistung' ? fr.contentDocument.querySelector('.leistungs-list') : null;
+                if (ziel) blatt.scrollTop = Math.max(0, (ziel.getBoundingClientRect().top + fr.contentWindow.scrollY) * s - 120);
+                else blatt.scrollTop = fokus === 'kunde' ? 0 : y;
+            } catch (e) { blatt.scrollTop = y; }
+        };
+        fr.src = vorschauUrl(felderLesen());
+    }
+    function lvLaden() {
+        const fr = $('kgaeFrameLv'), hat = !!(aktuell && aktuell.id && !aktuell.neu);
+        $('kgaeLvLeer').hidden = hat; fr.hidden = !hat;
+        $('kgaeLvLaden').disabled = !hat;
+        $('kgaeLvLaden').title = hat ? '' : 'Erst speichern („Entwurf speichern“)';
+        if (!hat) { fr.removeAttribute('src'); blattSkalieren(); return; }
+        fr.onload = () => { fr.style.height = inhaltHoehe(fr) + 'px'; blattSkalieren(); };
+        fr.src = '/angebot/editor/lv-vorschau?angebot_id=' + aktuell.id + '&print=1';
+    }
+    // PDF herunterladen (Angebot wie in der Vorschau, Leistungsverzeichnis des gespeicherten Eintrags)
+    function laden(art, knopf) {
+        if (!aktuell) return;
+        const f = felderLesen();
+        let url;
+        if (art === 'lv') {
+            if (!aktuell.id || aktuell.neu) { meldung('fehler', 'Das Leistungsverzeichnis gibt es erst nach dem Speichern („Entwurf speichern“).'); return; }
+            if (geaendert) { entwurf(true).then(() => laden(art, knopf)); return; }  // erst den neuesten Stand speichern
+            url = '/angebot/editor/pdf?art=lv&id=' + aktuell.id + '&nr=' + encodeURIComponent(f.nr) + '&firma=' + encodeURIComponent(f.firma);
+        } else {
+            url = vorschauUrl(f).replace('/angebot/editor/vorschau?', '/angebot/editor/pdf?art=angebot&');
+        }
+        const text = knopf.innerHTML; knopf.disabled = true; knopf.lastChild.textContent = ' Wird erstellt …';
+        fetch(url, { credentials: 'same-origin' }).then(r => {
+            if (!r.ok) return r.json().then(d => { throw new Error(d.error || 'Fehler'); }, () => { throw new Error('Fehler ' + r.status); });
+            const name = ((r.headers.get('Content-Disposition') || '').match(/filename\*?=(?:UTF-8'')?"?([^";]+)/i) || [])[1];
+            return r.blob().then(b => ({ b, name: name ? decodeURIComponent(name) : (art === 'lv' ? 'Leistungsverzeichnis.pdf' : 'Angebot.pdf') }));
+        }).then(x => {
+            const a = document.createElement('a'); a.href = URL.createObjectURL(x.b); a.download = x.name;
+            document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1500);
+        }).catch(e => meldung('fehler', 'PDF nicht erstellt: ' + esc(e.message)))
+          .finally(() => { knopf.disabled = art === 'lv' && (!aktuell.id || aktuell.neu); knopf.innerHTML = text; });
+    }
+    document.querySelectorAll('[data-laden]').forEach(b => b.addEventListener('click', () => laden(b.dataset.laden, b)));
+    $('kgaeNrIn').addEventListener('input', () => {
+        const v = $('kgaeNrIn').value.replace(/\D/g, '');
+        if (v !== $('kgaeNrIn').value) $('kgaeNrIn').value = v;
+        nrManuell = true; $('kgaeNrHinweis').textContent = 'von Hand eingetragen'; $('kgaeNrHinweis').classList.add('manuell');
+    });
+    window.addEventListener('resize', blattSkalieren);
+    function mitlaufen() {
+        const v = $('kgaeVorschau'), raster = v.parentElement;
+        if (window.innerWidth <= 1400) { v.style.transform = ''; return; }
+        const oben = raster.getBoundingClientRect().top + window.scrollY;
+        const platz = raster.offsetHeight - v.offsetHeight;
+        const y = Math.max(0, Math.min(window.scrollY - oben + 14, platz));
+        v.style.transform = y > 0 ? 'translateY(' + y + 'px)' : '';
+    }
+    window.addEventListener('scroll', mitlaufen, { passive: true });
+    window.addEventListener('resize', mitlaufen);
+
+    // ---------- Änderungen: Summen, Vorschau, Entwurf automatisch
+    function geaendertMelden() {
+        if (!aktuell) return;
+        geaendert = true;
+        summen(felderLesen());
+        rechnen();
+        clearTimeout(vorschauTimer); vorschauTimer = setTimeout(vorschau, 450);
+        if (aktuell.neu) {  // noch kein Eintrag: erst „Entwurf speichern“ / „Senden“ legt ihn an
+            $('kgaeTitel').textContent = $('kgae_firma').value.trim() || 'Neues Angebot';
+            $('kgaeGespeichert').textContent = 'noch nicht gespeichert';
+            return;
+        }
+        clearTimeout(speicherTimer); speicherTimer = setTimeout(() => entwurf(true), 1800);
+        $('kgaeGespeichert').textContent = 'Änderungen …';
+    }
+    $('kgaeFormular').addEventListener('input', e => { if (e.target.matches('.kgae-in')) geaendertMelden(); });
+    // Vorschau springt zu der Stelle, an der gerade geschrieben wird
+    $('kgaeFormular').addEventListener('focusin', e => {
+        const karte = e.target.closest('.kgae-karte');
+        if (!karte || karte.classList.contains('kgae-rechner')) return;
+        fokus = karte.querySelector('[data-pos], #kgae_leistungsart') ? 'leistung' : 'kunde';
+    });
+    $('kgaeFormular').addEventListener('change', e => { if (e.target.matches('select.kgae-in')) geaendertMelden(); });
+
+    function entwurf(still) {
+        if (!aktuell) return Promise.resolve();
+        if (aktuell.neu) return still ? Promise.resolve() : anlegen().then(ok => (ok ? entwurf(false) : null));
+        clearTimeout(speicherTimer);
+        return fetch('/api/angebot-editor/' + aktuell.id + '/entwurf', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ felder: felderLesen(), kalkulation: kalkLesen() }) })
+            .then(r => r.json()).then(d => {
+                if (!d.ok) throw new Error();
+                geaendert = false;
+                $('kgaeGespeichert').textContent = 'Entwurf gespeichert ' + new Date().toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
+                if (!still) meldung('ok', 'Entwurf gespeichert.');
+                lvLaden();  // Leistungsverzeichnis zeigt den gespeicherten Stand (Firma, Adresse, Häufigkeiten)
+                const e = liste.besichtigungen.find(x => x.id === aktuell.id); if (e && !e.entwurf) { e.entwurf = true; listeZeichnen(); }
+            }).catch(() => { $('kgaeGespeichert').textContent = 'Entwurf nicht gespeichert'; });
+    }
+    $('kgaeEntwurf').addEventListener('click', () => entwurf(false));
+
+    // ---------- Neues Angebot (ohne Besichtigung)
+    function neu() {
+        return fetch('/api/angebot-editor/neu', { credentials: 'same-origin' }).then(r => r.json()).then(d => {
+            if (!d.ok) throw new Error();
+            aktuell = { id: 0, neu: true, status: 'neu', angebot_nr: '', quelle: null, lead: { quelle: '' } };
+            k = d.koeffizienten;
+            $('kgaeStart').hidden = true; $('kgaeFormular').hidden = false;
+            $('kgaeTitel').textContent = 'Neues Angebot';
+            $('kgaeBestaetigt').hidden = true;
+            nrSetzen(d.naechste_nr, 'nächste freie Nummer', false);
+            $('kgaeQuelle').hidden = true;
+            $('kgaeGespeichert').textContent = '';
+            felderSetzen(d.felder);
+            rechnerAufbauen(d.aufmass, {});
+            summen(felderLesen());
+            meldung('', '');
+            schritte(1);
+            geaendert = false;
+            history.replaceState(null, '', location.pathname);
+            vorschau();
+            lvLaden();
+            listeZeichnen();
+        }).catch(() => meldung('fehler', 'Formular konnte nicht geladen werden.'));
+    }
+    // Neues Angebot speichern: wie „Direktes Angebot“ in der Datenbank einen Eintrag in der Besichtigungsliste anlegen
+    function anlegen() {
+        const f = felderLesen();
+        if (!f.firma) { meldung('fehler', 'Bitte die Firma eintragen.'); $('kgae_firma').focus(); return Promise.resolve(false); }
+        const kunde = aktuell.quelle && aktuell.quelle.art === 'kunde';
+        if (!kunde && !f.ort) { meldung('fehler', 'Bitte den Ort eintragen.'); $('kgae_ort').focus(); return Promise.resolve(false); }
+        const url = kunde ? '/api/datenbank/direktes-angebot-bestandskunde' : '/api/datenbank/direktes-angebot-neukunde';
+        const daten = kunde ? { kunde_id: aktuell.quelle.id } : { firma: f.firma, ansprechpartner: f.ansprechpartner, strasse: f.adresse, plz: f.plz, ort: f.ort, telefon: f.telefon, email: f.email };
+        return fetch(url, { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(daten) })
+            .then(r => r.json()).then(d => {
+                if (!d.ok || !d.besichtigung_id) throw new Error(d.message || 'Fehler');
+                aktuell.id = Number(d.besichtigung_id); aktuell.neu = false; aktuell.status = 'besichtigung';
+                aktuell.lead = { quelle: kunde ? 'Direktes Angebot · Bestandskunde' : 'Direktes Angebot · Neukunde' };
+                const q = $('kgaeQuelle'); q.hidden = false; q.textContent = aktuell.lead.quelle;
+                history.replaceState(null, '', location.pathname + '?id=' + aktuell.id);
+                schritte(2);
+                listeLaden();
+                lvLaden();
+                return true;
+            }).catch(e => { meldung('fehler', 'Konnte nicht angelegt werden: ' + esc(e.message)); return false; });
+    }
+    $('kgaeNeu').addEventListener('click', () => {
+        if (aktuell && aktuell.neu && geaendert && $('kgae_firma').value.trim() && !window.confirm('Eingaben verwerfen und neu anfangen?')) return;
+        (aktuell && !aktuell.neu && geaendert ? entwurf(true) : Promise.resolve()).then(neu);
+    });
+
+    // Vorschläge beim Tippen der Firma (Kunden + Datenbank)
+    let vorschlagTimer = 0, treffer = [], auswahl = -1;
+    const vbox = $('kgaeVorschlag');
+    function vorschlagZu() { vbox.hidden = true; auswahl = -1; }
+    function vorschlagZeigen() {
+        if (!treffer.length) { vbox.innerHTML = '<div class="kgae-hinweis-neu">Nicht gefunden – wird als neuer Interessent angelegt.</div>'; vbox.hidden = false; return; }
+        vbox.innerHTML = treffer.map((t, i) => '<button type="button" role="option" data-i="' + i + '" class="' + (i === auswahl ? 'an' : '') + '"><span><b>' + esc(t.firma || 'Ohne Firma') + '</b><small>' + esc(t.ort || '–') + '</small></span>' +
+            '<span class="kgae-chip ' + (t.art === 'kunde' ? 'gruen' : t.art === 'angebot' ? 'gelb' : t.art === 'besichtigung' ? '' : 'grau') + '">' + esc(t.stand) + '</span></button>').join('');
+        vbox.hidden = false;
+    }
+    function waehlen(t) {
+        vorschlagZu();
+        if (!t) return;
+        if (t.art === 'besichtigung' || t.art === 'angebot') {
+            if (t.art === 'angebot') { tab = 'angebote'; document.querySelectorAll('.kgae-tabs button').forEach(x => x.classList.toggle('an', x.dataset.tab === 'angebote')); }
+            geaendert = false;
+            oeffnen(t.id);
+            return;
+        }
+        Object.keys(t.felder || {}).forEach(key => { const el = document.querySelector('[data-feld="' + key + '"]'); if (el) el.value = t.felder[key] || ''; });
+        aktuell.quelle = { art: t.art, id: t.id, firma: t.felder.firma };
+        const q = $('kgaeQuelle'); q.hidden = false; q.textContent = t.art === 'kunde' ? 'Bestandskunde' : t.stand;
+        fokus = 'kunde';
+        geaendertMelden();
+        schritte(2);
+        const pos = document.querySelector('[data-pos="1"][data-teil="text"]'); if (pos) pos.focus();
+    }
+    $('kgae_firma').addEventListener('input', () => {
+        if (!aktuell || !aktuell.neu) return;
+        const q = $('kgae_firma').value.trim();
+        if (aktuell.quelle && q !== aktuell.quelle.firma) { aktuell.quelle = null; $('kgaeQuelle').hidden = true; }
+        clearTimeout(vorschlagTimer);
+        if (q.length < 2) { vorschlagZu(); return; }
+        vorschlagTimer = setTimeout(() => {
+            fetch('/api/angebot-editor/suche?q=' + encodeURIComponent(q), { credentials: 'same-origin' }).then(r => r.json()).then(d => {
+                if (!d.ok || $('kgae_firma').value.trim() !== q) return;
+                treffer = d.treffer || []; auswahl = -1;
+                vorschlagZeigen();
+            }).catch(() => {});
+        }, 220);
+    });
+    $('kgae_firma').addEventListener('keydown', e => {
+        if (vbox.hidden || !treffer.length) return;
+        if (e.key === 'ArrowDown' || e.key === 'ArrowUp') { e.preventDefault(); auswahl = (auswahl + (e.key === 'ArrowDown' ? 1 : -1) + treffer.length) % treffer.length; vorschlagZeigen(); }
+        else if (e.key === 'Enter' && auswahl >= 0) { e.preventDefault(); waehlen(treffer[auswahl]); }
+        else if (e.key === 'Escape') vorschlagZu();
+    });
+    vbox.addEventListener('mousedown', e => { const b = e.target.closest('[data-i]'); if (b) { e.preventDefault(); waehlen(treffer[Number(b.dataset.i)]); } });
+    $('kgae_firma').addEventListener('blur', () => setTimeout(vorschlagZu, 150));
+
+    function meldung(art, html) { $('kgaeMeldung').innerHTML = html ? '<div class="kgae-meldung ' + art + '">' + html + '</div>' : ''; }
+
+    // ---------- Öffnen
+    function oeffnen(id) {
+        // frische Eingaben von der Besichtigung-Seite („Angebot erstellen“ ohne vorher zu speichern)
+        const frischDazu = d => {
+            let frisch = null;
+            try { frisch = JSON.parse(sessionStorage.getItem('kgae_bes_' + id) || 'null'); sessionStorage.removeItem('kgae_bes_' + id); } catch (e) {}
+            if (!frisch) return d;
+            return fetch('/api/angebot-editor/aufmass', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ daten: frisch }) })
+                .then(r => r.json()).then(x => {
+                    if (!x.ok) return d;
+                    const alt = d.aufmass || { stueck: {} };
+                    d.aufmass = x.aufmass; d.kalkulation = {};
+                    // Stückzahlen aus dem KG Scan behalten, wenn die Seite keine eigenen hat
+                    Object.keys(alt.stueck || {}).forEach(s => { if (!d.aufmass.stueck[s]) d.aufmass.stueck[s] = alt.stueck[s]; });
+                    d.aufmass.scan = d.aufmass.scan || alt.scan;
+                    if (d.felder_quelle === 'neu') Object.keys(x.felder).forEach(key => { if (key !== 'positionen' && x.felder[key]) d.felder[key] = x.felder[key]; else if (key === 'positionen') d.felder.positionen = x.felder.positionen; });
+                    return d;
+                }).catch(() => d);
+        };
+        const weiter = () => fetch('/api/angebot-editor/' + id, { credentials: 'same-origin' }).then(r => r.json()).then(d => {
+            if (!d.ok) throw new Error(d.error || 'Fehler');
+            return frischDazu(d);
+        }).then(d => {
+            aktuell = d; k = d.koeffizienten;
+            $('kgaeStart').hidden = true; $('kgaeFormular').hidden = false;
+            $('kgaeTitel').textContent = d.felder.firma || d.lead.firma || 'Ohne Firma';
+            nrSetzen(d.angebot_nr || d.naechste_nr, d.angebot_nr ? 'vergeben' : 'nächste freie Nummer', false);
+            const q = $('kgaeQuelle'); q.hidden = !d.lead.quelle; q.textContent = d.lead.quelle;
+            $('kgaeGespeichert').textContent = d.entwurf_am ? 'Entwurf vom ' + new Date(d.entwurf_am).toLocaleString('de-DE', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : (d.felder_quelle === 'neu' ? 'aus der Besichtigung übernommen' : '');
+            felderSetzen(d.felder);
+            rechnerAufbauen(d.aufmass, d.kalkulation || {});
+            summen(felderLesen());
+            meldung('', '');
+            if (d.status === 'angebot') meldung('ok', 'Dieses Angebot ist schon verschickt (AN-' + esc(d.angebot_nr) + '). Änderungen werden mit „Angebot senden“ übernommen, die Nummer bleibt.');
+            schritte(d.status === 'angebot' ? 3 : 2);
+            $('kgaeBestaetigt').hidden = d.status !== 'angebot';
+            geaendert = false;
+            history.replaceState(null, '', location.pathname + '?id=' + id);
+            vorschau();
+            lvLaden();
+            listeZeichnen();
+            if (window.innerWidth <= 1400) $('kgaeFormular').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }).catch(e => meldung('fehler', 'Konnte nicht geöffnet werden: ' + esc(e.message)));
+        if (aktuell && aktuell.neu && geaendert && $('kgae_firma').value.trim() && !window.confirm('Das neue Angebot ist noch nicht gespeichert. Trotzdem wechseln?')) return Promise.resolve();
+        if (aktuell && geaendert) return entwurf(true).then(weiter);
+        return weiter();
+    }
+    function schritte(n) { $('kgaeSchritte').querySelectorAll('span').forEach((s, i) => s.classList.toggle('an', i < n)); }
+
+    // ---------- PDF / Senden / Mail
+    $('kgaePdf').addEventListener('click', () => {
+        if (!aktuell) return;
+        window.open(aktuell.status === 'angebot' && !geaendert ? '/angebotvorlage?angebot_id=' + aktuell.id + '&print=1' : vorschauUrl(felderLesen()).replace('/angebot/editor/vorschau?', '/angebot/editor/vorschau?drucken=1&'), '_blank');
+    });
+    $('kgaeSenden').addEventListener('click', () => {
+        if (!aktuell) return;
+        const f = felderLesen();
+        const pos = f.positionen.filter(p => p.text && zahl(p.preis));
+        if (!f.firma) { meldung('fehler', 'Bitte die Firma eintragen.'); return; }
+        if (!pos.length) { meldung('fehler', 'Bitte mindestens eine Leistung mit Preis eintragen.'); return; }
+        const text = (aktuell.angebot_nr ? 'Angebot AN-' + aktuell.angebot_nr + ' aktualisieren' : 'Angebot AN-' + (f.nr || '…') + ' jetzt erstellen') + ' für ' + f.firma + '?\n\n' +
+            pos.map(p => '• ' + p.text + ' · ' + p.einheit + ' · ' + euro(zahl(p.preis))).join('\n') + '\n\nDanach erscheint es in der Angebot-Warteliste und das E-Mail-Fenster öffnet sich.';
+        if (!window.confirm(text)) return;
+        const knopf = $('kgaeSenden'); knopf.disabled = true; knopf.textContent = 'Wird erstellt …';
+        (aktuell.neu ? anlegen() : Promise.resolve(true)).then(ok => {
+        if (!ok) { knopf.disabled = false; knopf.textContent = 'Angebot senden'; return; }
+        return fetch('/api/angebot-editor/' + aktuell.id + '/senden', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ felder: felderLesen(), kalkulation: kalkLesen() }) })
+            .then(r => r.json()).then(d => {
+                if (!d.ok) throw new Error(d.error || 'Fehler');
+                aktuell.angebot_nr = d.angebot_nr; aktuell.status = 'angebot'; geaendert = false;
+                $('kgaeBestaetigt').hidden = false;
+                nrSetzen(d.angebot_nr, 'vergeben', false);
+                lvLaden();
+                schritte(3);
+                meldung('ok', '✓ Angebot <b>AN-' + esc(d.angebot_nr) + '</b> erstellt (' + esc(euro(d.netto)) + ' netto) und in der Angebot-Warteliste.<br>' +
+                    '<button type="button" class="kgae-knopf gruen" data-mail>Per E-Mail senden</button>' +
+                    '<a class="kgae-knopf hell" target="_blank" href="/angebotvorlage?angebot_id=' + aktuell.id + '&print=1">Angebot PDF</a>' +
+                    '<a class="kgae-knopf hell" target="_blank" href="/leistungsverzeichnis?angebot_id=' + aktuell.id + '">Leistungsverzeichnis</a>');
+                $('kgaeMeldung').querySelector('[data-mail]').addEventListener('click', () => mailOeffnen(d.mail_url, d.angebot_nr));
+                mailOeffnen(d.mail_url, d.angebot_nr);
+                listeLaden();
+                vorschau();
+            }).catch(e => meldung('fehler', 'Nicht gesendet: ' + esc(e.message)))
+            .finally(() => { knopf.disabled = false; knopf.textContent = 'Angebot senden'; });
+        });
+    });
+    // Kunde hat das Angebot bestätigt → Vertrag-Warteliste (/vertrag/editor); das Angebot selbst bleibt unverändert
+    $('kgaeBestaetigt').addEventListener('click', () => {
+        if (!aktuell || aktuell.status !== 'angebot') return;
+        if (!window.confirm('Hat der Kunde das Angebot AN-' + aktuell.angebot_nr + ' bestätigt?\n\nEs kommt in die Vertrag-Warteliste, der Vertrag wird mit diesen Angaben vorbereitet.')) return;
+        fetch('/api/vertrag-editor/bestaetigen', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ tagesliste_id: aktuell.id }) })
+            .then(r => r.json()).then(d => {
+                if (!d.ok) throw new Error(d.error || 'Fehler');
+                meldung('ok', '✓ ' + (d.schon ? 'Steht schon in der Vertrag-Warteliste.' : 'In die Vertrag-Warteliste übernommen.') + '<br><a class="kgae-knopf gruen" href="/vertrag/editor?id=' + d.id + '">Vertrag jetzt erstellen</a>');
+            }).catch(e => meldung('fehler', 'Nicht übernommen: ' + esc(e.message)));
+    });
+    function mailOeffnen(url, nr) {
+        $('kgaeMailTitel').textContent = 'Angebot AN-' + nr + ' per E-Mail senden';
+        $('kgaeMailFrame').src = url;
+        $('kgaeMail').classList.add('an');
+    }
+    function mailZu() { $('kgaeMail').classList.remove('an'); $('kgaeMailFrame').src = 'about:blank'; }
+    window.closeAngebotMailInterface = mailZu;
+    window.addEventListener('message', e => { if (e.data && e.data.type === 'kg-mail-mini-close') mailZu(); });
+    $('kgaeMailZu').addEventListener('click', mailZu);
+    $('kgaeVorschauAuf').addEventListener('click', () => { $('kgaeVorschau').classList.add('offen'); blattSkalieren(); });
+    $('kgaeVorschauZu').addEventListener('click', () => $('kgaeVorschau').classList.remove('offen'));
+    window.addEventListener('beforeunload', () => { if (geaendert && aktuell && !aktuell.neu) navigator.sendBeacon && navigator.sendBeacon('/api/angebot-editor/' + aktuell.id + '/entwurf', new Blob([JSON.stringify({ felder: felderLesen(), kalkulation: kalkLesen() })], { type: 'application/json' })); });
+
+    listeLaden().then(() => {
+        const start = Number(wurzel.dataset.start) || 0;
+        if (start) {
+            if (liste.angebote.some(a => a.id === start)) { tab = 'angebote'; document.querySelectorAll('.kgae-tabs button').forEach(x => x.classList.toggle('an', x.dataset.tab === 'angebote')); listeZeichnen(); }
+            oeffnen(start);
+        } else {
+            neu();  // ohne Auswahl: gleich ein leeres Formular, rechts die leere Vorlage
+        }
+    });
+    blattSkalieren();
+})();
+</script>
+{% endraw %}
+{% endblock %}

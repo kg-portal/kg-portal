@@ -1,0 +1,1095 @@
+/* =========================================================
+   Leon „Orb-Hero“ (CRM) – nur Optik, keine Funktion.
+   Kopfbereich aller Leon-Reiter: dunkelblauer Verlauf, leuchtende
+   Leon-Kugel links, Sprachwelle neben dem Titel, Kennzahlen als Glas.
+   Wird nach kg_page_theme.css bzw. mit _leon_tabs.html geladen.
+   ========================================================= */
+@media screen {
+html body .kgb-hero,
+html body .na .na-hero,
+html body .ak-page .ak-hero,
+html body .kbl .kbl-hero,
+html body .kb .kb-hero,
+html body .leon-wrap .leon-head,
+html body .ldb .ldb-head {
+  position: relative !important;
+  min-height: 156px !important;
+  padding: 28px 32px 28px 204px !important;
+  border: 0 !important;
+  border-radius: 24px !important;
+  color: #fff !important;
+  /* genau wie der Kopf der Startseite (.index-hero): Verlauf #183a91 → #2563eb, heller Kreis oben rechts */
+  background:
+    radial-gradient(circle at calc(100% - 50px) 30px, rgba(255,255,255,.11) 0 140px, transparent 140.5px),
+    linear-gradient(135deg, #183a91 0%, #2563eb 100%) !important;
+  box-shadow: 0 18px 50px rgba(24,58,145,.18) !important;
+}
+
+/* Leon-Kugel */
+html body .kgb-hero::before,
+html body .na .na-hero::before,
+html body .ak-page .ak-hero::before,
+html body .kbl .kbl-hero::before,
+html body .kb .kb-hero::before,
+html body .leon-wrap .leon-head::before,
+html body .ldb .ldb-head::before {
+  content: "" !important;
+  display: block !important;
+  position: absolute !important;
+  left: 54px !important; top: 50% !important; right: auto !important; bottom: auto !important;
+  width: 96px !important; height: 96px !important;
+  margin-top: -48px !important;
+  border-radius: 50% !important;
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2z'/%3E%3C/svg%3E") center / 30px 30px no-repeat,
+    radial-gradient(circle at 32% 28%, #fff 0, #bfdbfe 10%, #3b82f6 38%, #1d4ed8 62%, #0b2a6f 100%) !important;
+  box-shadow: 0 0 34px rgba(96,165,250,.85), 0 0 64px rgba(59,130,246,.45), inset -10px -14px 30px rgba(11,42,111,.7) !important;
+  pointer-events: none !important;
+  z-index: 0 !important;
+}
+
+/* Ringe um die Kugel */
+html body .kgb-hero::after,
+html body .na .na-hero::after,
+html body .ak-page .ak-hero::after,
+html body .kbl .kbl-hero::after,
+html body .kb .kb-hero::after,
+html body .leon-wrap .leon-head::after,
+html body .ldb .ldb-head::after {
+  content: "" !important;
+  display: block !important;
+  position: absolute !important;
+  left: 40px !important; top: 50% !important; right: auto !important; bottom: auto !important;
+  width: 120px !important; height: 120px !important;
+  margin-top: -62px !important;
+  border-radius: 50% !important;
+  border: 2px solid rgba(147,197,253,.45) !important;
+  outline: 2px solid rgba(147,197,253,.18) !important;
+  outline-offset: 12px !important;
+  background: none !important;
+  pointer-events: none !important;
+  animation: loRing 3.2s ease-in-out infinite !important;
+}
+
+html body .kgb-hero h1,
+html body .na .na-hero h1,
+html body .ak-page .ak-hero h1,
+html body .kbl .kbl-hero h1,
+html body .kb .kb-hero h1,
+html body .leon-wrap .leon-head h1,
+html body .ldb .ldb-head h1,
+html body .kgb-hero .page-title {
+  color: #fff !important;
+  -webkit-text-fill-color: #fff !important;
+  background: none !important;
+  font-size: 32px !important;
+  font-weight: 900 !important;
+  letter-spacing: -.02em !important;
+  text-shadow: 0 2px 18px rgba(147,197,253,.35) !important;
+}
+html body .kgb-hero h1 i,
+html body .na .na-hero h1 i,
+html body .ak-page .ak-hero h1 i,
+html body .kbl .kbl-hero h1 i,
+html body .kb .kb-hero h1 i,
+html body .leon-wrap .leon-head h1 i,
+html body .ldb .ldb-head h1 i { color: #bfdbfe !important; }
+
+/* Sprachwelle neben dem Titel */
+html body .kgb-hero h1::after,
+html body .na .na-hero h1::after,
+html body .ak-page .ak-hero h1::after,
+html body .kbl .kbl-hero h1::after,
+html body .kb .kb-hero h1::after,
+html body .leon-wrap .leon-head h1::after,
+html body .ldb .ldb-head h1::after,
+html body .kgb-hero .page-title::after {
+  content: "";
+  display: inline-block;
+  width: 132px; height: 28px;
+  margin-left: 18px;
+  vertical-align: middle;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 150 30'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop offset='0' stop-color='%23e0f2fe'/%3E%3Cstop offset='1' stop-color='%2360a5fa'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cstyle%3Erect%7Bfill:url(%23g);transform-box:fill-box;transform-origin:center;animation:w 1.3s ease-in-out infinite%7D%40keyframes w%7B50%25%7Btransform:scaleY(.45)%7D%7D%3C/style%3E%3Crect x='0' y='12.5' width='3' height='5.0' rx='1.5' style='animation-delay:0.00s'/%3E%3Crect x='5' y='10.7' width='3' height='8.7' rx='1.5' style='animation-delay:0.06s'/%3E%3Crect x='10' y='8.2' width='3' height='13.6' rx='1.5' style='animation-delay:0.12s'/%3E%3Crect x='15' y='5.7' width='3' height='18.6' rx='1.5' style='animation-delay:0.18s'/%3E%3Crect x='20' y='9.4' width='3' height='11.2' rx='1.5' style='animation-delay:0.24s'/%3E%3Crect x='25' y='3.8' width='3' height='22.3' rx='1.5' style='animation-delay:0.30s'/%3E%3Crect x='30' y='1.4' width='3' height='27.3' rx='1.5' style='animation-delay:0.36s'/%3E%3Crect x='35' y='6.3' width='3' height='17.4' rx='1.5' style='animation-delay:0.42s'/%3E%3Crect x='40' y='10.0' width='3' height='9.9' rx='1.5' style='animation-delay:0.48s'/%3E%3Crect x='45' y='7.6' width='3' height='14.9' rx='1.5' style='animation-delay:0.54s'/%3E%3Crect x='50' y='3.2' width='3' height='23.6' rx='1.5' style='animation-delay:0.60s'/%3E%3Crect x='55' y='0.7' width='3' height='28.5' rx='1.5' style='animation-delay:0.66s'/%3E%3Crect x='60' y='4.5' width='3' height='21.1' rx='1.5' style='animation-delay:0.72s'/%3E%3Crect x='65' y='8.8' width='3' height='12.4' rx='1.5' style='animation-delay:0.78s'/%3E%3Crect x='70' y='11.3' width='3' height='7.4' rx='1.5' style='animation-delay:0.84s'/%3E%3Crect x='75' y='6.9' width='3' height='16.1' rx='1.5' style='animation-delay:0.90s'/%3E%3Crect x='80' y='2.6' width='3' height='24.8' rx='1.5' style='animation-delay:0.96s'/%3E%3Crect x='85' y='5.1' width='3' height='19.8' rx='1.5' style='animation-delay:1.02s'/%3E%3Crect x='90' y='9.4' width='3' height='11.2' rx='1.5' style='animation-delay:1.08s'/%3E%3Crect x='95' y='11.9' width='3' height='6.2' rx='1.5' style='animation-delay:1.14s'/%3E%3Crect x='100' y='8.2' width='3' height='13.6' rx='1.5' style='animation-delay:1.20s'/%3E%3Crect x='105' y='5.7' width='3' height='18.6' rx='1.5' style='animation-delay:1.26s'/%3E%3Crect x='110' y='10.7' width='3' height='8.7' rx='1.5' style='animation-delay:1.32s'/%3E%3Crect x='115' y='12.5' width='3' height='5.0' rx='1.5' style='animation-delay:1.38s'/%3E%3Crect x='120' y='9.4' width='3' height='11.2' rx='1.5' style='animation-delay:1.44s'/%3E%3Crect x='125' y='6.3' width='3' height='17.4' rx='1.5' style='animation-delay:1.50s'/%3E%3Crect x='130' y='3.8' width='3' height='22.3' rx='1.5' style='animation-delay:1.56s'/%3E%3Crect x='135' y='7.6' width='3' height='14.9' rx='1.5' style='animation-delay:1.62s'/%3E%3Crect x='140' y='10.7' width='3' height='8.7' rx='1.5' style='animation-delay:1.68s'/%3E%3Crect x='145' y='12.5' width='3' height='5.0' rx='1.5' style='animation-delay:1.74s'/%3E%3C/svg%3E") center / contain no-repeat;
+  filter: drop-shadow(0 0 6px rgba(147,197,253,.75));
+}
+
+html body .kgb-hero p,
+html body .na .na-hero p,
+html body .ak-page .ak-hero p,
+html body .kbl .kbl-hero p,
+html body .kb .kb-hero p,
+html body .leon-wrap .leon-head p,
+html body .ldb .ldb-head p,
+html body .kgb-hero .meta,
+html body .kb .kb-hero .kb-zeit,
+html body .kb .kb-hero small {
+  color: #bfdbfe !important;
+  opacity: 1 !important;
+}
+
+/* Kennzahlen im Kopf: Glas-Pillen */
+html body .kgb-hero .summary-card,
+html body .kgb-hero .kg-stat {
+  background: linear-gradient(160deg, rgba(255,255,255,.18), rgba(255,255,255,.06)) !important;
+  border: 1px solid rgba(255,255,255,.28) !important;
+  border-radius: 18px !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.35) !important;
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+}
+html body .kgb-hero .summary-card span,
+html body .kgb-hero .kg-stat span { color: #bfdbfe !important; }
+html body .kgb-hero .summary-card strong,
+html body .kgb-hero .kg-stat strong { color: #fff !important; text-shadow: 0 2px 14px rgba(147,197,253,.6) !important; }
+
+/* Knöpfe im Kopf */
+html body .kgb-hero button,
+html body .kgb-hero .btn,
+html body .kgb-hero .back-btn,
+html body .kgb-hero a.kg-action {
+  background: rgba(255,255,255,.12) !important;
+  color: #fff !important;
+  border: 1px solid rgba(255,255,255,.35) !important;
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+}
+html body .kgb-hero button:hover,
+html body .kgb-hero .btn:hover,
+html body .kgb-hero .back-btn:hover { background: rgba(255,255,255,.22) !important; }
+html body .kgb-hero .btn-primary,
+html body .kgb-hero .kg-action,
+html body .kgb-hero .archive-action-button {
+  background: #fff !important;
+  color: #1d4ed8 !important;
+  border-color: #fff !important;
+  box-shadow: 0 8px 20px rgba(7,26,77,.35) !important;
+}
+html body .kgb-hero .btn-danger,
+html body .kgb-hero .danger-clear-button {
+  background: rgba(239,68,68,.22) !important;
+  color: #fff !important;
+  border-color: rgba(252,165,165,.55) !important;
+}
+html body .kgb-hero .btn-danger:hover,
+html body .kgb-hero .danger-clear-button:hover { background: rgba(239,68,68,.38) !important; }
+
+/* Breite Seite: Tabellen passen hinein (rechts nichts abgeschnitten); schmal (Laptop/Tablet): weiter seitlich scrollbar */
+@media (min-width: 1400px) {
+  html body .table-scroll > table,
+  html body .table-wrap > table { min-width: 0 !important; }
+}
+
+@keyframes loRing {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.05); opacity: .6; }
+}
+
+/* Laptop / Tablet: kleinere Kugel */
+@media (max-width: 1100px) {
+html body .kgb-hero,
+html body .na .na-hero,
+html body .ak-page .ak-hero,
+html body .kbl .kbl-hero,
+html body .kb .kb-hero,
+html body .leon-wrap .leon-head,
+html body .ldb .ldb-head { padding-left: 150px !important; min-height: 120px !important; }
+html body .kgb-hero::before,
+html body .na .na-hero::before,
+html body .ak-page .ak-hero::before,
+html body .kbl .kbl-hero::before,
+html body .kb .kb-hero::before,
+html body .leon-wrap .leon-head::before,
+html body .ldb .ldb-head::before { left: 40px !important; width: 70px !important; height: 70px !important; margin-top: -35px !important; background-size: 22px 22px, auto !important; }
+html body .kgb-hero::after,
+html body .na .na-hero::after,
+html body .ak-page .ak-hero::after,
+html body .kbl .kbl-hero::after,
+html body .kb .kb-hero::after,
+html body .leon-wrap .leon-head::after,
+html body .ldb .ldb-head::after { left: 30px !important; width: 90px !important; height: 90px !important; margin-top: -47px !important; outline-offset: 8px !important; }
+}
+
+/* Telefon: ohne Kugel und Welle */
+@media (max-width: 760px) {
+html body .kgb-hero,
+html body .na .na-hero,
+html body .ak-page .ak-hero,
+html body .kbl .kbl-hero,
+html body .kb .kb-hero,
+html body .leon-wrap .leon-head,
+html body .ldb .ldb-head { padding: 18px !important; min-height: 0 !important; border-radius: 20px !important; }
+html body .kgb-hero::before,
+html body .na .na-hero::before,
+html body .ak-page .ak-hero::before,
+html body .kbl .kbl-hero::before,
+html body .kb .kb-hero::before,
+html body .leon-wrap .leon-head::before,
+html body .ldb .ldb-head::before,
+html body .kgb-hero::after,
+html body .na .na-hero::after,
+html body .ak-page .ak-hero::after,
+html body .kbl .kbl-hero::after,
+html body .kb .kb-hero::after,
+html body .leon-wrap .leon-head::after,
+html body .ldb .ldb-head::after { display: none !important; }
+html body .kgb-hero h1::after,
+html body .na .na-hero h1::after,
+html body .ak-page .ak-hero h1::after,
+html body .kbl .kbl-hero h1::after,
+html body .kb .kb-hero h1::after,
+html body .leon-wrap .leon-head h1::after,
+html body .ldb .ldb-head h1::after,
+html body .kgb-hero .page-title::after { display: none; }
+html body .kgb-hero h1,
+html body .na .na-hero h1,
+html body .ak-page .ak-hero h1,
+html body .kbl .kbl-hero h1,
+html body .kb .kb-hero h1,
+html body .leon-wrap .leon-head h1,
+html body .ldb .ldb-head h1,
+html body .kgb-hero .page-title { font-size: 24px !important; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+html body .kgb-hero::after,
+html body .na .na-hero::after,
+html body .ak-page .ak-hero::after,
+html body .kbl .kbl-hero::after,
+html body .kb .kb-hero::after,
+html body .leon-wrap .leon-head::after,
+html body .ldb .ldb-head::after { animation: none !important; }
+html body .kgb-hero h1::after,
+html body .na .na-hero h1::after,
+html body .ak-page .ak-hero h1::after,
+html body .kbl .kbl-hero h1::after,
+html body .kb .kb-hero h1::after,
+html body .leon-wrap .leon-head h1::after,
+html body .ldb .ldb-head h1::after,
+html body .kgb-hero .page-title::after { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 150 30'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop offset='0' stop-color='%23e0f2fe'/%3E%3Cstop offset='1' stop-color='%2360a5fa'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cstyle%3Erect%7Bfill:url(%23g);transform-box:fill-box;transform-origin:center;%7D%40keyframes w%7B50%25%7Btransform:scaleY(.45)%7D%7D%3C/style%3E%3Crect x='0' y='12.5' width='3' height='5.0' rx='1.5' style='animation-delay:0.00s'/%3E%3Crect x='5' y='10.7' width='3' height='8.7' rx='1.5' style='animation-delay:0.06s'/%3E%3Crect x='10' y='8.2' width='3' height='13.6' rx='1.5' style='animation-delay:0.12s'/%3E%3Crect x='15' y='5.7' width='3' height='18.6' rx='1.5' style='animation-delay:0.18s'/%3E%3Crect x='20' y='9.4' width='3' height='11.2' rx='1.5' style='animation-delay:0.24s'/%3E%3Crect x='25' y='3.8' width='3' height='22.3' rx='1.5' style='animation-delay:0.30s'/%3E%3Crect x='30' y='1.4' width='3' height='27.3' rx='1.5' style='animation-delay:0.36s'/%3E%3Crect x='35' y='6.3' width='3' height='17.4' rx='1.5' style='animation-delay:0.42s'/%3E%3Crect x='40' y='10.0' width='3' height='9.9' rx='1.5' style='animation-delay:0.48s'/%3E%3Crect x='45' y='7.6' width='3' height='14.9' rx='1.5' style='animation-delay:0.54s'/%3E%3Crect x='50' y='3.2' width='3' height='23.6' rx='1.5' style='animation-delay:0.60s'/%3E%3Crect x='55' y='0.7' width='3' height='28.5' rx='1.5' style='animation-delay:0.66s'/%3E%3Crect x='60' y='4.5' width='3' height='21.1' rx='1.5' style='animation-delay:0.72s'/%3E%3Crect x='65' y='8.8' width='3' height='12.4' rx='1.5' style='animation-delay:0.78s'/%3E%3Crect x='70' y='11.3' width='3' height='7.4' rx='1.5' style='animation-delay:0.84s'/%3E%3Crect x='75' y='6.9' width='3' height='16.1' rx='1.5' style='animation-delay:0.90s'/%3E%3Crect x='80' y='2.6' width='3' height='24.8' rx='1.5' style='animation-delay:0.96s'/%3E%3Crect x='85' y='5.1' width='3' height='19.8' rx='1.5' style='animation-delay:1.02s'/%3E%3Crect x='90' y='9.4' width='3' height='11.2' rx='1.5' style='animation-delay:1.08s'/%3E%3Crect x='95' y='11.9' width='3' height='6.2' rx='1.5' style='animation-delay:1.14s'/%3E%3Crect x='100' y='8.2' width='3' height='13.6' rx='1.5' style='animation-delay:1.20s'/%3E%3Crect x='105' y='5.7' width='3' height='18.6' rx='1.5' style='animation-delay:1.26s'/%3E%3Crect x='110' y='10.7' width='3' height='8.7' rx='1.5' style='animation-delay:1.32s'/%3E%3Crect x='115' y='12.5' width='3' height='5.0' rx='1.5' style='animation-delay:1.38s'/%3E%3Crect x='120' y='9.4' width='3' height='11.2' rx='1.5' style='animation-delay:1.44s'/%3E%3Crect x='125' y='6.3' width='3' height='17.4' rx='1.5' style='animation-delay:1.50s'/%3E%3Crect x='130' y='3.8' width='3' height='22.3' rx='1.5' style='animation-delay:1.56s'/%3E%3Crect x='135' y='7.6' width='3' height='14.9' rx='1.5' style='animation-delay:1.62s'/%3E%3Crect x='140' y='10.7' width='3' height='8.7' rx='1.5' style='animation-delay:1.68s'/%3E%3Crect x='145' y='12.5' width='3' height='5.0' rx='1.5' style='animation-delay:1.74s'/%3E%3C/svg%3E"); }
+}
+}
+
+/* =========================================================
+   Leon „Orb-Hero“ – Inhalt der Reiter (nur Optik, keine Funktion):
+   helle blaue Fläche, weiße Premium-Karten, ruhige Tabellenköpfe,
+   Knöpfe mit Verlauf, runde Eingabefelder, farbige Score-Werte.
+   Farben der Knöpfe bleiben in ihrer Bedeutung (blau, grün, grau, rot).
+   ========================================================= */
+@media screen {
+html:has(body .business-portal-card), html:has(body .business-portal-card) body,
+html body .kg-business-shell, html body .business-portal-main {
+  background: linear-gradient(180deg, #eef4ff 0%, #f6f9ff 100%) !important;
+}
+html body .business-portal-card {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+}
+
+/* Karten */
+html body .business-portal-card .filter-panel:not(.kgb-hero *),
+html body .business-portal-card .table-card:not(.kgb-hero *),
+html body .business-portal-card .card:not(.kgb-hero *),
+html body .business-portal-card .call-panel:not(.kgb-hero *),
+html body .business-portal-card .kg-card:not(.kg-stat):not(.kgb-hero *),
+html body .business-portal-card .panel:not(.kgb-hero *),
+html body .na .na-card,
+html body .na .ak-card,
+html body .na .ldb-card,
+html body .na .kbl-box,
+html body .na .kbl-leer,
+html body .na .leon-card,
+html body .ak-page .na-card,
+html body .ak-page .ak-card,
+html body .ak-page .ldb-card,
+html body .ak-page .kbl-box,
+html body .ak-page .kbl-leer,
+html body .ak-page .leon-card,
+html body .kbl .na-card,
+html body .kbl .ak-card,
+html body .kbl .ldb-card,
+html body .kbl .kbl-box,
+html body .kbl .kbl-leer,
+html body .kbl .leon-card,
+html body .kb .na-card,
+html body .kb .ak-card,
+html body .kb .ldb-card,
+html body .kb .kbl-box,
+html body .kb .kbl-leer,
+html body .kb .leon-card,
+html body .leon-wrap .na-card,
+html body .leon-wrap .ak-card,
+html body .leon-wrap .ldb-card,
+html body .leon-wrap .kbl-box,
+html body .leon-wrap .kbl-leer,
+html body .leon-wrap .leon-card,
+html body .ldb .na-card,
+html body .ldb .ak-card,
+html body .ldb .ldb-card,
+html body .ldb .kbl-box,
+html body .ldb .kbl-leer,
+html body .ldb .leon-card {
+  background-color: #fff !important;
+  border: 1px solid #e6edfa !important;
+  border-radius: 22px !important;
+  box-shadow: 0 14px 34px rgba(15, 29, 74, .07), inset 0 1px 0 rgba(255, 255, 255, .9) !important;
+}
+html body .business-portal-card .filter-panel :is(h2, h3):not(.kgb-hero *),
+html body .business-portal-card .table-card :is(h2, h3):not(.kgb-hero *),
+html body .business-portal-card .card :is(h2, h3):not(.kgb-hero *),
+html body .business-portal-card .call-panel :is(h2, h3):not(.kgb-hero *),
+html body .business-portal-card .kg-card:not(.kg-stat) :is(h2, h3):not(.kgb-hero *),
+html body .business-portal-card .panel :is(h2, h3):not(.kgb-hero *),
+html body .na .na-card :is(h2, h3),
+html body .na .ak-card :is(h2, h3),
+html body .na .ldb-card :is(h2, h3),
+html body .na .kbl-box :is(h2, h3),
+html body .na .kbl-leer :is(h2, h3),
+html body .na .leon-card :is(h2, h3),
+html body .ak-page .na-card :is(h2, h3),
+html body .ak-page .ak-card :is(h2, h3),
+html body .ak-page .ldb-card :is(h2, h3),
+html body .ak-page .kbl-box :is(h2, h3),
+html body .ak-page .kbl-leer :is(h2, h3),
+html body .ak-page .leon-card :is(h2, h3),
+html body .kbl .na-card :is(h2, h3),
+html body .kbl .ak-card :is(h2, h3),
+html body .kbl .ldb-card :is(h2, h3),
+html body .kbl .kbl-box :is(h2, h3),
+html body .kbl .kbl-leer :is(h2, h3),
+html body .kbl .leon-card :is(h2, h3),
+html body .kb .na-card :is(h2, h3),
+html body .kb .ak-card :is(h2, h3),
+html body .kb .ldb-card :is(h2, h3),
+html body .kb .kbl-box :is(h2, h3),
+html body .kb .kbl-leer :is(h2, h3),
+html body .kb .leon-card :is(h2, h3),
+html body .leon-wrap .na-card :is(h2, h3),
+html body .leon-wrap .ak-card :is(h2, h3),
+html body .leon-wrap .ldb-card :is(h2, h3),
+html body .leon-wrap .kbl-box :is(h2, h3),
+html body .leon-wrap .kbl-leer :is(h2, h3),
+html body .leon-wrap .leon-card :is(h2, h3),
+html body .ldb .na-card :is(h2, h3),
+html body .ldb .ak-card :is(h2, h3),
+html body .ldb .ldb-card :is(h2, h3),
+html body .ldb .kbl-box :is(h2, h3),
+html body .ldb .kbl-leer :is(h2, h3),
+html body .ldb .leon-card :is(h2, h3) {
+  color: #16328f !important;
+  font-weight: 900 !important;
+  letter-spacing: -.01em;
+}
+
+/* Tabellen */
+html body .business-portal-card table thead th:not(.kgb-hero *),
+html body .na table thead th,
+html body .na table th,
+html body .ak-page table thead th,
+html body .ak-page table th,
+html body .kbl table thead th,
+html body .kbl table th,
+html body .kb table thead th,
+html body .kb table th,
+html body .leon-wrap table thead th,
+html body .leon-wrap table th,
+html body .ldb table thead th,
+html body .ldb table th {
+  background-color: #f6f9ff !important;
+  color: #64748b !important;
+  font-size: 11px !important;
+  font-weight: 900 !important;
+  letter-spacing: .08em !important;
+  text-transform: uppercase !important;
+  border-bottom: 1px solid #e6edfa !important;
+}
+html body .business-portal-card table tbody td:not(.kgb-hero *),
+html body .na table tbody td,
+html body .na table td,
+html body .ak-page table tbody td,
+html body .ak-page table td,
+html body .kbl table tbody td,
+html body .kbl table td,
+html body .kb table tbody td,
+html body .kb table td,
+html body .leon-wrap table tbody td,
+html body .leon-wrap table td,
+html body .ldb table tbody td,
+html body .ldb table td {
+  border-color: #eef2f7 !important;
+}
+html body .business-portal-card table tbody tr:hover > td:not(.kgb-hero *),
+html body .na table tbody tr:hover > td,
+html body .ak-page table tbody tr:hover > td,
+html body .kbl table tbody tr:hover > td,
+html body .kb table tbody tr:hover > td,
+html body .leon-wrap table tbody tr:hover > td,
+html body .ldb table tbody tr:hover > td {
+  background-color: #f5f8ff !important;
+}
+
+/* Knöpfe: Hauptaktion blau mit Verlauf */
+html body .business-portal-card .btn-primary:not(.kgb-hero *),
+html body .business-portal-card .filter-button:not(.kgb-hero *),
+html body .business-portal-card .kg-action:not(.kgb-hero *),
+html body .na .na-btn.blau,
+html body .na .ak-btn:not(.grey):not(.green),
+html body .na .ldb-btn:not(.grey):not(.green),
+html body .na .leon-btn:not(.grey):not(.green),
+html body .na .kbl-btn,
+html body .ak-page .na-btn.blau,
+html body .ak-page .ak-btn:not(.grey):not(.green),
+html body .ak-page .ldb-btn:not(.grey):not(.green),
+html body .ak-page .leon-btn:not(.grey):not(.green),
+html body .ak-page .kbl-btn,
+html body .kbl .na-btn.blau,
+html body .kbl .ak-btn:not(.grey):not(.green),
+html body .kbl .ldb-btn:not(.grey):not(.green),
+html body .kbl .leon-btn:not(.grey):not(.green),
+html body .kbl .kbl-btn,
+html body .kb .na-btn.blau,
+html body .kb .ak-btn:not(.grey):not(.green),
+html body .kb .ldb-btn:not(.grey):not(.green),
+html body .kb .leon-btn:not(.grey):not(.green),
+html body .kb .kbl-btn,
+html body .leon-wrap .na-btn.blau,
+html body .leon-wrap .ak-btn:not(.grey):not(.green),
+html body .leon-wrap .ldb-btn:not(.grey):not(.green),
+html body .leon-wrap .leon-btn:not(.grey):not(.green),
+html body .leon-wrap .kbl-btn,
+html body .ldb .na-btn.blau,
+html body .ldb .ak-btn:not(.grey):not(.green),
+html body .ldb .ldb-btn:not(.grey):not(.green),
+html body .ldb .leon-btn:not(.grey):not(.green),
+html body .ldb .kbl-btn {
+  background: linear-gradient(135deg, #1e40af, #3b82f6) !important;
+  color: #fff !important;
+  border: 0 !important;
+  border-radius: 12px !important;
+  box-shadow: 0 10px 22px -12px rgba(30, 64, 175, .9), inset 0 1px 0 rgba(255, 255, 255, .25) !important;
+  transition: transform .15s ease, filter .15s ease;
+}
+html body .business-portal-card .btn-primary:hover:not(.kgb-hero *),
+html body .business-portal-card .filter-button:hover:not(.kgb-hero *),
+html body .business-portal-card .kg-action:hover:not(.kgb-hero *),
+html body .na .na-btn.blau:hover,
+html body .na .ak-btn:not(.grey):not(.green):hover,
+html body .na .ldb-btn:not(.grey):not(.green):hover,
+html body .na .leon-btn:not(.grey):not(.green):hover,
+html body .na .kbl-btn:hover,
+html body .ak-page .na-btn.blau:hover,
+html body .ak-page .ak-btn:not(.grey):not(.green):hover,
+html body .ak-page .ldb-btn:not(.grey):not(.green):hover,
+html body .ak-page .leon-btn:not(.grey):not(.green):hover,
+html body .ak-page .kbl-btn:hover,
+html body .kbl .na-btn.blau:hover,
+html body .kbl .ak-btn:not(.grey):not(.green):hover,
+html body .kbl .ldb-btn:not(.grey):not(.green):hover,
+html body .kbl .leon-btn:not(.grey):not(.green):hover,
+html body .kbl .kbl-btn:hover,
+html body .kb .na-btn.blau:hover,
+html body .kb .ak-btn:not(.grey):not(.green):hover,
+html body .kb .ldb-btn:not(.grey):not(.green):hover,
+html body .kb .leon-btn:not(.grey):not(.green):hover,
+html body .kb .kbl-btn:hover,
+html body .leon-wrap .na-btn.blau:hover,
+html body .leon-wrap .ak-btn:not(.grey):not(.green):hover,
+html body .leon-wrap .ldb-btn:not(.grey):not(.green):hover,
+html body .leon-wrap .leon-btn:not(.grey):not(.green):hover,
+html body .leon-wrap .kbl-btn:hover,
+html body .ldb .na-btn.blau:hover,
+html body .ldb .ak-btn:not(.grey):not(.green):hover,
+html body .ldb .ldb-btn:not(.grey):not(.green):hover,
+html body .ldb .leon-btn:not(.grey):not(.green):hover,
+html body .ldb .kbl-btn:hover {
+  filter: brightness(1.08);
+  transform: translateY(-1px);
+}
+/* zweite Aktion: weiß mit blauer Schrift */
+html body .business-portal-card .btn-secondary:not(.kgb-hero *),
+html body .business-portal-card .archive-action-button:not(.kgb-hero *),
+html body .business-portal-card .more-button:not(.kgb-hero *),
+html body .business-portal-card .filter-pill:not(.active):not(.kgb-hero *),
+html body .business-portal-card .control-btn.secondary:not(.kgb-hero *) {
+  background: #fff !important;
+  color: #1e3a8a !important;
+  border: 1px solid #dbe3ef !important;
+  border-radius: 12px !important;
+  box-shadow: 0 4px 10px -6px rgba(15, 29, 74, .25) !important;
+}
+html body .business-portal-card .btn-secondary:hover:not(.kgb-hero *),
+html body .business-portal-card .archive-action-button:hover:not(.kgb-hero *),
+html body .business-portal-card .more-button:hover:not(.kgb-hero *),
+html body .business-portal-card .filter-pill:not(.active):hover:not(.kgb-hero *) {
+  background: #eff6ff !important;
+  border-color: #bfdbfe !important;
+}
+/* aktive Auswahl: dunkelblau wie die Reiter */
+html body .business-portal-card .filter-pill.active:not(.kgb-hero *),
+html body .business-portal-card .tab.active:not(.kgb-hero *) {
+  background: linear-gradient(135deg, #0f2a6b, #1e40af) !important;
+  color: #fff !important;
+  border-color: transparent !important;
+  box-shadow: 0 8px 18px -10px rgba(6, 20, 58, .8) !important;
+}
+html body .business-portal-card .tab:not(.kgb-hero *) { border-radius: 10px !important; }
+/* Löschen: rot, ruhig */
+html body .business-portal-card .btn-danger:not(.kgb-hero *) {
+  background: #fef2f2 !important;
+  color: #dc2626 !important;
+  border: 1px solid #fecaca !important;
+  border-radius: 12px !important;
+}
+/* übrige Knöpfe: nur runder und mit Schatten, Farbe bleibt */
+html body .business-portal-card .play-button:not(.kgb-hero *),
+html body .business-portal-card .control-btn:not(.kgb-hero *),
+html body .business-portal-card .result-btn:not(.kgb-hero *),
+html body .business-portal-card .nf-btn:not(.kgb-hero *),
+html body .na .ak-btn.grey,
+html body .na .ak-btn.green,
+html body .na .ldb-btn.grey,
+html body .na .leon-btn.grey,
+html body .na .leon-btn.green,
+html body .ak-page .ak-btn.grey,
+html body .ak-page .ak-btn.green,
+html body .ak-page .ldb-btn.grey,
+html body .ak-page .leon-btn.grey,
+html body .ak-page .leon-btn.green,
+html body .kbl .ak-btn.grey,
+html body .kbl .ak-btn.green,
+html body .kbl .ldb-btn.grey,
+html body .kbl .leon-btn.grey,
+html body .kbl .leon-btn.green,
+html body .kb .ak-btn.grey,
+html body .kb .ak-btn.green,
+html body .kb .ldb-btn.grey,
+html body .kb .leon-btn.grey,
+html body .kb .leon-btn.green,
+html body .leon-wrap .ak-btn.grey,
+html body .leon-wrap .ak-btn.green,
+html body .leon-wrap .ldb-btn.grey,
+html body .leon-wrap .leon-btn.grey,
+html body .leon-wrap .leon-btn.green,
+html body .ldb .ak-btn.grey,
+html body .ldb .ak-btn.green,
+html body .ldb .ldb-btn.grey,
+html body .ldb .leon-btn.grey,
+html body .ldb .leon-btn.green {
+  border-radius: 12px !important;
+  box-shadow: 0 8px 18px -12px rgba(15, 29, 74, .55) !important;
+}
+
+/* Eingabefelder */
+html body .business-portal-card input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=color]):not([type=file]):not(.kgb-hero *),
+html body .business-portal-card select:not(.kgb-hero *),
+html body .business-portal-card textarea:not(.kgb-hero *),
+html body .na input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=color]):not([type=file]),
+html body .na select,
+html body .na textarea,
+html body .ak-page input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=color]):not([type=file]),
+html body .ak-page select,
+html body .ak-page textarea,
+html body .kbl input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=color]):not([type=file]),
+html body .kbl select,
+html body .kbl textarea,
+html body .kb input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=color]):not([type=file]),
+html body .kb select,
+html body .kb textarea,
+html body .leon-wrap input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=color]):not([type=file]),
+html body .leon-wrap select,
+html body .leon-wrap textarea,
+html body .ldb input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=color]):not([type=file]),
+html body .ldb select,
+html body .ldb textarea {
+  border: 1px solid #dbe3ef !important;
+  border-radius: 12px !important;
+  background-color: #f8fafc !important;
+}
+html body .business-portal-card input:focus:not(.kgb-hero *),
+html body .business-portal-card select:focus:not(.kgb-hero *),
+html body .business-portal-card textarea:focus:not(.kgb-hero *),
+html body .na input:focus,
+html body .na select:focus,
+html body .na textarea:focus,
+html body .ak-page input:focus,
+html body .ak-page select:focus,
+html body .ak-page textarea:focus,
+html body .kbl input:focus,
+html body .kbl select:focus,
+html body .kbl textarea:focus,
+html body .kb input:focus,
+html body .kb select:focus,
+html body .kb textarea:focus,
+html body .leon-wrap input:focus,
+html body .leon-wrap select:focus,
+html body .leon-wrap textarea:focus,
+html body .ldb input:focus,
+html body .ldb select:focus,
+html body .ldb textarea:focus {
+  border-color: #3b82f6 !important;
+  background-color: #fff !important;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, .15) !important;
+  outline: none !important;
+}
+
+/* Etiketten / Pillen: rund, Farben bleiben */
+html body .business-portal-card .mini-badge:not(.kgb-hero *),
+html body .business-portal-card .kg-badge:not(.kgb-hero *),
+html body .business-portal-card .kg-status:not(.kgb-hero *),
+html body .business-portal-card .tag:not(.kgb-hero *),
+html body .business-portal-card .call-status:not(.kgb-hero *),
+html body .business-portal-card .call-result-pill:not(.kgb-hero *),
+html body .na .ldb-pill,
+html body .na .leon-badge,
+html body .ak-page .ldb-pill,
+html body .ak-page .leon-badge,
+html body .kbl .ldb-pill,
+html body .kbl .leon-badge,
+html body .kb .ldb-pill,
+html body .kb .leon-badge,
+html body .leon-wrap .ldb-pill,
+html body .leon-wrap .leon-badge,
+html body .ldb .ldb-pill,
+html body .ldb .leon-badge {
+  border-radius: 999px !important;
+  font-weight: 800 !important;
+}
+
+/* Balken (Ergebnisverteilung, Fortschritt) mit Verlauf und Glanz */
+html body .business-portal-card .kg-bar-track:not(.kgb-hero *),
+html body .business-portal-card .progress-bar:not(.kgb-hero *) {
+  background: #e6edfa !important;
+  border-radius: 999px !important;
+  overflow: hidden;
+  box-shadow: inset 0 1px 2px rgba(15, 29, 74, .12) !important;
+}
+html body .business-portal-card .kg-bar-fill:not(.kgb-hero *),
+html body .business-portal-card .progress-fill:not(.kgb-hero *) {
+  background: linear-gradient(180deg, rgba(255, 255, 255, .35), rgba(255, 255, 255, 0) 55%), linear-gradient(90deg, #1e40af, #3b82f6) !important;
+  border-radius: 999px !important;
+  box-shadow: 0 2px 8px rgba(37, 99, 235, .35) !important;
+}
+
+/* Score: farbig nach Wert (leon_orb.js setzt data-lo: hoch 8–10, mittel 5–7, tief 0–4) */
+html body .business-portal-card .score[data-lo], html body .business-portal-card .lo-score {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  min-width: 48px !important;
+  height: 28px !important;
+  padding: 0 9px !important;
+  border-radius: 999px !important;
+  font-size: 12px !important;
+  font-weight: 900 !important;
+}
+html body .business-portal-card .score[data-lo="hoch"], html body .business-portal-card .lo-score[data-lo="hoch"] { background: #ecfdf5 !important; color: #047857 !important; box-shadow: inset 0 0 0 2px #34d399, 0 4px 10px -4px rgba(16, 185, 129, .5) !important; }
+html body .business-portal-card .score[data-lo="mittel"], html body .business-portal-card .lo-score[data-lo="mittel"] { background: #fffbeb !important; color: #b45309 !important; box-shadow: inset 0 0 0 2px #fbbf24, 0 4px 10px -4px rgba(245, 158, 11, .5) !important; }
+html body .business-portal-card .score[data-lo="tief"], html body .business-portal-card .lo-score[data-lo="tief"] { background: #fef2f2 !important; color: #b91c1c !important; box-shadow: inset 0 0 0 2px #f87171, 0 4px 10px -4px rgba(239, 68, 68, .5) !important; }
+}
+
+
+/* =========================================================
+   Leon – Premium-Tabellen (nur Optik, keine Funktion):
+   Zeilen als schwebende Karten auf getönter Fläche, Kontakt mit
+   farbigem Kürzel, Datum/Telefon/Dauer mit Symbol, Ergebnis als
+   gefüllte Farbpille, „Öffnen“ als Knopf. leon_orb.js setzt dafür
+   nur data-lo-col / data-lo-av an den Zellen (Text bleibt gleich).
+   ========================================================= */
+@media screen {
+html body .business-portal-card :is(.kg-card, .table-card, .card, .panel, .ldb-card, .leon-card, .na-card, .ak-card, .kbl-box):has(table):not(.kgb-hero *),
+html body .na :is(.kg-card, .table-card, .card, .panel, .ldb-card, .leon-card, .na-card, .ak-card, .kbl-box):has(table),
+html body .ak-page :is(.kg-card, .table-card, .card, .panel, .ldb-card, .leon-card, .na-card, .ak-card, .kbl-box):has(table),
+html body .kbl :is(.kg-card, .table-card, .card, .panel, .ldb-card, .leon-card, .na-card, .ak-card, .kbl-box):has(table),
+html body .kb :is(.kg-card, .table-card, .card, .panel, .ldb-card, .leon-card, .na-card, .ak-card, .kbl-box):has(table),
+html body .leon-wrap :is(.kg-card, .table-card, .card, .panel, .ldb-card, .leon-card, .na-card, .ak-card, .kbl-box):has(table),
+html body .ldb :is(.kg-card, .table-card, .card, .panel, .ldb-card, .leon-card, .na-card, .ak-card, .kbl-box):has(table) {
+  background: linear-gradient(180deg, #f8fbff 0%, #eef4ff 100%) !important;
+  padding: 10px 14px 12px !important;
+}
+html body .business-portal-card table:not(.kgb-hero *),
+html body .na table,
+html body .ak-page table,
+html body .kbl table,
+html body .kb table,
+html body .leon-wrap table,
+html body .ldb table {
+  border-collapse: separate !important;
+  border-spacing: 0 8px !important;
+  background: transparent !important;
+}
+html body .business-portal-card table thead th:not(.kgb-hero *),
+html body .na table thead th,
+html body .ak-page table thead th,
+html body .kbl table thead th,
+html body .kb table thead th,
+html body .leon-wrap table thead th,
+html body .ldb table thead th {
+  background-color: #f6f9ff !important;
+  border: 0 !important;
+  padding-top: 10px !important;
+  padding-bottom: 6px !important;
+}
+html body .business-portal-card table tbody > tr > td:not(.kgb-hero *),
+html body .na table tbody > tr > td,
+html body .ak-page table tbody > tr > td,
+html body .kbl table tbody > tr > td,
+html body .kb table tbody > tr > td,
+html body .leon-wrap table tbody > tr > td,
+html body .ldb table tbody > tr > td {
+  background-color: #fff !important;
+  border: 0 !important;
+  border-top: 1px solid #e3eaf7 !important;
+  border-bottom: 1px solid #e3eaf7 !important;
+  padding-top: 14px !important;
+  padding-bottom: 14px !important;
+  vertical-align: middle !important;
+  color: #1e293b;
+  box-shadow: none;
+  transition: background-color .15s ease, border-color .15s ease, box-shadow .15s ease;
+}
+html body .business-portal-card table tbody > tr > td:first-child:not(.kgb-hero *),
+html body .na table tbody > tr > td:first-child,
+html body .ak-page table tbody > tr > td:first-child,
+html body .kbl table tbody > tr > td:first-child,
+html body .kb table tbody > tr > td:first-child,
+html body .leon-wrap table tbody > tr > td:first-child,
+html body .ldb table tbody > tr > td:first-child {
+  border-left: 1px solid #e3eaf7 !important;
+  border-radius: 16px 0 0 16px !important;
+  box-shadow: inset 4px 0 0 #dbeafe;
+}
+html body .business-portal-card table tbody > tr > td:last-child:not(.kgb-hero *),
+html body .na table tbody > tr > td:last-child,
+html body .ak-page table tbody > tr > td:last-child,
+html body .kbl table tbody > tr > td:last-child,
+html body .kb table tbody > tr > td:last-child,
+html body .leon-wrap table tbody > tr > td:last-child,
+html body .ldb table tbody > tr > td:last-child {
+  border-right: 1px solid #e3eaf7 !important;
+  border-radius: 0 16px 16px 0 !important;
+}
+html body .business-portal-card table tbody > tr > td:only-child:not(.kgb-hero *),
+html body .na table tbody > tr > td:only-child,
+html body .ak-page table tbody > tr > td:only-child,
+html body .kbl table tbody > tr > td:only-child,
+html body .kb table tbody > tr > td:only-child,
+html body .leon-wrap table tbody > tr > td:only-child,
+html body .ldb table tbody > tr > td:only-child {
+  border-radius: 16px !important;
+}
+html body .business-portal-card table tbody > tr:hover > td:not(.kgb-hero *),
+html body .na table tbody > tr:hover > td,
+html body .ak-page table tbody > tr:hover > td,
+html body .kbl table tbody > tr:hover > td,
+html body .kb table tbody > tr:hover > td,
+html body .leon-wrap table tbody > tr:hover > td,
+html body .ldb table tbody > tr:hover > td {
+  background-color: #f7faff !important;
+  border-color: #c7dbff !important;
+}
+html body .business-portal-card table tbody > tr:hover > td:first-child:not(.kgb-hero *),
+html body .na table tbody > tr:hover > td:first-child,
+html body .ak-page table tbody > tr:hover > td:first-child,
+html body .kbl table tbody > tr:hover > td:first-child,
+html body .kb table tbody > tr:hover > td:first-child,
+html body .leon-wrap table tbody > tr:hover > td:first-child,
+html body .ldb table tbody > tr:hover > td:first-child {
+  box-shadow: inset 4px 0 0 #3b82f6;
+}
+html body .business-portal-card table tbody > tr.live-row > td:not(.kgb-hero *),
+html body .na table tbody > tr.live-row > td,
+html body .ak-page table tbody > tr.live-row > td,
+html body .kbl table tbody > tr.live-row > td,
+html body .kb table tbody > tr.live-row > td,
+html body .leon-wrap table tbody > tr.live-row > td,
+html body .ldb table tbody > tr.live-row > td {
+  background-color: #f0fdf4 !important;
+}
+html body .business-portal-card table td strong:not(.kgb-hero *),
+html body .na table td strong,
+html body .ak-page table td strong,
+html body .kbl table td strong,
+html body .kb table td strong,
+html body .leon-wrap table td strong,
+html body .ldb table td strong {
+  color: #0f1d4a;
+  font-weight: 900;
+}
+html body .business-portal-card table td small:not(.kgb-hero *),
+html body .na table td small,
+html body .ak-page table td small,
+html body .kbl table td small,
+html body .kb table td small,
+html body .leon-wrap table td small,
+html body .ldb table td small {
+  color: #64748b;
+  font-weight: 700;
+}
+html body .business-portal-card table td[data-lo-col="datum"]:not(.kgb-hero *),
+html body .na table td[data-lo-col="datum"],
+html body .ak-page table td[data-lo-col="datum"],
+html body .kbl table td[data-lo-col="datum"],
+html body .kb table td[data-lo-col="datum"],
+html body .leon-wrap table td[data-lo-col="datum"],
+html body .ldb table td[data-lo-col="datum"] {
+  padding-left: 38px !important;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='4' width='18' height='18' rx='3'/%3E%3Cpath d='M16 2v4M8 2v4M3 10h18'/%3E%3C/svg%3E") !important;
+  background-repeat: no-repeat !important;
+  background-position: 14px 50% !important;
+  background-size: 15px 15px !important;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  color: #475569;
+}
+html body .business-portal-card table td[data-lo-col="telefon"]:not(.kgb-hero *),
+html body .na table td[data-lo-col="telefon"],
+html body .ak-page table td[data-lo-col="telefon"],
+html body .kbl table td[data-lo-col="telefon"],
+html body .kb table td[data-lo-col="telefon"],
+html body .leon-wrap table td[data-lo-col="telefon"],
+html body .ldb table td[data-lo-col="telefon"] {
+  padding-left: 38px !important;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2360a5fa' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2z'/%3E%3C/svg%3E") !important;
+  background-repeat: no-repeat !important;
+  background-position: 14px 50% !important;
+  background-size: 15px 15px !important;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  color: #1e3a8a;
+}
+html body .business-portal-card table td[data-lo-col="dauer"]:not(.kgb-hero *),
+html body .na table td[data-lo-col="dauer"],
+html body .ak-page table td[data-lo-col="dauer"],
+html body .kbl table td[data-lo-col="dauer"],
+html body .kb table td[data-lo-col="dauer"],
+html body .leon-wrap table td[data-lo-col="dauer"],
+html body .ldb table td[data-lo-col="dauer"] {
+  padding-left: 38px !important;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='9'/%3E%3Cpath d='M12 7v5l3 2'/%3E%3C/svg%3E") !important;
+  background-repeat: no-repeat !important;
+  background-position: 14px 50% !important;
+  background-size: 15px 15px !important;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  color: #475569;
+}
+html body .business-portal-card table td[data-lo-av]:not(.kgb-hero *),
+html body .na table td[data-lo-av],
+html body .ak-page table td[data-lo-av],
+html body .kbl table td[data-lo-av],
+html body .kb table td[data-lo-av],
+html body .leon-wrap table td[data-lo-av],
+html body .ldb table td[data-lo-av] {
+  position: relative !important;
+  padding-left: 64px !important;
+  min-width: 190px;
+}
+html body .business-portal-card table td[data-lo-av]:not(.kgb-hero *)::before,
+html body .na table td[data-lo-av]::before,
+html body .ak-page table td[data-lo-av]::before,
+html body .kbl table td[data-lo-av]::before,
+html body .kb table td[data-lo-av]::before,
+html body .leon-wrap table td[data-lo-av]::before,
+html body .ldb table td[data-lo-av]::before {
+  content: attr(data-lo-av);
+  position: absolute;
+  left: 16px;
+  top: 50%;
+  width: 36px;
+  height: 36px;
+  margin-top: -18px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  font-size: 13px;
+  font-weight: 900;
+  letter-spacing: .02em;
+  color: #fff;
+  background: linear-gradient(145deg, #3b82f6, #1e40af);
+  box-shadow: 0 8px 16px -8px rgba(30, 64, 175, .8), inset 0 1px 0 rgba(255, 255, 255, .35);
+}
+html body .business-portal-card table td[data-lo-farbe="0"]:not(.kgb-hero *)::before,
+html body .na table td[data-lo-farbe="0"]::before,
+html body .ak-page table td[data-lo-farbe="0"]::before,
+html body .kbl table td[data-lo-farbe="0"]::before,
+html body .kb table td[data-lo-farbe="0"]::before,
+html body .leon-wrap table td[data-lo-farbe="0"]::before,
+html body .ldb table td[data-lo-farbe="0"]::before {
+  background: linear-gradient(145deg, #3b82f6, #1e40af);
+}
+html body .business-portal-card table td[data-lo-farbe="1"]:not(.kgb-hero *)::before,
+html body .na table td[data-lo-farbe="1"]::before,
+html body .ak-page table td[data-lo-farbe="1"]::before,
+html body .kbl table td[data-lo-farbe="1"]::before,
+html body .kb table td[data-lo-farbe="1"]::before,
+html body .leon-wrap table td[data-lo-farbe="1"]::before,
+html body .ldb table td[data-lo-farbe="1"]::before {
+  background: linear-gradient(145deg, #10b981, #047857);
+}
+html body .business-portal-card table td[data-lo-farbe="2"]:not(.kgb-hero *)::before,
+html body .na table td[data-lo-farbe="2"]::before,
+html body .ak-page table td[data-lo-farbe="2"]::before,
+html body .kbl table td[data-lo-farbe="2"]::before,
+html body .kb table td[data-lo-farbe="2"]::before,
+html body .leon-wrap table td[data-lo-farbe="2"]::before,
+html body .ldb table td[data-lo-farbe="2"]::before {
+  background: linear-gradient(145deg, #8b5cf6, #6d28d9);
+}
+html body .business-portal-card table td[data-lo-farbe="3"]:not(.kgb-hero *)::before,
+html body .na table td[data-lo-farbe="3"]::before,
+html body .ak-page table td[data-lo-farbe="3"]::before,
+html body .kbl table td[data-lo-farbe="3"]::before,
+html body .kb table td[data-lo-farbe="3"]::before,
+html body .leon-wrap table td[data-lo-farbe="3"]::before,
+html body .ldb table td[data-lo-farbe="3"]::before {
+  background: linear-gradient(145deg, #f59e0b, #b45309);
+}
+html body .business-portal-card table td[data-lo-farbe="4"]:not(.kgb-hero *)::before,
+html body .na table td[data-lo-farbe="4"]::before,
+html body .ak-page table td[data-lo-farbe="4"]::before,
+html body .kbl table td[data-lo-farbe="4"]::before,
+html body .kb table td[data-lo-farbe="4"]::before,
+html body .leon-wrap table td[data-lo-farbe="4"]::before,
+html body .ldb table td[data-lo-farbe="4"]::before {
+  background: linear-gradient(145deg, #ec4899, #be185d);
+}
+html body .business-portal-card table td[data-lo-farbe="5"]:not(.kgb-hero *)::before,
+html body .na table td[data-lo-farbe="5"]::before,
+html body .ak-page table td[data-lo-farbe="5"]::before,
+html body .kbl table td[data-lo-farbe="5"]::before,
+html body .kb table td[data-lo-farbe="5"]::before,
+html body .leon-wrap table td[data-lo-farbe="5"]::before,
+html body .ldb table td[data-lo-farbe="5"]::before {
+  background: linear-gradient(145deg, #06b6d4, #0e7490);
+}
+html body .business-portal-card .call-result-pill:not(.kgb-hero *),
+html body .na .call-result-pill,
+html body .ak-page .call-result-pill,
+html body .kbl .call-result-pill,
+html body .kb .call-result-pill,
+html body .leon-wrap .call-result-pill,
+html body .ldb .call-result-pill {
+  padding: 6px 10px !important;
+  border: 1px solid transparent !important;
+  background: #f1f5f9 !important;
+  color: #94a3b8 !important;
+  font-weight: 800 !important;
+}
+html body .business-portal-card .call-result-pill.interested.active:not(.kgb-hero *),
+html body .na .call-result-pill.interested.active,
+html body .ak-page .call-result-pill.interested.active,
+html body .kbl .call-result-pill.interested.active,
+html body .kb .call-result-pill.interested.active,
+html body .leon-wrap .call-result-pill.interested.active,
+html body .ldb .call-result-pill.interested.active {
+  background: linear-gradient(135deg, #10b981, #047857) !important;
+  color: #fff !important;
+  box-shadow: 0 8px 16px -8px #10b981, inset 0 1px 0 rgba(255, 255, 255, .3) !important;
+}
+html body .business-portal-card .call-result-pill.callback.active:not(.kgb-hero *),
+html body .na .call-result-pill.callback.active,
+html body .ak-page .call-result-pill.callback.active,
+html body .kbl .call-result-pill.callback.active,
+html body .kb .call-result-pill.callback.active,
+html body .leon-wrap .call-result-pill.callback.active,
+html body .ldb .call-result-pill.callback.active {
+  background: linear-gradient(135deg, #3b82f6, #1d4ed8) !important;
+  color: #fff !important;
+  box-shadow: 0 8px 16px -8px #3b82f6, inset 0 1px 0 rgba(255, 255, 255, .3) !important;
+}
+html body .business-portal-card .call-result-pill.invoice.active:not(.kgb-hero *),
+html body .na .call-result-pill.invoice.active,
+html body .ak-page .call-result-pill.invoice.active,
+html body .kbl .call-result-pill.invoice.active,
+html body .kb .call-result-pill.invoice.active,
+html body .leon-wrap .call-result-pill.invoice.active,
+html body .ldb .call-result-pill.invoice.active {
+  background: linear-gradient(135deg, #f59e0b, #c2410c) !important;
+  color: #fff !important;
+  box-shadow: 0 8px 16px -8px #f59e0b, inset 0 1px 0 rgba(255, 255, 255, .3) !important;
+}
+html body .business-portal-card .call-result-pill.no-interest.active:not(.kgb-hero *),
+html body .na .call-result-pill.no-interest.active,
+html body .ak-page .call-result-pill.no-interest.active,
+html body .kbl .call-result-pill.no-interest.active,
+html body .kb .call-result-pill.no-interest.active,
+html body .leon-wrap .call-result-pill.no-interest.active,
+html body .ldb .call-result-pill.no-interest.active {
+  background: linear-gradient(135deg, #f43f5e, #be123c) !important;
+  color: #fff !important;
+  box-shadow: 0 8px 16px -8px #f43f5e, inset 0 1px 0 rgba(255, 255, 255, .3) !important;
+}
+html body .business-portal-card .call-status:not(.kgb-hero *),
+html body .na .call-status,
+html body .ak-page .call-status,
+html body .kbl .call-status,
+html body .kb .call-status,
+html body .leon-wrap .call-status,
+html body .ldb .call-status {
+  padding: 6px 11px !important;
+  font-weight: 800 !important;
+  box-shadow: inset 0 0 0 1px rgba(15, 29, 74, .06);
+}
+html body .business-portal-card table a.kg-link:not(.kgb-hero *),
+html body .na table a.kg-link,
+html body .ak-page table a.kg-link,
+html body .kbl table a.kg-link,
+html body .kb table a.kg-link,
+html body .leon-wrap table a.kg-link,
+html body .ldb table a.kg-link {
+  display: inline-flex !important;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px !important;
+  border-radius: 999px !important;
+  background: #eff6ff !important;
+  border: 1px solid #c7dbff !important;
+  color: #1d4ed8 !important;
+  font-weight: 800 !important;
+  text-decoration: none !important;
+  white-space: nowrap;
+  transition: background .15s ease, color .15s ease, box-shadow .15s ease, transform .15s ease;
+}
+html body .business-portal-card table a.kg-link:hover:not(.kgb-hero *),
+html body .na table a.kg-link:hover,
+html body .ak-page table a.kg-link:hover,
+html body .kbl table a.kg-link:hover,
+html body .kb table a.kg-link:hover,
+html body .leon-wrap table a.kg-link:hover,
+html body .ldb table a.kg-link:hover {
+  background: linear-gradient(135deg, #1e40af, #3b82f6) !important;
+  border-color: transparent !important;
+  color: #fff !important;
+  box-shadow: 0 10px 20px -10px rgba(30, 64, 175, .9) !important;
+  transform: translateY(-1px);
+}
+html body .business-portal-card .kg-toolbar input.kg-input:not(.kgb-hero *),
+html body .na .kg-toolbar input.kg-input,
+html body .ak-page .kg-toolbar input.kg-input,
+html body .kbl .kg-toolbar input.kg-input,
+html body .kb .kg-toolbar input.kg-input,
+html body .leon-wrap .kg-toolbar input.kg-input,
+html body .ldb .kg-toolbar input.kg-input {
+  height: 46px !important;
+  padding-left: 42px !important;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2.4' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='m20 20-3.5-3.5'/%3E%3C/svg%3E") !important;
+  background-repeat: no-repeat !important;
+  background-position: 15px 50% !important;
+  background-size: 17px 17px !important;
+  font-weight: 600;
+}
+html body .business-portal-card .kg-toolbar select.kg-select:not(.kgb-hero *),
+html body .na .kg-toolbar select.kg-select,
+html body .ak-page .kg-toolbar select.kg-select,
+html body .kbl .kg-toolbar select.kg-select,
+html body .kb .kg-toolbar select.kg-select,
+html body .leon-wrap .kg-toolbar select.kg-select,
+html body .ldb .kg-toolbar select.kg-select {
+  height: 46px !important;
+  font-weight: 700;
+  color: #1e3a8a;
+}
+}

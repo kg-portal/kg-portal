@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% block content %}
+<script src="{{ url_for('static', filename='kg_auftritt.js') }}" data-seite="stundenzettel"></script>
 <!-- Neue Stundenzettel-Liste (Karten + Monatszahlen + Seitenfenster). Bisherige Ansicht: /stundenzettel?alt=1 -->
 <style>
 .stz2,.stz2-drawer{--b1:#071a44;--b2:#123a8f;--b3:#2563eb;--rand:#e2e8f0;--leise:#64748b;--text:#0f172a}

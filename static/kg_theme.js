@@ -344,16 +344,23 @@
     try {
       C.defaults.color = tick;
       Object.values(C.instances).forEach(function (ch) {
+        // In die eigenen Einstellungen (config.options) schreiben, nicht in die aufgelösten –
+        // sonst bricht die Grafik beim nächsten Neuzeichnen (z. B. Größenänderung) ab
+        var raw = (ch.config && ch.config.options) || ch.options;
         var sc = (ch.options && ch.options.scales) || {};
         Object.keys(sc).forEach(function (k) {
-          sc[k].ticks = sc[k].ticks || {};
-          sc[k].ticks.color = tick;
-          sc[k].grid = sc[k].grid || {};
-          sc[k].grid.color = grid;
+          raw.scales = raw.scales || {};
+          var s = raw.scales[k] = raw.scales[k] || {};
+          s.ticks = s.ticks || {};
+          s.ticks.color = tick;
+          s.grid = s.grid || {};
+          s.grid.color = grid;
         });
         if (ch.options.plugins && ch.options.plugins.legend) {
-          ch.options.plugins.legend.labels = ch.options.plugins.legend.labels || {};
-          ch.options.plugins.legend.labels.color = tick;
+          raw.plugins = raw.plugins || {};
+          raw.plugins.legend = raw.plugins.legend || {};
+          raw.plugins.legend.labels = raw.plugins.legend.labels || {};
+          raw.plugins.legend.labels.color = tick;
         }
         ch.update("none");
       });

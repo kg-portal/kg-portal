@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+{% block content %}
+<!-- Vorschau: neues Aussehen der To-Do-Seite wie LifeHub „Aufgaben“ (nur Beispieldaten, speichert nichts) -->
+<style>
+  .lh { --navy:#16328f; --blau:#2563eb; --text:#0f1d4a; --grau:#64748b; --linie:#e6ecf5; font-family: Inter, "Segoe UI", Arial, sans-serif; color: var(--text); }
+  .lh * { box-sizing: border-box; }
+  .lh-kopf { position: relative; overflow: hidden; border-radius: 28px; padding: 26px 28px 28px; color: #fff;
+    background: radial-gradient(120% 140% at 100% 0%, #3b82f6 0%, rgba(59,130,246,0) 55%), linear-gradient(135deg, #10286f 0%, #1d4ed8 70%, #2563eb 100%);
+    box-shadow: 0 18px 40px rgba(29,78,216,.22); }
+  .lh-zeile1 { display: flex; align-items: center; gap: 18px; }
+  .lh-icon { width: 58px; height: 58px; border-radius: 16px; display: grid; place-items: center; background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.22); }
+  .lh-kopf h1 { margin: 0; font-size: 34px; font-weight: 900; letter-spacing: -.02em; color: #fff; }
+  .lh-kopf p { margin: 4px 0 0; font-size: 14px; font-weight: 700; color: #dbeafe; }
+  .lh-pager { margin-left: auto; display: flex; align-items: center; gap: 10px; padding: 8px; min-width: 244px; border-radius: 16px; background: rgba(255,255,255,.10); border: 1px solid rgba(255,255,255,.22); }
+  .lh-pager b { flex: 1; text-align: center; font-size: 16px; font-weight: 900; }
+  .lh-pager span { width: 34px; height: 34px; border-radius: 11px; display: grid; place-items: center; background: rgba(255,255,255,.14); }
+  .lh-tabs { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 22px; }
+  .lh-tab { padding: 10px 14px; border-radius: 13px; font-size: 14px; font-weight: 800; color: #fff; background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.28); }
+  .lh-tab.aktiv { background: #eef4ff; color: var(--navy); border-color: #eef4ff; }
+  .lh-tab.neu { background: #fff; color: var(--navy); border-color: #fff; display: inline-flex; align-items: center; gap: 8px; padding-right: 16px; }
+  .lh-kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-top: 20px; }
+  .lh-kpi { background: #fff; border: 1px solid var(--linie); border-radius: 22px; padding: 20px 22px; box-shadow: 0 8px 22px rgba(15,29,74,.05); }
+  .lh-kpi small { display: block; font-size: 11.5px; font-weight: 900; letter-spacing: .12em; color: #64748b; }
+  .lh-kpi b { display: block; margin-top: 8px; font-size: 30px; font-weight: 900; color: var(--text); line-height: 1; }
+  .lh-kpi b.rot { color: #dc2626; }
+  .lh-kpi i { display: block; margin-top: 10px; font-style: normal; font-size: 13px; font-weight: 700; color: var(--blau); }
+  .lh-suche { display: flex; align-items: center; gap: 14px; margin-top: 20px; }
+  .lh-feld { flex: 1; display: flex; align-items: center; gap: 10px; background: #fff; border: 1px solid var(--linie); border-radius: 16px; padding: 13px 16px; font-size: 15px; font-weight: 600; color: #94a3b8; }
+  .lh-zahl { font-size: 14px; font-weight: 800; color: var(--text); white-space: nowrap; }
+  .lh-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 16px; margin-top: 20px; }
+  .lh-karte { background: #fff; border: 1px solid var(--linie); border-radius: 22px; padding: 16px; box-shadow: 0 8px 22px rgba(15,29,74,.05); display: flex; flex-direction: column; }
+  .lh-oben { display: flex; gap: 12px; align-items: flex-start; min-height: 74px; }
+  .lh-av { flex: none; width: 48px; height: 48px; border-radius: 14px; display: grid; place-items: center; background: #eef4ff; color: var(--navy); font-weight: 900; font-size: 15px; }
+  .lh-titel { font-size: 15.5px; font-weight: 900; line-height: 1.32; color: var(--text); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .lh-badge { display: inline-block; margin-top: 6px; padding: 3px 9px; border-radius: 8px; font-size: 11.5px; font-weight: 800; }
+  .lh-badge.ueber { color: #dc2626; background: #fef2f2; }
+  .lh-badge.heute { color: #d97706; background: #fff7ed; }
+  .lh-badge.plan { color: #2563eb; background: #eff6ff; }
+  .lh-chips { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-top: 12px; }
+  .lh-chip { border: 1px solid var(--linie); border-radius: 14px; padding: 9px 10px; min-width: 0; }
+  .lh-chip b { display: block; font-size: 14px; font-weight: 900; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .lh-chip small { display: block; margin-top: 2px; font-size: 11.5px; font-weight: 600; color: #64748b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .lh-strich { height: 5px; border-radius: 99px; background: #eef2f7; margin: 14px 0; }
+  .lh-fuss { display: flex; gap: 10px; align-items: center; margin-top: auto; }
+  .lh-auf { flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 44px; border-radius: 14px; color: #fff; font-size: 15px; font-weight: 900; background: linear-gradient(135deg, #16328f, #1d4ed8); box-shadow: 0 8px 18px rgba(29,78,216,.22); }
+  .lh-ok { flex: none; width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; border: 1px solid var(--linie); background: #fff; }
+  .lh-karte.fertig { opacity: .55; }
+  .lh-leer { margin-top: 20px; background: #fff; border: 1px dashed #cbd5e1; border-radius: 22px; padding: 46px 20px; text-align: center; }
+  .lh-leer b { display: block; font-size: 18px; font-weight: 900; } .lh-leer span { display: block; margin-top: 6px; color: #64748b; font-weight: 600; }
+  @media (max-width: 1750px) { .lh-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+  @media (max-width: 1300px) { .lh-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } .lh-kpis { grid-template-columns: repeat(2, 1fr); } }
+</style>
+<div class="lh" data-kg-skip>
+  <section class="lh-kopf">
+    <div class="lh-zeile1">
+      <div class="lh-icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 17 2 2 4-4"/><path d="m3 7 2 2 4-4"/><path d="M13 6h8"/><path d="M13 12h8"/><path d="M13 18h8"/></svg></div>
+      <div><h1>Aufgaben</h1><p>Übersicht aller gemeinsamen Aufgaben · <span style="background:rgba(255,255,255,.16);padding:2px 8px;border-radius:7px">Vorschau mit Beispieldaten – noch nicht mit LifeHub verbunden</span></p></div>
+      <div class="lh-pager"><span>‹</span><b>Heute</b><span>›</span></div>
+    </div>
+    <div class="lh-tabs">
+      <span class="lh-tab neu"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Neue Aufgabe</span>
+      <span class="lh-tab aktiv">Heute</span><span class="lh-tab">Diese Woche</span><span class="lh-tab">Diesen Monat</span><span class="lh-tab">3 Monate</span><span class="lh-tab">6 Monate</span><span class="lh-tab">1 Jahr</span><span class="lh-tab">2 Jahre</span>
+    </div>
+  </section>
+  <div class="lh-kpis" id="lhKpis"></div>
+  <div class="lh-suche"><div class="lh-feld"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2.4" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>Aufgabe suchen …</div><div class="lh-zahl" id="lhZahl"></div></div>
+  <div id="lhListe"></div>
+</div>
+<script>
+(function () {
+  const leer = new URLSearchParams(location.search).has('leer');
+  const A = leer ? [] : [
+    ['AN', 'Angebot Müller GmbH nachfassen', 'ueber', 'Mo., 13.10.', '09:00', '1'],
+    ['RT', 'Rechnung Telekom prüfen und bezahlen', 'ueber', 'Gestern', '12:00', '–'],
+    ['UV', 'USt-Voranmeldung Oktober einreichen', 'heute', 'Heute', '10:00', '2'],
+    ['BS', 'Besichtigung Praxis Dr. Weber', 'heute', 'Heute', '14:30', '1'],
+    ['SZ', 'Stundenzettel Oktober kontrollieren', 'heute', 'Heute', '–', '–'],
+    ['FR', 'Fensterreinigung Bürohaus Nord planen', 'plan', 'Mo., 20.10.', '08:00', '–'],
+    ['VK', 'Vertrag Kita Sonnenschein unterschreiben', 'plan', 'Di., 21.10.', '–', '1'],
+    ['LA', 'Lohnabrechnung an Steuerbüro senden', 'plan', 'Fr., 24.10.', '–', '1'],
+    ['KF', 'Kärcher Wartung Termin vereinbaren', 'plan', 'Mi., 29.10.', '–', '–'],
+    ['MS', 'Material bestellen (Reiniger, Tücher)', 'plan', 'Do., 30.10.', '–', '–']
+  ];
+  const BADGE = { ueber: 'Überfällig', heute: 'Heute', plan: 'Geplant' };
+  const n = s => A.filter(a => a[2] === s).length;
+  const kpi = (t, z, u, rot) => '<div class="lh-kpi"><small>' + t + '</small><b' + (rot && z ? ' class="rot"' : '') + '>' + z + '</b><i>' + u + '</i></div>';
+  document.getElementById('lhKpis').innerHTML = kpi('OFFEN', A.length, 'Heute') + kpi('HEUTE FÄLLIG', n('heute'), 'für heute geplant') + kpi('ÜBERFÄLLIG', n('ueber'), 'von früher offen', true) + kpi('ERLEDIGT', 0, '0 / ' + A.length);
+  document.getElementById('lhZahl').textContent = A.length + ' von ' + A.length;
+  const ext = '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg>';
+  const ok = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1d4ed8" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>';
+  document.getElementById('lhListe').innerHTML = A.length ? '<div class="lh-grid">' + A.map(a =>
+    '<div class="lh-karte"><div class="lh-oben"><div class="lh-av">' + a[0] + '</div><div style="min-width:0"><div class="lh-titel">' + a[1] + '</div><span class="lh-badge ' + a[2] + '">' + BADGE[a[2]] + '</span></div></div>' +
+    '<div class="lh-chips"><div class="lh-chip"><b>' + a[3] + '</b><small>Datum</small></div><div class="lh-chip"><b>' + a[4] + '</b><small>Uhrzeit</small></div><div class="lh-chip"><b>' + a[5] + '</b><small>Erinnerungen</small></div></div>' +
+    '<div class="lh-strich"></div><div class="lh-fuss"><span class="lh-auf">' + ext + 'Öffnen</span><span class="lh-ok">' + ok + '</span></div></div>').join('') + '</div>'
+    : '<div class="lh-leer"><b>Keine Aufgaben für heute</b><span>Mit „Neue Aufgabe“ anlegen – erscheint sofort auch im LifeHub.</span></div>';
+})();
+</script>
+{% endblock %}

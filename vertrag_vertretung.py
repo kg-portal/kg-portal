@@ -261,3 +261,10 @@ def register_vertrag_vertretung(app, login_required, get_db_connection):
         finally:
             conn.close()
         return jsonify({"success": True})
+
+    # Monatsplan mit großem Kalender (eigenes Modul) – die Routen oben bleiben unverändert
+    try:
+        from vertretung_plan import register_vertretung_plan
+        register_vertretung_plan(app, login_required, get_db_connection)
+    except Exception as exc:
+        print(f"⚠️ Vertretung-Monatsplan nicht geladen: {exc}")

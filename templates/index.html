@@ -1,6 +1,24 @@
 {% extends "base.html" %}
 
 {% block content %}
+<script src="{{ url_for('static', filename='kg_auftritt.js') }}" data-seite="start"></script>
+<style>
+/* Auftritt wie bei der Datenbank: erst fertig aufbauen, dann Kacheln nacheinander weich einblenden */
+html.kg-st-warten .dashboard-grid > .module-container:not(.kg-st-an) { opacity: 0; }
+/* Wetter: Inhalt erst zeigen, wenn die Daten da sind (kein Platzhalter-Bild) */
+.index-wetter-gross .wg-stand, .index-wetter-gross .wg-oben, .index-wetter-gross .wg-unten { transition: opacity 0.6s ease; }
+.index-wetter-gross.wg-laedt .wg-stand, .index-wetter-gross.wg-laedt .wg-oben, .index-wetter-gross.wg-laedt .wg-unten { opacity: 0; }
+@media print { html.kg-st-warten .dashboard-grid > .module-container { opacity: 1 !important; } }
+</style>
+<script>
+(function () {
+    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    var h = document.documentElement;
+    h.classList.add('kg-st-warten');
+    // Sicherheitsnetz: falls ein Skript scheitert, nach 4 s alles zeigen
+    setTimeout(function () { if (!h.classList.contains('kg-st-bereit')) h.classList.remove('kg-st-warten'); }, 4000);
+})();
+</script>
 
 <!--
 ..........................................................................................................
@@ -276,6 +294,15 @@
     }
 
     .chart-title { font-size: 16px; font-weight: 800; color: #1e40af; margin-bottom: 15px; } 
+
+    /* Monatstrend: Summe und Hochrechnung im Kopf */
+    .chart-title.mt-kopf { display: flex; justify-content: space-between; align-items: flex-start; gap: 6px; min-height: 34px; margin-bottom: 0; }
+    .mt-kopf > div:first-child { min-width: 0; }
+    .mt-kopf small { display: block; margin-top: 2px; font-size: 10.5px; font-weight: 700; color: #64748b; }
+    .mt-rechts { text-align: right; line-height: 1; white-space: nowrap; }
+    .mt-rechts b { display: block; font-size: 16px; font-weight: 900; color: #0f1d4a; }
+    .mt-rechts span { display: inline-block; margin-top: 4px; padding: 2px 6px; border-radius: 999px; background: #eff6ff; color: #1d4ed8; font-size: 9.5px; font-weight: 900; }
+    .mt-rechts span:empty { display: none; }
     canvas { width: 100% !important; height: 180px !important; }
 
     .dashboard-grid {
@@ -490,6 +517,90 @@
     min-height: 112px;
 }
 
+/* Uhr als Kalenderblatt (Datum links, Uhrzeit rechts) – so breit und hoch wie die Wetter-Box */
+.index-hero-top {
+    grid-template-columns: minmax(0, 1fr) 300px minmax(0, 1fr);
+}
+
+.index-live-box.index-kal-box {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    align-self: stretch;
+    gap: 16px;
+    padding: 14px 16px;
+    box-sizing: border-box;
+}
+
+.index-kal-blatt {
+    width: 98px;
+    flex: 0 0 98px;
+    border-radius: 14px;
+    overflow: hidden;
+    background: #ffffff;
+    text-align: center;
+    box-shadow: 0 10px 22px rgba(15,23,42,0.28);
+}
+
+.index-kal-monat {
+    position: relative;
+    padding: 5px 0 4px;
+    background: linear-gradient(180deg, #ef4444, #dc2626);
+    color: #ffffff;
+    font-size: 12px;
+    font-weight: 900;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+}
+
+.index-kal-monat::before,
+.index-kal-monat::after {
+    content: "";
+    position: absolute;
+    top: -4px;
+    width: 7px;
+    height: 11px;
+    border-radius: 4px;
+    background: #334155;
+}
+
+.index-kal-monat::before { left: 18px; }
+.index-kal-monat::after { right: 18px; }
+
+.index-kal-tag {
+    padding-top: 6px;
+    font-size: 46px;
+    line-height: 1;
+    font-weight: 900;
+    color: #0f1d4a;
+}
+
+.index-kal-wt {
+    padding: 4px 2px 9px;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.4px;
+    text-transform: uppercase;
+    color: #64748b;
+}
+
+.index-kal-rechts {
+    min-width: 0;
+}
+
+.index-kal-box .index-time {
+    font-size: 48px;
+    letter-spacing: -1px;
+}
+
+.index-kal-box .index-date {
+    margin-top: 8px;
+    font-size: 14px;
+    line-height: 1.35;
+    text-align: left;
+    white-space: pre-line;
+}
+
 .index-weather-box {
     justify-self: end;
     width: 100%;
@@ -506,6 +617,80 @@
 
 .index-weather-box .index-weather-title {
     color: #1e40af;
+}
+
+/* Wetter: große Temperatur oben, darunter das Laufband mit 7 Tagen */
+.index-weather-box.index-wetter-gross {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 6px;
+    min-height: 207px;
+    padding: 13px 15px 12px;
+}
+
+.index-wetter-gross .wg-kopf {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.index-wetter-gross .index-weather-title {
+    font-size: 12px;
+    font-weight: 900;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+}
+
+.index-wetter-gross .wg-stand {
+    font-size: 10px;
+    font-weight: 800;
+    color: #94a3b8;
+}
+
+.index-wetter-gross .wg-oben {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.index-wetter-gross .wg-temp {
+    font-size: 52px;
+    line-height: 0.95;
+    font-weight: 900;
+    letter-spacing: -2px;
+    color: #0f1d4a;
+}
+
+.index-wetter-gross .wg-text {
+    margin-top: 4px;
+    font-size: 12px;
+    font-weight: 800;
+    color: #475569;
+    white-space: nowrap;
+}
+
+.index-wetter-gross .wg-hoch {
+    color: #dc2626;
+}
+
+.index-wetter-gross .wg-tief {
+    color: #2563eb;
+}
+
+.index-wetter-gross #weather-icon {
+    width: 82px;
+    height: 68px;
+}
+
+.index-wetter-gross .wg-unten {
+    padding-top: 7px;
+    border-top: 1px solid #e2e8f0;
+}
+
+.index-wetter-gross .weather-forecast-window {
+    margin-top: 0;
 }
 
 .index-weather-box .index-weather-main {
@@ -744,6 +929,70 @@
     }
 }
 
+/* ===== Startseite: gleich große obere Kacheln + Detail-Fenster (wächst aus der Kachel) ===== */
+@media screen {
+    .dashboard-grid .chart-box { flex: 1 1 auto; }
+    .dashboard-grid .kpi-card { box-sizing: border-box; border: 1px solid rgba(255, 255, 255, 0.3); transition: box-shadow 0.25s ease, transform 0.25s ease; }
+    .dashboard-grid .kpi-card.blue-active { border: 1px solid rgba(255, 255, 255, 0.3) !important; box-shadow: inset 0 0 0 3px #1e40af; }
+    .dashboard-grid .kpi-card:hover { transform: translateY(-2px); box-shadow: 0 14px 28px -14px rgba(15, 23, 42, 0.55); }
+    .dashboard-grid .kpi-card.blue-active:hover { box-shadow: inset 0 0 0 3px #1e40af, 0 14px 28px -14px rgba(15, 23, 42, 0.55); }
+    .kgx-hinter { position: fixed; inset: 0; z-index: 10000; background: rgba(23, 37, 84, 0.45); -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px); }
+    .kgx-panel { position: fixed; z-index: 10001; overflow: hidden; border-radius: 28px; background: #ffffff; box-shadow: 0 40px 80px -20px rgba(15, 23, 42, 0.45); color: #0f172a; }
+    .kgx-inhalt { display: flex; flex-direction: column; height: 100%; }
+    .kgx-kopf { position: relative; padding: 24px 24px 20px; color: #ffffff; background: radial-gradient(420px 200px at 100% 0%, rgba(255,255,255,0.22), transparent 60%), linear-gradient(135deg, #1e40af 0%, #2563eb 55%, #3b82f6 100%); }
+    .kgx-zu { position: absolute; top: 16px; right: 16px; width: 40px; height: 40px; border: 0; border-radius: 12px; background: rgba(255,255,255,0.16); color: #fff; font-size: 18px; font-weight: 900; cursor: pointer; transition: background-color .2s, transform .2s; }
+    .kgx-zu:hover { background: rgba(255,255,255,0.28); transform: rotate(90deg); }
+    .kgx-over { font-size: 12.5px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; color: rgba(255,255,255,0.82); }
+    .kgx-titel { margin: 4px 0 0; font-size: 24px; font-weight: 900; color: #fff; }
+    .kgx-gross { margin-top: 8px; font-size: 30px; font-weight: 900; }
+    .kgx-unter { margin-top: 2px; font-size: 13px; font-weight: 700; color: rgba(255,255,255,0.9); }
+    .kgx-body { flex: 1; overflow-y: auto; padding: 16px; }
+    .kgx-liste { border: 1px solid #dbeafe; border-radius: 18px; overflow: hidden; }
+    .kgx-zeile { display: flex; align-items: center; gap: 12px; padding: 11px 16px; border-top: 1px solid #eff6ff; font-size: 14px; }
+    .kgx-zeile:first-child { border-top: 0; }
+    .kgx-zeile.akt { background: #eff6ff; }
+    .kgx-zeile.summe { background: #f8fafc; font-weight: 900; }
+    .kgx-name { width: 92px; flex-shrink: 0; font-weight: 800; color: #0f172a; }
+    .kgx-balken { flex: 1; height: 8px; border-radius: 4px; background: #eef2f7; overflow: hidden; }
+    .kgx-balken i { display: block; height: 100%; border-radius: 4px; background: linear-gradient(90deg, #60a5fa, #1d4ed8); }
+    .kgx-wert { min-width: 110px; text-align: right; font-weight: 800; font-variant-numeric: tabular-nums; }
+    .kgx-klein { display: block; font-size: 11.5px; font-weight: 700; color: #64748b; }
+    .kgx-plus { color: #15803d; } .kgx-minus { color: #b91c1c; }
+    .kgx-kacheln { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .kgx-kachel { padding: 14px 16px; border-radius: 16px; background: #f8fbff; border: 1px solid #e6edf7; font-weight: 800; color: #475569; }
+    .kgx-kachel b { display: block; margin-top: 4px; font-size: 26px; color: #0f172a; }
+    .kgx-kachel.blue, .kgx-kachel.green, .kgx-kachel.purple, .kgx-kachel.pink, .kgx-kachel.red, .kgx-kachel.gray { border: 0; color: rgba(255,255,255,0.9); box-shadow: 0 12px 24px -16px rgba(15,23,42,0.55); }
+    .kgx-kachel.blue b, .kgx-kachel.green b, .kgx-kachel.purple b, .kgx-kachel.pink b, .kgx-kachel.red b, .kgx-kachel.gray b { color: #ffffff; }
+    .kgx-kachel.blue { background: linear-gradient(135deg, #1e40af, #3b82f6); }
+    .kgx-kachel.green { background: linear-gradient(135deg, #047857, #10b981); }
+    .kgx-kachel.purple { background: linear-gradient(135deg, #4f46e5, #818cf8); }
+    .kgx-kachel.pink { background: linear-gradient(135deg, #be185d, #ec4899); }
+    .kgx-kachel.red { background: linear-gradient(135deg, #b91c1c, #ef4444); }
+    .kgx-kachel.gray { background: linear-gradient(135deg, #475569, #94a3b8); }
+    .kgx-tab { margin-top: 14px; border: 1px solid #dbeafe; border-radius: 18px; overflow: hidden; }
+    .kgx-tz { display: grid; grid-template-columns: 1.4fr repeat(4, 1fr); gap: 8px; padding: 9px 16px; border-top: 1px solid #eff6ff; font-size: 13.5px; font-weight: 800; text-align: right; }
+    .kgx-tz span:first-child { text-align: left; color: #0f172a; }
+    .kgx-tz.kopf { border-top: 0; background: #f8fafc; font-size: 11.5px; letter-spacing: .04em; text-transform: uppercase; color: #64748b; }
+    .kgx-tz.akt { background: #eff6ff; }
+    .c-blue { color: #1d4ed8; } .c-gray { color: #475569; } .c-purple { color: #6366f1; } .c-pink { color: #db2777; }
+    .kgx-hinweis { margin-top: 12px; font-size: 12.5px; font-weight: 700; color: #64748b; }
+    .kgx-fuss { padding: 12px 16px 16px; }
+    .index-kal-box, .index-wetter-gross { cursor: pointer; transition: transform 0.25s ease, box-shadow 0.25s ease; }
+    .index-kal-box:hover, .index-wetter-gross:hover { transform: translateY(-2px); box-shadow: 0 16px 30px -14px rgba(15, 23, 42, 0.55); }
+    .kgx-kal { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; padding: 14px; border: 1px solid #dbeafe; border-radius: 18px; }
+    .kgx-kal span { text-align: center; font-size: 11px; font-weight: 900; color: #94a3b8; }
+    .kgx-kal i { position: relative; display: grid; place-items: center; height: 38px; border-radius: 11px; font-style: normal; font-size: 14px; font-weight: 800; color: #0f172a; background: #f8fbff; }
+    .kgx-kal i.leer { background: transparent; }
+    .kgx-kal i.we { color: #64748b; background: #f1f5f9; }
+    .kgx-kal i.vorbei { opacity: .55; }
+    .kgx-kal i.fei { color: #b91c1c; background: #fef2f2; }
+    .kgx-kal i.fei::after { content: ""; position: absolute; bottom: 5px; width: 5px; height: 5px; border-radius: 50%; background: #dc2626; }
+    .kgx-kal i.heute { color: #fff; background: linear-gradient(135deg, #1e40af, #3b82f6); box-shadow: 0 8px 16px -8px rgba(30, 64, 175, .8); opacity: 1; }
+    .kgx-wt-icon { width: 30px; height: 26px; object-fit: contain; flex-shrink: 0; }
+    .kgx-spanne { position: relative; flex: 1; height: 8px; border-radius: 4px; background: #eef2f7; }
+    .kgx-spanne i { position: absolute; top: 0; bottom: 0; border-radius: 4px; background: linear-gradient(90deg, #60a5fa, #f59e0b); }
+    .kgx-fuss a { display: block; padding: 12px; border-radius: 14px; text-align: center; text-decoration: none; color: #fff; font-size: 13.5px; font-weight: 900; background: linear-gradient(135deg, #1e40af, #3b82f6); }
+}
 </style>
 
 
@@ -769,46 +1018,60 @@
             </div>
         </div>
 
-        <div class="index-live-box">
-            <div class="index-small-label">Live Übersicht</div>
-            <div id="digital-clock" class="index-time">00:00</div>
-            <div id="current-date" class="index-date">Duisburg, --.--.----</div>
+        <div class="index-live-box index-kal-box">
+            <div class="index-kal-blatt" aria-hidden="true" data-kg-skip>
+                <div id="kal-monat" class="index-kal-monat" data-kg-skip>&nbsp;</div>
+                <div id="kal-tag" class="index-kal-tag" data-kg-skip>--</div>
+                <div id="kal-wt" class="index-kal-wt" data-kg-skip>&nbsp;</div>
+            </div>
+            <div class="index-kal-rechts">
+                <div id="digital-clock" class="index-time">00:00</div>
+                <div id="current-date" class="index-date">Duisburg</div>
+            </div>
         </div>
 
-        <div class="index-weather-box">
-            <div class="index-weather-title">Wetter Duisburg</div>
+        <div class="index-weather-box index-wetter-gross wg-laedt">
+            <div class="wg-kopf">
+                <span class="index-weather-title">Wetter Duisburg</span>
+                <span class="wg-stand" title="Zuletzt aktualisiert"><span id="weather-update-time">--:--</span></span>
+            </div>
 
-            <div class="index-weather-main">
+            <div class="wg-oben">
+                <div class="wg-links">
+                    <div id="weather-temp" class="wg-temp">--°</div>
+                    <div class="wg-text">
+                        <span id="weather-desc">Laden...</span>
+                        · <span class="wg-hoch">↑<span id="weather-max">--</span>°</span>
+                        <span class="wg-tief">↓<span id="weather-min">--</span>°</span>
+                    </div>
+                </div>
                 <img id="weather-icon" src="/static/sunny.png" alt="Wetter">
-
-                <span>
-                    <span id="weather-desc">Laden...</span>
-                    <span id="weather-temp"></span>
-                </span>
             </div>
 
-            <div class="index-small-label weather-current-info">
-                <div>
-                    <span class="weather-high">
-                        ↑ <span id="weather-max">--</span>°C
-                    </span>
-                    &nbsp;&nbsp;
-                    <span class="weather-low">
-                        ↓ <span id="weather-min">--</span>°C
-                    </span>
+            <div class="wg-unten">
+                <div class="weather-forecast-window">
+                    <div id="weather-forecast-track" class="weather-forecast-track"></div>
                 </div>
-
-                <div class="weather-update-line">
-                    Aktualisiert: <span id="weather-update-time">--:--</span>
-                </div>
-            </div>
-
-            <div class="weather-forecast-window">
-                <div id="weather-forecast-track" class="weather-forecast-track"></div>
             </div>
         </div>
     </div>
 </section>
+<script>
+/* Kalenderblatt und Uhr sofort beim Laden füllen – später übernimmt updateClock() wie bisher */
+(function () {
+    var n = new Date(), t = new Date(Date.UTC(n.getFullYear(), n.getMonth(), n.getDate())), w = t.getUTCDay() || 7;
+    t.setUTCDate(t.getUTCDate() + 4 - w);
+    var kw = Math.ceil(((t - new Date(Date.UTC(t.getUTCFullYear(), 0, 1))) / 86400000 + 1) / 7);
+    var setze = function (id, v) { var el = document.getElementById(id); if (el) el.textContent = v; };
+    setze('digital-clock', String(n.getHours()).padStart(2, '0') + ':' + String(n.getMinutes()).padStart(2, '0'));
+    setze('kal-monat', n.toLocaleDateString('de-DE', { month: 'long' }));
+    setze('kal-tag', n.getDate());
+    setze('kal-wt', n.toLocaleDateString('de-DE', { weekday: 'long' }));
+    setze('current-date', 'Duisburg\nKW ' + kw + ' · ' + n.getFullYear());
+    // Wetter spätestens nach 6 s zeigen, auch wenn der Dienst nicht antwortet
+    setTimeout(function () { var b = document.querySelector('.index-wetter-gross'); if (b) b.classList.remove('wg-laedt'); }, 6000);
+})();
+</script>
 
 
 <!--
@@ -819,21 +1082,42 @@
 ..........................................................................................................
 -->
 
+<style>
+/* Startseite: kleine Kästchen in den Kacheln glänzend (3D) mit Symbol; Beträge der ersten zwei Kacheln im Kästchen */
+.dashboard-grid .kgk-k{position:relative;overflow:hidden;display:grid!important;grid-template-columns:auto minmax(0,1fr);grid-template-areas:'n n' 'i z';column-gap:8px;row-gap:4px;align-items:center;text-align:left;border:0!important;border-radius:16px!important;padding:9px 10px!important;color:#fff!important;
+  background:var(--kf)!important;
+  background:linear-gradient(145deg,color-mix(in srgb,var(--kf) 82%,#fff),var(--kf) 55%,color-mix(in srgb,var(--kf) 80%,#000))!important;
+  box-shadow:0 8px 18px rgba(15,23,42,.18),inset 0 1px 0 rgba(255,255,255,.45),inset 0 -3px 0 rgba(0,0,0,.12)!important;
+  box-shadow:0 8px 18px color-mix(in srgb,var(--kf) 40%,transparent),inset 0 1px 0 rgba(255,255,255,.45),inset 0 -3px 0 rgba(0,0,0,.12)!important}
+.dashboard-grid .kgk-k::after{content:'';position:absolute;left:0;right:0;top:0;height:45%;background:linear-gradient(180deg,rgba(255,255,255,.28),rgba(255,255,255,0));pointer-events:none}
+.dashboard-grid .kgk-k .kgk-i{grid-area:i;width:26px;height:26px;border-radius:9px;display:grid;place-items:center;background:rgba(255,255,255,.22);box-shadow:inset 0 0 0 1px rgba(255,255,255,.35);font-style:normal}
+.dashboard-grid .kgk-k .kgk-i svg{width:15px;height:15px}
+.dashboard-grid .kgk-k .kgk-n{grid-area:n;font-style:normal;font-size:11.5px;font-weight:800;line-height:1.2;color:rgba(255,255,255,.92)}
+.dashboard-grid .kgk-k .kgk-n span{font-weight:800}
+.dashboard-grid .kgk-k .kgk-z{grid-area:z;display:block;margin:0!important;font-size:20px!important;font-weight:900!important;line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#fff!important;text-shadow:0 2px 6px rgba(0,0,0,.2)}
+.dashboard-grid .kgk-k.ohne-zahl{grid-template-areas:'i n'}
+.dashboard-grid .kgk-k.wert{display:inline-grid!important;grid-template-columns:auto auto;grid-template-areas:'i z';align-self:flex-start;margin-top:6px;padding:10px 14px!important}
+.dashboard-grid .kgk-k.wert .kgk-i{width:32px;height:32px;border-radius:11px}
+.dashboard-grid .kgk-k.wert .kgk-i svg{width:18px;height:18px}
+.dashboard-grid .kgk-k.wert .kgk-z{font-size:24px!important}
+.dashboard-grid .card-month-badge{background:linear-gradient(145deg,#3b82f6,#1e40af)!important;box-shadow:0 6px 14px rgba(30,64,175,.35),inset 0 1px 0 rgba(255,255,255,.4)!important}
+.dashboard-grid .dashboard-count-bubble{background:linear-gradient(145deg,#3b82f6,#1e3a8a)!important;box-shadow:0 8px 18px rgba(30,64,175,.4),inset 0 2px 0 rgba(255,255,255,.35)!important}
+</style>
 <div class="dashboard-grid">
     <div class="module-container">
         <div class="kpi-card blue-active" onclick="setActive(this)">
             <div id="current-month-label" class="card-month-badge">April 2026</div>
             <div class="card-label">Monatlicher Umsatz</div>
-            <div class="card-value">{{ "{:,.2f}".format(monatlicher_umsatz) }} €</div>
+            <div class="card-value">{{ "{:,.2f}".format(monatlicher_umsatz).replace(",", "X").replace(".", ",").replace("X", ".") }} €</div>
         </div>
-        <div class="chart-box"><div class="chart-title">Monatstrend</div><canvas id="monthlyTrendChart"></canvas></div>
+        <div class="chart-box"><div class="chart-title mt-kopf"><div>Monatstrend<small id="mtUnter">Tag für Tag aufsummiert</small></div><div class="mt-rechts"><b id="mtSumme"></b><span id="mtHoch"></span></div></div><canvas id="monthlyTrendChart"></canvas></div>
     </div>
 
     <div class="module-container">
         <div class="kpi-card" onclick="setActive(this)">
             <div id="current-year-label" class="card-month-badge">Jahr 2026</div>
             <div class="card-label">Aktueller Gesamtumsatz</div>
-            <div class="card-value">{{ "{:,.2f}".format(jahres_umsatz) }} €</div>
+            <div class="card-value">{{ "{:,.2f}".format(jahres_umsatz).replace(",", "X").replace(".", ",").replace("X", ".") }} €</div>
         </div> 
         <div class="chart-box"><div id="yearly-overview-title" class="chart-title">Jahresübersicht 2026</div><canvas id="yearlyOverviewChart"></canvas></div>
     </div>
@@ -844,7 +1128,7 @@
             <div class="accounting-lines">
                 <div class="accounting-pill income">
                     Einnahmen / <span id="accounting-income-period" class="accounting-period">April 2026</span>
-                    <span class="accounting-amount">10.000 €</span>
+                    <span class="accounting-amount">{{ "{:,.2f}".format(monatlicher_umsatz).replace(",", "X").replace(".", ",").replace("X", ".") }} €</span>
                 </div>
                 <div class="accounting-pill expense">
                     Ausgaben / <span id="accounting-expense-period" class="accounting-period">April 2026</span>
@@ -872,6 +1156,13 @@
 
 
         <ul id="todoList" class="todo-list"></ul>
+        <!-- Aufgaben aus dem KG LifeHub: erscheint nur, wenn LifeHub antwortet (sonst bleibt die Batterie) -->
+        <div class="dashboard-stat-grid" id="kgLhKacheln" style="display:none">
+            <div class="dashboard-stat-item blue">Offen<span id="kgLhOffen">0</span></div>
+            <div class="dashboard-stat-item green">Heute fällig<span id="kgLhHeute">0</span></div>
+            <div class="dashboard-stat-item red">Überfällig<span id="kgLhUeber">0</span></div>
+            <div class="dashboard-stat-item purple">Erledigt<span id="kgLhErledigt">0</span></div>
+        </div>
     </div>
 
     <div class="chart-box">
@@ -881,6 +1172,7 @@
             <div style="flex-grow: 1; height: 180px;"><canvas id="chart7"></canvas></div>
             <button class="nav-btn" id="btnNext">▶</button>
         </div>
+        <div id="kgLhGrafik" style="display:none;position:relative;height:180px"><canvas id="chartLh"></canvas></div>
     </div>
  </div>
 
@@ -891,10 +1183,11 @@
             <div class="card-label card-month-badge">Telefonakquise</div>
         </div>
         <div class="dashboard-stat-grid">
-            <div class="dashboard-stat-item blue">Anrufe<span>0</span></div>
-            <div class="dashboard-stat-item gray">Portfolio<span>0</span></div>
-            <div class="dashboard-stat-item purple">Besichtigung<span>0</span></div>
-            <div class="dashboard-stat-item pink">Verträge<span>0</span></div>
+            {% set kg_ak = akquise_monat or {} %}
+            <div class="dashboard-stat-item blue">Anrufe<span>{{ kg_ak.get('anrufe', 0) }}</span></div>
+            <div class="dashboard-stat-item gray">Portfolio<span>{{ kg_ak.get('portfolio', 0) }}</span></div>
+            <div class="dashboard-stat-item purple">Besichtigung<span>{{ kg_ak.get('besichtigung', 0) }}</span></div>
+            <div class="dashboard-stat-item pink">Verträge<span>{{ kg_ak.get('vertraege', 0) }}</span></div>
         </div>
     </div>
     <div class="chart-box">
@@ -909,10 +1202,11 @@
             <div class="card-label card-month-badge">Angebot</div>
         </div>
         <div class="dashboard-stat-grid">
-            <div class="dashboard-stat-item blue">Gesendet<span>0</span></div>
-            <div class="dashboard-stat-item green">Bestätigt<span>0</span></div>
-            <div class="dashboard-stat-item purple">Wartend<span>0</span></div>
-            <div class="dashboard-stat-item red">Nicht bestätigt<span>0</span></div>
+            {% set kg_an = angebot_zahlen or {} %}
+            <div class="dashboard-stat-item blue">Gesendet<span>{{ kg_an.get('gesendet', 0) }}</span></div>
+            <div class="dashboard-stat-item green">Bestätigt<span>{{ kg_an.get('bestaetigt', 0) }}</span></div>
+            <div class="dashboard-stat-item purple">Wartend<span>{{ kg_an.get('wartend', 0) }}</span></div>
+            <div class="dashboard-stat-item red">Nicht bestätigt<span>{{ kg_an.get('nicht', 0) }}</span></div>
         </div>
     </div>
     <div class="chart-box"><div class="chart-title">Angebot Status</div><div style="position:relative;height:180px"><canvas id="chart5"></canvas></div></div>
@@ -945,6 +1239,101 @@
 </div>
 </div>
 
+<style>
+/* ===== Cockpit unter den 8 Kacheln: Rundinstrumente + Objekte (Klick = Mitarbeiter, Lohn, Ergebnis) ===== */
+.kgo-box { margin-top: 20px; }
+.kgo-box .kgo-auge { top: 39px; right: 42px; z-index: 7; }
+.kgo-karte { position: relative; overflow: hidden; border-radius: 20px; padding: 18px 22px 24px; background: radial-gradient(900px 260px at 50% 0%, #eef5ff 0%, rgba(238, 245, 255, 0) 70%), #ffffff; }
+.kgo-kopf { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; min-height: 38px; padding-right: 52px; }
+.kgo-kopf .card-month-badge { flex: none; }
+.kgo-kopf h3 { margin: 0; font-size: 20px; font-weight: 900; color: #0f172a; letter-spacing: -0.2px; }
+.kgo-kopf .kgo-stand { margin-left: auto; font-size: 12.5px; font-weight: 800; color: #64748b; }
+.kgo-inhalt { transition: filter 0.35s ease; }
+.kgo-box.kgo-zu .kgo-inhalt { filter: blur(16px) saturate(0.8); pointer-events: none; user-select: none; }
+.kgo-zu-text { display: none; position: absolute; left: 50%; top: 52%; transform: translate(-50%, -50%); z-index: 6; padding: 12px 22px; border-radius: 999px; background: rgba(255, 255, 255, 0.96); color: #1e40af; font-size: 14px; font-weight: 900; box-shadow: 0 14px 30px rgba(15, 23, 42, 0.18); white-space: nowrap; }
+.kgo-box.kgo-zu .kgo-zu-text { display: block; }
+.kgo-uhren { display: grid; grid-template-columns: 1fr 1.25fr 1fr; gap: 18px; align-items: end; margin-top: 8px; }
+.kgo-uhr { display: flex; flex-direction: column; align-items: center; min-width: 0; text-align: center; }
+.kgo-uhr .kgo-ueber { font-size: 12px; font-weight: 900; letter-spacing: 0.16em; text-transform: uppercase; color: #1e40af; }
+.kgo-uhr svg { display: block; width: 100%; max-width: 290px; height: auto; margin-top: 6px; overflow: visible; }
+.kgo-uhr.gross svg { max-width: 370px; }
+.kgo-anzeige { margin-top: 4px; color: #0f172a; font-size: 28px; font-weight: 900; line-height: 1.1; font-variant-numeric: tabular-nums; letter-spacing: -0.5px; }
+.kgo-uhr.gross .kgo-anzeige { font-size: 36px; }
+.kgo-anzeige.plus { color: #047857; }
+.kgo-anzeige.minus { color: #b91c1c; }
+.kgo-unter { margin-top: 8px; font-size: 12.5px; font-weight: 800; color: #64748b; line-height: 1.4; }
+.kgo-unter b { color: #0f172a; }
+.kgo-abschnitt { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin: 26px 0 12px; padding-top: 18px; border-top: 1px solid #e6eefb; }
+.kgo-abschnitt h4 { margin: 0; font-size: 17px; font-weight: 900; color: #0f172a; }
+.kgo-abschnitt span { font-size: 12.5px; font-weight: 800; color: #64748b; }
+.kgo-monat { display: inline-flex; align-items: center; gap: 4px; margin-left: auto; padding: 4px; border-radius: 13px; background: #eff6ff; }
+.kgo-monat button { width: 30px; height: 30px; border: 0; border-radius: 9px; background: #ffffff; color: #1e40af; font-size: 18px; font-weight: 900; line-height: 1; cursor: pointer; box-shadow: 0 2px 6px rgba(30, 64, 175, 0.14); }
+.kgo-monat button:disabled { opacity: 0.35; cursor: default; }
+.kgo-monat b { min-width: 158px; text-align: center; font-size: 14px; font-weight: 900; color: #1e3a8a; }
+.kgo-objekte { display: grid; grid-template-columns: repeat(auto-fill, minmax(255px, 1fr)); gap: 12px; }
+.kgo-leer { padding: 22px; border-radius: 16px; background: #f8fafc; color: #64748b; font-weight: 800; text-align: center; }
+.kgo-k { position: relative; display: grid; grid-template-columns: 54px minmax(0, 1fr); gap: 12px; align-items: center; margin: 0; padding: 12px 14px 12px 18px; border: 1px solid #e2e8f0; border-radius: 16px; background: #ffffff; color: #0f172a; font: inherit; text-align: left; cursor: pointer;
+    box-shadow: 0 10px 22px -16px rgba(30, 58, 138, 0.35); transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease; }
+.kgo-k:hover, .kgo-k:focus-visible { transform: translateY(-3px); border-color: #93c5fd; box-shadow: 0 20px 34px -20px rgba(30, 64, 175, 0.85); outline: none; }
+.kgo-k::before { content: ""; position: absolute; left: 0; top: 14px; bottom: 14px; width: 4px; border-radius: 0 3px 3px 0; background: #2563eb; }
+.kgo-k.gold { border-color: #fcd34d; }
+.kgo-k.gold::before { background: #f59e0b; }
+.kgo-k .kgo-ring { width: 54px; height: 54px; display: block; }
+.kgo-k .kgo-n { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; overflow-wrap: anywhere; font-size: 13.5px; font-weight: 900; line-height: 1.2; padding-right: 4px; }
+.kgo-k .kgo-b { display: block; margin-top: 2px; font-size: 16px; font-weight: 900; color: #1e40af; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.kgo-k .kgo-b small { font-size: 11.5px; font-weight: 800; color: #64748b; }
+.kgo-k .kgo-zeile { display: flex; align-items: center; gap: 0; flex-wrap: wrap; margin-top: 3px; }
+.kgo-k .kgo-e { font-size: 12px; font-weight: 900; white-space: nowrap; color: #2563eb; }
+.kgo-k .kgo-e.plus { color: #047857; }
+.kgo-k .kgo-e.minus { color: #b91c1c; }
+.kgo-k .kgo-s { font-size: 12px; font-weight: 800; color: #94a3b8; white-space: nowrap; }
+.kgo-k .kgo-s::before { content: "\00a0\00b7\00a0"; }
+.kgo-k .kgo-nr { position: absolute; top: 10px; right: 10px; padding: 3px 8px; border-radius: 999px; background: linear-gradient(145deg, #fcd34d, #f59e0b); color: #451a03; font-size: 10.5px; font-weight: 900; letter-spacing: 0.06em; box-shadow: 0 6px 14px -6px rgba(217, 119, 6, 0.8); }
+.kgo-mehr { display: block; margin: 12px auto 0; padding: 9px 18px; border: 0; border-radius: 12px; background: #eff6ff; color: #1e40af; font: inherit; font-size: 13.5px; font-weight: 900; cursor: pointer; }
+.kgo-mehr:hover { background: #dbeafe; }
+.kgo-offen { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 14px; padding: 12px 14px; border-radius: 16px; background: #fff7ed; border: 1px dashed #fdba74; }
+.kgo-offen > small { font-size: 11.5px; font-weight: 900; letter-spacing: 0.1em; text-transform: uppercase; color: #c2410c; margin-right: 4px; }
+.kgo-ort { border: 0; border-radius: 999px; padding: 6px 11px; background: #ffffff; color: #9a3412; font: inherit; font-size: 12px; font-weight: 800; cursor: pointer; box-shadow: 0 2px 6px rgba(194, 65, 12, 0.15); }
+.kgo-ort:hover { background: #ffedd5; }
+.kgo-h { margin: 18px 0 8px; font-size: 12.5px; font-weight: 900; letter-spacing: 0.12em; text-transform: uppercase; color: #64748b; }
+.kgo-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.kgo-chip { display: inline-flex; align-items: center; gap: 6px; padding: 7px 8px 7px 12px; border-radius: 999px; background: #eff6ff; color: #1e3a8a; font-size: 13px; font-weight: 800; }
+.kgo-chip button { width: 22px; height: 22px; border: 0; border-radius: 50%; background: #dbeafe; color: #1e40af; font-weight: 900; cursor: pointer; line-height: 1; }
+.kgo-chip button:hover { background: #fecaca; color: #b91c1c; }
+.kgo-wahl { display: flex; gap: 8px; margin-top: 10px; }
+.kgo-wahl select { flex: 1; min-width: 0; padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 12px; font: inherit; font-size: 14px; font-weight: 700; color: #0f172a; background: #ffffff; }
+.kgo-wahl button { flex: none; padding: 10px 16px; border: 0; border-radius: 12px; background: linear-gradient(135deg, #1e40af, #3b82f6); color: #ffffff; font: inherit; font-size: 14px; font-weight: 900; cursor: pointer; }
+.kgo-wahl button:disabled { opacity: 0.5; cursor: default; }
+.kgo-fehler { margin-top: 8px; font-size: 13px; font-weight: 800; color: #b91c1c; }
+.kgo-box.kgo-wartet .kgo-anzeige, .kgo-box.kgo-wartet .kgo-objekte { opacity: 0; }
+@media (max-width: 1100px) { .kgo-uhren { grid-template-columns: 1fr 1fr; } .kgo-uhr.gross { grid-column: 1 / -1; order: -1; } }
+@media (max-width: 600px) { .kgo-uhren { grid-template-columns: minmax(0, 1fr); } .kgo-kopf h3 { font-size: 17px; } .kgo-kopf .kgo-stand { display: none; } .kgo-monat { margin-left: 0; } .kgo-monat b { min-width: 130px; } .kgo-zu-text { white-space: normal; text-align: center; } }
+@media print { .kgo-box { display: none !important; } }
+</style>
+<section class="module-container kgo-box" id="kgoBox" aria-label="Cockpit">
+    <button type="button" class="module-hide-toggle kgo-auge" id="kgoAuge" title="Cockpit ausblenden / zeigen" aria-pressed="true"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M1.5 12s4-7 10.5-7 10.5 7 10.5 7-4 7-10.5 7S1.5 12 1.5 12z"></path><circle cx="12" cy="12" r="3"></circle></svg></button>
+    <div class="kgo-karte">
+        <div class="kgo-kopf">
+            <span class="card-month-badge">Cockpit</span><h3>Zusammenfassung</h3>
+            <span class="kgo-stand" id="kgoStand"></span>
+        </div>
+        <div class="kgo-inhalt">
+            <div class="kgo-uhren">
+                <div class="kgo-uhr" id="kgoU1"></div>
+                <div class="kgo-uhr gross" id="kgoU2"></div>
+                <div class="kgo-uhr" id="kgoU3"></div>
+            </div>
+            <div class="kgo-abschnitt">
+                <h4>Objekte</h4><span>Wer dein Geld bringt · antippen für Mitarbeiter, Lohn und Ergebnis</span>
+                <div class="kgo-monat"><button type="button" data-schritt="-1" aria-label="Monat zurück">‹</button><b id="kgoMonat">–</b><button type="button" data-schritt="1" aria-label="Monat vor">›</button></div>
+            </div>
+            <div class="kgo-objekte" id="kgoObjekte"></div>
+            <div id="kgoUnten"></div>
+        </div>
+        <div class="kgo-zu-text">Ausgeblendet · Auge antippen zum Zeigen</div>
+    </div>
+</section>
+
 
 <!--
 ..........................................................................................................
@@ -954,6 +1343,20 @@
 ..........................................................................................................
 -->
 
+<style>
+/* Beim frühen Umfärben keine Farbübergänge (sonst blitzen helle Flächen kurz auf) */
+html.kg-st-sofort *, html.kg-st-sofort *::before, html.kg-st-sofort *::after { transition: none !important; }
+/* Platz für den Dunkel/Hell-Schalter freihalten, bis er eingesetzt ist (kein Springen der Navigation) */
+.portal-sidebar [data-kg-theme-slot]:empty { min-height: 52px; }
+</style>
+<script>
+/* Seite sofort zeigen (Hell/Dunkel schon jetzt anwenden), nicht erst nach dem Laden der Grafik-Bibliotheken */
+if (window.__kgTheme) {
+    document.documentElement.classList.add('kg-st-sofort');
+    window.__kgTheme.apply();
+    requestAnimationFrame(function () { requestAnimationFrame(function () { document.documentElement.classList.remove('kg-st-sofort'); }); });
+}
+</script>
 <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
@@ -990,6 +1393,111 @@
                 }));
             }
         });
+
+        // 📅 Monats-Grafiken: alle 12 Monate beschriften (nicht jeden zweiten überspringen)
+        Chart.register({
+            id: 'kgAlleMonate',
+            beforeInit(chart) {
+                const labels = chart.data && chart.data.labels;
+                if (!labels || labels.length !== 12) return;
+                const o = chart.config.options || (chart.config.options = {});
+                o.scales = o.scales || {};
+                o.scales.x = o.scales.x || {};
+                o.scales.x.ticks = Object.assign({ font: { size: 10 } }, o.scales.x.ticks || {}, {
+                    autoSkip: false, minRotation: 0, maxRotation: 0,
+                    // genug Platz: „Jan“, „Feb“ …; sonst nur der erste Buchstabe – alle 12 Monate bleiben sichtbar
+                    callback: function (wert) {
+                        const name = String(this.getLabelForValue(wert));
+                        const breite = ((this.chart.chartArea && this.chart.chartArea.width) || this.chart.width || 0) / 12;
+                        return breite >= 26 ? name : name.charAt(0);
+                    }
+                });
+            }
+        });
+
+        // 🔢 Jahresübersicht: Wert über jeder Säule (z. B. 26,7k)
+        Chart.register({
+            id: 'kgWerteOben',
+            beforeInit(chart) {
+                if (!chart.canvas || chart.canvas.id !== 'yearlyOverviewChart') return;
+                const o = chart.config.options || (chart.config.options = {});
+                o.layout = Object.assign({}, o.layout || {}, { padding: { top: 18 } });
+            },
+            afterDatasetsDraw(chart) {
+                if (!chart.canvas || chart.canvas.id !== 'yearlyOverviewChart') return;
+                const ctx = chart.ctx;
+                ctx.save();
+                const platz = ((chart.chartArea && chart.chartArea.width) || chart.width || 0) / 12;
+                ctx.font = '800 ' + (platz >= 30 ? 10 : 9) + 'px Inter, Segoe UI, Arial, sans-serif';
+                ctx.fillStyle = document.documentElement.getAttribute('data-kg-x') === 'on' ? '#bfdbfe' : '#1e3a8a';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'bottom';
+                chart.data.datasets.forEach((ds, di) => {
+                    if (!chart.isDatasetVisible(di)) return;
+                    chart.getDatasetMeta(di).data.forEach((el, i) => {
+                        const v = Number(ds.data[i]);
+                        if (!v || !isFinite(el.y)) return;
+                        const text = v >= 1000 ? (v / 1000).toLocaleString('de-DE', { maximumFractionDigits: platz >= 30 ? 1 : 0 }) + 'k' : Math.round(v).toLocaleString('de-DE');
+                        const d = Math.max(3, Math.min(9, (el.width || 0) * 0.32));
+                        ctx.fillText(text, el.x + d / 2, el.y - d * 0.6 - 3);
+                    });
+                });
+                ctx.restore();
+            }
+        });
+
+        // 🧊 3D-Säulen: zeichnet jede Säule als Block (Vorderseite mit Licht, rechte Seite dunkler, Deckel heller).
+        // Nur Optik – Daten, Achsen, Tooltips und Klicks bleiben wie sie sind.
+        Chart.register({
+            id: 'kg3dSaeulen',
+            afterDatasetsDraw(chart) {
+                if (chart.config.type !== 'bar') return;
+                const ctx = chart.ctx;
+                const xs = chart.options.scales && chart.options.scales.x;
+                const stacked = !!(xs && xs.stacked);
+                const rgb = (c) => {
+                    if (typeof c !== 'string') return null;
+                    c = c.trim();
+                    let m = /^#([0-9a-f]{3})$/i.exec(c);
+                    if (m) return m[1].split('').map(h => parseInt(h + h, 16));
+                    m = /^#([0-9a-f]{6})$/i.exec(c);
+                    if (m) return [0, 2, 4].map(k => parseInt(m[1].substr(k, 2), 16));
+                    m = /^rgba?\(([^)]+)\)$/i.exec(c);
+                    if (m) return m[1].split(',').slice(0, 3).map(v => parseFloat(v));
+                    return null;
+                };
+                const ton = (c, f) => 'rgb(' + c.map(v => Math.round(f >= 0 ? v + (255 - v) * f : v * (1 + f))).join(',') + ')';
+                const saeulen = [];
+                chart.data.datasets.forEach((ds, di) => {
+                    if (!chart.isDatasetVisible(di)) return;
+                    chart.getDatasetMeta(di).data.forEach((el, i) => {
+                        const v = ds.data[i];
+                        if (v === null || v === undefined || !isFinite(el.x) || !isFinite(el.y) || !isFinite(el.base)) return;
+                        saeulen.push(el);
+                    });
+                });
+                // links nach rechts, gestapelt von unten nach oben – so verdecken sich die Blöcke richtig
+                saeulen.sort((a, b) => (a.x - b.x) || (stacked ? (b.y - a.y) : 0));
+                ctx.save();
+                saeulen.forEach(el => {
+                    const farbe = rgb(el.options && el.options.backgroundColor);
+                    const w = el.width, oben = Math.min(el.y, el.base), unten = Math.max(el.y, el.base);
+                    if (!farbe || !(w > 1) || unten - oben < 0.5) return;
+                    const x0 = el.x - w / 2, x1 = el.x + w / 2;
+                    const d = Math.max(3, Math.min(9, w * 0.32)), dy = d * 0.6;
+                    ctx.beginPath();
+                    ctx.moveTo(x1, oben); ctx.lineTo(x1 + d, oben - dy); ctx.lineTo(x1 + d, unten - dy); ctx.lineTo(x1, unten); ctx.closePath();
+                    ctx.fillStyle = ton(farbe, -0.38); ctx.fill();
+                    ctx.beginPath();
+                    ctx.moveTo(x0, oben); ctx.lineTo(x0 + d, oben - dy); ctx.lineTo(x1 + d, oben - dy); ctx.lineTo(x1, oben); ctx.closePath();
+                    ctx.fillStyle = ton(farbe, 0.32); ctx.fill();
+                    const g = ctx.createLinearGradient(x0, 0, x1, 0);
+                    g.addColorStop(0, ton(farbe, 0.18)); g.addColorStop(0.55, ton(farbe, 0)); g.addColorStop(1, ton(farbe, -0.12));
+                    ctx.fillStyle = g; ctx.fillRect(x0, oben, w, unten - oben);
+                });
+                ctx.restore();
+            }
+        });
     }
 </script>
 <script>
@@ -1015,10 +1523,27 @@
         }
     }
 
-    const kgMonatstrendGrafikVerisi = kgFallbackArray('{{ monatstrend_grafik_verisi | tojson }}', [0, 2500, 5200, 7800, 10000]);
+    const kgMonatstrendGrafikVerisi = kgFallbackArray('{{ (monatstrend_echt or monatstrend_grafik_verisi) | tojson }}', [0, 2500, 5200, 7800, 10000]);
+    const kgMonatstrendTage = kgFallbackArray('{{ (monatstrend_tage or []) | tojson }}', []);
+    const kgMonatstrendTageImMonat = Number('{{ monatstrend_tage_im_monat or 0 }}') || new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getDate();
     const kgJahresGrafikVerisi = kgFallbackArray('{{ jahres_grafik_verisi | tojson }}', [10000, 12000, 11000, 13000, 15000, 14000, 14500, 15200, 16000, 17000, 18000, 19000]);
     const kgKundenGrafikVerisi = kgFallbackArray('{{ kunden_grafik_verisi | tojson }}', [12, 18, 24, 30, 34, 38, 44, 50, 56, 63, 70, 76]);
     const kgPersonelGrafikVerisi = kgFallbackArray('{{ personel_grafik_verisi | tojson }}', [4, 5, 6, 7, 8, 8, 9, 10, 11, 12, 13, 14]);
+    // Bestand je Monat (Kunden/Mitarbeiter) und Bilanz – echte Werte aus der Datenbank
+    const kgKundenBestand = kgFallbackArray('{{ (kunden_bestand_verisi or []) | tojson }}', []);
+    const kgPersonalBestand = kgFallbackArray('{{ (personal_bestand_verisi or []) | tojson }}', []);
+    const kgBilanzEinnahmen = kgFallbackArray('{{ (bilanz_einnahmen_verisi or []) | tojson }}', []);
+    const kgBilanzAusgaben = kgFallbackArray('{{ (bilanz_ausgaben_verisi or []) | tojson }}', []);
+    const kgAkquiseAnrufe = kgFallbackArray('{{ (akquise_anrufe_verisi or []) | tojson }}', []);
+    const kgAkquisePortfolio = kgFallbackArray('{{ (akquise_portfolio_verisi or []) | tojson }}', []);
+    const kgAkquiseBesichtigung = kgFallbackArray('{{ (akquise_besichtigung_verisi or []) | tojson }}', []);
+    const kgAkquiseVertraege = kgFallbackArray('{{ (akquise_vertraege_verisi or []) | tojson }}', []);
+    const kgAngebotListe = {{ (angebot_liste or []) | tojson }};
+    function kgObergrenze(werte) {
+        const zahlen = werte.filter(v => typeof v === 'number');
+        const max = zahlen.length ? Math.max.apply(null, zahlen) : 0;
+        return Math.max(5, Math.ceil(max * 1.25));
+    }
     const kgTodoKwLabels = kgFallbackArray('{{ todo_kw_labels | tojson }}', ['KW 01', 'KW 02', 'KW 03', 'KW 04', 'KW 05', 'KW 06', 'KW 07', 'KW 08']);
     const kgTodoErledigtVerisi = kgFallbackArray('{{ todo_erledigt_verisi | tojson }}', [2, 4, 3, 5, 6, 4, 7, 5]);
     const kgTodoOffenVerisi = kgFallbackArray('{{ todo_offen_verisi | tojson }}', [5, 3, 4, 2, 1, 3, 2, 4]);
@@ -1129,55 +1654,71 @@
     initDashboardHideSystem();
 
     // GRAFİKLER (Verilere dokunulmadı)
-    // 📈 MONATSTREND - RAKAM GÖSTERME (TOOLTIP) AKTİF
-new Chart(document.getElementById('monthlyTrendChart'), { 
-    type: 'line', 
-    data: { 
-        labels: ['Start', 'W1', 'W2', 'W3', 'Aktuell'], 
-        datasets: [{ 
-            label: 'Umsatz (€)', 
-            data: kgMonatstrendGrafikVerisi, 
-            borderColor: '#1e40af', 
-            backgroundColor: 'rgba(30, 64, 175, 0.1)', 
-            fill: true, 
-            tension: 0.4,
-            pointRadius: 5,         // Noktaları belirginleştirdik
-            pointHoverRadius: 8     // Mouse üzerine gelince nokta büyür
-        }] 
-    }, 
-    options: { 
-        responsive: true, 
-        maintainAspectRatio: false, 
-        interaction: {
-            intersect: false,       // Tam noktanın üstünde olmasan da yakalar
-            mode: 'index',
-        },
-        plugins: { 
-            legend: { display: false },
-            tooltip: { 
-                enabled: true,      // 🚀 RAKAMLARI GÖSTEREN AYAR BUDUR
-                backgroundColor: 'rgba(30, 64, 175, 0.9)',
-                titleFont: { size: 14, weight: 'bold' },
-                bodyFont: { size: 14 },
-                callbacks: {
-                    label: function(context) {
-                        // Rakamı 20.253,04 € formatına sokar
-                        return context.parsed.y.toLocaleString('de-DE', { minimumFractionDigits: 2 }) + ' €';
+    // 📈 MONATSTREND – Einnahmen Tag für Tag aufsummiert, gestrichelt die Hochrechnung bis Monatsende
+(function () {
+    const euro = v => Math.round(v).toLocaleString('de-DE') + ' €';
+    // ohne Tageswerte (z. B. andere Seite): nur der heutige Stand als ein Punkt
+    const kum = kgMonatstrendTage.length ? kgMonatstrendTage
+        : Array.from({ length: new Date().getDate() }, (_, i) => i === new Date().getDate() - 1 ? Number(kgMonatstrendGrafikVerisi[4] || 0) : null);
+    const heute = kum.length, tage = Math.max(kgMonatstrendTageImMonat, heute), stand = Number(kum[heute - 1] || 0);
+    const ende = heute ? Math.round(stand / heute * tage) : 0;
+    const labels = Array.from({ length: tage }, (_, i) => i + 1);
+    const prognose = labels.map(d => d < heute ? null : stand + (ende - stand) * (d - heute) / Math.max(1, tage - heute));
+    const zeigeHochrechnung = heute >= 5 && stand > 0 && tage > heute;
+
+    document.getElementById('mtSumme').textContent = euro(stand);
+    document.getElementById('mtUnter').textContent = 'bis heute (' + heute + '.)';
+    document.getElementById('mtHoch').textContent = zeigeHochrechnung ? 'Ende ≈ ' + euro(ende) : '';
+    document.getElementById('mtHoch').title = 'Hochrechnung: Durchschnitt je Tag bis heute × Tage im Monat';
+
+    const leuchten = { id: 'mtLeuchten',
+        beforeDatasetDraw(c, a) { if (a.index === 0) { c.ctx.save(); c.ctx.shadowColor = 'rgba(37,99,235,.55)'; c.ctx.shadowBlur = 12; } },
+        afterDatasetDraw(c, a) { if (a.index === 0) c.ctx.restore(); } };
+    const heutePunkt = { id: 'mtHeute', afterDatasetsDraw(c) {
+        const p = c.getDatasetMeta(0).data[heute - 1]; if (!p || p.skip) return; const x = c.ctx;
+        const farbe = (c.options.scales.y.ticks && c.options.scales.y.ticks.color) || '#0f1d4a';
+        x.save();
+        x.setLineDash([3, 3]); x.strokeStyle = 'rgba(100,116,139,.45)'; x.lineWidth = 1;
+        x.beginPath(); x.moveTo(p.x, p.y + 9); x.lineTo(p.x, c.chartArea.bottom); x.stroke(); x.setLineDash([]);
+        x.beginPath(); x.arc(p.x, p.y, 9, 0, 7); x.fillStyle = 'rgba(37,99,235,.18)'; x.fill();
+        x.beginPath(); x.arc(p.x, p.y, 4.5, 0, 7); x.fillStyle = '#ffffff'; x.fill(); x.lineWidth = 2.5; x.strokeStyle = '#2563eb'; x.stroke();
+        x.fillStyle = farbe; x.font = '900 10px Arial'; x.textAlign = 'center'; x.fillText('heute', p.x, c.chartArea.bottom - 4);
+        x.restore(); } };
+
+    new Chart(document.getElementById('monthlyTrendChart'), {
+        type: 'line',
+        plugins: [leuchten, heutePunkt],
+        data: { labels: labels, datasets: [
+            { label: 'Einnahmen', data: kum, borderColor: '#2563eb', borderWidth: 3, tension: 0.25, fill: true, pointRadius: 0, spanGaps: true,
+              backgroundColor: c => { const g = c.chart.ctx.createLinearGradient(0, c.chart.chartArea ? c.chart.chartArea.top : 0, 0, c.chart.chartArea ? c.chart.chartArea.bottom : 180);
+                  g.addColorStop(0, 'rgba(37,99,235,.33)'); g.addColorStop(1, 'rgba(37,99,235,0)'); return g; } },
+            { label: 'Hochrechnung', data: zeigeHochrechnung ? prognose : [], borderColor: '#94a3b8', borderDash: [5, 5], borderWidth: 2, fill: false,
+              pointRadius: c => c.dataIndex === tage - 1 ? 4 : 0, pointBackgroundColor: '#94a3b8' }
+        ] },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: { intersect: false, mode: 'index' },
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    backgroundColor: 'rgba(30, 64, 175, 0.92)',
+                    filter: item => item.raw !== null && item.raw !== undefined && !(item.datasetIndex === 1 && item.dataIndex === heute - 1),
+                    callbacks: {
+                        title: items => items.length ? items[0].label + '. ' + new Date().toLocaleDateString('de-DE', { month: 'long' }) : '',
+                        label: c => ' ' + (c.datasetIndex === 1 ? 'Hochrechnung ≈ ' : '') + c.parsed.y.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €'
                     }
                 }
-            }
-        },
-        scales: {
-            y: { 
-                beginAtZero: true,
-                ticks: { font: { weight: 'bold' } } 
             },
-            x: { 
-                ticks: { font: { weight: 'bold' } } 
+            scales: {
+                x: { grid: { display: false }, ticks: { autoSkip: false, maxRotation: 0, font: { weight: 'bold' },
+                    callback: (v, i) => [1, 8, 15, 22, 29].includes(i + 1) ? (i + 1) + '.' : '' } },
+                y: { beginAtZero: true, border: { display: false }, ticks: { font: { weight: 'bold' }, maxTicksLimit: 5,
+                    callback: v => v >= 1000 ? (v / 1000).toLocaleString('de-DE') + 'k' : v } }
             }
         }
-    } 
-});
+    });
+})();
 new Chart(document.getElementById('yearlyOverviewChart'), {
     type: 'bar',
     data: {
@@ -1185,7 +1726,8 @@ new Chart(document.getElementById('yearlyOverviewChart'), {
         datasets: [{
             label: 'Gesamtumsatz',
             data: kgJahresGrafikVerisi,
-            backgroundColor: '#1e40af',
+            // abwechselnd Blau / Grün, damit die 3D-Säulen gut zu unterscheiden sind
+            backgroundColor: kgJahresGrafikVerisi.map((_, i) => (i % 2 ? '#059669' : '#1e40af')),
             borderRadius: 5
         }]
     },
@@ -1218,7 +1760,7 @@ new Chart(document.getElementById('chart3'), {
         labels: ['Jan', 'Feb', 'Mär', 'Apr', 'Mai', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dez'],
         datasets: [{
             label: 'Kunden',
-            data: kgKundenGrafikVerisi,
+            data: kgKundenBestand.length ? kgKundenBestand : kgKundenGrafikVerisi,
             backgroundColor: '#059669',
             borderRadius: 5
         }]
@@ -1245,7 +1787,7 @@ new Chart(document.getElementById('chart3'), {
             }
         },
         scales: {
-            y: { min: 0, max: 150, ticks: { stepSize: 10 } }
+            y: { min: 0, suggestedMax: kgObergrenze(kgKundenBestand.length ? kgKundenBestand : kgKundenGrafikVerisi), ticks: { precision: 0 } }
         }
     }
 });
@@ -1255,7 +1797,7 @@ new Chart(document.getElementById('chart4'), {
         labels: ['Jan', 'Feb', 'Mär', 'Apr', 'Mai', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dez'],
         datasets: [{
             label: 'Mitarbeiter',
-            data: kgPersonelGrafikVerisi,
+            data: kgPersonalBestand.length ? kgPersonalBestand : kgPersonelGrafikVerisi,
             backgroundColor: '#6366f1',
             borderRadius: 5
         }]
@@ -1282,18 +1824,18 @@ new Chart(document.getElementById('chart4'), {
             }
         },
         scales: {
-            y: { min: 0, max: 100, ticks: { stepSize: 10 } }
+            y: { min: 0, suggestedMax: kgObergrenze(kgPersonalBestand.length ? kgPersonalBestand : kgPersonelGrafikVerisi), ticks: { precision: 0 } }
         }
     }
 });
-    new Chart(document.getElementById('chart5'), { type: 'doughnut', data: { labels: ['Bestätigt', 'Wartend', 'Nicht bestätigt'], datasets: [{ data: [1, 1, 1], backgroundColor: ['#10b981', '#6366f1', '#dc2626'] }] }, options: { responsive: true, maintainAspectRatio: false, animation: { animateRotate: true, animateScale: true, duration: 1400, easing: 'easeOutQuart' }, plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11, weight: 'bold' } } } } } });
+    new Chart(document.getElementById('chart5'), { type: 'doughnut', data: { labels: ['Bestätigt', 'Wartend', 'Nicht bestätigt'], datasets: [{ data: [{{ (angebot_zahlen or {}).get('bestaetigt', 0) }}, {{ (angebot_zahlen or {}).get('wartend', 0) }}, {{ (angebot_zahlen or {}).get('nicht', 0) }}], backgroundColor: ['#10b981', '#6366f1', '#dc2626'] }] }, options: { responsive: true, maintainAspectRatio: false, animation: { animateRotate: true, animateScale: true, duration: 1400, easing: 'easeOutQuart' }, plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11, weight: 'bold' } } } } } });
     new Chart(document.getElementById('chart6'), {
         type: 'bar',
         data: {
             labels: ['Jan', 'Feb', 'Mär', 'Apr', 'Mai', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dez'],
             datasets: [{
                 label: 'Anrufe',
-                data: [20, 45, 30, 60, 80, 50, 90, 110, 70, 100, 120, 140],
+                data: kgAkquiseAnrufe,
                 backgroundColor: '#db2777',
                 borderRadius: 5
             }]
@@ -1320,7 +1862,7 @@ new Chart(document.getElementById('chart4'), {
                 }
             },
             scales: {
-                y: { min: 0, max: 200, ticks: { stepSize: 20 } }
+                y: { min: 0, suggestedMax: kgObergrenze(kgAkquiseAnrufe), ticks: { precision: 0 } }
             }
         }
     });
@@ -1363,7 +1905,14 @@ let todoChart = new Chart(document.getElementById('chart7'), {
             x: { 
                 stacked: true,
                 grid: { display: false },
-                ticks: { autoSkip: false, maxRotation: 0 }
+                ticks: { autoSkip: false, maxRotation: 0, padding: 2, font: { size: 10 },
+                    // wenig Platz: nur die Nummer („40“ statt „KW 40“), damit nichts übereinander steht
+                    callback: function (wert) {
+                        const name = String(this.getLabelForValue(wert));
+                        const n = (this.chart.data.labels || []).length || 1;
+                        const breite = ((this.chart.chartArea && this.chart.chartArea.width) || this.chart.width || 0) / n;
+                        return breite >= 44 ? name : name.replace(/^KW\s*/i, '');
+                    } }
             }, 
             y: { 
                 stacked: true, 
@@ -1414,7 +1963,7 @@ window.ontouchend = () => clearInterval(scrollInterval);
 
 
     // BUCHHALTUNG GRAFİĞİ
-    new Chart(document.getElementById('chart8'), { type: 'bar', data: { labels: ['Jan', 'Feb', 'Mär', 'Apr', 'Mai', 'Jun'], datasets: [{ label: 'Einnahmen', data: [10000, 12000, 11000, 13000, 15000, 14000], backgroundColor: '#1e40af' }, { label: 'Ausgaben', data: [7000, 8000, 7500, 9000, 10000, 9500], backgroundColor: '#dc2626' }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } } });
+    new Chart(document.getElementById('chart8'), { type: 'bar', data: { labels: ['Jan', 'Feb', 'Mär', 'Apr', 'Mai', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dez'], datasets: [{ label: 'Einnahmen', data: kgBilanzEinnahmen, backgroundColor: kgBilanzEinnahmen.map((_, i) => (i % 2 ? '#059669' : '#1e40af')), barPercentage: 0.92, categoryPercentage: 0.9, grouped: false, order: 2 }, { label: 'Ausgaben', data: kgBilanzAusgaben, backgroundColor: '#dc2626', barPercentage: 0.5, categoryPercentage: 0.9, grouped: false, order: 1 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: true, position: 'bottom', labels: { boxWidth: 10, usePointStyle: true, font: { size: 11, weight: 'bold' } } }, tooltip: { callbacks: { label: function(context) { return context.dataset.label + ': ' + Number(context.parsed.y || 0).toLocaleString('de-DE', { minimumFractionDigits: 2 }) + ' €'; } } } } } });
 
 // ..........................................................................................................
 // ..........................................................................................................
@@ -1423,11 +1972,21 @@ window.ontouchend = () => clearInterval(scrollInterval);
 // ..........................................................................................................
 
 
-function updateClock() {
+function kalenderwoche(d) {
+        const t = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+        const wt = t.getUTCDay() || 7;
+        t.setUTCDate(t.getUTCDate() + 4 - wt);
+        const jahresanfang = new Date(Date.UTC(t.getUTCFullYear(), 0, 1));
+        return Math.ceil(((t - jahresanfang) / 86400000 + 1) / 7);
+    }
+
+    function updateClock() {
         const now = new Date();
         document.getElementById('digital-clock').textContent = String(now.getHours()).padStart(2, '0') + ":" + String(now.getMinutes()).padStart(2, '0');
-        const options = { day: '2-digit', month: '2-digit', year: 'numeric' };
-        document.getElementById('current-date').textContent = "Duisburg, " + now.toLocaleDateString('de-DE', options);
+        document.getElementById('kal-monat').textContent = now.toLocaleDateString('de-DE', { month: 'long' });
+        document.getElementById('kal-tag').textContent = now.getDate();
+        document.getElementById('kal-wt').textContent = now.toLocaleDateString('de-DE', { weekday: 'long' });
+        document.getElementById('current-date').textContent = "Duisburg\nKW " + kalenderwoche(now) + " · " + now.getFullYear();
     }
     setInterval(updateClock, 1000); updateClock();
 
@@ -1512,8 +2071,8 @@ function updateClock() {
                 'https://api.open-meteo.com/v1/forecast' +
                 '?latitude=51.4344' +
                 '&longitude=6.7623' +
-                '&current=temperature_2m,weather_code' +
-                '&daily=weather_code,temperature_2m_max,temperature_2m_min' +
+                '&current=temperature_2m,weather_code,apparent_temperature,relative_humidity_2m,wind_speed_10m' +
+                '&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,sunrise,sunset' +
                 '&forecast_days=7' +
                 '&timezone=Europe%2FBerlin'
             );
@@ -1523,6 +2082,7 @@ function updateClock() {
             }
 
             const data = await response.json();
+            window.kgWetter = data; // für das Detail-Fenster (Klick auf die Wetter-Box)
 
             const temp = Math.round(data.current.temperature_2m);
             const currentCode = Number(data.current.weather_code);
@@ -1532,10 +2092,10 @@ function updateClock() {
             const minTemp = Math.round(data.daily.temperature_2m_min[0]);
 
             document.getElementById('weather-desc').textContent =
-                currentWeather.germanDesc + " ";
+                currentWeather.germanDesc;
 
             document.getElementById('weather-temp').textContent =
-                temp + "°C";
+                temp + "°";
 
             document.getElementById('weather-icon').src =
                 currentWeather.iconPath;
@@ -1605,10 +2165,12 @@ function updateClock() {
 
         } catch (error) {
             document.getElementById('weather-desc').textContent = "Offline";
-            document.getElementById('weather-temp').textContent = "";
+            document.getElementById('weather-temp').textContent = "--°";
             document.getElementById('weather-icon').src = "/static/clouds.png";
             document.getElementById('weather-forecast-track').innerHTML = "";
         }
+        const wetterBox = document.querySelector('.index-wetter-gross');
+        if (wetterBox) wetterBox.classList.remove('wg-laedt');
     }
 
     fetchWeather();
@@ -1639,5 +2201,893 @@ const percent = kgTodoPercent;
     }
 
 </script>
+{% raw %}
+<script>
+/* ===== Startseite: gleich große obere Kacheln + Detail-Fenster (nur lesend, nur Anzeige) ===== */
+(function () {
+    'use strict';
+    const MON = ['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni', 'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember'];
+    const jetzt = new Date();
+    const euro = v => Number(v || 0).toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
+    const esc = v => String(v == null ? '' : v).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    const liste = (holen) => { try { const v = holen(); return Array.isArray(v) ? v : []; } catch (e) { return []; } };
+    const ruhig = () => !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+
+    // 0) Kleine Kästchen: glänzend (3D) mit Symbol; Beträge der ersten zwei Kacheln ebenfalls im Kästchen.
+    //    Zahlen-Elemente (z. B. #kgLhOffen) bleiben erhalten, nur Text und Symbol werden neu angeordnet.
+    (function kaestchen() {
+        const SYM = {
+            euro: '<path d="M4 10h12M4 14h9"/><path d="M19 6a7.7 7.7 0 0 0-5.2-2A7.9 7.9 0 0 0 6 12c0 4.4 3.5 8 7.8 8 2 0 3.8-.8 5.2-2"/>',
+            chart: '<path d="M3 3v18h18"/><path d="M7 16v-5M12 16V8M17 16v-9"/>',
+            ein: '<path d="M17 7 7 17M17 17H7V7"/>', aus: '<path d="M7 17 17 7M7 7h10v10"/>',
+            telefon: '<path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2z"/>',
+            ordner: '<path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.7-.9l-.8-1.2A2 2 0 0 0 7.9 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/>',
+            ort: '<path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/>',
+            vertrag: '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 18l2-2 2 2 3-3"/>',
+            senden: '<path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/>', ok: '<path d="M20 6 9 17l-5-5"/>',
+            uhr: '<circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>', x: '<path d="M18 6 6 18M6 6l12 12"/>',
+            liste: '<path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/>',
+            sonne: '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M6.3 17.7l-1.4 1.4M19.1 4.9l-1.4 1.4"/>',
+            warn: '<path d="m21.7 18-8-14a2 2 0 0 0-3.4 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.7-3Z"/><path d="M12 9v4M12 17h.01"/>',
+            personen: '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8"/>'
+        };
+        const NAME_SYM = { 'Anrufe': 'telefon', 'Portfolio': 'ordner', 'Besichtigung': 'ort', 'Verträge': 'vertrag', 'Gesendet': 'senden', 'Bestätigt': 'ok',
+            'Wartend': 'uhr', 'Nicht bestätigt': 'x', 'Offen': 'liste', 'Heute fällig': 'sonne', 'Überfällig': 'warn', 'Erledigt': 'ok' };
+        const FARBE = { blue: '#2563eb', green: '#059669', red: '#dc2626', purple: '#6d5df5', pink: '#db2777', gray: '#64748b' };
+        const symbol = k => { const i = document.createElement('i'); i.className = 'kgk-i'; i.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">' + (SYM[k] || SYM.liste) + '</svg>'; return i; };
+        const texte = el => Array.from(el.childNodes).filter(n => n.nodeType === 3);
+        try {
+            document.querySelectorAll('.dashboard-grid .dashboard-stat-item').forEach(el => {
+                if (el.classList.contains('kgk-k')) return;
+                const zahl = el.querySelector('span');
+                const name = texte(el).map(n => n.textContent).join(' ').trim();
+                texte(el).forEach(n => n.remove());
+                const em = document.createElement('em'); em.className = 'kgk-n'; em.textContent = name;
+                el.dataset.name = name;
+                el.prepend(symbol(NAME_SYM[name] || (zahl ? 'liste' : 'personen')), em);
+                if (zahl) zahl.classList.add('kgk-z'); else el.classList.add('ohne-zahl');
+                el.style.setProperty('--kf', FARBE[Object.keys(FARBE).find(c => el.classList.contains(c)) || 'blue']);
+                el.classList.add('kgk-k');
+            });
+            document.querySelectorAll('.dashboard-grid .accounting-pill').forEach(el => {
+                const ein = el.classList.contains('income'), periode = el.querySelector('.accounting-period'), betrag = el.querySelector('.accounting-amount');
+                if (!betrag) return;
+                const em = document.createElement('em'); em.className = 'kgk-n';
+                em.append((ein ? 'Einnahmen' : 'Ausgaben') + ' / ');
+                if (periode) em.append(periode);
+                texte(el).forEach(n => n.remove());
+                el.prepend(symbol(ein ? 'ein' : 'aus'), em);
+                betrag.classList.add('kgk-z');
+                el.style.setProperty('--kf', ein ? '#059669' : '#dc2626');
+                el.classList.add('kgk-k');
+            });
+            [['current-month-label', 'euro', '#2563eb'], ['current-year-label', 'chart', '#4f46e5']].forEach(x => {
+                const marke = document.getElementById(x[0]), karte = marke && marke.closest('.kpi-card'), w = karte && karte.querySelector('.card-value');
+                if (!w) return;
+                const z = document.createElement('span'); z.className = 'kgk-z'; z.textContent = w.textContent.trim();
+                w.textContent = ''; w.append(symbol(x[1]), z);
+                w.style.setProperty('--kf', x[2]);
+                w.classList.add('kgk-k', 'wert');
+            });
+        } catch (e) {}
+    })();
+
+    // 1) obere Kacheln gleich hoch
+    function gleich() {
+        const karten = Array.from(document.querySelectorAll('.dashboard-grid .kpi-card'));
+        karten.forEach(k => { k.style.height = ''; });
+        if (window.innerWidth <= 768 || !karten.length) return;
+        const h = Math.max.apply(null, karten.map(k => k.offsetHeight));
+        if (h > 0) karten.forEach(k => { k.style.height = h + 'px'; });
+    }
+    let warte = 0;
+    window.addEventListener('resize', () => { clearTimeout(warte); warte = setTimeout(gleich, 120); });
+    window.addEventListener('load', gleich);
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(gleich);
+    gleich();
+
+    // 1b) To-Do aus dem KG LifeHub: Kacheln + Grafik „Fällig – nächste 7 Tage“; ohne Antwort bleibt alles wie bisher
+    let lifehub = null;
+    (function lifehubLaden() {
+        if (!window.fetch) return;
+        fetch('/api/lifehub/startseite', { cache: 'no-store', credentials: 'same-origin' }).then(r => r.json()).then(d => {
+            const kacheln = document.getElementById('kgLhKacheln');
+            if (!d || !d.ok || !kacheln) return;
+            lifehub = d;
+            [['kgLhOffen', d.offen], ['kgLhHeute', d.heute_faellig], ['kgLhUeber', d.ueberfaellig], ['kgLhErledigt', d.erledigt]].forEach(x => { const el = document.getElementById(x[0]); if (el) el.textContent = String(x[1] || 0); });
+            const batterie = document.querySelector('.todo-battery-wrap');
+            if (batterie) batterie.style.display = 'none';
+            const altListe = document.getElementById('todoList');
+            if (altListe && !altListe.children.length) altListe.style.display = 'none';
+            kacheln.style.display = '';
+            const box = document.getElementById('kgLhGrafik'), c7 = document.getElementById('chart7'), alt = c7 && c7.closest('.chart-container-row');
+            if (box && alt && window.Chart) {
+                alt.style.display = 'none'; box.style.display = '';
+                const titel = box.parentElement.querySelector('.chart-title'); if (titel) titel.textContent = 'Fällig – nächste 7 Tage';
+                const tage = d.tage || [];
+                const WT = ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'];
+                const labels = ['Alt'].concat(tage.map(t => WT[new Date(t.datum + 'T12:00:00').getDay()]));
+                const voll = ['Überfällig'].concat(tage.map((t, i) => (i === 0 ? 'Heute, ' : i === 1 ? 'Morgen, ' : '') + new Date(t.datum + 'T12:00:00').toLocaleDateString('de-DE', { weekday: 'long', day: '2-digit', month: '2-digit' })));
+                const werte = [Number(d.ueberfaellig) || 0].concat(tage.map(t => Number(t.anzahl) || 0));
+                new Chart(document.getElementById('chartLh'), {
+                    type: 'bar',
+                    data: { labels: labels, datasets: [{ label: 'Aufgaben', data: werte, borderRadius: 5,
+                        backgroundColor: werte.map((_, i) => (i === 0 ? '#dc2626' : i === 1 ? '#d97706' : (i % 2 ? '#059669' : '#1e40af'))) }] },
+                    options: { responsive: true, maintainAspectRatio: false,
+                        plugins: { legend: { display: false }, tooltip: { callbacks: { title: items => voll[items[0].dataIndex] || '' } } },
+                        scales: { x: { grid: { display: false }, ticks: { autoSkip: false, maxRotation: 0, font: { size: 10 } } }, y: { beginAtZero: true, suggestedMax: 5, ticks: { precision: 0 } } } }
+                });
+            }
+            gleich();
+        }).catch(() => {});
+    })();
+
+    // 2) Detail-Fenster
+    function art(karte) {
+        if (karte.classList.contains('kgo-k') || karte.classList.contains('kgo-ort')) return 'objekt';
+        if (karte.classList.contains('index-kal-box')) return 'kalender';
+        if (karte.classList.contains('index-wetter-gross')) return 'wetter';
+        const t = ((karte.querySelector('.card-month-badge, .card-label') || {}).textContent || '').trim().toLowerCase();
+        if (karte.querySelector('#current-month-label')) return 'monat';
+        if (karte.querySelector('#current-year-label')) return 'jahr';
+        if (karte.querySelector('.accounting-lines')) return 'buch';
+        if (karte.querySelector('#todoBatteryFill')) return 'todo';
+        if (t.indexOf('telefon') === 0) return 'telefon';
+        if (t.indexOf('angebot') === 0) return 'angebot';
+        if (t.indexOf('aktive kunden') === 0) return 'kunden';
+        if (t.indexOf('aktive mitarbeiter') === 0) return 'personal';
+        return '';
+    }
+    function zeilen(werte, fmt, extra) {
+        const bis = jetzt.getMonth();
+        const max = Math.max.apply(null, werte.map(v => Math.abs(Number(v) || 0)).concat([1]));
+        let html = '';
+        for (let i = 0; i <= bis && i < 12; i++) {
+            const v = Number(werte[i]) || 0;
+            html += '<div class="kgx-zeile' + (i === bis ? ' akt' : '') + '"><span class="kgx-name">' + MON[i] + '</span>' +
+                '<span class="kgx-balken"><i style="width:' + Math.max(v / max * 100, v ? 2 : 0).toFixed(1) + '%"></i></span>' +
+                '<span class="kgx-wert">' + fmt(v) + (extra ? extra(i, v) : '') + '</span></div>';
+        }
+        return html;
+    }
+    function stat(karte) {
+        return Array.from(karte.querySelectorAll('.dashboard-stat-item')).map(el => {
+            const z = el.querySelector('span');
+            const name = (el.dataset.name || (el.childNodes[0] && el.childNodes[0].textContent) || '').trim();
+            const farbe = ['blue', 'green', 'purple', 'pink', 'red', 'gray'].find(c => el.classList.contains(c)) || 'blue';
+            return '<div class="kgx-kachel ' + farbe + '">' + esc(name) + '<b>' + esc(z ? z.textContent.trim() : '–') + '</b></div>';
+        }).join('');
+    }
+    function akquiseTabelle() {
+        const a = liste(() => kgAkquiseAnrufe), p = liste(() => kgAkquisePortfolio), b = liste(() => kgAkquiseBesichtigung), v = liste(() => kgAkquiseVertraege);
+        const bis = jetzt.getMonth(); let html = '<div class="kgx-tab"><div class="kgx-tz kopf"><span>Monat</span><span>Anrufe</span><span>Portfolio</span><span>Besicht.</span><span>Verträge</span></div>';
+        for (let i = bis; i >= 0; i--) {
+            html += '<div class="kgx-tz' + (i === bis ? ' akt' : '') + '"><span>' + MON[i] + '</span><span class="c-blue">' + (a[i] || 0) + '</span><span class="c-gray">' + (p[i] || 0) +
+                '</span><span class="c-purple">' + (b[i] || 0) + '</span><span class="c-pink">' + (v[i] || 0) + '</span></div>';
+        }
+        return html + '</div>';
+    }
+    // Feiertage NRW (Ostern nach Gauß)
+    function feiertage(jahr) {
+        const a = jahr % 19, b = Math.floor(jahr / 100), c = jahr % 100, d = Math.floor(b / 4), e = b % 4, f = Math.floor((b + 8) / 25),
+              g = Math.floor((b - f + 1) / 3), h = (19 * a + b - d - g + 15) % 30, i = Math.floor(c / 4), k = c % 4,
+              l = (32 + 2 * e + 2 * i - h - k) % 7, m = Math.floor((a + 11 * h + 22 * l) / 451),
+              monat = Math.floor((h + l - 7 * m + 114) / 31), tag = ((h + l - 7 * m + 114) % 31) + 1;
+        const plus = n => new Date(jahr, monat - 1, tag + n);
+        return [[new Date(jahr, 0, 1), 'Neujahr'], [plus(-2), 'Karfreitag'], [plus(1), 'Ostermontag'], [new Date(jahr, 4, 1), 'Tag der Arbeit'],
+                [plus(39), 'Christi Himmelfahrt'], [plus(50), 'Pfingstmontag'], [plus(60), 'Fronleichnam'], [new Date(jahr, 9, 3), 'Tag der Deutschen Einheit'],
+                [new Date(jahr, 10, 1), 'Allerheiligen'], [new Date(jahr, 11, 25), '1. Weihnachtstag'], [new Date(jahr, 11, 26), '2. Weihnachtstag']];
+    }
+    function kalenderInhalt() {
+        const n = new Date(), j = n.getFullYear(), mo = n.getMonth(), heute = n.getDate();
+        const schluessel = d => d.getFullYear() + '-' + d.getMonth() + '-' + d.getDate();
+        const fei = {}; feiertage(j).concat(feiertage(j + 1)).forEach(x => { fei[schluessel(x[0])] = x[1]; });
+        const tage = new Date(j, mo + 1, 0).getDate(), erster = (new Date(j, mo, 1).getDay() + 6) % 7;
+        let raster = '<div class="kgx-kal">' + ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'].map(t => '<span>' + t + '</span>').join('');
+        for (let i = 0; i < erster; i++) raster += '<i class="leer"></i>';
+        let arbeit = 0, arbeitRest = 0;
+        for (let t = 1; t <= tage; t++) {
+            const d = new Date(j, mo, t), wt = (d.getDay() + 6) % 7, name = fei[schluessel(d)];
+            const klasse = [t === heute ? 'heute' : '', name ? 'fei' : (wt >= 5 ? 'we' : ''), t < heute ? 'vorbei' : ''].filter(Boolean).join(' ');
+            if (wt < 5 && !name) { arbeit++; if (t >= heute) arbeitRest++; }
+            raster += '<i class="' + klasse + '"' + (name ? ' title="' + esc(name) + '"' : '') + '>' + t + '</i>';
+        }
+        raster += '</div>';
+        let naechster = null;
+        Object.keys(fei).forEach(k => { const [y, m, d] = k.split('-').map(Number), dat = new Date(y, m, d);
+            if (dat >= new Date(j, mo, heute) && (!naechster || dat < naechster[0])) naechster = [dat, fei[k]]; });
+        const inTagen = naechster ? Math.round((naechster[0] - new Date(j, mo, heute)) / 86400000) : 0;
+        const tagImJahr = Math.round((new Date(j, mo, heute) - new Date(j, 0, 1)) / 86400000) + 1, jahrTage = new Date(j, 1, 29).getMonth() === 1 ? 366 : 365;
+        const kw = kalenderwoche(n), wtName = n.toLocaleDateString('de-DE', { weekday: 'long' });
+        return {
+            over: 'Heute · KW ' + kw, titel: wtName + ', ' + heute + '. ' + MON[mo] + ' ' + j,
+            gross: String(n.getHours()).padStart(2, '0') + ':' + String(n.getMinutes()).padStart(2, '0') + ' Uhr',
+            unter: 'Duisburg · Tag ' + tagImJahr + ' von ' + jahrTage + ' · noch ' + (jahrTage - tagImJahr) + ' Tage im Jahr',
+            body: '<div class="kgx-kacheln" style="margin-bottom:12px">' +
+                  '<div class="kgx-kachel blue">Arbeitstage ' + esc(MON[mo]) + '<b>' + arbeit + '</b></div>' +
+                  '<div class="kgx-kachel green">Davon noch<b>' + arbeitRest + '</b></div>' +
+                  '<div class="kgx-kachel purple">Kalenderwoche<b>' + kw + '</b></div>' +
+                  '<div class="kgx-kachel pink">Nächster Feiertag<b style="font-size:17px">' + (naechster ? esc(naechster[1]) : '–') + '</b>' +
+                  (naechster ? '<span class="kgx-klein" style="color:rgba(255,255,255,.9)">' + naechster[0].toLocaleDateString('de-DE', { weekday: 'short', day: '2-digit', month: '2-digit' }) + (inTagen === 0 ? ' · heute' : ' · in ' + inTagen + ' Tagen') + '</span>' : '') + '</div></div>' +
+                  raster + '<div class="kgx-hinweis">Rot = Feiertag in NRW · Arbeitstage = Mo–Fr ohne Feiertage.</div>',
+            link: ['/kalender', 'Kalender öffnen']
+        };
+    }
+    function wetterInhalt() {
+        const w = window.kgWetter;
+        const tagName = ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'];
+        if (!w || !w.daily || typeof getWeatherDetails !== 'function') {
+            return { over: 'Wetter Duisburg', titel: 'Keine Wetterdaten', unter: 'Der Wetterdienst antwortet gerade nicht – später noch einmal öffnen.',
+                     body: '<div class="kgx-hinweis">Es werden nur Daten angezeigt, die gerade geladen sind.</div>', link: null };
+        }
+        const c = w.current || {}, d = w.daily, jetzt = getWeatherDetails(Number(c.weather_code));
+        const zeit = v => v ? String(v).slice(11, 16) : '–';
+        const tiefs = d.temperature_2m_min.map(Math.round), hochs = d.temperature_2m_max.map(Math.round);
+        const lo = Math.min(...tiefs), spanne = Math.max(1, Math.max(...hochs) - lo);
+        const regen = d.precipitation_probability_max || [];
+        let liste = '<div class="kgx-liste">';
+        d.time.forEach((t, i) => {
+            const dat = new Date(t + 'T12:00:00'), info = getWeatherDetails(Number(d.weather_code[i]));
+            liste += '<div class="kgx-zeile' + (i === 0 ? ' akt' : '') + '"><span class="kgx-name" style="width:128px">' + (i === 0 ? 'Heute' : tagName[dat.getDay()] + ' ' + dat.getDate() + '.' + (dat.getMonth() + 1) + '.') +
+                '<span class="kgx-klein">' + esc(info.germanDesc) + '</span>' + (regen[i] != null ? '<span class="kgx-klein">Regenrisiko ' + regen[i] + ' %</span>' : '') + '</span>' +
+                '<img class="kgx-wt-icon" src="' + info.iconPath + '" alt="">' +
+                '<span class="kgx-spanne"><i style="left:' + ((tiefs[i] - lo) / spanne * 100).toFixed(1) + '%;width:' + Math.max(6, (hochs[i] - tiefs[i]) / spanne * 100).toFixed(1) + '%"></i></span>' +
+                '<span class="kgx-wert" style="min-width:76px"><span class="kgx-minus">' + hochs[i] + '°</span> / <span style="color:#2563eb">' + tiefs[i] + '°</span></span></div>';
+        });
+        liste += '</div>';
+        const trocken = d.time.map((t, i) => [t, regen[i]]).filter(x => x[1] != null && x[1] < 30)
+            .map(x => tagName[new Date(x[0] + 'T12:00:00').getDay()]);
+        const tipp = !regen.length ? '' : (trocken.length ? 'Gute Tage für Fenster- und Außenarbeiten (Regenrisiko unter 30 %): <b>' + trocken.join(', ') + '</b>.'
+                                                           : 'Die ganze Woche Regenrisiko – Fenster- und Außenarbeiten flexibel planen.');
+        return {
+            over: 'Wetter Duisburg', titel: jetzt.germanDesc, gross: Math.round(c.temperature_2m) + ' °C',
+            unter: 'Heute ↑ ' + hochs[0] + '° ↓ ' + tiefs[0] + '° · Sonne ' + zeit(d.sunrise && d.sunrise[0]) + '–' + zeit(d.sunset && d.sunset[0]),
+            body: '<div class="kgx-kacheln" style="margin-bottom:12px">' +
+                  '<div class="kgx-kachel blue">Gefühlt<b>' + (c.apparent_temperature != null ? Math.round(c.apparent_temperature) + ' °C' : '–') + '</b></div>' +
+                  '<div class="kgx-kachel gray">Wind<b>' + (c.wind_speed_10m != null ? Math.round(c.wind_speed_10m) + ' km/h' : '–') + '</b></div>' +
+                  '<div class="kgx-kachel purple">Luftfeuchte<b>' + (c.relative_humidity_2m != null ? Math.round(c.relative_humidity_2m) + ' %' : '–') + '</b></div>' +
+                  '<div class="kgx-kachel ' + ((regen[0] || 0) >= 50 ? 'red' : 'green') + '">Regenrisiko heute<b>' + (regen[0] != null ? regen[0] + ' %' : '–') + '</b></div></div>' +
+                  liste + (tipp ? '<div class="kgx-hinweis">' + tipp + '</div>' : ''),
+            link: null
+        };
+    }
+
+    function inhalt(a, karte) {
+        if (a === 'objekt') return window.kgoInhalt ? window.kgoInhalt(karte) : null;
+        if (a === 'kalender') return kalenderInhalt();
+        if (a === 'wetter') return wetterInhalt();
+        const wert = ((karte.querySelector('.card-value') || {}).textContent || '').trim();
+        const jahr = liste(() => kgJahresGrafikVerisi);
+        const summe = jahr.slice(0, jetzt.getMonth() + 1).reduce((x, v) => x + (Number(v) || 0), 0);
+        const mitWert = jahr.slice(0, jetzt.getMonth() + 1).filter(v => Number(v) > 0);
+        if (a === 'monat' || a === 'jahr') {
+            const bester = jahr.reduce((b, v, i) => (Number(v) > Number(jahr[b] || 0) ? i : b), 0);
+            const vor = Number(jahr[jetzt.getMonth() - 1]) || 0;
+            return {
+                over: a === 'monat' ? MON[jetzt.getMonth()] + ' ' + jetzt.getFullYear() : 'Jahr ' + jetzt.getFullYear(),
+                titel: a === 'monat' ? 'Monatlicher Umsatz' : 'Aktueller Gesamtumsatz', gross: wert,
+                unter: a === 'monat' ? 'Vormonat ' + euro(vor) + ' · Ø je Monat ' + euro(mitWert.length ? summe / mitWert.length : 0)
+                                     : 'Bester Monat: ' + MON[bester] + ' (' + euro(jahr[bester]) + ') · Ø ' + euro(mitWert.length ? summe / mitWert.length : 0),
+                body: '<div class="kgx-liste">' + zeilen(jahr, euro) + '<div class="kgx-zeile summe"><span class="kgx-name">Summe</span><span class="kgx-balken" style="visibility:hidden"></span><span class="kgx-wert">' + euro(summe) + '</span></div></div>',
+                link: ['/buchhaltung', 'Buchhaltung öffnen']
+            };
+        }
+        if (a === 'buch') {
+            const ein = liste(() => kgBilanzEinnahmen), aus = liste(() => kgBilanzAusgaben);
+            const bis = jetzt.getMonth(); let html = '', se = 0, sa = 0;
+            for (let i = 0; i <= bis; i++) {
+                const e = Number(ein[i]) || 0, u = Number(aus[i]) || 0; se += e; sa += u;
+                html += '<div class="kgx-zeile' + (i === bis ? ' akt' : '') + '"><span class="kgx-name">' + MON[i] + '</span><span style="flex:1"><span class="kgx-klein">Einnahmen ' + euro(e) + ' · Ausgaben ' + euro(u) + '</span></span>' +
+                    '<span class="kgx-wert ' + (e - u >= 0 ? 'kgx-plus' : 'kgx-minus') + '">' + euro(e - u) + '<span class="kgx-klein">Gewinn</span></span></div>';
+            }
+            html += '<div class="kgx-zeile summe"><span class="kgx-name">Summe</span><span style="flex:1"><span class="kgx-klein">Einnahmen ' + euro(se) + ' · Ausgaben ' + euro(sa) + '</span></span><span class="kgx-wert">' + euro(se - sa) + '</span></div>';
+            return { over: 'Buchhaltung', titel: 'Bilanz ' + jetzt.getFullYear(), gross: euro(se - sa), unter: 'Gewinn Januar – heute (Einnahmen − gewerbliche Ausgaben)', body: '<div class="kgx-liste">' + html + '</div>', link: ['/buchhaltung', 'Buchhaltung öffnen'] };
+        }
+        if (a === 'todo' && lifehub) {
+            const tx = iso => { if (!iso) return 'Ohne Datum'; const d = Math.round((Date.parse(iso) - Date.parse(lifehub.heute)) / 86400000); return d === 0 ? 'Heute' : d === 1 ? 'Morgen' : d === -1 ? 'Gestern' : new Date(iso + 'T12:00:00').toLocaleDateString('de-DE', { weekday: 'short', day: '2-digit', month: '2-digit' }); };
+            const LH_HEX = { tomate: '#d50000', flamingo: '#e67c73', mandarine: '#f4511e', banane: '#f6bf26', salbei: '#33b679', basilikum: '#0b8043', pfau: '#039be5', heidelbeere: '#3f51b5', lavendel: '#7986cb', weintraube: '#8e24aa', graphit: '#616161' };
+            const LH_GR = { 'Steuern & Finanzamt': 'tomate', 'Bank & Zahlungen': 'banane', 'Büro & Verträge': 'pfau', 'Kunden & Angebote': 'basilikum', 'Privat': 'weintraube' };
+            const lhZeilen = (lifehub.naechste || []).map(t => {
+                const d = t.planned_date || t.due_date, zeit = String(t.planned_time || t.due_time || '').slice(0, 5);
+                const m = t.meta || {}, hex = LH_HEX[m.farbe] || LH_HEX[LH_GR[m.gruppe]] || '';
+                const ueber = t.is_overdue || (d && d < lifehub.heute);
+                return '<div class="kgx-zeile"><span class="kgx-name">' + esc(tx(d)) + '</span><span style="flex:1;min-width:0"><b>' + (hex ? '<i style="display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:7px;background:' + hex + '"></i>' : '') + esc(t.title) + '</b>' + (zeit || m.gruppe ? '<span class="kgx-klein">' + (zeit ? esc(zeit) + ' Uhr' : '') + (zeit && m.gruppe ? ' · ' : '') + (m.gruppe ? '<span style="color:' + (hex || '#64748b') + '">' + esc(m.gruppe) + '</span>' : '') + '</span>' : '') + '</span>' +
+                    '<span class="kgx-wert ' + (ueber ? 'kgx-minus' : '') + '" style="min-width:90px">' + (ueber ? 'Überfällig' : d === lifehub.heute ? 'Heute' : 'Offen') + '</span></div>';
+            }).join('');
+            return { over: 'To-Do Liste', titel: 'Aufgaben aus dem LifeHub', gross: lifehub.offen + ' offen', unter: lifehub.heute_faellig + ' heute fällig · ' + lifehub.ueberfaellig + ' überfällig',
+                body: '<div class="kgx-kacheln">' + stat(karte) + '</div><div class="kgx-liste" style="margin-top:12px">' + (lhZeilen || '<div class="kgx-zeile"><span class="kgx-klein">Nichts offen in den nächsten 14 Tagen.</span></div>') + '</div>',
+                link: ['/aufgaben', 'Aufgaben öffnen'] };
+        }
+        if (a === 'todo') {
+            const kw = liste(() => allLabels), er = liste(() => allErledigt), of = liste(() => allOffen);
+            let start = 0; try { start = Math.max(0, Number(currentIndex) || 0); } catch (e) {}
+            let html = '', se = 0, so = 0;
+            for (let i = start; i < Math.min(start + 5, kw.length); i++) {
+                const e = Number(er[i]) || 0, o = Number(of[i]) || 0; se += e; so += o;
+                html += '<div class="kgx-zeile"><span class="kgx-name">' + esc(kw[i]) + '</span><span class="kgx-balken"><i style="width:' + ((e + o) ? e / (e + o) * 100 : 0).toFixed(0) + '%;background:linear-gradient(90deg,#34d399,#059669)"></i></span><span class="kgx-wert">' + e + ' erledigt · <span class="kgx-minus">' + o + ' offen</span></span></div>';
+            }
+            const proz = ((document.getElementById('todoBatteryText') || {}).textContent || '').trim();
+            return { over: 'To-Do Liste', titel: 'Aufgaben nach Woche', gross: proz + ' erledigt', unter: se + ' erledigt · ' + so + ' offen in den angezeigten Wochen', body: '<div class="kgx-liste">' + html + '</div>', link: ['/todo', 'To-Do Liste öffnen'] };
+        }
+        if (a === 'telefon') {
+            return { over: 'Telefonakquise', titel: 'Akquise ' + MON[jetzt.getMonth()] + ' ' + jetzt.getFullYear(), gross: '', unter: 'Anrufe und Ergebnisse je Monat (Datenbank / Leon)',
+                body: '<div class="kgx-kacheln">' + stat(karte) + '</div>' + akquiseTabelle(),
+                link: ['/leon/gespraeche', 'Leon-Gespräche öffnen'] };
+        }
+        if (a === 'angebot') {
+            return { over: 'Angebot', titel: 'Angebote im Überblick', gross: '', unter: 'Alle Angebote mit Nummer, Stand und Betrag',
+                body: '<div class="kgx-kacheln">' + stat(karte) + '</div><div class="kgx-liste" id="kgxAngebotListe" style="margin-top:12px"></div>' +
+                      '<div class="kgx-hinweis">„Bestätigt“ kommt mit dem Schritt Auftrag → Kunde.</div>',
+                link: ['/datenbank', 'Datenbank öffnen'], nachher: angebotListe };
+        }
+        if (a === 'kunden' || a === 'personal') {
+            const w = liste(() => (a === 'kunden' ? kgKundenBestand : kgPersonalBestand));
+            const zahl = ((karte.querySelector('.dashboard-count-bubble') || {}).textContent || '').trim();
+            const plusminus = (i, v) => { if (i === 0) return ''; const d = v - (Number(w[i - 1]) || 0); return d ? '<span class="kgx-klein ' + (d > 0 ? 'kgx-plus' : 'kgx-minus') + '">' + (d > 0 ? '+' : '') + d + ' zum Vormonat</span>' : '<span class="kgx-klein">unverändert</span>'; };
+            return { over: a === 'kunden' ? 'Aktive Kunden' : 'Aktive Mitarbeiter', titel: a === 'kunden' ? 'Kundenbestand je Monat' : 'Personal je Monat', gross: zahl + (a === 'kunden' ? ' Kunden' : ' Mitarbeiter'), unter: 'Stand am Monatsende ' + jetzt.getFullYear(),
+                body: w.length ? '<div class="kgx-liste">' + zeilen(w, v => String(v), plusminus) + '</div>' : '<div class="kgx-hinweis">Noch keine Daten.</div>',
+                link: a === 'kunden' ? ['/kunden', 'Kunden öffnen'] : ['/mitarbeiter', 'Personal öffnen'] };
+        }
+        return null;
+    }
+
+    function angebotListe(panel) {
+        const box = panel.querySelector('#kgxAngebotListe');
+        if (!box) return;
+        const alle = liste(() => kgAngebotListe);
+        if (!alle.length) { box.innerHTML = '<div class="kgx-zeile"><span class="kgx-klein">Noch keine Angebote mit Nummer.</span></div>'; return; }
+        const STAND = { wartend: ['Wartend', '#4f46e5', '#eef2ff'], bestaetigt: ['Bestätigt', '#059669', '#ecfdf5'], nicht: ['Nicht bestätigt', '#dc2626', '#fef2f2'] };
+        let summe = 0;
+        box.innerHTML = alle.map(l => {
+            const st = STAND[l.stand] || STAND.wartend;
+            if (l.stand === 'wartend') summe += Number(l.netto || 0);
+            return '<div class="kgx-zeile"><span style="flex:1;min-width:0"><b>AN-' + esc(l.nr || '–') + ' · ' + esc(l.firma || '–') + '</b><span class="kgx-klein">' + esc(l.ort || '') + (l.datum ? (l.ort ? ' · ' : '') + esc(l.datum) : '') + '</span></span>' +
+                '<span style="flex:none;font-size:11px;font-weight:800;padding:3px 9px;border-radius:999px;color:' + st[1] + ';background:' + st[2] + '">' + st[0] + '</span>' +
+                '<span class="kgx-wert" style="color:' + st[1] + '">' + euro(l.netto) + '<span class="kgx-klein">netto</span></span></div>';
+        }).join('') + '<div class="kgx-zeile summe"><span style="flex:1">Summe wartend</span><span class="kgx-wert">' + euro(summe) + '</span></div>';
+    }
+
+    let offen = null;
+    function oeffnen(karte) {
+        if (offen) return;
+        const daten = inhalt(art(karte), karte);
+        if (!daten) return;
+        const r = karte.getBoundingClientRect(), vw = window.innerWidth, vh = window.innerHeight;
+        const w = Math.min(600, vw - 24), h = Math.min(Math.round(vh * 0.86), 720);
+        const ziel = { top: Math.round((vh - h) / 2), left: Math.round((vw - w) / 2), width: w, height: h };
+        const hinter = document.createElement('div'); hinter.className = 'kgx-hinter';
+        const panel = document.createElement('section'); panel.className = 'kgx-panel'; panel.setAttribute('role', 'dialog'); panel.setAttribute('aria-modal', 'true');
+        panel.innerHTML = '<div class="kgx-inhalt"><div class="kgx-kopf"><button type="button" class="kgx-zu" aria-label="Schließen">✕</button>' +
+            '<div class="kgx-over">' + esc(daten.over) + '</div><h2 class="kgx-titel">' + esc(daten.titel) + '</h2>' +
+            (daten.gross ? '<div class="kgx-gross">' + esc(daten.gross) + '</div>' : '') + (daten.unter ? '<div class="kgx-unter">' + esc(daten.unter) + '</div>' : '') + '</div>' +
+            '<div class="kgx-body">' + daten.body + '</div>' + (daten.link ? '<div class="kgx-fuss"><a href="' + daten.link[0] + '">' + esc(daten.link[1]) + '</a></div>' : '') + '</div>';
+        Object.assign(panel.style, { top: ziel.top + 'px', left: ziel.left + 'px', width: ziel.width + 'px', height: ziel.height + 'px' });
+        document.body.appendChild(hinter); document.body.appendChild(panel);
+        karte.style.visibility = 'hidden';
+        offen = { karte: karte, panel: panel, hinter: hinter };
+        if (typeof daten.nachher === 'function') { try { daten.nachher(panel); } catch (e) {} }
+        hinter.addEventListener('click', () => schliessen());
+        panel.querySelector('.kgx-zu').addEventListener('click', () => schliessen());
+        if (!ruhig() && panel.animate) {
+            panel.animate([{ top: r.top + 'px', left: r.left + 'px', width: r.width + 'px', height: r.height + 'px', borderRadius: '20px' },
+                           { top: ziel.top + 'px', left: ziel.left + 'px', width: ziel.width + 'px', height: ziel.height + 'px', borderRadius: '28px' }], { duration: 560, easing: 'cubic-bezier(.22,1,.36,1)' });
+            panel.querySelector('.kgx-inhalt').animate([{ opacity: 0 }, { opacity: 0, offset: 0.35 }, { opacity: 1 }], { duration: 620, easing: 'ease' });
+            hinter.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 420, easing: 'ease' });
+        }
+    }
+    function schliessen() {
+        if (!offen) return;
+        const o = offen; offen = null;
+        const fertig = () => { o.panel.remove(); o.hinter.remove(); o.karte.style.visibility = ''; };
+        if (ruhig() || !o.panel.animate) { fertig(); return; }
+        const a = o.panel.getBoundingClientRect(), r = o.karte.getBoundingClientRect();
+        const ani = o.panel.animate([{ top: a.top + 'px', left: a.left + 'px', width: a.width + 'px', height: a.height + 'px', borderRadius: '28px', opacity: 1 },
+                                     { top: r.top + 'px', left: r.left + 'px', width: r.width + 'px', height: r.height + 'px', borderRadius: '20px', opacity: 0.85 }], { duration: 480, easing: 'cubic-bezier(.4,0,.2,1)', fill: 'forwards' });
+        o.panel.querySelector('.kgx-inhalt').animate([{ opacity: 1 }, { opacity: 0 }], { duration: 170, fill: 'forwards' });
+        o.hinter.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 480, fill: 'forwards' });
+        let erledigt = false; const einmal = () => { if (!erledigt) { erledigt = true; fertig(); } };
+        ani.onfinish = einmal; setTimeout(einmal, 650);
+    }
+    document.addEventListener('keydown', e => { if (offen && e.key === 'Escape') schliessen(); });
+    window.kgxOeffnen = oeffnen; // Objekte-Kasten nutzt dasselbe Detail-Fenster
+    document.querySelectorAll('.index-kal-box, .index-wetter-gross').forEach(box => box.addEventListener('click', () => oeffnen(box)));
+    document.querySelectorAll('.dashboard-grid .kpi-card').forEach(karte => {
+        karte.addEventListener('click', e => {
+            if (e.target.closest('a, button, input, select, textarea')) return;
+            oeffnen(karte);
+        });
+    });
+})();
+</script>
+{% endraw %}
+{% raw %}
+<script>
+/* ===== Startseite: Auftritt wie bei der Datenbank (nur Anzeige, keine Daten werden geändert) ===== */
+(function () {
+    'use strict';
+    const h = document.documentElement;
+    if (!h.classList.contains('kg-st-warten')) return;   // reduzierte Bewegung oder Sicherheitsnetz schon gegriffen
+    const DAUER_ZAHL = 1500, DAUER_GRAFIK = 1700, STAFFEL = 90;
+
+    // Zahl im Text finden („12.200,00 €“, „0%“, „16“) und deutsch formatiert hochzählen
+    function zaehlen(el, verzoegerung) {
+        const text = (el.textContent || '').trim();
+        const m = text.match(/^([^0-9-]*)(-?\d{1,3}(?:\.\d{3})+|-?\d+)(?:,(\d+))?(.*)$/);
+        if (!m) return;
+        const nk = m[3] ? m[3].length : 0;
+        const ziel = Number(m[2].replace(/\./g, '') + (nk ? '.' + m[3] : ''));
+        if (!isFinite(ziel) || ziel === 0) return;
+        const gruppe = m[2].indexOf('.') >= 0 || Math.abs(ziel) < 1000;
+        const fmt = v => m[1] + v.toLocaleString('de-DE', { minimumFractionDigits: nk, maximumFractionDigits: nk, useGrouping: gruppe }) + m[4];
+        let zuletzt = fmt(0);
+        el.textContent = zuletzt;
+        setTimeout(() => {
+            const start = performance.now();
+            function schritt(t) {
+                if (el.textContent !== zuletzt) return;          // ein anderes Skript hat die Zahl inzwischen neu gesetzt
+                const p = Math.min(1, (t - start) / DAUER_ZAHL);
+                zuletzt = p < 1 ? fmt(ziel * (1 - Math.pow(1 - p, 3))) : text;
+                el.textContent = zuletzt;
+                if (p < 1) requestAnimationFrame(schritt);
+            }
+            requestAnimationFrame(schritt);
+        }, verzoegerung);
+    }
+
+    // Akku der To-Do-Liste füllt sich mit
+    function akku(teil, verzoegerung) {
+        const fill = teil.querySelector('#todoBatteryFill');
+        if (!fill) return;
+        const ziel = Number(fill.style.getPropertyValue('--level')) || 0;
+        if (!ziel) return;
+        fill.style.setProperty('--level', 0);
+        setTimeout(() => {
+            const start = performance.now();
+            function schritt(t) {
+                const p = Math.min(1, (t - start) / DAUER_ZAHL);
+                fill.style.setProperty('--level', Math.round(ziel * (1 - Math.pow(1 - p, 3))));
+                if (p < 1) requestAnimationFrame(schritt);
+            }
+            requestAnimationFrame(schritt);
+        }, verzoegerung);
+    }
+
+    // Grafiken neu von null aufbauen, wenn ihre Kachel sichtbar wird
+    function grafiken(teil, verzoegerung) {
+        if (!window.Chart || !Chart.getChart) return;
+        teil.querySelectorAll('canvas').forEach(c => {
+            const ch = Chart.getChart(c);
+            if (!ch) return;
+            setTimeout(() => {
+                const bis = performance.now() + DAUER_GRAFIK + 200;
+                // Farbwechsel (Hell/Dunkel) springt sonst ans Ende – während des Aufbaus weich weiterlaufen lassen
+                if (!ch.$kgStUpdate) {
+                    const orig = ch.update.bind(ch);
+                    ch.$kgStUpdate = orig;
+                    ch.update = function (mode) { return (mode === 'none' && performance.now() < ch.$kgStBis) ? orig() : orig(mode); };
+                }
+                ch.$kgStBis = bis;
+                const anim = ch.options.animation;
+                const vorher = anim ? anim.duration : undefined;
+                if (anim) anim.duration = DAUER_GRAFIK;
+                ch.reset();
+                ch.update();
+                if (anim) setTimeout(() => { anim.duration = vorher; }, 50);
+            }, verzoegerung);
+        });
+    }
+
+    // Einblenden per Web-Animation (läuft auch weiter, wenn der Hell/Dunkel-Umschalter CSS-Animationen kurz anhält)
+    function einblenden(teil, verz) {
+        if (!teil.animate) return;
+        const a = teil.animate([{ opacity: 0, transform: 'translateY(18px) scale(0.985)' }, { opacity: 1, transform: 'none' }],
+                               { duration: 800, delay: verz, easing: 'cubic-bezier(0.22, 1, 0.36, 1)', fill: 'backwards' });
+        setTimeout(() => { if (a.playState !== 'finished') a.finish(); }, verz + 1600);   // nie unsichtbar hängen bleiben
+    }
+
+    function zeigen(teil, i) {
+        if (teil.classList.contains('kg-st-an')) return;
+        const verz = i * STAFFEL;
+        einblenden(teil, verz);
+        teil.classList.add('kg-st-an');
+        const start = verz + 220;
+        teil.querySelectorAll('.kgk-z, .card-value, .dashboard-count-bubble, .dashboard-stat-item > span, #todoBatteryText, .mt-rechts b')
+            .forEach(el => zaehlen(el, start));
+        akku(teil, start);
+        grafiken(teil, verz + 120);
+    }
+
+    function los() {
+        const teile = Array.from(document.querySelectorAll('.dashboard-grid > .module-container'));
+        const hoehe = window.innerHeight;
+        const sofort = teile.filter(t => t.getBoundingClientRect().top < hoehe * 0.95);
+        const spaeter = teile.filter(t => sofort.indexOf(t) < 0);
+        sofort.forEach((t, i) => zeigen(t, i));
+        h.classList.add('kg-st-bereit');
+        if (!spaeter.length) return;
+        if (!window.IntersectionObserver) { spaeter.forEach((t, i) => zeigen(t, i)); return; }
+        let welle = [], warte = null;
+        const io = new IntersectionObserver(eintraege => {
+            eintraege.forEach(e => { if (e.isIntersecting) { io.unobserve(e.target); welle.push(e.target); } });
+            clearTimeout(warte);
+            warte = setTimeout(() => {
+                welle.sort((a, b) => a.getBoundingClientRect().top - b.getBoundingClientRect().top || a.getBoundingClientRect().left - b.getBoundingClientRect().left);
+                welle.forEach((t, i) => zeigen(t, i));
+                welle = [];
+            }, 30);
+        }, { threshold: 0.18 });
+        spaeter.forEach(t => io.observe(t));
+    }
+
+    // sobald alles aufgebaut ist (Kacheln umgebaut, Grafiken erstellt) – ohne zusätzliche Wartezeit
+    const start = () => los();
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start); else start();
+})();
+</script>
+{% endraw %}
+
+{% raw %}
+<script>
+// Cockpit unter den 8 Kacheln: drei Rundinstrumente (Umsatz Monat, Jahresumsatz, Marge nach Lohn) und die Objekte
+// als Karten. Klick auf ein Objekt öffnet das Detail-Fenster mit Mitarbeitern, Stunden, Lohn und Ergebnis.
+// Das Auge legt einen Schleier darüber (im Laden sieht Kundschaft mit) – im Browser gemerkt.
+(function () {
+    const box = document.getElementById('kgoBox');
+    if (!box) return;
+    const SCHLUESSEL = 'kg_startseite_objekte_sichtbar';
+    const auge = document.getElementById('kgoAuge');
+    const AUGE_AN = auge.innerHTML;
+    const AUGE_ZU = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.8 10.8 0 0 1 12 19c-6.5 0-10.5-7-10.5-7a18.3 18.3 0 0 1 5.06-5.94"></path><path d="M9.9 4.24A10.9 10.9 0 0 1 12 4.99c6.5 0 10.5 7 10.5 7a18.5 18.5 0 0 1-2.2 3.02"></path><path d="M14.12 14.12A3 3 0 0 1 9.88 9.88"></path><path d="M3 3l18 18"></path></svg>';
+    const objekteEl = document.getElementById('kgoObjekte'), untenEl = document.getElementById('kgoUnten'), monatEl = document.getElementById('kgoMonat');
+    const [zurueck, weiter] = box.querySelectorAll('.kgo-monat button');
+    const MON = ['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni', 'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember'];
+    const ruhig = () => window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    const euro = v => Math.round(Number(v) || 0).toLocaleString('de-DE') + ' €';
+    const vz = v => (Math.round(v) > 0 ? '+' : Math.round(v) < 0 ? '−' : '') + euro(Math.abs(v));
+    const std = v => (Math.round((Number(v) || 0) * 10) / 10).toLocaleString('de-DE') + ' Std';
+    const prozent = (a, b) => (b > 0 ? Math.round(a / b * 100) : 0) + ' %';
+    const kurz = v => v === 0 ? '0' : v >= 1000 ? (v / 1000).toLocaleString('de-DE', { maximumFractionDigits: 1 }) + 'k' : String(Math.round(v));
+    let daten = null, laedt = false, alle = false, erstesMal = true;
+
+    function lesen() { try { return localStorage.getItem(SCHLUESSEL) !== '0'; } catch (e) { return true; } }
+    function merken(an) { try { localStorage.setItem(SCHLUESSEL, an ? '1' : '0'); } catch (e) {} }
+
+    // ---- Rundinstrument (SVG): Lünette, blaues Zifferblatt, leuchtender Bogen, Nadel
+    const A0 = 135, A1 = 405, CX = 130, CY = 130, R = 100;
+    let nr = 0;
+    const pt = (r, a) => [CX + r * Math.cos(a * Math.PI / 180), CY + r * Math.sin(a * Math.PI / 180)];
+    const bogen = (r, a, b) => { if (b - a < 0.01) b = a + 0.01; const p = pt(r, a), q = pt(r, b); return 'M' + p[0].toFixed(2) + ',' + p[1].toFixed(2) + ' A' + r + ',' + r + ' 0 ' + (b - a > 180 ? 1 : 0) + ' 1 ' + q[0].toFixed(2) + ',' + q[1].toFixed(2); };
+    function skala(x, teile) {
+        const roh = Math.max(x, 1) / teile, p = Math.pow(10, Math.floor(Math.log10(roh)));
+        const schritt = [1, 2, 2.5, 5, 10].map(f => f * p).find(v => v >= roh - 1e-9);
+        return { max: schritt * teile, schritt: schritt };
+    }
+    function uhrSvg(o) {
+        const id = 'kgoG' + (++nr), A = v => A0 + (A1 - A0) * Math.max(0, Math.min(v, o.max)) / o.max;
+        let s = '<svg viewBox="0 0 260 246" role="img" aria-label="' + esc(o.titel) + '"><defs>' +
+            '<linearGradient id="' + id + 'b" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset=".45" stop-color="#cbd5e1"/><stop offset=".55" stop-color="#94a3b8"/><stop offset="1" stop-color="#eef2f7"/></linearGradient>' +
+            '<radialGradient id="' + id + 'f" cx=".5" cy=".3" r=".78"><stop offset="0" stop-color="#ffffff"/><stop offset=".5" stop-color="#f1f5f9"/><stop offset="1" stop-color="#dbe4f0"/></radialGradient>' +
+            '<linearGradient id="' + id + 'a" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#1d4ed8"/><stop offset="1" stop-color="#60a5fa"/></linearGradient>' +
+            '<linearGradient id="' + id + 'n" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#1e3a8a"/><stop offset="1" stop-color="#2563eb"/></linearGradient>' +
+            '<filter id="' + id + 'g" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="3.2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>' +
+            '<filter id="' + id + 's" x="-30%" y="-30%" width="160%" height="160%"><feDropShadow dx="0" dy="8" stdDeviation="8" flood-color="#1e3a8a" flood-opacity=".22"/></filter>' +
+            '<filter id="' + id + 'd" x="-30%" y="-30%" width="160%" height="160%"><feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#0f172a" flood-opacity=".3"/></filter></defs>';
+        s += '<circle cx="' + CX + '" cy="' + CY + '" r="' + (R + 14) + '" fill="url(#' + id + 'b)" filter="url(#' + id + 's)"/>' +
+            '<circle cx="' + CX + '" cy="' + CY + '" r="' + (R + 8) + '" fill="#cbd5e1"/><circle cx="' + CX + '" cy="' + CY + '" r="' + (R + 6) + '" fill="url(#' + id + 'f)"/>';
+        s += '<path d="' + bogen(R - 10, A0, A1) + '" fill="none" stroke="#e2e8f0" stroke-width="10" stroke-linecap="round"/>';
+        (o.zonen || []).forEach(z => { s += '<path d="' + bogen(R - 10, A(z[0]), A(z[1])) + '" fill="none" stroke="' + z[2] + '" stroke-opacity=".35" stroke-width="10"/>'; });
+        s += '<path class="kgo-bogen" d="' + bogen(R - 10, A0, A0) + '" fill="none" stroke="url(#' + id + 'a)" stroke-width="10" stroke-linecap="round"/>';
+        for (let v = 0; v <= o.max + 1e-9; v += o.schritt / 2) {
+            const gross = Math.abs(v / o.schritt - Math.round(v / o.schritt)) < 1e-6, a = A(v), p = pt(R - 22, a), q = pt(R - (gross ? 34 : 28), a);
+            s += '<line x1="' + p[0].toFixed(2) + '" y1="' + p[1].toFixed(2) + '" x2="' + q[0].toFixed(2) + '" y2="' + q[1].toFixed(2) + '" stroke="#1e3a8a" stroke-opacity="' + (gross ? 1 : .5) + '" stroke-width="' + (gross ? 2.4 : 1.4) + '" stroke-linecap="round"/>';
+            if (gross) { const t = pt(R - 48, a); s += '<text x="' + t[0].toFixed(2) + '" y="' + (t[1] + 4).toFixed(2) + '" text-anchor="middle" font-size="11.5" font-weight="800" fill="#1e3a8a" font-family="Arial, sans-serif">' + esc(o.fmt(v)) + '</text>'; }
+        }
+        if (o.geist != null && o.geist > 0) {
+            const p = pt(R - 3, A(o.geist)), q = pt(R - 19, A(o.geist));
+            s += '<line x1="' + p[0].toFixed(2) + '" y1="' + p[1].toFixed(2) + '" x2="' + q[0].toFixed(2) + '" y2="' + q[1].toFixed(2) + '" stroke="#0ea5e9" stroke-width="4" stroke-linecap="round"><title>' + esc(o.geistText || '') + '</title></line>';
+        }
+        if (o.einheit) s += '<text x="' + CX + '" y="' + (CY + 68) + '" text-anchor="middle" font-size="10" font-weight="900" letter-spacing="2" fill="#1e3a8a" font-family="Arial, sans-serif">' + esc(o.einheit) + '</text>';
+        s += '<g class="kgo-nadel" transform="rotate(' + A0 + ' ' + CX + ' ' + CY + ')" filter="url(#' + id + 'd)"><path d="M' + (CX - 18) + ',' + (CY - 4.5) + ' L' + (CX + R - 20) + ',' + (CY - 1.2) + ' L' + (CX + R - 20) + ',' + (CY + 1.2) + ' L' + (CX - 18) + ',' + (CY + 4.5) + ' Z" fill="url(#' + id + 'n)"/></g>' +
+            '<circle cx="' + CX + '" cy="' + CY + '" r="12" fill="url(#' + id + 'b)"/><circle cx="' + CX + '" cy="' + CY + '" r="4.5" fill="#1e3a8a"/></svg>';
+        return s;
+    }
+    function uhrSetzen(el, anteil) {
+        const svg = el.querySelector('svg'); if (!svg) return;
+        const a = A0 + (A1 - A0) * Math.max(0, Math.min(anteil, 1.04));
+        svg.querySelector('.kgo-nadel').setAttribute('transform', 'rotate(' + a.toFixed(2) + ' ' + CX + ' ' + CY + ')');
+        svg.querySelector('.kgo-bogen').setAttribute('d', bogen(R - 10, A0, Math.min(a, A1)));
+    }
+    function uhrBauen(el, o) {
+        el.innerHTML = '<div class="kgo-ueber">' + esc(o.titel) + '</div>' + uhrSvg(o) +
+            '<div class="kgo-anzeige' + (o.klasse ? ' ' + o.klasse : '') + '"' + (o.zahl != null ? ' data-kgo-zahl="' + o.zahl + '"' + (o.vz ? ' data-kgo-vz="1"' : '') + (o.prozent ? ' data-kgo-p="1"' : '') : '') + '>' + esc(o.anzeige) + '</div>' +
+            '<div class="kgo-unter">' + o.unter + '</div>';
+        el._anteil = o.max > 0 ? Math.max(0, o.wert) / o.max : 0;
+        uhrSetzen(el, el._anteil);
+    }
+
+    // ---- Daten der Seite (Lexware-Umsatz wie in den Kacheln oben)
+    function seitenZahlen() {
+        const jahr = (typeof kgJahresGrafikVerisi !== 'undefined' && Array.isArray(kgJahresGrafikVerisi) ? kgJahresGrafikVerisi : []).map(v => Number(v) || 0);
+        const jetzt = new Date(), m = jetzt.getMonth();
+        const kum = typeof kgMonatstrendTage !== 'undefined' && Array.isArray(kgMonatstrendTage) ? kgMonatstrendTage : [];
+        const tage = typeof kgMonatstrendTageImMonat !== 'undefined' && kgMonatstrendTageImMonat ? kgMonatstrendTageImMonat : new Date(jetzt.getFullYear(), m + 1, 0).getDate();
+        const heute = kum.length || jetzt.getDate();
+        const monat = Math.max(jahr[m] || 0, kum.length ? Number(kum[kum.length - 1]) || 0 : 0);
+        const hoch = heute >= 5 && monat > 0 ? monat / heute * tage : 0;
+        const voll = jahr.slice(0, m);
+        const mitWert = voll.filter(v => v > 0);
+        const schnitt = mitWert.length ? mitWert.reduce((a, b) => a + b, 0) / mitWert.length : 0;
+        const summe = voll.reduce((a, b) => a + b, 0) + monat;
+        const hochJahr = voll.reduce((a, b) => a + b, 0) + Math.max(hoch, monat) + schnitt * (11 - m);
+        return { m: m, jahr: jetzt.getFullYear(), heute: heute, tage: tage, monat: monat, hoch: hoch, vormonat: m > 0 ? jahr[m - 1] : 0,
+                 bester: Math.max.apply(null, jahr.slice(0, m + 1).concat([0])), summe: summe, hochJahr: hochJahr };
+    }
+
+    function uhrenZeichnen() {
+        const z = seitenZahlen();
+        document.getElementById('kgoStand').textContent = MON[z.m] + ' läuft · Tag ' + z.heute + ' von ' + z.tage;
+        const s1 = skala(Math.max(z.bester, z.hoch, z.monat, 1000) * 1.1, 6);
+        uhrBauen(document.getElementById('kgoU1'), {
+            titel: 'Umsatz ' + MON[z.m], wert: z.monat, max: s1.max, schritt: s1.schritt, fmt: kurz, einheit: 'EURO',
+            geist: z.hoch, geistText: 'Hochrechnung', anzeige: euro(z.monat), zahl: z.monat,
+            unter: (z.hoch ? 'Hochrechnung <b>≈ ' + euro(z.hoch) + '</b><br>' : '') + 'Vormonat ' + euro(z.vormonat)
+        });
+        const s2 = skala(Math.max(z.hochJahr, z.summe, 1000) * 1.08, 6);
+        uhrBauen(document.getElementById('kgoU2'), {
+            titel: 'Jahresumsatz ' + z.jahr, wert: z.summe, max: s2.max, schritt: s2.schritt, fmt: kurz, einheit: 'EURO',
+            geist: z.hochJahr, geistText: 'Hochrechnung Jahresende', anzeige: euro(z.summe), zahl: z.summe,
+            unter: 'Hochrechnung Jahresende <b>≈ ' + euro(Math.round(z.hochJahr / 100) * 100) + '</b>'
+        });
+        margeZeichnen();
+        if (!ruhig()) ['kgoU1', 'kgoU2'].forEach(x => uhrSetzen(document.getElementById(x), 0));
+    }
+    function margeZeichnen() {
+        const el = document.getElementById('kgoU3');
+        const s = daten && daten.summe;
+        const hat = s && s.objekte_zugeordnet > 0 && s.umsatz_zugeordnet > 0;
+        const p = hat ? s.ergebnis / s.umsatz_zugeordnet * 100 : 0;
+        uhrBauen(el, {
+            titel: 'Marge nach Lohn', wert: p, max: 100, schritt: 20, fmt: v => String(v), einheit: 'PROZENT',
+            zonen: [[0, 20, '#ef4444'], [20, 40, '#f59e0b'], [40, 100, '#10b981']],
+            anzeige: hat ? Math.round(p) + ' %' : '–', zahl: hat ? p : null, prozent: true, klasse: hat ? (p >= 0 ? 'plus' : 'minus') : '',
+            unter: !daten ? 'Lädt …' : hat ? 'Ergebnis <b>' + vz(s.ergebnis) + '</b> · ' + esc(daten.monat_name) + '<br>' + s.objekte_zugeordnet + ' von ' + daten.kunden.length + ' Objekten mit Einsatzort'
+                : 'Noch kein Einsatzort zugeordnet<br>Objekt antippen und Ort wählen'
+        });
+    }
+
+    // ---- Objekte als Karten
+    function ring(k) {
+        const C = 2 * Math.PI * 26;
+        if (k.ergebnis === null) return '<svg class="kgo-ring" viewBox="0 0 66 66" aria-hidden="true"><circle cx="33" cy="33" r="26" fill="none" stroke="#94a3b8" stroke-opacity=".45" stroke-width="7" stroke-dasharray="4 5"/><text x="33" y="38" text-anchor="middle" font-size="16" font-weight="900" fill="#94a3b8" font-family="Arial, sans-serif">?</text></svg>';
+        const p = k.umsatz > 0 ? k.ergebnis / k.umsatz * 100 : 0, f = p >= 40 ? '#10b981' : p >= 20 ? '#f59e0b' : '#ef4444';
+        return '<svg class="kgo-ring" viewBox="0 0 66 66" aria-hidden="true"><circle cx="33" cy="33" r="26" fill="none" stroke="#94a3b8" stroke-opacity=".25" stroke-width="7"/>' +
+            '<circle class="kgo-ring-wert" cx="33" cy="33" r="26" fill="none" stroke="' + f + '" stroke-width="7" stroke-linecap="round" transform="rotate(-90 33 33)" stroke-dasharray="' + C.toFixed(2) + '" stroke-dashoffset="' + (C * (1 - Math.max(0, Math.min(p, 100)) / 100)).toFixed(2) + '" data-ziel="' + (C * (1 - Math.max(0, Math.min(p, 100)) / 100)).toFixed(2) + '" data-voll="' + C.toFixed(2) + '"/>' +
+            '<text x="33" y="38.5" text-anchor="middle" font-size="15" font-weight="900" fill="currentColor" font-family="Arial, sans-serif">' + Math.round(p) + '%</text></svg>';
+    }
+    function objekteZeichnen() {
+        const d = daten;
+        monatEl.textContent = d.monat_name + (d.laeuft ? ' (läuft)' : '');
+        zurueck.disabled = d.monat <= d.min;
+        weiter.disabled = d.monat >= d.max;
+        const liste = d.kunden;
+        if (!liste.length) { objekteEl.innerHTML = '<div class="kgo-leer">Noch keine Bestandskunden mit Betrag je Monat.</div>'; untenEl.innerHTML = ''; return; }
+        const zeigen = alle ? liste : liste.slice(0, 8);
+        objekteEl.innerHTML = '';
+        zeigen.forEach((k, i) => {
+            const el = document.createElement('button');
+            el.type = 'button';
+            el.className = 'kgo-k' + (i === 0 && k.umsatz > 0 ? ' gold' : '');
+            const e = k.ergebnis;
+            el.innerHTML = ring(k) + '<span style="min-width:0">' +
+                '<span class="kgo-n">' + esc(k.firma) + '</span>' +
+                '<span class="kgo-b">' + euro(k.umsatz) + ' <small>/ Monat</small></span>' +
+                '<span class="kgo-zeile">' + (e === null ? '<span class="kgo-e">Ort zuordnen</span>' : '<span class="kgo-e ' + (e >= 0 ? 'plus' : 'minus') + '">' + vz(e) + '</span>') +
+                (e !== null && k.mitarbeiter.length ? '<span class="kgo-s">' + k.mitarbeiter.length + ' Pers. · ' + std(k.stunden) + '</span>' : '') + '</span></span>' +
+                '';
+            el.title = k.firma + ' · ' + euro(k.umsatz) + ' / Monat';
+            el._kgo = { typ: 'kunde', id: k.id };
+            el.addEventListener('click', () => window.kgxOeffnen && window.kgxOeffnen(el));
+            objekteEl.appendChild(el);
+        });
+        let h = '';
+        if (liste.length > 8) h += '<button type="button" class="kgo-mehr">' + (alle ? 'Weniger zeigen' : 'Alle ' + liste.length + ' Objekte zeigen') + '</button>';
+        if (d.offen.length) h += '<div class="kgo-offen"><small>Einsatzorte ohne Objekt</small>' + d.offen.map((o, i) => '<button type="button" class="kgo-ort" data-i="' + i + '">' + esc(o.ort) + ' · ' + std(o.stunden) + '</button>').join('') + '</div>';
+        untenEl.innerHTML = h;
+        const mehr = untenEl.querySelector('.kgo-mehr');
+        if (mehr) mehr.addEventListener('click', () => { alle = !alle; objekteZeichnen(); });
+        untenEl.querySelectorAll('.kgo-ort').forEach(b => {
+            b._kgo = { typ: 'ort', ort: d.offen[Number(b.dataset.i)] };
+            b.addEventListener('click', () => window.kgxOeffnen && window.kgxOeffnen(b));
+        });
+    }
+
+    // ---- Auftritt wie bei der Datenbank: Nadeln schwingen hoch, Zahlen laufen, Karten erscheinen nacheinander
+    const federnd = p => { const c1 = 1.2, c3 = c1 + 1; return 1 + c3 * Math.pow(p - 1, 3) + c1 * Math.pow(p - 1, 2); };
+    function auftritt(nurUnten) {
+        if (ruhig()) return;
+        const uhren = nurUnten ? [document.getElementById('kgoU3')] : ['kgoU1', 'kgoU2', 'kgoU3'].map(x => document.getElementById(x));
+        uhren.forEach((el, i) => {
+            const ziel = el._anteil || 0, t0 = performance.now() + i * 150, dauer = 1700;
+            uhrSetzen(el, 0);
+            const schritt = t => {
+                if (!el.isConnected) return;
+                const p = Math.max(0, Math.min(1, (t - t0) / dauer));
+                uhrSetzen(el, ziel * federnd(p));
+                if (p < 1) requestAnimationFrame(schritt);
+            };
+            requestAnimationFrame(schritt);
+        });
+        uhren.map(el => el.querySelector('[data-kgo-zahl]')).filter(Boolean).forEach(el => {
+            const ziel = Number(el.dataset.kgoZahl) || 0, t0 = performance.now(), dauer = 1600;
+            const fmt = v => el.dataset.kgoP === '1' ? Math.round(v) + ' %' : el.dataset.kgoVz === '1' ? vz(v) : euro(v);
+            const schritt = t => {
+                if (!el.isConnected) return;
+                const p = Math.min(1, (t - t0) / dauer);
+                el.textContent = fmt(ziel * (1 - Math.pow(1 - p, 3)));
+                if (p < 1) requestAnimationFrame(schritt);
+            };
+            requestAnimationFrame(schritt);
+        });
+        objekteEl.querySelectorAll('.kgo-k').forEach((el, i) => {
+            if (el.animate) el.animate([{ opacity: 0, transform: 'translateY(14px) scale(.97)' }, { opacity: 1, transform: 'none' }], { duration: 650, delay: 250 + i * 70, easing: 'cubic-bezier(.22,1,.36,1)', fill: 'backwards' });
+            const r = el.querySelector('.kgo-ring-wert');
+            if (r && r.animate) r.animate([{ strokeDashoffset: r.dataset.voll }, { strokeDashoffset: r.dataset.ziel }], { duration: 1300, delay: 350 + i * 70, easing: 'cubic-bezier(.22,1,.36,1)', fill: 'backwards' });
+        });
+    }
+    function zeigenWennSichtbar() {
+        if (ruhig()) return;
+        const r = box.getBoundingClientRect();
+        if (r.top < window.innerHeight * 0.85) { auftritt(false); return; }
+        box.classList.add('kgo-wartet');
+        ['kgoU1', 'kgoU2', 'kgoU3'].forEach(x => uhrSetzen(document.getElementById(x), 0));
+        const io = new IntersectionObserver(es => {
+            if (!es.some(x => x.isIntersecting)) return;
+            io.disconnect(); box.classList.remove('kgo-wartet'); auftritt(false);
+        }, { threshold: 0.2 });
+        io.observe(box);
+    }
+
+    // ---- Laden
+    function holen(monat) {
+        return fetch('/api/startseite/objekte' + (monat ? '?monat=' + encodeURIComponent(monat) : ''), { credentials: 'same-origin', headers: { Accept: 'application/json' } })
+            .then(r => r.json())
+            .then(d => { if (!d || !d.ok) throw new Error((d && d.error) || 'Fehler'); daten = d; return d; });
+    }
+    function laden(monat) {
+        if (laedt) return;
+        laedt = true;
+        holen(monat)
+            .then(() => {
+                objekteZeichnen();
+                margeZeichnen();
+                if (erstesMal) { erstesMal = false; zeigenWennSichtbar(); } else auftritt(true);
+            })
+            .catch(() => {
+                objekteEl.innerHTML = '<div class="kgo-leer">Objekte konnten nicht geladen werden.</div>';
+                if (erstesMal) { erstesMal = false; zeigenWennSichtbar(); }
+            })
+            .finally(() => { laedt = false; });
+    }
+    function sichtbar(an) {
+        box.classList.toggle('kgo-zu', !an);
+        auge.innerHTML = an ? AUGE_AN : AUGE_ZU;
+        auge.setAttribute('aria-pressed', an ? 'true' : 'false');
+    }
+
+    // ---- Detail-Fenster (gleiches Fenster wie Kalender, Wetter und Kacheln)
+    function nachSchliessen(fn) {
+        if (!document.querySelector('.kgx-panel')) { fn(); return; }
+        const mo = new MutationObserver(() => { if (!document.querySelector('.kgx-panel')) { mo.disconnect(); fn(); } });
+        mo.observe(document.body, { childList: true });
+    }
+    function speichern(panel, ort, kundeId) {
+        const body = panel.querySelector('.kgx-body');
+        const fehler = body.querySelector('.kgo-fehler');
+        body.querySelectorAll('button, select').forEach(x => { x.disabled = true; });
+        return fetch('/api/startseite/objekte/zuordnung', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json', Accept: 'application/json' }, body: JSON.stringify({ ort: ort, kunde_id: kundeId }) })
+            .then(r => r.json())
+            .then(r => { if (!r || !r.ok) throw new Error((r && r.error) || 'Fehler'); return holen(daten.monat); })
+            .then(() => { nachSchliessen(() => { objekteZeichnen(); margeZeichnen(); auftritt(true); }); return true; })
+            .catch(e => {
+                body.querySelectorAll('button, select').forEach(x => { x.disabled = false; });
+                if (fehler) { fehler.textContent = 'Nicht gespeichert: ' + e.message; fehler.hidden = false; }
+                return false;
+            });
+    }
+    function monatKurz() { return daten.monat_name.split(' ')[0]; }
+    function kundeBody(k) {
+        const mitOrt = k.orte.length > 0;
+        let h = '<div class="kgx-kacheln">' +
+            '<div class="kgx-kachel blue">Umsatz / Monat<b>' + euro(k.umsatz) + '</b></div>' +
+            '<div class="kgx-kachel red">Lohn ' + esc(monatKurz()) + '<b>' + (mitOrt ? euro(k.lohn) : '–') + '</b></div>' +
+            '<div class="kgx-kachel ' + (!mitOrt ? 'gray' : k.ergebnis >= 0 ? 'green' : 'red') + '">Ergebnis<b>' + (mitOrt ? vz(k.ergebnis) : '–') + '</b></div>' +
+            '<div class="kgx-kachel purple">Marge<b>' + (mitOrt ? prozent(k.ergebnis, k.umsatz) : '–') + '</b></div></div>';
+        h += '<h4 class="kgo-h">Mitarbeiter an diesem Objekt · ' + esc(daten.monat_name) + '</h4><div class="kgx-liste">';
+        if (!mitOrt) h += '<div class="kgx-zeile"><span class="kgx-klein">Erst unten einen Einsatzort aus dem Stundenzettel zuordnen – dann erscheinen Mitarbeiter, Stunden und Lohn.</span></div>';
+        else if (!k.mitarbeiter.length) h += '<div class="kgx-zeile"><span class="kgx-klein">Keine Stunden in diesem Monat.</span></div>';
+        else {
+            const max = Math.max.apply(null, k.mitarbeiter.map(m => m.stunden).concat([1]));
+            h += k.mitarbeiter.map(m => '<div class="kgx-zeile"><span class="kgx-name" style="width:160px">' + esc(m.name) +
+                '<span class="kgx-klein">' + m.satz.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' € / Std</span></span>' +
+                '<span class="kgx-balken"><i style="width:' + (m.stunden / max * 100) + '%"></i></span>' +
+                '<span class="kgx-wert">' + euro(m.lohn) + '<span class="kgx-klein">' + std(m.stunden) + '</span></span></div>').join('') +
+                '<div class="kgx-zeile summe"><span style="flex:1">Zusammen · ' + k.mitarbeiter.length + ' ' + (k.mitarbeiter.length === 1 ? 'Person' : 'Personen') + '</span>' +
+                '<span class="kgx-wert">' + euro(k.lohn) + '<span class="kgx-klein">' + std(k.stunden) + '</span></span></div>';
+        }
+        h += '</div><h4 class="kgo-h">Einsatzorte aus dem Stundenzettel</h4><div class="kgo-chips">' +
+            (k.orte.length ? k.orte.map((o, i) => '<span class="kgo-chip">' + esc(o) + '<button type="button" data-weg="' + i + '" title="Zuordnung lösen" aria-label="Zuordnung lösen">✕</button></span>').join('')
+                           : '<span class="kgx-klein">Noch keiner zugeordnet.</span>') + '</div>';
+        const passt = o => o.length > 2 && k.firma.toLowerCase().indexOf(o.toLowerCase()) >= 0;
+        const frei = daten.orte_alle.filter(o => o.kunde_id !== k.id)
+            .sort((a, b) => (passt(b.ort) - passt(a.ort)) || ((a.kunde_id ? 1 : 0) - (b.kunde_id ? 1 : 0)) || a.ort.localeCompare(b.ort, 'de'));
+        h += '<div class="kgo-wahl"><select aria-label="Einsatzort wählen"><option value="">Einsatzort hinzufügen …</option>' +
+            frei.map(o => '<option value="' + esc(o.ort) + '">' + (passt(o.ort) ? '★ ' : '') + esc(o.ort) + (o.kunde ? ' (jetzt bei ' + esc(o.kunde) + ')' : '') + '</option>').join('') +
+            '</select><button type="button" data-dazu>Zuordnen</button></div><div class="kgo-fehler" hidden></div>' +
+            '<p class="kgx-hinweis">Lohn = Stunden × Stundenlohn aus dem Stundenzettel (ohne Arbeitgeber-Abgaben). Material und Fahrten sind nicht abgezogen. Ein Einsatzort gehört immer zu genau einem Objekt.</p>';
+        return h;
+    }
+    function kundeBinden(panel, id) {
+        const k = daten.kunden.find(x => x.id === id);
+        if (!k) return;
+        const body = panel.querySelector('.kgx-body');
+        const neu = () => {
+            const k2 = daten.kunden.find(x => x.id === id);
+            if (!k2) { const zu = panel.querySelector('.kgx-zu'); if (zu) zu.click(); return; }
+            body.innerHTML = kundeBody(k2);
+            kundeBinden(panel, id);
+        };
+        body.querySelectorAll('[data-weg]').forEach(b => b.addEventListener('click', () => {
+            speichern(panel, k.orte[Number(b.dataset.weg)], null).then(ok => { if (ok) neu(); });
+        }));
+        const wahl = body.querySelector('.kgo-wahl select'), knopf = body.querySelector('[data-dazu]');
+        knopf.addEventListener('click', () => {
+            if (!wahl.value) { wahl.focus(); return; }
+            speichern(panel, wahl.value, id).then(ok => { if (ok) neu(); });
+        });
+    }
+    function ortInhalt(o) {
+        const passt = k => o.ort.length > 2 && k.firma.toLowerCase().indexOf(o.ort.toLowerCase()) >= 0;
+        const kunden = daten.kunden.slice().sort((a, b) => (passt(b) - passt(a)) || a.firma.localeCompare(b.firma, 'de'));
+        const body = '<div class="kgx-kacheln"><div class="kgx-kachel blue">Stunden<b>' + std(o.stunden) + '</b></div><div class="kgx-kachel red">Lohn<b>' + euro(o.lohn) + '</b></div></div>' +
+            '<h4 class="kgo-h">Zu welchem Objekt gehört dieser Ort?</h4><div class="kgo-wahl"><select aria-label="Objekt wählen"><option value="">Objekt wählen …</option>' +
+            kunden.map(k => '<option value="' + k.id + '">' + (passt(k) ? '★ ' : '') + esc(k.firma) + (k.ort ? ' · ' + esc(k.ort) : '') + '</option>').join('') +
+            '</select><button type="button" data-dazu>Zuordnen</button></div><div class="kgo-fehler" hidden></div>' +
+            '<p class="kgx-hinweis">Danach zählen Stunden und Lohn dieses Ortes zu dem Objekt – in jedem Monat.</p>';
+        return {
+            over: 'Einsatzort · ' + daten.monat_name, titel: o.ort, gross: std(o.stunden),
+            unter: o.mitarbeiter + ' Mitarbeiter · noch keinem Objekt zugeordnet', body: body,
+            nachher: panel => {
+                const b = panel.querySelector('.kgx-body'), wahl = b.querySelector('select');
+                b.querySelector('[data-dazu]').addEventListener('click', () => {
+                    if (!wahl.value) { wahl.focus(); return; }
+                    speichern(panel, o.ort, Number(wahl.value)).then(ok => { if (ok) { const zu = panel.querySelector('.kgx-zu'); if (zu) zu.click(); } });
+                });
+            }
+        };
+    }
+    window.kgoInhalt = function (karte) {
+        const info = karte._kgo;
+        if (!info || !daten || box.classList.contains('kgo-zu')) return null;
+        if (info.typ === 'ort') return ortInhalt(info.ort);
+        const k = daten.kunden.find(x => x.id === info.id);
+        if (!k) return null;
+        return {
+            over: 'Objekt · ' + daten.monat_name + (daten.laeuft ? ' (läuft)' : ''), titel: k.firma, gross: euro(k.umsatz) + ' / Monat',
+            unter: [k.ort, k.freq].filter(Boolean).join(' · '), body: kundeBody(k), nachher: panel => kundeBinden(panel, k.id)
+        };
+    };
+
+    function schritt(m, n) { const t = m.split('-').map(Number), d = new Date(t[0], t[1] - 1 + n, 1); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0'); }
+    zurueck.addEventListener('click', () => { if (daten && !zurueck.disabled) laden(schritt(daten.monat, -1)); });
+    weiter.addEventListener('click', () => { if (daten && !weiter.disabled) laden(schritt(daten.monat, 1)); });
+    auge.addEventListener('click', e => { e.preventDefault(); const an = box.classList.contains('kgo-zu'); merken(an); sichtbar(an); });
+
+    sichtbar(lesen());
+    uhrenZeichnen();
+    laden('');
+})();
+</script>
+{% endraw %}
 
 {% endblock %}

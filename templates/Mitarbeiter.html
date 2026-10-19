@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% block content %}
+<script src="{{ url_for('static', filename='kg_auftritt.js') }}" data-seite="mitarbeiter"></script>
 
 <style>
 .kg-mit-hero {
@@ -313,22 +314,23 @@
 ..........................................................................................................
 -->
 
-<div class="no-print kg-mit-hero">
+<link rel="stylesheet" href="/static/kg_seitenkopf.css">
+<div class="no-print kg-mit-hero kgs-kopf" data-kg-skip>
     <div>
-        <h2>Personal Stammdaten</h2>
+        <h2 data-kgs-eyebrow="KG Portal · Personal">Personal Stammdaten</h2>
         <p>Verwaltung der Mitarbeiter- und Abrechnungsdaten</p>
     </div>
 
     <div class="kg-mit-hero-actions">
-        <a href="https://chat.whatsapp.com/FNDtS0mJStA78WAND4XjZk" target="_blank" class="kg-mit-hero-btn whatsapp">
+        <a href="https://chat.whatsapp.com/FNDtS0mJStA78WAND4XjZk" target="_blank" class="kg-mit-hero-btn whatsapp kgs-btn gruen">
             <i class="fa-brands fa-whatsapp"></i> WhatsApp Gruppe
         </a>
 
-        <button onclick="openMitarbeiterPrintModal()" class="kg-mit-hero-btn print">
+        <button onclick="openMitarbeiterPrintModal()" class="kg-mit-hero-btn print kgs-btn">
     <i class="fa-solid fa-print"></i> Liste Drucken
 </button>
 
-        <button onclick="openNewMitarbeiterModal()" class="kg-mit-hero-btn new">
+        <button onclick="openNewMitarbeiterModal()" class="kg-mit-hero-btn new kgs-btn glas">
             <i class="fa-solid fa-user-plus"></i> Neuer Mitarbeiter
         </button>
     </div>

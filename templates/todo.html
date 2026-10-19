@@ -45,6 +45,7 @@
     .active-quartal { display: block !important; }
     .rotate-icon { transform: rotate(180deg); }
 </style>
+<link rel="stylesheet" href="/static/kg_seitenkopf.css">
 
 <!--
 ..........................................................................................................
@@ -56,9 +57,9 @@
 
 
 <div style="max-width: 900px; margin: 0 auto;">
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:30px;">
-        <h2 style="font-size: 32px; font-weight: 800; color: #1e40af; letter-spacing: -1px;">To-Do Liste</h2>
-        <span style="background: #eef2ff; color: #1e40af; padding: 8px 18px; border-radius: 12px; font-weight: 700;">{{ total_count }} Aufgaben</span>
+    <div class="kgs-kopf" data-kg-skip style="display:flex; justify-content:space-between; align-items:center; margin-bottom:30px;">
+        <h2 data-kgs-eyebrow="KG Portal · Planung" data-kgs-sub="Aufgaben mit Frist – nach Quartal geordnet" style="font-size: 32px; font-weight: 800; color: #1e40af; letter-spacing: -1px;">To-Do Liste</h2>
+        <span class="kgs-pill" style="background: #eef2ff; color: #1e40af; padding: 8px 18px; border-radius: 12px; font-weight: 700;">{{ total_count }} Aufgaben</span>
     </div>
 
     <form action="/todo/add" method="POST" class="todo-form-grid">

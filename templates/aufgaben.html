@@ -1,0 +1,363 @@
+{% extends "base.html" %}
+{% block content %}
+<script src="{{ url_for('static', filename='kg_auftritt.js') }}" data-seite="aufgaben"></script>
+<!-- Aufgaben: gleiche Daten und gleiches Aussehen wie im KG LifeHub („Aufgaben“). Gelesen/geschrieben wird über
+     /api/lifehub/… (lifehub_bruecke.py). Die alte To-Do-Liste unter /todo bleibt unverändert. -->
+<style>
+  .lh, .lh-panel { --navy:#16328f; --blau:#2563eb; --text:#0f1d4a; --grau:#64748b; --linie:#e6ecf5; font-family: Inter, "Segoe UI", Arial, sans-serif; color: var(--text); }
+  .lh * { box-sizing: border-box; }
+  .lh button { font-family: inherit; cursor: pointer; }
+  .lh-kopf { position: relative; overflow: hidden; border-radius: 28px; padding: 26px 28px 28px; color: #fff;
+    background: radial-gradient(120% 140% at 100% 0%, #3b82f6 0%, rgba(59,130,246,0) 55%), linear-gradient(135deg, #10286f 0%, #1d4ed8 70%, #2563eb 100%);
+    box-shadow: 0 18px 40px rgba(29,78,216,.22); }
+  .lh-zeile1 { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; }
+  .lh-icon { width: 58px; height: 58px; border-radius: 16px; display: grid; place-items: center; background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.22); }
+  .lh-kopf h1 { margin: 0; font-size: 34px; font-weight: 900; letter-spacing: -.02em; color: #fff !important; }
+  .lh-kopf p { margin: 4px 0 0; font-size: 14px; font-weight: 700; color: #dbeafe; }
+  .lh-pager { margin-left: auto; display: flex; align-items: center; gap: 10px; padding: 8px; min-width: 244px; border-radius: 16px; background: rgba(255,255,255,.10); border: 1px solid rgba(255,255,255,.22); }
+  .lh-pager b { flex: 1; text-align: center; font-size: 16px; font-weight: 900; }
+  .lh-pager button { width: 34px; height: 34px; border: 0; border-radius: 11px; display: grid; place-items: center; background: rgba(255,255,255,.14); color: #fff; font-size: 18px; font-weight: 900; }
+  .lh-pager button:disabled { opacity: .4; cursor: default; }
+  .lh-tabs { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 22px; }
+  .lh-tab { padding: 10px 14px; border-radius: 13px; font-size: 14px; font-weight: 800; color: #fff; background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.28); transition: background-color .15s; }
+  .lh-tab:hover { background: rgba(255,255,255,.18); }
+  .lh-tab.aktiv { background: #eef4ff; color: var(--navy); border-color: #eef4ff; }
+  .lh-tab.neu { background: #fff; color: var(--navy); border-color: #fff; display: inline-flex; align-items: center; gap: 8px; padding-right: 16px; }
+  .lh-kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-top: 20px; }
+  .lh-kpi { background: #fff; border: 1px solid var(--linie); border-radius: 22px; padding: 20px 22px; box-shadow: 0 8px 22px rgba(15,29,74,.05); }
+  .lh-kpi small { display: block; font-size: 11.5px; font-weight: 900; letter-spacing: .12em; color: #64748b; }
+  .lh-kpi b { display: block; margin-top: 8px; font-size: 30px; font-weight: 900; color: var(--text); line-height: 1; }
+  .lh-kpi b.rot { color: #dc2626; }
+  .lh-kpi i { display: block; margin-top: 10px; font-style: normal; font-size: 13px; font-weight: 700; color: var(--blau); }
+  .lh-suche { display: flex; align-items: center; gap: 14px; margin-top: 20px; }
+  .lh-feld { flex: 1; display: flex; align-items: center; gap: 10px; background: #fff; border: 1px solid var(--linie); border-radius: 16px; padding: 0 16px; }
+  .lh-feld input { flex: 1; min-width: 0; border: 0; outline: 0; background: transparent; padding: 13px 0; font-size: 15px; font-weight: 600; color: var(--text); font-family: inherit; }
+  .lh-zahl { font-size: 14px; font-weight: 800; color: var(--text); white-space: nowrap; }
+  .lh-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 16px; margin-top: 20px; }
+  .lh-karte { background: #fff; border: 1px solid var(--linie); border-radius: 22px; padding: 16px; box-shadow: 0 8px 22px rgba(15,29,74,.05); display: flex; flex-direction: column; cursor: pointer; transition: transform .25s, box-shadow .25s; }
+  .lh-karte:hover { transform: translateY(-2px); box-shadow: 0 14px 30px rgba(15,29,74,.10); }
+  .lh-oben { display: flex; gap: 12px; align-items: flex-start; min-height: 74px; }
+  .lh-av { flex: none; width: 48px; height: 48px; border-radius: 14px; display: grid; place-items: center; background: #eef4ff; color: var(--navy); font-weight: 900; font-size: 15px; }
+  .lh-titel { font-size: 15.5px; font-weight: 900; line-height: 1.32; color: var(--text); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .lh-karte.fertig .lh-titel { text-decoration: line-through; opacity: .6; }
+  .lh-badge { display: inline-block; margin-top: 6px; padding: 3px 9px; border-radius: 999px; font-size: 11.5px; font-weight: 800; }
+  .lh-badge.overdue { color: #dc2626; background: #fef2f2; }
+  .lh-badge.today { color: #b45309; background: #fffbeb; }
+  .lh-badge.open { color: #1d4ed8; background: #eff6ff; }
+  .lh-badge.done { color: #047857; background: #ecfdf5; }
+  .lh-chips { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-top: 12px; }
+  .lh-chip { border: 1px solid var(--linie); border-radius: 14px; padding: 9px 10px; min-width: 0; }
+  .lh-chip b { display: block; font-size: 14px; font-weight: 900; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .lh-chip small { display: block; margin-top: 2px; font-size: 11.5px; font-weight: 600; color: #64748b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .lh-strich { height: 5px; border-radius: 99px; background: #eef2f7; margin: 14px 0; overflow: hidden; }
+  .lh-strich i { display: block; height: 100%; border-radius: 99px; background: linear-gradient(90deg, #16328f, #3b82f6); }
+  .lh-fuss { display: flex; gap: 10px; align-items: center; margin-top: auto; }
+  .lh-auf { flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 44px; border: 0; border-radius: 14px; color: #fff; font-size: 15px; font-weight: 900; background: linear-gradient(135deg, #16328f, #1d4ed8); box-shadow: 0 8px 18px rgba(29,78,216,.22); }
+  .lh-ok { flex: none; width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; border: 1px solid var(--linie); background: #fff; color: #1d4ed8; transition: border-color .15s, color .15s; }
+  .lh-ok:hover { border-color: #34d399; color: #059669; }
+  .lh-ok.an { background: #10b981; border-color: #10b981; color: #fff; }
+  .lh-hinweis { margin-top: 20px; background: #fff; border: 1px dashed #cbd5e1; border-radius: 22px; padding: 46px 20px; text-align: center; }
+  .lh-hinweis b { display: block; font-size: 17px; font-weight: 900; } .lh-hinweis span { display: block; margin-top: 6px; color: #64748b; font-weight: 600; }
+  .lh-hinweis.fehler { border-color: #fecaca; background: #fff7f7; }
+  .lh-hinweis a, .lh-hinweis button { display: inline-block; margin-top: 14px; padding: 10px 16px; border: 0; border-radius: 12px; background: linear-gradient(135deg, #16328f, #2563eb); color: #fff; font-weight: 900; text-decoration: none; font-size: 14px; }
+  .lh-laden { height: 250px; border-radius: 22px; background: linear-gradient(90deg, #eef2f7 25%, #f8fafc 50%, #eef2f7 75%); background-size: 200% 100%; animation: lhLaden 1.2s infinite linear; }
+  @keyframes lhLaden { to { background-position: -200% 0; } }
+  .lh-wieder { margin-top: 18px; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+  .lh-wieder small { font-size: 12px; font-weight: 900; letter-spacing: .08em; color: #64748b; margin-right: 4px; }
+  .lh-wieder span { padding: 4px 11px; border-radius: 999px; background: #eff6ff; color: #1d4ed8; font-size: 12.5px; font-weight: 700; }
+  /* Fenster (Öffnen / Neue Aufgabe) */
+  .lh-hinter { position: fixed; inset: 0; z-index: 9998; background: rgba(15,23,42,.42); backdrop-filter: blur(4px); }
+  .lh-panel { position: fixed; z-index: 9999; overflow: hidden; border-radius: 26px; background: #fff; box-shadow: 0 30px 80px rgba(15,23,42,.35); display: flex; flex-direction: column; font-family: Inter, "Segoe UI", Arial, sans-serif; color: #0f1d4a; }
+  .lh-pkopf { position: relative; padding: 24px 26px; color: #fff; background: linear-gradient(135deg, #10286f, #2563eb); }
+  .lh-pkopf h2 { margin: 0; font-size: 23px; font-weight: 900; line-height: 1.25; color: #fff !important; padding-right: 44px; }
+  .lh-pkopf .lh-av { background: rgba(255,255,255,.16); color: #fff; margin-bottom: 12px; }
+  .lh-zu { position: absolute; top: 16px; right: 16px; width: 40px; height: 40px; border: 0; border-radius: 12px; background: rgba(255,255,255,.16); color: #fff; font-size: 18px; font-weight: 900; cursor: pointer; }
+  .lh-pbody { padding: 20px 26px; overflow: auto; flex: 1; }
+  .lh-pbody .lh-chips { margin-top: 0; }
+  .lh-notiz { margin-top: 16px; white-space: pre-wrap; background: #f8fafc; border-radius: 16px; padding: 14px 16px; font-size: 14.5px; line-height: 1.55; }
+  .lh-klein { margin-top: 16px; font-size: 11.5px; font-weight: 900; letter-spacing: .1em; color: #64748b; }
+  .lh-pfuss { display: flex; gap: 10px; padding: 16px 26px 22px; }
+  .lh-pfuss button { flex: 1; height: 46px; border: 0; border-radius: 14px; font-size: 15px; font-weight: 900; font-family: inherit; cursor: pointer; }
+  .lh-gruen { background: linear-gradient(135deg, #059669, #10b981); color: #fff; }
+  .lh-blau { background: linear-gradient(135deg, #16328f, #2563eb); color: #fff; }
+  .lh-hell { background: #eef4ff; color: #16328f; }
+  .lh-form label { display: block; margin-top: 12px; font-size: 12px; font-weight: 900; letter-spacing: .06em; color: #475569; }
+  .lh-form label:first-child { margin-top: 0; }
+  .lh-form input, .lh-form textarea { width: 100%; margin-top: 6px; padding: 12px 14px; border: 1px solid #dbe3ef; border-radius: 13px; font-size: 15px; font-family: inherit; color: #0f1d4a; outline: none; background: #fff; }
+  .lh-form input:focus, .lh-form textarea:focus { border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37,99,235,.15); }
+  .lh-form .zwei { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .lh-gchip { display: inline-flex; align-items: center; gap: 6px; max-width: 100%; margin-top: 6px; margin-left: 4px; padding: 3px 9px; border-radius: 999px; font-size: 11.5px; font-weight: 800; vertical-align: top; }
+  .lh-gchip i { flex: none; width: 8px; height: 8px; border-radius: 50%; }
+  .lh-gchip span { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+  .lh-wahl .lh-klein { margin: 14px 0 7px; }
+  .lh-grp { display: flex; flex-wrap: wrap; gap: 7px; }
+  .lh-grp button { display: inline-flex; align-items: center; gap: 7px; padding: 7px 11px; border-radius: 12px; font-size: 12.5px; font-weight: 800; border: 1px solid #e2e8f0; background: #fff; color: #334155; }
+  .lh-grp button i { width: 10px; height: 10px; border-radius: 50%; }
+  .lh-grp button.an { color: #fff; }
+  .lh-pal { display: flex; flex-wrap: wrap; gap: 9px; }
+  .lh-pal button { width: 28px; height: 28px; border-radius: 50%; border: 0; display: grid; place-items: center; color: #fff; font-weight: 900; font-size: 14px; transition: transform .15s; }
+  .lh-pal button:hover { transform: scale(1.1); }
+  .lh-meldung { margin-top: 12px; font-size: 13.5px; font-weight: 800; color: #dc2626; min-height: 18px; }
+  @media (max-width: 1750px) { .lh-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+  @media (max-width: 1300px) { .lh-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } .lh-kpis { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 860px) { .lh-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .lh-pager { margin-left: 0; width: 100%; } }
+  @media (max-width: 560px) { .lh-grid { grid-template-columns: 1fr; } .lh-kopf h1 { font-size: 28px; } }
+  /* Dunkelmodus */
+  html[data-kg-x="on"] .lh-kpi, html[data-kg-x="on"] .lh-karte, html[data-kg-x="on"] .lh-feld, html[data-kg-x="on"] .lh-hinweis, html[data-kg-x="on"] .lh-ok { background: #111a2e !important; border-color: #22304d !important; }
+  html[data-kg-x="on"] .lh-kpi b, html[data-kg-x="on"] .lh-titel, html[data-kg-x="on"] .lh-chip b, html[data-kg-x="on"] .lh-zahl, html[data-kg-x="on"] .lh-feld input, html[data-kg-x="on"] .lh-hinweis b { color: #e2e8f0 !important; }
+  html[data-kg-x="on"] .lh-chip { border-color: #22304d !important; }
+  html[data-kg-x="on"] .lh-av { background: #1e2b4a !important; color: #bfdbfe !important; }
+  html[data-kg-x="on"] .lh-strich { background: #1e293b !important; }
+</style>
+<div class="lh">
+  <section class="lh-kopf" data-kg-skip>
+    <div class="lh-zeile1">
+      <div class="lh-icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 17 2 2 4-4"/><path d="m3 7 2 2 4-4"/><path d="M13 6h8"/><path d="M13 12h8"/><path d="M13 18h8"/></svg></div>
+      <div><h1>Aufgaben</h1><p>Übersicht aller gemeinsamen Aufgaben · aus dem KG LifeHub</p></div>
+      <div class="lh-pager"><button type="button" id="lhZurueck" aria-label="Zurück">‹</button><b id="lhPagerText">Heute</b><button type="button" id="lhWeiter" aria-label="Weiter">›</button></div>
+    </div>
+    <div class="lh-tabs" id="lhTabs">
+      <button type="button" class="lh-tab neu" id="lhNeu"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Neue Aufgabe</button>
+    </div>
+  </section>
+  <div class="lh-kpis" id="lhKpis"></div>
+  <div class="lh-suche"><label class="lh-feld"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2.4" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input id="lhSuche" type="search" placeholder="Aufgabe suchen …" autocomplete="off"></label><div class="lh-zahl" id="lhZahl"></div></div>
+  <div id="lhListe"></div>
+  <div id="lhWieder"></div>
+  <div style="margin-top:18px;text-align:right"><a href="/todo" style="font-size:13px;font-weight:800;color:#2563eb;text-decoration:none">Alte To-Do-Liste (CRM) öffnen →</a></div>
+</div>
+{% raw %}
+<script>
+(function () {
+  const HORIZONTE = [['today', 'Heute'], ['this_week', 'Diese Woche'], ['month', 'Diesen Monat'], ['quarter', '3 Monate'], ['half_year', '6 Monate'], ['year', '1 Jahr'], ['two_years', '2 Jahre']];
+  const STATUS = { overdue: 'Überfällig', today: 'Heute', open: 'Offen', done: 'Erledigt' };
+  const $ = id => document.getElementById(id);
+  const esc = v => String(v == null ? '' : v).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  let h = new URLSearchParams(location.search).get('h') || 'today';
+  if (!HORIZONTE.some(x => x[0] === h)) h = 'today';
+  let daten = null, heute = new Date().toISOString().slice(0, 10), laufend = 0;
+
+  const ICON_AUF = '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg>';
+  const ICON_OK = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>';
+
+  // Gruppe und Farbe (wie Google Kalender) – gleiche Liste wie im LifeHub, gespeichert in task.meta
+  const FARBEN = [['tomate', 'Tomate', '#d50000'], ['flamingo', 'Flamingo', '#e67c73'], ['mandarine', 'Mandarine', '#f4511e'], ['banane', 'Banane', '#f6bf26'],
+    ['salbei', 'Salbei', '#33b679'], ['basilikum', 'Basilikum', '#0b8043'], ['pfau', 'Pfau', '#039be5'], ['heidelbeere', 'Heidelbeere', '#3f51b5'],
+    ['lavendel', 'Lavendel', '#7986cb'], ['weintraube', 'Weintraube', '#8e24aa'], ['graphit', 'Graphit', '#616161']];
+  const GRUPPEN = [['Steuern & Finanzamt', 'tomate'], ['Bank & Zahlungen', 'banane'], ['Büro & Verträge', 'pfau'], ['Kunden & Angebote', 'basilikum'], ['Privat', 'weintraube']];
+  const hexVon = k => (FARBEN.find(f => f[0] === k) || [])[2] || null;
+  const gruppeVon = t => (t.meta && t.meta.gruppe) || null;
+  const farbeVon = t => hexVon(t.meta && t.meta.farbe) || hexVon((GRUPPEN.find(g => g[0] === gruppeVon(t)) || [])[1]);
+  const gruppenChip = (name, hex) => '<span class="lh-gchip" style="background:' + hex + '18;color:' + hex + '"><i style="background:' + hex + '"></i><span>' + esc(name) + '</span></span>';
+  function auswahlHtml(w) {
+    return '<div class="lh-klein">GRUPPE</div><div class="lh-grp">' + GRUPPEN.map(g => {
+      const hex = hexVon(g[1]), an = w.gruppe === g[0];
+      return '<button type="button" data-gruppe="' + esc(g[0]) + '" class="' + (an ? 'an' : '') + '"' + (an ? ' style="background:' + hex + ';border-color:' + hex + '"' : '') + '><i style="background:' + (an ? '#fff' : hex) + '"></i>' + esc(g[0]) + '</button>';
+    }).join('') + '</div><div class="lh-klein">FARBE <span style="letter-spacing:0;font-weight:700">· aus der Gruppe, änderbar</span></div><div class="lh-pal">' + FARBEN.map(f =>
+      '<button type="button" data-farbe="' + f[0] + '" title="' + f[1] + '" aria-label="' + f[1] + '" style="background:' + f[2] + (w.farbe === f[0] ? ';box-shadow:0 0 0 2px #fff,0 0 0 4px ' + f[2] : '') + '">' + (w.farbe === f[0] ? '✓' : '') + '</button>').join('') + '</div>';
+  }
+  // Klicks in der Auswahl: Gruppe übernimmt ihre Farbe, Farbe einzeln änderbar (nochmal klicken = abwählen)
+  function auswahlKlick(e, w) {
+    const g = e.target.closest('[data-gruppe]'), f = e.target.closest('[data-farbe]');
+    if (g) { const name = g.dataset.gruppe; if (w.gruppe === name) w.gruppe = null; else { w.gruppe = name; w.farbe = (GRUPPEN.find(x => x[0] === name) || [])[1] || w.farbe; } return true; }
+    if (f) { w.farbe = w.farbe === f.dataset.farbe ? null : f.dataset.farbe; return true; }
+    return false;
+  }
+
+  const fertig = t => t.status === 'done';
+  const datumVon = t => t.planned_date || t.due_date || null;
+  const zeitVon = t => String(t.planned_time || t.due_time || '').slice(0, 5);
+  function statusVon(t) {
+    if (fertig(t)) return 'done';
+    const d = datumVon(t);
+    if (t.is_overdue || (d && d < heute)) return 'overdue';
+    if (d === heute) return 'today';
+    return 'open';
+  }
+  function tag(iso) {
+    const diff = Math.round((Date.parse(iso) - Date.parse(heute)) / 86400000);
+    if (diff === 0) return 'Heute'; if (diff === 1) return 'Morgen'; if (diff === -1) return 'Gestern';
+    const d = new Date(iso + 'T12:00:00');
+    return iso.slice(0, 4) === heute.slice(0, 4)
+      ? d.toLocaleDateString('de-DE', { weekday: 'short', day: '2-digit', month: '2-digit' })
+      : d.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
+  }
+  function kuerzel(titel) {
+    const w = String(titel || '').split(/\s+/).filter(x => /\p{L}/u.test(x));
+    return (((w[0] || '').match(/\p{L}/u) || [''])[0] + ((w[1] || '').match(/\p{L}/u) || [''])[0]).toUpperCase() || '•';
+  }
+  const kacheln = t => {
+    const d = datumVon(t);
+    const dritte = t.subtask_count ? [t.subtask_done_count + '/' + t.subtask_count, 'Schritte'] : [t.reminder_count ? String(t.reminder_count) : '–', 'Erinnerungen'];
+    return '<div class="lh-chips"><div class="lh-chip"><b>' + esc(d ? tag(d) : '–') + '</b><small>Datum</small></div><div class="lh-chip"><b>' + esc(zeitVon(t) || '–') + '</b><small>Uhrzeit</small></div><div class="lh-chip"><b>' + esc(dritte[0]) + '</b><small>' + dritte[1] + '</small></div></div>';
+  };
+
+  // Kopf: Reiter + Blättern
+  $('lhTabs').insertAdjacentHTML('beforeend', HORIZONTE.map(x => '<button type="button" class="lh-tab" data-h="' + x[0] + '">' + x[1] + '</button>').join(''));
+  $('lhTabs').addEventListener('click', e => { const b = e.target.closest('[data-h]'); if (b) wechseln(b.dataset.h); });
+  $('lhZurueck').onclick = () => wechseln(HORIZONTE[Math.max(0, index() - 1)][0]);
+  $('lhWeiter').onclick = () => wechseln(HORIZONTE[Math.min(HORIZONTE.length - 1, index() + 1)][0]);
+  const index = () => Math.max(0, HORIZONTE.findIndex(x => x[0] === h));
+  function kopf() {
+    document.querySelectorAll('#lhTabs [data-h]').forEach(b => b.classList.toggle('aktiv', b.dataset.h === h));
+    $('lhPagerText').textContent = HORIZONTE[index()][1];
+    $('lhZurueck').disabled = index() === 0; $('lhWeiter').disabled = index() === HORIZONTE.length - 1;
+  }
+  function wechseln(neu) {
+    h = neu; kopf();
+    try { const u = new URL(location.href); u.searchParams.set('h', h); history.replaceState(null, '', u); } catch (e) {}
+    laden();
+  }
+
+  function laden() {
+    const nr = ++laufend;
+    if (!daten) $('lhListe').innerHTML = '<div class="lh-grid">' + '<div class="lh-laden"></div>'.repeat(8) + '</div>';
+    fetch('/api/lifehub/aufgaben?h=' + encodeURIComponent(h), { cache: 'no-store', credentials: 'same-origin' })
+      .then(r => r.json().catch(() => ({ ok: false, fehler: 'Ungültige Antwort.' })))
+      .then(d => { if (nr !== laufend) return; if (!d.ok) throw new Error(d.fehler || 'LifeHub nicht erreichbar.'); daten = d; heute = d.heute || heute; zeigen(); })
+      .catch(err => {
+        if (nr !== laufend) return;
+        daten = null;
+        $('lhKpis').innerHTML = ''; $('lhZahl').textContent = ''; $('lhWieder').innerHTML = '';
+        $('lhListe').innerHTML = '<div class="lh-hinweis fehler"><b>LifeHub gerade nicht erreichbar</b><span>' + esc(err.message) + '</span><button type="button" id="lhNochmal">Erneut laden</button> <a href="/todo">Alte To-Do-Liste öffnen</a></div>';
+        $('lhNochmal').onclick = laden;
+      });
+  }
+
+  function zeigen() {
+    const alle = daten.aufgaben || [];
+    const ueber = (daten.ueberfaellig || []).length;
+    const offen = alle.filter(t => !fertig(t)).length, erledigt = alle.filter(fertig).length;
+    const heuteN = alle.filter(t => !fertig(t) && datumVon(t) === heute).length;
+    const kpi = (titel, zahl, unter, rot) => '<div class="lh-kpi"><small>' + titel + '</small><b' + (rot && zahl ? ' class="rot"' : '') + '>' + zahl + '</b><i>' + esc(unter) + '</i></div>';
+    $('lhKpis').innerHTML = kpi('OFFEN', offen, HORIZONTE[index()][1]) + kpi('HEUTE FÄLLIG', heuteN, 'für heute geplant') + kpi('ÜBERFÄLLIG', ueber, 'von früher offen', true) + kpi('ERLEDIGT', erledigt, erledigt + ' / ' + alle.length);
+    const q = $('lhSuche').value.trim().toLowerCase();
+    const gezeigt = q ? alle.filter(t => (t.title + ' ' + (t.description || '')).toLowerCase().includes(q)) : alle;
+    $('lhZahl').textContent = gezeigt.length + ' von ' + alle.length;
+    $('lhListe').innerHTML = gezeigt.length ? '<div class="lh-grid">' + gezeigt.map(t => {
+      const st = statusVon(t), fort = fertig(t) ? 100 : (t.subtask_count ? Math.round(t.subtask_done_count / t.subtask_count * 100) : 0);
+      const hex = farbeVon(t), gr = gruppeVon(t);
+      const kStil = hex ? ' style="background:linear-gradient(180deg,' + hex + '14,' + hex + '08);border-color:' + hex + '40"' : '';
+      return '<article class="lh-karte' + (fertig(t) ? ' fertig' : '') + '" data-id="' + esc(t.id) + '"' + kStil + '><div class="lh-oben"><div class="lh-av"' + (hex ? ' style="background:' + hex + ';color:#fff"' : '') + '>' + esc(kuerzel(t.title)) + '</div><div style="min-width:0"><div class="lh-titel">' + esc(t.title) + '</div><span class="lh-badge ' + st + '">' + STATUS[st] + '</span>' + (gr ? gruppenChip(gr, hex || '#2563eb') : '') + '</div></div>' +
+        kacheln(t) + '<div class="lh-strich"><i style="width:' + fort + '%' + (hex ? ';background:' + hex : '') + '"></i></div>' +
+        '<div class="lh-fuss"><button type="button" class="lh-auf">' + ICON_AUF + 'Öffnen</button><button type="button" class="lh-ok' + (fertig(t) ? ' an' : '') + '" data-ok="1" title="' + (fertig(t) ? 'Wieder öffnen' : 'Erledigt') + '" aria-label="' + (fertig(t) ? 'Wieder öffnen' : 'Erledigt') + '">' + ICON_OK + '</button></div></article>';
+    }).join('') + '</div>'
+      : '<div class="lh-hinweis"><b>Hier ist gerade nichts offen.</b><span>Mit „Neue Aufgabe“ anlegen – sie erscheint sofort auch im LifeHub.</span><button type="button" id="lhNeu2">+ Neue Aufgabe</button></div>';
+    if ($('lhNeu2')) $('lhNeu2').onclick = neueAufgabe;
+    const w = daten.wiederkehrend || [];
+    $('lhWieder').innerHTML = w.length ? '<div class="lh-wieder"><small>WIEDERKEHREND</small>' + w.map(p => '<span>' + esc(p.datum ? tag(p.datum) : '') + ' · ' + esc(p.title) + '</span>').join('') + '</div>' : '';
+  }
+
+  $('lhSuche').addEventListener('input', () => { if (daten) zeigen(); });
+  $('lhListe').addEventListener('click', e => {
+    const karte = e.target.closest('.lh-karte'); if (!karte || !daten) return;
+    const t = (daten.aufgaben || []).find(x => x.id === karte.dataset.id); if (!t) return;
+    if (e.target.closest('[data-ok]')) { e.stopPropagation(); umschalten(t, e.target.closest('[data-ok]')); return; }
+    oeffnen(t, karte);
+  });
+
+  function umschalten(t, knopf) {
+    if (knopf) knopf.disabled = true;
+    return fetch('/api/lifehub/aufgaben/' + encodeURIComponent(t.id) + '/' + (fertig(t) ? 'offen' : 'erledigt'), { method: 'POST', credentials: 'same-origin' })
+      .then(r => r.json()).then(d => { if (!d.ok) throw new Error(d.fehler || 'Fehler'); laden(); return true; })
+      .catch(err => { if (knopf) knopf.disabled = false; alert('Nicht gespeichert: ' + err.message); return false; });
+  }
+
+  // Fenster: wächst aus der Karte und schrumpft beim Schließen zurück
+  let offen = null;
+  function fenster(von, inhaltHtml, w, hoehe) {
+    if (offen) return null;
+    const vw = window.innerWidth, vh = window.innerHeight;
+    const ziel = { width: Math.min(w, vw - 24), height: Math.min(hoehe, vh - 24) };
+    ziel.left = Math.round((vw - ziel.width) / 2); ziel.top = Math.round((vh - ziel.height) / 2);
+    const hinter = document.createElement('div'); hinter.className = 'lh-hinter';
+    const panel = document.createElement('section'); panel.className = 'lh-panel'; panel.setAttribute('role', 'dialog'); panel.setAttribute('aria-modal', 'true');
+    panel.innerHTML = inhaltHtml;
+    Object.assign(panel.style, { top: ziel.top + 'px', left: ziel.left + 'px', width: ziel.width + 'px', height: ziel.height + 'px' });
+    document.body.appendChild(hinter); document.body.appendChild(panel);
+    const r = von ? von.getBoundingClientRect() : { left: vw / 2 - 40, top: vh / 2 - 40, width: 80, height: 80 };
+    const start = 'translate(' + (r.left - ziel.left) + 'px,' + (r.top - ziel.top) + 'px) scale(' + (r.width / ziel.width) + ',' + (r.height / ziel.height) + ')';
+    offen = { panel, hinter, start, von };
+    if (von) von.style.visibility = 'hidden';
+    if (panel.animate) {
+      panel.style.transformOrigin = '0 0';
+      panel.animate([{ transform: start, opacity: .6 }, { transform: 'none', opacity: 1 }], { duration: 520, easing: 'cubic-bezier(.22,1,.36,1)' });
+      hinter.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 300 });
+    }
+    hinter.onclick = schliessen;
+    panel.querySelector('.lh-zu').onclick = schliessen;
+    return panel;
+  }
+  function schliessen() {
+    if (!offen) return;
+    const o = offen; offen = null;
+    const ende = () => { o.panel.remove(); o.hinter.remove(); if (o.von) o.von.style.visibility = ''; };
+    if (o.panel.animate) {
+      o.panel.animate([{ transform: 'none', opacity: 1 }, { transform: o.start, opacity: .4 }], { duration: 380, easing: 'cubic-bezier(.4,0,.2,1)', fill: 'forwards' }).onfinish = ende;
+      o.hinter.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 380, fill: 'forwards' });
+    } else ende();
+  }
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') schliessen(); });
+
+  function oeffnen(t, karte) {
+    const st = statusVon(t), hex = farbeVon(t);
+    const w = { gruppe: gruppeVon(t), farbe: (t.meta && hexVon(t.meta.farbe)) ? t.meta.farbe : null };
+    const panel = fenster(karte,
+      '<div class="lh-pkopf"><button type="button" class="lh-zu" aria-label="Schließen">✕</button><div class="lh-av" id="lhPanelAv"' + (hex ? ' style="background:' + hex + '"' : '') + '>' + esc(kuerzel(t.title)) + '</div><h2>' + esc(t.title) + '</h2><span class="lh-badge ' + st + '" style="margin-top:10px">' + STATUS[st] + '</span>' + (t.visibility === 'private' ? ' <span class="lh-badge" style="margin-top:10px;background:rgba(255,255,255,.16);color:#fff">Privat</span>' : '') + '</div>' +
+      '<div class="lh-pbody">' + kacheln(t) + '<div class="lh-wahl" id="lhPanelWahl">' + auswahlHtml(w) + '</div>' + (t.description ? '<div class="lh-klein">NOTIZ</div><div class="lh-notiz">' + esc(t.description) + '</div>' : '') + '</div>' +
+      '<div class="lh-pfuss"><button type="button" class="' + (fertig(t) ? 'lh-hell' : 'lh-gruen') + '" data-umschalten="1">' + (fertig(t) ? 'Wieder öffnen' : '✓ Erledigt') + '</button><button type="button" class="lh-blau" data-schliessen="1">Schließen</button></div>',
+      600, t.description ? 680 : 560);
+    if (!panel) return;
+    const wahl = panel.querySelector('#lhPanelWahl');
+    wahl.addEventListener('click', e => {
+      if (!auswahlKlick(e, w)) return;
+      wahl.innerHTML = auswahlHtml(w);
+      const neuHex = hexVon(w.farbe) || hexVon((GRUPPEN.find(g => g[0] === w.gruppe) || [])[1]);
+      panel.querySelector('#lhPanelAv').style.background = neuHex || '';
+      fetch('/api/lifehub/aufgaben/' + encodeURIComponent(t.id) + '/farbe', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(w) })
+        .then(r => r.json()).then(d => { if (!d.ok) throw new Error(d.fehler || 'Fehler'); t.meta = Object.assign({}, t.meta, { gruppe: w.gruppe, farbe: w.farbe }); zeigen(); })
+        .catch(err => alert('Farbe nicht gespeichert: ' + err.message));
+    });
+    panel.querySelector('[data-schliessen]').onclick = schliessen;
+    panel.querySelector('[data-umschalten]').onclick = e => { umschalten(t, e.currentTarget).then(ok => { if (ok) schliessen(); }); };
+  }
+
+  function neueAufgabe() {
+    const panel = fenster($('lhNeu'),
+      '<div class="lh-pkopf"><button type="button" class="lh-zu" aria-label="Schließen">✕</button><h2>Neue Aufgabe</h2><div style="margin-top:4px;font-size:13px;font-weight:700;color:#dbeafe">Wird im KG LifeHub gespeichert</div></div>' +
+      '<form class="lh-pbody lh-form" id="lhForm"><label>TITEL<input name="titel" maxlength="300" required></label>' +
+      '<div class="zwei"><label>DATUM<input type="date" name="datum" value="' + heute + '"></label><label>UHRZEIT<input type="time" name="uhrzeit"></label></div>' +
+      '<div class="lh-wahl" id="lhNeuWahl"></div>' +
+      '<label>NOTIZ<textarea name="notiz" rows="3"></textarea></label><div class="lh-meldung" id="lhMeldung"></div></form>' +
+      '<div class="lh-pfuss"><button type="button" class="lh-hell" data-schliessen="1">Abbrechen</button><button type="button" class="lh-blau" id="lhSpeichern">Speichern</button></div>',
+      540, 690);
+    if (!panel) return;
+    const form = panel.querySelector('#lhForm');
+    const w = { gruppe: null, farbe: null }, wahl = panel.querySelector('#lhNeuWahl');
+    wahl.innerHTML = auswahlHtml(w);
+    wahl.addEventListener('click', e => { if (auswahlKlick(e, w)) wahl.innerHTML = auswahlHtml(w); });
+    setTimeout(() => form.titel.focus(), 300);
+    panel.querySelector('[data-schliessen]').onclick = schliessen;
+    const speichern = () => {
+      const titel = form.titel.value.trim();
+      if (!titel) { $('lhMeldung').textContent = 'Bitte einen Titel eingeben.'; return; }
+      const knopf = panel.querySelector('#lhSpeichern'); knopf.disabled = true; knopf.textContent = 'Speichert …';
+      fetch('/api/lifehub/aufgaben', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ titel, datum: form.datum.value, uhrzeit: form.uhrzeit.value, notiz: form.notiz.value, gruppe: w.gruppe, farbe: w.farbe }) })
+        .then(r => r.json()).then(d => { if (!d.ok) throw new Error(d.fehler || 'Fehler'); schliessen(); laden(); })
+        .catch(err => { knopf.disabled = false; knopf.textContent = 'Speichern'; $('lhMeldung').textContent = 'Nicht gespeichert: ' + err.message; });
+    };
+    panel.querySelector('#lhSpeichern').onclick = speichern;
+    form.addEventListener('submit', e => { e.preventDefault(); speichern(); });
+  }
+  $('lhNeu').onclick = neueAufgabe;
+
+  // Menüpunkt „To Do Liste“ hervorheben (die Seite liegt unter /aufgaben)
+  const menue = document.querySelector('[data-nav-key="todo"]'); if (menue) menue.classList.add('active');
+
+  kopf();
+  laden();
+})();
+</script>
+{% endraw %}
+{% endblock %}

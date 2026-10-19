@@ -823,7 +823,7 @@
                 <i class="fa-solid fa-grip-vertical portal-drag-handle"></i>
             </a>
 
-            <a class="portal-nav-item {% if request.path.startswith('/todo') or request.path == '/heute' %}active{% endif %}" href="/todo" data-nav-key="todo">
+            <a class="portal-nav-item {% if request.path.startswith('/todo') or request.path == '/heute' %}active{% endif %}" href=/aufgaben data-nav-key="todo">
                 <span class="portal-nav-content"><i class="fa-solid fa-clipboard-list icon-pink"></i> To Do Liste</span>
                 <i class="fa-solid fa-grip-vertical portal-drag-handle"></i>
             </a>
@@ -870,7 +870,7 @@
                 <i class="fa-solid fa-grip-vertical portal-drag-handle"></i>
             </a>
 
-            <a class="portal-nav-item {% if request.path.startswith('/angebotvorlage') %}active{% endif %}" href="/angebotvorlage" data-nav-key="angebot">
+            <a class="portal-nav-item {% if request.path.startswith('/angebot') %}active{% endif %}" href="/angebot/editor" data-nav-key="angebot">
                 <span class="portal-nav-content"><i class="fa-solid fa-file-signature icon-green"></i> Angebot</span>
                 <i class="fa-solid fa-grip-vertical portal-drag-handle"></i>
             </a>
@@ -880,7 +880,7 @@
                 <i class="fa-solid fa-grip-vertical portal-drag-handle"></i>
             </a>
 
-            <a class="portal-nav-item {% if request.path.startswith('/vertrag') %}active{% endif %}" href="/vertrag" data-nav-key="vertrag">
+            <a class="portal-nav-item {% if request.path.startswith('/vertrag') %}active{% endif %}" href="/vertrag/editor" data-nav-key="vertrag">
                 <span class="portal-nav-content"><i class="fa-solid fa-file-contract icon-green"></i> Vertrag</span>
                 <i class="fa-solid fa-grip-vertical portal-drag-handle"></i>
             </a>

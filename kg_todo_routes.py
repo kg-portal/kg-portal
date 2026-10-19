@@ -625,6 +625,12 @@ def register_kg_todo_routes(app, login_required, get_db_connection):
             generated_count=generated_count
         )
 
+    # Vorschau: neues Aussehen wie LifeHub „Aufgaben“ (nur Beispieldaten, ändert nichts)
+    @app.route("/todo/vorschau")
+    @login_required
+    def todo_vorschau():
+        return render_template("todo_vorschau.html")
+
     @app.route("/todo/add", methods=["POST"])
     @login_required
     def add_todo():

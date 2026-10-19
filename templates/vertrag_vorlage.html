@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reinigungsvertrag{% if Objekt %} – {{ Objekt }}{% endif %}</title>
+  <!-- Reinigungsvertrag nach dem Original „Vertrag_Vorlage.pdf“ (Stellen, Schrift, fett/blau, Logo, Stempel mit Unterschrift).
+       Platzhalter kommen aus vertrag_editor.vorlage_vars. -->
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; background: #dfe3e8; }
+    .page { width: 210mm; height: 297mm; margin: 18px auto; background: #fff; position: relative; overflow: hidden;
+             box-shadow: 0 8px 26px rgba(15, 23, 42, .22); font-family: Arial, "Liberation Sans", Helvetica, sans-serif;
+             font-size: 10pt; line-height: 4.9mm; color: #000; }
+    .abs { position: absolute; white-space: nowrap; }
+    .abs[style*="width"] { white-space: normal; }
+    .rechts { text-align: right; }
+    .mitte { left: 17.8mm; width: 176.8mm; text-align: center; white-space: normal; }
+    .zeilen42 { line-height: 4.2mm; }
+    .kopfzeile { font-size: 12pt; text-decoration: underline; }
+    .titel { font-size: 20pt; line-height: 8mm; font-weight: 700; text-decoration: underline; }
+    .bl { color: #0000ff; }
+    .seitennr { font-size: 12pt; }
+    .spalte { position: absolute; }
+    .spalte h2 { width: 173.8mm; font-size: 10pt; line-height: 4.9mm; font-weight: 700; text-align: center; }
+    .it { display: flex; }
+    .it > b { flex: none; width: 9.3mm; }
+    .it > p { flex: 1; margin: 0; text-align: justify; }
+    .preise { margin: 8.5mm 0 0 0.9mm; line-height: 4.2mm; }
+    .preis { display: grid; grid-template-columns: 85.7mm 43.1mm 23.5mm auto; }
+    .preis > span:first-child { padding-right: 3mm; }
+    .zahlung { margin-left: 10.3mm; line-height: 4.2mm; }
+    .strich { border-bottom: .35mm solid #000; line-height: 3.9mm; }
+    @page { size: A4 portrait; margin: 0; }
+    @media print {
+      body { background: #fff; }
+      .page { margin: 0; box-shadow: none; break-after: page; page-break-after: always; }
+      .page:last-of-type { break-after: auto; page-break-after: auto; }
+    }
+  </style>
+</head>
+<body>
+  <main class="page s1">
+    <div class="abs kopfzeile" style="left:19.3mm;top:11.6mm">KG-Gebäudereinigung - Duisburg</div>
+    <img class="abs" src="{{ url_for('static', filename='vertrag/kg_logo.jpg') }}" alt="KG-Gebäudereinigung" style="left:147.7mm;top:9.6mm;width:44.8mm;height:44.8mm">
+    <div class="abs rechts zeilen42" style="right:22.5mm;top:56.3mm">
+      <div><b>Kontakt:</b></div>
+      <div>Fliederstraße 59</div>
+      <div>47055 Duisburg</div>
+      <div>Telefon: 0203 47 96 68 22</div>
+      <div>Mobil: 0163 194 70 55</div>
+      <div>Email: <span class="bl">info@kg-reinigung.de</span></div>
+      <div>Webseite: <span class="bl">www.kg-reinigung.de</span></div>
+    </div>
+    <div class="abs zeilen42" style="left:17.8mm;top:94.0mm;width:80mm">
+      {% if Objekt %}<div>{{ Objekt }}</div>{% endif %}
+      {% if Kunde %}<div>{{ Kunde }}</div>{% endif %}
+      {% if Adresse %}<div>{{ Adresse }}</div>{% endif %}
+      <div>{{ Plz }} {{ Ort }}</div>
+    </div>
+    <div class="abs rechts" style="right:30.7mm;top:124.0mm">{{ Ort }}, {{ Datum }}</div>
+    <div class="abs mitte titel" style="top:136.1mm">Reinigungsvertrag</div>
+    <div class="abs mitte zeilen42" style="top:148.7mm">
+      <div>Zwischen</div>
+      <div>{{ Objekt }}</div>
+      <div>{{ Adresse }}</div>
+      <div>{{ Plz }} {{ Ort }}</div>
+    </div>
+    <div class="abs mitte" style="top:184.7mm">-nachfolgend Auftraggeber- genannt</div>
+    <div class="abs mitte" style="top:193.1mm">und</div>
+    <img class="abs" src="{{ url_for('static', filename='vertrag/kg_logo.jpg') }}" alt="KG-Gebäudereinigung" style="left:95.0mm;top:203.1mm;width:20.1mm;height:20.1mm">
+    <div class="abs mitte" style="top:225.2mm">
+      <div><b>KG-Gebäudereinigung</b></div>
+      <div>Frau Damla Kicci</div>
+      <div>-Inhaberin-</div>
+      <div>Fliederstraße 59</div>
+      <div>47055 Duisburg</div>
+    </div>
+    <div class="abs mitte" style="top:254.9mm">-nachfolgend Auftragnehmer- genannt</div>
+    <div class="abs" style="left:22.0mm;top:264.7mm;width:172mm">wird über folgendes <b>Objekt: {{ Adresse }}, {{ Plz }} {{ Ort }}</b> ein Reinigungsvertrag für die {% for l in leistungen_satz %}{% if not loop.first %} und {% endif %}<span class="bl">{{ l }}</span>{% endfor %} abgeschlossen.</div>
+    <div class="abs seitennr" style="left:17.8mm;top:277.7mm">1</div>
+  </main>
+
+  <main class="page s2">
+    <div class="spalte" style="left:15.6mm;width:178.2mm;top:10.4mm">
+      <h2 style="margin-top:0mm;margin-bottom:3.6mm">§ 1 Vertragsgegenstand</h2>
+      <div class="it"><b>1.</b><p>Der Auftragnehmer übernimmt die Reinigungsarbeiten im Objekt: <span class="bl">{{ Adresse }}, {{ Plz }} {{ Ort }}</span></p></div>
+      <div class="it"><b>2.</b><p>Art und Umfang der Leistungen bestimmen sich nach dem anliegenden Leistungsverzeichnis gemäß Anlage 1, das einen Bestandteil dieses Vertrages bildet.</p></div>
+      <h2 style="margin-top:4.3mm;margin-bottom:3.6mm">§ 2 Vertragsdauer und Kündigung</h2>
+      <div class="it"><b>1.</b><p>Der Vertrag tritt ab dem <span class="bl">{{ Startdatum }}</span> in Kraft.</p></div>
+      <div class="it"><b>2.</b><p>Der Vertrag kann mit einer Frist von <span class="bl">drei Monaten vom Auftraggeber oder Auftragnehmer</span> gekündigt werden. Die Reinigungsarbeiten werden nach Einreichung einer <b>schriftlichen</b> Kündigung <b>noch drei Monate bis zum Ende des dritten Monats</b> erfolgen. Für diesen Zeitraum sind die Rechnungsbeträge in voller Höhe fällig. Die Rechnungssumme für die letzten drei Monate und bis einschließlich Ende des dritten Monats der Kündigungsfrist ist in voller Höhe zu zahlen - unabhängig davon, ob die Reinigungsleistungen tatsächlich aktiv bis zum Ende des dritten Monats in Anspruch genommen werden oder nicht und ob der Vertrag aufgrund von Meinungsverschiedenheiten oder sonstigen Gründen faktisch nicht weitergeführt wird. Eine vorzeitige Beendigung oder Aussetzung der Leistungen entbindet den Auftraggeber nicht von der Zahlungspflicht für diesen Zeitraum.</p></div>
+      <div class="it"><b>3.</b><p><span class="bl">Die Probezeit ist 1 Monat.</span> Innerhalb des Zeitraums kann eine <b>schriftliche</b> Kündigung beiderseits eingereicht werden, so dass die Reinigungsarbeiten <b>sofort</b> beendet werden.</p></div>
+      <div class="it"><b>4.</b><p>Eine ordentliche oder außerordentliche Kündigung dieses Vertrages ist nur wirksam, wenn sie schriftlich erfolgt.</p></div>
+      <h2 style="margin-top:4.3mm;margin-bottom:3.6mm">§ 3 Ausführung der Reinigung</h2>
+      <div class="it"><b>1.</b><p>Die Reinigungsarbeiten erfolgen an den <span class="bl">Wochentagen:</span> <span class="bl">{{ Wochentagen }}</span> die genauen Reinigungstage und dessen Inhalt ist dem Leistungsverzeichnis in Anlage 1 zu entnehmen.</p></div>
+      <div class="it"><b>2.</b><p>Die Arbeiten werden jeweils <span class="bl">{{ Zeiten }}</span> durchgeführt.</p></div>
+      <div class="it"><b>3.</b><p>Der Auftragnehmer darf Reinigungsarbeiten nur mit vorheriger schriftlicher Zustimmung des Auftraggebers an Nachunternehmen vergeben werden. Für einen Nachunternehmer haftet der Auftragnehmer in gleicher Weise wie für seine eigenen Arbeitskräfte.</p></div>
+      <div class="it"><b>4.</b><p>Mehr- und Sonderleistungen aufgrund besonderer Ereignisse dürfen nur mit vorheriger Zustimmung des Auftraggebers vorgenommen werden. Diese werden für diesen Fall gesondert berechnet.</p></div>
+      <div class="it"><b>5.</b><p>Der Auftragnehmer verpflichtet sich, auf Verlangen des Auftraggebers zusätzliche Reinigungsflächen in dem unter §1 aufgeführten Reinigungsobjekt zu übernehmen. Für diese zusätzlichen Flächen gelten entsprechend die dem Vergütungsangebot zu Grunde liegenden Konditionen.</p></div>
+      <h2 style="margin-top:4.3mm;margin-bottom:3.6mm">§ 4 Gestellung von Maschinen, Geräten und Materialien</h2>
+      <div class="it"><b>1.</b><p>Alle für die Durchführung der Reinigungsarbeiten benötigten Maschinen, Geräte und Materialien stellt der Auftragnehmer. Dem Auftragnehmer werden Abstellräume für die Verwahrung der Personalbekleidung, der Maschinen, Geräte und Materialien kostenlos zur Verfügung gestellt. Für die in den Räumen abgestellten Gegenstände übernimmt der Auftraggeber keine Haftung.</p></div>
+      <div class="it"><b>2.</b><p>Es dürfen nur solche Reinigungsmethoden angewandt und nur solche Materialien verwendet werden, die umweltfreundlich und nicht zu einer Beschädigung der zu behandelnden Flächen oder Einrichtungen führen können. Der Auftraggeber behält sich vor, die Anwendung bestimmter Reinigungsverfahren oder die Verwendung bestimmter Reinigungs- oder Pflegemittel zu verlangen oder zu untersagen.</p></div>
+      <div class="it"><b>3.</b><p>Für die Durchführungen der Reinigungsarbeiten verwendete elektrische Maschinen und Geräte müssen den VDE-Vorschriften entsprechen und sich in einwandfreiem Zustand befinden.</p></div>
+      <h2 style="margin-top:8.9mm;margin-bottom:3.6mm">§ 5 Einsatz der Reinigungskräfte</h2>
+      <div class="it"><b>1.</b><p>Durch den An- und Abtransport des Reinigungspersonals darf der ordnungsgemäße Betriebsablauf nicht gestört werden. Nach Beendigung der Reinigungsarbeiten haben sämtliche Reinigungskräfte den Betrieb des Auftraggebers geschlossen zu verlassen.</p></div>
+    </div>
+    <div class="abs seitennr" style="left:17.4mm;top:277.1mm">2</div>
+  </main>
+
+  <main class="page s3">
+    <div class="spalte" style="left:16.5mm;width:177.4mm;top:9.3mm">
+      <div class="it"><b>1.</b><p>Der Auftragnehmer setzt die für eine gute und sachgemäße Reinigung erforderlichen Arbeitskräfte sowie die für eine ordnungsgemäße Kontrolle notwendigen Aufsichtspersonen ein. Durch Personalausfälle dürfen die Reinigungsarbeiten nicht beeinträchtigt werden.</p></div>
+      <div class="it"><b>2.</b><p>Der Auftragnehmer darf nur fachkundige, zuverlässige und gesunde Arbeitskräfte einsetzen. Der Auftraggeber ist berechtigt, das eingesetzte Personal auf seine Zuverlässigkeit zu überprüfen und bestimmte Personen ohne Angabe von Gründen abzulehnen.</p></div>
+      <h2 style="margin-top:3.9mm;margin-bottom:4.3mm">§ 6 Verschwiegenheitspflicht</h2>
+      <div class="it"><b>1.</b><p>Der Auftragnehmer hat sämtliche zum Einsatz kommenden Reinigungskräfte und Aufsichtspersonen schriftlich zur Verschwiegenheit hinsichtlich aller Wahrnehmungen zu verpflichten, die sie in den Räumen des Auftraggebers machen. Er hat ihnen ferner schriftlich zu untersagen, Einblick in Schriftstücke oder Aufzeichnungen der Betriebsangehörigen des Auftraggebers zu nehmen sowie hiervon Abschriften, Ablichtungen o.ä. zu fertigen.</p></div>
+      <div class="it"><b>2.</b><p>Reinigungskräfte und Aufsichtspersonen, die gegen diese Verpflichtungen verstoßen, hat der Auftragnehmer sogleich durch geeignete andere Personen zu ersetzen.</p></div>
+      <h2 style="margin-top:0mm;margin-bottom:4.3mm">§ 7 Vergütung</h2>
+      <div class="it"><b>1.</b><p>Die Vergütung für die nach dem Leistungsverzeichnis gemäß Anlage 1 auszuführenden Reinigungsarbeiten beträgt für die:</p></div>
+      <div class="preise">
+        {% for p in preise %}
+        <div class="preis"><span>{{ p.Leistung }}</span><span class="bl">{{ p.Einheiten }}</span><span class="bl">{{ p.Preis }}</span><span class="bl">inkl. Mwst.</span></div>
+        {% endfor %}
+      </div>
+      <div class="zahlung" style="margin-top:{{ (5 - preise|length) * 4.2 + 12.7 if preise|length < 5 else 12.7 }}mm">Die Vergütung wird <b>7 Tage</b> nach Erhalt der Rechnung <b>per Überweisung</b> beglichen oder<br><b>per SEPA Lastschrift</b>&nbsp; bezahlt.<br>Bei verspäteter Zahlung darf der Auftragnehmer für jede schriftliche Mahnung eine Gebühr von <b>10,00 €</b><br>erheben.</div>
+      <h2 style="margin-top:0mm;margin-bottom:3.5mm">§ 8 Anpassung der Vergütung</h2>
+      <div class="it"><b>1.</b><p>Werden nach Vertragsabschluss Lohnerhöhungen für die Arbeitskräfte des Auftragnehmers tariflich vereinbart oder werden sonstige tarifliche Vereinbarungen getroffen, die sich auf die Lohnkosten des Auftragnehmers unmittelbar auswirken, so ist der Auftragnehmer berechtigt eine angemessene Erhöhung der Vergütung vorzunehmen. Bei Bedarf einer Preisänderung (wie bei einer "Coronasituation") wird gegenseitig abgesprochen.</p></div>
+      <div class="it"><b>2.</b><p>Basierend auf den allgemeinen Kostensteigerungen und gemäß dem Verbraucherpreisindex wird der vereinbarte Preis jährlich dementsprechend angepasst.</p></div>
+      <div class="it"><b>3.</b><p>Die vereinbarte monatliche Zahlung ist unabhängig von Feiertagen, Weihnachts- und Betriebsferien oder sonstigen arbeitsfreien Tagen zu leisten. Diese Zahlung stellt eine pauschale Monatsvergütung dar und ist nicht an die tatsächliche Anzahl der geleisteten Arbeitstage gebunden.</p></div>
+      <h2 style="margin-top:0mm;margin-bottom:3.6mm">§ 9 Mehrarbeiten</h2>
+      <div class="it"><b>1.</b><p>Für Reinigungsarbeiten, die durch <u>kleinere</u> bauliche Instandsetzungen und Schönheitsreparaturen im Betriebsgebäude anfallen, hat der Auftraggeber eine zusätzliche Vergütung nicht zu leisten. Dasselbe gilt, wenn aus anderen Gründen, z.B. infolge des Umzugs einzelner Betriebsabteilungen, die zu reinigenden Flächen und Gegenstände stärker als gewöhnlich verschmutzt sind.</p></div>
+      <div class="it"><b>2.</b><p>Darüber hinaus notwendige Mehrarbeiten kann der Auftragnehmer nicht ablehnen. Art, Umfang und Vergütung sind von Fall zu Fall zu vereinbaren.</p></div>
+    </div>
+    <div class="abs seitennr" style="left:17.4mm;top:282.0mm">3</div>
+  </main>
+
+  <main class="page s4">
+    <div class="spalte" style="left:15.8mm;width:177.8mm;top:10.4mm">
+      <h2 style="margin-top:0mm;margin-bottom:3.6mm">§ 10 Gewährleistungsansprüche des Auftraggebers</h2>
+      <div class="it"><b>1.</b><p>Der Auftragnehmer haftet für die fach- und fristgemäße Durchführung der ihm übertragen Arbeiten.</p></div>
+      <div class="it"><b>2.</b><p>Führt der Auftraggeber eine Abnahme der geleisteten Arbeiten durch und werden dabei Mängel festgestellt, so hat der Auftragnehmer die Mängel unverzüglich zu beseitigen.</p></div>
+      <div class="it"><b>3.</b><p>Sollten etwaige Mängel der Arbeitsleistung auf vom Auftraggeber zu vertretenden Umstände zurückzuführen sein, wird der Auftragnehmer auf Wunsch des Auftraggebers zu jeweils zu vereinbarenden angemessenen Preisen und Bedingungen eine Beseitigung vornehmen.</p></div>
+      <h2 style="margin-top:4.3mm;margin-bottom:3.5mm">§ 11 Haftung des Auftragnehmers</h2>
+      <div class="it"><b>1.</b><p>Der Auftragnehmer haftet ohne Rücksicht auf Verschulden für jeden durch sein Personal verursachten Schaden, es sei denn, dass der Schaden auf alleinigem Verschulden eines Betriebsangehörigen des Auftraggebers beruht. Von etwaigen Schadensersatzansprüchen Dritter hat der Auftragnehmer, soweit ihn die Haftung trifft, den Auftraggeber freizustellen.</p></div>
+      <div class="it"><b>2.</b><p>Mängel und Schäden in den Räumen und an den Einrichtungsgegenständen im Betriebsgebäude, die vom Personal des Auftragnehmers festgestellt werden, sind dem Auftraggeber unverzüglich mitzuteilen, ohne Rücksicht auf die Frage einer Haftung.</p></div>
+      <h2 style="margin-top:8.5mm;margin-bottom:3.6mm">§ 12 Leistungen und Haftung des Auftraggebers</h2>
+      <div class="it"><b>1.</b><p>Das für die Reinigungsarbeiten erforderliche Wasser und den notwendigen elektrischen Strom stellt der Auftraggeber auf seine Kosten zur Verfügung. Der Auftragnehmer hat sein Personal anzuweisen, auf sparsamen Verbrauch zu achten.</p></div>
+      <div class="it"><b>2.</b><p>Der Auftraggeber haftet dem Auftragnehmer nicht für irgendwelche Schäden, die ihm oder seinen Arbeitskräften im Zusammenhang mit den Reinigungsarbeiten entstehen. Ebenso haftet der Auftraggeber nicht für Schäden durch Verlust, Zerstörung oder Beschädigung eingebrachter Gegenstände des Auftragnehmers oder seines Personals.</p></div>
+      <h2 style="margin-top:3.9mm;margin-bottom:3.6mm">§ 13 Fundgegenstände</h2>
+      <div class="it"><b>1.</b><p>Der Auftragnehmer hat das eingesetzte Personal zu verpflichten, alle im Reinigungsbereich aufgefundenen Gegenstände unverzüglich einem Beauftragten des Auftraggebers gegen Quittung zu übergeben.</p></div>
+      <h2 style="margin-top:8.5mm;margin-bottom:4.3mm">§ 14 Sonstiges</h2>
+      <div class="it"><b>1.</b><p>Mündliche Nebenanreden bestehen nicht.</p></div>
+      <div class="it"><b>2.</b><p>Änderungen oder Ergänzungen dieses Vertrages sind nur dann rechtswirksam, wenn sie schriftlich getroffen werden.</p></div>
+      <div class="it"><b>3.</b><p>Schlüssel werden in Absprache ausgehändigt.</p></div>
+    </div>
+    <img class="abs" src="{{ url_for('static', filename='vertrag/kg_stempel_unterschrift.png') }}" alt="KG Stempel und Unterschrift" style="left:121.4mm;top:137.2mm;width:81.8mm;height:105.9mm">
+    <div class="abs" style="left:31.3mm;top:235.1mm"><b>{{ Ort }}, den {{ Datum }}</b></div>
+    <div class="abs strich" style="left:125.4mm;top:235.1mm;width:67.1mm"><b>X</b></div>
+    <div class="abs rechts" style="right:17.7mm;top:239.4mm"><b>Auftraggeber</b></div>
+    <div class="abs" style="left:31.7mm;top:264.8mm"><b>{{ Ort }}, den {{ Datum }}</b></div>
+    <div class="abs strich" style="left:127.9mm;top:264.8mm;width:64.7mm">&nbsp;</div>
+    <div class="abs rechts" style="right:17.4mm;top:269.0mm"><b>Auftragnehmer</b></div>
+    <div class="abs seitennr" style="left:17.4mm;top:277.4mm">4</div>
+  </main>
+{% if drucken %}
+  <script>window.addEventListener("load", function () { setTimeout(function () { window.print(); }, 300); });</script>
+{% endif %}
+</body>
+</html>

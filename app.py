@@ -908,10 +908,38 @@ register_monatsvergleich(app, login_required, get_db_connection)
 from kundenweg_fluss import register_kundenweg_fluss
 register_kundenweg_fluss(app, login_required, get_db_connection)
 
+# To-Do: Aufgaben aus dem KG LifeHub (Seite /aufgaben, Startseite-Kachel) – alte To-Do-Liste bleibt unverändert
+try:
+    from lifehub_bruecke import register_lifehub_bruecke
+    register_lifehub_bruecke(app, login_required)
+except Exception as exc:
+    print(f"⚠️ LifeHub-Brücke: {exc}")
+
+# Startseite: Kasten „Objekte“ (Umsatz, Mitarbeiter, Lohn je Objekt) – schreibt nur die eigene Zuordnungstabelle
+try:
+    from startseite_objekte import register_startseite_objekte
+    register_startseite_objekte(app, login_required, get_db_connection)
+except Exception as exc:
+    print(f"⚠️ Startseite-Objekte: {exc}")
+
 # Besichtigung: Zeitberechnung mit allen Details für die Kalkulation-Kachel (nur rechnen, speichert nichts)
 from besichtigung_zeit import register_besichtigung_zeit
 import app2 as _app2_mod
 register_besichtigung_zeit(app, login_required, lambda: _app2_mod.ANGEBOT_STUNDENSATZ)
+
+# Angebot-Editor (/angebot/editor, Tablet: /tablet/angebot): Besichtigung → Angebot mit Live-Vorschau; Entwürfe in eigener Tabelle
+try:
+    from angebot_editor import register_angebot_editor
+    register_angebot_editor(app, login_required, get_db_connection, _app2_mod)
+except Exception as exc:
+    print(f"⚠️ Angebot-Editor: {exc}")
+
+# Vertrag-Editor (/vertrag/editor): bestätigtes Angebot → Reinigungsvertrag mit Live-Vorschau und Mail; eigene Tabelle vertrag_editor
+try:
+    from vertrag_editor import register_vertrag_editor
+    register_vertrag_editor(app, login_required, get_db_connection)
+except Exception as exc:
+    print(f"⚠️ Vertrag-Editor: {exc}")
 
 # Arbeitsliste für heute (/heute): jeden Werktag als To-Do-Karte (+ WhatsApp an den Chef); der Agent antwortet dem Chef per WhatsApp
 from tagesliste import register_tagesliste
@@ -1107,6 +1135,14 @@ def index():
     todo_percent = int((t_er / (t_er + t_of)) * 100) if (t_er + t_of) > 0 else 0
 
     monatstrend_grafik_verisi = [0, 2500, 5000, 7500, monatlicher_umsatz]
+
+    # Verlauf je Monat (Kunden-/Mitarbeiterbestand, Bilanz) – nur lesend
+    try:
+        from startseite_verlauf import startseite_verlauf
+        verlauf = startseite_verlauf(conn, now, jahres_grafik_verisi)
+    except Exception as exc:
+        print(f"⚠️ Startseite-Verlauf: {exc}")
+        verlauf = {}
     conn.close()
 
     page_html = render_template(
@@ -1123,7 +1159,8 @@ def index():
         jahres_umsatz=jahres_umsatz,
         jahres_grafik_verisi=jahres_grafik_verisi,
         initial_todo_index=initial_todo_index,
-        monatstrend_grafik_verisi=monatstrend_grafik_verisi
+        monatstrend_grafik_verisi=monatstrend_grafik_verisi,
+        **verlauf
     )
 
     threading.Thread(
