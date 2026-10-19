@@ -178,6 +178,12 @@ def _stundenzettel(conn):
              "telefon": r["telefon"] or "", "link": "/stundenzettel/automatik"} for r in rows]
 
 
+def _nachfassen(conn, tag):
+    """Angebote ohne Antwort seit 7 Tagen (Kundenakte): anrufen oder Mail, dann „Nachgefasst“ – oder in der Akte „Abgelehnt“."""
+    import kundenakte
+    return kundenakte.nachfassen_liste(conn, tag)
+
+
 def _neue_firmen(conn, tag):
     try:
         gestern = (tag - timedelta(days=3 if tag.weekday() == 0 else 1)).isoformat()
@@ -216,7 +222,8 @@ def liste_bauen(app, conn, leon_client_factory, tag=None):
     tag = tag or jetzt_berlin().date()
     l = {"datum": tag.isoformat(), "titel": f"{TAGE_LANG[tag.weekday()]}, {tag.strftime('%d.%m.%Y')}", "fehler": []}
     for name, fn in (("termine", lambda: _termine(app, tag)), ("besichtigungen", lambda: _besichtigungen(conn, tag)),
-                     ("rueckrufe", lambda: _rueckrufe_leon(leon_client_factory)), ("todos", lambda: _todos(conn, tag)),
+                     ("rueckrufe", lambda: _rueckrufe_leon(leon_client_factory)), ("nachfassen", lambda: _nachfassen(conn, tag)),
+                     ("todos", lambda: _todos(conn, tag)),
                      ("berichte", lambda: _berichte(conn)), ("stundenzettel", lambda: _stundenzettel(conn)),
                      ("business", lambda: _business(tag))):
         try:
@@ -225,14 +232,14 @@ def liste_bauen(app, conn, leon_client_factory, tag=None):
             l[name] = [] if name != "business" else None
             l["fehler"].append(f"{name}: {str(exc)[:120]}")
     l["neue_firmen"] = _neue_firmen(conn, tag)
-    l["anzahl"] = sum(len(l[k]) for k in ("termine", "besichtigungen", "rueckrufe", "todos", "berichte", "stundenzettel")) + \
+    l["anzahl"] = sum(len(l[k]) for k in ("termine", "besichtigungen", "rueckrufe", "nachfassen", "todos", "berichte", "stundenzettel")) + \
         (len(l["business"]["todos"]) + len(l["business"]["rueckrufe"]) if l.get("business") else 0)
     return l
 
 
 ABSCHNITTE = [
     ("termine", "📅 Termine"), ("besichtigungen", "🏢 Besichtigungen"), ("rueckrufe", "📞 Rückrufe"),
-    ("todos", "✅ Aufgaben"), ("berichte", "🔥 Aus Kampagnen"), ("stundenzettel", "⏱ Stundenzettel – bitte prüfen"),
+    ("nachfassen", "📨 Angebote nachfassen"), ("todos", "✅ Aufgaben"), ("berichte", "🔥 Aus Kampagnen"), ("stundenzettel", "⏱ Stundenzettel – bitte prüfen"),
 ]
 
 
@@ -291,7 +298,7 @@ def tagesliste_lauf(app, conn, leon_client_factory, jetzt=None):
     pfad = f"/heute?d={heute}"
     text, nummern = liste_text(l, kg_meldungen.link(conn, pfad))
     teile = [f"{len(l[k])} {n}" for k, n in (("termine", "Termine"), ("besichtigungen", "Besichtigungen"),
-                                               ("rueckrufe", "Rückrufe"), ("todos", "Aufgaben")) if l.get(k)]
+                                               ("rueckrufe", "Rückrufe"), ("nachfassen", "Nachfassen"), ("todos", "Aufgaben")) if l.get(k)]
     titel = f"📋 Arbeitsliste {TAGE[jetzt.weekday()]} {jetzt.strftime('%d.%m.')}" + (": " + " · ".join(teile) if teile else "")
     kg_meldungen.todo_anlegen(conn, titel, text, pfad, TODO_QUELLE, "hoch" if l["anzahl"] else "normal", "Planung")
     _merken(conn, "letzte_liste", nummern)
@@ -396,6 +403,11 @@ def _abhaken(conn, nr):
         if b and b["offen"] == 0:
             kg_meldungen.todo_erledigt(conn, BERICHT_QUELLE, f"/leon/bericht/{eintrag['bericht_id']}", True)
         return f"✅ Erledigt: {eintrag['titel']}"
+    if eintrag.get("art") == "nachfassen" and eintrag.get("id"):
+        import kundenakte
+        if kundenakte.nachgefasst_merken(conn, int(eintrag["id"]), "Anruf", "", "WhatsApp"):
+            return f"✅ Nachgefasst: {eintrag['titel']} – nächste Erinnerung in {kundenakte.NACHFASSEN_TAGE} Tagen."
+        return f"„{eintrag['titel']}“ ist schon erledigt (angenommen oder abgelehnt)."
     return f"„{eintrag['titel']}“ kann ich nur anzeigen – bitte im CRM abhaken."
 
 
@@ -473,6 +485,10 @@ def register_tagesliste(app, login_required, get_db_connection, leon_client_fact
                 b = erledigt_setzen(conn, int(d.get("bericht_id") or 0), int(d.get("lead_id") or 0), True)
                 if b and b["offen"] == 0:
                     kg_meldungen.todo_erledigt(conn, BERICHT_QUELLE, f"/leon/bericht/{int(d.get('bericht_id') or 0)}", True)
+            elif d.get("art") == "nachfassen":
+                import kundenakte
+                if not kundenakte.nachgefasst_merken(conn, int(d.get("id") or 0), "Anruf", "", "Arbeitsliste"):
+                    return jsonify({"success": False, "error": "Dieses Angebot ist schon angenommen oder abgelehnt."}), 409
             else:
                 return jsonify({"success": False, "error": "Das bitte auf der jeweiligen Seite erledigen."}), 400
             return jsonify({"success": True})

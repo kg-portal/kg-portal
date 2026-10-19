@@ -41,6 +41,7 @@
 .kgae-chips { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
 .kgae-chip { padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 900; background: #eff6ff; color: var(--b1); }
 .kgae-chip.gruen { background: #dcfce7; color: #166534; } .kgae-chip.gelb { background: #fef3c7; color: #92400e; } .kgae-chip.grau { background: #f1f5f9; color: #475569; }
+.kgae-chip.rot { background: #fee2e2; color: #b91c1c; }
 .kgae-leer { padding: 18px 10px; text-align: center; font-size: 13px; font-weight: 700; color: var(--grau); }
 /* Formular */
 .kgae-start[hidden], #kgaeFormular[hidden] { display: none !important; }
@@ -472,7 +473,7 @@ a.kgae-knopf { display: inline-block; text-decoration: none; }
         if (!daten.length) { $('kgaeListe').innerHTML = '<div class="kgae-leer">' + (tab === 'angebote' ? 'Noch keine Angebote.' : 'Keine offenen Besichtigungen.') + '</div>'; return; }
         $('kgaeListe').innerHTML = daten.map(e => {
             let chips = '';
-            if (tab === 'angebote') chips = '<span class="kgae-chip gruen">AN-' + esc(e.nr) + '</span>' + (e.netto ? '<span class="kgae-chip">' + esc(euro(e.netto)) + '</span>' : '') + (e.datum ? '<span class="kgae-chip grau">' + esc(e.datum) + '</span>' : '');
+            if (tab === 'angebote') chips = '<span class="kgae-chip gruen">AN-' + esc(e.nr) + '</span>' + (e.netto ? '<span class="kgae-chip">' + esc(euro(e.netto)) + '</span>' : '') + (e.datum ? '<span class="kgae-chip grau">' + esc(e.datum) + '</span>' : '') + lageChip(e.lage);
             else chips = (e.scan ? '<span class="kgae-chip">KG Scan</span>' : '') + (e.raeume ? '<span class="kgae-chip grau">' + e.raeume + ' Räume</span>' : '') + (e.entwurf ? '<span class="kgae-chip gelb">Entwurf</span>' : '');
             let kalkHtml = '';
             if (e.kalk && e.kalk.kosten) {
@@ -484,6 +485,15 @@ a.kgae-knopf { display: inline-block; text-decoration: none; }
             return '<button type="button" class="kgae-e' + (tab === 'angebote' ? ' angebot' : '') + (aktuell && aktuell.id === e.id ? ' an' : '') + '" data-id="' + e.id + '"><b>' + esc(e.firma) + '</b><small>' + esc(e.ort || '–') + (e.quelle ? ' · ' + esc(e.quelle) : '') + '</small><span class="kgae-chips">' + chips + '</span>' + kalkHtml + '</button>';
         }).join('');
         $('kgaeListe').querySelectorAll('.kgae-e').forEach(b => b.addEventListener('click', () => oeffnen(Number(b.dataset.id))));
+    }
+    // Kundenakte: was nach dem Angebot passiert ist (nur Anzeige)
+    function lageChip(l) {
+        if (!l) return '';
+        if (l.status === 'angenommen') return '<span class="kgae-chip gruen">✓ angenommen</span>';
+        if (l.status === 'abgelehnt') return '<span class="kgae-chip rot">✕ abgelehnt' + (l.grund ? ' · ' + esc(l.grund) : '') + '</span>';
+        const t = l.alter > 0 ? l.alter + (l.alter === 1 ? ' Tag' : ' Tage') : 'seit heute';
+        return (l.faellig ? '<span class="kgae-chip rot">Nachfassen · ' + t + '</span>' : '<span class="kgae-chip gelb">wartet ' + t + '</span>') +
+            (l.nachgefasst_anzahl ? '<span class="kgae-chip grau">↻ ' + l.nachgefasst_anzahl + '× nachgefasst</span>' : '');
     }
     function listeAuf(auf) { $('kgaeListe').hidden = !auf; $('kgaeListe').closest('.kgae-liste').classList.toggle('offen', auf); }
     document.querySelectorAll('.kgae-tabs button').forEach(b => b.addEventListener('click', () => {

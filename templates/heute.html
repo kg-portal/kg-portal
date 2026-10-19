@@ -42,7 +42,7 @@
   @media print { .hl-btns, .hl-aktion, .kgm { display: none !important; } .hl-hero { color: #0f172a; background: #fff; border: 2px solid #0f172a; } .hl-chip { color: #0f172a; } }
 </style>
 
-{% set farbe = {"termine": "#2563eb", "besichtigungen": "#7c3aed", "rueckrufe": "#0284c7", "todos": "#16a34a", "berichte": "#ea580c", "stundenzettel": "#0f766e"} %}
+{% set farbe = {"termine": "#2563eb", "besichtigungen": "#7c3aed", "rueckrufe": "#0284c7", "todos": "#16a34a", "berichte": "#ea580c", "stundenzettel": "#0f766e", "nachfassen": "#d97706"} %}
 <div class="hl">
   <section class="hl-hero">
     <small>{{ "☀️ Guten Morgen" if ist_heute else "📋 Arbeitsliste" }}</small>
@@ -73,7 +73,7 @@
         </div>
         <div class="hl-aktion">
           {% if e.telefon %}<a class="hl-k haupt" href="tel:{{ e.telefon|replace(' ', '') }}">📞 Anrufen</a>{% endif %}
-          {% if e.art in ('todo', 'bericht') %}<button type="button" class="hl-k hl-ok">☐ Erledigt</button>{% endif %}
+          {% if e.art in ('todo', 'bericht') %}<button type="button" class="hl-k hl-ok">☐ Erledigt</button>{% elif e.art == 'nachfassen' %}<button type="button" class="hl-k hl-ok">☐ Nachgefasst</button>{% endif %}
         </div>
       </div>
       {% else %}
@@ -122,7 +122,7 @@
         body: JSON.stringify({ art: p.dataset.art, id: p.dataset.id, bericht_id: p.dataset.bericht, lead_id: p.dataset.lead }) });
       const d = await r.json();
       if (!r.ok || !d.success) throw new Error(d.error || "Fehler");
-      p.classList.add("weg"); btn.textContent = "✓ Erledigt";
+      p.classList.add("weg"); btn.textContent = p.dataset.art === "nachfassen" ? "✓ Nachgefasst" : "✓ Erledigt";
     } catch (e) { alert(e.message); btn.disabled = false; }
   }));
 })();
