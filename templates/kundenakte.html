@@ -93,6 +93,13 @@
   .ka-zeile .d { margin-left: auto; font-size: 12px; font-weight: 700; color: var(--grau); white-space: nowrap; }
   .ka-zeile.leer { color: #94a3b8; border-style: dashed; background: #fff; }
   .ka-punkt { width: 9px; height: 9px; flex: none; border-radius: 50%; }
+  .ka-kalk { margin-top: 10px; }
+  .ka-kalk .ka-zeile > span:first-child { flex: 1; }
+  .ka-kalk .ka-zeile b { margin-left: 8px; font-variant-numeric: tabular-nums; }
+  .ka-kalk .ka-zeile .d { margin-left: 0; }
+  .ka-kalk .ka-gewinn.g { background: #ecfdf5; border-color: #a7f3d0; } .ka-kalk .ka-gewinn.g b { color: #047857; }
+  .ka-kalk .ka-gewinn.y { background: #fffbeb; border-color: #fde68a; } .ka-kalk .ka-gewinn.y b { color: #b45309; }
+  .ka-kalk .ka-gewinn.r { background: #fef2f2; border-color: #fecaca; } .ka-kalk .ka-gewinn.r b { color: #b91c1c; }
   .ka-info { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 14px; font-size: 13.5px; font-weight: 700; }
   .ka-info small { display: block; font-size: 10.5px; font-weight: 900; letter-spacing: .09em; text-transform: uppercase; color: #94a3b8; }
   .ka-info .ganz { grid-column: 1 / -1; }
@@ -211,6 +218,12 @@
       h += an.positionen.length ? an.positionen.map(p => '<div class="ka-zeile"><span style="min-width:0">' + esc(p.text || 'Leistung') + '</span><span class="d">' + esc(p.einheit) + '</span>' +
         (p.preis ? '<span class="ka-pill y">' + esc(p.preis) + '</span>' : '') + '</div>').join('') : '<div class="ka-leer">Noch keine Leistungen eingetragen.</div>';
       if (an.datum) h += '<div class="ka-info" style="margin-top:6px"><div><small>Fertig seit</small>' + esc(tagZeit(an.datum)) + '</div><div><small>Netto (monatlich)</small>' + esc(an.netto || '–') + '</div></div>';
+      if (an.kalk) {
+        const kl = an.kalk.prozent >= 40 ? 'g' : (an.kalk.prozent >= 25 ? 'y' : 'r');
+        h += '<div class="ka-kalk"><div class="ka-zeile"><span>Kosten / Monat</span><span class="d">' + esc(String(an.kalk.stunden).replace('.', ',')) + ' Std</span><b>' + esc(an.kalk.kosten) + '</b></div>' +
+          '<div class="ka-zeile"><span>Preis / Monat</span><b>' + esc(an.kalk.preis !== '0,00 €' ? an.kalk.preis : an.kalk.richtpreis) + '</b></div>' +
+          '<div class="ka-zeile ka-gewinn ' + kl + '"><span>Gewinn / Monat</span><span class="ka-pill ' + kl + '">' + (an.kalk.prozent >= 0 ? '+' : '') + esc(String(an.kalk.prozent).replace('.', ',')) + ' %</span><b>' + esc(an.kalk.gewinn) + '</b></div></div>';
+      }
       h += '</div>';
     }
 

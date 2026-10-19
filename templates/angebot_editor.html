@@ -80,6 +80,63 @@
 .kgae-ergebnis div small { display: block; font-size: 11px; font-weight: 900; letter-spacing: .08em; text-transform: uppercase; color: var(--grau); }
 .kgae-ergebnis div b { display: block; margin-top: 2px; font-size: 20px; font-weight: 900; }
 .kgae-ergebnis .richt b { font-size: 26px; color: var(--b1); }
+/* Kalkulation: Kosten Posten für Posten, Aufschlag, Gewinn */
+.kgae-kalk { margin-top: 14px; padding: 16px; border-radius: 18px; background: linear-gradient(160deg, #f8fbff, #eef4ff); border: 1px solid #dbeafe; }
+.kgae-kalk-kopf { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; }
+.kgae-kalk-kopf b { font-size: 16px; font-weight: 900; color: #0f172a; }
+.kgae-kalk-kopf span { font-size: 12px; font-weight: 700; color: var(--grau); }
+.kgae-kalk-werte { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 10px; }
+.kgae-kalk-werte > div, .kgae-fahrt > div { display: flex; flex-direction: column; gap: 4px; width: 150px; }
+.kgae-kalk-werte label { font-size: 11px; font-weight: 900; letter-spacing: .04em; text-transform: uppercase; color: var(--grau); }
+.kgae-kalk-werte .kgae-in { padding: 9px 10px; font-size: 14px; font-weight: 900; text-align: right; background: #fff; }
+.kgae-kalk-werte > .kgae-fahrt { display: flex; flex-direction: row; align-items: flex-end; gap: 10px; width: auto; padding: 8px 10px; border-radius: 14px; background: #fff; border: 1px dashed #93c5fd; }
+.kgae-kalk-werte > .kgae-fahrt[hidden] { display: none; }
+.kgae-fahrt > div { width: 120px; }
+.kgae-fahrt-weg { width: 34px; height: 38px; border: 0; border-radius: 10px; background: #fef2f2; color: #b91c1c; font-size: 18px; font-weight: 900; cursor: pointer; }
+.kgae-fahrt-plus { padding: 10px 14px; }
+.kgae-aufschlag { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-top: 14px; padding-top: 12px; border-top: 1px dashed #bfdbfe; }
+.kgae-aufschlag > span { font-size: 12px; font-weight: 900; letter-spacing: .04em; text-transform: uppercase; color: var(--grau); }
+.kgae-stufen { display: inline-flex; gap: 4px; padding: 4px; border-radius: 12px; background: #fff; border: 1px solid var(--rand); }
+.kgae-stufen button { border: 0; padding: 7px 12px; border-radius: 9px; background: transparent; font: inherit; font-size: 13px; font-weight: 900; color: #475569; cursor: pointer; }
+.kgae-stufen button.an { background: linear-gradient(135deg, var(--b1), var(--b3)); color: #fff; box-shadow: 0 6px 14px -8px rgba(30, 64, 175, .9); }
+.kgae-stepper { display: inline-flex; align-items: center; gap: 4px; padding: 4px; border-radius: 12px; background: #fff; border: 1px solid var(--rand); }
+.kgae-stepper button { width: 32px; height: 32px; border: 0; border-radius: 9px; background: #eff6ff; color: var(--b1); font-size: 18px; font-weight: 900; cursor: pointer; }
+.kgae-stepper .kgae-in { width: 64px; padding: 6px 8px; text-align: center; font-weight: 900; }
+.kgae-stepper b { font-size: 14px; color: #475569; }
+.kgae-aufstellung { margin-top: 14px; border-radius: 18px; overflow: hidden; background: #fff; border: 1px solid #dbeafe; box-shadow: 0 18px 34px -26px rgba(30, 58, 138, .6); }
+.kgae-af-preis { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; padding: 16px 18px; color: #fff; background: radial-gradient(circle at calc(100% - 40px) 0, rgba(255,255,255,.14) 0 90px, transparent 91px), linear-gradient(135deg, #183a91, #2563eb); }
+.kgae-af-preis small { display: block; font-size: 11px; font-weight: 900; letter-spacing: .1em; text-transform: uppercase; color: rgba(219, 234, 254, .9); }
+.kgae-af-preis b { display: block; margin-top: 2px; font-size: 30px; font-weight: 900; letter-spacing: -.02em; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.kgae-af-preis i { display: block; margin-top: 3px; font-style: normal; font-size: 12.5px; font-weight: 700; color: #dbeafe; }
+.kgae-af-preis .rechts { margin-left: auto; display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 14px; background: rgba(255,255,255,.13); border: 1px solid rgba(255,255,255,.25); }
+.kgae-af-preis .rechts b { font-size: 20px; }
+.kgae-af-preis .kgae-knopf { background: #fff; color: var(--b1); box-shadow: none; padding: 9px 12px; font-size: 13px; }
+.kgae-af-posten { padding: 8px 18px 4px; }
+.kgae-af-zeile { display: grid; grid-template-columns: 30px minmax(0, 1fr) auto; align-items: center; gap: 10px; padding: 9px 0; border-bottom: 1px solid #eef2f7; }
+.kgae-af-zeile .ic { width: 30px; height: 30px; border-radius: 9px; display: grid; place-items: center; color: #fff; font-size: 13px; font-weight: 900; }
+.kgae-af-zeile span b { display: block; font-size: 14px; font-weight: 900; color: #0f172a; }
+.kgae-af-zeile span small { display: block; margin-top: 1px; font-size: 12px; font-weight: 700; color: var(--grau); }
+.kgae-af-zeile > b { font-size: 15px; font-weight: 900; color: #0f172a; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.kgae-af-summe { display: flex; align-items: center; gap: 10px; padding: 12px 0 12px; }
+.kgae-af-summe span { font-size: 14px; font-weight: 900; color: #0f172a; }
+.kgae-af-summe i { font-style: normal; font-size: 12px; font-weight: 700; color: var(--grau); }
+.kgae-af-summe b { margin-left: auto; font-size: 18px; font-weight: 900; color: #0f172a; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.kgae-af-gewinn { --ampel: #059669; --ampel-hell: #ecfdf5; display: grid; grid-template-columns: auto 1fr; align-items: center; gap: 6px 16px; padding: 16px 18px; background: var(--ampel-hell); border-top: 1px solid #dbeafe; }
+.kgae-af-gewinn.gelb { --ampel: #d97706; --ampel-hell: #fffbeb; }
+.kgae-af-gewinn.rot { --ampel: #dc2626; --ampel-hell: #fef2f2; }
+.kgae-af-gewinn small { display: block; font-size: 11px; font-weight: 900; letter-spacing: .1em; text-transform: uppercase; color: var(--grau); }
+.kgae-af-gewinn b { display: block; font-size: 28px; font-weight: 900; color: var(--ampel); letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
+.kgae-af-prozent { justify-self: start; padding: 5px 11px; border-radius: 999px; background: var(--ampel); color: #fff; font-size: 13px; font-weight: 900; }
+.kgae-af-balken { grid-column: 1 / -1; display: flex; height: 12px; border-radius: 999px; overflow: hidden; background: #e2e8f0; }
+.kgae-af-balken i { background: #94a3b8; } .kgae-af-balken em { background: var(--ampel); }
+.kgae-af-gewinn p { grid-column: 1 / -1; margin: 0; font-size: 12.5px; font-weight: 800; color: var(--ampel); }
+/* Listen-Karten: Preis, Kosten, Gewinn */
+.kgae-e-kalk { --ampel: #059669; display: grid; gap: 2px; margin-top: 8px; padding: 7px 9px; border-radius: 11px; background: #f8fbff; border: 1px solid var(--rand); border-left: 4px solid var(--ampel); }
+.kgae-e-kalk.gelb { --ampel: #d97706; } .kgae-e-kalk.rot { --ampel: #dc2626; }
+.kgae-e-kalk span { display: flex; justify-content: space-between; gap: 8px; font-size: 11.5px; font-weight: 800; color: var(--grau); }
+.kgae-e-kalk span b { display: inline; font-size: 12px; color: #0f172a; }
+.kgae-e-kalk span.g b { color: var(--ampel); }
+.kgae-akte-oben { margin-left: 6px; padding: 7px 12px; font-size: 12.5px; }
 .kgae-formel { margin: 10px 2px 0; font-size: 12px; font-weight: 700; line-height: 1.55; color: var(--grau); }
 .kgae-knopf { border: 0; border-radius: 12px; padding: 11px 16px; font: inherit; font-size: 14px; font-weight: 900; cursor: pointer; white-space: nowrap; transition: transform .15s, box-shadow .2s, filter .2s; }
 .kgae-knopf:hover { transform: translateY(-1px); filter: brightness(1.05); }
@@ -125,6 +182,8 @@ a.kgae-knopf { display: inline-block; text-decoration: none; }
     .kgae-pos, .kgae-pos-kopf { grid-template-columns: 30px minmax(0, 1fr); } .kgae-pos select, .kgae-pos .preis { grid-column: 2; }
     .kgae-pos-kopf span:nth-child(n+3) { display: none; }
     .kgae-stueck { grid-template-columns: repeat(2, minmax(0, 1fr)); } .kgae-ergebnis { grid-template-columns: 1fr 1fr; }
+    .kgae-kalk-werte > div { width: calc(50% - 5px); } .kgae-af-preis .rechts { margin-left: 0; width: 100%; flex-wrap: wrap; } .kgae-af-preis b { font-size: 26px; }
+    .kgae-af-preis .rechts .kgae-knopf { width: 100%; } .kgae-af-summe { flex-wrap: wrap; } .kgae-af-summe i { order: 3; width: 100%; } .kgae-kalk-werte > .kgae-fahrt { width: 100%; }
     .kgae-rechner { overflow-x: auto; }
 }
 /* Tablet: größere Bedienelemente */
@@ -199,6 +258,7 @@ a.kgae-knopf { display: inline-block; text-decoration: none; }
                         <h3 id="kgaeTitel">–</h3><label class="kgae-nr" id="kgaeNr" title="Angebot-Nummer: vorgeschlagen ist die nächste freie – von Hand änderbar">AN-<input id="kgaeNrIn" inputmode="numeric" maxlength="8" autocomplete="off" aria-label="Angebot-Nummer"></label><span class="kgae-nr-hinweis" id="kgaeNrHinweis"></span>
                         <span class="kgae-chip" id="kgaeQuelle" hidden></span>
                         <span class="kgae-gespeichert" id="kgaeGespeichert"></span>
+                        <button type="button" class="kgae-knopf hell kgae-akte-oben" id="kgaeAkteOben" hidden title="Alles zu dieser Firma: Verlauf, Mails, Besichtigung, Notizen">Kundenakte</button>
                     </div>
                     <h2><i>1</i>Kunde</h2>
                     <div class="kgae-felder">
@@ -251,11 +311,25 @@ a.kgae-knopf { display: inline-block; text-decoration: none; }
                         <div><label for="kgae_s_schreibtisch">Schreibtische</label><input class="kgae-in" id="kgae_s_schreibtisch" data-stueck="schreibtisch" inputmode="numeric"></div>
                         <div><label for="kgae_s_muell">Mülleimer</label><input class="kgae-in" id="kgae_s_muell" data-stueck="muell" inputmode="numeric"></div>
                     </div>
-                    <div class="kgae-ergebnis">
-                        <div><small>Stunden / Monat</small><b id="kgaeStd">0,0</b></div>
-                        <div><small>Stundensatz €</small><input class="kgae-in" id="kgaeSatz" inputmode="decimal" style="margin-top:2px;font-weight:900"></div>
-                        <div class="richt"><small>Richtpreis / Monat</small><b id="kgaeRicht">0,00 €</b></div>
-                        <button type="button" class="kgae-knopf blau" id="kgaeUebernehmen">In Leistung 1 übernehmen</button>
+                    <div class="kgae-kalk">
+                        <div class="kgae-kalk-kopf"><b>Kalkulation</b><span>Kosten Posten für Posten · dein Aufschlag · dein Gewinn – alle Werte änderbar</span></div>
+                        <div class="kgae-kalk-werte">
+                            <div><label for="kgaeLohn">Stundenlohn €</label><input class="kgae-in" id="kgaeLohn" inputmode="decimal"></div>
+                            <div><label for="kgaeAbgaben">Minijob-Abgaben %</label><input class="kgae-in" id="kgaeAbgaben" inputmode="decimal"></div>
+                            <div><label for="kgaeMaterial">Material % Lohnkosten</label><input class="kgae-in" id="kgaeMaterial" inputmode="decimal"></div>
+                            <div class="kgae-fahrt" id="kgaeFahrtFelder" hidden>
+                                <div><label for="kgaeKm">Fahrt km (einfach)</label><input class="kgae-in" id="kgaeKm" inputmode="decimal" placeholder="z. B. 9"></div>
+                                <div><label for="kgaeCent">Cent pro km</label><input class="kgae-in" id="kgaeCent" inputmode="decimal" placeholder="z. B. 30"></div>
+                                <button type="button" class="kgae-fahrt-weg" id="kgaeFahrtWeg" title="Fahrt wieder entfernen">×</button>
+                            </div>
+                            <button type="button" class="kgae-knopf hell kgae-fahrt-plus" id="kgaeFahrtPlus">+ Fahrt</button>
+                        </div>
+                        <div class="kgae-aufschlag">
+                            <span>Aufschlag auf die Kosten</span>
+                            <div class="kgae-stufen" id="kgaeStufen"></div>
+                            <div class="kgae-stepper"><button type="button" id="kgaeAufMinus" aria-label="weniger">−</button><input class="kgae-in" id="kgaeAuf" inputmode="decimal" aria-label="Aufschlag in Prozent"><b>%</b><button type="button" id="kgaeAufPlus" aria-label="mehr">+</button></div>
+                        </div>
+                        <div class="kgae-aufstellung" id="kgaeAufstellung"></div>
                     </div>
                     <p class="kgae-formel" id="kgaeFormel"></p>
                 </div>
@@ -331,7 +405,14 @@ a.kgae-knopf { display: inline-block; text-decoration: none; }
             let chips = '';
             if (tab === 'angebote') chips = '<span class="kgae-chip gruen">AN-' + esc(e.nr) + '</span>' + (e.netto ? '<span class="kgae-chip">' + esc(euro(e.netto)) + '</span>' : '') + (e.datum ? '<span class="kgae-chip grau">' + esc(e.datum) + '</span>' : '');
             else chips = (e.scan ? '<span class="kgae-chip">KG Scan</span>' : '') + (e.raeume ? '<span class="kgae-chip grau">' + e.raeume + ' Räume</span>' : '') + (e.entwurf ? '<span class="kgae-chip gelb">Entwurf</span>' : '');
-            return '<button type="button" class="kgae-e' + (tab === 'angebote' ? ' angebot' : '') + (aktuell && aktuell.id === e.id ? ' an' : '') + '" data-id="' + e.id + '"><b>' + esc(e.firma) + '</b><small>' + esc(e.ort || '–') + (e.quelle ? ' · ' + esc(e.quelle) : '') + '</small><span class="kgae-chips">' + chips + '</span></button>';
+            let kalkHtml = '';
+            if (e.kalk && e.kalk.kosten) {
+                const hatPreis = e.kalk.preis > 0;
+                const kl = e.kalk.gewinn < 0 ? 'rot' : (e.kalk.prozent >= 40 ? '' : (e.kalk.prozent >= 25 ? 'gelb' : 'rot'));
+                kalkHtml = '<span class="kgae-e-kalk ' + kl + '"><span>' + (hatPreis ? 'Preis' : 'Richtpreis') + '<b>' + esc(euro(hatPreis ? e.kalk.preis : e.kalk.richtpreis)) + '</b></span>' +
+                    '<span>Kosten<b>' + esc(euro(e.kalk.kosten)) + '</b></span><span class="g">Gewinn<b>' + (e.kalk.gewinn >= 0 ? '+' : '') + esc(euro(e.kalk.gewinn)) + ' · ' + esc(pct(e.kalk.prozent)) + ' %</b></span></span>';
+            }
+            return '<button type="button" class="kgae-e' + (tab === 'angebote' ? ' angebot' : '') + (aktuell && aktuell.id === e.id ? ' an' : '') + '" data-id="' + e.id + '"><b>' + esc(e.firma) + '</b><small>' + esc(e.ort || '–') + (e.quelle ? ' · ' + esc(e.quelle) : '') + '</small><span class="kgae-chips">' + chips + '</span>' + kalkHtml + '</button>';
         }).join('');
         $('kgaeListe').querySelectorAll('.kgae-e').forEach(b => b.addEventListener('click', () => oeffnen(Number(b.dataset.id))));
     }
@@ -413,7 +494,7 @@ a.kgae-knopf { display: inline-block; text-decoration: none; }
         $('kgaeBereiche').innerHTML = zeilen;
         const st = Object.assign({}, am.stueck || {}, kalk.stueck || {});
         document.querySelectorAll('[data-stueck]').forEach(el => { el.value = st[el.dataset.stueck] ? String(st[el.dataset.stueck]) : ''; });
-        $('kgaeSatz').value = String(kalk.satz != null ? kalk.satz : k.stundensatz).replace('.', ',');
+        kalkAufbauen(kalk);
         $('kgaeAufmassQuelle').textContent = am.scan ? 'Flächen aus KG Scan' : (am.bereiche.some(b => b.m2) ? 'Flächen aus der Besichtigung' : 'Flächen bitte eintragen');
         rechnen();
     }
@@ -421,9 +502,96 @@ a.kgae-knopf { display: inline-block; text-decoration: none; }
         return {
             bereiche: Array.from($('kgaeBereiche').querySelectorAll('tr')).map(tr => ({ key: tr.dataset.key, m2: tr.querySelector('[data-r="m2"]').value, haeufigkeit: tr.querySelector('[data-r="h"]').value, lw: tr.querySelector('[data-r="lw"]').value, v: tr.querySelector('[data-r="v"]').value })),
             stueck: Object.fromEntries(Array.from(document.querySelectorAll('[data-stueck]')).map(el => [el.dataset.stueck, zahl(el.value)])),
-            satz: zahl($('kgaeSatz').value) || k.stundensatz
+            satz: k.stundensatz,
+            lohn: wert('kgaeLohn', kk().lohn), abgaben: wert('kgaeAbgaben', kk().abgaben), material: wert('kgaeMaterial', kk().material),
+            fahrt: { an: !$('kgaeFahrtFelder').hidden, km: zahl($('kgaeKm').value), cent: zahl($('kgaeCent').value) },
+            aufschlag: wert('kgaeAuf', kk().aufschlag),
+            ergebnis: ergebnis
         };
     }
+
+    // ---------- Kalkulation: Kosten Posten für Posten, Aufschlag (vorausgewählt 40 %), Gewinn
+    let ergebnis = null;
+    const KK_STANDARD = { lohn: 15, abgaben: 31.17, material: 5, aufschlag: 40, stufen: [25, 40, 50, 60] };
+    const kk = () => (k && k.kalkulation) || KK_STANDARD;
+    const komma = v => String(Math.round((Number(v) || 0) * 100) / 100).replace('.', ',');
+    const pct = v => (Math.round((Number(v) || 0) * 10) / 10).toLocaleString('de-DE', { maximumFractionDigits: 1 });
+    function wert(id, standard) { const t = $(id).value.trim(); return t === '' ? standard : zahl(t); }
+    function ampel(prozent, hatPreis) { if (!hatPreis && hatPreis !== undefined) return ''; return prozent >= 40 ? 'gruen' : (prozent >= 25 ? 'gelb' : 'rot'); }
+    function kalkAufbauen(kalk) {
+        const s = kk();
+        $('kgaeLohn').value = komma(kalk.lohn != null ? kalk.lohn : s.lohn);
+        $('kgaeAbgaben').value = komma(kalk.abgaben != null ? kalk.abgaben : s.abgaben);
+        $('kgaeMaterial').value = komma(kalk.material != null ? kalk.material : s.material);
+        $('kgaeAuf').value = komma(kalk.aufschlag != null ? kalk.aufschlag : s.aufschlag);
+        const f = kalk.fahrt || {};
+        fahrtZeigen(!!f.an);
+        $('kgaeKm').value = f.an && f.km ? komma(f.km) : '';
+        $('kgaeCent').value = f.an && f.cent ? komma(f.cent) : '';
+        $('kgaeStufen').innerHTML = (s.stufen || []).map(p => '<button type="button" data-stufe="' + p + '">' + p + ' %</button>').join('');
+        stufenMarkieren();
+    }
+    function stufenMarkieren() {
+        const a = zahl($('kgaeAuf').value);
+        $('kgaeStufen').querySelectorAll('button').forEach(b => b.classList.toggle('an', Number(b.dataset.stufe) === a));
+    }
+    function fahrtZeigen(an) { $('kgaeFahrtFelder').hidden = !an; $('kgaeFahrtPlus').hidden = an; }
+    $('kgaeStufen').addEventListener('click', e => {
+        const b = e.target.closest('[data-stufe]'); if (!b) return;
+        $('kgaeAuf').value = b.dataset.stufe; stufenMarkieren(); geaendertMelden();
+    });
+    function aufSchritt(d) { $('kgaeAuf').value = komma(Math.max(0, Math.round((zahl($('kgaeAuf').value) + d) / 5) * 5)); stufenMarkieren(); geaendertMelden(); }
+    $('kgaeAufMinus').addEventListener('click', () => aufSchritt(-5));
+    $('kgaeAufPlus').addEventListener('click', () => aufSchritt(5));
+    $('kgaeAuf').addEventListener('input', stufenMarkieren);
+    $('kgaeFahrtPlus').addEventListener('click', () => { fahrtZeigen(true); $('kgaeKm').focus(); geaendertMelden(); });
+    $('kgaeFahrtWeg').addEventListener('click', () => { $('kgaeKm').value = ''; $('kgaeCent').value = ''; fahrtZeigen(false); geaendertMelden(); });
+    function monatsPreis() {
+        return felderLesen().positionen.filter(p => p.einheit === 'monatlich').reduce((a, p) => a + zahl(p.preis), 0);
+    }
+    function aufstellung(std, einsaetzeMonat) {
+        const kal = { lohn: wert('kgaeLohn', kk().lohn), abgaben: wert('kgaeAbgaben', kk().abgaben), material: wert('kgaeMaterial', kk().material), auf: wert('kgaeAuf', kk().aufschlag) };
+        const fahrtAn = !$('kgaeFahrtFelder').hidden, km = zahl($('kgaeKm').value), cent = zahl($('kgaeCent').value);
+        const lohnK = std * kal.lohn, abgK = lohnK * kal.abgaben / 100, matK = (lohnK + abgK) * kal.material / 100;
+        const fahrtK = fahrtAn ? km * 2 * cent / 100 * einsaetzeMonat : 0;
+        const kosten = lohnK + abgK + matK + fahrtK;
+        const richt = kosten * (1 + kal.auf / 100);
+        const preis = monatsPreis();
+        const basis = preis > 0 ? preis : richt;
+        const gewinn = basis - kosten, prozent = kosten > 0 ? Math.round(gewinn / kosten * 1000) / 10 : 0;  // auf 0,1 % gerundet (40,0 % zählt als grün)
+        ergebnis = { stunden: Math.round(std * 100) / 100, einsaetze: Math.round(einsaetzeMonat * 100) / 100, kosten: Math.round(kosten * 100) / 100, richtpreis: Math.round(richt * 100) / 100,
+            preis: Math.round(preis * 100) / 100, gewinn: Math.round(gewinn * 100) / 100, prozent: prozent, aufschlag: kal.auf };
+        if (!std) { $('kgaeAufstellung').innerHTML = '<div class="kgae-leer">Flächen und Häufigkeit eintragen – dann erscheinen hier Kosten, Preis und Gewinn.</div>'; return richt; }
+        const zeile = (ic, farbe, titel, rechnung, betrag) => '<div class="kgae-af-zeile"><span class="ic" style="background:' + farbe + '">' + ic + '</span><span><b>' + titel + '</b><small>' + rechnung + '</small></span><b>' + euro(betrag) + '</b></div>';
+        const klasse = gewinn < 0 ? 'rot' : ampel(prozent);
+        const text = gewinn < 0 ? 'Verlust – der Preis liegt unter den Kosten.' : (prozent >= 40 ? 'Gut – ab 40 % auf die Kosten.' : (prozent >= 25 ? 'Knapp – 25 bis 40 %, nur für große Aufträge.' : 'Zu wenig – unter 25 % auf die Kosten.'));
+        const kostenAnteil = basis > 0 ? Math.max(0, Math.min(100, kosten / basis * 100)) : 100;
+        $('kgaeAufstellung').innerHTML =
+            '<div class="kgae-af-preis" data-kg-skip><div><small>' + (preis > 0 ? 'Dein Preis · netto / Monat' : 'Noch kein Preis eingetragen') + '</small><b>' + (preis > 0 ? euro(preis) : '–') + '</b>' +
+            '<i>' + (preis > 0 ? euro(preis / std) + ' je Stunde · ' : '') + eins(std) + ' Std / Monat · ' + eins(einsaetzeMonat) + ' Einsätze</i></div>' +
+            '<div class="rechts"><div><small>Richtpreis bei ' + pct(kal.auf) + ' %</small><b>' + euro(richt) + '</b></div><button type="button" class="kgae-knopf" data-aktion="richt">In Leistung 1 übernehmen</button></div></div>' +
+            '<div class="kgae-af-posten">' +
+            zeile('€', 'linear-gradient(135deg,#2563eb,#1e40af)', 'Lohn', eins(std) + ' Std × ' + euro(kal.lohn), lohnK) +
+            zeile('%', 'linear-gradient(135deg,#6366f1,#4338ca)', 'Minijob-Abgaben', komma(kal.abgaben) + ' % vom Lohn', abgK) +
+            zeile('M', 'linear-gradient(135deg,#0ea5e9,#0369a1)', 'Material', pct(kal.material) + ' % der Lohnkosten', matK) +
+            (fahrtAn ? zeile('⇄', 'linear-gradient(135deg,#14b8a6,#0f766e)', 'Fahrt', komma(km) + ' km × 2 × ' + komma(cent) + ' ct × ' + eins(einsaetzeMonat) + ' Einsätze', fahrtK) : '') +
+            '<div class="kgae-af-summe"><span>Kosten gesamt</span><i>' + euro(kosten / std) + ' je Stunde</i><b>' + euro(kosten) + '</b></div></div>' +
+            '<div class="kgae-af-gewinn ' + klasse + '"><div><small>' + (preis > 0 ? 'Dein Gewinn / Monat' : 'Gewinn beim Richtpreis') + '</small><b>' + (gewinn >= 0 ? '+' : '') + euro(gewinn) + '</b></div>' +
+            '<span class="kgae-af-prozent">' + (gewinn >= 0 ? '+' : '') + pct(prozent) + ' % auf die Kosten</span>' +
+            '<div class="kgae-af-balken" title="grau = Kosten, farbig = Gewinn"><i style="width:' + kostenAnteil + '%"></i><em style="width:' + (100 - kostenAnteil) + '%"></em></div><p>' + text + '</p></div>';
+        return richt;
+    }
+    $('kgaeAufstellung').addEventListener('click', e => {
+        if (!e.target.closest('[data-aktion="richt"]')) return;
+        const richt = rechnen();
+        if (!richt) return;
+        const p = document.querySelector('[data-pos="1"][data-teil="preis"]');
+        p.value = (Math.round(richt * 100) / 100).toFixed(2).replace('.', ',');
+        document.querySelector('[data-pos="1"][data-teil="einheit"]').value = 'monatlich';
+        fokus = 'leistung';
+        geaendertMelden();
+        p.focus();
+    });
     function rechnen() {
         if (!k) return 0;
         const kal = kalkLesen(), m = k.minuten, st = kal.stueck;
@@ -441,24 +609,13 @@ a.kgae-knopf { display: inline-block; text-decoration: none; }
         });
         const ruest = maxE * m.ruest / 60;
         summe += ruest;
-        const richt = summe * kal.satz;
-        $('kgaeStd').textContent = eins(summe);
-        $('kgaeRicht').textContent = euro(richt);
+        const richt = aufstellung(summe, maxE);
         $('kgaeFormel').innerHTML = 'Minuten je Einsatz = m² ÷ Leistungswert × 60 × Verschmutzung (+ WC ' + String(m.wc).replace('.', ',') + ' · Urinal ' + String(m.urinal).replace('.', ',') + ' · Waschbecken ' + String(m.wb).replace('.', ',') +
             ' · Schreibtisch ' + String(m.schreibtisch).replace('.', ',') + ' · Mülleimer ' + String(m.muell).replace('.', ',') + ' Min je Stück) · Einsätze/Monat = x/Woche × ' + String(k.monat).replace('.', ',') +
-            ' · + Rüstzeit ' + m.ruest + ' Min je Einsatz (' + eins(ruest) + ' Std) · <b>Richtpreis = Std/Monat × Stundensatz</b>. Der Preis im Angebot ist immer der, den du oben einträgst.';
+            ' · + Rüstzeit ' + m.ruest + ' Min je Einsatz (' + eins(ruest) + ' Std) · <b>Kosten = Lohn + Minijob-Abgaben + Material (+ Fahrt) · Richtpreis = Kosten + Aufschlag</b>. Der Preis im Angebot ist immer der, den du oben einträgst' +
+            (k.stundensatz ? ' · zum Vergleich: bisher ' + euro(k.stundensatz) + '/Std = ' + euro(summe * k.stundensatz) : '') + '.';
         return richt;
     }
-    $('kgaeUebernehmen').addEventListener('click', () => {
-        const richt = rechnen();
-        if (!richt) return;
-        const p = document.querySelector('[data-pos="1"][data-teil="preis"]');
-        p.value = (Math.round(richt * 100) / 100).toFixed(2).replace('.', ',');
-        document.querySelector('[data-pos="1"][data-teil="einheit"]').value = 'monatlich';
-        fokus = 'leistung';
-        geaendertMelden();
-        p.focus();
-    });
 
     // ---------- Vorschau (echte Angebotsvorlage)
     function vorschauUrl(f) {
@@ -593,7 +750,7 @@ a.kgae-knopf { display: inline-block; text-decoration: none; }
             $('kgaeStart').hidden = true; $('kgaeFormular').hidden = false;
             $('kgaeTitel').textContent = 'Neues Angebot';
             $('kgaeBestaetigt').hidden = true;
-            $('kgaeAkte').hidden = true;
+            $('kgaeAkte').hidden = true; $('kgaeAkteOben').hidden = true;
             nrSetzen(d.naechste_nr, 'nächste freie Nummer', false);
             $('kgaeQuelle').hidden = true;
             $('kgaeGespeichert').textContent = '';
@@ -723,7 +880,7 @@ a.kgae-knopf { display: inline-block; text-decoration: none; }
             if (d.status === 'angebot') meldung('ok', 'Dieses Angebot ist schon verschickt (AN-' + esc(d.angebot_nr) + '). Änderungen werden mit „Angebot senden“ übernommen, die Nummer bleibt.');
             schritte(d.status === 'angebot' ? 3 : 2);
             $('kgaeBestaetigt').hidden = d.status !== 'angebot';
-            $('kgaeAkte').hidden = false;
+            $('kgaeAkte').hidden = false; $('kgaeAkteOben').hidden = false;
             geaendert = false;
             history.replaceState(null, '', location.pathname + '?id=' + id);
             vorschau();
@@ -776,6 +933,7 @@ a.kgae-knopf { display: inline-block; text-decoration: none; }
     });
     // Kunde hat das Angebot bestätigt → Vertrag-Warteliste (/vertrag/editor); das Angebot selbst bleibt unverändert
     $('kgaeAkte').addEventListener('click', () => { if (aktuell && aktuell.id) location.href = '/akte/' + aktuell.id; });
+    $('kgaeAkteOben').addEventListener('click', () => { if (aktuell && aktuell.id) location.href = '/akte/' + aktuell.id; });
     $('kgaeBestaetigt').addEventListener('click', () => {
         if (!aktuell || aktuell.status !== 'angebot') return;
         if (!window.confirm('Hat der Kunde das Angebot AN-' + aktuell.angebot_nr + ' bestätigt?\n\nEs kommt in die Vertrag-Warteliste, der Vertrag wird mit diesen Angaben vorbereitet.')) return;

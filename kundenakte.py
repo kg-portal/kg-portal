@@ -515,6 +515,13 @@ def akte(conn, tid):
     for v in verlauf:
         v.pop("_s", None)
 
+    kalk = None
+    if entwurf:
+        e = _json(entwurf["kalkulation_json"]).get("ergebnis")
+        if isinstance(e, dict) and _zahl(e.get("kosten")) > 0:
+            kalk = {k: _euro(_zahl(e.get(k))) for k in ("kosten", "preis", "gewinn", "richtpreis")}
+            kalk["prozent"] = round(_zahl(e.get("prozent")), 1)
+            kalk["stunden"] = round(_zahl(e.get("stunden")), 1)
     positionen = []
     for p in (ef.get("positionen") or [])[:4]:
         if isinstance(p, dict) and (_txt(p.get("text")) or _zahl(p.get("preis"))):
@@ -531,7 +538,7 @@ def akte(conn, tid):
         "besichtigung": dict(bes, gespeichert=bes_echt, versionen=len(versionen),
                              gespeichert_am=_anz(_zeit(versionen[-1]["gespeichert_am"], utc=True)) if versionen else "") if bes else None,
         "angebot": {"nr": angebot_nr or (str(nummern[-1]["nr"]) if nummern else ""), "datum": _anz(angebot_zeit, True),
-                    "netto": _euro(netto) if netto else "", "positionen": positionen, "entwurf": bool(entwurf)} if (hat_angebot or entwurf) else None,
+                    "netto": _euro(netto) if netto else "", "positionen": positionen, "entwurf": bool(entwurf), "kalk": kalk} if (hat_angebot or entwurf) else None,
         "vertrag": {"id": vertrag["id"], "status": vertrag["status"], "gesendet_am": _anz(_zeit(vertrag["gesendet_am"]))} if vertrag else None,
         "notizen": [{"id": n["id"], "text": n["text"], "von": n["von"] or "", "am": _anz(_zeit(n["am"]))} for n in notizen],
         "tl_notizen": tl_notizen[-8:],
@@ -588,6 +595,28 @@ def register_kundenakte(app, login_required, get_db_connection):
             if not a:
                 return jsonify({"ok": False, "error": "Diese Firma wurde nicht gefunden."}), 404
             return jsonify(a)
+        finally:
+            conn.close()
+
+    @app.route("/api/akte/<int:tid>/besichtigung", methods=["POST"])
+    @login_required
+    def kundenakte_besichtigung(tid):
+        """Besichtigung-Seite → Angebot: Eingaben sichern, ohne den Status der Firma zu ändern."""
+        daten = (request.get_json(silent=True) or {}).get("daten")
+        if not isinstance(daten, dict) or not daten:
+            return jsonify({"ok": False, "error": "Keine Daten."}), 400
+        text = json.dumps(daten, ensure_ascii=False)
+        conn = get_db_connection()
+        try:
+            tabellen(conn)
+            text = kg_scan_behalten(conn, tid, text)
+            zeile = conn.execute("SELECT id FROM tagesliste_leads WHERE id = ?", (tid,)).fetchone()
+            if zeile:
+                conn.execute("UPDATE tagesliste_leads SET besichtigung_data_json = ? WHERE id = ?", (text, tid))  # Trigger sichert die Version
+            else:
+                sichern(conn, tid, text, "seite")
+            conn.commit()
+            return jsonify({"ok": True})
         finally:
             conn.close()
 

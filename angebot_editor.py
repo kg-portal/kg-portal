@@ -24,6 +24,11 @@ BERLIN = ZoneInfo("Europe/Berlin")
 EINHEITEN = ["monatlich", "einmalig", "pro Durchgang", "jährlich", "pro Stunde"]
 MWST = 0.19
 BEREICHE = [("buero", "Büro"), ("wc", "WC / Sanitär"), ("kueche", "Küche"), ("flur", "Flur / Eingang")]
+# Kalkulation im Rechner (alles im Editor änderbar, wird mit dem Angebot gespeichert):
+# Lohn = Mindestlohn Gebäudereinigung Lohngruppe 1 ab 01.01.2026; Abgaben = Minijob gewerblich 2026
+# (KV 13 % + RV 15 % + Pauschsteuer 2 % + U1 0,8 % + U2 0,22 % + Insolvenzgeld 0,15 %); Material = Richtwert in % der Lohnkosten;
+# Aufschlag auf die Kosten = 40 % vorausgewählt. Fahrt gibt es nur, wenn sie im Editor hinzugefügt wird (km + Cent/km).
+KALKULATION = {"lohn": 15.0, "abgaben": 31.17, "material": 5.0, "aufschlag": 40, "stufen": [25, 40, 50, 60]}
 STATUS_NAME = {"offen": "Tagesliste", "angerufen": "Angerufen", "interessiert": "Interessiert", "besichtigung": "Besichtigung",
                "angebot": "Angebot", "kontaktformular": "Kontaktformular", "spaeter": "Später", "verloren": "Verloren", "kunde": "Kunde"}
 
@@ -138,6 +143,7 @@ def koeffizienten(stundensatz):
                     "muell": bz.MIN_MUELL, "ruest": bz.MIN_RUESTZEIT},
         "verschmutzung": bz.VERSCHMUTZUNG,
         "stundensatz": float(stundensatz),
+        "kalkulation": KALKULATION,
         "haeufigkeiten": ["1x wöchentlich", "2x wöchentlich", "3x wöchentlich", "4x wöchentlich", "5x wöchentlich", "täglich",
                           "14-tägig", "1x monatlich", "keine"],
         "einsaetze": {h: bz.einsaetze_pro_monat(h) for h in ["1x wöchentlich", "2x wöchentlich", "3x wöchentlich", "4x wöchentlich",
@@ -146,6 +152,20 @@ def koeffizienten(stundensatz):
 
 
 # ---------------------------------------------------------------- Felder ⇄ Vorlagen-Variablen
+
+def kalk_ergebnis(text):
+    """Gespeichertes Kalkulationsergebnis (Kosten, Preis, Gewinn) für Listen und die Kundenakte."""
+    e = _json(text, {}).get("ergebnis")
+    if not isinstance(e, dict):
+        return None
+    aus = {}
+    for k in ("stunden", "kosten", "richtpreis", "preis", "gewinn", "prozent", "aufschlag"):
+        try:
+            aus[k] = round(float(e.get(k) or 0), 2)
+        except (TypeError, ValueError):
+            aus[k] = 0.0
+    return aus if aus["kosten"] > 0 else None
+
 
 def _leer_felder(row, daten, am):
     kunde = daten.get("kunde") if isinstance(daten.get("kunde"), dict) else {}
@@ -327,13 +347,15 @@ def register_angebot_editor(app, login_required, get_db_connection, app2_modul):
         conn = get_db_connection()
         try:
             _tabelle(conn)
-            entwuerfe = {r[0] for r in conn.execute("SELECT tagesliste_id FROM angebot_editor_entwuerfe").fetchall()}
+            kalk = {r[0]: kalk_ergebnis(r[1]) for r in conn.execute("SELECT tagesliste_id, kalkulation_json FROM angebot_editor_entwuerfe").fetchall()}
+            entwuerfe = set(kalk)
             bes = []
             for r in conn.execute("""SELECT id, firma, ort, quelle, besichtigung_data_json FROM tagesliste_leads
                                      WHERE status = 'besichtigung' ORDER BY id DESC""").fetchall():
                 d = _json(r["besichtigung_data_json"], {})
                 bes.append({"id": r["id"], "firma": r["firma"] or "Ohne Firma", "ort": r["ort"] or "", "quelle": r["quelle"] or "",
-                            "scan": isinstance(d.get("kg_scan"), dict), "raeume": len(d.get("raeume") or []), "entwurf": r["id"] in entwuerfe})
+                            "scan": isinstance(d.get("kg_scan"), dict), "raeume": len(d.get("raeume") or []), "entwurf": r["id"] in entwuerfe,
+                            "kalk": kalk.get(r["id"])})
             live = {b["id"] for b in bes}
             try:
                 for r in conn.execute("""SELECT tagesliste_id AS id, firma, ort, quelle FROM tagesliste_status_backup
@@ -350,11 +372,11 @@ def register_angebot_editor(app, login_required, get_db_connection, app2_modul):
                             d = {}
                     bes.append({"id": r["id"], "firma": r["firma"] or "Ohne Firma", "ort": r["ort"] or "", "quelle": r["quelle"] or "",
                                 "scan": isinstance(d.get("kg_scan"), dict) and bool(d.get("kg_scan")), "raeume": len(d.get("raeume") or []),
-                                "entwurf": r["id"] in entwuerfe})
+                                "entwurf": r["id"] in entwuerfe, "kalk": kalk.get(r["id"])})
             except Exception:
                 pass
             ang = [{"id": r["id"], "firma": r["firma"] or "Ohne Firma", "ort": r["ort"] or "", "nr": r["angebot_nr"] or "",
-                    "datum": r["angebot_datum"] or "", "netto": float(r["angebot_netto"] or 0)}
+                    "datum": r["angebot_datum"] or "", "netto": float(r["angebot_netto"] or 0), "kalk": kalk.get(r["id"])}
                    for r in conn.execute("""SELECT id, firma, ort, angebot_nr, angebot_datum, angebot_netto FROM tagesliste_leads
                                             WHERE status = 'angebot' ORDER BY id DESC LIMIT 200""").fetchall()]
             conn.commit()
