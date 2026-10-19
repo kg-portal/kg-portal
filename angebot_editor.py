@@ -273,6 +273,10 @@ LV_FELDER = {"buero": ("Freq_Muell", "Freq_Tueren", "Freq_Boden_Teppich"),
              "wc": ("Freq_WC", "Freq_Waschbecken", "Freq_Auffuellen", "Freq_Sanitaer_Muell", "Freq_Boden_Sanitaer"),
              "flur": ("Freq_Flur_Kontakt", "Freq_Flur_Sicht", "Freq_Flur_Boden")}
 LV_NAME = {"buero": "Büro", "wc": "WC", "kueche": "Küche", "flur": "Flur"}
+# Einzelne Zeilen des Leistungsverzeichnisses, die im Angebot-Editor abweichend vom Bereich gewählt werden können
+LV_ZEILEN = ("Freq_Schreibtische", "Freq_Elektro", "Freq_Muell", "Freq_Tueren", "Freq_Boden_Teppich", "Freq_Kueche_Flaechen", "Freq_Spuelmaschine",
+             "Freq_Kueche_Muell", "Freq_Boden_Kueche", "Freq_WC", "Freq_Waschbecken", "Freq_Auffuellen", "Freq_Sanitaer_Muell", "Freq_Boden_Sanitaer",
+             "Freq_Flur_Kontakt", "Freq_Flur_Sicht", "Freq_Flur_Boden")
 
 
 def _lv_haeufigkeit(h):
@@ -304,14 +308,15 @@ def lv_mit_editor(v, felder, kalk):
         h = _lv_haeufigkeit(b.get("haeufigkeit"))
         for name in LV_FELDER[b["key"]]:
             v[name] = h
-        if b["key"] == "buero":  # Schreibtische / Elektro: aus der Besichtigung, sonst wie das Büro
-            for name in ("Freq_Schreibtische", "Freq_Elektro"):
-                if _txt(v.get(name)) in ("", "-"):
-                    v[name] = h
         if h != "-":
             oben.append(f"{LV_NAME[b['key']]}: {h}")
     if oben:
         v["Haeufigkeit"] = "<br>".join(oben)
+    # einzelne Zeilen, im Editor abweichend gewählt (z. B. Elektro „keine“, Papierkörbe 3x)
+    lv = (kalk or {}).get("lv") if isinstance((kalk or {}).get("lv"), dict) else {}
+    for name, h in lv.items():
+        if name in LV_ZEILEN and _txt(h):
+            v[name] = _lv_haeufigkeit(h)
     return v
 
 

@@ -116,6 +116,16 @@
 .kgae-bereich-felder label { display: block; margin-bottom: 3px; font-size: 10.5px; font-weight: 900; letter-spacing: .06em; text-transform: uppercase; color: var(--grau); }
 .kgae-bereich .kgae-in { width: 100%; padding: 8px 10px; font-size: 14px; background: #f8fbff; }
 .kgae-bereich .kgae-in.gross { font-size: 18px; font-weight: 900; }
+.kgae-lvz { margin-top: 10px; padding: 10px 12px; border-radius: 14px; background: #fff; border: 1px solid #e2e8f0; }
+.kgae-lvz summary { cursor: pointer; display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; font-size: 14px; }
+.kgae-lvz summary span { font-size: 12px; font-weight: 700; color: var(--grau); }
+.kgae-lvz-raster { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px 16px; margin-top: 10px; }
+.kgae-lvz-gruppe b { display: block; margin-bottom: 4px; font-size: 12px; font-weight: 900; color: var(--b1); }
+.kgae-lvz-zeile { display: flex; align-items: center; gap: 8px; padding: 3px 0; font-size: 12.5px; font-weight: 700; color: #334155; }
+.kgae-lvz-zeile span { flex: 1; min-width: 0; }
+.kgae-lvz-zeile select.kgae-in { width: 150px; flex: none; padding: 5px 8px; font-size: 12.5px; }
+.kgae-lvz-zeile select.anders { border-color: #f59e0b; background: #fffbeb; }
+@media (max-width: 760px) { .kgae-lvz-raster { grid-template-columns: 1fr; } .kgae-lvz-zeile select.kgae-in { width: 130px; } }
 .kgae-stueck > div { padding: 9px 11px; border-radius: 14px; background: #fff; border: 1px solid #e2e8f0; box-shadow: 0 10px 20px -18px rgba(15, 23, 42, .55); }
 .kgae-stueck .kgae-in { padding: 7px 8px; text-align: center; font-size: 16px; font-weight: 900; background: #f1f5f9; border-color: transparent; }
 /* Sonderleistungen nach m² */
@@ -379,6 +389,10 @@ a.kgae-knopf { display: inline-block; text-decoration: none; }
                         <div><label for="kgae_s_schreibtisch">Schreibtische</label><input class="kgae-in" id="kgae_s_schreibtisch" data-stueck="schreibtisch" inputmode="numeric"></div>
                         <div><label for="kgae_s_muell">Mülleimer</label><input class="kgae-in" id="kgae_s_muell" data-stueck="muell" inputmode="numeric"></div>
                     </div>
+                    <details class="kgae-lvz" id="kgaeLvz">
+                        <summary><b>Leistungsverzeichnis – einzelne Zeilen</b><span>Standard: wie der Bereich oben · hier abweichend wählen (z. B. Elektro „keine“, Papierkörbe 3x)</span></summary>
+                        <div class="kgae-lvz-raster" id="kgaeLvzRaster"></div>
+                    </details>
                     <div class="kgae-kalk">
                         <div class="kgae-kalk-kopf"><b>Kalkulation</b><span>Kosten Posten für Posten · dein Aufschlag · dein Gewinn – alle Werte änderbar</span></div>
                         <div class="kgae-kalk-werte">
@@ -596,8 +610,32 @@ a.kgae-knopf { display: inline-block; text-decoration: none; }
         const st = Object.assign({}, am.stueck || {}, kalk.stueck || {});
         document.querySelectorAll('[data-stueck]').forEach(el => { el.value = st[el.dataset.stueck] ? String(st[el.dataset.stueck]) : ''; });
         kalkAufbauen(kalk);
+        lvzAufbauen(kalk.lv || {});
         $('kgaeAufmassQuelle').textContent = am.scan ? 'Flächen aus KG Scan' : (am.bereiche.some(b => b.m2) ? 'Flächen aus der Besichtigung' : 'Flächen bitte eintragen');
         rechnen();
+    }
+    // Leistungsverzeichnis: einzelne Zeilen abweichend vom Bereich (leer = wie der Bereich)
+    const LVZ = [
+        ['Büro', [['Freq_Schreibtische', 'Arbeitsflächen / Schreibtische'], ['Freq_Elektro', 'Elektrogeräte (PC, Bildschirm …)'], ['Freq_Muell', 'Papierkörbe leeren'],
+                  ['Freq_Tueren', 'Türgriffe / Fensterbänke'], ['Freq_Boden_Teppich', 'Böden']]],
+        ['WC / Sanitär', [['Freq_WC', 'WC / Urinale'], ['Freq_Waschbecken', 'Waschbecken / Spiegel'], ['Freq_Auffuellen', 'Papier + Seife auffüllen'],
+                          ['Freq_Sanitaer_Muell', 'Mülleimer'], ['Freq_Boden_Sanitaer', 'Böden']]],
+        ['Küche', [['Freq_Kueche_Flaechen', 'Arbeitsflächen + Spüle'], ['Freq_Spuelmaschine', 'Spülmaschine / Küchengeräte'], ['Freq_Kueche_Muell', 'Mülleimer'],
+                   ['Freq_Boden_Kueche', 'Böden']]],
+        ['Flur / Eingang', [['Freq_Flur_Kontakt', 'Empfang abstauben'], ['Freq_Flur_Sicht', 'Eingang / Laufwege'], ['Freq_Flur_Boden', 'Böden']]]
+    ];
+    function lvzAufbauen(lv) {
+        const opts = [''].concat(k.haeufigkeiten);
+        $('kgaeLvzRaster').innerHTML = LVZ.map(g => '<div class="kgae-lvz-gruppe"><b>' + esc(g[0]) + '</b>' + g[1].map(z =>
+            '<label class="kgae-lvz-zeile"><span>' + esc(z[1]) + '</span><select class="kgae-in' + (lv[z[0]] ? ' anders' : '') + '" data-lvz="' + z[0] + '">' +
+            opts.map(o => '<option value="' + esc(o) + '"' + ((lv[z[0]] || '') === o ? ' selected' : '') + '>' + esc(o || 'wie Bereich') + '</option>').join('') + '</select></label>').join('') + '</div>').join('');
+        $('kgaeLvzRaster').querySelectorAll('select').forEach(sel => sel.addEventListener('change', () => sel.classList.toggle('anders', !!sel.value)));
+        if (Object.keys(lv).some(x => lv[x])) $('kgaeLvz').open = true;
+    }
+    function lvzLesen() {
+        const aus = {};
+        document.querySelectorAll('#kgaeLvzRaster [data-lvz]').forEach(sel => { if (sel.value) aus[sel.dataset.lvz] = sel.value; });
+        return aus;
     }
     function kalkLesen() {
         return {
@@ -608,6 +646,7 @@ a.kgae-knopf { display: inline-block; text-decoration: none; }
             fahrt: { an: !$('kgaeFahrtFelder').hidden, km: zahl($('kgaeKm').value), cent: zahl($('kgaeCent').value) },
             aufschlag: wert('kgaeAuf', kk().aufschlag),
             sonder: sonderLesen(),
+            lv: lvzLesen(),
             ergebnis: ergebnis
         };
     }
