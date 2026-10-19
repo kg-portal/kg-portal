@@ -19,6 +19,11 @@ STATUS_NAME = {"angerufen": "Angerufen", "interessiert": "Interesse", "besichtig
 SCHRITTE = [("kontakt", "Kontakt"), ("interesse", "Interesse"), ("besichtigung", "Besichtigung"),
             ("angebot", "Angebot"), ("vertrag", "Vertrag"), ("kunde", "Kunde")]
 NACHFASSEN_TAGE = 7
+# Ältere Angebote ohne Antwort kommen nicht mehr in die Arbeitsliste (bleiben in der Kundenakte sichtbar) – sonst stünden
+# alte Angebote aus der Zeit vor der Kundenakte (auch längst erledigte) jeden Morgen auf der Liste.
+NACHFASSEN_FENSTER = 30
+ABSAGE_GRUENDE = ("Zu teuer", "Andere Firma beauftragt", "Kein Bedarf mehr", "Keine Antwort", "Sonstiges")
+NACHFASS_WEGE = ("Anruf", "Mail", "WhatsApp", "Vor Ort")
 
 
 # ---------------------------------------------------------------- Tabellen, Trigger, Sicherung
@@ -52,6 +57,11 @@ def tabellen(conn):
         id INTEGER PRIMARY KEY AUTOINCREMENT, tagesliste_id INTEGER NOT NULL, art TEXT NOT NULL, titel TEXT, text TEXT,
         an TEXT, am TEXT NOT NULL, ref TEXT)""")
     conn.execute("CREATE INDEX IF NOT EXISTS akte_ereignisse_tid ON akte_ereignisse (tagesliste_id)")
+    if "von" not in _spalten(conn, "akte_ereignisse"):  # wer „Abgelehnt“ / „Nachgefasst“ eingetragen hat
+        try:
+            conn.execute("ALTER TABLE akte_ereignisse ADD COLUMN von TEXT")
+        except Exception:
+            pass  # ein zweiter Prozess war schneller
     conn.execute("CREATE TABLE IF NOT EXISTS akte_meta (schluessel TEXT PRIMARY KEY, wert TEXT)")
     conn.execute("INSERT OR IGNORE INTO akte_meta (schluessel, wert) VALUES ('mail_protokoll_seit', ?)", (_jetzt(),))
     if not _hat_tabelle(conn, "tagesliste_leads"):
@@ -236,6 +246,119 @@ def mail_merken(get_db_connection, an, betreff, anhaenge, gmail_id):
         conn.close()
 
 
+# ---------------------------------------------------------------- Nach dem Angebot: angenommen / abgelehnt / nachfassen
+# „Abgelehnt“ und „Nachgefasst“ stehen nur im Protokoll der Kundenakte (akte_ereignisse). Tagesliste, Angebot und Status
+# der Firma bleiben unverändert. Ein neues Angebot (neue Nummer) beginnt eine neue Runde: ältere Einträge zählen dann nicht.
+
+def _angebot_zeit(conn, tid, zeile):
+    """Wann das aktuelle Angebot fertig wurde: zuletzt vergebene Nummer, sonst Angebotsdatum der Zeile."""
+    z = None
+    if _hat_tabelle(conn, "angebot_nummern"):
+        r = conn.execute("SELECT vergeben_am FROM angebot_nummern WHERE tagesliste_id = ? ORDER BY id DESC LIMIT 1", (tid,)).fetchone()
+        z = _zeit(r[0]) if r else None
+    if not z and zeile is not None and "angebot_datum" in zeile.keys():
+        z = _zeit(zeile["angebot_datum"])
+    return z
+
+
+def angebot_lage(conn, tid, angebot_zeit, vertrag=False, jetzt=None):
+    """Stand nach dem Angebot. Nachfassen ist fällig 7 Tage nach dem Angebot bzw. nach dem letzten Nachfassen."""
+    jetzt = jetzt or datetime.now(BERLIN)
+    ab = angebot_zeit or datetime(2000, 1, 1, tzinfo=BERLIN)
+    absage, nachgefasst, anzahl = None, None, 0
+    for e in conn.execute("SELECT art, titel, text, von, am FROM akte_ereignisse WHERE tagesliste_id = ? "
+                          "AND art IN ('angebot_abgelehnt', 'angebot_wieder_offen', 'nachgefasst') ORDER BY id", (tid,)).fetchall():
+        z = _zeit(e["am"])
+        if not z or z < ab:
+            continue
+        if e["art"] == "angebot_abgelehnt":
+            absage = {"grund": _txt(e["titel"]), "text": _txt(e["text"]), "von": _txt(e["von"]), "am": z}
+        elif e["art"] == "angebot_wieder_offen":
+            absage = None
+        else:
+            nachgefasst = {"wie": _txt(e["titel"]), "text": _txt(e["text"]), "von": _txt(e["von"]), "am": z}
+            anzahl += 1
+    basis = max([d for d in (angebot_zeit, nachgefasst["am"] if nachgefasst else None) if d], default=None)
+    tage = (jetzt.date() - basis.date()).days if basis else 0
+    status = "angenommen" if vertrag else ("abgelehnt" if absage else "offen")
+    return {"status": status, "tage": tage, "faellig": status == "offen" and basis is not None and tage >= NACHFASSEN_TAGE,
+            "faellig_am": basis + timedelta(days=NACHFASSEN_TAGE) if basis else None, "absage": absage, "nachgefasst": nachgefasst,
+            "nachgefasst_anzahl": anzahl, "alter": (jetzt.date() - angebot_zeit.date()).days if angebot_zeit else 0}
+
+
+def _lage_json(l):
+    a, n = l["absage"], l["nachgefasst"]
+    return {"status": l["status"], "tage": l["tage"], "faellig": l["faellig"], "alter": l["alter"],
+            "faellig_am": l["faellig_am"].strftime("%d.%m.%Y") if l["faellig_am"] else "",
+            "grund": a["grund"] if a else "", "grund_text": a["text"] if a else "", "absage_am": _anz(a["am"]) if a else "",
+            "nachgefasst_am": _anz(n["am"]) if n else "", "nachgefasst_wie": n["wie"] if n else "", "nachgefasst_anzahl": l["nachgefasst_anzahl"]}
+
+
+def _offenes_angebot(conn, tid):
+    """Zeile + Zeitpunkt, wenn die Firma ein verschicktes Angebot ohne Vertrag hat (sonst None)."""
+    if not _hat_tabelle(conn, "tagesliste_leads") or not {"angebot_nr", "angebot_datum"} <= _spalten(conn, "tagesliste_leads"):
+        return None
+    zeile = conn.execute("SELECT id, firma, ort, telefon, status, angebot_nr, angebot_datum, angebot_netto FROM tagesliste_leads WHERE id = ?",
+                         (tid,)).fetchone()
+    if not zeile or str(zeile["status"] or "").lower() != "angebot" or not _txt(zeile["angebot_nr"]):
+        return None
+    vertrag = _hat_tabelle(conn, "vertrag_editor") and bool(conn.execute("SELECT 1 FROM vertrag_editor WHERE tagesliste_id = ?", (tid,)).fetchone())
+    return zeile, _angebot_zeit(conn, tid, zeile), vertrag
+
+
+def lage_kurz(conn, tid):
+    """Für die Angebot-Liste im Editor: wartet / Nachfassen fällig / abgelehnt / angenommen."""
+    tabellen(conn)
+    o = _offenes_angebot(conn, tid)
+    return _lage_json(angebot_lage(conn, tid, o[1], o[2])) if o else None
+
+
+def ereignis_merken(conn, tid, art, titel, text, von):
+    conn.execute("INSERT INTO akte_ereignisse (tagesliste_id, art, titel, text, an, am, ref, von) VALUES (?, ?, ?, ?, '', ?, '', ?)",
+                 (tid, art, _txt(titel)[:120], str(text or "").strip()[:1000], _jetzt(), _txt(von)[:40]))
+
+
+def nachgefasst_merken(conn, tid, wie="Anruf", text="", von=""):
+    """„Nachgefasst“ eintragen (Kundenakte, Arbeitsliste, WhatsApp „3 erledigt“). Gibt die Firma zurück, sonst None."""
+    tabellen(conn)
+    o = _offenes_angebot(conn, tid)
+    if not o or o[2] or angebot_lage(conn, tid, o[1])["status"] == "abgelehnt":
+        return None
+    ereignis_merken(conn, tid, "nachgefasst", wie if wie in NACHFASS_WEGE else "Anruf", text, von)
+    conn.commit()
+    return _txt(o[0]["firma"]) or "Ohne Firma"
+
+
+def nachfassen_liste(conn, tag=None):
+    """Arbeitsliste (/heute + WhatsApp am Morgen): Angebote ohne Antwort, deren 7 Tage um sind – ohne Vertrag, ohne Absage,
+    nicht älter als NACHFASSEN_FENSTER Tage. Die frischesten zuerst."""
+    tabellen(conn)
+    if not _hat_tabelle(conn, "tagesliste_leads") or not {"angebot_nr", "angebot_datum"} <= _spalten(conn, "tagesliste_leads"):
+        return []
+    jetzt = datetime.now(BERLIN)
+    if tag and tag != jetzt.date():
+        jetzt = datetime(tag.year, tag.month, tag.day, 23, 59, tzinfo=BERLIN)
+    aus = []
+    for r in conn.execute("SELECT id FROM tagesliste_leads WHERE status = 'angebot' AND COALESCE(angebot_nr, '') != '' ORDER BY id DESC").fetchall():
+        o = _offenes_angebot(conn, r["id"])
+        if not o or o[2] or not o[1]:
+            continue
+        zeile, az, _ = o
+        l = angebot_lage(conn, r["id"], az, False, jetzt)
+        if not l["faellig"] or l["alter"] > NACHFASSEN_FENSTER:
+            continue
+        netto = _zahl(zeile["angebot_netto"])
+        teile = [f"seit {l['alter']} Tagen keine Antwort"]
+        if l["nachgefasst"]:
+            teile.append(f"zuletzt nachgefasst {l['nachgefasst']['am'].strftime('%d.%m.')} ({l['nachgefasst']['wie']})")
+        if netto:
+            teile.append(_euro(netto) + " netto")
+        aus.append({"id": r["id"], "zeit": "", "titel": f"{_txt(zeile['firma']) or 'Ohne Firma'} · AN-{_txt(zeile['angebot_nr'])}",
+                    "sub": " · ".join(teile), "telefon": _txt(zeile["telefon"]), "link": f"/akte/{r['id']}", "art": "nachfassen", "_t": l["tage"]})
+    aus.sort(key=lambda x: x.pop("_t"))
+    return aus
+
+
 # ---------------------------------------------------------------- Akte zusammenstellen
 
 def _zusammenfassung(daten):
@@ -314,6 +437,8 @@ def akte(conn, tid):
     tl_notiz = conn.execute("SELECT notiz, geaendert_am FROM akte_tl_notiz WHERE tagesliste_id = ?", (tid,)).fetchone()
     notizen = conn.execute("SELECT id, text, von, am FROM akte_notizen WHERE tagesliste_id = ? ORDER BY id DESC", (tid,)).fetchall()
     mails = conn.execute("SELECT titel, text, an, am FROM akte_ereignisse WHERE tagesliste_id = ? AND art = 'mail' ORDER BY id", (tid,)).fetchall()
+    nach_angebot = conn.execute("SELECT art, titel, text, von, am FROM akte_ereignisse WHERE tagesliste_id = ? "
+                                "AND art IN ('angebot_abgelehnt', 'angebot_wieder_offen', 'nachgefasst') ORDER BY id", (tid,)).fetchall()
     mail_seit = _zeit((conn.execute("SELECT wert FROM akte_meta WHERE schluessel = 'mail_protokoll_seit'").fetchone() or [""])[0])
 
     status_alle = {str(b["status"]).lower() for b in backups} | {str(h["status"]).lower() for h in historie}
@@ -409,6 +534,13 @@ def akte(conn, tid):
                     [{"text": "✓ gesendet", "farbe": "g"}])
     for n in notizen:
         eintrag("notiz", _zeit(n["am"]), "Notiz", _txt(n["text"]), _txt(n["von"]))
+    for e in nach_angebot:
+        if e["art"] == "angebot_abgelehnt":
+            eintrag("verloren", _zeit(e["am"]), "Angebot abgelehnt", _txt(e["text"]), _txt(e["von"]), [{"text": _txt(e["titel"]) or "ohne Grund", "farbe": "r"}])
+        elif e["art"] == "angebot_wieder_offen":
+            eintrag("angebot", _zeit(e["am"]), "Absage zurückgenommen – Angebot wieder offen", "", _txt(e["von"]))
+        else:
+            eintrag("nachgefasst", _zeit(e["am"]), "Nachgefasst per " + (_txt(e["titel"]) or "Anruf"), _txt(e["text"]), _txt(e["von"]))
 
     # ---- Schritte
     angebot_zeit = None
@@ -454,6 +586,10 @@ def akte(conn, tid):
     if stufe == 5:
         schritte[4]["zustand"] = "ok"
         schritte[5]["text"] = "Kunde anlegen"
+    lage = angebot_lage(conn, tid, angebot_zeit, bool(vertrag), jetzt) if hat_angebot else None
+    abgelehnt = bool(lage and lage["status"] == "abgelehnt" and stufe == 3)
+    if abgelehnt:
+        schritte[3].update(zustand="nein", text="abgelehnt")
 
     # ---- Nächster Schritt
     k_editor = {"text": "Angebot öffnen", "href": f"/angebot/editor?id={tid}", "art": "hell"}
@@ -467,14 +603,25 @@ def akte(conn, tid):
     elif stufe == 4:
         naechst = {"titel": "Vertrag prüfen und senden", "text": "Das Angebot ist angenommen. Der Vertrag ist vorbereitet und wartet.",
                    "knoepfe": [{"text": "Vertrag öffnen", "href": f"/vertrag/editor?angebot={tid}", "art": ""}]}
+    elif abgelehnt:
+        a = lage["absage"]
+        naechst = {"titel": f"Angebot AN-{angebot_nr or nummern[-1]['nr']} abgelehnt",
+                   "text": f"Grund: {a['grund'] or 'ohne Grund'}" + (f" – {a['text']}" if a["text"] else "") + f" (am {_anz(a['am'], True)}"
+                           + (f", {a['von']}" if a["von"] else "") + "). Alles bleibt hier gespeichert.",
+                   "knoepfe": [{"text": "Absage zurücknehmen", "aktion": "wieder_offen", "art": "hell"}], "rot": True}
     elif stufe == 3 and hat_angebot:
         text = f"Seit {tage} {'Tag' if tage == 1 else 'Tagen'} keine Antwort." if tage else "Heute fertiggestellt."
-        if tage >= NACHFASSEN_TAGE:
-            text += " Jetzt nachfassen (anrufen oder Mail)."
-        else:
-            text += f" Nachfassen ab {(angebot_zeit + timedelta(days=NACHFASSEN_TAGE)).strftime('%d.%m.')} empfohlen."
+        if lage["nachgefasst"]:
+            n = lage["nachgefasst"]
+            text += f" Zuletzt nachgefasst am {n['am'].strftime('%d.%m.')} per {n['wie']}" + (f" ({n['text']})" if n["text"] else "") + "."
+        if lage["faellig"]:
+            text += " Jetzt nachfassen (anrufen oder Mail)." if not lage["nachgefasst"] else " Jetzt wieder nachfassen."
+        elif lage["faellig_am"]:
+            text += f" {'Nächstes Nachfassen' if lage['nachgefasst'] else 'Nachfassen'} ab {lage['faellig_am'].strftime('%d.%m.')} empfohlen."
         naechst = {"titel": f"Angebot AN-{angebot_nr or nummern[-1]['nr']} wartet auf Antwort", "text": text,
-                   "knoepfe": [k_editor, {"text": "✓ Angenommen → Vertrag", "aktion": "angenommen", "art": "gruen"}]}
+                   "knoepfe": [k_editor, {"text": "↻ Nachgefasst", "aktion": "nachgefasst", "art": "hell"},
+                               {"text": "✕ Abgelehnt", "aktion": "abgelehnt", "art": "rot"},
+                               {"text": "✓ Angenommen → Vertrag", "aktion": "angenommen", "art": "gruen"}]}
     elif stufe == 3:
         naechst = {"titel": "Angebot fertigstellen und senden", "text": "Der Entwurf ist gespeichert.", "knoepfe": [k_editor]}
     elif stufe == 2 and bes_echt:
@@ -489,8 +636,8 @@ def akte(conn, tid):
     else:
         naechst = {"titel": "Interesse klären", "text": "Noch kein Ergebnis.", "knoepfe": [{"text": "Zur Datenbank", "href": "/datenbank", "art": "hell"}]}
 
-    if stufe == 3 and hat_angebot and not vertrag and angebot_zeit:
-        nf = angebot_zeit + timedelta(days=NACHFASSEN_TAGE)
+    if stufe == 3 and hat_angebot and not vertrag and not abgelehnt and lage["faellig_am"]:
+        nf = lage["faellig_am"]
         if nf > jetzt:
             eintrag("plan", nf, "Nachfassen empfohlen", "Falls bis dahin keine Antwort: anrufen oder Mail schicken.", "", [{"text": "Hinweis", "farbe": ""}], True)
 
@@ -534,11 +681,13 @@ def akte(conn, tid):
                   "leon_kampagne": next((l["kampagne_id"] for l in leon if l["kampagne_id"]), None)})
     return {
         "ok": True, "id": tid, "stamm": stamm, "schritte": schritte, "stufe": stufe, "naechst": naechst, "verlauf": verlauf,
-        "mails": mail_liste, "verloren": verloren,
+        "mails": mail_liste, "verloren": verloren, "abgelehnt": abgelehnt,
+        "absage_gruende": list(ABSAGE_GRUENDE), "nachfass_wege": list(NACHFASS_WEGE),
         "besichtigung": dict(bes, gespeichert=bes_echt, versionen=len(versionen),
                              gespeichert_am=_anz(_zeit(versionen[-1]["gespeichert_am"], utc=True)) if versionen else "") if bes else None,
         "angebot": {"nr": angebot_nr or (str(nummern[-1]["nr"]) if nummern else ""), "datum": _anz(angebot_zeit, True),
-                    "netto": _euro(netto) if netto else "", "positionen": positionen, "entwurf": bool(entwurf), "kalk": kalk} if (hat_angebot or entwurf) else None,
+                    "netto": _euro(netto) if netto else "", "positionen": positionen, "entwurf": bool(entwurf), "kalk": kalk,
+                    "lage": _lage_json(lage) if lage else None} if (hat_angebot or entwurf) else None,
         "vertrag": {"id": vertrag["id"], "status": vertrag["status"], "gesendet_am": _anz(_zeit(vertrag["gesendet_am"]))} if vertrag else None,
         "notizen": [{"id": n["id"], "text": n["text"], "von": n["von"] or "", "am": _anz(_zeit(n["am"]))} for n in notizen],
         "tl_notizen": tl_notizen[-8:],
@@ -578,6 +727,10 @@ def register_kundenakte(app, login_required, get_db_connection):
         def mail(an, betreff, anhaenge, gmail_id):
             return mail_merken(get_db_connection, an, betreff, anhaenge, gmail_id)
 
+        @staticmethod
+        def lage(conn, tid):
+            return lage_kurz(conn, tid)
+
     app.extensions["kg_akte"] = _Akte
 
     @app.route("/akte/<int:tid>")
@@ -615,6 +768,47 @@ def register_kundenakte(app, login_required, get_db_connection):
                 conn.execute("UPDATE tagesliste_leads SET besichtigung_data_json = ? WHERE id = ?", (text, tid))  # Trigger sichert die Version
             else:
                 sichern(conn, tid, text, "seite")
+            conn.commit()
+            return jsonify({"ok": True})
+        finally:
+            conn.close()
+
+    @app.route("/api/akte/<int:tid>/angebot", methods=["POST"])
+    @login_required
+    def kundenakte_angebot(tid):
+        """Nach dem Angebot: „Abgelehnt“ (mit Grund), „Absage zurücknehmen“ oder „Nachgefasst“.
+        Schreibt nur ins Protokoll der Kundenakte – Tagesliste, Angebot und Status der Firma bleiben unverändert."""
+        d = request.get_json(silent=True) or {}
+        aktion = str(d.get("aktion") or "")
+        von = _txt(d.get("von"))[:40]
+        text = str(d.get("text") or "").strip()[:1000]
+        conn = get_db_connection()
+        try:
+            tabellen(conn)
+            o = _offenes_angebot(conn, tid)
+            if not o:
+                return jsonify({"ok": False, "error": "Zu dieser Firma gibt es kein verschicktes Angebot."}), 404
+            if o[2]:
+                return jsonify({"ok": False, "error": "Das Angebot ist schon angenommen (Vertrag vorhanden)."}), 409
+            status = angebot_lage(conn, tid, o[1])["status"]
+            if aktion == "abgelehnt":
+                grund = _txt(d.get("grund"))
+                if grund not in ABSAGE_GRUENDE:
+                    return jsonify({"ok": False, "error": "Bitte einen Grund wählen."}), 400
+                if grund == "Sonstiges" and not text:
+                    return jsonify({"ok": False, "error": "Bitte kurz schreiben, warum."}), 400
+                if status != "abgelehnt":
+                    ereignis_merken(conn, tid, "angebot_abgelehnt", grund, text, von)
+            elif aktion == "wieder_offen":
+                if status == "abgelehnt":
+                    ereignis_merken(conn, tid, "angebot_wieder_offen", "", "", von)
+            elif aktion == "nachgefasst":
+                if status == "abgelehnt":
+                    return jsonify({"ok": False, "error": "Das Angebot ist als abgelehnt eingetragen. Erst „Absage zurücknehmen“."}), 409
+                wie = _txt(d.get("wie"))
+                ereignis_merken(conn, tid, "nachgefasst", wie if wie in NACHFASS_WEGE else "Anruf", text, von)
+            else:
+                return jsonify({"ok": False, "error": "Unbekannte Aktion."}), 400
             conn.commit()
             return jsonify({"ok": True})
         finally:

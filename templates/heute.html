@@ -145,7 +145,7 @@
   @media print { .v2h-kpis { display: none !important; } }
 </style>
 
-{% set farbe = {"termine": "#2563eb", "besichtigungen": "#7c3aed", "rueckrufe": "#0284c7", "todos": "#16a34a", "berichte": "#ea580c", "stundenzettel": "#0f766e"} %}
+{% set farbe = {"termine": "#2563eb", "besichtigungen": "#7c3aed", "rueckrufe": "#0284c7", "todos": "#16a34a", "berichte": "#ea580c", "stundenzettel": "#0f766e", "nachfassen": "#d97706"} %}
 <script>
 // PREMIUM V2: Start-Animation nur beim ersten Laden (Klasse wird nach ~1,5 s entfernt)
 (function () { var h = document.documentElement; h.classList.add('v2h-start'); function weg() { setTimeout(function () { h.classList.remove('v2h-start'); }, 1500); } if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', weg); else weg(); })();
@@ -222,7 +222,7 @@
         </div>
         <div class="hl-aktion">
           {% if e.telefon %}<a class="hl-k haupt" href="tel:{{ e.telefon|replace(' ', '') }}">📞 Anrufen</a>{% endif %}
-          {% if e.art in ('todo', 'bericht') %}<button type="button" class="hl-k hl-ok">☐ Erledigt</button>{% endif %}
+          {% if e.art in ('todo', 'bericht') %}<button type="button" class="hl-k hl-ok">☐ Erledigt</button>{% elif e.art == 'nachfassen' %}<button type="button" class="hl-k hl-ok">☐ Nachgefasst</button>{% endif %}
         </div>
       </div>
       {% else %}
@@ -271,7 +271,7 @@
         body: JSON.stringify({ art: p.dataset.art, id: p.dataset.id, bericht_id: p.dataset.bericht, lead_id: p.dataset.lead }) });
       const d = await r.json();
       if (!r.ok || !d.success) throw new Error(d.error || "Fehler");
-      p.classList.add("weg"); btn.textContent = "✓ Erledigt";
+      p.classList.add("weg"); btn.textContent = p.dataset.art === "nachfassen" ? "✓ Nachgefasst" : "✓ Erledigt";
     } catch (e) { alert(e.message); btn.disabled = false; }
   }));
 })();

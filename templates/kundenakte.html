@@ -1,7 +1,8 @@
 {% extends "base.html" %}
 {% block content %}
 <!-- Kundenakte: alles zu einer Firma an einem Ort (Schritte, nächster Schritt, Verlauf, Mails, Besichtigung, Angebot, Notizen).
-     Daten: /api/akte/<id> (kundenakte.py). Diese Seite liest nur; geschrieben werden nur eigene Notizen. -->
+     Daten: /api/akte/<id> (kundenakte.py). Diese Seite liest nur; geschrieben werden nur eigene Notizen und nach dem Angebot
+     „Abgelehnt“ / „Nachgefasst“ (nur ins Protokoll der Akte, Status der Firma bleibt unverändert). -->
 <style>
   .ka { --navy:#0f1d4a; --dunkel:#183a91; --blau:#2563eb; --hell:#eff6ff; --linie:#e6ecf5; --grau:#64748b;
         font-family: Inter, "Segoe UI", Arial, sans-serif; color: var(--navy); }
@@ -39,6 +40,9 @@
   .ka-st.ok .ka-kr { background: #10b981; border-color: #a7f3d0; color: #fff; }
   .ka-st.akt .ka-kr { background: linear-gradient(135deg, #1d4ed8, #3b82f6); border-color: #bfdbfe; color: #fff; box-shadow: 0 0 0 6px rgba(37,99,235,.15); }
   .ka-st.weg .ka-kr { background: #fff; border-style: dashed; border-color: #cbd5e1; }
+  .ka-st.nein::before { background: linear-gradient(90deg, #10b981, #e11d48); }
+  .ka-st.nein .ka-kr { background: linear-gradient(135deg, #be123c, #fb7185); border-color: #fecdd3; color: #fff; }
+  .ka-st.nein b, .ka-st.nein i { color: #be123c; }
   .ka-st b { font-size: 13.5px; font-weight: 900; }
   .ka-st.akt b { color: var(--blau); }
   .ka-st i { font-style: normal; font-size: 11.5px; font-weight: 700; color: var(--grau); }
@@ -46,6 +50,8 @@
   .ka-naechst { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; margin-top: 18px; padding: 16px 18px; border-radius: 20px;
     background: linear-gradient(135deg, #eff6ff, #f8fbff); border: 1px solid #bfdbfe; }
   .ka-naechst.rot { background: #fff1f2; border-color: #fecdd3; }
+  .ka-naechst.rot .ic { background: linear-gradient(135deg, #be123c, #fb7185); }
+  .ka-naechst.rot small { color: #be123c; }
   .ka-naechst .ic { width: 46px; height: 46px; flex: none; border-radius: 15px; display: grid; place-items: center; color: #fff; font-size: 20px; font-weight: 900;
     background: linear-gradient(135deg, #1d4ed8, #3b82f6); }
   .ka-naechst small { display: block; font-size: 11px; font-weight: 900; letter-spacing: .1em; text-transform: uppercase; color: #3b5bdb; }
@@ -56,6 +62,8 @@
     background: linear-gradient(135deg, #1d4ed8, #2563eb); box-shadow: 0 10px 20px -8px rgba(37,99,235,.7); }
   .ka-btn.hell { color: #1e3a8a; background: #fff; border: 1px solid #dbe3ef; box-shadow: none; }
   .ka-btn.gruen { background: linear-gradient(135deg, #059669, #10b981); box-shadow: 0 10px 20px -8px rgba(5,150,105,.7); }
+  .ka-btn.rot { color: #be123c; background: #fff; border: 1px solid #fecdd3; box-shadow: none; }
+  .ka-btn.rot-voll { background: linear-gradient(135deg, #be123c, #e11d48); box-shadow: 0 10px 20px -8px rgba(190,18,60,.6); }
   .ka-btn:disabled { opacity: .6; cursor: default; }
 
   .ka-raster { display: grid; grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr); gap: 16px; align-items: start; }
@@ -79,6 +87,7 @@
   .ka-pk.vertrag { background: linear-gradient(135deg, #0f1d4a, #1e3a8a); }
   .ka-pk.verloren { background: linear-gradient(135deg, #be123c, #fb7185); }
   .ka-pk.notiz { background: linear-gradient(135deg, #475569, #94a3b8); }
+  .ka-pk.nachgefasst { background: linear-gradient(135deg, #d97706, #fbbf24); }
   .ka-pk.plan { background: #fff; color: var(--blau); border: 2px dashed #93c5fd; }
   .ka-ein { min-width: 0; padding: 10px 14px; border-radius: 15px; background: #f8fbff; border: 1px solid var(--linie); }
   .ka-ein.geplant { background: #fff; border-style: dashed; border-color: #bfdbfe; }
@@ -116,6 +125,22 @@
   .ka-leer { padding: 14px; border-radius: 14px; background: #f8fafc; border: 1px dashed #cbd5e1; color: var(--grau); font-size: 13px; font-weight: 700; text-align: center; }
   .ka-hinweis { margin-top: 16px; padding: 12px 14px; border-radius: 14px; background: #eff6ff; border: 1px solid #bfdbfe; color: #1e3a8a; font-size: 13px; font-weight: 700; line-height: 1.5; }
   .ka-fehler { padding: 40px; text-align: center; font-weight: 800; color: #be123c; }
+
+  /* Fenster: Abgelehnt (Grund) / Nachgefasst (wie) */
+  .ka-dlg-hg { position: fixed; inset: 0; z-index: 9000; display: none; align-items: center; justify-content: center; padding: 16px; background: rgba(15,29,74,.45); }
+  .ka-dlg-hg.offen { display: flex; }
+  .ka-dlg { width: min(480px, 100%); max-height: calc(100vh - 32px); overflow: auto; background: #fff; border-radius: 22px; padding: 20px 22px; box-shadow: 0 30px 70px rgba(8,20,60,.35);
+    font-family: Inter, "Segoe UI", Arial, sans-serif; color: #0f1d4a; }
+  .ka-dlg h3 { margin: 0; font-size: 19px; font-weight: 900; letter-spacing: -.02em; }
+  .ka-dlg p { margin: 4px 0 14px; font-size: 13px; font-weight: 700; color: #64748b; }
+  .ka-dlg-wahl { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+  .ka-dlg-wahl button { padding: 9px 13px; border-radius: 12px; border: 1px solid #dbe3ef; background: #f8fbff; font: inherit; font-size: 13.5px; font-weight: 800; color: #0f1d4a; cursor: pointer; }
+  .ka-dlg-wahl button.an { background: #1d4ed8; border-color: #1d4ed8; color: #fff; }
+  .ka-dlg.abgelehnt .ka-dlg-wahl button.an { background: #be123c; border-color: #be123c; }
+  .ka-dlg textarea { width: 100%; min-height: 76px; padding: 10px 12px; border: 1px solid #dbe3ef; border-radius: 12px; background: #f8fbff; font: inherit; font-size: 14px; font-weight: 600;
+    color: #0f1d4a; resize: vertical; box-sizing: border-box; }
+  .ka-dlg-fehler { min-height: 18px; margin-top: 6px; font-size: 12.5px; font-weight: 800; color: #be123c; }
+  .ka-dlg-unten { display: flex; justify-content: flex-end; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
   .ka-laden { padding: 60px; text-align: center; font-weight: 800; color: var(--grau); }
 
   @media (max-width: 1100px) { .ka-raster { grid-template-columns: 1fr; } }
@@ -135,6 +160,16 @@
 <div class="ka" id="ka" data-id="{{ tid }}">
   <div class="ka-laden">Kundenakte wird geladen …</div>
 </div>
+<div class="ka-dlg-hg" id="kaDlgHg">
+  <div class="ka-dlg" id="kaDlg" role="dialog" aria-modal="true" aria-labelledby="kaDlgTitel">
+    <h3 id="kaDlgTitel"></h3>
+    <p id="kaDlgText"></p>
+    <div class="ka-dlg-wahl" id="kaDlgWahl"></div>
+    <textarea id="kaDlgNotiz"></textarea>
+    <div class="ka-dlg-fehler" id="kaDlgFehler"></div>
+    <div class="ka-dlg-unten"><button type="button" class="ka-btn hell" id="kaDlgAb">Abbrechen</button><button type="button" class="ka-btn" id="kaDlgOk">Speichern</button></div>
+  </div>
+</div>
 
 <script>
 (function () {
@@ -144,10 +179,17 @@
   // Zeiten kommen schon fertig in Berlin-Zeit vom Server („19.10.2026 · 09:27“)
   const tagZeit = t => String(t || '');
   const kuerzel = name => String(name || '?').replace(/\b(gmbh|ug|ag|kg|mbh|e\.?\s?k\.?|ohg|gbr|co\.?|zz|test)\b/gi, ' ').trim().split(/\s+/).filter(Boolean).slice(0, 2).map(w => w[0]).join('').toUpperCase() || '?';
-  const SYMBOL = { start: '+', anfrage: '✉', angerufen: '☎', interessiert: '★', spaeter: '⏱', besichtigung: '⌂', angebot: '€', vertrag: '✎', mail: '✉', leon: 'L', notiz: '✐', verloren: '✕', plan: '⏰', kontaktformular: '✉' };
+  const SYMBOL = { start: '+', anfrage: '✉', angerufen: '☎', interessiert: '★', spaeter: '⏱', besichtigung: '⌂', angebot: '€', vertrag: '✎', mail: '✉', leon: 'L', notiz: '✐', verloren: '✕', plan: '⏰', kontaktformular: '✉', nachgefasst: '↻' };
   const PILL = { gesendet: ['g', 'gesendet'], wartet: ['y', 'wartet auf Antwort'], fehlt: ['r', 'nicht gesendet'], offen: ['grau', 'noch nicht'] };
   const PUNKT = { gesendet: '#10b981', wartet: '#f59e0b', fehlt: '#ef4444', offen: '#cbd5e1' };
   let daten = null;
+
+  function lagePill(l) {
+    if (!l) return '';
+    if (l.status === 'angenommen') return '<span class="ka-pill g">angenommen</span>';
+    if (l.status === 'abgelehnt') return '<span class="ka-pill r">abgelehnt</span>';
+    return l.faellig ? '<span class="ka-pill r">Nachfassen fällig</span>' : '<span class="ka-pill y">wartet auf Antwort</span>';
+  }
 
   function knopf(k) {
     if (k.aktion) return '<button type="button" class="ka-btn ' + esc(k.art || '') + '" data-aktion="' + esc(k.aktion) + '">' + esc(k.text) + '</button>';
@@ -169,12 +211,13 @@
       (s.seit ? '<span class="ka-chip">Seit ' + esc(s.seit) + '</span>' : '') +
       (s.in_tagesliste ? '<span class="ka-chip">Heute in der Tagesliste</span>' : '') +
       (a.verloren ? '<span class="ka-chip" style="background:#be123c">Kein Interesse</span>' : '') +
+      (a.abgelehnt ? '<span class="ka-chip" style="background:#be123c">Angebot abgelehnt</span>' : '') +
       '</div></div><div class="ka-stufe">Schritt ' + ((aktiv >= 0 ? aktiv : a.stufe) + 1) + ' von 6</div></section>';
 
     h += '<div class="ka-karte ka-oben"><div class="ka-schritte">' + a.schritte.map((x, i) =>
-      '<div class="ka-st ' + esc(x.zustand) + '"><div class="ka-kr">' + (x.zustand === 'ok' ? '✓' : x.zustand === 'weg' ? '–' : (i + 1)) + '</div><b>' + esc(x.name) + '</b><i>' + esc(x.text) + '</i></div>').join('') + '</div>';
+      '<div class="ka-st ' + esc(x.zustand) + '"><div class="ka-kr">' + (x.zustand === 'ok' ? '✓' : x.zustand === 'weg' ? '–' : x.zustand === 'nein' ? '✕' : (i + 1)) + '</div><b>' + esc(x.name) + '</b><i>' + esc(x.text) + '</i></div>').join('') + '</div>';
     const n = a.naechst;
-    h += '<div class="ka-naechst' + (a.verloren ? ' rot' : '') + '"><div class="ic">➜</div><div style="min-width:0"><small>Nächster Schritt</small><b>' + esc(n.titel) + '</b><p>' + esc(n.text) + '</p></div>' +
+    h += '<div class="ka-naechst' + (a.verloren || n.rot ? ' rot' : '') + '"><div class="ic">➜</div><div style="min-width:0"><small>Nächster Schritt</small><b>' + esc(n.titel) + '</b><p>' + esc(n.text) + '</p></div>' +
       '<div class="ka-knoepfe">' + (n.knoepfe || []).map(knopf).join('') + '</div></div></div>';
 
     h += '<div class="ka-raster"><div class="ka-karte"><h2>Verlauf <span class="ka-pill">neueste oben</span></h2>';
@@ -214,10 +257,15 @@
 
     const an = a.angebot;
     if (an) {
-      h += '<div class="ka-karte"><h2>Angebot ' + (an.nr ? '<span class="ka-pill y">AN-' + esc(an.nr) + '</span>' : '<span class="ka-pill grau">Entwurf</span>') + '</h2>';
+      h += '<div class="ka-karte"><h2>Angebot ' + (an.nr ? '<span class="ka-pill y">AN-' + esc(an.nr) + '</span>' : '<span class="ka-pill grau">Entwurf</span>') + lagePill(an.lage) + '</h2>';
       h += an.positionen.length ? an.positionen.map(p => '<div class="ka-zeile"><span style="min-width:0">' + esc(p.text || 'Leistung') + '</span><span class="d">' + esc(p.einheit) + '</span>' +
         (p.preis ? '<span class="ka-pill y">' + esc(p.preis) + '</span>' : '') + '</div>').join('') : '<div class="ka-leer">Noch keine Leistungen eingetragen.</div>';
       if (an.datum) h += '<div class="ka-info" style="margin-top:6px"><div><small>Fertig seit</small>' + esc(tagZeit(an.datum)) + '</div><div><small>Netto (monatlich)</small>' + esc(an.netto || '–') + '</div></div>';
+      const lg = an.lage;
+      if (lg && lg.status === 'abgelehnt') h += '<div class="ka-info" style="margin-top:10px"><div><small>Abgelehnt am</small>' + esc(lg.absage_am) + '</div><div><small>Grund</small>' + esc(lg.grund || '–') + '</div>' +
+        (lg.grund_text ? '<div class="ganz"><small>Notiz</small>' + esc(lg.grund_text) + '</div>' : '') + '</div>';
+      else if (lg && lg.status === 'offen') h += '<div class="ka-info" style="margin-top:10px"><div><small>Nachfassen</small>' + (lg.faellig ? '<span style="color:#be123c">jetzt fällig</span>' : 'ab ' + esc(lg.faellig_am)) + '</div>' +
+        '<div><small>Nachgefasst</small>' + (lg.nachgefasst_anzahl ? lg.nachgefasst_anzahl + '× · zuletzt ' + esc(lg.nachgefasst_am) : 'noch nicht') + '</div></div>';
       if (an.kalk) {
         const kl = an.kalk.prozent >= 40 ? 'g' : (an.kalk.prozent >= 25 ? 'y' : 'r');
         h += '<div class="ka-kalk"><div class="ka-zeile"><span>Kosten / Monat</span><span class="d">' + esc(String(an.kalk.stunden).replace('.', ',')) + ' Std</span><b>' + esc(an.kalk.kosten) + '</b></div>' +
@@ -250,6 +298,9 @@
     von.addEventListener('change', () => { try { localStorage.setItem('kgAkteVon', von.value); } catch (e) {} });
     document.getElementById('kaNotizOk').addEventListener('click', notizSpeichern);
     wurzel.querySelectorAll('[data-aktion="angenommen"]').forEach(btn => btn.addEventListener('click', angenommen));
+    wurzel.querySelectorAll('[data-aktion="abgelehnt"]').forEach(btn => btn.addEventListener('click', () => fensterAuf('abgelehnt')));
+    wurzel.querySelectorAll('[data-aktion="nachgefasst"]').forEach(btn => btn.addEventListener('click', () => fensterAuf('nachgefasst')));
+    wurzel.querySelectorAll('[data-aktion="wieder_offen"]').forEach(btn => btn.addEventListener('click', wiederOffen));
   }
 
   async function laden() {
@@ -296,6 +347,69 @@
       alert('Hat nicht geklappt: ' + (e.message || e));
       ev.currentTarget.disabled = false;
     }
+  }
+
+  // ---------- Nach dem Angebot: Abgelehnt (Grund) / Nachgefasst (wie) / Absage zurücknehmen
+  const hg = document.getElementById('kaDlgHg');
+  let modus = '', wahl = '';
+  function von() { const v = document.getElementById('kaVon'); return v ? v.value : ''; }
+  function fensterAuf(m) {
+    modus = m;
+    const ab = m === 'abgelehnt';
+    const liste = ab ? daten.absage_gruende : daten.nachfass_wege;
+    wahl = ab ? '' : liste[0];
+    const dlg = document.getElementById('kaDlg');
+    dlg.className = 'ka-dlg ' + m;
+    document.getElementById('kaDlgTitel').textContent = ab ? 'Angebot abgelehnt – warum?' : 'Nachgefasst – wie?';
+    document.getElementById('kaDlgText').textContent = ab ? 'Nichts wird gelöscht. Die Erinnerung hört auf; „Absage zurücknehmen“ geht jederzeit.'
+      : 'Die nächste Erinnerung kommt in 7 Tagen, falls bis dahin keine Antwort da ist.';
+    document.getElementById('kaDlgWahl').innerHTML = liste.map(x => '<button type="button" data-wahl="' + esc(x) + '"' + (x === wahl ? ' class="an"' : '') + '>' + esc(x) + '</button>').join('');
+    document.getElementById('kaDlgWahl').querySelectorAll('button').forEach(b => b.addEventListener('click', () => {
+      wahl = b.dataset.wahl;
+      document.getElementById('kaDlgFehler').textContent = '';
+      document.getElementById('kaDlgWahl').querySelectorAll('button').forEach(x => x.classList.toggle('an', x === b));
+    }));
+    const feld = document.getElementById('kaDlgNotiz');
+    feld.value = '';
+    feld.placeholder = ab ? 'Notiz (bei „Sonstiges“ bitte kurz schreiben)' : 'Was wurde besprochen? (optional)';
+    const ok = document.getElementById('kaDlgOk');
+    ok.textContent = ab ? 'Absage speichern' : 'Speichern';
+    ok.className = 'ka-btn' + (ab ? ' rot-voll' : '');
+    ok.disabled = false;
+    document.getElementById('kaDlgFehler').textContent = '';
+    hg.classList.add('offen');
+  }
+  function fensterZu() { hg.classList.remove('offen'); }
+  async function senden(body) {
+    const r = await fetch('/api/akte/' + tid + '/angebot', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(Object.assign({ von: von() }, body)) });
+    const d = await r.json();
+    if (!d.ok) throw new Error(d.error || 'Fehler');
+  }
+  document.getElementById('kaDlgAb').addEventListener('click', fensterZu);
+  hg.addEventListener('click', e => { if (e.target === hg) fensterZu(); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && hg.classList.contains('offen')) fensterZu(); });
+  document.getElementById('kaDlgOk').addEventListener('click', async () => {
+    const fehler = document.getElementById('kaDlgFehler');
+    const text = document.getElementById('kaDlgNotiz').value.trim();
+    if (modus === 'abgelehnt' && !wahl) { fehler.textContent = 'Bitte einen Grund wählen.'; return; }
+    if (modus === 'abgelehnt' && wahl === 'Sonstiges' && !text) { fehler.textContent = 'Bitte kurz schreiben, warum.'; return; }
+    const ok = document.getElementById('kaDlgOk');
+    ok.disabled = true;
+    try {
+      await senden(modus === 'abgelehnt' ? { aktion: 'abgelehnt', grund: wahl, text } : { aktion: 'nachgefasst', wie: wahl, text });
+      fensterZu();
+      await laden();
+    } catch (e) {
+      fehler.textContent = e.message || String(e);
+      ok.disabled = false;
+    }
+  });
+  async function wiederOffen(ev) {
+    if (!confirm('Absage zurücknehmen? Das Angebot gilt dann wieder als offen und die Erinnerung läuft weiter.')) return;
+    ev.currentTarget.disabled = true;
+    try { await senden({ aktion: 'wieder_offen' }); await laden(); }
+    catch (e) { alert('Hat nicht geklappt: ' + (e.message || e)); ev.currentTarget.disabled = false; }
   }
 
   laden();

@@ -390,6 +390,12 @@ def register_angebot_editor(app, login_required, get_db_connection, app2_modul):
                     "datum": r["angebot_datum"] or "", "netto": float(r["angebot_netto"] or 0), "kalk": kalk.get(r["id"])}
                    for r in conn.execute("""SELECT id, firma, ort, angebot_nr, angebot_datum, angebot_netto FROM tagesliste_leads
                                             WHERE status = 'angebot' ORDER BY id DESC LIMIT 200""").fetchall()]
+            akte = app.extensions.get("kg_akte")
+            for a in ang:  # Kundenakte: wartet seit … / Nachfassen fällig / abgelehnt / angenommen
+                try:
+                    a["lage"] = akte.lage(conn, a["id"]) if akte else None
+                except Exception:
+                    a["lage"] = None
             conn.commit()
             return jsonify({"ok": True, "besichtigungen": bes, "angebote": ang})
         finally:
