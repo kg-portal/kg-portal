@@ -317,6 +317,16 @@ def lv_mit_editor(v, felder, kalk):
     for name, h in lv.items():
         if name in LV_ZEILEN and _txt(h):
             v[name] = _lv_haeufigkeit(h)
+    if lv and oben:  # Kopf „Häufigkeit“ passend zu den Zeilen: je Bereich die Böden, sonst die häufigste Angabe
+        teile = []
+        for key in ("buero", "wc", "kueche", "flur"):
+            werte = [_txt(v.get(n)) for n in LV_FELDER[key] if _txt(v.get(n)) not in ("", "-")]
+            if not werte:
+                continue
+            boden = next((_txt(v.get(n)) for n in LV_FELDER[key] if "Boden" in n), "")
+            teile.append(f"{LV_NAME[key]}: {boden if boden not in ('', '-') else max(werte, key=werte.count)}")
+        if teile:
+            v["Haeufigkeit"] = "<br>".join(teile)
     return v
 
 
@@ -627,6 +637,8 @@ def register_angebot_editor(app, login_required, get_db_connection, app2_modul):
         nr = _nr(a.get("nr")) or "Entwurf"
         firma = re.sub(r"[^A-Za-z0-9ÄÖÜäöüß]+", "_", _txt(a.get("firma")))[:40].strip("_")
         basis = request.host_url.rstrip("/")
+        if a.get("art") == "beide":
+            return _pdf_beide(a, nr, firma, basis)
         if a.get("art") == "lv":
             tid = a.get("id", type=int) or 0
             if tid <= 0:
@@ -655,6 +667,52 @@ def register_angebot_editor(app, login_required, get_db_connection, app2_modul):
         except Exception as exc:
             return jsonify({"ok": False, "error": "PDF konnte nicht erstellt werden: " + str(exc)}), 500
         return send_file(io.BytesIO(pdf), mimetype="application/pdf", as_attachment=True, download_name=name)
+
+    def _pdf_beide(a, nr, firma, basis):
+        """„PDF ansehen“: Angebot (4 Seiten) und gleich dahinter das Leistungsverzeichnis in einem PDF, im Browser geöffnet.
+        Ohne pypdf (oder ohne gespeicherten Entwurf) kommt nur das Angebot."""
+        tid = a.get("id", type=int) or 0
+        werte = [(k, v) for k, v in a.items(multi=True) if k not in ("art", "drucken", "id", "ansehen")]
+        urls = [f"{basis}/angebot/editor/vorschau?" + urlencode(werte)]
+        if tid > 0:
+            urls.append(f"{basis}/angebot/editor/lv-vorschau?angebot_id={tid}&print=1")
+        try:
+            from playwright.sync_api import sync_playwright
+            keks_name = app.config.get("SESSION_COOKIE_NAME", "session")
+            keks = request.cookies.get(keks_name, "")
+            teile = []
+            with sync_playwright() as p:
+                browser = p.chromium.launch(headless=True, args=["--no-sandbox"])
+                try:
+                    ctx = browser.new_context(viewport={"width": 1240, "height": 1754}, device_scale_factor=1)
+                    if keks:
+                        ctx.add_cookies([{"name": keks_name, "value": keks, "url": basis}])
+                    seite = ctx.new_page()
+                    for url in urls:
+                        seite.goto(url, wait_until="networkidle", timeout=25000)
+                        seite.emulate_media(media="print")
+                        teile.append(seite.pdf(format="A4", print_background=True, prefer_css_page_size=True, scale=1,
+                                               margin={"top": "0mm", "right": "0mm", "bottom": "0mm", "left": "0mm"}))
+                        seite.emulate_media(media="screen")
+                finally:
+                    browser.close()
+        except Exception as exc:
+            return jsonify({"ok": False, "error": "PDF konnte nicht erstellt werden: " + str(exc)}), 500
+        pdf = teile[0]
+        if len(teile) > 1:
+            try:
+                from pypdf import PdfReader, PdfWriter
+                schreiber = PdfWriter()
+                for t in teile:
+                    for blatt in PdfReader(io.BytesIO(t)).pages:
+                        schreiber.add_page(blatt)
+                puffer = io.BytesIO()
+                schreiber.write(puffer)
+                pdf = puffer.getvalue()
+            except Exception as exc:  # pypdf fehlt o. ä.: dann nur das Angebot
+                print("Angebot-Editor: PDF nicht zusammengefügt:", exc)
+        name = f"Angebot_AN-{nr}" + (f"_{firma}" if firma else "") + (" + Leistungsverzeichnis" if pdf is not teile[0] else "") + ".pdf"
+        return send_file(io.BytesIO(pdf), mimetype="application/pdf", as_attachment=a.get("ansehen") != "1", download_name=name)
 
     @app.route("/angebot/editor/vorschau")
     @login_required
