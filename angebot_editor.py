@@ -317,7 +317,7 @@ def lv_mit_editor(v, felder, kalk):
     for name, h in lv.items():
         if name in LV_ZEILEN and _txt(h):
             v[name] = _lv_haeufigkeit(h)
-    if lv and oben:  # Kopf „Häufigkeit“ passend zu den Zeilen: je Bereich die Böden, sonst die häufigste Angabe
+    if lv:  # Kopf „Häufigkeit“ passend zu den Zeilen: je Bereich die Böden, sonst die häufigste Angabe
         teile = []
         for key in ("buero", "wc", "kueche", "flur"):
             werte = [_txt(v.get(n)) for n in LV_FELDER[key] if _txt(v.get(n)) not in ("", "-")]
