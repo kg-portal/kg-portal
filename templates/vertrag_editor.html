@@ -179,6 +179,18 @@ a.kgae-knopf { display: inline-block; text-decoration: none; }
 .kgve-tage { display: flex; gap: 6px; flex-wrap: wrap; }
 .kgve-tage button { min-width: 46px; padding: 8px 10px; border: 1.5px solid var(--rand); border-radius: 11px; background: #f8fafc; color: #334155; font: inherit; font-size: 13px; font-weight: 900; cursor: pointer; }
 .kgve-tage button.an { background: linear-gradient(135deg, var(--b1), var(--b3)); border-color: var(--b2); color: #fff; box-shadow: 0 8px 16px -10px rgba(30, 64, 175, .9); }
+/* Uhrzeit je Wochentag (+ „oder“) – erzeugt die Texte für § 3 */
+.kgve-uhren { margin-top: 10px; padding: 10px; border-radius: 14px; background: #f8fafc; border: 1px solid var(--rand); display: grid; gap: 7px; }
+.kgve-uhren[hidden] { display: none; }
+.kgve-uhren .alle { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; padding-bottom: 7px; border-bottom: 1px dashed var(--rand); font-size: 13px; font-weight: 800; color: #475569; }
+.kgve-uhr { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 13.5px; font-weight: 800; color: #334155; }
+.kgve-uhr b { min-width: 92px; color: #0f1d4a; }
+.kgve-uhren input[type=time] { height: 36px; padding: 0 8px; border: 1.5px solid var(--rand); border-radius: 10px; background: #fff; font: inherit; font-size: 14px; font-weight: 800; color: #0f1d4a; }
+.kgve-uhr label { display: inline-flex; align-items: center; gap: 6px; margin: 0 0 0 4px; padding: 5px 9px; border-radius: 999px; background: #fff7ed; border: 1px solid #fed7aa; color: #9a3412; font-size: 12.5px; font-weight: 800; text-transform: none; letter-spacing: 0; cursor: pointer; }
+.kgve-uhr label input { width: 16px; height: 16px; }
+.kgve-uhr.oder b { color: #c2410c; }
+.kgve-uhren .knopf { height: 32px; padding: 0 12px; border: 1.5px solid var(--b2); border-radius: 10px; background: #fff; color: var(--b2); font: inherit; font-size: 12.5px; font-weight: 900; cursor: pointer; }
+.kgve-uhren small { display: block; font-size: 12px; font-weight: 700; color: #64748b; }
 .kgve-weg { color: #b91c1c !important; background: #fef2f2 !important; }
 @media (max-width: 760px) { .kgve .kgve-tabs { min-width: 0; width: 100%; } .kgve .kgve-pos { grid-template-columns: 30px minmax(0, 1fr); } .kgve-preis { grid-column: 2; } }
 </style>
@@ -256,6 +268,8 @@ a.kgae-knopf { display: inline-block; text-decoration: none; }
                         <div class="kgae-f"></div>
                         <div class="kgae-f w6"><label>Wochentage</label>
                             <div class="kgve-tage" id="kgveTage">{% for t in ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'] %}<button type="button" data-tag="{{ loop.index0 }}">{{ t }}</button>{% endfor %}</div>
+                            <div class="kgve-uhren" id="kgveUhren" hidden></div>
+                            <input type="hidden" id="kgve_zeitplan" data-feld="zeitplan">
                             <input class="kgae-in" id="kgve_wochentage" data-feld="wochentage" placeholder="z. B. Montag, Mittwoch und Freitag" style="margin-top:8px"></div>
                         <div class="kgae-f w6"><label for="kgve_zeiten">Die Arbeiten werden jeweils … durchgeführt</label><input class="kgae-in" id="kgve_zeiten" data-feld="zeiten" placeholder="z. B. montags, mittwochs und freitags ab 17:00 Uhr"></div>
                     </div>
@@ -366,6 +380,7 @@ a.kgae-knopf { display: inline-block; text-decoration: none; }
             pr.value = p.preis || '';
         });
         tageAusText();
+        planLaden();
     }
     function felderLesen() {
         const f = {};
@@ -391,16 +406,93 @@ a.kgae-knopf { display: inline-block; text-decoration: none; }
         const t = $('kgve_wochentage').value.toLowerCase();
         $('kgveTage').querySelectorAll('button').forEach(b => b.classList.toggle('an', t.indexOf(TAGE[Number(b.dataset.tag)][0].toLowerCase()) >= 0));
     }
+    // Uhrzeit je Wochentag: plan[tag] = { uhr: '18:00', oder: true/false } – „oder“ = statt des vorherigen Tages (z. B. Freitag oder Samstag).
+    // Gespeichert als kurzer Text im Feld „zeitplan“; die beiden Textfelder werden daraus erzeugt und bleiben frei änderbar.
+    let plan = {};
+    const tageAn = () => Array.from($('kgveTage').querySelectorAll('button.an')).map(x => Number(x.dataset.tag)).sort((a, b) => a - b);
+    const ab = t => plan[t] && plan[t].uhr ? ' ab ' + plan[t].uhr + ' Uhr' : '';
+    function planSpeichern() {
+        $('kgve_zeitplan').value = JSON.stringify(tageAn().map(t => [t, (plan[t] || {}).uhr || '', (plan[t] || {}).oder ? 1 : 0]));
+    }
+    function planLaden() {
+        plan = {};
+        let gesp = [];
+        try { gesp = JSON.parse($('kgve_zeitplan').value || '[]'); } catch (e) { gesp = []; }
+        if (Array.isArray(gesp) && gesp.length) {
+            gesp.forEach(x => { if (Array.isArray(x) && TAGE[x[0]]) plan[x[0]] = { uhr: String(x[1] || ''), oder: !!x[2] }; });
+        } else {  // älterer Stand ohne Zeitplan: eine gemeinsame Uhrzeit und „Freitag/Samstag“ bzw. „Freitag oder Samstag“ aus dem Text übernehmen
+            const w = $('kgve_wochentage').value.toLowerCase(), uhren = $('kgve_zeiten').value.match(/ab\s+\d{1,2}[:.]\d{2}\s*Uhr/gi) || [];
+            const m = uhren.length === 1 ? uhren[0].match(/(\d{1,2})[:.](\d{2})/) : null;
+            const tage = tageAn();
+            tage.forEach((t, i) => {
+                const vor = i ? TAGE[tage[i - 1]][0].toLowerCase() : '', ich = TAGE[t][0].toLowerCase();
+                plan[t] = { uhr: m ? m[1].padStart(2, '0') + ':' + m[2] : '', oder: !!i && (w.indexOf(vor + '/' + ich) >= 0 || w.indexOf(vor + ' oder ' + ich) >= 0) };
+            });
+        }
+        uhrenZeichnen();
+    }
+    function uhrenZeichnen() {
+        const tage = tageAn(), box = $('kgveUhren');
+        box.hidden = !tage.length;
+        if (!tage.length) { box.innerHTML = ''; return; }
+        box.innerHTML = '<div class="alle">Uhrzeit für alle Tage: ab <input type="time" id="kgveUhrAlle" step="900"> Uhr <button type="button" class="knopf" id="kgveUhrAlleOk">übernehmen</button></div>' +
+            tage.map((t, i) => {
+                const p = plan[t] || (plan[t] = { uhr: '', oder: false });
+                return '<div class="kgve-uhr' + (p.oder ? ' oder' : '') + '"><b>' + (p.oder ? 'oder ' : '') + TAGE[t][0] + '</b>ab <input type="time" step="900" data-uhr="' + t + '" value="' + esc(p.uhr) + '"> Uhr' +
+                    (i ? '<label title="Dieser Tag statt des vorherigen"><input type="checkbox" data-oder="' + t + '"' + (p.oder ? ' checked' : '') + '>oder statt ' + TAGE[tage[i - 1]][0] + '</label>' : '') + '</div>';
+            }).join('') + '<small>Die Texte unten werden aus Tagen und Uhrzeiten erzeugt und können danach frei geändert werden.</small>';
+    }
+    function textAusPlan() {
+        const tage = tageAn(), slots = [];
+        tage.forEach((t, i) => { if (i && plan[t] && plan[t].oder) slots[slots.length - 1].push(t); else slots.push([t]); });
+        $('kgve_wochentage').value = aufzaehlung(slots.map(s => s.map(t => TAGE[t][0]).join(' oder ')));
+        const teile = [], gruppen = {};
+        slots.forEach(s => {
+            if (s.length > 1) { teile.push(s.map(t => TAGE[t][1] + ab(t)).join(' oder ')); return; }
+            const u = (plan[s[0]] || {}).uhr || '';
+            if (gruppen[u]) { gruppen[u].push(s[0]); return; }
+            gruppen[u] = [s[0]];
+            teile.push(gruppen[u]);
+        });
+        const text = teile.map(g => {
+            if (typeof g === 'string') return g;
+            const folge = g.length >= 3 && g.every((t, i) => !i || t === g[i - 1] + 1);
+            return (folge ? TAGE[g[0]][1] + ' bis ' + TAGE[g[g.length - 1]][1] : aufzaehlung(g.map(t => TAGE[t][1]))) + ab(g[0]);
+        });
+        $('kgve_zeiten').value = text.length <= 1 ? text.join('') : text.slice(0, -1).join(', ') + ' sowie ' + text[text.length - 1];
+        planSpeichern();
+        geaendertMelden();
+    }
     $('kgveTage').addEventListener('click', e => {
         const b = e.target.closest('button'); if (!b) return;
         b.classList.toggle('an');
-        const an = Array.from($('kgveTage').querySelectorAll('button.an')).map(x => Number(x.dataset.tag)).sort();
-        $('kgve_wochentage').value = aufzaehlung(an.map(i => TAGE[i][0]));
-        const z = $('kgve_zeiten').value, uhr = (z.match(/ab\s+\d{1,2}[:.]\d{2}\s*Uhr/i) || [''])[0];
-        if (!z || TAGE.some(t => z.toLowerCase().indexOf(t[1]) >= 0)) $('kgve_zeiten').value = an.length ? aufzaehlung(an.map(i => TAGE[i][1])) + (uhr ? ' ' + uhr : '') : '';
-        geaendertMelden();
+        const t = Number(b.dataset.tag);
+        if (b.classList.contains('an') && !(plan[t] && plan[t].uhr)) {  // neuer Tag: Uhrzeit vom vorherigen Tag übernehmen
+            const vor = tageAn().filter(x => x < t && plan[x] && plan[x].uhr).pop();
+            plan[t] = { uhr: vor !== undefined ? plan[vor].uhr : '', oder: false };
+        }
+        uhrenZeichnen();
+        textAusPlan();
     });
-    $('kgve_wochentage').addEventListener('input', tageAusText);
+    $('kgveUhren').addEventListener('input', e => {
+        if (e.target.dataset.uhr === undefined) return;
+        plan[Number(e.target.dataset.uhr)].uhr = e.target.value;
+        textAusPlan();
+    });
+    $('kgveUhren').addEventListener('change', e => {
+        if (e.target.dataset.oder === undefined) return;
+        plan[Number(e.target.dataset.oder)].oder = e.target.checked;
+        uhrenZeichnen();
+        textAusPlan();
+    });
+    $('kgveUhren').addEventListener('click', e => {
+        if (e.target.id !== 'kgveUhrAlleOk') return;
+        const u = $('kgveUhrAlle').value; if (!u) return;
+        tageAn().forEach(t => { plan[t].uhr = u; });
+        uhrenZeichnen();
+        textAusPlan();
+    });
+    $('kgve_wochentage').addEventListener('input', () => { tageAusText(); uhrenZeichnen(); planSpeichern(); });
 
     // ---------- Vorschau (Vertragsvorlage, 4 Seiten)
     function vorschauUrl(f) {
