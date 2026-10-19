@@ -955,6 +955,13 @@ try:
 except Exception as exc:
     print(f"⚠️ Kündigung: {exc}")
 
+# Schlüsselübergabeprotokoll (/schluessel/protokoll): oranger Knopf im Vertrag-Editor, PDF, nur lesen
+try:
+    from schluessel import register_schluessel
+    register_schluessel(app, login_required)
+except Exception as exc:
+    print(f"⚠️ Schlüsselübergabe: {exc}")
+
 # Arbeitsliste für heute (/heute): jeden Werktag als To-Do-Karte (+ WhatsApp an den Chef); der Agent antwortet dem Chef per WhatsApp
 from tagesliste import register_tagesliste
 register_tagesliste(app, login_required, get_db_connection, lambda: _leon_routes_mod.leon_client)
