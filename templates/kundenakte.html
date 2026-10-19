@@ -88,6 +88,7 @@
   .ka-pk.verloren { background: linear-gradient(135deg, #be123c, #fb7185); }
   .ka-pk.notiz { background: linear-gradient(135deg, #475569, #94a3b8); }
   .ka-pk.nachgefasst { background: linear-gradient(135deg, #d97706, #fbbf24); }
+  .ka-pk.kunde { background: linear-gradient(135deg, #047857, #10b981); }
   .ka-pk.plan { background: #fff; color: var(--blau); border: 2px dashed #93c5fd; }
   .ka-ein { min-width: 0; padding: 10px 14px; border-radius: 15px; background: #f8fbff; border: 1px solid var(--linie); }
   .ka-ein.geplant { background: #fff; border-style: dashed; border-color: #bfdbfe; }
@@ -141,6 +142,20 @@
     color: #0f1d4a; resize: vertical; box-sizing: border-box; }
   .ka-dlg-fehler { min-height: 18px; margin-top: 6px; font-size: 12.5px; font-weight: 800; color: #be123c; }
   .ka-dlg-unten { display: flex; justify-content: flex-end; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
+  .ka-dlg.kunde { width: min(680px, 100%); }
+  .ka-kd-raster { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px 12px; }
+  .ka-kd-raster label { display: flex; flex-direction: column; gap: 4px; font-size: 10.5px; font-weight: 900; letter-spacing: .08em; text-transform: uppercase; color: #64748b; min-width: 0; }
+  .ka-kd-raster .b2 { grid-column: span 2; } .ka-kd-raster .b4 { grid-column: 1 / -1; }
+  .ka-kd-raster input, .ka-kd-raster select { width: 100%; height: 40px; padding: 0 10px; border: 1px solid #dbe3ef; border-radius: 11px; background: #f8fbff; font: inherit;
+    font-size: 14px; font-weight: 700; letter-spacing: 0; text-transform: none; color: #0f1d4a; box-sizing: border-box; }
+  .ka-kd-info { margin-top: 12px; padding: 10px 12px; border-radius: 12px; background: #eff6ff; border: 1px solid #bfdbfe; font-size: 12.5px; font-weight: 700; color: #1e3a8a; line-height: 1.45; }
+  .ka-kd-doppelt { margin-top: 12px; padding: 10px 12px; border-radius: 12px; background: #fff7ed; border: 1px solid #fed7aa; }
+  .ka-kd-doppelt b { display: block; font-size: 13px; font-weight: 900; color: #9a3412; margin-bottom: 6px; }
+  .ka-kd-doppelt .z { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 7px 0; border-top: 1px solid #fed7aa; font-size: 13px; font-weight: 800; }
+  .ka-kd-doppelt .z:first-of-type { border-top: 0; }
+  .ka-kd-doppelt .z small { font-weight: 700; color: #9a3412; }
+  .ka-kd-doppelt .z button { margin-left: auto; }
+  @media (max-width: 640px) { .ka-kd-raster { grid-template-columns: 1fr 1fr; } .ka-kd-raster .b2 { grid-column: 1 / -1; } }
   .ka-laden { padding: 60px; text-align: center; font-weight: 800; color: var(--grau); }
 
   @media (max-width: 1100px) { .ka-raster { grid-template-columns: 1fr; } }
@@ -159,6 +174,31 @@
 
 <div class="ka" id="ka" data-id="{{ tid }}">
   <div class="ka-laden">Kundenakte wird geladen …</div>
+</div>
+<div class="ka-dlg-hg" id="kaKdHg">
+  <div class="ka-dlg kunde" role="dialog" aria-modal="true" aria-labelledby="kaKdTitel">
+    <h3 id="kaKdTitel">Kunde anlegen</h3>
+    <p>Aus Vertrag und Angebot übernommen – bitte kurz prüfen.</p>
+    <form id="kaKdForm" class="ka-kd-raster" onsubmit="return false">
+      <label class="b2">Firma<input name="firma"></label>
+      <label class="b2">Straße + Nr.<input name="strasse"></label>
+      <label>PLZ<input name="plz" maxlength="5"></label>
+      <label>Stadt<input name="stadt"></label>
+      <label>Anrede<select name="anrede"><option value="">–</option><option>Herr</option><option>Frau</option></select></label>
+      <label>Name<input name="name"></label>
+      <label>Telefon<input name="telefon"></label>
+      <label>E-Mail<input name="email"></label>
+      <label class="b2">Rechnungs-E-Mail (optional)<input name="rechnung_email"></label>
+      <label>Kundennummer<input name="kundennummer"></label>
+      <label>Beginn<input name="beginn" placeholder="tt.mm.jjjj"></label>
+      <label>Betrag € netto / Monat<input name="betrag" inputmode="decimal"></label>
+      <label>Häufigkeit<select name="haeufigkeit"></select></label>
+    </form>
+    <div class="ka-kd-info"><span id="kaKdZeiten"></span><br>Gespeichert wird wie in der Kundenliste von Hand (Status „Aktuell“, unbefristet, auch an Lexware). Feste Zeiten und Mitarbeiter danach in der Kundenliste eintragen.</div>
+    <div class="ka-kd-doppelt" id="kaKdDoppelt" hidden></div>
+    <div class="ka-dlg-fehler" id="kaKdFehler"></div>
+    <div class="ka-dlg-unten"><button type="button" class="ka-btn hell" id="kaKdAb">Abbrechen</button><button type="button" class="ka-btn gruen" id="kaKdOk">Kunde anlegen</button></div>
+  </div>
 </div>
 <div class="ka-dlg-hg" id="kaDlgHg">
   <div class="ka-dlg" id="kaDlg" role="dialog" aria-modal="true" aria-labelledby="kaDlgTitel">
@@ -179,7 +219,7 @@
   // Zeiten kommen schon fertig in Berlin-Zeit vom Server („19.10.2026 · 09:27“)
   const tagZeit = t => String(t || '');
   const kuerzel = name => String(name || '?').replace(/\b(gmbh|ug|ag|kg|mbh|e\.?\s?k\.?|ohg|gbr|co\.?|zz|test)\b/gi, ' ').trim().split(/\s+/).filter(Boolean).slice(0, 2).map(w => w[0]).join('').toUpperCase() || '?';
-  const SYMBOL = { start: '+', anfrage: '✉', angerufen: '☎', interessiert: '★', spaeter: '⏱', besichtigung: '⌂', angebot: '€', vertrag: '✎', mail: '✉', leon: 'L', notiz: '✐', verloren: '✕', plan: '⏰', kontaktformular: '✉', nachgefasst: '↻' };
+  const SYMBOL = { start: '+', anfrage: '✉', angerufen: '☎', interessiert: '★', spaeter: '⏱', besichtigung: '⌂', angebot: '€', vertrag: '✎', mail: '✉', leon: 'L', notiz: '✐', verloren: '✕', plan: '⏰', kontaktformular: '✉', nachgefasst: '↻', kunde: '★' };
   const PILL = { gesendet: ['g', 'gesendet'], wartet: ['y', 'wartet auf Antwort'], fehlt: ['r', 'nicht gesendet'], offen: ['grau', 'noch nicht'] };
   const PUNKT = { gesendet: '#10b981', wartet: '#f59e0b', fehlt: '#ef4444', offen: '#cbd5e1' };
   let daten = null;
@@ -212,7 +252,7 @@
       (s.in_tagesliste ? '<span class="ka-chip">Heute in der Tagesliste</span>' : '') +
       (a.verloren ? '<span class="ka-chip" style="background:#be123c">Kein Interesse</span>' : '') +
       (a.abgelehnt ? '<span class="ka-chip" style="background:#be123c">Angebot abgelehnt</span>' : '') +
-      '</div></div><div class="ka-stufe">Schritt ' + ((aktiv >= 0 ? aktiv : a.stufe) + 1) + ' von 6</div></section>';
+      '</div></div><div class="ka-stufe">' + (a.kunde ? 'Kunde ✓' : 'Schritt ' + (Math.min(aktiv >= 0 ? aktiv : a.stufe, 5) + 1) + ' von 6') + '</div></section>';
 
     h += '<div class="ka-karte ka-oben"><div class="ka-schritte">' + a.schritte.map((x, i) =>
       '<div class="ka-st ' + esc(x.zustand) + '"><div class="ka-kr">' + (x.zustand === 'ok' ? '✓' : x.zustand === 'weg' ? '–' : x.zustand === 'nein' ? '✕' : (i + 1)) + '</div><b>' + esc(x.name) + '</b><i>' + esc(x.text) + '</i></div>').join('') + '</div>';
@@ -282,6 +322,7 @@
       doks.push('<a class="ka-doku" href="/angebotvorlage?angebot_id=' + tid + '" target="_blank" rel="noopener"><span class="fi">PDF</span>Angebot AN-' + esc(an.nr) + '</a>');
     }
     if (an || (b && b.gespeichert)) doks.push('<a class="ka-doku" href="/leistungsverzeichnis?angebot_id=' + tid + '" target="_blank" rel="noopener"><span class="fi lv">LV</span>Leistungsverzeichnis</a>');
+    if (a.kunde) doks.push('<a class="ka-doku" href="/kunden"><span class="fi e">KD</span>Kunde' + (a.kunde.kundennummer ? ' Kd.-Nr. ' + esc(a.kunde.kundennummer) : '') + ' (Kundenliste)</a>');
     if (a.vertrag) doks.push('<a class="ka-doku" href="/vertrag/editor?angebot=' + tid + '"><span class="fi v">VT</span>Vertrag (' + esc(a.vertrag.status === 'gesendet' ? 'gesendet' : 'wartet') + ')</a>');
     else doks.push('<div class="ka-zeile leer"><span class="ka-punkt" style="background:#cbd5e1"></span>Vertrag – kommt nach „Angenommen"</div>');
     h += doks.join('') + '</div>';
@@ -301,6 +342,7 @@
     wurzel.querySelectorAll('[data-aktion="abgelehnt"]').forEach(btn => btn.addEventListener('click', () => fensterAuf('abgelehnt')));
     wurzel.querySelectorAll('[data-aktion="nachgefasst"]').forEach(btn => btn.addEventListener('click', () => fensterAuf('nachgefasst')));
     wurzel.querySelectorAll('[data-aktion="wieder_offen"]').forEach(btn => btn.addEventListener('click', wiederOffen));
+    wurzel.querySelectorAll('[data-aktion="kunde"]').forEach(btn => btn.addEventListener('click', kundeAuf));
   }
 
   async function laden() {
@@ -411,6 +453,59 @@
     try { await senden({ aktion: 'wieder_offen' }); await laden(); }
     catch (e) { alert('Hat nicht geklappt: ' + (e.message || e)); ev.currentTarget.disabled = false; }
   }
+
+  // ---------- Vertrag → Kunde: Felder prüfen, dann über die Kunden-Seite speichern (wie von Hand, inkl. Lexware)
+  const kdHg = document.getElementById('kaKdHg');
+  const KD_FELDER = ['firma', 'strasse', 'plz', 'stadt', 'anrede', 'name', 'telefon', 'email', 'rechnung_email', 'kundennummer', 'beginn', 'betrag', 'haeufigkeit'];
+  let kdTrotzdem = false;
+  function kdFeld(k) { return document.querySelector('#kaKdForm [name="' + k + '"]'); }
+  function kdDoppelt(liste) {
+    const box = document.getElementById('kaKdDoppelt');
+    kdTrotzdem = false;
+    if (!liste || !liste.length) { box.hidden = true; box.innerHTML = ''; document.getElementById('kaKdOk').textContent = 'Kunde anlegen'; return; }
+    box.hidden = false;
+    box.innerHTML = '<b>Diesen Kunden gibt es vielleicht schon:</b>' + liste.map(x => '<div class="z">' + esc(x.firma) + ' <small>' + esc(x.stand) + (x.ort ? ' · ' + esc(x.ort) : '') +
+      ' · ' + esc(x.gruende.join(', ')) + '</small><button type="button" class="ka-btn hell" data-verknuepfen="' + x.id + '">Mit diesem verknüpfen</button></div>').join('');
+    box.querySelectorAll('[data-verknuepfen]').forEach(b => b.addEventListener('click', () => kdSpeichern({ aktion: 'verknuepfen', kunde_id: Number(b.dataset.verknuepfen) })));
+    kdTrotzdem = true;
+    document.getElementById('kaKdOk').textContent = 'Trotzdem neu anlegen';
+  }
+  async function kundeAuf() {
+    document.getElementById('kaKdFehler').textContent = '';
+    try {
+      const r = await fetch('/api/akte/' + tid + '/kunde', { credentials: 'same-origin' });
+      const d = await r.json();
+      if (!d.ok) throw new Error(d.error || 'Fehler');
+      const sel = kdFeld('haeufigkeit');
+      sel.innerHTML = d.haeufigkeiten.map(h => '<option>' + esc(h) + '</option>').join('');
+      KD_FELDER.forEach(k => { const el = kdFeld(k); if (el) el.value = d.felder[k] || ''; });
+      document.getElementById('kaKdZeiten').textContent = d.felder.wochentage ? 'Aus dem Vertrag: ' + d.felder.wochentage + (d.felder.zeiten ? ' · ' + d.felder.zeiten : '') : '';
+      kdDoppelt(d.doppelt);
+      document.getElementById('kaKdOk').disabled = false;
+      kdHg.classList.add('offen');
+    } catch (e) { alert('Hat nicht geklappt: ' + (e.message || e)); }
+  }
+  async function kdSpeichern(body) {
+    const ok = document.getElementById('kaKdOk'), fehler = document.getElementById('kaKdFehler');
+    ok.disabled = true; fehler.textContent = '';
+    try {
+      const r = await fetch('/api/akte/' + tid + '/kunde', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(Object.assign({ von: von() }, body)) });
+      const d = await r.json();
+      if (!d.ok) { if (d.doppelt) kdDoppelt(d.doppelt); throw new Error(d.error || 'Fehler'); }
+      kdHg.classList.remove('offen');
+      await laden();
+    } catch (e) { fehler.textContent = e.message || String(e); ok.disabled = false; }
+  }
+  document.getElementById('kaKdAb').addEventListener('click', () => kdHg.classList.remove('offen'));
+  kdHg.addEventListener('click', e => { if (e.target === kdHg) kdHg.classList.remove('offen'); });
+  document.getElementById('kaKdOk').addEventListener('click', () => {
+    const felder = {};
+    KD_FELDER.forEach(k => { const el = kdFeld(k); felder[k] = el ? el.value.trim() : ''; });
+    if (!felder.firma || !felder.stadt) { document.getElementById('kaKdFehler').textContent = 'Bitte Firma und Stadt eintragen.'; return; }
+    if (!(parseFloat(String(felder.betrag).replace(/\./g, '').replace(',', '.')) > 0) && !(parseFloat(felder.betrag) > 0)) { document.getElementById('kaKdFehler').textContent = 'Bitte den Betrag pro Monat (netto) eintragen.'; return; }
+    kdSpeichern({ aktion: 'anlegen', felder, trotzdem: kdTrotzdem });
+  });
 
   laden();
 })();

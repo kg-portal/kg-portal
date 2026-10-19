@@ -845,6 +845,11 @@
                 <i class="fa-solid fa-grip-vertical portal-drag-handle"></i>
             </a>
 
+            <a class="portal-nav-item {% if request.path.startswith('/akte') %}active{% endif %}" href="/akte" data-nav-key="kundenweg">
+                <span class="portal-nav-content"><i class="fa-solid fa-route icon-blue"></i> Kundenweg</span>
+                <i class="fa-solid fa-grip-vertical portal-drag-handle"></i>
+            </a>
+
             <a class="portal-nav-item {% if request.path.startswith('/lead-sammler') %}active{% endif %}" href="/lead-sammler" data-nav-key="lead-sammler">
                 <span class="portal-nav-content"><i class="fa-solid fa-magnifying-glass-location icon-teal"></i> Lead-Sammler</span>
                 <i class="fa-solid fa-grip-vertical portal-drag-handle"></i>
@@ -952,6 +957,7 @@ document.addEventListener('DOMContentLoaded', function () {
         'kg-ai',
         'whatsapp-inbox',
         'datenbank',
+        'kundenweg',
         'lead-sammler',
         'leon',
         'rueckrufe',
