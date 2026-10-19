@@ -1182,6 +1182,13 @@ a.kgae-knopf { display: inline-block; text-decoration: none; }
     // ---------- PDF / Senden / Mail
     $('kgaePdf').addEventListener('click', () => {
         if (!aktuell) return;
+        if (aktuell.id && !aktuell.neu) {  // gespeichert: Angebot + Leistungsverzeichnis in einem PDF (vorher Entwurf sichern, damit das LV aktuell ist)
+            const fenster = window.open('about:blank', '_blank');
+            try { fenster.document.write('<p style="font:600 16px Arial,sans-serif;padding:40px;color:#1e3a8a">PDF wird erstellt (Angebot + Leistungsverzeichnis) …</p>'); } catch (e) {}
+            const url = vorschauUrl(felderLesen()).replace('/angebot/editor/vorschau?', '/angebot/editor/pdf?art=beide&ansehen=1&id=' + aktuell.id + '&');
+            (geaendert ? entwurf(true) : Promise.resolve()).then(() => { if (fenster) fenster.location.href = url; else window.open(url, '_blank'); });
+            return;
+        }
         window.open(aktuell.status === 'angebot' && !geaendert ? '/angebotvorlage?angebot_id=' + aktuell.id + '&print=1' : vorschauUrl(felderLesen()).replace('/angebot/editor/vorschau?', '/angebot/editor/vorschau?drucken=1&'), '_blank');
     });
     // Leistungsart: fertige Liste (aus der Besichtigung vorbelegt), Text bleibt änderbar; „+“ hängt eine zweite Leistung an
