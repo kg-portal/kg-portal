@@ -20,7 +20,7 @@ EINHEITEN = ae.EINHEITEN
 MWST = ae.MWST
 TAGE = [("Mo", "Montag", "montags"), ("Di", "Dienstag", "dienstags"), ("Mi", "Mittwoch", "mittwochs"),
         ("Do", "Donnerstag", "donnerstags"), ("Fr", "Freitag", "freitags"), ("Sa", "Samstag", "samstags"), ("So", "Sonntag", "sonntags")]
-FELDER = ("firma", "ansprechpartner", "adresse", "plz", "ort", "email", "telefon", "startdatum", "wochentage", "zeiten", "datum")
+FELDER = ("firma", "ansprechpartner", "adresse", "plz", "ort", "email", "telefon", "startdatum", "wochentage", "zeiten", "datum", "zeitplan")
 
 _txt, _zahl, _euro, _json = ae._txt, ae._zahl, ae._euro, ae._json
 
@@ -145,6 +145,15 @@ def felder_aus_angebot(conn, tid):
     return f
 
 
+def _netto_mwst(p):
+    """Brutto-Preis einer Leistung → (netto, MwSt.); der gespeicherte Netto-Wert aus dem Angebot zählt, wenn er zum Brutto passt."""
+    brutto = _zahl(p["preis"])
+    netto = _zahl(p.get("netto"))
+    if not netto or abs(round(netto * (1 + MWST), 2) - brutto) > 0.01:
+        netto = round(brutto / (1 + MWST), 2)
+    return netto, round(brutto - netto, 2)
+
+
 def vorlage_vars(f):
     """Formular → Platzhalter der Vertragsvorlage ({{Objekt}}, {{Kunde}}, … wie in Vertrag_Vorlage)."""
     pos = [p for p in f["positionen"] if p["text"] or _zahl(p["preis"])]
@@ -152,7 +161,9 @@ def vorlage_vars(f):
         "Objekt": f["firma"], "Kunde": f["ansprechpartner"], "Adresse": f["adresse"], "Plz": f["plz"], "Ort": f["ort"],
         "Datum": f["datum"] or _heute(), "Startdatum": f["startdatum"], "Wochentagen": f["wochentage"], "Zeiten": f["zeiten"],
         "leistungen_satz": [p["text"] for p in f["positionen"][:3] if p["text"]],
-        "preise": [{"Leistung": p["text"], "Einheiten": p["einheit"], "Preis": _euro(_zahl(p["preis"])) if _zahl(p["preis"]) else ""} for p in pos],
+        "preise": [{"Leistung": p["text"], "Einheiten": p["einheit"], "Preis": _euro(_zahl(p["preis"])) if _zahl(p["preis"]) else "",
+                    "Netto": _euro(_netto_mwst(p)[0]) if _zahl(p["preis"]) else "", "MwSt": _euro(_netto_mwst(p)[1]) if _zahl(p["preis"]) else ""}
+                   for p in pos],
     }
 
 
