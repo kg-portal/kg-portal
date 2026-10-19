@@ -1,0 +1,149 @@
+{% extends "base.html" %}
+{% block content %}
+<!-- Kundenweg: alle laufenden Firmen auf einen Blick (Interesse → Besichtigung → Angebot → Vertrag → Neue Kunden).
+     Daten: /api/kundenweg (kundenweg.py), nur lesen. Klick auf eine Karte öffnet die Kundenakte. -->
+<style>
+  .kw { --navy:#0f1d4a; --blau:#2563eb; --linie:#e6ecf5; --grau:#64748b; font-family: Inter, "Segoe UI", Arial, sans-serif; color: var(--navy); }
+  .kw * { box-sizing: border-box; }
+  .kw a { text-decoration: none; }
+  .kw button { font-family: inherit; cursor: pointer; }
+
+  .kw-kopf { position: relative; overflow: hidden; display: flex; align-items: center; gap: 18px; border-radius: 28px; padding: 24px 28px; color: #fff;
+    background: radial-gradient(circle at calc(100% - 60px) 20px, rgba(255,255,255,.12) 0 150px, transparent 150.5px), linear-gradient(135deg, #183a91 0%, #2563eb 100%);
+    box-shadow: 0 22px 50px rgba(24,58,145,.22); }
+  .kw-sym { width: 60px; height: 60px; flex: none; border-radius: 18px; display: grid; place-items: center; font-size: 26px; font-weight: 900;
+    background: linear-gradient(135deg, #f59e0b, #ea580c); border: 2px solid rgba(255,255,255,.4); }
+  .kw-kopf small { display: block; font-size: 11px; font-weight: 900; letter-spacing: .14em; text-transform: uppercase; color: rgba(219,234,254,.85); }
+  .kw-kopf h1 { margin: 2px 0 0; font-size: 28px; font-weight: 900; letter-spacing: -.02em; color: #fff !important; }
+  .kw-kopf p { margin: 6px 0 0; font-size: 14px; font-weight: 700; color: #dbeafe; }
+  .kw-zahl { margin-left: auto; flex: none; padding: 10px 16px; border-radius: 16px; background: rgba(255,255,255,.14); border: 1px solid rgba(255,255,255,.25); font-weight: 900; font-size: 15px; white-space: nowrap; }
+
+  .kw-leiste { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin: 16px 0 12px; }
+  .kw-suche { flex: 1 1 260px; min-width: 0; height: 44px; padding: 0 14px; border: 1px solid #dbe3ef; border-radius: 14px; background: #fff; font: inherit; font-size: 14px; font-weight: 700; color: var(--navy); }
+  .kw-filter { height: 40px; padding: 0 14px; border-radius: 12px; border: 1px solid #dbe3ef; background: #fff; font-size: 13px; font-weight: 800; color: #1e3a8a; }
+  .kw-filter.an { background: #1d4ed8; border-color: #1d4ed8; color: #fff; }
+  .kw-schnell { display: inline-flex; align-items: center; gap: 6px; height: 44px; padding: 0 16px; border-radius: 14px; font-size: 14px; font-weight: 900; color: #fff;
+    background: linear-gradient(135deg, #ea580c, #f59e0b); box-shadow: 0 10px 20px -8px rgba(234,88,12,.6); }
+
+  .kw-warn { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
+  .kw-w { padding: 9px 13px; border-radius: 12px; font-size: 13px; font-weight: 800; border: 1px solid; }
+  .kw-w.r { background: #fff1f2; border-color: #fecdd3; color: #be123c; } .kw-w.y { background: #fffbeb; border-color: #fde68a; color: #92400e; }
+  .kw-w.g { background: #ecfdf5; border-color: #a7f3d0; color: #047857; } .kw-w.b { background: #eff6ff; border-color: #bfdbfe; color: #1e40af; }
+
+  .kw-board { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; align-items: start; }
+  .kw-spalte { min-width: 0; padding: 12px; border-radius: 22px; background: #f5f8fd; border: 1px solid var(--linie); }
+  .kw-spalte h3 { display: flex; align-items: center; gap: 8px; margin: 2px 2px 10px; font-size: 15px; font-weight: 900; color: var(--navy); }
+  .kw-fp { width: 10px; height: 10px; border-radius: 50%; flex: none; }
+  .kw-anz { margin-left: auto; min-width: 26px; padding: 2px 8px; border-radius: 999px; background: #fff; border: 1px solid var(--linie); font-size: 12px; font-weight: 900; text-align: center; }
+  .kw-karte { display: block; position: relative; margin-bottom: 8px; padding: 11px 12px 10px; border-radius: 16px; background: #fff; border: 1px solid var(--linie);
+    box-shadow: 0 6px 16px rgba(15,29,74,.05); color: var(--navy); transition: transform .12s, box-shadow .15s, border-color .15s; }
+  .kw-karte:hover { transform: translateY(-1px); border-color: #bfdbfe; box-shadow: 0 12px 24px rgba(15,29,74,.10); }
+  .kw-karte.r { border-left: 4px solid #e11d48; } .kw-karte.y { border-left: 4px solid #f59e0b; }
+  .kw-karte b { display: block; font-size: 14px; font-weight: 900; line-height: 1.25; overflow-wrap: anywhere; }
+  .kw-karte .o { display: block; margin-top: 2px; font-size: 12px; font-weight: 700; color: var(--grau); overflow-wrap: anywhere; }
+  .kw-chips { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 7px; }
+  .kw-pill { padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 800; background: #eff6ff; color: #1d4ed8; }
+  .kw-pill.g { background: #dcfce7; color: #15803d; } .kw-pill.r { background: #ffe4e6; color: #be123c; } .kw-pill.y { background: #fef3c7; color: #92400e; }
+  .kw-pill.v { background: #ede9fe; color: #6d28d9; } .kw-pill.grau { background: #f1f5f9; color: #64748b; }
+  .kw-q { display: flex; justify-content: space-between; gap: 8px; margin-top: 7px; font-size: 11.5px; font-weight: 800; color: #94a3b8; }
+  .kw-leer { padding: 14px 10px; border-radius: 14px; border: 1px dashed #cbd5e1; color: #94a3b8; font-size: 12.5px; font-weight: 700; text-align: center; }
+  .kw-mehr { width: 100%; height: 36px; border-radius: 12px; border: 1px dashed #bfdbfe; background: #fff; color: #1d4ed8; font-size: 12.5px; font-weight: 800; }
+  .kw-info { margin-top: 14px; padding: 12px 14px; border-radius: 14px; background: #eff6ff; border: 1px solid #bfdbfe; color: #1e3a8a; font-size: 13px; font-weight: 700; line-height: 1.5; }
+  .kw-laden { padding: 50px; text-align: center; font-weight: 800; color: var(--grau); }
+
+  @media (max-width: 1250px) { .kw-board { grid-template-columns: repeat(5, 250px); overflow-x: auto; padding-bottom: 8px; } }
+  @media (max-width: 760px) {
+    .kw-kopf { flex-wrap: wrap; padding: 20px; border-radius: 22px; } .kw-kopf h1 { font-size: 23px; } .kw-zahl { margin-left: 0; }
+    .kw-board { grid-template-columns: 1fr; overflow-x: visible; }
+    .kw-schnell { width: 100%; justify-content: center; }
+  }
+</style>
+
+<div class="kw" id="kw">
+  <section class="kw-kopf" data-kg-skip>
+    <div class="kw-sym">⇢</div>
+    <div style="min-width:0">
+      <small>Kundenweg · alle Firmen auf einen Blick</small>
+      <h1>Vom Interesse bis zum Kunden</h1>
+      <p>Jede Firma ist eine Karte und wandert von selbst weiter. Klick öffnet die Kundenakte.</p>
+    </div>
+    <div class="kw-zahl" id="kwZahl">…</div>
+  </section>
+
+  <div class="kw-leiste">
+    <input class="kw-suche" id="kwSuche" type="search" placeholder="Firma, Ort oder Angebots-Nr. suchen …" autocomplete="off">
+    <button type="button" class="kw-filter an" data-filter="alle">Alle</button>
+    <button type="button" class="kw-filter" data-filter="warn">Nur Handlungsbedarf</button>
+    <button type="button" class="kw-filter" data-filter="leon">Nur Leon</button>
+    <button type="button" class="kw-filter" data-filter="weg">Abgelehnt / Verloren</button>
+    <a class="kw-schnell" href="/angebot/editor">⚡ Schnell-Angebot</a>
+  </div>
+
+  <div class="kw-warn" id="kwWarn"></div>
+  <div class="kw-board" id="kwBoard"><div class="kw-laden">Lädt …</div></div>
+  <div class="kw-info"><b>Karten wandern von selbst:</b> Interesse (Leon, Website, Datenbank) → Besichtigung gespeichert → Angebot gesendet → „Angenommen“ → Vertrag → „Kunde anlegen“.
+    <b>Nichts wird gelöscht:</b> abgelehnte Angebote und „Kein Interesse“ stehen unter „Abgelehnt / Verloren“.</div>
+</div>
+
+<script>
+(function () {
+  const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const FARBE = { interesse: '#a855f7', besichtigung: '#10b981', angebot: '#f59e0b', vertrag: '#3b82f6', kunde: '#0f1d4a' };
+  const PRO_SPALTE = 40;
+  let daten = null, filter = 'alle', offen = {};
+  try { filter = localStorage.getItem('kgKundenwegFilter') || 'alle'; } catch (e) {}
+
+  function passt(k, q) {
+    if (filter === 'weg') { if (k.gruppe === 'laufend') return false; }
+    else if (k.gruppe !== 'laufend') return false;
+    if (filter === 'warn' && !k.warn) return false;
+    if (filter === 'leon' && k.herkunft !== 'Leon') return false;
+    return !q || (k.firma + ' ' + k.ort + ' ' + k.unter).toLowerCase().indexOf(q) >= 0;
+  }
+
+  function karte(k) {
+    return '<a class="kw-karte ' + esc(k.warn) + '" href="/akte/' + k.id + '"><b>' + esc(k.firma) + '</b>' +
+      '<span class="o">' + esc(k.unter || k.ort || '–') + (k.unter && k.ort ? ' · ' + esc(k.ort) : '') + '</span>' +
+      '<span class="kw-chips">' + k.chips.map(c => '<span class="kw-pill ' + esc(c.f) + '">' + esc(c.t) + '</span>').join('') + '</span>' +
+      '<span class="kw-q"><span>' + esc(k.herkunft) + '</span><span>' + esc(k.datum) + '</span></span></a>';
+  }
+
+  function zeichnen() {
+    const q = document.getElementById('kwSuche').value.trim().toLowerCase();
+    document.querySelectorAll('.kw-filter').forEach(b => b.classList.toggle('an', b.dataset.filter === filter));
+    document.getElementById('kwBoard').innerHTML = daten.spalten.map(s => {
+      const alle = daten.karten.filter(k => k.spalte === s.key && passt(k, q));
+      const zeigen = offen[s.key] || q ? alle : alle.slice(0, PRO_SPALTE);
+      return '<div class="kw-spalte" data-spalte="' + s.key + '"><h3><span class="kw-fp" style="background:' + FARBE[s.key] + '"></span>' + esc(s.name) +
+        '<span class="kw-anz">' + alle.length + '</span></h3>' +
+        (zeigen.length ? zeigen.map(karte).join('') : '<div class="kw-leer">' + (q ? 'Nichts gefunden' : 'Keine Firma') + '</div>') +
+        (alle.length > zeigen.length ? '<button type="button" class="kw-mehr" data-mehr="' + s.key + '">+ ' + (alle.length - zeigen.length) + ' weitere anzeigen</button>' : '') + '</div>';
+    }).join('');
+    document.querySelectorAll('[data-mehr]').forEach(b => b.addEventListener('click', () => { offen[b.dataset.mehr] = true; zeichnen(); }));
+  }
+
+  function warnband() {
+    const w = daten.warn, teile = [];
+    if (w.nachfassen) teile.push('<div class="kw-w r">⚠ ' + w.nachfassen + (w.nachfassen === 1 ? ' Angebot' : ' Angebote') + ' ohne Antwort seit über 7 Tagen – nachfassen</div>');
+    if (w.vertrag_offen) teile.push('<div class="kw-w y">● ' + w.vertrag_offen + (w.vertrag_offen === 1 ? ' Vertrag' : ' Verträge') + ' vorbereitet, noch nicht gesendet</div>');
+    if (w.angebot_fehlt) teile.push('<div class="kw-w y">● ' + w.angebot_fehlt + (w.angebot_fehlt === 1 ? ' Besichtigung' : ' Besichtigungen') + ' fertig, Angebot fehlt noch</div>');
+    if (w.kunde_anlegen) teile.push('<div class="kw-w b">✎ ' + w.kunde_anlegen + ' Vertrag gesendet – nach Unterschrift „Kunde anlegen“</div>');
+    if (!teile.length) teile.push('<div class="kw-w g">✓ Alles im Plan – nichts überfällig</div>');
+    document.getElementById('kwWarn').innerHTML = teile.join('');
+    document.getElementById('kwZahl').textContent = daten.laufend + (daten.laufend === 1 ? ' laufende Firma' : ' laufende Firmen');
+  }
+
+  document.querySelectorAll('.kw-filter').forEach(b => b.addEventListener('click', () => {
+    filter = b.dataset.filter; offen = {};
+    try { localStorage.setItem('kgKundenwegFilter', filter); } catch (e) {}
+    zeichnen();
+  }));
+  document.getElementById('kwSuche').addEventListener('input', () => zeichnen());
+
+  fetch('/api/kundenweg', { credentials: 'same-origin' }).then(r => r.json()).then(d => {
+    if (!d.ok) throw new Error();
+    daten = d; warnband(); zeichnen();
+  }).catch(() => { document.getElementById('kwBoard').innerHTML = '<div class="kw-laden">Übersicht konnte nicht geladen werden.</div>'; });
+})();
+</script>
+{% endblock %}

@@ -42,6 +42,18 @@
 .kgae-chip { padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 900; background: #eff6ff; color: var(--b1); }
 .kgae-chip.gruen { background: #dcfce7; color: #166534; } .kgae-chip.gelb { background: #fef3c7; color: #92400e; } .kgae-chip.grau { background: #f1f5f9; color: #475569; }
 .kgae-chip.rot { background: #fee2e2; color: #b91c1c; }
+/* Gibt es die Firma schon? (Neues Angebot ohne Besichtigung) */
+.kgae-dop-hg { position: fixed; inset: 0; z-index: 9000; display: none; align-items: center; justify-content: center; padding: 16px; background: rgba(15, 29, 74, .45); }
+.kgae-dop-hg.an { display: flex; }
+.kgae-dop { width: min(560px, 100%); max-height: calc(100vh - 32px); overflow: auto; background: #fff; border-radius: 22px; padding: 20px 22px; box-shadow: 0 30px 70px rgba(8, 20, 60, .35); }
+.kgae-dop h3 { margin: 0; font-size: 19px; font-weight: 900; color: #0f172a; }
+.kgae-dop p { margin: 4px 0 12px; font-size: 13px; font-weight: 700; color: var(--grau); }
+.kgae-dop-z { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 10px 12px; margin-bottom: 8px; border-radius: 14px; background: #f8fbff; border: 1px solid var(--rand); }
+.kgae-dop-z > span { min-width: 0; flex: 1; }
+.kgae-dop-z b { display: block; font-size: 14px; font-weight: 900; color: #0f172a; }
+.kgae-dop-z small { display: block; font-size: 12px; font-weight: 700; color: var(--grau); }
+.kgae-dop-z .kgae-knopf { padding: 9px 12px; font-size: 13px; }
+.kgae-dop-unten { display: flex; justify-content: flex-end; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
 .kgae-leer { padding: 18px 10px; text-align: center; font-size: 13px; font-weight: 700; color: var(--grau); }
 /* Formular */
 .kgae-start[hidden], #kgaeFormular[hidden] { display: none !important; }
@@ -428,6 +440,15 @@ a.kgae-knopf { display: inline-block; text-decoration: none; }
                 <button type="button" class="kgae-knopf hell kgae-nur-schmal" id="kgaeVorschauZu">Schließen</button>
             </div>
         </aside>
+    </div>
+
+    <div class="kgae-dop-hg" id="kgaeDopHg">
+        <div class="kgae-dop" role="dialog" aria-modal="true" aria-labelledby="kgaeDopTitel">
+            <h3 id="kgaeDopTitel">Gibt es diese Firma schon?</h3>
+            <p>Damit keine Firma doppelt angelegt wird: bitte die passende wählen – oder neu anlegen.</p>
+            <div id="kgaeDopListe"></div>
+            <div class="kgae-dop-unten"><button type="button" class="kgae-knopf hell" id="kgaeDopAb">Abbrechen</button><button type="button" class="kgae-knopf blau" id="kgaeDopNeu">Trotzdem neu anlegen</button></div>
+        </div>
     </div>
 
     <div class="kgae-mail" id="kgaeMail" role="dialog" aria-modal="true" aria-label="Angebot per E-Mail senden">
@@ -947,11 +968,55 @@ a.kgae-knopf { display: inline-block; text-decoration: none; }
         }).catch(() => meldung('fehler', 'Formular konnte nicht geladen werden.'));
     }
     // Neues Angebot speichern: wie „Direktes Angebot“ in der Datenbank einen Eintrag in der Besichtigungsliste anlegen
-    function anlegen() {
+    // Firma aus der Datenbank gewählt (oder im Doppelt-Fenster): dieselbe Firma vormerken statt einen zweiten Eintrag anzulegen
+    function uebernehmen(id, stand) {
+        return fetch('/api/akte/' + id + '/schnell', { method: 'POST', credentials: 'same-origin' }).then(r => r.json()).then(d => {
+            if (!d.ok) throw new Error(d.error || 'Fehler');
+            aktuell.id = Number(id); aktuell.neu = false; aktuell.status = 'besichtigung';
+            aktuell.lead = { quelle: 'Aus der Datenbank' + (stand ? ' · ' + stand : '') };
+            const q = $('kgaeQuelle'); q.hidden = false; q.textContent = aktuell.lead.quelle;
+            $('kgaeAkte').hidden = false; $('kgaeAkteOben').hidden = false;
+            history.replaceState(null, '', location.pathname + '?id=' + aktuell.id);
+            schritte(2);
+            listeLaden();
+            lvLaden();
+            return true;
+        }).catch(e => { meldung('fehler', 'Konnte nicht übernommen werden: ' + esc(e.message)); return false; });
+    }
+    // Vor dem Anlegen: gibt es die Firma schon (Kunden, Datenbank, gleiche Telefonnummer oder E-Mail)?
+    function doppeltPruefen(f) {
+        const qs = 'firma=' + encodeURIComponent(f.firma) + '&telefon=' + encodeURIComponent(f.telefon || '') + '&email=' + encodeURIComponent(f.email || '');
+        return fetch('/api/akte/doppelt?' + qs, { credentials: 'same-origin' }).then(r => r.json()).catch(() => ({ treffer: [] })).then(d => {
+            const t = (d && d.treffer) || [];
+            if (!t.length) return 'neu';
+            return new Promise(fertig => {
+                const hg = $('kgaeDopHg');
+                const zu = wert => { hg.classList.remove('an'); fertig(wert); };
+                $('kgaeDopListe').innerHTML = t.map((x, i) => '<div class="kgae-dop-z"><span><b>' + esc(x.firma || 'Ohne Firma') + '</b><small>' + esc(x.stand) + (x.ort ? ' · ' + esc(x.ort) : '') +
+                    ' · ' + esc(x.gruende.join(', ')) + '</small></span>' +
+                    (x.art === 'angebot' ? '<button type="button" class="kgae-knopf hell" data-i="' + i + '">Angebot öffnen</button>'
+                        : '<button type="button" class="kgae-knopf blau" data-i="' + i + '">' + (x.art === 'kunde' ? 'Als Bestandskunde' : 'Diese Firma nehmen') + '</button>') + '</div>').join('');
+                $('kgaeDopListe').querySelectorAll('[data-i]').forEach(b => b.addEventListener('click', () => {
+                    const x = t[Number(b.dataset.i)];
+                    if (x.art === 'angebot') { zu(false); geaendert = false; tab = 'angebote'; document.querySelectorAll('.kgae-tabs button').forEach(y => y.classList.toggle('an', y.dataset.tab === 'angebote')); oeffnen(x.id); return; }
+                    if (x.art === 'kunde') { aktuell.quelle = { art: 'kunde', id: x.id, firma: f.firma }; zu('neu'); return; }
+                    hg.classList.remove('an');
+                    uebernehmen(x.id, x.stand).then(fertig);
+                }));
+                $('kgaeDopAb').onclick = () => zu(false);
+                $('kgaeDopNeu').onclick = () => zu('neu');
+                hg.classList.add('an');
+            });
+        });
+    }
+    function anlegen(geprueft) {
         const f = felderLesen();
         if (!f.firma) { meldung('fehler', 'Bitte die Firma eintragen.'); $('kgae_firma').focus(); return Promise.resolve(false); }
+        const q0 = aktuell.quelle;
+        if (q0 && (q0.art === 'lead' || q0.art === 'besichtigung') && q0.id) return uebernehmen(q0.id, '');
         const kunde = aktuell.quelle && aktuell.quelle.art === 'kunde';
         if (!kunde && !f.ort) { meldung('fehler', 'Bitte den Ort eintragen.'); $('kgae_ort').focus(); return Promise.resolve(false); }
+        if (!kunde && !geprueft) return doppeltPruefen(f).then(w => (w === 'neu' ? anlegen(true) : w));
         const url = kunde ? '/api/datenbank/direktes-angebot-bestandskunde' : '/api/datenbank/direktes-angebot-neukunde';
         const daten = kunde ? { kunde_id: aktuell.quelle.id } : { firma: f.firma, ansprechpartner: f.ansprechpartner, strasse: f.adresse, plz: f.plz, ort: f.ort, telefon: f.telefon, email: f.email };
         return fetch(url, { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(daten) })

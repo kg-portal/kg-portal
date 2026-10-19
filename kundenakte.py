@@ -63,6 +63,8 @@ def tabellen(conn):
         except Exception:
             pass  # ein zweiter Prozess war schneller
     conn.execute("CREATE TABLE IF NOT EXISTS akte_meta (schluessel TEXT PRIMARY KEY, wert TEXT)")
+    conn.execute("""CREATE TABLE IF NOT EXISTS akte_kunde (
+        tagesliste_id INTEGER PRIMARY KEY, kunde_id INTEGER NOT NULL, art TEXT, am TEXT NOT NULL, von TEXT)""")
     conn.execute("INSERT OR IGNORE INTO akte_meta (schluessel, wert) VALUES ('mail_protokoll_seit', ?)", (_jetzt(),))
     if not _hat_tabelle(conn, "tagesliste_leads"):
         return
@@ -303,6 +305,7 @@ def _offenes_angebot(conn, tid):
     if not zeile or str(zeile["status"] or "").lower() != "angebot" or not _txt(zeile["angebot_nr"]):
         return None
     vertrag = _hat_tabelle(conn, "vertrag_editor") and bool(conn.execute("SELECT 1 FROM vertrag_editor WHERE tagesliste_id = ?", (tid,)).fetchone())
+    vertrag = vertrag or bool(_hat_tabelle(conn, "akte_kunde") and conn.execute("SELECT 1 FROM akte_kunde WHERE tagesliste_id = ?", (tid,)).fetchone())
     return zeile, _angebot_zeit(conn, tid, zeile), vertrag
 
 
@@ -357,6 +360,158 @@ def nachfassen_liste(conn, tag=None):
                     "sub": " · ".join(teile), "telefon": _txt(zeile["telefon"]), "link": f"/akte/{r['id']}", "art": "nachfassen", "_t": l["tage"]})
     aus.sort(key=lambda x: x.pop("_t"))
     return aus
+
+
+# ---------------------------------------------------------------- Doppelte Firmen erkennen (Kunde anlegen, Schnell-Angebot)
+
+_RECHTSFORM = re.compile(r"\b(gmbh|mbh|ug|ag|kg|ohg|gbr|ek|e k|co|und|haftungsbeschraenkt|inh|inhaber)\b")
+
+
+def _norm_firma(t):
+    t = _txt(t).lower()
+    for a, b in (("ä", "ae"), ("ö", "oe"), ("ü", "ue"), ("ß", "ss"), ("&", " ")):
+        t = t.replace(a, b)
+    t = re.sub(r"[^a-z0-9 ]+", " ", t)
+    return " ".join(_RECHTSFORM.sub(" ", t).split())
+
+
+def _norm_tel(t):
+    d = re.sub(r"\D", "", str(t or ""))
+    if d.startswith("0049"):
+        d = "0" + d[4:]
+    elif d.startswith("49") and len(d) > 10:
+        d = "0" + d[2:]
+    return d[-9:] if len(d) >= 7 else ""
+
+
+def _norm_mail(t):
+    t = _txt(t).lower()
+    return t if "@" in t else ""
+
+
+def doppelte(conn, firma, telefon="", email="", ohne=None):
+    """Gibt es die Firma schon? Kunden, Tagesliste und Status-Sicherung – gleicher Name (ohne GmbH usw.),
+    gleiche Telefonnummer oder gleiche E-Mail. Nur lesen."""
+    nf, nt, nm = _norm_firma(firma), _norm_tel(telefon), _norm_mail(email)
+    if len(nf) < 3:
+        nf = ""
+    if not (nf or nt or nm):
+        return []
+
+    def gruende(f, t, m):
+        g = []
+        if nf and _norm_firma(f) == nf:
+            g.append("gleicher Name")
+        if nt and _norm_tel(t) == nt:
+            g.append("gleiche Telefonnummer")
+        if nm and _norm_mail(m) == nm:
+            g.append("gleiche E-Mail")
+        return g
+
+    aus, gesehen = [], set()
+    if _hat_tabelle(conn, "kunden"):
+        for r in conn.execute("SELECT id, firma, ort, telefon, email, kundennummer, vertragsstatus FROM kunden ORDER BY id DESC").fetchall():
+            g = gruende(r["firma"], r["telefon"], r["email"])
+            if g:
+                aus.append({"art": "kunde", "id": r["id"], "firma": _txt(r["firma"]), "ort": _txt(r["ort"]), "gruende": g,
+                            "stand": "Kunde" + (f" · Kd.-Nr. {_txt(r['kundennummer'])}" if _txt(r["kundennummer"]) else "")
+                                     + (" · gekündigt" if _txt(r["vertragsstatus"]).lower().startswith("gek") else "")})
+    if _hat_tabelle(conn, "tagesliste_leads"):
+        sp = _spalten(conn, "tagesliste_leads")
+        nr = "angebot_nr" if "angebot_nr" in sp else "''"
+        for r in conn.execute(f"SELECT id, firma, ort, telefon, email, status, {nr} AS nr FROM tagesliste_leads ORDER BY id DESC").fetchall():
+            if r["id"] == ohne:
+                continue
+            g = gruende(r["firma"], r["telefon"], r["email"])
+            if g:
+                gesehen.add(r["id"])
+                st = str(r["status"] or "offen").lower()
+                art = st if st in ("besichtigung", "angebot") else "lead"
+                stand = {"besichtigung": "Besichtigung", "angebot": "Angebot" + (f" AN-{_txt(r['nr'])}" if _txt(r["nr"]) else "")}.get(st, "Datenbank")
+                aus.append({"art": art, "id": r["id"], "firma": _txt(r["firma"]), "ort": _txt(r["ort"]), "gruende": g, "stand": stand})
+    if _hat_tabelle(conn, "tagesliste_status_backup"):
+        for r in conn.execute("SELECT tagesliste_id AS id, firma, ort, telefon, email, status FROM tagesliste_status_backup ORDER BY backup_am DESC").fetchall():
+            if r["id"] in gesehen or r["id"] == ohne:
+                continue
+            gesehen.add(r["id"])
+            g = gruende(r["firma"], r["telefon"], r["email"])
+            if g:
+                st = str(r["status"] or "").lower()
+                aus.append({"art": "besichtigung" if st == "besichtigung" else "lead", "id": r["id"], "firma": _txt(r["firma"]), "ort": _txt(r["ort"]),
+                            "gruende": g, "stand": "Datenbank · " + STATUS_NAME.get(st, st or "Lead")})
+    return aus[:12]
+
+
+# ---------------------------------------------------------------- Vertrag → Kunde
+
+HAEUFIGKEITEN = ("1x w", "2x w", "3x w", "4x w", "täglich", "6x w", "1x mtl", "alle 2 Monate", "alle 3 Monate", "1x jährlich", "2x jährlich", "einmalig")
+_WOCHENTAGE = ("montag", "dienstag", "mittwoch", "donnerstag", "freitag", "samstag", "sonntag")
+
+
+def _haeufigkeit(wochentage, bes_text):
+    """„Dienstag und Freitag“ → 2x w; sonst aus der Besichtigung („2x wöchentlich“)."""
+    n = sum(1 for t in _WOCHENTAGE if t in _txt(wochentage).lower())
+    if n:
+        return {5: "täglich", 6: "6x w", 7: "täglich"}.get(n, f"{n}x w")
+    t = _txt(bes_text).lower()
+    m = re.search(r"(\d)\s*x\s*w", t)
+    if m and f"{m.group(1)}x w" in HAEUFIGKEITEN:
+        return f"{m.group(1)}x w"
+    if "täglich" in t or "taeglich" in t:
+        return "täglich"
+    if "monat" in t:
+        return "1x mtl"
+    return "2x w"
+
+
+def kunde_link(conn, tid):
+    """Verknüpfter Kunde (nur wenn es ihn in der Kundenliste noch gibt)."""
+    r = conn.execute("SELECT kunde_id, art, am, von FROM akte_kunde WHERE tagesliste_id = ?", (tid,)).fetchone()
+    if not r or not _hat_tabelle(conn, "kunden"):
+        return None
+    k = conn.execute("SELECT id, firma, kundennummer, vertrag_beginn FROM kunden WHERE id = ?", (r["kunde_id"],)).fetchone()
+    if not k:
+        return None
+    return {"id": k["id"], "firma": _txt(k["firma"]), "kundennummer": _txt(k["kundennummer"]), "beginn": _txt(k["vertrag_beginn"]),
+            "art": r["art"] or "", "am": _zeit(r["am"]), "von": _txt(r["von"])}
+
+
+def kunde_vorschlag(conn, tid):
+    """Felder für „Kunde anlegen“ aus Vertrag, Angebot und Besichtigung (nur lesen)."""
+    zeile = conn.execute("SELECT * FROM tagesliste_leads WHERE id = ?", (tid,)).fetchone() if _hat_tabelle(conn, "tagesliste_leads") else None
+    backup = conn.execute("SELECT * FROM tagesliste_status_backup WHERE tagesliste_id = ? ORDER BY backup_am DESC LIMIT 1", (tid,)).fetchone() \
+        if _hat_tabelle(conn, "tagesliste_status_backup") else None
+    vertrag = conn.execute("SELECT * FROM vertrag_editor WHERE tagesliste_id = ?", (tid,)).fetchone() if _hat_tabelle(conn, "vertrag_editor") else None
+    if not zeile and not backup and not vertrag:
+        return None
+    vf = _json(vertrag["felder_json"]) if vertrag else {}
+
+    def wert(feld, spalte=None):
+        spalte = spalte or feld
+        if _txt(vf.get(feld)):
+            return _txt(vf.get(feld))
+        for q in (zeile, backup):
+            if q is not None and spalte in q.keys() and _txt(q[spalte]):
+                return _txt(q[spalte])
+        return ""
+
+    netto = 0.0
+    for p in vf.get("positionen") or []:
+        if isinstance(p, dict) and _txt(p.get("einheit")).lower().startswith("monat"):
+            netto += _zahl(p.get("netto")) or round(_zahl(p.get("preis")) / 1.19, 2)
+    if not netto and zeile is not None and "angebot_netto" in zeile.keys():
+        netto = _zahl(zeile["angebot_netto"])
+    name = wert("ansprechpartner")
+    anrede = next((a for a in ("Herr", "Frau") if name.startswith(a + " ")), "")
+    bes = _zusammenfassung(besichtigung_daten(conn, tid, zeile["besichtigung_data_json"] if zeile is not None and "besichtigung_data_json" in zeile.keys() else None) or {})
+    knr = ""
+    if _hat_tabelle(conn, "kunden"):
+        r = conn.execute("SELECT kundennummer FROM kunden WHERE kundennummer GLOB '[0-9]*' ORDER BY CAST(kundennummer AS INTEGER) DESC LIMIT 1").fetchone()
+        knr = str(int(r[0]) + 1) if r and str(r[0] or "").isdigit() else "10002"
+    return {"firma": wert("firma"), "strasse": wert("adresse", "strasse"), "plz": wert("plz"), "stadt": wert("ort"), "anrede": anrede, "name": name,
+            "telefon": wert("telefon"), "email": wert("email"), "rechnung_email": "", "kundennummer": knr, "beginn": _txt(vf.get("startdatum")),
+            "betrag": f"{netto:.2f}" if netto else "", "haeufigkeit": _haeufigkeit(vf.get("wochentage"), bes.get("haeufigkeit")),
+            "wochentage": _txt(vf.get("wochentage")), "zeiten": _txt(vf.get("zeiten"))}
 
 
 # ---------------------------------------------------------------- Akte zusammenstellen
@@ -430,6 +585,7 @@ def akte(conn, tid):
     nummern = conn.execute("SELECT nr, vergeben_am FROM angebot_nummern WHERE tagesliste_id = ? ORDER BY id", (tid,)).fetchall() \
         if _hat_tabelle(conn, "angebot_nummern") else []
     vertrag = conn.execute("SELECT * FROM vertrag_editor WHERE tagesliste_id = ?", (tid,)).fetchone() if _hat_tabelle(conn, "vertrag_editor") else None
+    kunde = kunde_link(conn, tid)
     leon = conn.execute("SELECT * FROM leon_links WHERE tagesliste_id = ? ORDER BY aktualisiert_am DESC", (tid,)).fetchall() \
         if _hat_tabelle(conn, "leon_links") else []
     historie = conn.execute("SELECT status, datum FROM tagesliste_status_history WHERE tagesliste_id = ? ORDER BY datum", (tid,)).fetchall() \
@@ -532,6 +688,9 @@ def akte(conn, tid):
         if _txt(vertrag["gesendet_am"]):
             eintrag("vertrag", _zeit(vertrag["gesendet_am"]), "Vertrag gesendet", ("An " + _txt(vertrag["gesendet_an"])) if _txt(vertrag["gesendet_an"]) else "", "",
                     [{"text": "✓ gesendet", "farbe": "g"}])
+    if kunde:
+        eintrag("kunde", kunde["am"], ("Kunde angelegt" if kunde["art"] == "neu" else "Mit Kunde verknüpft")
+                + (f" · Kd.-Nr. {kunde['kundennummer']}" if kunde["kundennummer"] else ""), kunde["firma"], kunde["von"], [{"text": "✓ Kundenliste", "farbe": "g"}])
     for n in notizen:
         eintrag("notiz", _zeit(n["am"]), "Notiz", _txt(n["text"]), _txt(n["von"]))
     for e in nach_angebot:
@@ -561,6 +720,8 @@ def akte(conn, tid):
         stufe = 4
     if vertrag and _txt(vertrag["gesendet_am"]):
         stufe = 5
+    if kunde:
+        stufe = 6
     besichtigung_weg = stufe >= 3 and not ("besichtigung" in status_alle or bes_echt)
     interesse_zeit = zeit_feld.get("interessiert") or next((_zeit(h["datum"]) for h in historie if str(h["status"]).lower() == "interessiert"), None)
     info = {
@@ -569,7 +730,7 @@ def akte(conn, tid):
         2: (f"{bes['m2']:g} m²".replace(".", ",") + (" · KG Scan" if bes["scan"] else "")) if bes_echt else ("vorgemerkt" if "besichtigung" in status_alle else ""),
         3: (f"AN-{angebot_nr or (nummern[-1]['nr'] if nummern else '')}" if hat_angebot else "Entwurf") if stufe >= 3 else "",
         4: ("gesendet" if vertrag and _txt(vertrag["gesendet_am"]) else "vorbereitet") if vertrag else "",
-        5: "",
+        5: (f"Kd.-Nr. {kunde['kundennummer']}" if kunde["kundennummer"] else "angelegt") if kunde else "",
     }
     schritte = []
     for i, (key, name) in enumerate(SCHRITTE):
@@ -586,6 +747,8 @@ def akte(conn, tid):
     if stufe == 5:
         schritte[4]["zustand"] = "ok"
         schritte[5]["text"] = "Kunde anlegen"
+    if kunde and not vertrag:  # ohne Vertrag-Editor verknüpft: Vertrag nicht als erledigt vortäuschen
+        schritte[4].update(zustand="weg", text="ohne Vertrag-Editor")
     lage = angebot_lage(conn, tid, angebot_zeit, bool(vertrag), jetzt) if hat_angebot else None
     abgelehnt = bool(lage and lage["status"] == "abgelehnt" and stufe == 3)
     if abgelehnt:
@@ -595,14 +758,19 @@ def akte(conn, tid):
     k_editor = {"text": "Angebot öffnen", "href": f"/angebot/editor?id={tid}", "art": "hell"}
     verloren = "verloren" in status_alle and stufe < 3
     tage = (jetzt.date() - angebot_zeit.date()).days if angebot_zeit else 0
-    if verloren:
+    if kunde:
+        naechst = {"titel": f"Kunde angelegt" + (f" – Kd.-Nr. {kunde['kundennummer']}" if kunde["kundennummer"] else ""),
+                   "text": "Jetzt in der Kundenliste feste Zeiten und Mitarbeiter eintragen.",
+                   "knoepfe": [{"text": "Zu den Kunden", "href": "/kunden", "art": ""}]}
+    elif verloren:
         naechst = {"titel": "Kein Interesse gemeldet", "text": "Die Firma hat abgesagt. Alles bleibt hier gespeichert.", "knoepfe": []}
     elif stufe == 5:
         naechst = {"titel": "Vertrag ist verschickt – Kunde anlegen", "text": "Wenn der Vertrag unterschrieben zurück ist: Kunde anlegen, feste Zeiten und Mitarbeiter eintragen.",
-                   "knoepfe": [{"text": "Zu den Kunden", "href": "/kunden", "art": ""}]}
+                   "knoepfe": [{"text": "Kunde anlegen", "aktion": "kunde", "art": "gruen"}]}
     elif stufe == 4:
         naechst = {"titel": "Vertrag prüfen und senden", "text": "Das Angebot ist angenommen. Der Vertrag ist vorbereitet und wartet.",
-                   "knoepfe": [{"text": "Vertrag öffnen", "href": f"/vertrag/editor?angebot={tid}", "art": ""}]}
+                   "knoepfe": [{"text": "Vertrag öffnen", "href": f"/vertrag/editor?angebot={tid}", "art": ""},
+                               {"text": "Kunde anlegen", "aktion": "kunde", "art": "hell"}]}
     elif abgelehnt:
         a = lage["absage"]
         naechst = {"titel": f"Angebot AN-{angebot_nr or nummern[-1]['nr']} abgelehnt",
@@ -682,6 +850,7 @@ def akte(conn, tid):
     return {
         "ok": True, "id": tid, "stamm": stamm, "schritte": schritte, "stufe": stufe, "naechst": naechst, "verlauf": verlauf,
         "mails": mail_liste, "verloren": verloren, "abgelehnt": abgelehnt,
+        "kunde": dict(kunde, am=_anz(kunde["am"])) if kunde else None, "haeufigkeiten": list(HAEUFIGKEITEN),
         "absage_gruende": list(ABSAGE_GRUENDE), "nachfass_wege": list(NACHFASS_WEGE),
         "besichtigung": dict(bes, gespeichert=bes_echt, versionen=len(versionen),
                              gespeichert_am=_anz(_zeit(versionen[-1]["gespeichert_am"], utc=True)) if versionen else "") if bes else None,
@@ -732,6 +901,12 @@ def register_kundenakte(app, login_required, get_db_connection):
             return lage_kurz(conn, tid)
 
     app.extensions["kg_akte"] = _Akte
+
+    try:  # Übersicht aller Firmen (/akte) – eigenes Modul, darf die Kundenakte nie stören
+        from kundenweg import register_kundenweg
+        register_kundenweg(app, login_required, get_db_connection)
+    except Exception as exc:
+        print("Kundenweg nicht geladen:", exc)
 
     @app.route("/akte/<int:tid>")
     @login_required
@@ -813,6 +988,133 @@ def register_kundenakte(app, login_required, get_db_connection):
             return jsonify({"ok": True})
         finally:
             conn.close()
+
+    # ---------- Vertrag → Kunde
+    def _kunde_ueber_formular(form):
+        """Über die bestehende Kunden-Seite speichern (POST /kunden) – gleiche Prüfung, Kundennummer und Lexware-Abgleich
+        wie beim Anlegen von Hand."""
+        client = app.test_client()
+        with client.session_transaction() as sess:
+            sess["logged_in"] = True
+        return client.post("/kunden", data=form).status_code
+
+    @app.route("/api/akte/<int:tid>/kunde")
+    @login_required
+    def kundenakte_kunde_vorschlag(tid):
+        conn = get_db_connection()
+        try:
+            tabellen(conn)
+            f = kunde_vorschlag(conn, tid)
+            if not f:
+                return jsonify({"ok": False, "error": "Diese Firma wurde nicht gefunden."}), 404
+            k = kunde_link(conn, tid)
+            return jsonify({"ok": True, "felder": f, "haeufigkeiten": list(HAEUFIGKEITEN),
+                            "verknuepft": dict(k, am=_anz(k["am"])) if k else None,
+                            "doppelt": [d for d in doppelte(conn, f["firma"], f["telefon"], f["email"], ohne=tid) if d["art"] == "kunde"]})
+        finally:
+            conn.close()
+
+    @app.route("/api/akte/<int:tid>/kunde", methods=["POST"])
+    @login_required
+    def kundenakte_kunde(tid):
+        """„Kunde anlegen“ (neuer Eintrag in der Kundenliste) oder „Mit vorhandenem Kunden verknüpfen“. Doppelte Kunden werden
+        gemeldet; anlegen trotzdem nur mit „trotzdem“."""
+        d = request.get_json(silent=True) or {}
+        von = _txt(d.get("von"))[:40]
+        conn = get_db_connection()
+        try:
+            tabellen(conn)
+            if not kunde_vorschlag(conn, tid):
+                return jsonify({"ok": False, "error": "Diese Firma wurde nicht gefunden."}), 404
+            schon = kunde_link(conn, tid)
+            if schon:
+                return jsonify({"ok": True, "kunde_id": schon["id"], "schon": True})
+            if d.get("aktion") == "verknuepfen":
+                kid = int(d.get("kunde_id") or 0)
+                if not conn.execute("SELECT 1 FROM kunden WHERE id = ?", (kid,)).fetchone():
+                    return jsonify({"ok": False, "error": "Kunde nicht gefunden."}), 404
+                conn.execute("INSERT OR REPLACE INTO akte_kunde (tagesliste_id, kunde_id, art, am, von) VALUES (?, ?, 'verknuepft', ?, ?)", (tid, kid, _jetzt(), von))
+                conn.commit()
+                return jsonify({"ok": True, "kunde_id": kid})
+            f = d.get("felder") if isinstance(d.get("felder"), dict) else {}
+            form = {k: _txt(f.get(k))[:200] for k in ("firma", "strasse", "plz", "stadt", "anrede", "name", "telefon", "email", "rechnung_email",
+                                                      "kundennummer", "beginn", "haeufigkeit")}
+            if not form["firma"] or not form["stadt"]:
+                return jsonify({"ok": False, "error": "Bitte Firma und Stadt eintragen."}), 400
+            betrag = _zahl(f.get("betrag"))
+            if betrag <= 0:
+                return jsonify({"ok": False, "error": "Bitte den Betrag pro Monat (netto) eintragen."}), 400
+            if form["haeufigkeit"] not in HAEUFIGKEITEN:
+                form["haeufigkeit"] = "2x w"
+            if form["anrede"] not in ("Herr", "Frau"):
+                form["anrede"] = ""
+            if form["kundennummer"] and conn.execute("SELECT 1 FROM kunden WHERE kundennummer = ?", (form["kundennummer"],)).fetchone():
+                return jsonify({"ok": False, "error": f"Die Kundennummer {form['kundennummer']} ist schon vergeben."}), 409
+            doppelt = [x for x in doppelte(conn, form["firma"], form["telefon"], form["email"], ohne=tid) if x["art"] == "kunde"]
+            if doppelt and not d.get("trotzdem"):
+                return jsonify({"ok": False, "doppelt": doppelt, "error": "Diesen Kunden gibt es vielleicht schon."}), 409
+            vorher = conn.execute("SELECT COALESCE(MAX(id), 0) FROM kunden").fetchone()[0]
+            conn.commit()
+        finally:
+            conn.close()
+        form.update(betrag=f"{betrag:.2f}", ende="", laufzeit="unbefristet", status="aktuell", fenster_betrag="", fenster_mal="", fenster_notiz="")
+        code = _kunde_ueber_formular(form)
+        conn = get_db_connection()
+        try:
+            neu = conn.execute("SELECT id FROM kunden WHERE id > ? AND firma = ? ORDER BY id DESC LIMIT 1", (vorher, form["firma"])).fetchone()
+            if not neu:
+                return jsonify({"ok": False, "error": f"Kunde wurde nicht gespeichert (Kunden-Seite antwortet {code})."}), 500
+            conn.execute("INSERT OR REPLACE INTO akte_kunde (tagesliste_id, kunde_id, art, am, von) VALUES (?, ?, 'neu', ?, ?)", (tid, neu["id"], _jetzt(), von))
+            conn.commit()
+            return jsonify({"ok": True, "kunde_id": neu["id"]})
+        finally:
+            conn.close()
+
+    # ---------- Doppelte Firmen (Schnell-Angebot im Angebot-Editor)
+    @app.route("/api/akte/doppelt")
+    @login_required
+    def kundenakte_doppelt():
+        conn = get_db_connection()
+        try:
+            return jsonify({"ok": True, "treffer": doppelte(conn, request.args.get("firma"), request.args.get("telefon"), request.args.get("email"))})
+        finally:
+            conn.close()
+
+    @app.route("/api/akte/<int:tid>/schnell", methods=["POST"])
+    @login_required
+    def kundenakte_schnell(tid):
+        """Schnell-Angebot für eine Firma, die es schon gibt: dieselbe Firma (gleiche ID, gleiche Akte) für das Angebot vormerken,
+        statt einen zweiten Eintrag anzulegen. Wie „Besichtigung“ in der Datenbank (Status-Sicherung + Verlauf)."""
+        conn = get_db_connection()
+        try:
+            tabellen(conn)
+            zeile = conn.execute("SELECT id, status FROM tagesliste_leads WHERE id = ?", (tid,)).fetchone()
+            if zeile and str(zeile["status"] or "").lower() in ("besichtigung", "angebot"):
+                return jsonify({"ok": True, "id": tid})
+            if conn.execute("SELECT 1 FROM tagesliste_status_backup WHERE tagesliste_id = ? AND status = 'besichtigung'", (tid,)).fetchone():
+                return jsonify({"ok": True, "id": tid})
+            if not zeile:
+                b = conn.execute("SELECT * FROM tagesliste_status_backup WHERE tagesliste_id = ? ORDER BY backup_am DESC LIMIT 1", (tid,)).fetchone()
+                if not b:
+                    return jsonify({"ok": False, "error": "Firma nicht gefunden."}), 404
+                spalten = [c for c in b.keys() if c not in ("id", "status", "backup_am")]
+                conn.execute(f"INSERT OR REPLACE INTO tagesliste_status_backup ({', '.join(spalten)}, status, backup_am) "
+                             f"SELECT {', '.join(spalten)}, 'besichtigung', CURRENT_TIMESTAMP FROM tagesliste_status_backup WHERE id = ?", (b["id"],))
+                conn.execute("INSERT OR IGNORE INTO tagesliste_status_history (tagesliste_id, status, datum) VALUES (?, 'besichtigung', date('now','localtime'))", (tid,))
+                conn.commit()
+                return jsonify({"ok": True, "id": tid})
+            conn.commit()
+        finally:
+            conn.close()
+        # Zeile ist in der Tagesliste: genau wie der Knopf „Besichtigung“ in der Datenbank
+        client = app.test_client()
+        with client.session_transaction() as sess:
+            sess["logged_in"] = True
+        r = client.post("/datenbank/tagesliste-status", json={"id": tid, "status": "besichtigung"})
+        d = r.get_json(silent=True) or {}
+        if r.status_code != 200 or d.get("ok") is False:
+            return jsonify({"ok": False, "error": d.get("message") or f"Status nicht gesetzt ({r.status_code})."}), 500
+        return jsonify({"ok": True, "id": tid})
 
     @app.route("/api/akte/<int:tid>/notiz", methods=["POST"])
     @login_required
