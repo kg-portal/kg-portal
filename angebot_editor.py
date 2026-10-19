@@ -28,7 +28,18 @@ BEREICHE = [("buero", "Büro"), ("wc", "WC / Sanitär"), ("kueche", "Küche"), (
 # Lohn = Mindestlohn Gebäudereinigung Lohngruppe 1 ab 01.01.2026; Abgaben = Minijob gewerblich 2026
 # (KV 13 % + RV 15 % + Pauschsteuer 2 % + U1 0,8 % + U2 0,22 % + Insolvenzgeld 0,15 %); Material = Richtwert in % der Lohnkosten;
 # Aufschlag auf die Kosten = 40 % vorausgewählt. Fahrt gibt es nur, wenn sie im Editor hinzugefügt wird (km + Cent/km).
-KALKULATION = {"lohn": 15.0, "abgaben": 31.17, "material": 5.0, "aufschlag": 40, "stufen": [25, 40, 50, 60]}
+# Sonderleistungen werden nach m² angeboten (Preis je m² vom Chef / Richtwerte 2026, netto): Fenster 2,50–7 € (Standard 4 €),
+# Grundreinigung 3–8 € (5 €), Bauendreinigung 4–10 € (6 €). Kosten zur Kontrolle über den Leistungswert (m²/Std) und den Lohn
+# (Glas = Lohngruppe 6, 18,40 € ab 01.01.2026).
+KALKULATION = {"lohn": 15.0, "abgaben": 31.17, "material": 5.0, "aufschlag": 40, "stufen": [25, 40, 50, 60],
+               "sonder": {
+                   "fenster": {"name": "Fensterreinigung", "preis_m2": 4.0, "stufen": [2.5, 4.0, 7.0], "lohn": 18.40,
+                               "leistung_m2": bz.LEISTUNGSWERT.get("fenster", 30), "einheit": "pro Durchgang"},
+                   "grund": {"name": "Grundreinigung", "preis_m2": 5.0, "stufen": [3.0, 5.0, 8.0], "lohn": 15.0,
+                             "leistung_m2": bz.LEISTUNGSWERT.get("grund", 30), "einheit": "einmalig"},
+                   "bau": {"name": "Bauendreinigung", "preis_m2": 6.0, "stufen": [4.0, 6.0, 10.0], "lohn": 15.0,
+                           "leistung_m2": bz.LEISTUNGSWERT.get("bauend", 25), "einheit": "einmalig"},
+               }}
 STATUS_NAME = {"offen": "Tagesliste", "angerufen": "Angerufen", "interessiert": "Interessiert", "besichtigung": "Besichtigung",
                "angebot": "Angebot", "kontaktformular": "Kontaktformular", "spaeter": "Später", "verloren": "Verloren", "kunde": "Kunde"}
 
