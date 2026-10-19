@@ -643,10 +643,10 @@ def register_angebot_editor(app, login_required, get_db_connection, app2_modul):
             tid = a.get("id", type=int) or 0
             if tid <= 0:
                 return jsonify({"ok": False, "error": "Leistungsverzeichnis gibt es erst nach dem Speichern."}), 400
-            url, name = f"{basis}/angebot/editor/lv-vorschau?angebot_id={tid}&print=1", f"Leistungsverzeichnis_AN-{nr}.pdf"
+            url, name = f"{basis}/angebot/editor/lv-vorschau?angebot_id={tid}&print=1", f"Leistungsverzeichnis {nr}.pdf"
         else:
             werte = [(k, v) for k, v in a.items(multi=True) if k not in ("art", "drucken", "id")]
-            url, name = f"{basis}/angebot/editor/vorschau?" + urlencode(werte), f"Angebot_AN-{nr}" + (f"_{firma}" if firma else "") + ".pdf"
+            url, name = f"{basis}/angebot/editor/vorschau?" + urlencode(werte), f"Angebot AN-{nr}.pdf"
         try:
             from playwright.sync_api import sync_playwright
             keks_name = app.config.get("SESSION_COOKIE_NAME", "session")
@@ -711,7 +711,7 @@ def register_angebot_editor(app, login_required, get_db_connection, app2_modul):
                 pdf = puffer.getvalue()
             except Exception as exc:  # pypdf fehlt o. ä.: dann nur das Angebot
                 print("Angebot-Editor: PDF nicht zusammengefügt:", exc)
-        name = f"Angebot_AN-{nr}" + (f"_{firma}" if firma else "") + (" + Leistungsverzeichnis" if pdf is not teile[0] else "") + ".pdf"
+        name = f"Angebot AN-{nr}" + (" mit Leistungsverzeichnis" if pdf is not teile[0] else "") + ".pdf"
         return send_file(io.BytesIO(pdf), mimetype="application/pdf", as_attachment=a.get("ansehen") != "1", download_name=name)
 
     @app.route("/angebot/editor/vorschau")

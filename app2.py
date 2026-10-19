@@ -1443,11 +1443,11 @@ def register_app2_routes(app, login_required):
 
             pdf_jobs = [
                 {
-                    "filename": f"Angebot_AN-{angebot_nr}.pdf",
+                    "filename": f"Angebot AN-{angebot_nr}.pdf",
                     "url": f"{base_url}/angebotvorlage?angebot_id={angebot_id_int}&print=1"
                 },
                 {
-                    "filename": f"Leistungsverzeichnis_AN-{angebot_nr}.pdf",
+                    "filename": f"Leistungsverzeichnis {angebot_nr}.pdf",
                     "url": f"{base_url}/leistungsverzeichnis?angebot_id={angebot_id_int}&print=1"
                 }
             ]
