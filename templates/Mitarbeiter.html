@@ -826,6 +826,114 @@ function toggleWeitere(){
         </div>
     </div>
 </DIV>
+<style>
+/* ===== Mitarbeiter als Karten (nur Bildschirm; Drucken bleibt die Tabelle). Tabelle/IDs/Klassen bleiben gleich,
+   damit Bearbeiten, Ansehen, Drucken, Stundenzettel und Ziehen (Sortable) unverändert funktionieren. ===== */
+@media screen {
+    #main_list.kg-mit-table-card { background: transparent; border: 0; box-shadow: none; overflow: visible; border-radius: 0; container: mitliste / inline-size; }
+    #main_list > table, #main_list > table > thead, #main_list > table > tbody { display: block; width: 100%; }
+    #main_list > table > thead > tr,
+    #mitarbeiterSortable > tr {
+        display: grid;
+        grid-template-columns: 30px minmax(220px, 2.3fr) minmax(150px, 1fr) 100px 110px minmax(120px, 1fr) 290px;
+        align-items: center;
+        column-gap: 16px;
+    }
+    #main_list > table > thead > tr { background: transparent !important; border: 0 !important; padding: 0 19px 10px 19px; }
+    #main_list > table > thead > tr > th { padding: 0 !important; font-size: 11px !important; letter-spacing: .7px; color: #64748b !important; }
+    #mitarbeiterSortable > tr {
+        position: relative;
+        margin: 0 0 10px;
+        padding: 12px 18px 12px 18px;
+        border-radius: 18px;
+        border: 1px solid #dbe5f3 !important;
+        background: #ffffff;
+        box-shadow: 0 8px 22px rgba(15, 29, 74, .06);
+        transition: transform .15s ease, box-shadow .18s ease, background .18s ease;
+    }
+    #mitarbeiterSortable > tr:nth-child(even) { background: #e9f0fb; border-color: #c9d8ef !important; }
+    #mitarbeiterSortable > tr::before {
+        content: ""; position: absolute; left: -1px; top: 14px; bottom: 14px; width: 5px; border-radius: 0 6px 6px 0; background: #60a5fa;
+    }
+    #mitarbeiterSortable > tr:nth-child(even)::before { background: #1e3a8a; }
+    #main_list #mitarbeiterSortable > tr:hover { background: #f5f9ff; transform: translateY(-1px); box-shadow: 0 14px 28px rgba(15, 29, 74, .10); }
+    #main_list #mitarbeiterSortable > tr:nth-child(even):hover { background: #e1eaf8; }
+    #mitarbeiterSortable > tr > td { padding: 0 !important; border: 0 !important; min-width: 0; }
+    #mitarbeiterSortable > tr > td.display-stadt { hyphens: auto; -webkit-hyphens: auto; overflow-wrap: anywhere; }
+    #mitarbeiterSortable > tr > td.display-name {
+        display: grid; grid-template-columns: 44px minmax(0, 1fr); column-gap: 12px; align-items: center;
+        font-size: 16px; font-weight: 800 !important; color: #0f1d4a !important; line-height: 1.2; overflow-wrap: anywhere;
+    }
+    #mitarbeiterSortable > tr > td.display-name::before {
+        content: attr(data-ini); grid-row: 1 / span 2; width: 44px; height: 44px; border-radius: 14px;
+        display: grid; place-items: center; font-size: 15px; font-weight: 900; letter-spacing: .5px;
+        background: linear-gradient(135deg, #dbeafe, #bfdbfe); color: #1d4ed8; border: 1px solid #bfdbfe;
+    }
+    #mitarbeiterSortable > tr:nth-child(even) > td.display-name::before {
+        background: linear-gradient(135deg, #1e3a8a, #183a91); color: #ffffff; border-color: #1e3a8a;
+    }
+    #mitarbeiterSortable > tr > td.display-name::after {
+        content: attr(data-sub); grid-column: 2; margin-top: 3px; font-size: 12px; font-weight: 700; color: #64748b; letter-spacing: 0;
+    }
+    #mitarbeiterSortable > tr > td.display-name[data-sub=""]::after { display: none; }
+    #mitarbeiterSortable > tr > td.display-name[data-sub=""]::before { grid-row: 1; }
+    #mitarbeiterSortable > tr > td:last-child { flex-wrap: wrap; align-items: center; }
+    #mitarbeiterSortable .kg-mit-kuend {
+        background: #dc2626; color: #ffffff; border: none; height: 33px; padding: 0 12px; border-radius: 8px; cursor: pointer;
+        font-weight: 800; font-size: 12px; display: inline-flex; align-items: center; gap: 6px; font-family: inherit;
+        box-shadow: 0 6px 14px -6px rgba(220, 38, 38, .7);
+    }
+    #mitarbeiterSortable .kg-mit-kuend:hover { background: #b91c1c; }
+    #mitarbeiterSortable .drag-ghost { opacity: .45; }
+
+    /* Dunkel (kg_theme.js): eigene Töne, damit hell/dunkel abwechselnd sichtbar bleibt – auch nach dem Ziehen */
+    html[data-kg-x="on"] #main_list #mitarbeiterSortable > tr { background: #16213a !important; border-color: #2a3b5e !important; box-shadow: 0 8px 22px rgba(0, 0, 0, .25); }
+    html[data-kg-x="on"] #main_list #mitarbeiterSortable > tr:nth-child(even) { background: #1f2f52 !important; border-color: #344a75 !important; }
+    html[data-kg-x="on"] #main_list #mitarbeiterSortable > tr:hover { background: #1b2946 !important; }
+    html[data-kg-x="on"] #main_list #mitarbeiterSortable > tr:nth-child(even):hover { background: #25375e !important; }
+    html[data-kg-x="on"] #mitarbeiterSortable > tr::before { background: #3b82f6; }
+    html[data-kg-x="on"] #mitarbeiterSortable > tr:nth-child(even)::before { background: #93c5fd; }
+    html[data-kg-x="on"] #mitarbeiterSortable > tr > td.display-name::before { background: linear-gradient(135deg, #1e3a8a, #1d4ed8); color: #dbeafe; border-color: #2c4a8f; }
+    html[data-kg-x="on"] #mitarbeiterSortable > tr:nth-child(even) > td.display-name::before { background: linear-gradient(135deg, #dbeafe, #bfdbfe); color: #1e3a8a; border-color: #bfdbfe; }
+    html[data-kg-x="on"] #mitarbeiterSortable > tr > td.display-name::after { color: #94a3b8; }
+    html[data-kg-x="on"] #main_list > table > thead > tr > th { color: #94a3b8 !important; }
+
+    /* schmalere Liste (Laptop): Spalten und Knöpfe enger – richtet sich nach der Breite der Liste, nicht des Fensters */
+    @container mitliste (max-width: 1160px) {
+        #main_list > table > thead > tr,
+        #mitarbeiterSortable > tr { grid-template-columns: 26px minmax(150px, 2fr) minmax(105px, 1fr) 84px 84px minmax(96px, 1fr) 250px; column-gap: 10px; }
+        #mitarbeiterSortable > tr > td:last-child { gap: 6px !important; }
+        #mitarbeiterSortable .kg-mit-kuend { padding: 0 10px; }
+    }
+    /* Telefon/Tablet: Karte in Zeilen, Beschriftung vor jedem Wert */
+    @container mitliste (max-width: 920px) {
+        #main_list > table > thead { display: none; }
+        #mitarbeiterSortable > tr { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; padding: 14px 14px 14px 16px; }
+        #mitarbeiterSortable > tr > td:first-child { flex: 0 0 22px; }
+        #mitarbeiterSortable > tr > td.display-name { flex: 1 1 calc(100% - 40px); }
+        #mitarbeiterSortable > tr > td[data-label] { flex: 1 1 40%; font-size: 14px; }
+        #mitarbeiterSortable > tr > td[data-label]::before {
+            content: attr(data-label); display: block; margin-bottom: 2px; font-size: 10.5px; font-weight: 800; letter-spacing: .6px;
+            text-transform: uppercase; color: #64748b;
+        }
+        html[data-kg-x="on"] #mitarbeiterSortable > tr > td[data-label]::before { color: #94a3b8; }
+        #mitarbeiterSortable > tr > td:last-child { flex: 1 1 100%; justify-content: flex-start !important; padding-top: 10px !important; border-top: 1px dashed #cbd5e1 !important; }
+        html[data-kg-x="on"] #mitarbeiterSortable > tr > td:last-child { border-top-color: #334766 !important; }
+    }
+}
+
+/* Kündigung-Fenster */
+.kd-m-zeile { display: flex; justify-content: space-between; gap: 12px; padding: 11px 14px; border-radius: 12px; background: #f8fafc; border: 1px solid #e2e8f0; font-size: 14px; font-weight: 700; color: #334155; margin-bottom: 10px; }
+.kd-m-zeile b { color: #0f1d4a; font-weight: 900; text-align: right; overflow-wrap: anywhere; }
+.kd-m-label { display: block; margin: 14px 0 6px; font-size: 13px; font-weight: 800; color: #334155; }
+.kd-m-ende { width: 100%; height: 46px; padding: 0 14px; border-radius: 12px; border: 1.5px solid #2563eb; font-size: 17px; font-weight: 800; color: #0f1d4a; background: #fff; font-family: inherit; }
+.kd-m-hinweis { margin-top: 6px; font-size: 12.5px; font-weight: 700; color: #64748b; }
+.kd-m-warn { display: none; margin-top: 12px; padding: 10px 12px; border-radius: 12px; background: #fef2f2; border: 1px solid #fecaca; color: #b91c1c; font-size: 13px; font-weight: 800; }
+.kd-m-pdf { background: linear-gradient(135deg, #ef4444, #b91c1c); color: #ffffff; border: none; border-radius: 12px; padding: 12px 22px; font-weight: 900; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; }
+.kd-m-bearb { background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; border-radius: 12px; padding: 12px 18px; font-weight: 900; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; }
+@media (max-width: 560px) { #kdModalBg .mit-print-modal-actions { flex-wrap: wrap; } #kdModalBg .mit-print-modal-actions > * { flex: 1 1 100%; justify-content: center; } }
+</style>
+
 <div id="main_list" class="kg-mit-table-card">
     <table style="width: 100%; border-collapse: collapse;">
     <thead>
@@ -841,11 +949,14 @@ function toggleWeitere(){
 </thead>
         <tbody id="mitarbeiterSortable">
         {% for m in mitarbeiter_liste if m.status == 'aktiv' %}
+        {% set _vn = m.vorname if m.vorname and m.vorname != 'None' else '' %}{% set _nn = m.nachname if m.nachname and m.nachname != 'None' else '' %}
+        {% set _ein = m.eintrittsdatum if m.eintrittsdatum and m.eintrittsdatum != 'None' else '' %}{% if _ein|length == 10 and _ein[4] == '-' %}{% set _ein = _ein[8:10] ~ '.' ~ _ein[5:7] ~ '.' ~ _ein[0:4] %}{% endif %}
+        {% set _pos = m.position if m.position and m.position != 'None' else '' %}
         <tr id="row-{{ m.id }}" data-id="{{ m.id }}" style="border-bottom: 1px solid #f1f5f9;">
             <td class="no-print" style="padding: 15px; width:44px; color:#94a3b8; text-align:center;">
     <span class="drag-handle" style="cursor:grab; color:#64748b; font-size:18px; user-select:none;">☰</span>
 </td>
-<td class="display-name" style="padding: 15px; font-weight: 600; color:#1e293b;">
+<td class="display-name" data-ini="{{ (_vn[:1] ~ _nn[:1])|upper }}" data-sub="{{ _pos }}{{ ' · ' if _pos and _ein }}{{ 'seit ' ~ _ein if _ein }}" style="padding: 15px; font-weight: 600; color:#1e293b;">
     {{ m.vorname }} {{ m.nachname }}
 
     <div style="display:none">
@@ -876,19 +987,19 @@ function toggleWeitere(){
     </div>
 </td>
 
-<td class="display-stadt" style="padding: 15px; color:#1e293b; font-weight: 600;">{{ m.ort if m.ort and m.ort != 'None' else '' }}</td>
-<td style="padding: 15px; color: #047857; font-weight: 700;">
+<td class="display-stadt" data-label="Stadt" style="padding: 15px; color:#1e293b; font-weight: 600;">{{ m.ort if m.ort and m.ort != 'None' else '' }}</td>
+<td data-label="Lohn" style="padding: 15px; color: #047857; font-weight: 700;">
   {{ "{:,.2f}".format((m.stundenlohn|string|replace(",", ".")|float)).replace(",", "X").replace(".", ",").replace("X", ".") }} €
 </td>
 
-<td style="padding: 15px; color:#1e293b;">
+<td data-label="Urlaub / Rest" style="padding: 15px; color:#1e293b;">
     {{ m.urlaub if m.urlaub else '0' }} /
     <span style="color:#dc2626; font-weight:700;">
         {{ m.resturlaub if m.resturlaub is not none else '0' }}
     </span>
 </td>
 
-<td style="padding: 15px;">
+<td data-label="Art" style="padding: 15px;">
     <span style="background:#eef2ff; color:#2563eb; padding:4px 10px; border-radius:15px; font-size:12px; font-weight:700;">
         {{ m.art if m.art and m.art != 'None' else '' }}
     </span>
@@ -899,6 +1010,7 @@ function toggleWeitere(){
                 </a>
                 <button onclick="previewMitarbeiter('{{ m.id }}')" style="background:#eef2ff; color:#6366f1; border:none; padding:8px; border-radius:8px; cursor:pointer;"><i class="fa-solid fa-eye"></i></button>
                 <button onclick="editMitarbeiter('{{ m.id }}')" style="background:#f0fdf4; color:#16a34a; border:none; padding:8px; border-radius:8px; cursor:pointer;"><i class="fa-solid fa-pen-to-square"></i></button>
+                <button type="button" class="kg-mit-kuend" onclick="openKuendigung('{{ m.id }}')" title="Kündigung erstellen"><i class="fa-solid fa-file-signature"></i> Kündigung</button>
                 <button onclick="if(confirm('Mitarbeiter wirklich löschen?')) window.location.href='/mitarbeiter/delete/{{ m.id }}'" style="background:#fef2f2; color:#dc2626; border:none; padding:8px; border-radius:8px; cursor:pointer;"><i class="fa-solid fa-trash-can"></i></button>
             </td>
         </tr>
@@ -2066,6 +2178,75 @@ function printSelectedMitarbeiterFields() {
   const altNeu = window.openNewMitarbeiterModal;
   if (typeof altNeu === "function") window.openNewMitarbeiterModal = function () { const r = altNeu.apply(this, arguments); neu(); return r; };
   neu();
+})();
+</script>
+<!-- Kündigung: Fenster mit Eintritt und „Kündigung zum“ (Standard: Ende des laufenden Monats) → PDF oder Bearbeiten-Seite (kuendigung.py) -->
+<div id="kdModalBg" class="mit-print-modal-bg no-print" onclick="if(event.target===this)closeKuendigung()">
+    <div class="mit-print-modal" style="width:min(520px, 96vw);">
+        <div class="mit-print-modal-head">
+            <div>
+                <h3>Kündigung</h3>
+                <p id="kdName"></p>
+            </div>
+            <button type="button" class="mit-print-close" onclick="closeKuendigung()">×</button>
+        </div>
+        <div class="mit-print-modal-body">
+            <div class="kd-m-zeile"><span>Eintritt (Vertrag vom)</span><b id="kdEin"></b></div>
+            <div class="kd-m-zeile"><span>Anschrift</span><b id="kdAdr"></b></div>
+            <label class="kd-m-label" for="kdEnde">Kündigung zum</label>
+            <input type="text" id="kdEnde" class="kd-m-ende" placeholder="TT.MM.JJJJ" autocomplete="off">
+            <div class="kd-m-hinweis">Vorschlag: Ende des laufenden Monats – kann geändert werden.</div>
+            <div class="kd-m-warn" id="kdWarn">Adresse fehlt – bitte über „Bearbeiten“ ergänzen.</div>
+        </div>
+        <div class="mit-print-modal-actions">
+            <button type="button" class="mit-print-btn-cancel" onclick="closeKuendigung()">Abbrechen</button>
+            <a id="kdBearb" class="kd-m-bearb" href="#" target="_blank" rel="noopener"><i class="fa-solid fa-pen"></i> Bearbeiten</a>
+            <a id="kdPdf" class="kd-m-pdf" href="#"><i class="fa-solid fa-file-pdf"></i> PDF erstellen</a>
+        </div>
+    </div>
+</div>
+<script>
+// Kündigung (nur lesen): Werte aus den versteckten Feldern der Zeile, Ende = letzter Tag des laufenden Monats
+let kdMitarbeiterId = null;
+function kdZwei(n) { return String(n).padStart(2, "0"); }
+function kdMonatsende() {
+    const h = new Date();
+    const e = new Date(h.getFullYear(), h.getMonth() + 1, 0);
+    return kdZwei(e.getDate()) + "." + kdZwei(e.getMonth() + 1) + "." + e.getFullYear();
+}
+function kdDatum(v) {
+    const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec((v || "").trim());
+    return m ? m[3] + "." + m[2] + "." + m[1] : (v || "").trim();
+}
+function kdLinks() {
+    if (!kdMitarbeiterId) return;
+    const q = "ende=" + encodeURIComponent(document.getElementById("kdEnde").value.trim());
+    document.getElementById("kdPdf").href = "/mitarbeiter/kuendigung/" + kdMitarbeiterId + "/pdf?" + q;
+    document.getElementById("kdBearb").href = "/mitarbeiter/kuendigung/" + kdMitarbeiterId + "?" + q;
+}
+function openKuendigung(id) {
+    const row = document.getElementById("row-" + id);
+    if (!row) return;
+    const t = (sel) => (row.querySelector(sel)?.textContent || "").trim();
+    kdMitarbeiterId = id;
+    document.getElementById("kdName").textContent = (t(".t-anrede") + " " + t(".t-vorname") + " " + t(".t-nachname")).trim();
+    document.getElementById("kdEin").textContent = kdDatum(t(".t-ein")) || "nicht eingetragen";
+    const strasse = t(".t-strasse"), plz = t(".t-plz"), stadt = t(".t-stadt");
+    document.getElementById("kdAdr").textContent = [strasse, (plz + " " + stadt).trim()].filter(Boolean).join(", ") || "–";
+    document.getElementById("kdWarn").style.display = (strasse && plz && stadt) ? "none" : "block";
+    const ende = document.getElementById("kdEnde");
+    ende.value = kdMonatsende();
+    if (ende._flatpickr) ende._flatpickr.setDate(ende.value, false, "d.m.Y");
+    kdLinks();
+    document.getElementById("kdModalBg").style.display = "flex";
+}
+function closeKuendigung() { document.getElementById("kdModalBg").style.display = "none"; }
+(function () {
+    const ende = document.getElementById("kdEnde");
+    if (!ende) return;
+    ende.addEventListener("input", kdLinks);
+    ende.addEventListener("change", kdLinks);
+    try { if (window.flatpickr) flatpickr(ende, { locale: "de", dateFormat: "d.m.Y", allowInput: true, onChange: kdLinks }); } catch (e) {}
 })();
 </script>
 {% endblock %}
