@@ -586,10 +586,13 @@ body {
 
     <main class="lv-content">
         <div class="lv-intro">
-            <h2>Büroreinigung – Standardleistungen</h2>
+            {# Überschrift wie oben „Leistung“ (z. B. Praxisreinigung), sonst Büroreinigung #}
+            {% set lv_art = ((Leistungsart or '')|striptags|trim) %}
+            {% set lv_art = lv_art if lv_art and lv_art != '-' else 'Büroreinigung' %}
+            <h2>{{ lv_art }} – Standardleistungen</h2>
             <p>
     Dieses Leistungsverzeichnis ist Anlage zum Angebot und beschreibt die regelmäßig auszuführenden Reinigungsarbeiten<br>
-    für Büro-, Küchen-, Sanitär- und Verkehrsflächen.
+    für {{ 'Praxis' if 'praxis' in lv_art|lower else 'Büro' }}-, Küchen-, Sanitär- und Verkehrsflächen.
 </p>
         </div>
 
@@ -811,7 +814,7 @@ body {
         {% endif %}
 
         <div class="note-box">
-            <b>Hinweis:</b> Dieses Leistungsverzeichnis beschreibt die vereinbarten Standardleistungen der Büroreinigung.
+            <b>Hinweis:</b> Dieses Leistungsverzeichnis beschreibt die vereinbarten Standardleistungen der {{ lv_art }}.
             Objektbezogene Zusatzleistungen werden nur nach vorheriger Vereinbarung ausgeführt und separat im Angebot aufgeführt.
             Reinigungsmittel und Arbeitsgeräte werden von der KG Gebäudereinigung gestellt und sind im Preis enthalten,
             sofern nicht anders vereinbart.
