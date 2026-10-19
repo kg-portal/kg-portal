@@ -948,6 +948,13 @@ try:
 except Exception as exc:
     print(f"⚠️ Kundenakte: {exc}")
 
+# Kündigung für Mitarbeiter (/mitarbeiter/kuendigung/<id>): PDF aus templates/kuendigung_vorlage.html, nur lesen
+try:
+    from kuendigung import register_kuendigung
+    register_kuendigung(app, login_required, get_db_connection)
+except Exception as exc:
+    print(f"⚠️ Kündigung: {exc}")
+
 # Arbeitsliste für heute (/heute): jeden Werktag als To-Do-Karte (+ WhatsApp an den Chef); der Agent antwortet dem Chef per WhatsApp
 from tagesliste import register_tagesliste
 register_tagesliste(app, login_required, get_db_connection, lambda: _leon_routes_mod.leon_client)

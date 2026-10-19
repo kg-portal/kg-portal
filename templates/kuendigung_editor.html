@@ -1,0 +1,167 @@
+{% extends "base.html" %}
+{% block content %}
+<!-- Kündigung bearbeiten (kuendigung.py): Felder links, Live-Vorschau der Vorlage kuendigung_vorlage.html rechts, PDF-Knopf.
+     Es wird nichts gespeichert und keine Mail verschickt – nur das PDF erzeugt. -->
+<style>
+  .kd { --navy:#0f1d4a; --blau:#2563eb; --linie:#e2e8f0; --grau:#64748b; --rot:#dc2626; font-family: Inter, "Segoe UI", Arial, sans-serif; color: var(--navy); }
+  .kd * { box-sizing: border-box; }
+  .kd a { text-decoration: none; }
+  .kd button { font-family: inherit; cursor: pointer; }
+
+  .kd-kopf { position: relative; overflow: hidden; display: flex; align-items: center; gap: 18px; border-radius: 28px; padding: 24px 28px; color: #fff;
+    background: radial-gradient(circle at calc(100% - 60px) 20px, rgba(255,255,255,.12) 0 150px, transparent 150.5px), linear-gradient(135deg, #183a91 0%, #2563eb 100%);
+    box-shadow: 0 22px 50px rgba(24,58,145,.22); }
+  .kd-sym { width: 60px; height: 60px; flex: none; border-radius: 18px; display: grid; place-items: center; font-size: 25px;
+    background: linear-gradient(135deg, #ef4444, #b91c1c); border: 2px solid rgba(255,255,255,.4); }
+  .kd-kopf small { display: block; font-size: 11px; font-weight: 900; letter-spacing: .14em; text-transform: uppercase; color: rgba(219,234,254,.85); }
+  .kd-kopf h1 { margin: 2px 0 0; font-size: 28px; font-weight: 900; letter-spacing: -.02em; color: #fff !important; overflow-wrap: anywhere; }
+  .kd-kopf p { margin: 6px 0 0; font-size: 14px; font-weight: 700; color: #dbeafe; }
+  .kd-zurueck { margin-left: auto; flex: none; display: inline-flex; align-items: center; gap: 8px; height: 44px; padding: 0 16px; border-radius: 14px;
+    background: rgba(255,255,255,.14); border: 1px solid rgba(255,255,255,.28); color: #fff; font-weight: 800; font-size: 14px; white-space: nowrap; }
+
+  .kd-raster { display: grid; grid-template-columns: minmax(320px, 440px) minmax(0, 1fr); gap: 18px; margin-top: 18px; align-items: start; }
+  .kd-karte { background: #fff; border: 1px solid var(--linie); border-radius: 22px; padding: 20px; box-shadow: 0 14px 32px rgba(15,23,42,.06); }
+  .kd-karte h2 { margin: 0 0 12px; font-size: 16px; font-weight: 900; color: var(--navy); }
+  .kd-reihe { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+  .kd-reihe.eins { grid-template-columns: 1fr; }
+  .kd-reihe.drei { grid-template-columns: 0.8fr 1.2fr; }
+  .kd label { display: block; font-size: 12px; font-weight: 800; color: #475569; margin: 0 0 4px; }
+  .kd input[type=text], .kd select { width: 100%; height: 42px; padding: 0 12px; border: 1.5px solid #dbe3ef; border-radius: 12px; background: #fff;
+    font: inherit; font-size: 15px; font-weight: 700; color: var(--navy); outline: none; }
+  .kd input[type=text]:focus, .kd select:focus { border-color: var(--blau); box-shadow: 0 0 0 3px rgba(37,99,235,.12); }
+  .kd-trenn { height: 1px; background: var(--linie); margin: 14px 0; }
+  .kd-haken { display: flex; align-items: center; gap: 10px; padding: 10px 12px; margin-bottom: 8px; border-radius: 12px; background: #f8fafc; border: 1px solid var(--linie);
+    font-size: 13.5px; font-weight: 700; color: #1e293b; cursor: pointer; }
+  .kd-haken input { width: 18px; height: 18px; flex: none; }
+  .kd-knoepfe { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 14px; }
+  .kd-pdf { flex: 1 1 200px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 50px; padding: 0 18px; border: none; border-radius: 14px;
+    background: linear-gradient(135deg, #ef4444, #b91c1c); color: #fff; font-size: 15px; font-weight: 900; box-shadow: 0 12px 24px -10px rgba(185,28,28,.65); }
+  .kd-ansehen { flex: 1 1 140px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 50px; padding: 0 16px; border-radius: 14px;
+    background: #eff6ff; border: 1px solid #bfdbfe; color: #1d4ed8; font-size: 14px; font-weight: 900; }
+  .kd-info { margin-top: 14px; padding: 11px 13px; border-radius: 14px; background: #fff7ed; border: 1px solid #fed7aa; color: #9a3412; font-size: 12.5px; font-weight: 700; line-height: 1.5; }
+  .kd-warn { margin-top: 10px; padding: 10px 12px; border-radius: 12px; background: #fef2f2; border: 1px solid #fecaca; color: #b91c1c; font-size: 13px; font-weight: 800; }
+
+  .kd-vorschau { padding: 14px; }
+  .kd-vorschau-kopf { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin: 2px 4px 10px; font-size: 13px; font-weight: 800; color: var(--grau); }
+  .kd-blatt { position: relative; width: 100%; overflow: hidden; border-radius: 10px; background: #fff; border: 1px solid var(--linie); box-shadow: 0 10px 26px rgba(15,23,42,.10); }
+  .kd-blatt iframe { position: absolute; left: 0; top: 0; width: 794px; height: 1123px; border: 0; transform-origin: 0 0; background: #fff; }
+
+  @media (max-width: 1000px) { .kd-raster { grid-template-columns: 1fr; } }
+  @media (max-width: 760px) {
+    .kd-kopf { flex-wrap: wrap; padding: 20px; border-radius: 22px; } .kd-kopf h1 { font-size: 23px; }
+    .kd-zurueck { margin-left: 0; }
+    .kd-karte { padding: 16px; }
+    .kd-reihe, .kd-reihe.drei { grid-template-columns: 1fr; }
+  }
+</style>
+
+<div class="kd">
+  <div class="kd-kopf kgs-kopf" data-kg-skip>
+    <div class="kd-sym">✉</div>
+    <div>
+      <small>KG Portal · Personal</small>
+      <h1>Kündigung – {{ f.vorname }} {{ f.nachname }}</h1>
+      <p>Eintritt: {{ eintritt or 'nicht eingetragen' }} · Kündigung zum {{ f.ende }}</p>
+    </div>
+    <a class="kd-zurueck" href="/mitarbeiter">← Mitarbeiter</a>
+  </div>
+
+  <div class="kd-raster">
+    <form class="kd-karte" id="kdForm" onsubmit="return false">
+      <h2>Empfänger</h2>
+      <div class="kd-reihe drei">
+        <div><label for="kd_anrede">Anrede</label>
+          <select id="kd_anrede" name="anrede">
+            <option value="Frau" {{ 'selected' if f.anrede == 'Frau' }}>Frau</option>
+            <option value="Herr" {{ 'selected' if f.anrede == 'Herr' }}>Herr</option>
+            <option value="" {{ 'selected' if f.anrede not in ('Frau', 'Herr') }}>– ohne –</option>
+          </select></div>
+        <div><label for="kd_vorname">Vorname</label><input type="text" id="kd_vorname" name="vorname" value="{{ f.vorname }}"></div>
+      </div>
+      <div class="kd-reihe eins">
+        <div><label for="kd_nachname">Nachname</label><input type="text" id="kd_nachname" name="nachname" value="{{ f.nachname }}"></div>
+      </div>
+      <div class="kd-reihe eins">
+        <div><label for="kd_strasse">Straße + Nr.</label><input type="text" id="kd_strasse" name="strasse" value="{{ f.strasse }}"></div>
+      </div>
+      <div class="kd-reihe drei">
+        <div><label for="kd_plz">PLZ</label><input type="text" id="kd_plz" name="plz" value="{{ f.plz }}" inputmode="numeric"></div>
+        <div><label for="kd_ort">Ort</label><input type="text" id="kd_ort" name="ort" value="{{ f.ort }}"></div>
+      </div>
+      {% if not f.strasse or not f.plz or not f.ort %}<div class="kd-warn">Adresse ist nicht vollständig – bitte ergänzen.</div>{% endif %}
+
+      <div class="kd-trenn"></div>
+      <h2>Kündigung</h2>
+      <div class="kd-reihe eins">
+        <div><label for="kd_vertrag">Vertrag</label>
+          <select id="kd_vertrag" name="vertrag">
+            {% for v in vertragsarten %}<option value="{{ v }}" {{ 'selected' if f.vertrag == v }}>{{ v }}</option>{% endfor %}
+          </select></div>
+      </div>
+      <div class="kd-reihe">
+        <div><label for="kd_beginn">Vertrag vom (Eintritt)</label><input type="text" id="kd_beginn" name="beginn" value="{{ f.beginn }}" placeholder="TT.MM.JJJJ"></div>
+        <div><label for="kd_ende">Kündigung zum</label><input type="text" id="kd_ende" name="ende" value="{{ f.ende }}" placeholder="TT.MM.JJJJ"></div>
+      </div>
+      <div class="kd-reihe">
+        <div><label for="kd_datum">Datum des Schreibens</label><input type="text" id="kd_datum" name="datum" value="{{ f.datum }}" placeholder="TT.MM.JJJJ"></div>
+        <div><label for="kd_paragraph">Paragraph im Vertrag</label><input type="text" id="kd_paragraph" name="paragraph" value="{{ f.paragraph }}"></div>
+      </div>
+      <label class="kd-haken"><input type="checkbox" id="kd_empfang" name="empfang" {{ 'checked' if f.empfang }}> Empfangsbestätigung (Unterschrift Mitarbeiter)</label>
+      <label class="kd-haken"><input type="checkbox" id="kd_afa" name="hinweis_afa" {{ 'checked' if f.hinweis_afa }}> Hinweis Agentur für Arbeit</label>
+
+      <div class="kd-knoepfe">
+        <a class="kd-pdf" id="kdPdf" href="#">⬇ PDF herunterladen</a>
+        <a class="kd-ansehen" id="kdAnsehen" href="#" target="_blank" rel="noopener">PDF ansehen</a>
+      </div>
+      <div class="kd-info">Wichtig: Eine Kündigung ist nur auf Papier mit Originalunterschrift wirksam (§ 623 BGB). Ausdrucken, unterschreiben und übergeben – per WhatsApp oder Mail nur als Kopie.</div>
+    </form>
+
+    <div class="kd-karte kd-vorschau">
+      <div class="kd-vorschau-kopf"><span>Vorschau</span><span id="kdStand">aktuell</span></div>
+      <div class="kd-blatt" id="kdBlatt"><iframe id="kdFrame" title="Vorschau Kündigung" src="/mitarbeiter/kuendigung/{{ mid }}/vorschau"></iframe></div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  var MID = {{ mid|tojson }};
+  var form = document.getElementById("kdForm"), frame = document.getElementById("kdFrame"), blatt = document.getElementById("kdBlatt");
+  var FELDER = ["anrede", "vorname", "nachname", "strasse", "plz", "ort", "vertrag", "beginn", "ende", "datum", "paragraph"];
+
+  function werte() {
+    var p = new URLSearchParams();
+    FELDER.forEach(function (k) { var el = form.elements[k]; p.set(k, el ? el.value.trim() : ""); });
+    p.set("empfang", form.elements.empfang.checked ? "1" : "0");
+    p.set("hinweis_afa", form.elements.hinweis_afa.checked ? "1" : "0");
+    return p;
+  }
+  function links() {
+    var q = werte().toString();
+    document.getElementById("kdPdf").href = "/mitarbeiter/kuendigung/" + MID + "/pdf?" + q;
+    document.getElementById("kdAnsehen").href = "/mitarbeiter/kuendigung/" + MID + "/pdf?ansehen=1&" + q;
+    return q;
+  }
+  var t = 0;
+  function neu() {
+    var q = links();
+    document.getElementById("kdStand").textContent = "lädt …";
+    clearTimeout(t);
+    t = setTimeout(function () { frame.src = "/mitarbeiter/kuendigung/" + MID + "/vorschau?" + q; }, 350);
+  }
+  frame.addEventListener("load", function () { document.getElementById("kdStand").textContent = "aktuell"; });
+  form.addEventListener("input", neu);
+  form.addEventListener("change", neu);
+
+  function passen() {
+    var s = blatt.clientWidth / 794;
+    frame.style.transform = "scale(" + s + ")";
+    blatt.style.height = Math.ceil(1123 * s) + "px";
+  }
+  window.addEventListener("resize", passen);
+  passen();
+  links();
+  frame.src = "/mitarbeiter/kuendigung/" + MID + "/vorschau?" + werte().toString();
+})();
+</script>
+{% endblock %}
