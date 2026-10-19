@@ -1035,7 +1035,7 @@ body{background:#f4f7fc}
     <div class="bt-sum"><div class="g"><b id="btSumNetto">0,00 €</b><span>netto / Monat</span></div><div><b id="btSumStd">0,0 Std.</b><span>pro Monat</span></div><div><b id="btSumSatz">–</b><span>Stundensatz</span></div><div><b id="btSumTage">–</b><span>Einsatztage</span></div></div>
         <button type="button" class="btn-action btn-speichern" onclick="finishBesichtigung('speichern')">Speichern</button>
     <button type="button" class="btn-action btn-speichern" style="background:linear-gradient(135deg,#047857,#10b981);color:#fff" onclick="kgAngebotEditorOeffnen()">Angebot erstellen</button>
-    <button type="button" class="btn-action btn-senden" onclick="finishBesichtigung('senden')">Senden</button>
+    <button type="button" class="btn-action btn-senden" onclick="kgAngebotEditorOeffnen()" title="Öffnet den Angebot-Editor – dort Preis prüfen und senden">Senden</button>
   </div>
 </form>
 
@@ -2989,14 +2989,19 @@ function buildBesichtigungData() {
   };
 }
 
-// Neu: Angebot-Editor öffnen – die aktuellen Eingaben dieser Seite gehen mit (nur im Browser, ohne zu speichern)
-function kgAngebotEditorOeffnen() {
+// Angebot-Editor öffnen (auch der rote „Senden“-Knopf): die Eingaben dieser Seite gehen mit und werden in der
+// Kundenakte gesichert (ohne den Status der Firma zu ändern). Gesendet wird nur noch im Angebot-Editor.
+async function kgAngebotEditorOeffnen() {
   const id = Number((document.getElementById("besichtigungTageslisteIdInput") || {}).value || 0);
   if (!id) {
     alert("Bitte zuerst oben bei einem Termin auf „Start“ tippen.");
     return;
   }
-  try { sessionStorage.setItem("kgae_bes_" + id, JSON.stringify(buildBesichtigungData())); } catch (e) {}
+  const daten = buildBesichtigungData();
+  try { sessionStorage.setItem("kgae_bes_" + id, JSON.stringify(daten)); } catch (e) {}
+  try {
+    await fetch("/api/akte/" + id + "/besichtigung", { method: "POST", credentials: "same-origin", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ daten: daten }) });
+  } catch (e) {}
   window.location.href = "/angebot/editor?id=" + id;
 }
 
