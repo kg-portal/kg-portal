@@ -104,10 +104,16 @@ body {
     display: block;
 }
 
-/* Logo etwas höher: Schriftzug „Gebäudereinigung“ auf Höhe der Unterkante des blauen Balkens (alle 4 Seiten, nur optisch) */
+/* Logo etwas höher: Schriftzug „Gebäudereinigung“ auf Höhe der Unterkante des blauen Balkens (alle 4 Seiten, nur optisch);
+   der weiße Rand über „KG“ ist oben gekürzt, damit der blaue Balken bis dorthin sichtbar ist – das Logo selbst bleibt, wo es ist */
 .logo-box {
     position: relative;
-    top: -33px;
+    top: -16px;
+    overflow: hidden;
+}
+
+.logo-box img {
+    margin-top: -17px;
 }
 
 .page-number {
