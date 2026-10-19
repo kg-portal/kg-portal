@@ -264,6 +264,7 @@ a.kgae-knopf { display: inline-block; text-decoration: none; }
                     <button type="button" class="kgae-knopf hell kgae-nur-schmal" id="kgaeVorschauAuf">Vorschau ansehen</button>
                     <button type="button" class="kgae-knopf hell" id="kgaeEntwurf">Entwurf speichern</button>
                     <button type="button" class="kgae-knopf hell" id="kgaeBestaetigt" hidden title="Kunde hat zugesagt: kommt in die Vertrag-Warteliste">✓ Bestätigt → Vertrag</button>
+                    <button type="button" class="kgae-knopf hell" id="kgaeAkte" hidden title="Alles zu dieser Firma: Verlauf, Mails, Besichtigung, Notizen">Kundenakte</button>
                     <div class="rechts">
                         <button type="button" class="kgae-knopf hell" id="kgaePdf">PDF ansehen</button>
                         <button type="button" class="kgae-knopf hell" data-laden="angebot">PDF herunterladen</button>
@@ -592,6 +593,7 @@ a.kgae-knopf { display: inline-block; text-decoration: none; }
             $('kgaeStart').hidden = true; $('kgaeFormular').hidden = false;
             $('kgaeTitel').textContent = 'Neues Angebot';
             $('kgaeBestaetigt').hidden = true;
+            $('kgaeAkte').hidden = true;
             nrSetzen(d.naechste_nr, 'nächste freie Nummer', false);
             $('kgaeQuelle').hidden = true;
             $('kgaeGespeichert').textContent = '';
@@ -721,6 +723,7 @@ a.kgae-knopf { display: inline-block; text-decoration: none; }
             if (d.status === 'angebot') meldung('ok', 'Dieses Angebot ist schon verschickt (AN-' + esc(d.angebot_nr) + '). Änderungen werden mit „Angebot senden“ übernommen, die Nummer bleibt.');
             schritte(d.status === 'angebot' ? 3 : 2);
             $('kgaeBestaetigt').hidden = d.status !== 'angebot';
+            $('kgaeAkte').hidden = false;
             geaendert = false;
             history.replaceState(null, '', location.pathname + '?id=' + id);
             vorschau();
@@ -772,6 +775,7 @@ a.kgae-knopf { display: inline-block; text-decoration: none; }
         });
     });
     // Kunde hat das Angebot bestätigt → Vertrag-Warteliste (/vertrag/editor); das Angebot selbst bleibt unverändert
+    $('kgaeAkte').addEventListener('click', () => { if (aktuell && aktuell.id) location.href = '/akte/' + aktuell.id; });
     $('kgaeBestaetigt').addEventListener('click', () => {
         if (!aktuell || aktuell.status !== 'angebot') return;
         if (!window.confirm('Hat der Kunde das Angebot AN-' + aktuell.angebot_nr + ' bestätigt?\n\nEs kommt in die Vertrag-Warteliste, der Vertrag wird mit diesen Angaben vorbereitet.')) return;

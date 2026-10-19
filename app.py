@@ -941,6 +941,13 @@ try:
 except Exception as exc:
     print(f"⚠️ Vertrag-Editor: {exc}")
 
+# Kundenakte (/akte/<id>): alles zu einer Firma an einem Ort; sichert Besichtigung-Daten dauerhaft (eigene Tabellen akte_*)
+try:
+    from kundenakte import register_kundenakte
+    register_kundenakte(app, login_required, get_db_connection)
+except Exception as exc:
+    print(f"⚠️ Kundenakte: {exc}")
+
 # Arbeitsliste für heute (/heute): jeden Werktag als To-Do-Karte (+ WhatsApp an den Chef); der Agent antwortet dem Chef per WhatsApp
 from tagesliste import register_tagesliste
 register_tagesliste(app, login_required, get_db_connection, lambda: _leon_routes_mod.leon_client)

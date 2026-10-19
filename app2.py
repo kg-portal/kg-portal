@@ -2114,6 +2114,14 @@ www.kg-reinigung.de
             except Exception:
                 pass
 
+            # Kundenakte: gesendete Mail bei der Firma mit dieser Adresse vermerken
+            akte = app.extensions.get("kg_akte")
+            if akte:
+                try:
+                    akte.mail(", ".join(x for x in (to_email, cc_email) if x), subject, attachments, sent.get("id", ""))
+                except Exception as akte_fehler:
+                    print("Kundenakte (Mail):", akte_fehler)
+
             return jsonify({
                 "ok": True,
                 "message": "Mail wurde erfolgreich gesendet.",
@@ -4582,6 +4590,14 @@ www.kg-reinigung.de
         conn = sqlite3.connect(DB_PATH)
         cursor = conn.cursor()
 
+        # Kundenakte: der KG Scan bleibt erhalten, auch wenn die Seite ihn beim Speichern nicht mitschickt
+        akte = app.extensions.get("kg_akte")
+        if akte and besichtigung_data_json:
+            try:
+                besichtigung_data_json = akte.kg_scan_behalten(conn, tagesliste_id, besichtigung_data_json)
+            except Exception as akte_fehler:
+                print("Kundenakte (KG Scan behalten):", akte_fehler)
+
         status_zeit = ""
 
         berlin_zeit = datetime.now(ZoneInfo("Europe/Berlin"))
@@ -4645,6 +4661,13 @@ www.kg-reinigung.de
                     besichtigung_data_json = COALESCE(NULLIF(?, ''), besichtigung_data_json)
                 WHERE id = ?
             """, (besichtigung_data_json, tagesliste_id))
+
+        # Kundenakte: Zeile schon weg (z. B. nachts aus der Tagesliste gelöscht) → Besichtigung trotzdem sichern
+        if cursor.rowcount == 0 and besichtigung_data_json and akte:
+            try:
+                akte.sichern(conn, tagesliste_id, besichtigung_data_json, "ohne_zeile")
+            except Exception as akte_fehler:
+                print("Kundenakte (sichern):", akte_fehler)
 
 
         if status == "offen":
@@ -5097,6 +5120,7 @@ www.kg-reinigung.de
                     SELECT 1
                     FROM tagesliste_leads t
                     WHERE t.id = b.tagesliste_id
+                    AND COALESCE(t.status, 'offen') != 'offen'
                 )
 
                 ORDER BY id DESC
@@ -5138,6 +5162,18 @@ www.kg-reinigung.de
             """, (status,)).fetchall()
 
         result = [dict(row) for row in rows]
+
+        # Kundenakte: gespeicherte Besichtigung auch dann mitgeben, wenn die Tagesliste-Zeile leer oder schon gelöscht ist
+        akte = app.extensions.get("kg_akte")
+        if status == "besichtigung" and akte:
+            for eintrag in result:
+                try:
+                    gesichert = akte.besichtigung(conn, int(eintrag.get("id") or 0), eintrag.get("besichtigung_data_json"))
+                    if gesichert:
+                        eintrag["besichtigung_data_json"] = json.dumps(gesichert, ensure_ascii=False)
+                except Exception as akte_fehler:
+                    print("Kundenakte (Liste):", akte_fehler)
+            conn.commit()
 
         conn.close()
 
@@ -5850,6 +5886,30 @@ www.kg-reinigung.de
                     FROM tagesliste_leads
                     WHERE id = ?
                 """, (angebot_id_int,)).fetchone()
+
+                # Kundenakte: Besichtigung aus der Sicherung, wenn die Tagesliste-Zeile leer oder schon gelöscht ist
+                akte = app.extensions.get("kg_akte")
+                if akte:
+                    try:
+                        gesichert = akte.besichtigung(conn, angebot_id_int, row["besichtigung_data_json"] if row else None)
+                        if gesichert:
+                            zeile = dict(row) if row else None
+                            if zeile is None:
+                                b = conn.execute("""
+                                    SELECT tagesliste_id AS id, firma, branche, strasse, plz, ort
+                                    FROM tagesliste_status_backup
+                                    WHERE tagesliste_id = ?
+                                    ORDER BY backup_am DESC
+                                    LIMIT 1
+                                """, (angebot_id_int,)).fetchone()
+                                zeile = dict(b) if b else {}
+                            for k in ("id", "firma", "branche", "strasse", "plz", "ort", "angebot_nr"):
+                                zeile.setdefault(k, "")
+                            zeile["besichtigung_data_json"] = json.dumps(gesichert, ensure_ascii=False)
+                            row = zeile
+                    except Exception as akte_fehler:
+                        print("Kundenakte (LV):", akte_fehler)
+                conn.commit()
                 conn.close()
 
                 if row:

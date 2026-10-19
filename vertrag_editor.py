@@ -11,7 +11,7 @@ from datetime import date, datetime
 from urllib.parse import urlencode
 from zoneinfo import ZoneInfo
 
-from flask import jsonify, render_template, request, send_file
+from flask import current_app, jsonify, render_template, request, send_file
 
 import angebot_editor as ae
 
@@ -126,6 +126,12 @@ def felder_aus_angebot(conn, tid):
             "firma": row["firma"], "ansprechpartner": row["ansprechpartner"], "adresse": row["strasse"], "plz": row["plz"],
             "ort": row["ort"], "email": row["email"], "telefon": row["telefon"]})
     daten = _json(row["besichtigung_data_json"], {}) if "besichtigung_data_json" in keys else {}
+    try:  # Kundenakte: gesicherte Besichtigung (Wochentage/Zeiten), auch wenn die Zeile leer ist
+        akte = current_app.extensions.get("kg_akte")
+        if akte:
+            daten = akte.besichtigung(conn, tid, row["besichtigung_data_json"] if "besichtigung_data_json" in keys else None) or daten
+    except Exception as exc:
+        print("Vertrag-Editor: Kundenakte nicht gelesen:", exc)
     wochentage, zeiten = tage_aus_besichtigung(daten)
     f = _leer()
     for k in ("firma", "ansprechpartner", "adresse", "plz", "ort", "email", "telefon"):

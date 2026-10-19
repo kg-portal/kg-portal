@@ -9252,7 +9252,8 @@ const KG_SV2_PFADE = {
     web: '<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/>',
     muell: '<path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/>',
     auf: '<path d="m18 15-6-6-6 6"/>',
-    pin: '<path d="M12 22s7-6.2 7-12a7 7 0 0 0-14 0c0 5.8 7 12 7 12z"/><circle cx="12" cy="10" r="2.5"/>'
+    pin: '<path d="M12 22s7-6.2 7-12a7 7 0 0 0-14 0c0 5.8 7 12 7 12z"/><circle cx="12" cy="10" r="2.5"/>',
+    akte: '<path d="M4 4h6l2 2h8v14H4z"/><path d="M8 12h8M8 16h5"/>'
 };
 
 function kgSv2Icon(name, farbe) {
@@ -9465,6 +9466,7 @@ async function renderStatusCompanies(statusKey) {
 
     card.innerHTML = `
         <div class="sv2-aktionen">
+            <a class="sv2-ib" href="/akte/${Number(lead.id) || 0}" title="Kundenakte: alles zu dieser Firma" onclick="event.stopPropagation()">${kgSv2Icon("akte", "#1d4ed8")}</a>
             ${sv2Tel ? `<a class="sv2-ib tel" href="tel:${kgAwAttr(sv2Tel)}" title="Anrufen" onclick="event.stopPropagation()">${kgSv2Icon("tel", "#047857")}</a>` : ""}
             ${mail ? `<a class="sv2-ib" href="mailto:${kgAwAttr(mail)}" title="Mail schreiben" onclick="event.stopPropagation()">${kgSv2Icon("mail", "#475569")}</a>` : ""}
             <button type="button" class="sv2-ib rot" title="Eintrag löschen" onclick="deleteStatusRecord(event, ${Number(lead.id) || 0}, '${statusKey}', this)">${kgSv2Icon("muell", "#ef4444")}</button>

@@ -341,8 +341,16 @@ def register_angebot_editor(app, login_required, get_db_connection, app2_modul):
                     if r["id"] in live or conn.execute("SELECT 1 FROM tagesliste_leads WHERE id = ? AND status = 'angebot'", (r["id"],)).fetchone():
                         continue
                     live.add(r["id"])
+                    d = {}
+                    akte = app.extensions.get("kg_akte")
+                    if akte:  # Kundenakte: gesicherte Besichtigung (Scan, Räume) auch für schon gelöschte Tagesliste-Zeilen
+                        try:
+                            d = akte.besichtigung(conn, r["id"]) or {}
+                        except Exception:
+                            d = {}
                     bes.append({"id": r["id"], "firma": r["firma"] or "Ohne Firma", "ort": r["ort"] or "", "quelle": r["quelle"] or "",
-                                "scan": False, "raeume": 0, "entwurf": r["id"] in entwuerfe})
+                                "scan": isinstance(d.get("kg_scan"), dict) and bool(d.get("kg_scan")), "raeume": len(d.get("raeume") or []),
+                                "entwurf": r["id"] in entwuerfe})
             except Exception:
                 pass
             ang = [{"id": r["id"], "firma": r["firma"] or "Ohne Firma", "ort": r["ort"] or "", "nr": r["angebot_nr"] or "",
@@ -423,6 +431,12 @@ def register_angebot_editor(app, login_required, get_db_connection, app2_modul):
                 return jsonify({"ok": False, "error": "Firma nicht gefunden."}), 404
             keys = row.keys()
             daten = _json(row["besichtigung_data_json"], {}) if "besichtigung_data_json" in keys else {}
+            akte = app.extensions.get("kg_akte")
+            if akte:  # Kundenakte: gesicherte Besichtigung, auch wenn die Tagesliste-Zeile leer oder schon gelöscht ist
+                try:
+                    daten = akte.besichtigung(conn, tid, row["besichtigung_data_json"] if "besichtigung_data_json" in keys else None) or daten
+                except Exception as exc:
+                    print("Angebot-Editor: Kundenakte nicht gelesen:", exc)
             am = aufmass(daten)
             entwurf = cur.execute("SELECT felder_json, kalkulation_json, geaendert_am FROM angebot_editor_entwuerfe WHERE tagesliste_id = ?", (tid,)).fetchone()
             status = row["status"] if "status" in keys else "besichtigung"
