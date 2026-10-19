@@ -80,6 +80,62 @@
 .kgae-ergebnis div small { display: block; font-size: 11px; font-weight: 900; letter-spacing: .08em; text-transform: uppercase; color: var(--grau); }
 .kgae-ergebnis div b { display: block; margin-top: 2px; font-size: 20px; font-weight: 900; }
 .kgae-ergebnis .richt b { font-size: 26px; color: var(--b1); }
+/* Rechner als Premium-Karte: Bereiche als Kacheln statt Tabelle */
+.kgae-karte.kgae-rechner { position: relative; overflow: hidden; border-color: #dbeafe;
+    background: radial-gradient(circle at 100% 0, rgba(96, 165, 250, .16) 0 230px, transparent 231px), radial-gradient(circle at 0 100%, rgba(16, 185, 129, .08) 0 200px, transparent 201px), linear-gradient(180deg, #ffffff 0%, #f4f8ff 100%);
+    box-shadow: 0 26px 50px -34px rgba(30, 64, 175, .6), inset 0 1px 0 #fff; }
+.kgae-karte.kgae-rechner::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 4px; background: linear-gradient(90deg, #2563eb, #60a5fa, #10b981, #f59e0b); }
+.kgae-bereiche { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.kgae-bereich { --farbe: #2563eb; position: relative; padding: 14px 14px 14px 18px; border-radius: 18px; border: 1px solid #e2e8f0; overflow: hidden;
+    background: linear-gradient(155deg, #ffffff 0%, #ffffff 55%, #f6f9ff 100%); box-shadow: 0 14px 28px -22px rgba(15, 23, 42, .55), inset 0 1px 0 #fff; transition: transform .2s, box-shadow .2s; }
+.kgae-bereich:hover { transform: translateY(-2px); box-shadow: 0 20px 34px -24px rgba(15, 23, 42, .6), inset 0 1px 0 #fff; }
+.kgae-bereich::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 5px; background: var(--farbe); }
+.kgae-bereich.leer { opacity: .78; }
+.kgae-bereich-kopf { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+.kgae-bereich-kopf .ic { width: 38px; height: 38px; flex: none; border-radius: 12px; display: grid; place-items: center; color: #fff; background: var(--farbe); box-shadow: 0 10px 18px -10px var(--farbe), inset 0 1px 0 rgba(255,255,255,.35); }
+.kgae-bereich-kopf .ic svg { width: 19px; height: 19px; fill: none; stroke: #fff; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.kgae-bereich-kopf b { font-size: 15px; font-weight: 900; color: #0f172a; }
+.kgae-bereich-kopf .std { margin-left: auto; text-align: right; }
+.kgae-bereich-kopf .std small { display: block; font-size: 10.5px; font-weight: 900; letter-spacing: .06em; text-transform: uppercase; color: var(--grau); }
+.kgae-bereich-kopf .std b { display: block; font-size: 21px; color: var(--farbe); font-variant-numeric: tabular-nums; }
+.kgae-bereich-felder { display: grid; grid-template-columns: minmax(0, .9fr) minmax(0, 1.3fr); gap: 8px; }
+.kgae-bereich-felder + .kgae-bereich-felder { margin-top: 8px; }
+.kgae-bereich-felder label { display: block; margin-bottom: 3px; font-size: 10.5px; font-weight: 900; letter-spacing: .06em; text-transform: uppercase; color: var(--grau); }
+.kgae-bereich .kgae-in { width: 100%; padding: 8px 10px; font-size: 14px; background: #f8fbff; }
+.kgae-bereich .kgae-in.gross { font-size: 18px; font-weight: 900; }
+.kgae-stueck > div { padding: 9px 11px; border-radius: 14px; background: #fff; border: 1px solid #e2e8f0; box-shadow: 0 10px 20px -18px rgba(15, 23, 42, .55); }
+.kgae-stueck .kgae-in { padding: 7px 8px; text-align: center; font-size: 16px; font-weight: 900; background: #f1f5f9; border-color: transparent; }
+/* Sonderleistungen nach m² */
+.kgae-sonder { margin-top: 14px; padding: 16px; border-radius: 18px; background: linear-gradient(160deg, #fffaf0, #fff7ed); border: 1px solid #fed7aa; }
+.kgae-sonder-knoepfe { display: flex; gap: 8px; flex-wrap: wrap; }
+.kgae-sonder-knoepfe button { border: 1px dashed #fdba74; border-radius: 12px; padding: 9px 13px; background: #fff; color: #9a3412; font: inherit; font-size: 13.5px; font-weight: 900; cursor: pointer; }
+.kgae-sonder-knoepfe button:hover { background: #fff7ed; }
+.kgae-sonder-knoepfe button[hidden] { display: none; }
+.kgae-sonder-liste { display: grid; gap: 12px; margin-top: 12px; }
+.kgae-sonder-liste:empty { display: none; }
+.kgae-sk { --farbe: #0ea5e9; position: relative; padding: 14px 16px; border-radius: 18px; background: #fff; border: 1px solid #e2e8f0; box-shadow: 0 16px 30px -24px rgba(15, 23, 42, .6); }
+.kgae-sk[data-sonder="grund"] { --farbe: #7c3aed; } .kgae-sk[data-sonder="bau"] { --farbe: #ea580c; }
+.kgae-sk-kopf { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+.kgae-sk-kopf .ic { width: 36px; height: 36px; flex: none; border-radius: 12px; display: grid; place-items: center; background: var(--farbe); color: #fff; box-shadow: 0 10px 18px -10px var(--farbe); }
+.kgae-sk-kopf .ic svg { width: 18px; height: 18px; fill: none; stroke: #fff; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.kgae-sk-kopf b { font-size: 15px; font-weight: 900; } .kgae-sk-kopf small { display: block; font-size: 12px; font-weight: 700; color: var(--grau); }
+.kgae-sk-weg { margin-left: auto; width: 32px; height: 32px; border: 0; border-radius: 10px; background: #fef2f2; color: #b91c1c; font-size: 17px; font-weight: 900; cursor: pointer; }
+.kgae-sk-felder { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 10px; }
+.kgae-sk-felder > div { display: flex; flex-direction: column; gap: 4px; }
+.kgae-sk-felder label { font-size: 10.5px; font-weight: 900; letter-spacing: .06em; text-transform: uppercase; color: var(--grau); }
+.kgae-sk-felder .kgae-in { width: 120px; padding: 8px 10px; font-size: 15px; font-weight: 900; text-align: right; background: #f8fbff; }
+.kgae-sk-felder select.kgae-in { width: 150px; text-align: left; font-size: 13.5px; }
+.kgae-sk-stufen { display: inline-flex; gap: 4px; padding: 4px; border-radius: 12px; background: #f1f5f9; }
+.kgae-sk-stufen button { border: 0; padding: 7px 10px; border-radius: 9px; background: transparent; font: inherit; font-size: 12.5px; font-weight: 900; color: #475569; cursor: pointer; }
+.kgae-sk-stufen button.an { background: var(--farbe); color: #fff; }
+.kgae-sk-erg { display: flex; align-items: center; gap: 10px 16px; flex-wrap: wrap; margin-top: 12px; padding: 12px 14px; border-radius: 14px; background: #f8fbff; border: 1px solid #e2e8f0; }
+.kgae-sk-erg .preis small, .kgae-sk-erg .info small { display: block; font-size: 10.5px; font-weight: 900; letter-spacing: .06em; text-transform: uppercase; color: var(--grau); }
+.kgae-sk-erg .preis b { font-size: 22px; font-weight: 900; color: var(--farbe); font-variant-numeric: tabular-nums; }
+.kgae-sk-erg .info span { display: block; font-size: 12.5px; font-weight: 800; color: #334155; }
+.kgae-sk-erg .gewinn { padding: 5px 10px; border-radius: 999px; font-size: 12.5px; font-weight: 900; color: #fff; background: #059669; }
+.kgae-sk-erg .gewinn.gelb { background: #d97706; } .kgae-sk-erg .gewinn.rot { background: #dc2626; }
+.kgae-sk-erg .kgae-knopf { margin-left: auto; }
+.kgae-sk-hinweis { margin-top: 6px; font-size: 12px; font-weight: 800; color: #047857; }
 /* Kalkulation: Kosten Posten für Posten, Aufschlag, Gewinn */
 .kgae-kalk { margin-top: 14px; padding: 16px; border-radius: 18px; background: linear-gradient(160deg, #f8fbff, #eef4ff); border: 1px solid #dbeafe; }
 .kgae-kalk-kopf { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; }
@@ -182,6 +238,8 @@ a.kgae-knopf { display: inline-block; text-decoration: none; }
     .kgae-pos, .kgae-pos-kopf { grid-template-columns: 30px minmax(0, 1fr); } .kgae-pos select, .kgae-pos .preis { grid-column: 2; }
     .kgae-pos-kopf span:nth-child(n+3) { display: none; }
     .kgae-stueck { grid-template-columns: repeat(2, minmax(0, 1fr)); } .kgae-ergebnis { grid-template-columns: 1fr 1fr; }
+    .kgae-bereiche { grid-template-columns: minmax(0, 1fr); } .kgae-sk-felder .kgae-in, .kgae-sk-felder select.kgae-in { width: 100%; } .kgae-sk-felder > div { flex: 1 1 40%; }
+    .kgae-sk-erg .kgae-knopf { margin-left: 0; width: 100%; }
     .kgae-kalk-werte > div { width: calc(50% - 5px); } .kgae-af-preis .rechts { margin-left: 0; width: 100%; flex-wrap: wrap; } .kgae-af-preis b { font-size: 26px; }
     .kgae-af-preis .rechts .kgae-knopf { width: 100%; } .kgae-af-summe { flex-wrap: wrap; } .kgae-af-summe i { order: 3; width: 100%; } .kgae-kalk-werte > .kgae-fahrt { width: 100%; }
     .kgae-rechner { overflow-x: auto; }
@@ -299,11 +357,8 @@ a.kgae-knopf { display: inline-block; text-decoration: none; }
                 </div>
 
                 <div class="kgae-karte kgae-rechner">
-                    <h2><i>€</i>Richtpreis-Rechner <em id="kgaeAufmassQuelle"></em></h2>
-                    <table>
-                        <thead><tr><th>Bereich</th><th>m²</th><th>Häufigkeit</th><th>m²/Std</th><th>Verschmutzung</th><th style="text-align:right">Std / Monat</th></tr></thead>
-                        <tbody id="kgaeBereiche"></tbody>
-                    </table>
+                    <h2><i>€</i>Kalkulation &amp; Richtpreis <em id="kgaeAufmassQuelle"></em></h2>
+                    <div class="kgae-bereiche" id="kgaeBereiche"></div>
                     <div class="kgae-stueck">
                         <div><label for="kgae_s_wc">WC</label><input class="kgae-in" id="kgae_s_wc" data-stueck="wc" inputmode="numeric"></div>
                         <div><label for="kgae_s_urinal">Urinal</label><input class="kgae-in" id="kgae_s_urinal" data-stueck="urinal" inputmode="numeric"></div>
@@ -330,6 +385,11 @@ a.kgae-knopf { display: inline-block; text-decoration: none; }
                             <div class="kgae-stepper"><button type="button" id="kgaeAufMinus" aria-label="weniger">−</button><input class="kgae-in" id="kgaeAuf" inputmode="decimal" aria-label="Aufschlag in Prozent"><b>%</b><button type="button" id="kgaeAufPlus" aria-label="mehr">+</button></div>
                         </div>
                         <div class="kgae-aufstellung" id="kgaeAufstellung"></div>
+                    </div>
+                    <div class="kgae-sonder">
+                        <div class="kgae-kalk-kopf"><b>Sonderleistungen nach m²</b><span>Fenster, Grundreinigung, Bauendreinigung – Preis je m² wählen, dann in eine freie Leistung übernehmen</span></div>
+                        <div class="kgae-sonder-knoepfe" id="kgaeSonderKnoepfe"></div>
+                        <div class="kgae-sonder-liste" id="kgaeSonder"></div>
                     </div>
                     <p class="kgae-formel" id="kgaeFormel"></p>
                 </div>
@@ -385,6 +445,15 @@ a.kgae-knopf { display: inline-block; text-decoration: none; }
     const euro = v => (Number(v) || 0).toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
     const eins = v => (Math.round((Number(v) || 0) * 10) / 10).toLocaleString('de-DE', { minimumFractionDigits: 1 });
     const FARBE = { buero: '#2563eb', wc: '#ef4444', kueche: '#16a34a', flur: '#f59e0b' };
+    const ICON = {
+        buero: '<svg viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M3 13h18"/></svg>',
+        wc: '<svg viewBox="0 0 24 24"><path d="M12 3s6 6.5 6 11a6 6 0 0 1-12 0c0-4.5 6-11 6-11z"/></svg>',
+        kueche: '<svg viewBox="0 0 24 24"><path d="M5 8h12v6a5 5 0 0 1-5 5h-2a5 5 0 0 1-5-5V8zM17 10h2a2 2 0 0 1 0 4h-2M8 3v2M12 3v2"/></svg>',
+        flur: '<svg viewBox="0 0 24 24"><path d="M5 21V4a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v17M3 21h18"/><circle cx="15" cy="12" r="1"/></svg>',
+        fenster: '<svg viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="1.5"/><path d="M12 3v18M4 12h16"/></svg>',
+        grund: '<svg viewBox="0 0 24 24"><path d="M12 3l2.5 5.5L20 11l-5.5 2.5L12 19l-2.5-5.5L4 11l5.5-2.5z"/></svg>',
+        bau: '<svg viewBox="0 0 24 24"><path d="M3 21h18M5 21V10l7-5 7 5v11M9 21v-6h6v6"/></svg>'
+    };
     let liste = { besichtigungen: [], angebote: [] }, tab = 'besichtigungen', aktuell = null, k = null, speicherTimer = 0, vorschauTimer = 0, geaendert = false, fokus = '';
 
     // ---------- Liste
@@ -484,12 +553,13 @@ a.kgae-knopf { display: inline-block; text-decoration: none; }
             const alt = (kalk.bereiche || []).find(x => x.key === b.key) || {};
             const h = alt.haeufigkeit != null ? alt.haeufigkeit : (b.haeufigkeit || (b.m2 ? '1x wöchentlich' : 'keine'));
             const opts = k.haeufigkeiten.slice(); if (h && opts.indexOf(h) < 0) opts.unshift(h);
-            return '<tr data-key="' + b.key + '"><td><span class="kgae-punkt" style="background:' + FARBE[b.key] + '"></span>' + esc(b.name) + '</td>' +
-                '<td><input class="kgae-in" data-r="m2" inputmode="decimal" value="' + esc(alt.m2 != null ? alt.m2 : (b.m2 ? String(b.m2).replace('.', ',') : '')) + '" placeholder="0"></td>' +
-                '<td><select class="kgae-in" data-r="h">' + opts.map(o => '<option' + (o === h ? ' selected' : '') + '>' + esc(o) + '</option>').join('') + '</select></td>' +
-                '<td><input class="kgae-in" data-r="lw" inputmode="numeric" value="' + esc(alt.lw != null ? alt.lw : k.leistungswert[b.key]) + '"></td>' +
-                '<td><select class="kgae-in" data-r="v">' + Object.keys(k.verschmutzung).map(v => '<option value="' + esc(v) + '"' + ((alt.v || 'leicht') === v ? ' selected' : '') + '>' + esc(v) + ' ×' + String(k.verschmutzung[v]).replace('.', ',') + '</option>').join('') + '</select></td>' +
-                '<td class="std" data-r="std">0,0</td></tr>';
+            const id = 'kgaeB_' + b.key;
+            return '<div class="kgae-bereich" data-key="' + b.key + '" style="--farbe:' + FARBE[b.key] + '">' +
+                '<div class="kgae-bereich-kopf"><span class="ic">' + (ICON[b.key] || '') + '</span><b>' + esc(b.name) + '</b><span class="std"><small>Std / Monat</small><b data-r="std">0,0</b></span></div>' +
+                '<div class="kgae-bereich-felder"><div><label for="' + id + '_m2">Fläche m²</label><input class="kgae-in gross" id="' + id + '_m2" data-r="m2" inputmode="decimal" value="' + esc(alt.m2 != null ? alt.m2 : (b.m2 ? String(b.m2).replace('.', ',') : '')) + '" placeholder="0"></div>' +
+                '<div><label for="' + id + '_h">Häufigkeit</label><select class="kgae-in" id="' + id + '_h" data-r="h">' + opts.map(o => '<option' + (o === h ? ' selected' : '') + '>' + esc(o) + '</option>').join('') + '</select></div></div>' +
+                '<div class="kgae-bereich-felder"><div><label for="' + id + '_lw">Leistung m²/Std</label><input class="kgae-in" id="' + id + '_lw" data-r="lw" inputmode="numeric" value="' + esc(alt.lw != null ? alt.lw : k.leistungswert[b.key]) + '"></div>' +
+                '<div><label for="' + id + '_v">Verschmutzung</label><select class="kgae-in" id="' + id + '_v" data-r="v">' + Object.keys(k.verschmutzung).map(v => '<option value="' + esc(v) + '"' + ((alt.v || 'leicht') === v ? ' selected' : '') + '>' + esc(v) + ' ×' + String(k.verschmutzung[v]).replace('.', ',') + '</option>').join('') + '</select></div></div></div>';
         }).join('');
         $('kgaeBereiche').innerHTML = zeilen;
         const st = Object.assign({}, am.stueck || {}, kalk.stueck || {});
@@ -500,12 +570,13 @@ a.kgae-knopf { display: inline-block; text-decoration: none; }
     }
     function kalkLesen() {
         return {
-            bereiche: Array.from($('kgaeBereiche').querySelectorAll('tr')).map(tr => ({ key: tr.dataset.key, m2: tr.querySelector('[data-r="m2"]').value, haeufigkeit: tr.querySelector('[data-r="h"]').value, lw: tr.querySelector('[data-r="lw"]').value, v: tr.querySelector('[data-r="v"]').value })),
+            bereiche: Array.from($('kgaeBereiche').querySelectorAll('.kgae-bereich')).map(tr => ({ key: tr.dataset.key, m2: tr.querySelector('[data-r="m2"]').value, haeufigkeit: tr.querySelector('[data-r="h"]').value, lw: tr.querySelector('[data-r="lw"]').value, v: tr.querySelector('[data-r="v"]').value })),
             stueck: Object.fromEntries(Array.from(document.querySelectorAll('[data-stueck]')).map(el => [el.dataset.stueck, zahl(el.value)])),
             satz: k.stundensatz,
             lohn: wert('kgaeLohn', kk().lohn), abgaben: wert('kgaeAbgaben', kk().abgaben), material: wert('kgaeMaterial', kk().material),
             fahrt: { an: !$('kgaeFahrtFelder').hidden, km: zahl($('kgaeKm').value), cent: zahl($('kgaeCent').value) },
             aufschlag: wert('kgaeAuf', kk().aufschlag),
+            sonder: sonderLesen(),
             ergebnis: ergebnis
         };
     }
@@ -530,6 +601,103 @@ a.kgae-knopf { display: inline-block; text-decoration: none; }
         $('kgaeCent').value = f.an && f.cent ? komma(f.cent) : '';
         $('kgaeStufen').innerHTML = (s.stufen || []).map(p => '<button type="button" data-stufe="' + p + '">' + p + ' %</button>').join('');
         stufenMarkieren();
+        sonderAufbauen(kalk.sonder || {});
+    }
+
+    // ---------- Sonderleistungen nach m² (Fenster, Grundreinigung, Bauendreinigung)
+    const SONDER_TEXT = { fenster: 'Glasfläche', grund: 'Fläche', bau: 'Fläche' };
+    const sonderCfg = () => (kk().sonder || {});
+    function sonderKarte(key, w) {
+        const c = sonderCfg()[key]; if (!c) return '';
+        const preisM2 = w.preis_m2 != null ? w.preis_m2 : c.preis_m2;
+        const einheit = w.einheit || c.einheit;
+        const einh = Array.from(document.querySelector('[data-pos="1"][data-teil="einheit"]').options).map(o => o.value);
+        if (einheit && einh.indexOf(einheit) < 0) einh.unshift(einheit);
+        return '<div class="kgae-sk" data-sonder="' + key + '"' + (w.pos ? ' data-pos-ziel="' + w.pos + '"' : '') + '>' +
+            '<div class="kgae-sk-kopf"><span class="ic">' + ICON[key] + '</span><div><b>' + esc(c.name) + '</b><small>' + SONDER_TEXT[key] + ' × Preis je m² · Kosten mit ' + euro(c.lohn) + '/Std, ' + c.leistung_m2 + ' m²/Std</small></div>' +
+            '<button type="button" class="kgae-sk-weg" data-sk="weg" title="Entfernen">×</button></div>' +
+            '<div class="kgae-sk-felder"><div><label>' + SONDER_TEXT[key] + ' m²</label><input class="kgae-in" data-s="m2" inputmode="decimal" value="' + esc(w.m2 ? komma(w.m2) : '') + '" placeholder="0"></div>' +
+            '<div><label>Preis je m² €</label><input class="kgae-in" data-s="preis" inputmode="decimal" value="' + esc(komma(preisM2)) + '"></div>' +
+            '<div><label>Stufe</label><span class="kgae-sk-stufen">' + (c.stufen || []).map(p => '<button type="button" data-sk-stufe="' + p + '">' + euro(p).replace(' €', '') + '</button>').join('') + '</span></div>' +
+            '<div><label>Einheit</label><select class="kgae-in" data-s="einheit">' + einh.map(o => '<option' + (o === einheit ? ' selected' : '') + '>' + esc(o) + '</option>').join('') + '</select></div></div>' +
+            '<div class="kgae-sk-erg" data-s="erg"></div></div>';
+    }
+    function sonderAufbauen(sonder) {
+        const keys = ['fenster', 'grund', 'bau'].filter(key => sonderCfg()[key]);  // feste Reihenfolge (der Server sortiert die Schlüssel)
+        $('kgaeSonderKnoepfe').innerHTML = keys.map(key => '<button type="button" data-sk-neu="' + key + '"' + (sonder[key] && sonder[key].an ? ' hidden' : '') + '>+ ' + esc(sonderCfg()[key].name) + '</button>').join('');
+        $('kgaeSonder').innerHTML = keys.filter(key => sonder[key] && sonder[key].an).map(key => sonderKarte(key, sonder[key])).join('');
+        sonderRechnen();
+    }
+    function sonderLesen() {
+        const aus = {};
+        $('kgaeSonder').querySelectorAll('.kgae-sk').forEach(el => {
+            aus[el.dataset.sonder] = { an: true, m2: zahl(el.querySelector('[data-s="m2"]').value), preis_m2: zahl(el.querySelector('[data-s="preis"]').value),
+                einheit: el.querySelector('[data-s="einheit"]').value, pos: Number(el.dataset.posZiel) || 0 };
+        });
+        return aus;
+    }
+    function gesamtM2() {
+        return Array.from($('kgaeBereiche').querySelectorAll('[data-r="m2"]')).reduce((a, el) => a + zahl(el.value), 0);
+    }
+    function sonderRechnen() {
+        const abg = wert('kgaeAbgaben', kk().abgaben), mat = wert('kgaeMaterial', kk().material), lohnHaupt = wert('kgaeLohn', kk().lohn);
+        $('kgaeSonder').querySelectorAll('.kgae-sk').forEach(el => {
+            const c = sonderCfg()[el.dataset.sonder]; if (!c) return;
+            const m2 = zahl(el.querySelector('[data-s="m2"]').value), pm2 = zahl(el.querySelector('[data-s="preis"]').value);
+            el.querySelectorAll('[data-sk-stufe]').forEach(b => b.classList.toggle('an', Number(b.dataset.skStufe) === pm2));
+            const lohn = el.dataset.sonder === 'fenster' ? c.lohn : lohnHaupt;
+            const std = c.leistung_m2 ? m2 / c.leistung_m2 : 0;
+            const lohnK = std * lohn, kosten = lohnK * (1 + abg / 100) * (1 + mat / 100);
+            const preis = m2 * pm2, gewinn = preis - kosten, prozent = kosten > 0 ? Math.round(gewinn / kosten * 1000) / 10 : 0;
+            const kl = gewinn < 0 ? 'rot' : (prozent >= 40 ? '' : (prozent >= 25 ? 'gelb' : 'rot'));
+            el.querySelector('[data-s="erg"]').innerHTML = !m2 ? '<span class="info"><span>Fläche eintragen – dann erscheinen Preis, Kosten und Gewinn.</span></span>' :
+                '<span class="preis"><small>Preis</small><b>' + euro(preis) + '</b></span>' +
+                '<span class="info"><small>Kosten (ca. ' + eins(std) + ' Std)</small><span>' + euro(kosten) + '</span></span>' +
+                '<span class="gewinn ' + kl + '">' + (gewinn >= 0 ? '+' : '') + euro(gewinn) + ' · ' + (gewinn >= 0 ? '+' : '') + pct(prozent) + ' %</span>' +
+                '<button type="button" class="kgae-knopf blau" data-sk="nehmen">' + (el.dataset.posZiel ? 'Leistung ' + el.dataset.posZiel + ' aktualisieren' : 'In freie Leistung übernehmen') + '</button>';
+        });
+    }
+    $('kgaeSonderKnoepfe').addEventListener('click', e => {
+        const b = e.target.closest('[data-sk-neu]'); if (!b) return;
+        const key = b.dataset.skNeu, c = sonderCfg()[key];
+        const w = { an: true, m2: key === 'fenster' ? 0 : Math.round(gesamtM2() * 10) / 10, preis_m2: c.preis_m2, einheit: c.einheit };
+        $('kgaeSonder').insertAdjacentHTML('beforeend', sonderKarte(key, w));
+        b.hidden = true;
+        sonderRechnen(); geaendertMelden();
+        const neu = $('kgaeSonder').querySelector('[data-sonder="' + key + '"] [data-s="m2"]'); if (neu) neu.focus();
+    });
+    $('kgaeSonder').addEventListener('click', e => {
+        const karte = e.target.closest('.kgae-sk'); if (!karte) return;
+        const stufe = e.target.closest('[data-sk-stufe]');
+        if (stufe) { karte.querySelector('[data-s="preis"]').value = komma(Number(stufe.dataset.skStufe)); sonderRechnen(); geaendertMelden(); return; }
+        if (e.target.closest('[data-sk="weg"]')) {
+            const key = karte.dataset.sonder; karte.remove();
+            const b = $('kgaeSonderKnoepfe').querySelector('[data-sk-neu="' + key + '"]'); if (b) b.hidden = false;
+            geaendertMelden(); return;
+        }
+        if (e.target.closest('[data-sk="nehmen"]')) sonderUebernehmen(karte);
+    });
+    function sonderUebernehmen(karte) {
+        const c = sonderCfg()[karte.dataset.sonder];
+        const m2 = zahl(karte.querySelector('[data-s="m2"]').value), pm2 = zahl(karte.querySelector('[data-s="preis"]').value);
+        if (!m2 || !pm2) return;
+        const pos = n => ({ text: document.querySelector('[data-pos="' + n + '"][data-teil="text"]'), einheit: document.querySelector('[data-pos="' + n + '"][data-teil="einheit"]'), preis: document.querySelector('[data-pos="' + n + '"][data-teil="preis"]') });
+        let ziel = Number(karte.dataset.posZiel) || 0;
+        if (ziel && pos(ziel).text.value.trim() && pos(ziel).text.value.indexOf(c.name) !== 0) ziel = 0;  // Zeile wurde inzwischen anders benutzt
+        if (!ziel) ziel = [2, 3, 4, 1].find(n => !pos(n).text.value.trim() && !zahl(pos(n).preis.value)) || 0;
+        if (!ziel) { alert('Keine freie Leistung mehr (1–4). Bitte eine Zeile leeren.'); return; }
+        const p = pos(ziel), einheit = karte.querySelector('[data-s="einheit"]').value;
+        p.text.value = c.name + ' (' + komma(m2) + ' m² ' + (karte.dataset.sonder === 'fenster' ? 'Glasfläche' : 'Fläche') + ')';
+        if (einheit && !Array.from(p.einheit.options).some(o => o.value === einheit)) { const o = document.createElement('option'); o.textContent = einheit; p.einheit.appendChild(o); }
+        p.einheit.value = einheit;
+        p.preis.value = (Math.round(m2 * pm2 * 100) / 100).toFixed(2).replace('.', ',');
+        karte.dataset.posZiel = ziel;
+        fokus = 'leistung';
+        geaendertMelden();
+        sonderRechnen();
+        let h = karte.querySelector('.kgae-sk-hinweis');
+        if (!h) { h = document.createElement('div'); h.className = 'kgae-sk-hinweis'; karte.appendChild(h); }
+        h.textContent = '✓ In Leistung ' + ziel + ' übernommen.';
     }
     function stufenMarkieren() {
         const a = zahl($('kgaeAuf').value);
@@ -596,7 +764,7 @@ a.kgae-knopf { display: inline-block; text-decoration: none; }
         if (!k) return 0;
         const kal = kalkLesen(), m = k.minuten, st = kal.stueck;
         let summe = 0, maxE = 0;
-        $('kgaeBereiche').querySelectorAll('tr').forEach(tr => {
+        $('kgaeBereiche').querySelectorAll('.kgae-bereich').forEach(tr => {
             const key = tr.dataset.key, m2 = zahl(tr.querySelector('[data-r="m2"]').value), lw = zahl(tr.querySelector('[data-r="lw"]').value) || 1;
             const e = einsaetze(tr.querySelector('[data-r="h"]').value), fv = k.verschmutzung[tr.querySelector('[data-r="v"]').value] || 1;
             let min = m2 / lw * 60 * fv;
@@ -606,10 +774,12 @@ a.kgae-knopf { display: inline-block; text-decoration: none; }
             if (e && min) maxE = Math.max(maxE, e);
             summe += std;
             tr.querySelector('[data-r="std"]').textContent = eins(std);
+            tr.classList.toggle('leer', !std);
         });
         const ruest = maxE * m.ruest / 60;
         summe += ruest;
         const richt = aufstellung(summe, maxE);
+        sonderRechnen();
         $('kgaeFormel').innerHTML = 'Minuten je Einsatz = m² ÷ Leistungswert × 60 × Verschmutzung (+ WC ' + String(m.wc).replace('.', ',') + ' · Urinal ' + String(m.urinal).replace('.', ',') + ' · Waschbecken ' + String(m.wb).replace('.', ',') +
             ' · Schreibtisch ' + String(m.schreibtisch).replace('.', ',') + ' · Mülleimer ' + String(m.muell).replace('.', ',') + ' Min je Stück) · Einsätze/Monat = x/Woche × ' + String(k.monat).replace('.', ',') +
             ' · + Rüstzeit ' + m.ruest + ' Min je Einsatz (' + eins(ruest) + ' Std) · <b>Kosten = Lohn + Minijob-Abgaben + Material (+ Fahrt) · Richtpreis = Kosten + Aufschlag</b>. Der Preis im Angebot ist immer der, den du oben einträgst' +
