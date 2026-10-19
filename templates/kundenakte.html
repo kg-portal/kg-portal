@@ -1,0 +1,291 @@
+{% extends "base.html" %}
+{% block content %}
+<!-- Kundenakte: alles zu einer Firma an einem Ort (Schritte, nächster Schritt, Verlauf, Mails, Besichtigung, Angebot, Notizen).
+     Daten: /api/akte/<id> (kundenakte.py). Diese Seite liest nur; geschrieben werden nur eigene Notizen. -->
+<style>
+  .ka { --navy:#0f1d4a; --dunkel:#183a91; --blau:#2563eb; --hell:#eff6ff; --linie:#e6ecf5; --grau:#64748b;
+        font-family: Inter, "Segoe UI", Arial, sans-serif; color: var(--navy); }
+  .ka * { box-sizing: border-box; }
+  .ka button { font-family: inherit; cursor: pointer; }
+  .ka a { text-decoration: none; }
+
+  .ka-kopf { position: relative; overflow: hidden; display: flex; align-items: center; gap: 18px; border-radius: 28px; padding: 26px 30px; color: #fff;
+    background: radial-gradient(circle at calc(100% - 60px) 20px, rgba(255,255,255,.12) 0 150px, transparent 150.5px), linear-gradient(135deg, #183a91 0%, #2563eb 100%);
+    box-shadow: 0 22px 50px rgba(24,58,145,.22); }
+  .ka-av { width: 66px; height: 66px; flex: none; border-radius: 20px; display: grid; place-items: center; font-size: 24px; font-weight: 900; color: #fff;
+    background: linear-gradient(135deg, #f59e0b, #ea580c); border: 2px solid rgba(255,255,255,.4); box-shadow: 0 10px 24px rgba(8,20,60,.22); }
+  .ka-kopf small { display: block; font-size: 11px; font-weight: 900; letter-spacing: .14em; text-transform: uppercase; color: rgba(219,234,254,.85); }
+  .ka-kopf h1 { margin: 2px 0 0; font-size: 30px; font-weight: 900; letter-spacing: -.02em; line-height: 1.15; color: #fff !important; }
+  .ka-kopf p { margin: 6px 0 0; font-size: 14px; font-weight: 700; color: #dbeafe; }
+  .ka-kopf p a { color: #fff; }
+  .ka-chips { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+  .ka-chip { display: inline-flex; align-items: center; padding: 4px 10px; border-radius: 999px; font-size: 12px; font-weight: 800; background: rgba(255,255,255,.16); color: #fff; }
+  .ka-stufe { margin-left: auto; flex: none; padding: 10px 16px; border-radius: 16px; background: rgba(255,255,255,.14); border: 1px solid rgba(255,255,255,.25); font-weight: 900; font-size: 15px; white-space: nowrap; }
+
+  .ka-karte { background: #fff; border: 1px solid var(--linie); border-radius: 24px; padding: 20px 22px; box-shadow: 0 14px 34px rgba(15,29,74,.07); }
+  .ka-karte h2 { margin: 0 0 14px; font-size: 18px; font-weight: 900; letter-spacing: -.02em; display: flex; align-items: center; gap: 10px; color: var(--navy); }
+  .ka-karte h2 .ka-pill { margin-left: auto; }
+  .ka-oben { margin: 16px 0; }
+
+  .ka-schritte { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); }
+  .ka-st { position: relative; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 6px; padding: 0 4px; }
+  .ka-st::before { content: ""; position: absolute; top: 19px; left: -50%; width: 100%; height: 4px; background: #e2e8f0; }
+  .ka-st:first-child::before { display: none; }
+  .ka-st.ok::before { background: #10b981; }
+  .ka-st.akt::before { background: linear-gradient(90deg, #10b981, #2563eb); }
+  .ka-st.weg::before { background: repeating-linear-gradient(90deg, #cbd5e1 0 8px, transparent 8px 14px); }
+  .ka-kr { position: relative; z-index: 1; width: 42px; height: 42px; border-radius: 50%; display: grid; place-items: center; font-weight: 900; font-size: 16px;
+    background: #f1f5f9; color: #94a3b8; border: 3px solid #e2e8f0; }
+  .ka-st.ok .ka-kr { background: #10b981; border-color: #a7f3d0; color: #fff; }
+  .ka-st.akt .ka-kr { background: linear-gradient(135deg, #1d4ed8, #3b82f6); border-color: #bfdbfe; color: #fff; box-shadow: 0 0 0 6px rgba(37,99,235,.15); }
+  .ka-st.weg .ka-kr { background: #fff; border-style: dashed; border-color: #cbd5e1; }
+  .ka-st b { font-size: 13.5px; font-weight: 900; }
+  .ka-st.akt b { color: var(--blau); }
+  .ka-st i { font-style: normal; font-size: 11.5px; font-weight: 700; color: var(--grau); }
+
+  .ka-naechst { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; margin-top: 18px; padding: 16px 18px; border-radius: 20px;
+    background: linear-gradient(135deg, #eff6ff, #f8fbff); border: 1px solid #bfdbfe; }
+  .ka-naechst.rot { background: #fff1f2; border-color: #fecdd3; }
+  .ka-naechst .ic { width: 46px; height: 46px; flex: none; border-radius: 15px; display: grid; place-items: center; color: #fff; font-size: 20px; font-weight: 900;
+    background: linear-gradient(135deg, #1d4ed8, #3b82f6); }
+  .ka-naechst small { display: block; font-size: 11px; font-weight: 900; letter-spacing: .1em; text-transform: uppercase; color: #3b5bdb; }
+  .ka-naechst b { display: block; margin-top: 2px; font-size: 16px; font-weight: 900; }
+  .ka-naechst p { margin: 3px 0 0; font-size: 13px; font-weight: 700; color: #475569; }
+  .ka-knoepfe { margin-left: auto; display: flex; gap: 8px; flex-wrap: wrap; }
+  .ka-btn { display: inline-flex; align-items: center; gap: 7px; padding: 10px 14px; border: 0; border-radius: 12px; font-size: 13.5px; font-weight: 900; color: #fff;
+    background: linear-gradient(135deg, #1d4ed8, #2563eb); box-shadow: 0 10px 20px -8px rgba(37,99,235,.7); }
+  .ka-btn.hell { color: #1e3a8a; background: #fff; border: 1px solid #dbe3ef; box-shadow: none; }
+  .ka-btn.gruen { background: linear-gradient(135deg, #059669, #10b981); box-shadow: 0 10px 20px -8px rgba(5,150,105,.7); }
+  .ka-btn:disabled { opacity: .6; cursor: default; }
+
+  .ka-raster { display: grid; grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr); gap: 16px; align-items: start; }
+  .ka-rechts { display: flex; flex-direction: column; gap: 16px; }
+
+  .ka-pill { display: inline-flex; align-items: center; gap: 5px; padding: 3px 9px; border-radius: 999px; font-size: 11.5px; font-weight: 800; background: #eff6ff; color: #1d4ed8; white-space: nowrap; }
+  .ka-pill.g { background: #dcfce7; color: #15803d; } .ka-pill.r { background: #ffe4e6; color: #be123c; }
+  .ka-pill.y { background: #fef3c7; color: #92400e; } .ka-pill.v { background: #ede9fe; color: #6d28d9; } .ka-pill.grau { background: #f1f5f9; color: #64748b; }
+
+  .ka-verlauf { position: relative; margin: 0; padding: 0; list-style: none; }
+  .ka-verlauf::before { content: ""; position: absolute; left: 17px; top: 8px; bottom: 8px; width: 3px; border-radius: 3px; background: #e2e8f0; }
+  .ka-verlauf li { position: relative; display: grid; grid-template-columns: 36px minmax(0, 1fr); gap: 12px; padding-bottom: 12px; }
+  .ka-pk { position: relative; z-index: 1; width: 36px; height: 36px; border-radius: 12px; display: grid; place-items: center; font-size: 14px; font-weight: 900; color: #fff;
+    background: #94a3b8; box-shadow: 0 0 0 4px #fff; }
+  .ka-pk.leon { background: linear-gradient(135deg, #7c3aed, #a855f7); }
+  .ka-pk.tel, .ka-pk.angerufen, .ka-pk.spaeter { background: linear-gradient(135deg, #0891b2, #22d3ee); }
+  .ka-pk.interessiert, .ka-pk.anfrage, .ka-pk.start { background: linear-gradient(135deg, #6366f1, #818cf8); }
+  .ka-pk.mail { background: linear-gradient(135deg, #1d4ed8, #3b82f6); }
+  .ka-pk.besichtigung { background: linear-gradient(135deg, #059669, #10b981); }
+  .ka-pk.angebot { background: linear-gradient(135deg, #ea580c, #f59e0b); }
+  .ka-pk.vertrag { background: linear-gradient(135deg, #0f1d4a, #1e3a8a); }
+  .ka-pk.verloren { background: linear-gradient(135deg, #be123c, #fb7185); }
+  .ka-pk.notiz { background: linear-gradient(135deg, #475569, #94a3b8); }
+  .ka-pk.plan { background: #fff; color: var(--blau); border: 2px dashed #93c5fd; }
+  .ka-ein { min-width: 0; padding: 10px 14px; border-radius: 15px; background: #f8fbff; border: 1px solid var(--linie); }
+  .ka-ein.geplant { background: #fff; border-style: dashed; border-color: #bfdbfe; }
+  .ka-ein .k { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .ka-ein .k b { font-size: 14px; font-weight: 900; }
+  .ka-ein .zeit { margin-left: auto; font-size: 12px; font-weight: 800; color: var(--grau); white-space: nowrap; }
+  .ka-ein p { margin: 4px 0 0; font-size: 13px; font-weight: 600; color: #475569; line-height: 1.45; overflow-wrap: anywhere; }
+  .ka-ein .wer { display: block; margin-top: 3px; font-size: 11.5px; font-weight: 800; color: #94a3b8; }
+
+  .ka-zeile { display: flex; align-items: center; gap: 10px; padding: 10px 12px; margin-bottom: 7px; border-radius: 13px; background: #f8fbff; border: 1px solid var(--linie);
+    font-size: 13.5px; font-weight: 800; }
+  .ka-zeile .d { margin-left: auto; font-size: 12px; font-weight: 700; color: var(--grau); white-space: nowrap; }
+  .ka-zeile.leer { color: #94a3b8; border-style: dashed; background: #fff; }
+  .ka-punkt { width: 9px; height: 9px; flex: none; border-radius: 50%; }
+  .ka-info { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 14px; font-size: 13.5px; font-weight: 700; }
+  .ka-info small { display: block; font-size: 10.5px; font-weight: 900; letter-spacing: .09em; text-transform: uppercase; color: #94a3b8; }
+  .ka-info .ganz { grid-column: 1 / -1; }
+  .ka-scan { display: block; width: 100%; max-height: 180px; object-fit: cover; border-radius: 14px; margin-top: 12px; border: 1px solid var(--linie); }
+  .ka-doku { display: flex; align-items: center; gap: 10px; padding: 9px 12px; margin-bottom: 7px; border-radius: 13px; border: 1px solid var(--linie); background: #fff;
+    font-size: 13.5px; font-weight: 800; color: var(--navy); }
+  .ka-doku:hover { border-color: #bfdbfe; background: #f8fbff; }
+  .ka-doku .fi { width: 30px; height: 30px; flex: none; border-radius: 9px; display: grid; place-items: center; font-size: 10.5px; font-weight: 900; color: #fff; background: #ef4444; }
+  .ka-doku .fi.lv { background: #2563eb; } .ka-doku .fi.v { background: #0f1d4a; } .ka-doku .fi.e { background: #059669; }
+  .ka-feld { width: 100%; min-height: 70px; padding: 10px 12px; border: 1px solid #dbe3ef; border-radius: 12px; background: #f8fbff; font: inherit; font-size: 14px; font-weight: 600; color: var(--navy); resize: vertical; }
+  .ka-notiz-zeile { display: flex; gap: 8px; align-items: center; margin-top: 8px; }
+  .ka-notiz-zeile select { height: 40px; padding: 0 10px; border: 1px solid #dbe3ef; border-radius: 12px; background: #fff; font: inherit; font-weight: 800; color: var(--navy); }
+  .ka-tl-notiz { margin-top: 10px; padding: 10px 12px; border-radius: 13px; background: #fffbeb; border: 1px solid #fde68a; font-size: 13px; font-weight: 600; color: #713f12; line-height: 1.45; white-space: pre-line; overflow-wrap: anywhere; }
+  .ka-leer { padding: 14px; border-radius: 14px; background: #f8fafc; border: 1px dashed #cbd5e1; color: var(--grau); font-size: 13px; font-weight: 700; text-align: center; }
+  .ka-hinweis { margin-top: 16px; padding: 12px 14px; border-radius: 14px; background: #eff6ff; border: 1px solid #bfdbfe; color: #1e3a8a; font-size: 13px; font-weight: 700; line-height: 1.5; }
+  .ka-fehler { padding: 40px; text-align: center; font-weight: 800; color: #be123c; }
+  .ka-laden { padding: 60px; text-align: center; font-weight: 800; color: var(--grau); }
+
+  @media (max-width: 1100px) { .ka-raster { grid-template-columns: 1fr; } }
+  @media (max-width: 760px) {
+    .ka-kopf { flex-wrap: wrap; padding: 20px; border-radius: 22px; }
+    .ka-kopf h1 { font-size: 23px; }
+    .ka-stufe { margin-left: 0; }
+    .ka-schritte { grid-template-columns: repeat(3, minmax(0, 1fr)); row-gap: 16px; }
+    .ka-st:nth-child(4)::before { display: none; }
+    .ka-knoepfe { margin-left: 0; width: 100%; }
+    .ka-karte { padding: 16px; border-radius: 20px; }
+    .ka-info { grid-template-columns: 1fr; }
+    .ka-ein .zeit { margin-left: 0; width: 100%; }
+  }
+</style>
+
+<div class="ka" id="ka" data-id="{{ tid }}">
+  <div class="ka-laden">Kundenakte wird geladen …</div>
+</div>
+
+<script>
+(function () {
+  const wurzel = document.getElementById('ka');
+  const tid = Number(wurzel.dataset.id) || 0;
+  const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  // Zeiten kommen schon fertig in Berlin-Zeit vom Server („19.10.2026 · 09:27“)
+  const tagZeit = t => String(t || '');
+  const kuerzel = name => String(name || '?').replace(/\b(gmbh|ug|ag|kg|mbh|e\.?\s?k\.?|ohg|gbr|co\.?|zz|test)\b/gi, ' ').trim().split(/\s+/).filter(Boolean).slice(0, 2).map(w => w[0]).join('').toUpperCase() || '?';
+  const SYMBOL = { start: '+', anfrage: '✉', angerufen: '☎', interessiert: '★', spaeter: '⏱', besichtigung: '⌂', angebot: '€', vertrag: '✎', mail: '✉', leon: 'L', notiz: '✐', verloren: '✕', plan: '⏰', kontaktformular: '✉' };
+  const PILL = { gesendet: ['g', 'gesendet'], wartet: ['y', 'wartet auf Antwort'], fehlt: ['r', 'nicht gesendet'], offen: ['grau', 'noch nicht'] };
+  const PUNKT = { gesendet: '#10b981', wartet: '#f59e0b', fehlt: '#ef4444', offen: '#cbd5e1' };
+  let daten = null;
+
+  function knopf(k) {
+    if (k.aktion) return '<button type="button" class="ka-btn ' + esc(k.art || '') + '" data-aktion="' + esc(k.aktion) + '">' + esc(k.text) + '</button>';
+    return '<a class="ka-btn ' + esc(k.art || '') + '" href="' + esc(k.href) + '">' + esc(k.text) + '</a>';
+  }
+
+  function zeichnen() {
+    const a = daten, s = a.stamm;
+    const adresse = [s.strasse, [s.plz, s.ort].filter(Boolean).join(' ')].filter(Boolean).join(', ');
+    const kontakt = [s.ansprechpartner ? esc(s.ansprechpartner) : '', adresse ? esc(adresse) : '',
+      s.telefon ? '<a href="tel:' + esc(s.telefon.replace(/\s+/g, '')) + '">' + esc(s.telefon) + '</a>' : '',
+      s.email ? '<a href="mailto:' + esc(s.email) + '">' + esc(s.email) + '</a>' : ''].filter(Boolean).join(' · ');
+    const aktiv = a.schritte.findIndex(x => x.zustand === 'akt');
+    let h = '';
+    h += '<section class="ka-kopf" data-kg-skip><div class="ka-av">' + esc(kuerzel(s.firma)) + '</div><div style="min-width:0">' +
+      '<small>Kundenakte · alles zu einer Firma an einem Ort</small><h1>' + esc(s.firma || 'Ohne Firma') + '</h1>' +
+      (kontakt ? '<p>' + kontakt + '</p>' : '') + '<div class="ka-chips">' +
+      (s.quelle ? '<span class="ka-chip">Quelle: ' + esc(s.quelle) + '</span>' : '') +
+      (s.seit ? '<span class="ka-chip">Seit ' + esc(s.seit) + '</span>' : '') +
+      (s.in_tagesliste ? '<span class="ka-chip">Heute in der Tagesliste</span>' : '') +
+      (a.verloren ? '<span class="ka-chip" style="background:#be123c">Kein Interesse</span>' : '') +
+      '</div></div><div class="ka-stufe">Schritt ' + ((aktiv >= 0 ? aktiv : a.stufe) + 1) + ' von 6</div></section>';
+
+    h += '<div class="ka-karte ka-oben"><div class="ka-schritte">' + a.schritte.map((x, i) =>
+      '<div class="ka-st ' + esc(x.zustand) + '"><div class="ka-kr">' + (x.zustand === 'ok' ? '✓' : x.zustand === 'weg' ? '–' : (i + 1)) + '</div><b>' + esc(x.name) + '</b><i>' + esc(x.text) + '</i></div>').join('') + '</div>';
+    const n = a.naechst;
+    h += '<div class="ka-naechst' + (a.verloren ? ' rot' : '') + '"><div class="ic">➜</div><div style="min-width:0"><small>Nächster Schritt</small><b>' + esc(n.titel) + '</b><p>' + esc(n.text) + '</p></div>' +
+      '<div class="ka-knoepfe">' + (n.knoepfe || []).map(knopf).join('') + '</div></div></div>';
+
+    h += '<div class="ka-raster"><div class="ka-karte"><h2>Verlauf <span class="ka-pill">neueste oben</span></h2>';
+    if (a.verlauf.length) {
+      h += '<ul class="ka-verlauf">' + a.verlauf.map(v => '<li><div class="ka-pk ' + esc(v.art) + '">' + esc(SYMBOL[v.art] || '•') + '</div><div class="ka-ein' + (v.geplant ? ' geplant' : '') + '">' +
+        '<div class="k"><b>' + esc(v.titel) + '</b>' + (v.chips || []).map(c => '<span class="ka-pill ' + esc(c.farbe || '') + '">' + esc(c.text) + '</span>').join('') +
+        '<span class="zeit">' + (v.geplant ? 'ab ' : '') + esc(v.zeit_text) + '</span></div>' +
+        (v.text ? '<p>' + esc(v.text) + '</p>' : '') + (v.wer ? '<span class="wer">' + esc(v.wer) + '</span>' : '') + '</div></li>').join('') + '</ul>';
+    } else {
+      h += '<div class="ka-leer">Noch keine Einträge.</div>';
+    }
+    h += '</div><div class="ka-rechts">';
+
+    h += '<div class="ka-karte"><h2>Mails <span class="ka-pill grau">' + a.mails.length + '</span></h2>';
+    h += a.mails.length ? a.mails.map(m => {
+      const p = PILL[m.status] || PILL.offen;
+      return '<div class="ka-zeile' + (m.status === 'offen' ? ' leer' : '') + '"><span class="ka-punkt" style="background:' + (PUNKT[m.status] || '#cbd5e1') + '"></span>' + esc(m.titel) +
+        '<span class="d">' + esc(m.zeit || '–') + '</span><span class="ka-pill ' + p[0] + '">' + p[1] + '</span></div>';
+    }).join('') : '<div class="ka-leer">Noch keine Mail über KG-Mail an diese Firma.</div>';
+    h += '</div>';
+
+    const b = a.besichtigung;
+    h += '<div class="ka-karte"><h2>Besichtigung ' + (b && b.gespeichert ? '<span class="ka-pill g">sicher gespeichert</span>' : b ? '<span class="ka-pill v">Angaben von Leon</span>' : '') + '</h2>';
+    if (b) {
+      h += '<div class="ka-info">' +
+        '<div><small>Fläche</small>' + (b.m2 ? esc(String(b.m2).replace('.', ',')) + ' m²' : '–') + (b.anzahl_raeume ? ' (' + b.anzahl_raeume + ' Räume)' : '') + '</div>' +
+        '<div><small>Häufigkeit</small>' + esc(b.haeufigkeit || '–') + '</div>' +
+        '<div class="ganz"><small>Bereiche</small>' + esc(b.bereiche.join(', ') || '–') + '</div>' +
+        '<div><small>Zeiten</small>' + esc(b.zeiten.join(', ') || '–') + '</div>' +
+        '<div><small>KG Scan</small>' + (b.scan ? 'vorhanden' : '–') + '</div>' +
+        (b.gespeichert_am ? '<div class="ganz"><small>Zuletzt gespeichert</small>' + esc(tagZeit(b.gespeichert_am)) + (b.versionen > 1 ? ' · ' + b.versionen + ' Stände gesichert' : '') + '</div>' : '') +
+        '</div>' + (b.scan_bild ? '<img class="ka-scan" src="' + esc(b.scan_bild) + '" alt="KG Scan" onerror="this.remove()">' : '');
+    } else {
+      h += '<div class="ka-leer">Noch keine Besichtigung gespeichert.</div>';
+    }
+    h += '</div>';
+
+    const an = a.angebot;
+    if (an) {
+      h += '<div class="ka-karte"><h2>Angebot ' + (an.nr ? '<span class="ka-pill y">AN-' + esc(an.nr) + '</span>' : '<span class="ka-pill grau">Entwurf</span>') + '</h2>';
+      h += an.positionen.length ? an.positionen.map(p => '<div class="ka-zeile"><span style="min-width:0">' + esc(p.text || 'Leistung') + '</span><span class="d">' + esc(p.einheit) + '</span>' +
+        (p.preis ? '<span class="ka-pill y">' + esc(p.preis) + '</span>' : '') + '</div>').join('') : '<div class="ka-leer">Noch keine Leistungen eingetragen.</div>';
+      if (an.datum) h += '<div class="ka-info" style="margin-top:6px"><div><small>Fertig seit</small>' + esc(tagZeit(an.datum)) + '</div><div><small>Netto (monatlich)</small>' + esc(an.netto || '–') + '</div></div>';
+      h += '</div>';
+    }
+
+    h += '<div class="ka-karte"><h2>Dokumente</h2>';
+    const doks = [];
+    doks.push('<a class="ka-doku" href="/angebot/editor?id=' + tid + '"><span class="fi e">ED</span>Angebot-Editor</a>');
+    if (an && an.nr) {
+      doks.push('<a class="ka-doku" href="/angebotvorlage?angebot_id=' + tid + '" target="_blank" rel="noopener"><span class="fi">PDF</span>Angebot AN-' + esc(an.nr) + '</a>');
+    }
+    if (an || (b && b.gespeichert)) doks.push('<a class="ka-doku" href="/leistungsverzeichnis?angebot_id=' + tid + '" target="_blank" rel="noopener"><span class="fi lv">LV</span>Leistungsverzeichnis</a>');
+    if (a.vertrag) doks.push('<a class="ka-doku" href="/vertrag/editor?angebot=' + tid + '"><span class="fi v">VT</span>Vertrag (' + esc(a.vertrag.status === 'gesendet' ? 'gesendet' : 'wartet') + ')</a>');
+    else doks.push('<div class="ka-zeile leer"><span class="ka-punkt" style="background:#cbd5e1"></span>Vertrag – kommt nach „Angenommen"</div>');
+    h += doks.join('') + '</div>';
+
+    h += '<div class="ka-karte"><h2>Notizen</h2><textarea class="ka-feld" id="kaNotiz" placeholder="Notiz schreiben …"></textarea>' +
+      '<div class="ka-notiz-zeile"><select id="kaVon"><option>Damla</option><option>Murat</option></select><button type="button" class="ka-btn" id="kaNotizOk">Notiz speichern</button></div>' +
+      (a.tl_notizen.length ? '<div class="ka-tl-notiz"><b style="display:block;margin-bottom:4px">Aus der Tagesliste</b>' + esc(a.tl_notizen.join('\n')) + '</div>' : '') + '</div>';
+    h += '</div></div>';
+    h += '<div class="ka-hinweis">Alles hier wird automatisch eingetragen und bleibt gespeichert – auch wenn die Tagesliste nachts geleert wird. Mails erscheinen, wenn sie über KG-Mail an die E-Mail-Adresse dieser Firma gehen.</div>';
+    wurzel.innerHTML = h;
+
+    const von = document.getElementById('kaVon');
+    try { const v = localStorage.getItem('kgAkteVon'); if (v) von.value = v; } catch (e) {}
+    von.addEventListener('change', () => { try { localStorage.setItem('kgAkteVon', von.value); } catch (e) {} });
+    document.getElementById('kaNotizOk').addEventListener('click', notizSpeichern);
+    wurzel.querySelectorAll('[data-aktion="angenommen"]').forEach(btn => btn.addEventListener('click', angenommen));
+  }
+
+  async function laden() {
+    try {
+      const r = await fetch('/api/akte/' + tid, { credentials: 'same-origin' });
+      const d = await r.json();
+      if (!d.ok) throw new Error(d.error || 'Nicht gefunden.');
+      daten = d;
+      document.title = (d.stamm.firma || 'Kundenakte') + ' – Kundenakte';
+      zeichnen();
+    } catch (e) {
+      wurzel.innerHTML = '<div class="ka-karte ka-fehler">' + esc(e.message || 'Kundenakte konnte nicht geladen werden.') + '</div>';
+    }
+  }
+
+  async function notizSpeichern() {
+    const feld = document.getElementById('kaNotiz');
+    const text = feld.value.trim();
+    if (!text) { feld.focus(); return; }
+    const btn = document.getElementById('kaNotizOk');
+    btn.disabled = true;
+    try {
+      const r = await fetch('/api/akte/' + tid + '/notiz', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text, von: document.getElementById('kaVon').value }) });
+      const d = await r.json();
+      if (!d.ok) throw new Error(d.error || 'Fehler');
+      await laden();
+    } catch (e) {
+      alert('Notiz konnte nicht gespeichert werden: ' + (e.message || e));
+      btn.disabled = false;
+    }
+  }
+
+  async function angenommen(ev) {
+    if (!confirm('Angebot als angenommen markieren? Danach wird der Vertrag vorbereitet.')) return;
+    ev.currentTarget.disabled = true;
+    try {
+      const r = await fetch('/api/vertrag-editor/bestaetigen', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tagesliste_id: tid }) });
+      const d = await r.json();
+      if (!d.ok) throw new Error(d.error || 'Fehler');
+      window.location.href = '/vertrag/editor?angebot=' + tid;
+    } catch (e) {
+      alert('Hat nicht geklappt: ' + (e.message || e));
+      ev.currentTarget.disabled = false;
+    }
+  }
+
+  laden();
+})();
+</script>
+{% endblock %}

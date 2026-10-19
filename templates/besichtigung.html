@@ -2761,6 +2761,7 @@ function renderBesichtigungTermine() {
       <div class="besichtigung-termin-line">✉ ${escapeHtml(email)}</div>
       <button type="button" class="besichtigung-start-btn" onclick="startBesichtigung(${index})">Start</button>
       <a class="besichtigung-start-btn" style="display:block;margin-top:8px;text-align:center;text-decoration:none;background:linear-gradient(135deg,#047857,#10b981)" href="/angebot/editor?id=${Number(lead.id) || 0}">Angebot erstellen</a>
+      <a class="besichtigung-start-btn" style="display:block;margin-top:8px;text-align:center;text-decoration:none;background:linear-gradient(135deg,#183a91,#2563eb)" href="/akte/${Number(lead.id) || 0}">Kundenakte</a>
     `;
 
     list.appendChild(card);

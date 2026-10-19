@@ -265,6 +265,7 @@ a.kgae-knopf { display: inline-block; text-decoration: none; }
                     <button type="button" class="kgae-knopf hell kgae-nur-schmal" id="kgveVorschauAuf">Vorschau ansehen</button>
                     <button type="button" class="kgae-knopf hell" id="kgveSpeichern">Entwurf speichern</button>
                     <button type="button" class="kgae-knopf hell kgve-weg" id="kgveLoeschen" hidden>Aus der Liste nehmen</button>
+                    <button type="button" class="kgae-knopf hell" id="kgveAkte" hidden title="Alles zu dieser Firma: Verlauf, Mails, Besichtigung, Notizen">Kundenakte</button>
                     <div class="rechts">
                         <button type="button" class="kgae-knopf hell" id="kgvePdf">PDF ansehen</button>
                         <button type="button" class="kgae-knopf hell" id="kgveLaden">PDF herunterladen</button>
@@ -469,6 +470,7 @@ a.kgae-knopf { display: inline-block; text-decoration: none; }
             }).catch(e => { $('kgveGespeichert').textContent = 'nicht gespeichert'; if (!still) meldung('fehler', 'Nicht gespeichert: ' + esc(e.message)); return false; });
     }
     $('kgveSpeichern').addEventListener('click', () => speichern(false));
+    $('kgveAkte').addEventListener('click', () => { if (aktuell && aktuell.tagesliste_id) location.href = '/akte/' + aktuell.tagesliste_id; });
 
     function anzeigen(d, quelle) {
         aktuell = { id: d.id || 0, tagesliste_id: d.tagesliste_id || 0, status: d.status || 'neu', angebot_nr: d.angebot_nr || '' };
@@ -479,6 +481,7 @@ a.kgae-knopf { display: inline-block; text-decoration: none; }
         st.textContent = aktuell.status === 'gesendet' ? 'verschickt' + (d.gesendet_am ? ' am ' + new Date(d.gesendet_am).toLocaleDateString('de-DE') : '') + (d.gesendet_an ? ' an ' + d.gesendet_an : '') : 'wartet auf Versand';
         $('kgveGespeichert').textContent = d.geaendert_am ? 'gespeichert ' + new Date(d.geaendert_am).toLocaleString('de-DE', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : '';
         $('kgveLoeschen').hidden = !aktuell.id;
+        $('kgveAkte').hidden = !aktuell.tagesliste_id;
         felderSetzen(d.felder);
         summen(felderLesen());
         meldung('', '');
