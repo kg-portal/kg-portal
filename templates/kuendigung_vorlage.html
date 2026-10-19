@@ -4,8 +4,9 @@
 <meta charset="utf-8">
 <title>Kündigung {{ vorname }} {{ nachname }}</title>
 <!-- Vorlage: Kündigung eines Arbeitsverhältnisses (Arbeitgeber → Mitarbeiter), eine A4-Seite.
-     Variablen: logo, anrede (Frau/Herr), vorname, nachname, strasse, plz, ort, datum, beginn (Vertragsbeginn),
-     ende (Beendigung zum), vertrag (z. B. „Arbeitsverhältnis“, „Aushilfsarbeitsvertrag“), hinweis_afa (true/false), empfang (true/false).
+     Text wie die bisherige KG-Kündigung: „Kündigung des Aushilfsarbeitsvertrags … Entsprechend dem Paragraph 1.6 …“.
+     Variablen: logo, anrede (Frau/Herr), vorname, nachname, strasse, plz, ort, datum, beginn (Vertragsbeginn), ende (Beendigung zum),
+     paragraph (Kündigungs-Paragraph im Vertrag, Standard 1.6); wahlweise hinweis_afa, empfang (true/false).
      Wichtig: Eine Kündigung braucht die Schriftform – ausdrucken und mit Originalunterschrift übergeben (§ 623 BGB). -->
 <style>
   @page { size: A4; margin: 0; }
@@ -51,18 +52,17 @@
 
   <div class="datum">Duisburg, {{ datum }}</div>
 
-  <div class="betreff">Kündigung {{ 'des ' ~ vertrag if vertrag and vertrag != 'Arbeitsverhältnis' else 'Ihres Arbeitsverhältnisses' }}</div>
+  <div class="betreff">Kündigung des Aushilfsarbeitsvertrags</div>
 
   <div class="text">
     <p>{{ 'Sehr geehrte Frau' if anrede == 'Frau' else ('Sehr geehrter Herr' if anrede == 'Herr' else 'Guten Tag') }} {{ nachname }},</p>
-    <p>hiermit kündigen wir das mit Ihnen bestehende {{ vertrag or 'Arbeitsverhältnis' }}{% if beginn %} vom {{ beginn }}{% endif %} ordentlich und fristgerecht
-       zum {{ ende }}, hilfsweise zum nächstmöglichen Zeitpunkt.</p>
+    <p>hiermit kündige ich den mit Ihnen bestehenden Aushilfsarbeitsvertrag{% if beginn %} vom {{ beginn }}{% endif %}<br>zum {{ ende }}.<br>
+       Entsprechend dem Paragraph {{ paragraph or '1.6' }} von unserem Aushilfsarbeitsvertrag ist die Kündigung gültig.</p>
     {% if hinweis_afa %}
     <p>Wir weisen Sie darauf hin, dass Sie verpflichtet sind, sich spätestens drei Monate vor Beendigung des Arbeitsverhältnisses –
        liegen zwischen Erhalt der Kündigung und Beendigung weniger als drei Monate, innerhalb von drei Tagen nach Erhalt –
        bei der Agentur für Arbeit arbeitsuchend zu melden (§ 38 Abs. 1 SGB III).</p>
     {% endif %}
-    <p>Für Ihre Mitarbeit bedanken wir uns und wünschen Ihnen für die Zukunft alles Gute.</p>
   </div>
 
   <div class="gruss">Mit freundlichen Grüßen</div>
