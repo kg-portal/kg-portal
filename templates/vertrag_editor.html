@@ -183,6 +183,12 @@ a.kgae-knopf { display: inline-block; text-decoration: none; }
     background: linear-gradient(135deg, #f97316, #c2410c); color: #fff; font: inherit; font-size: 14px; font-weight: 900; box-shadow: 0 10px 20px -10px rgba(194, 65, 12, .75); }
 .kgve-schluessel button:hover { filter: brightness(1.05); }
 .kgve-schluessel small { font-size: 12.5px; font-weight: 700; color: #64748b; }
+/* Schlüsselübergabe-Termin für die Vertrag-Mail */
+.kgve-sue { margin-top: 12px; padding: 12px 14px; border-radius: 14px; background: #fff7ed; border: 1px solid #fed7aa; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.kgve-sue label { margin: 0; font-size: 13px; font-weight: 800; color: #9a3412; text-transform: none; letter-spacing: 0; }
+.kgve-sue select, .kgve-sue input { width: auto; min-width: 110px; height: 40px; }
+.kgve-sue input { width: 150px; }
+.kgve-sue .warn { font-size: 12.5px; font-weight: 800; color: #b91c1c; }
 .kgve-tage button { min-width: 46px; padding: 8px 10px; border: 1.5px solid var(--rand); border-radius: 11px; background: #f8fafc; color: #334155; font: inherit; font-size: 13px; font-weight: 900; cursor: pointer; }
 .kgve-tage button.an { background: linear-gradient(135deg, var(--b1), var(--b3)); border-color: var(--b2); color: #fff; box-shadow: 0 8px 16px -10px rgba(30, 64, 175, .9); }
 /* Uhrzeit je Wochentag (+ „oder“) – erzeugt die Texte für § 3 */
@@ -247,6 +253,12 @@ a.kgae-knopf { display: inline-block; text-decoration: none; }
                         <div class="kgae-f w3"><label for="kgve_telefon">Telefon</label><input class="kgae-in" id="kgve_telefon" data-feld="telefon" inputmode="tel"></div>
                     </div>
                     <div class="kgve-schluessel"><button type="button" id="kgveSchluessel">🔑 Schlüsselübergabeprotokoll</button><small>öffnet das Protokoll mit diesen Kundendaten</small></div>
+                    <div class="kgve-sue">
+                        <label for="kgve_schluessel">Schlüsselübergabeprotokoll in der Vertrag-Mail</label>
+                        <select class="kgae-in" id="kgve_schluessel" data-feld="schluessel"><option value="">Nein</option><option value="ja">Ja</option></select>
+                        <span id="kgveSueDatumBox" hidden><label for="kgve_schluessel_datum">am</label> <input class="kgae-in" id="kgve_schluessel_datum" data-feld="schluessel_datum" placeholder="TT.MM.JJJJ"></span>
+                        <span class="warn" id="kgveSueWarn" hidden>Datum fehlt – der Satz kommt erst mit Datum in die Mail.</span>
+                    </div>
                 </div>
 
                 <div class="kgae-karte">
@@ -389,6 +401,13 @@ a.kgae-knopf { display: inline-block; text-decoration: none; }
         tageAusText();
         planLaden();
         if (!$('kgve_probezeit').value) $('kgve_probezeit').value = '1 Monat';  // ältere Entwürfe ohne Probezeit = 1 Monat wie bisher
+        sueZeigen();
+    }
+    // Schlüsselübergabe in der Vertrag-Mail: bei „Ja“ Datum zeigen; ohne Datum kommt der Satz nicht in die Mail
+    function sueZeigen() {
+        const ja = $('kgve_schluessel').value === 'ja';
+        $('kgveSueDatumBox').hidden = !ja;
+        $('kgveSueWarn').hidden = !ja || !!$('kgve_schluessel_datum').value.trim();
     }
     function felderLesen() {
         const f = {};
@@ -501,6 +520,9 @@ a.kgae-knopf { display: inline-block; text-decoration: none; }
         textAusPlan();
     });
     $('kgve_wochentage').addEventListener('input', () => { tageAusText(); uhrenZeichnen(); planSpeichern(); });
+
+    $('kgve_schluessel').addEventListener('change', sueZeigen);
+    $('kgve_schluessel_datum').addEventListener('input', sueZeigen);
 
     // Schlüsselübergabeprotokoll mit den Kundendaten aus dem Formular (neuer Tab, nichts wird gespeichert)
     $('kgveSchluessel').addEventListener('click', () => {

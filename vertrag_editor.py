@@ -20,7 +20,8 @@ EINHEITEN = ae.EINHEITEN
 MWST = ae.MWST
 TAGE = [("Mo", "Montag", "montags"), ("Di", "Dienstag", "dienstags"), ("Mi", "Mittwoch", "mittwochs"),
         ("Do", "Donnerstag", "donnerstags"), ("Fr", "Freitag", "freitags"), ("Sa", "Samstag", "samstags"), ("So", "Sonntag", "sonntags")]
-FELDER = ("firma", "ansprechpartner", "adresse", "plz", "ort", "email", "telefon", "startdatum", "wochentage", "zeiten", "datum", "zeitplan", "probezeit")
+FELDER = ("firma", "ansprechpartner", "adresse", "plz", "ort", "email", "telefon", "startdatum", "wochentage", "zeiten", "datum", "zeitplan", "probezeit",
+          "schluessel", "schluessel_datum")
 PROBEZEITEN = ("1 Monat", "2 Monate", "3 Monate")
 BUERO_ORT = "Duisburg"  # Verträge werden im KG-Büro Duisburg erstellt
 
@@ -440,4 +441,5 @@ def register_vertrag_editor(app, login_required, get_db_connection):
         f = z["felder"]
         return render_template("vertrag_mail.html", vertrag_id=z["id"], empfaenger=f["email"], firma=f["firma"],
                                ansprechpartner=f["ansprechpartner"], adresse=f["adresse"], ort=" ".join(x for x in (f["plz"], f["ort"]) if x),
-                               startdatum=f["startdatum"], hat_lv=bool(z["tagesliste_id"]))
+                               startdatum=f["startdatum"], hat_lv=bool(z["tagesliste_id"]),
+                               schluessel_datum=f["schluessel_datum"] if f["schluessel"] == "ja" else "")
