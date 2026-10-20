@@ -846,7 +846,7 @@ def akte(conn, tid):
             kalk["prozent"] = round(_zahl(e.get("prozent")), 1)
             kalk["stunden"] = round(_zahl(e.get("stunden")), 1)
     positionen = []
-    for p in (ef.get("positionen") or [])[:4]:
+    for p in (ef.get("positionen") or [])[:8]:  # Angebot: Leistung 1–8
         if isinstance(p, dict) and (_txt(p.get("text")) or _zahl(p.get("preis"))):
             positionen.append({"text": _txt(p.get("text")), "einheit": _txt(p.get("einheit")), "preis": _euro(_zahl(p.get("preis"))) if _zahl(p.get("preis")) else ""})
     stamm = {k: feld(k) for k in ("firma", "ansprechpartner", "strasse", "plz", "ort", "telefon", "email", "website", "branche")}

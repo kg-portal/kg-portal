@@ -376,6 +376,13 @@ body {
     min-width: 190px;
 }
 
+/* mehr als 4 Leistungen (5–8): Zeilen enger, damit alles auf Seite 3 passt */
+.page3 .leistungs-list.kompakt { margin-top: 10px; gap: 5px; }
+.page3 .leistungs-list.kompakt .leistung-row { padding: 5px 12px; border-radius: 8px; line-height: 1.3; }
+.page3 .leistungs-list.kompakt .info-line { margin-top: 4px; }
+.page3 .leistungs-list.kompakt + .meta-section { margin-top: 12px; }
+.page3 .leistungs-list.kompakt ~ .company-box { margin-top: 16px; }
+
 .page3 .info-line {
     text-align: right;
     margin-top: 10px;
@@ -783,7 +790,7 @@ body {
 
                 <p>Gerne unterbreiten wir Ihnen das gewünschte Angebot:</p>
 
-                <div class="leistungs-list">
+                <div class="leistungs-list{% if Leistung_5 is defined %} kompakt{% endif %}">
                 <div class="leistung-row">
     <div>Leistung 1: {{Leistung_1 or "-"}}</div>
     <div class="right">{{Einheiten_1 or "-"}} &nbsp;&nbsp;&nbsp; {{Preis_1 or "-"}}</div>
@@ -803,6 +810,30 @@ body {
     <div>Leistung 4: {{Leistung_4 or "-"}}</div>
     <div class="right">{{Einheiten_4 or "-"}} &nbsp;&nbsp;&nbsp; {{Preis_4 or "-"}}</div>
 </div>
+{% if Leistung_5 is defined %}
+<div class="leistung-row">
+    <div>Leistung 5: {{Leistung_5 or "-"}}</div>
+    <div class="right">{{Einheiten_5 or "-"}} &nbsp;&nbsp;&nbsp; {{Preis_5 or "-"}}</div>
+</div>
+{% endif %}
+{% if Leistung_6 is defined %}
+<div class="leistung-row">
+    <div>Leistung 6: {{Leistung_6 or "-"}}</div>
+    <div class="right">{{Einheiten_6 or "-"}} &nbsp;&nbsp;&nbsp; {{Preis_6 or "-"}}</div>
+</div>
+{% endif %}
+{% if Leistung_7 is defined %}
+<div class="leistung-row">
+    <div>Leistung 7: {{Leistung_7 or "-"}}</div>
+    <div class="right">{{Einheiten_7 or "-"}} &nbsp;&nbsp;&nbsp; {{Preis_7 or "-"}}</div>
+</div>
+{% endif %}
+{% if Leistung_8 is defined %}
+<div class="leistung-row">
+    <div>Leistung 8: {{Leistung_8 or "-"}}</div>
+    <div class="right">{{Einheiten_8 or "-"}} &nbsp;&nbsp;&nbsp; {{Preis_8 or "-"}}</div>
+</div>
+{% endif %}
                     <div class="info-line">
                         zzgl. gesetzlicher MwSt.
                     </div>
