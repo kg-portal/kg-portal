@@ -109,6 +109,7 @@ const miniData={
     modus:"vertrag",
     vertragId:{{ vertrag_id|default(0)|tojson }},
     startdatum:{{ startdatum|default('')|tojson }},
+    schluesselDatum:{{ schluessel_datum|default('')|tojson }},
     hatLv:{{ 'true' if hat_lv else 'false' }}
 };
 
@@ -152,6 +153,10 @@ const vertragHtml=`
 
 <p>Bitte prüfen Sie den Vertrag, unterschreiben Sie ihn auf Seite 4 und senden Sie uns die unterschriebene Fassung gerne per E-Mail zurück.</p>
 ${start?'<p>Der Vertrag tritt ab dem <strong>'+start+'</strong> in Kraft.</p>':''}
+<p>Übrigens:<br>Die Zahlung kann gern auch bequem per SEPA-Lastschrift erfolgen.<br>Rund 70 % unserer Kunden nutzen diese Möglichkeit, da sie besonders praktisch ist - Sie müssen sich dann um keine Überweisung mehr kümmern.<br>Wenn Sie dies ebenfalls wünschen, können Sie das SEPA-Lastschriftmandat ganz einfach über den folgenden Link erteilen:</p>
+<p><br></p>
+<p>Falls Sie für Rechnungen eine separate E-Mail-Adresse nutzen, teilen Sie uns diese bitte kurz mit. Wir hinterlegen sie in unserem System und senden Ihnen die Rechnungen künftig direkt dorthin.</p>
+${miniData.schluesselDatum?'<p>Das Schlüsselübergabeprotokoll können wir gerne am <strong>'+escapeHtml(safeText(miniData.schluesselDatum))+'</strong> vor Ort durchführen.</p>':''}
 <p>Bei Fragen stehen wir Ihnen selbstverständlich jederzeit gerne zur Verfügung.</p>
 
 <p>Wir freuen uns auf eine erfolgreiche und langfristige Zusammenarbeit.</p>
@@ -389,7 +394,9 @@ async function preloadAngebotPdfAttachments(){
         setStatus(err.message || 'PDF-Anhänge konnten nicht erstellt werden.','err');
     }
 }
-async function sendMiniMail(){const kgPrintWindow=window.open('','_blank','width=900,height=1100');const messageBox=document.getElementById('mailMessage');let messageHtml=messageBox.innerHTML||'';messageHtml=messageHtml.replace(/src="[^"]*KG%20Yeni%20Logo\.png"/g,'src="cid:kg-logo"');messageHtml=messageHtml.replace(/src="[^"]*KG Yeni Logo\.png"/g,'src="cid:kg-logo"');const messageText=messageBox.innerText||'';let automaticAttachments=[];try{
+// Vertrag-Mail: SEPA-Absatz ohne eingefügten Link → vor dem Senden nachfragen
+function sepaLinkOk(){const t=(document.getElementById('mailMessage').innerText||'');const i=t.indexOf('über den folgenden Link erteilen:');if(i<0)return true;if(/https?:\/\/\S+/i.test(t.slice(i,i+600)))return true;return window.confirm('SEPA-Link fehlt – trotzdem senden?');}
+async function sendMiniMail(){if(!sepaLinkOk())return;const kgPrintWindow=window.open('','_blank','width=900,height=1100');const messageBox=document.getElementById('mailMessage');let messageHtml=messageBox.innerHTML||'';messageHtml=messageHtml.replace(/src="[^"]*KG%20Yeni%20Logo\.png"/g,'src="cid:kg-logo"');messageHtml=messageHtml.replace(/src="[^"]*KG Yeni Logo\.png"/g,'src="cid:kg-logo"');const messageText=messageBox.innerText||'';let automaticAttachments=[];try{
 const kontaktAttachments=await getKontaktformularAttachments();
 const angebotAttachments=await getAngebotPdfAttachments();
 automaticAttachments=[...kontaktAttachments,...angebotAttachments];
