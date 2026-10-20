@@ -156,15 +156,20 @@ def _netto_mwst(p):
     return netto, round(brutto - netto, 2)
 
 
+def _hat_text(t):
+    """„-“, „–“ oder „.“ allein zählt als leer (Platzhalter-Striche in leeren Leistungszeilen)."""
+    return bool(re.sub(r"[\s\-–—.]+", "", _txt(t)))
+
+
 def vorlage_vars(f):
     """Formular → Platzhalter der Vertragsvorlage ({{Objekt}}, {{Kunde}}, … wie in Vertrag_Vorlage)."""
-    pos = [p for p in f["positionen"] if p["text"] or _zahl(p["preis"])]
+    pos = [p for p in f["positionen"] if _hat_text(p["text"]) or _zahl(p["preis"])]
     return {
         "Objekt": f["firma"], "Kunde": f["ansprechpartner"], "Adresse": f["adresse"], "Plz": f["plz"], "Ort": f["ort"],
         "Datum": f["datum"] or _heute(), "Startdatum": f["startdatum"], "Wochentagen": f["wochentage"], "Zeiten": f["zeiten"],
         "Probezeit": f["probezeit"] if f["probezeit"] in PROBEZEITEN else PROBEZEITEN[0],
         "BueroOrt": BUERO_ORT,  # Ort der Erstellung (oben rechts) und Unterschrift Auftragnehmer; Auftraggeber unterschreibt mit seinem Ort
-        "leistungen_satz": [p["text"] for p in f["positionen"][:3] if p["text"]],
+        "leistungen_satz": [p["text"] for p in f["positionen"][:3] if _hat_text(p["text"])],
         "preise": [{"Leistung": p["text"], "Einheiten": p["einheit"], "Preis": _euro(_zahl(p["preis"])) if _zahl(p["preis"]) else "",
                     "Netto": _euro(_netto_mwst(p)[0]) if _zahl(p["preis"]) else "", "MwSt": _euro(_netto_mwst(p)[1]) if _zahl(p["preis"]) else ""}
                    for p in pos],
