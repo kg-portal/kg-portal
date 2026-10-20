@@ -184,6 +184,12 @@ a.kgae-knopf { display: inline-block; text-decoration: none; }
 .kgve-schluessel button:hover { filter: brightness(1.05); }
 .kgve-schluessel small { font-size: 12.5px; font-weight: 700; color: #64748b; }
 /* Schlüsselübergabe-Termin für die Vertrag-Mail */
+.kgve-obj { margin-top: 12px; padding: 12px 14px; border-radius: 14px; background: #eff6ff; border: 1px solid #bfdbfe; }
+.kgve-obj-an { display: flex; align-items: center; gap: 9px; margin: 0; font-size: 13.5px; font-weight: 800; color: #1e3a8a; cursor: pointer; text-transform: none; letter-spacing: 0; }
+.kgve-obj-an input { width: 18px; height: 18px; margin: 0; flex: none; accent-color: #1d4ed8; }
+.kgve-obj-an small { font-size: 12px; font-weight: 700; color: #64748b; }
+#kgveObjektFelder { margin-top: 10px; }
+#kgveObjektFelder[hidden] { display: none; }
 .kgve-sue { margin-top: 12px; padding: 12px 14px; border-radius: 14px; background: #fff7ed; border: 1px solid #fed7aa; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 .kgve-sue label { margin: 0; font-size: 13px; font-weight: 800; color: #9a3412; text-transform: none; letter-spacing: 0; }
 .kgve-sue select, .kgve-sue input { width: auto; min-width: 110px; height: 40px; }
@@ -251,6 +257,15 @@ a.kgae-knopf { display: inline-block; text-decoration: none; }
                         <div class="kgae-f"><label for="kgve_ort">Ort</label><input class="kgae-in" id="kgve_ort" data-feld="ort"></div>
                         <div class="kgae-f w3"><label for="kgve_email">E-Mail (für den Versand)</label><input class="kgae-in" id="kgve_email" data-feld="email" type="email"></div>
                         <div class="kgae-f w3"><label for="kgve_telefon">Telefon</label><input class="kgae-in" id="kgve_telefon" data-feld="telefon" inputmode="tel"></div>
+                    </div>
+                    <div class="kgve-obj">
+                        <label class="kgve-obj-an"><input type="checkbox" id="kgve_objekt_an"><span>Reinigungsobjekt hat eine andere Adresse <small>(oben bleibt die Firmen- und Rechnungsadresse)</small></span></label>
+                        <input type="hidden" id="kgve_objekt_anders" data-feld="objekt_anders">
+                        <div class="kgae-felder" id="kgveObjektFelder" hidden>
+                            <div class="kgae-f w3"><label for="kgve_objekt_adresse">Objekt – Straße</label><input class="kgae-in" id="kgve_objekt_adresse" data-feld="objekt_adresse" placeholder="Adresse, an der gereinigt wird"></div>
+                            <div class="kgae-f w1"><label for="kgve_objekt_plz">PLZ</label><input class="kgae-in" id="kgve_objekt_plz" data-feld="objekt_plz" inputmode="numeric"></div>
+                            <div class="kgae-f"><label for="kgve_objekt_ort">Ort</label><input class="kgae-in" id="kgve_objekt_ort" data-feld="objekt_ort"></div>
+                        </div>
                     </div>
                     <div class="kgve-schluessel"><button type="button" id="kgveSchluessel">🔑 Schlüsselübergabeprotokoll</button><small>öffnet das Protokoll mit diesen Kundendaten</small></div>
                     <div class="kgve-sue">
@@ -402,6 +417,13 @@ a.kgae-knopf { display: inline-block; text-decoration: none; }
         planLaden();
         if (!$('kgve_probezeit').value) $('kgve_probezeit').value = '1 Monat';  // ältere Entwürfe ohne Probezeit = 1 Monat wie bisher
         sueZeigen();
+        objektZeigen();
+    }
+    // Reinigungsobjekt mit eigener Adresse (Vertrag Seite 1 „Objekt: …“, Vertrag-Mail, Schlüsselübergabe); oben bleibt die Firmenadresse
+    function objektZeigen() {
+        const an = $('kgve_objekt_anders').value === 'ja';
+        $('kgve_objekt_an').checked = an;
+        $('kgveObjektFelder').hidden = !an;
     }
     // Schlüsselübergabe in der Vertrag-Mail: bei „Ja“ Datum zeigen; ohne Datum kommt der Satz nicht in die Mail
     function sueZeigen() {
@@ -522,12 +544,20 @@ a.kgae-knopf { display: inline-block; text-decoration: none; }
     $('kgve_wochentage').addEventListener('input', () => { tageAusText(); uhrenZeichnen(); planSpeichern(); });
 
     $('kgve_schluessel').addEventListener('change', sueZeigen);
+    $('kgve_objekt_an').addEventListener('change', () => {
+        $('kgve_objekt_anders').value = $('kgve_objekt_an').checked ? 'ja' : '';
+        objektZeigen();
+        if ($('kgve_objekt_an').checked && !$('kgve_objekt_adresse').value.trim()) $('kgve_objekt_adresse').focus();
+        geaendertMelden();
+    });
     $('kgve_schluessel_datum').addEventListener('input', sueZeigen);
 
     // Schlüsselübergabeprotokoll mit den Kundendaten aus dem Formular (neuer Tab, nichts wird gespeichert)
     $('kgveSchluessel').addEventListener('click', () => {
         const p = new URLSearchParams();
-        [['firma', 'kgve_firma'], ['adresse', 'kgve_adresse'], ['plz', 'kgve_plz'], ['ort', 'kgve_ort'], ['name', 'kgve_ansprechpartner']]
+        const obj = $('kgve_objekt_anders').value === 'ja' && ($('kgve_objekt_adresse').value.trim() || $('kgve_objekt_ort').value.trim());
+        [['firma', 'kgve_firma'], ['adresse', obj ? 'kgve_objekt_adresse' : 'kgve_adresse'], ['plz', obj ? 'kgve_objekt_plz' : 'kgve_plz'],
+         ['ort', obj ? 'kgve_objekt_ort' : 'kgve_ort'], ['name', 'kgve_ansprechpartner']]
             .forEach(([k, id]) => { const v = $(id).value.trim(); if (v) p.set(k, v); });
         window.open('/schluessel/protokoll?' + p.toString(), '_blank');
     });
@@ -535,7 +565,8 @@ a.kgae-knopf { display: inline-block; text-decoration: none; }
     // ---------- Vorschau (Vertragsvorlage, 4 Seiten)
     function vorschauUrl(f) {
         const p = new URLSearchParams();
-        ['firma', 'ansprechpartner', 'adresse', 'plz', 'ort', 'email', 'telefon', 'startdatum', 'wochentage', 'zeiten', 'datum', 'probezeit'].forEach(k => p.set(k, f[k] || ''));
+        ['firma', 'ansprechpartner', 'adresse', 'plz', 'ort', 'email', 'telefon', 'startdatum', 'wochentage', 'zeiten', 'datum', 'probezeit',
+         'objekt_anders', 'objekt_adresse', 'objekt_plz', 'objekt_ort'].forEach(k => p.set(k, f[k] || ''));
         f.positionen.forEach((x, i) => { p.set('l' + (i + 1), x.text); p.set('e' + (i + 1), x.einheit); p.set('p' + (i + 1), x.preis); });
         return '/vertrag/editor/vorschau?' + p.toString();
     }
@@ -687,6 +718,7 @@ a.kgae-knopf { display: inline-block; text-decoration: none; }
             return;
         }
         Object.keys(t.felder || {}).forEach(key => { const el = document.querySelector('#kgveFormular [data-feld="' + key + '"]'); if (el) el.value = t.felder[key] || ''; });
+        objektZeigen();
         aktuell.tagesliste_id = 0;
         $('kgveQuelle').hidden = false; $('kgveQuelle').textContent = t.art === 'kunde' ? 'Bestandskunde' : t.stand;
         geaendertMelden(); schritte(2);

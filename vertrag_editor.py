@@ -21,7 +21,7 @@ MWST = ae.MWST
 TAGE = [("Mo", "Montag", "montags"), ("Di", "Dienstag", "dienstags"), ("Mi", "Mittwoch", "mittwochs"),
         ("Do", "Donnerstag", "donnerstags"), ("Fr", "Freitag", "freitags"), ("Sa", "Samstag", "samstags"), ("So", "Sonntag", "sonntags")]
 FELDER = ("firma", "ansprechpartner", "adresse", "plz", "ort", "email", "telefon", "startdatum", "wochentage", "zeiten", "datum", "zeitplan", "probezeit",
-          "schluessel", "schluessel_datum")
+          "schluessel", "schluessel_datum", "objekt_anders", "objekt_adresse", "objekt_plz", "objekt_ort")
 PROBEZEITEN = ("1 Monat", "2 Monate", "3 Monate")
 BUERO_ORT = "Duisburg"  # Verträge werden im KG-Büro Duisburg erstellt
 
@@ -179,13 +179,22 @@ def _hat_text(t):
     return bool(re.sub(r"[\s\-–—.]+", "", _txt(t)))
 
 
+def objekt_adresse(f):
+    """Adresse des Reinigungsobjekts: bei „Reinigungsobjekt hat eine andere Adresse“ die eigene, sonst die Firmenadresse."""
+    if f.get("objekt_anders") == "ja" and (f.get("objekt_adresse") or f.get("objekt_ort")):
+        return f.get("objekt_adresse", ""), f.get("objekt_plz", ""), f.get("objekt_ort", "")
+    return f["adresse"], f["plz"], f["ort"]
+
+
 def vorlage_vars(f):
     """Formular → Platzhalter der Vertragsvorlage ({{Objekt}}, {{Kunde}}, … wie in Vertrag_Vorlage)."""
     pos = [p for p in f["positionen"] if _hat_text(p["text"]) or _zahl(p["preis"])]
+    o_adresse, o_plz, o_ort = objekt_adresse(f)
     return {
         "Objekt": f["firma"], "Kunde": f["ansprechpartner"], "Adresse": f["adresse"], "Plz": f["plz"], "Ort": f["ort"],
         "Datum": f["datum"] or _heute(), "Startdatum": f["startdatum"], "Wochentagen": f["wochentage"], "Zeiten": f["zeiten"],
         "Probezeit": f["probezeit"] if f["probezeit"] in PROBEZEITEN else PROBEZEITEN[0],
+        "ObjektAdresse": o_adresse, "ObjektPlz": o_plz, "ObjektOrt": o_ort,  # Seite 1 „wird über folgendes Objekt: …“
         "BueroOrt": BUERO_ORT,  # Ort der Erstellung (oben rechts) und Unterschrift Auftragnehmer; Auftraggeber unterschreibt mit seinem Ort
         "leistungen_satz": [p["text"] for p in f["positionen"][:3] if _hat_text(p["text"])],
         "preise": [{"Leistung": p["text"], "Einheiten": p["einheit"], "Preis": _euro(_zahl(p["preis"])) if _zahl(p["preis"]) else "",
@@ -448,7 +457,8 @@ def register_vertrag_editor(app, login_required, get_db_connection):
         if not z:
             return "Vertrag nicht gefunden.", 404
         f = z["felder"]
+        o_adresse, o_plz, o_ort = objekt_adresse(f)  # „für Ihr Objekt:“ = Reinigungsobjekt
         return render_template("vertrag_mail.html", vertrag_id=z["id"], empfaenger=f["email"], firma=f["firma"],
-                               ansprechpartner=f["ansprechpartner"], adresse=f["adresse"], ort=" ".join(x for x in (f["plz"], f["ort"]) if x),
+                               ansprechpartner=f["ansprechpartner"], adresse=o_adresse, ort=" ".join(x for x in (o_plz, o_ort) if x),
                                startdatum=f["startdatum"], hat_lv=bool(z["tagesliste_id"]),
                                schluessel_datum=f["schluessel_datum"] if f["schluessel"] == "ja" else "")
