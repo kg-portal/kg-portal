@@ -120,6 +120,7 @@ body.angebot-mail-mode .angebot-choice-grid{display:grid;}
         <div class="mini-mail-actions"><button class="btn cancel" type="button" onclick="closeMiniMail()">Abbrechen</button><button class="btn send" id="sendBtn" type="button" onclick="sendMiniMail()">E-Mail senden + drucken</button></div>
     </div>
 </div>
+<script src="{{ url_for('static', filename='esign_mail.js') }}?v=1"></script>
 <script>
 const miniData={
     empfaenger:"{{ empfaenger|default('') }}",
@@ -384,7 +385,7 @@ async function preloadAngebotPdfAttachments(){
         setStatus(err.message || 'PDF-Anhänge konnten nicht erstellt werden.','err');
     }
 }
-async function sendMiniMail(){const kgPrintWindow=window.open('','_blank','width=900,height=1100');const messageBox=document.getElementById('mailMessage');let messageHtml=messageBox.innerHTML||'';messageHtml=messageHtml.replace(/src="[^"]*KG%20Yeni%20Logo\.png"/g,'src="cid:kg-logo"');messageHtml=messageHtml.replace(/src="[^"]*KG Yeni Logo\.png"/g,'src="cid:kg-logo"');const messageText=messageBox.innerText||'';let automaticAttachments=[];try{
+async function sendMiniMail(){const kgPrintWindow=window.open('','_blank','width=900,height=1100');if(window.esignVorbereiten&&!(await window.esignVorbereiten(kgPrintWindow)))return;const messageBox=document.getElementById('mailMessage');let messageHtml=messageBox.innerHTML||'';messageHtml=messageHtml.replace(/src="[^"]*KG%20Yeni%20Logo\.png"/g,'src="cid:kg-logo"');messageHtml=messageHtml.replace(/src="[^"]*KG Yeni Logo\.png"/g,'src="cid:kg-logo"');const messageText=messageBox.innerText||'';let automaticAttachments=[];try{
 const kontaktAttachments=await getKontaktformularAttachments();
 const angebotAttachments=await getAngebotPdfAttachments();
 automaticAttachments=[...kontaktAttachments,...angebotAttachments];
@@ -394,7 +395,7 @@ setStatus(fileErr.message||'Anhänge konnten nicht geladen werden.','err');
 return;
 }
 const payload={from:document.getElementById('mailFrom').value||'info@kg-reinigung.de',to:document.getElementById('mailTo').value||'',subject:document.getElementById('mailSubject').value||'',message:'​',signature:messageHtml,attachments:automaticAttachments};if(!payload.to.trim()||payload.to.includes('{{')||payload.to.includes('}}')){setStatus('Empfänger fehlt.','err');return;}if(!payload.subject.trim()){setStatus('Betreff fehlt.','err');return;}if(!messageText.trim()){setStatus('Nachricht fehlt.','err');return;}const btn=document.getElementById('sendBtn');btn.disabled=true;setStatus('E-Mail wird gesendet...','');try{const res=await fetch('/api/gmail/send',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});const data=await res.json();if(!data.ok){setStatus(data.message||'E-Mail konnte nicht gesendet werden.','err');return;}saveMailToHistory(payload.to);setStatus('E-Mail wurde erfolgreich gesendet. Druckfenster wird geöffnet...','ok');printMiniMail(kgPrintWindow);closeMiniMail();}catch(err){console.log(err);setStatus('Gmail API Sendefehler.','err');}finally{btn.disabled=false;}}
-loadMailToHistory();clearMailFields();
+if(window.esignInit)window.esignInit();loadMailToHistory();clearMailFields();
 
 if(miniData.modus==='angebot'){
 document.body.classList.add('angebot-mail-mode');

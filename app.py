@@ -89,6 +89,8 @@ def auto_login_check():
         return
     if request.path.startswith('/kundenfeedback/'):
         return
+    if request.path.startswith('/unterschrift/'):  # digitale Unterschrift: Kunde nur mit persönlichem Link (esign.py)
+        return
     
     # 2. İŞÇİ LİNKLERİ İÇİN ŞİFRE SORMADAN GEÇİŞ İZNİ
     if request.path.startswith('/stundenzettel/worker/') or request.path.startswith('/api/stundenzettel/'):
@@ -961,6 +963,13 @@ try:
     register_schluessel(app, login_required)
 except Exception as exc:
     print(f"⚠️ Schlüsselübergabe: {exc}")
+
+# Digitale Unterschrift für Angebot und Vertrag (Kunden-Link /unterschrift/<token>, Liste /unterschriften)
+try:
+    from esign import register_esign
+    register_esign(app, login_required, get_db_connection)
+except Exception as exc:
+    print(f"⚠️ Digitale Unterschrift: {exc}")
 
 # Arbeitsliste für heute (/heute): jeden Werktag als To-Do-Karte (+ WhatsApp an den Chef); der Agent antwortet dem Chef per WhatsApp
 from tagesliste import register_tagesliste

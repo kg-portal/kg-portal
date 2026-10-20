@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<meta name="referrer" content="no-referrer">
+<title>Digital unterschreiben – KG-Gebäudereinigung</title>
+<!-- Öffentliche Seite für den Kunden (ohne CRM-Login, nur mit persönlichem Link). Variablen aus esign.py:
+     zustand (offen / fertig / ungueltig), v (Vorgang), token, seiten, unterschrieben, gueltig_bis, zustimmung. -->
+<style>
+  :root { --navy: #0f1d4a; --blau: #1d4ed8; --hell: #eff6ff; --rand: #dbe3ef; --grau: #64748b; --gruen: #16a34a; --rot: #b91c1c; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: #f1f5fb; }
+  body { font-family: Inter, "Segoe UI", Roboto, Arial, sans-serif; color: var(--navy); -webkit-text-size-adjust: 100%; }
+  .kopf { position: sticky; top: 0; z-index: 5; background: #fff; border-bottom: 1px solid var(--rand); }
+  .kopf-in { max-width: 860px; margin: 0 auto; padding: 10px 16px; display: flex; align-items: center; gap: 12px; }
+  .kopf img { height: 40px; width: auto; display: block; }
+  .kopf .t { margin-left: auto; text-align: right; min-width: 0; }
+  .kopf small { display: block; font-size: 10.5px; font-weight: 900; letter-spacing: .12em; text-transform: uppercase; color: var(--grau); }
+  .kopf b { display: block; font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .band { height: 4px; background: linear-gradient(90deg, #0f1d4a 0%, #1d4ed8 70%, #ea580c 70%, #f97316 100%); }
+  main { max-width: 860px; margin: 0 auto; padding: 18px 16px 40px; }
+  h1 { margin: 4px 0 6px; font-size: 24px; line-height: 1.2; letter-spacing: -.01em; }
+  .lead { margin: 0 0 16px; font-size: 15px; line-height: 1.5; color: #334155; }
+  .karte { background: #fff; border: 1px solid var(--rand); border-radius: 18px; padding: 16px; box-shadow: 0 10px 30px -18px rgba(15,29,74,.35); }
+  .karte + .karte { margin-top: 16px; }
+  .karte h2 { margin: 0 0 12px; font-size: 13px; font-weight: 900; letter-spacing: .1em; text-transform: uppercase; color: var(--grau); }
+  .seiten { display: grid; gap: 12px; }
+  .seiten img { display: block; width: 100%; height: auto; border-radius: 8px; border: 1px solid var(--rand); background: #fff; }
+  .seiten .nr { margin: 2px 0 0; font-size: 12px; font-weight: 700; color: var(--grau); text-align: center; }
+  .pdf { display: inline-flex; align-items: center; gap: 8px; margin-top: 12px; padding: 11px 15px; border-radius: 12px; background: var(--hell); color: var(--blau);
+         font-weight: 900; font-size: 14.5px; text-decoration: none; }
+  label.f { display: block; margin: 14px 0 6px; font-size: 12px; font-weight: 900; letter-spacing: .08em; text-transform: uppercase; color: var(--grau); }
+  label.f:first-of-type { margin-top: 0; }
+  input[type=text] { width: 100%; height: 48px; padding: 0 14px; border: 1px solid var(--rand); border-radius: 12px; background: #f8fafc; font: inherit; font-size: 16px; color: var(--navy); }
+  input[type=text]:focus { outline: 2px solid #93c5fd; border-color: #93c5fd; background: #fff; }
+  .feld { position: relative; border: 2px dashed #93c5fd; border-radius: 14px; background: #fff; touch-action: none; }
+  .feld canvas { display: block; width: 100%; height: 190px; border-radius: 12px; cursor: crosshair; touch-action: none; }
+  .feld .linie { position: absolute; left: 18px; right: 18px; bottom: 44px; border-bottom: 1.5px solid #cbd5e1; pointer-events: none; }
+  .feld .x { position: absolute; left: 18px; bottom: 48px; font-weight: 800; color: #94a3b8; pointer-events: none; }
+  .feld .hinweis { position: absolute; left: 0; right: 0; bottom: 12px; text-align: center; font-size: 13px; color: #94a3b8; pointer-events: none; }
+  .feld-leiste { display: flex; justify-content: flex-end; margin-top: 6px; }
+  .feld-leiste button { border: 0; background: none; color: var(--blau); font: inherit; font-size: 14px; font-weight: 900; padding: 6px 4px; cursor: pointer; }
+  .ok-box { display: flex; gap: 10px; align-items: flex-start; margin-top: 16px; font-size: 14.5px; line-height: 1.45; cursor: pointer; }
+  .ok-box input { flex: none; width: 22px; height: 22px; margin: 1px 0 0; accent-color: var(--blau); }
+  .los { width: 100%; margin-top: 18px; height: 54px; border: 0; border-radius: 14px; font: inherit; font-size: 17px; font-weight: 900; color: #fff; cursor: pointer;
+         background: linear-gradient(135deg, #1d4ed8, #2563eb); box-shadow: 0 14px 28px -14px rgba(29,78,216,.8); }
+  .los:disabled { opacity: .6; cursor: wait; }
+  .fehler { margin-top: 12px; padding: 11px 13px; border-radius: 12px; background: #fef2f2; color: var(--rot); font-size: 14px; font-weight: 700; }
+  .klein { margin: 12px 0 0; font-size: 12.5px; line-height: 1.5; color: var(--grau); }
+  .fertig { text-align: center; padding: 26px 18px; }
+  .haken { width: 84px; height: 84px; margin: 0 auto 14px; border-radius: 50%; display: grid; place-items: center; background: var(--gruen); color: #fff; font-size: 44px;
+           box-shadow: 0 0 0 10px #dcfce7; }
+  .fertig h1 { margin-bottom: 8px; }
+  .fertig p { margin: 0 auto 6px; max-width: 460px; font-size: 15px; line-height: 1.5; color: #334155; }
+  .fertig .pdf { margin-top: 16px; background: var(--blau); color: #fff; padding: 13px 18px; }
+  .ungueltig .haken { background: #f59e0b; box-shadow: 0 0 0 10px #fef3c7; }
+  .fuss { max-width: 860px; margin: 0 auto; padding: 0 16px 30px; font-size: 12px; line-height: 1.6; color: var(--grau); text-align: center; }
+  @media (min-width: 760px) {
+    .zwei { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 16px; align-items: start; }
+    .zwei .karte + .karte { margin-top: 0; }
+    .zwei .form { position: sticky; top: 80px; }
+  }
+</style>
+</head>
+<body>
+<header class="kopf">
+  <div class="kopf-in">
+    <img src="{{ url_for('static', filename='kg_logo_farbe.png') }}" alt="KG Gebäudereinigung">
+    <div class="t"><small>Sicher unterschreiben</small><b>{{ v.titel if v else 'KG-Gebäudereinigung' }}</b></div>
+  </div>
+  <div class="band"></div>
+</header>
+
+{% if zustand == 'offen' %}
+<main>
+  <h1>Guten Tag{% if v.firma %}, {{ v.firma }}{% endif %}</h1>
+  <p class="lead">Bitte sehen Sie sich {{ 'das Angebot' if v.art == 'angebot' else 'den Reinigungsvertrag' }} in Ruhe an. Unterschreiben können Sie direkt hier – mit dem Finger, der Maus oder einem Stift.</p>
+  <div class="zwei">
+    <section class="karte">
+      <h2>{{ v.titel }}{% if seiten %} · {{ seiten }} Seiten{% endif %}</h2>
+      <div class="seiten">
+        {% for n in range(1, seiten + 1) %}
+        <div><img src="/unterschrift/{{ token }}/seite/{{ n }}.jpg" alt="Seite {{ n }}" loading="{{ 'eager' if n == 1 else 'lazy' }}"><p class="nr">Seite {{ n }} von {{ seiten }}</p></div>
+        {% endfor %}
+      </div>
+      <a class="pdf" href="/unterschrift/{{ token }}/pdf" target="_blank" rel="noopener">⤓ PDF öffnen</a>
+    </section>
+    <section class="karte form" id="formKarte">
+      <h2>{{ 'Angebot bestätigen' if v.art == 'angebot' else 'Vertrag unterschreiben' }}</h2>
+      <label class="f" for="name">Vor- und Nachname</label>
+      <input type="text" id="name" autocomplete="name" placeholder="z. B. Max Mustermann">
+      <label class="f" for="funktion">Funktion (optional)</label>
+      <input type="text" id="funktion" autocomplete="organization-title" placeholder="z. B. Geschäftsführer">
+      <label class="f">Unterschrift</label>
+      <div class="feld" id="feld">
+        <canvas id="sig" aria-label="Unterschriftsfeld"></canvas>
+        <span class="x">x</span><span class="linie"></span>
+        <span class="hinweis" id="sigHinweis">Hier mit Finger oder Maus unterschreiben</span>
+      </div>
+      <div class="feld-leiste"><button type="button" id="sigLoeschen">Löschen</button></div>
+      <label class="ok-box"><input type="checkbox" id="ok"><span>{{ zustimmung }}</span></label>
+      <button type="button" class="los" id="los">✍ Verbindlich unterschreiben</button>
+      <div class="fehler" id="fehler" hidden></div>
+      <p class="klein">Elektronische Unterschrift. Gespeichert werden Name, Unterschrift, Zeitpunkt, IP-Adresse und Gerät – nur als Nachweis dieser Unterschrift.
+        Sie erhalten das unterschriebene PDF anschließend per E-Mail. Link gültig bis {{ gueltig_bis }}.</p>
+    </section>
+  </div>
+</main>
+{% elif zustand == 'fertig' %}
+<main>
+  <section class="karte fertig">
+    <div class="haken">✓</div>
+    <h1>Vielen Dank{% if v.name %}, {{ v.name }}{% endif %}!</h1>
+    <p>{{ v.titel }} wurde am {{ unterschrieben }} elektronisch unterschrieben.</p>
+    <p>Das unterschriebene PDF haben wir Ihnen per E-Mail geschickt.</p>
+    <a class="pdf" href="/unterschrift/{{ token }}/pdf?laden=1">⤓ Unterschriebenes PDF herunterladen</a>
+  </section>
+</main>
+{% else %}
+<main>
+  <section class="karte fertig ungueltig">
+    <div class="haken">!</div>
+    <h1>Dieser Link ist nicht mehr gültig</h1>
+    <p>Der Link ist abgelaufen oder wurde durch einen neueren ersetzt. Bitte melden Sie sich kurz bei uns – wir schicken Ihnen gerne einen neuen Link.</p>
+    <p><b>0203 / 47 96 68 22</b> · <a href="mailto:info@kg-reinigung.de">info@kg-reinigung.de</a></p>
+  </section>
+</main>
+{% endif %}
+<div class="fuss">KG-Gebäudereinigung · Fliederstr. 59 · 47055 Duisburg · 0203 / 47 96 68 22 · info@kg-reinigung.de</div>
+
+{% if zustand == 'offen' %}
+<script>
+(function () {
+    const c = document.getElementById('sig'), ctx = c.getContext('2d'), feld = document.getElementById('feld');
+    let striche = [], aktiv = null, laenge = 0;
+    function groesse() {
+        const r = c.getBoundingClientRect(), d = window.devicePixelRatio || 1;
+        c.width = Math.round(r.width * d); c.height = Math.round(r.height * d);
+        ctx.setTransform(d, 0, 0, d, 0, 0); zeichnen();
+    }
+    function zeichnen() {
+        ctx.clearRect(0, 0, c.width, c.height);
+        ctx.strokeStyle = '#1e3a8a'; ctx.lineWidth = 2.6; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+        striche.forEach(s => {
+            ctx.beginPath();
+            s.forEach((p, i) => { if (i === 0) ctx.moveTo(p[0], p[1]); else ctx.lineTo(p[0], p[1]); });
+            if (s.length === 1) ctx.lineTo(s[0][0] + .1, s[0][1] + .1);
+            ctx.stroke();
+        });
+        document.getElementById('sigHinweis').style.visibility = striche.length ? 'hidden' : 'visible';
+    }
+    function punkt(e) { const r = c.getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top]; }
+    c.addEventListener('pointerdown', e => { e.preventDefault(); c.setPointerCapture(e.pointerId); aktiv = [punkt(e)]; striche.push(aktiv); zeichnen(); });
+    c.addEventListener('pointermove', e => {
+        if (!aktiv) return; e.preventDefault();
+        const p = punkt(e), l = aktiv[aktiv.length - 1]; laenge += Math.hypot(p[0] - l[0], p[1] - l[1]); aktiv.push(p); zeichnen();
+    });
+    ['pointerup', 'pointercancel', 'pointerleave'].forEach(t => c.addEventListener(t, () => { aktiv = null; }));
+    document.getElementById('sigLoeschen').addEventListener('click', () => { striche = []; laenge = 0; zeichnen(); });
+    window.addEventListener('resize', groesse);
+    groesse();
+
+    // Unterschrift als PNG, auf die gezeichnete Fläche zugeschnitten (durchsichtiger Hintergrund)
+    function bild() {
+        const pts = striche.flat(); if (!pts.length) return '';
+        const rand = 6, d = 2;
+        const x0 = Math.max(0, Math.min(...pts.map(p => p[0])) - rand), y0 = Math.max(0, Math.min(...pts.map(p => p[1])) - rand);
+        const x1 = Math.max(...pts.map(p => p[0])) + rand, y1 = Math.max(...pts.map(p => p[1])) + rand;
+        const o = document.createElement('canvas'); o.width = Math.ceil((x1 - x0) * d); o.height = Math.ceil((y1 - y0) * d);
+        const g = o.getContext('2d'); g.setTransform(d, 0, 0, d, -x0 * d, -y0 * d);
+        g.strokeStyle = '#1e3a8a'; g.lineWidth = 2.6; g.lineCap = 'round'; g.lineJoin = 'round';
+        striche.forEach(s => { g.beginPath(); s.forEach((p, i) => { if (i === 0) g.moveTo(p[0], p[1]); else g.lineTo(p[0], p[1]); }); if (s.length === 1) g.lineTo(s[0][0] + .1, s[0][1] + .1); g.stroke(); });
+        return o.toDataURL('image/png');
+    }
+    ['name', 'ok'].forEach(id => document.getElementById(id).addEventListener('input', () => fehler('')));
+    function fehler(t) { const f = document.getElementById('fehler'); f.textContent = t; f.hidden = !t; if (t) f.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); }
+    document.getElementById('los').addEventListener('click', () => {
+        const name = document.getElementById('name').value.trim();
+        if (name.length < 3) { fehler('Bitte Vor- und Nachnamen eintragen.'); document.getElementById('name').focus(); return; }
+        if (!striche.length || laenge < 25) { fehler('Bitte im Feld unterschreiben.'); return; }
+        if (!document.getElementById('ok').checked) { fehler('Bitte die Bestätigung ankreuzen.'); return; }
+        fehler('');
+        const knopf = document.getElementById('los'); knopf.disabled = true; knopf.textContent = 'Wird unterschrieben …';
+        fetch(location.pathname, { method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name, funktion: document.getElementById('funktion').value.trim(), unterschrift: bild(), zustimmung: true }) })
+            .then(r => r.json().then(d => ({ ok: r.ok, d })))
+            .then(({ ok, d }) => {
+                if (!ok || !d.ok) throw new Error(d.error || 'Fehler');
+                location.reload();
+            })
+            .catch(e => { fehler(e.message || 'Leider ist ein Fehler aufgetreten. Bitte versuchen Sie es noch einmal.'); knopf.disabled = false; knopf.textContent = '✍ Verbindlich unterschreiben'; });
+    });
+})();
+</script>
+{% endif %}
+</body>
+</html>
