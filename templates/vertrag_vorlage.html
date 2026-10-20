@@ -90,7 +90,7 @@
   <main class="page s2">
     <div class="spalte" style="left:15.6mm;width:178.2mm;top:10.4mm">
       <h2 style="margin-top:0mm;margin-bottom:3.6mm">§ 1 Vertragsgegenstand</h2>
-      <div class="it"><b>1.</b><p>Der Auftragnehmer übernimmt die Reinigungsarbeiten im Objekt: <span class="bl">{{ Adresse }}, {{ Plz }} {{ Ort }}</span></p></div>
+      <div class="it"><b>1.</b><p>Der Auftragnehmer übernimmt die Reinigungsarbeiten im Objekt: <span class="bl">{{ ObjektAdresse|default(Adresse) }}, {{ ObjektPlz|default(Plz) }} {{ ObjektOrt|default(Ort) }}</span></p></div>
       <div class="it"><b>2.</b><p>Art und Umfang der Leistungen bestimmen sich nach dem anliegenden Leistungsverzeichnis gemäß Anlage 1, das einen Bestandteil dieses Vertrages bildet.</p></div>
       <h2 style="margin-top:4.3mm;margin-bottom:3.6mm">§ 2 Vertragsdauer und Kündigung</h2>
       <div class="it"><b>1.</b><p>Der Vertrag tritt ab dem <span class="bl">{{ Startdatum }}</span> in Kraft.</p></div>
