@@ -272,7 +272,7 @@ a.kgae-knopf { display: inline-block; text-decoration: none; }
                     <div class="kgae-felder">
                         <div class="kgae-f"><label for="kgve_startdatum">Vertrag tritt in Kraft ab</label><input class="kgae-in" id="kgve_startdatum" data-feld="startdatum" placeholder="TT.MM.JJJJ"></div>
                         <div class="kgae-f"><label for="kgve_datum">Vertragsdatum</label><input class="kgae-in" id="kgve_datum" data-feld="datum" placeholder="TT.MM.JJJJ"></div>
-                        <div class="kgae-f"></div>
+                        <div class="kgae-f"><label for="kgve_probezeit">Probezeit</label><select class="kgae-in" id="kgve_probezeit" data-feld="probezeit"><option>1 Monat</option><option>2 Monate</option><option>3 Monate</option></select></div>
                         <div class="kgae-f w6"><label>Wochentage</label>
                             <div class="kgve-tage" id="kgveTage">{% for t in ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'] %}<button type="button" data-tag="{{ loop.index0 }}">{{ t }}</button>{% endfor %}</div>
                             <div class="kgve-uhren" id="kgveUhren" hidden></div>
@@ -388,6 +388,7 @@ a.kgae-knopf { display: inline-block; text-decoration: none; }
         });
         tageAusText();
         planLaden();
+        if (!$('kgve_probezeit').value) $('kgve_probezeit').value = '1 Monat';  // ältere Entwürfe ohne Probezeit = 1 Monat wie bisher
     }
     function felderLesen() {
         const f = {};
@@ -512,7 +513,7 @@ a.kgae-knopf { display: inline-block; text-decoration: none; }
     // ---------- Vorschau (Vertragsvorlage, 4 Seiten)
     function vorschauUrl(f) {
         const p = new URLSearchParams();
-        ['firma', 'ansprechpartner', 'adresse', 'plz', 'ort', 'email', 'telefon', 'startdatum', 'wochentage', 'zeiten', 'datum'].forEach(k => p.set(k, f[k] || ''));
+        ['firma', 'ansprechpartner', 'adresse', 'plz', 'ort', 'email', 'telefon', 'startdatum', 'wochentage', 'zeiten', 'datum', 'probezeit'].forEach(k => p.set(k, f[k] || ''));
         f.positionen.forEach((x, i) => { p.set('l' + (i + 1), x.text); p.set('e' + (i + 1), x.einheit); p.set('p' + (i + 1), x.preis); });
         return '/vertrag/editor/vorschau?' + p.toString();
     }

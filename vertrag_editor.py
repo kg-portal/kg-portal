@@ -20,7 +20,8 @@ EINHEITEN = ae.EINHEITEN
 MWST = ae.MWST
 TAGE = [("Mo", "Montag", "montags"), ("Di", "Dienstag", "dienstags"), ("Mi", "Mittwoch", "mittwochs"),
         ("Do", "Donnerstag", "donnerstags"), ("Fr", "Freitag", "freitags"), ("Sa", "Samstag", "samstags"), ("So", "Sonntag", "sonntags")]
-FELDER = ("firma", "ansprechpartner", "adresse", "plz", "ort", "email", "telefon", "startdatum", "wochentage", "zeiten", "datum", "zeitplan")
+FELDER = ("firma", "ansprechpartner", "adresse", "plz", "ort", "email", "telefon", "startdatum", "wochentage", "zeiten", "datum", "zeitplan", "probezeit")
+PROBEZEITEN = ("1 Monat", "2 Monate", "3 Monate")
 
 _txt, _zahl, _euro, _json = ae._txt, ae._zahl, ae._euro, ae._json
 
@@ -105,7 +106,7 @@ def _sauber(f):
 
 def _leer():
     f = _sauber({})
-    f["startdatum"], f["datum"] = _naechster_monat(), _heute()
+    f["startdatum"], f["datum"], f["probezeit"] = _naechster_monat(), _heute(), PROBEZEITEN[0]
     return f
 
 
@@ -160,6 +161,7 @@ def vorlage_vars(f):
     return {
         "Objekt": f["firma"], "Kunde": f["ansprechpartner"], "Adresse": f["adresse"], "Plz": f["plz"], "Ort": f["ort"],
         "Datum": f["datum"] or _heute(), "Startdatum": f["startdatum"], "Wochentagen": f["wochentage"], "Zeiten": f["zeiten"],
+        "Probezeit": f["probezeit"] if f["probezeit"] in PROBEZEITEN else PROBEZEITEN[0],
         "leistungen_satz": [p["text"] for p in f["positionen"][:3] if p["text"]],
         "preise": [{"Leistung": p["text"], "Einheiten": p["einheit"], "Preis": _euro(_zahl(p["preis"])) if _zahl(p["preis"]) else "",
                     "Netto": _euro(_netto_mwst(p)[0]) if _zahl(p["preis"]) else "", "MwSt": _euro(_netto_mwst(p)[1]) if _zahl(p["preis"]) else ""}
