@@ -73,6 +73,11 @@
 .kgae-pos + .kgae-pos { margin-top: 8px; }
 .kgae-pos > b { display: grid; place-items: center; height: 42px; border-radius: 12px; background: #eff6ff; color: var(--b1); font-size: 14px; }
 .kgae-pos .kgae-in.preis { text-align: right; font-weight: 900; }
+.kgae-pos[hidden] { display: none; }
+.kgae-pos-plus { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 10px; }
+.kgae-pos-plus .kgae-knopf { padding: 9px 14px; font-size: 13px; }
+.kgae-pos-plus .kgae-knopf[hidden] { display: none; }
+.kgae-pos-voll { font-size: 13px; font-weight: 800; color: #b91c1c; }
 .kgae-pos-kopf { display: grid; grid-template-columns: 34px minmax(0, 1fr) 150px 130px; gap: 8px; margin-bottom: 6px; font-size: 11px; font-weight: 900; letter-spacing: .06em; text-transform: uppercase; color: var(--grau); }
 .kgae-summen { display: flex; justify-content: flex-end; gap: 22px; flex-wrap: wrap; margin-top: 14px; padding-top: 12px; border-top: 1px dashed var(--rand); }
 .kgae-summen div { text-align: right; font-size: 12px; font-weight: 800; color: var(--grau); }
@@ -361,14 +366,19 @@ a.kgae-knopf { display: inline-block; text-decoration: none; }
                         <div class="kgae-f"><label for="kgae_datum">Datum</label><input class="kgae-in" id="kgae_datum" data-feld="datum" placeholder="TT.MM.JJJJ"></div>
                     </div>
                     <div class="kgae-pos-kopf"><span></span><span>Leistung</span><span>Einheit</span><span style="text-align:right">Preis € netto</span></div>
-                    {% for n in range(1, 5) %}
-                    <div class="kgae-pos">
+                    {% for n in range(1, 9) %}
+                    <div class="kgae-pos"{% if n > 4 %} hidden{% endif %}>
                         <b>{{ n }}</b>
                         <input class="kgae-in" data-pos="{{ n }}" data-teil="text" placeholder="{{ 'z. B. 2x wöchentliche Büroreinigung (240 m²)' if n == 1 else ('z. B. Einmalige Grundreinigung' if n == 2 else 'optional') }}">
                         <select class="kgae-in" data-pos="{{ n }}" data-teil="einheit">{% for e in einheiten %}<option>{{ e }}</option>{% endfor %}</select>
                         <input class="kgae-in preis" data-pos="{{ n }}" data-teil="preis" inputmode="decimal" placeholder="0,00">
                     </div>
                     {% endfor %}
+                    <div class="kgae-pos-plus">
+                        <button type="button" class="kgae-knopf hell" id="kgaePosPlus" title="Weitere Leistung (bis 8)">+ Leistung</button>
+                        <button type="button" class="kgae-knopf hell" id="kgaePosMinus" hidden title="Letzte Zusatz-Leistung entfernen">− Leistung</button>
+                        <span class="kgae-pos-voll" id="kgaePosVoll" hidden>Seite 3 im Angebot ist voll – bitte Leistungstexte kürzen.</span>
+                    </div>
                     <div class="kgae-felder" style="margin-top:14px">
                         <div class="kgae-f w6"><label for="kgae_ausfuehrungszeitraum">Ausführungszeitraum</label><input class="kgae-in" id="kgae_ausfuehrungszeitraum" data-feld="ausfuehrungszeitraum" placeholder="nach Vereinbarung"></div>
                     </div>
@@ -549,22 +559,50 @@ a.kgae-knopf { display: inline-block; text-decoration: none; }
         $('kgaeNrHinweis').textContent = manuell ? 'von Hand eingetragen' : (hinweis || '');
         $('kgaeNrHinweis').classList.toggle('manuell', !!manuell);
     }
+    const POS_MAX = 8;  // Leistung 1–4 immer sichtbar, 5–8 über „+ Leistung“
+    let posAnzahl = 4;
     function felderSetzen(f) {
         document.querySelectorAll('[data-feld]').forEach(el => { el.value = f[el.dataset.feld] || ''; });
         if (f.nr && f.nr_manuell) nrSetzen(f.nr, '', true);
-        (f.positionen || []).forEach((p, i) => {
+        const posListe = (f.positionen || []).slice(0, POS_MAX);
+        while (posListe.length < POS_MAX) posListe.push(posListe.length < 4 ? null : { text: '', einheit: 'monatlich', preis: '' });
+        posAnzahl = 4;
+        posListe.forEach((p, i) => {
+            if (!p) return;
             const n = i + 1;
+            if (n > 4 && (p.text || p.preis)) posAnzahl = n;
             const t = document.querySelector('[data-pos="' + n + '"][data-teil="text"]'), e = document.querySelector('[data-pos="' + n + '"][data-teil="einheit"]'), pr = document.querySelector('[data-pos="' + n + '"][data-teil="preis"]');
             t.value = p.text || '';
             if (p.einheit && !Array.from(e.options).some(o => o.value === p.einheit)) { const o = document.createElement('option'); o.textContent = p.einheit; e.appendChild(o); }
             e.value = p.einheit || 'monatlich';
             pr.value = p.preis || '';
         });
+        posZeigen();
     }
+    // Leistung 5–8: „+ Leistung“ blendet die nächste Zeile ein, „− Leistung“ leert und blendet die letzte aus
+    function posZeile(n) { return document.querySelector('[data-pos="' + n + '"][data-teil="text"]').closest('.kgae-pos'); }
+    function posZeigen() {
+        for (let n = 5; n <= POS_MAX; n++) posZeile(n).hidden = n > posAnzahl;
+        $('kgaePosPlus').hidden = posAnzahl >= POS_MAX;
+        $('kgaePosMinus').hidden = posAnzahl <= 4;
+    }
+    $('kgaePosPlus').addEventListener('click', () => {
+        if (posAnzahl >= POS_MAX) return;
+        posAnzahl++; posZeigen();
+        document.querySelector('[data-pos="' + posAnzahl + '"][data-teil="text"]').focus();
+    });
+    $('kgaePosMinus').addEventListener('click', () => {
+        if (posAnzahl <= 4) return;
+        const n = posAnzahl, t = document.querySelector('[data-pos="' + n + '"][data-teil="text"]'), pr = document.querySelector('[data-pos="' + n + '"][data-teil="preis"]');
+        if ((t.value.trim() || pr.value.trim()) && !window.confirm('Leistung ' + n + ' entfernen?')) return;
+        t.value = ''; pr.value = ''; document.querySelector('[data-pos="' + n + '"][data-teil="einheit"]').value = 'monatlich';
+        posAnzahl--; posZeigen();
+        geaendertMelden();
+    });
     function felderLesen() {
         const f = {};
         document.querySelectorAll('[data-feld]').forEach(el => { f[el.dataset.feld] = el.value.trim(); });
-        f.positionen = [1, 2, 3, 4].map(n => ({
+        f.positionen = Array.from({ length: posAnzahl }, (_, i) => i + 1).map(n => ({
             text: document.querySelector('[data-pos="' + n + '"][data-teil="text"]').value.trim(),
             einheit: document.querySelector('[data-pos="' + n + '"][data-teil="einheit"]').value,
             preis: document.querySelector('[data-pos="' + n + '"][data-teil="preis"]').value.trim()
@@ -753,9 +791,13 @@ a.kgae-knopf { display: inline-block; text-decoration: none; }
         if (!m2 || !pm2) return;
         const pos = n => ({ text: document.querySelector('[data-pos="' + n + '"][data-teil="text"]'), einheit: document.querySelector('[data-pos="' + n + '"][data-teil="einheit"]'), preis: document.querySelector('[data-pos="' + n + '"][data-teil="preis"]') });
         let ziel = Number(karte.dataset.posZiel) || 0;
+        if (ziel > posAnzahl) ziel = 0;  // Zeile wurde mit „− Leistung“ entfernt
         if (ziel && pos(ziel).text.value.trim() && pos(ziel).text.value.indexOf(c.name) !== 0) ziel = 0;  // Zeile wurde inzwischen anders benutzt
-        if (!ziel) ziel = [2, 3, 4, 1].find(n => !pos(n).text.value.trim() && !zahl(pos(n).preis.value)) || 0;
-        if (!ziel) { alert('Keine freie Leistung mehr (1–4). Bitte eine Zeile leeren.'); return; }
+        const frei = [2, 3, 4, 1];
+        for (let n = 5; n <= posAnzahl; n++) frei.push(n);
+        if (!ziel) ziel = frei.find(n => !pos(n).text.value.trim() && !zahl(pos(n).preis.value)) || 0;
+        if (!ziel && posAnzahl < POS_MAX) { posAnzahl++; posZeigen(); ziel = posAnzahl; }
+        if (!ziel) { alert('Keine freie Leistung mehr (1–8). Bitte eine Zeile leeren.'); return; }
         const p = pos(ziel), einheit = karte.querySelector('[data-s="einheit"]').value;
         p.text.value = c.name + ' (' + komma(m2) + ' m² ' + (karte.dataset.sonder === 'fenster' ? 'Glasfläche' : 'Fläche') + ')';
         if (einheit && !Array.from(p.einheit.options).some(o => o.value === einheit)) { const o = document.createElement('option'); o.textContent = einheit; p.einheit.appendChild(o); }
@@ -883,6 +925,10 @@ a.kgae-knopf { display: inline-block; text-decoration: none; }
             $('kgaeLade').classList.remove('an');
             fr.style.height = inhaltHoehe(fr) + 'px';
             const s = blattSkalieren();
+            try {
+                const d = fr.contentDocument, kasten = d.querySelector('.page3 .company-box'), seitenzahl = d.querySelector('.page3 .page-number');
+                $('kgaePosVoll').hidden = !(kasten && seitenzahl && kasten.getBoundingClientRect().bottom > seitenzahl.getBoundingClientRect().top - 4);
+            } catch (e) { $('kgaePosVoll').hidden = true; }
             try {
                 const ziel = fokus === 'leistung' ? fr.contentDocument.querySelector('.leistungs-list') : null;
                 if (ziel) blatt.scrollTop = Math.max(0, (ziel.getBoundingClientRect().top + fr.contentWindow.scrollY) * s - 120);

@@ -23,6 +23,7 @@ import besichtigung_zeit as bz
 BERLIN = ZoneInfo("Europe/Berlin")
 EINHEITEN = ["monatlich", "einmalig", "pro Durchgang", "jährlich", "pro Stunde"]
 MWST = 0.19
+MAX_POS = 8  # Leistung 1–4 immer, 5–8 nur wenn im Editor mit „+ Leistung“ hinzugefügt
 BEREICHE = [("buero", "Büro"), ("wc", "WC / Sanitär"), ("kueche", "Küche"), ("flur", "Flur / Eingang")]
 # Kalkulation im Rechner (alles im Editor änderbar, wird mit dem Angebot gespeichert):
 # Lohn = Mindestlohn Gebäudereinigung Lohngruppe 1 ab 01.01.2026; Abgaben = Minijob gewerblich 2026
@@ -212,10 +213,14 @@ def _leer_felder(row, daten, am):
 def _felder_aus_vars(v, row):
     kunde = str(v.get("Kunde") or "").split("<br>")
     pos = []
-    for n in range(1, 5):
+    for n in range(1, MAX_POS + 1):
+        if n > 4 and f"Leistung_{n}" not in v:
+            break
         preis = _zahl(v.get(f"Preis_{n}"))
         pos.append({"text": _txt(v.get(f"Leistung_{n}")), "einheit": _txt(v.get(f"Einheiten_{n}")) or "monatlich",
                     "preis": (f"{preis:.2f}".replace(".", ",") if preis else "")})
+    while len(pos) > 4 and not pos[-1]["text"] and not pos[-1]["preis"]:
+        pos.pop()
     return {
         "firma": html.unescape(kunde[0]).strip(), "ansprechpartner": html.unescape(kunde[1]).strip() if len(kunde) > 1 else _txt(v.get("Ansprechpartner")),
         "objekt": _txt(v.get("Objekt")), "adresse": _txt(v.get("Adresse")), "plz": _txt(v.get("Plz")), "ort": _txt(v.get("Ort")),
@@ -228,10 +233,12 @@ def _sauber(f):
     """Formular-Eingabe prüfen und kürzen."""
     f = f if isinstance(f, dict) else {}
     pos = []
-    for p in (f.get("positionen") or [])[:4]:
+    for p in (f.get("positionen") or [])[:MAX_POS]:
         p = p if isinstance(p, dict) else {}
         einheit = _txt(p.get("einheit"))[:40] or "monatlich"
         pos.append({"text": _txt(p.get("text"))[:300], "einheit": einheit, "preis": _txt(p.get("preis"))[:20]})
+    while len(pos) > 4 and not pos[-1]["text"] and not _zahl(pos[-1]["preis"]):
+        pos.pop()  # leere Zusatz-Zeilen (5–8) am Ende fallen weg
     while len(pos) < 4:
         pos.append({"text": "", "einheit": "monatlich", "preis": ""})
     aus = {k: _txt(f.get(k))[:200] for k in ("firma", "ansprechpartner", "objekt", "adresse", "plz", "ort", "email", "telefon",
@@ -723,7 +730,7 @@ def register_angebot_editor(app, login_required, get_db_connection, app2_modul):
             "firma": a.get("firma"), "ansprechpartner": a.get("ansprechpartner"), "objekt": a.get("objekt"), "adresse": a.get("adresse"),
             "plz": a.get("plz"), "ort": a.get("ort"), "leistungsart": a.get("leistungsart"), "ausfuehrungszeitraum": a.get("zeitraum"),
             "datum": a.get("datum"),
-            "positionen": [{"text": a.get(f"l{n}"), "einheit": a.get(f"e{n}"), "preis": a.get(f"p{n}")} for n in range(1, 5)],
+            "positionen": [{"text": a.get(f"l{n}"), "einheit": a.get(f"e{n}"), "preis": a.get(f"p{n}")} for n in range(1, MAX_POS + 1)],
         })
         v = vorlage_vars(f, a.get("nr") or "…")
         seite_html = render_template("angebotvorlage.html", **v)
