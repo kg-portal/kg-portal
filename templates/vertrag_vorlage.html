@@ -83,7 +83,7 @@
       <div>47055 Duisburg</div>
     </div>
     <div class="abs mitte" style="top:254.9mm">-nachfolgend Auftragnehmer- genannt</div>
-    <div class="abs" style="left:22.0mm;top:264.7mm;width:172mm">wird über folgendes <b>Objekt: {{ Adresse }}, {{ Plz }} {{ Ort }}</b> ein Reinigungsvertrag für die {% for l in leistungen_satz %}{% if not loop.first %} und {% endif %}<span class="bl">{{ l }}</span>{% endfor %} abgeschlossen.</div>
+    <div class="abs" style="left:22.0mm;top:264.7mm;width:172mm">wird über folgendes <b>Objekt: {{ ObjektAdresse|default(Adresse) }}, {{ ObjektPlz|default(Plz) }} {{ ObjektOrt|default(Ort) }}</b> ein Reinigungsvertrag für die {% for l in leistungen_satz %}{% if not loop.first %} und {% endif %}<span class="bl">{{ l }}</span>{% endfor %} abgeschlossen.</div>
     <div class="abs seitennr" style="left:17.8mm;top:277.7mm">1</div>
   </main>
 
