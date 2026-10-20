@@ -22,6 +22,7 @@ TAGE = [("Mo", "Montag", "montags"), ("Di", "Dienstag", "dienstags"), ("Mi", "Mi
         ("Do", "Donnerstag", "donnerstags"), ("Fr", "Freitag", "freitags"), ("Sa", "Samstag", "samstags"), ("So", "Sonntag", "sonntags")]
 FELDER = ("firma", "ansprechpartner", "adresse", "plz", "ort", "email", "telefon", "startdatum", "wochentage", "zeiten", "datum", "zeitplan", "probezeit")
 PROBEZEITEN = ("1 Monat", "2 Monate", "3 Monate")
+BUERO_ORT = "Duisburg"  # Verträge werden im KG-Büro Duisburg erstellt
 
 _txt, _zahl, _euro, _json = ae._txt, ae._zahl, ae._euro, ae._json
 
@@ -162,6 +163,7 @@ def vorlage_vars(f):
         "Objekt": f["firma"], "Kunde": f["ansprechpartner"], "Adresse": f["adresse"], "Plz": f["plz"], "Ort": f["ort"],
         "Datum": f["datum"] or _heute(), "Startdatum": f["startdatum"], "Wochentagen": f["wochentage"], "Zeiten": f["zeiten"],
         "Probezeit": f["probezeit"] if f["probezeit"] in PROBEZEITEN else PROBEZEITEN[0],
+        "BueroOrt": BUERO_ORT,  # Ort der Erstellung (oben rechts) und Unterschrift Auftragnehmer; Auftraggeber unterschreibt mit seinem Ort
         "leistungen_satz": [p["text"] for p in f["positionen"][:3] if p["text"]],
         "preise": [{"Leistung": p["text"], "Einheiten": p["einheit"], "Preis": _euro(_zahl(p["preis"])) if _zahl(p["preis"]) else "",
                     "Netto": _euro(_netto_mwst(p)[0]) if _zahl(p["preis"]) else "", "MwSt": _euro(_netto_mwst(p)[1]) if _zahl(p["preis"]) else ""}
@@ -392,14 +394,15 @@ def register_vertrag_editor(app, login_required, get_db_connection):
         if vid and not a.get("firma"):
             url, firma = f"/vertrag/editor/vorschau?id={vid}", (_gespeichert(vid) or {"felder": {"firma": ""}})["felder"]["firma"]
         else:
-            werte = [(k, v) for k, v in a.items(multi=True) if k not in ("id", "drucken")]
+            werte = [(k, v) for k, v in a.items(multi=True) if k not in ("id", "drucken", "ansehen")]
             url, firma = "/vertrag/editor/vorschau?" + urlencode(werte), a.get("firma")
         try:
             pdf = _pdf([url])[0]
         except Exception as exc:
             return jsonify({"ok": False, "error": "PDF konnte nicht erstellt werden: " + str(exc)}), 500
         name = "Reinigungsvertrag" + (f"_{_dateiname(firma)}" if _dateiname(firma) else "") + ".pdf"
-        return send_file(io.BytesIO(pdf), mimetype="application/pdf", as_attachment=True, download_name=name)
+        # ansehen=1: im Browser öffnen (lesen) statt herunterladen
+        return send_file(io.BytesIO(pdf), mimetype="application/pdf", as_attachment=a.get("ansehen") != "1", download_name=name)
 
     @app.route("/api/vertrag-editor/<int:vid>/anhaenge")
     @login_required

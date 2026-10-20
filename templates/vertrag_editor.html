@@ -696,7 +696,8 @@ a.kgae-knopf { display: inline-block; text-decoration: none; }
     function schritte(n) { $('kgveSchritte').querySelectorAll('span').forEach((s, i) => s.classList.toggle('an', i < n)); }
 
     // ---------- PDF / Senden / Mail
-    $('kgvePdf').addEventListener('click', () => { if (aktuell) window.open(vorschauUrl(felderLesen()).replace('/vertrag/editor/vorschau?', '/vertrag/editor/vorschau?drucken=1&'), '_blank'); });
+    // „PDF ansehen“: das echte PDF im neuen Tab zum Lesen (kein Druckfenster)
+    $('kgvePdf').addEventListener('click', () => { if (aktuell) window.open(vorschauUrl(felderLesen()).replace('/vertrag/editor/vorschau?', '/vertrag/editor/pdf?ansehen=1&'), '_blank'); });
     $('kgveLaden').addEventListener('click', () => {
         if (!aktuell) return;
         const knopf = $('kgveLaden'), text = knopf.textContent;
