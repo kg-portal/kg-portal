@@ -148,6 +148,23 @@ def felder_aus_angebot(conn, tid):
     return f
 
 
+def angebot_bestaetigen(conn, tid):
+    """Angebot bestätigt → Vertrag-Warteliste (Knopf „✓ Bestätigt → Vertrag“ und digitale Unterschrift des Angebots).
+    Gibt {"id", "schon"} zurück, None wenn es das Angebot nicht gibt. Das Angebot selbst bleibt unverändert."""
+    _tabelle(conn)
+    schon = conn.execute("SELECT id FROM vertrag_editor WHERE tagesliste_id = ?", (tid,)).fetchone()
+    if schon:
+        return {"id": schon["id"], "schon": True}
+    f = felder_aus_angebot(conn, tid)
+    if not f:
+        return None
+    jetzt = _jetzt()
+    cur = conn.execute("INSERT INTO vertrag_editor (tagesliste_id, status, felder_json, erstellt_am, geaendert_am) VALUES (?, 'wartend', ?, ?, ?)",
+                       (tid, json.dumps(f, ensure_ascii=False), jetzt, jetzt))
+    conn.commit()
+    return {"id": cur.lastrowid, "schon": False}
+
+
 def _netto_mwst(p):
     """Brutto-Preis einer Leistung → (netto, MwSt.); der gespeicherte Netto-Wert aus dem Angebot zählt, wenn er zum Brutto passt."""
     brutto = _zahl(p["preis"])
@@ -251,18 +268,10 @@ def register_vertrag_editor(app, login_required, get_db_connection):
         tid = int((request.get_json(silent=True) or {}).get("tagesliste_id") or 0)
         conn = get_db_connection()
         try:
-            _tabelle(conn)
-            schon = conn.execute("SELECT id FROM vertrag_editor WHERE tagesliste_id = ?", (tid,)).fetchone()
-            if schon:
-                return jsonify({"ok": True, "id": schon["id"], "schon": True})
-            f = felder_aus_angebot(conn, tid)
-            if not f:
+            r = angebot_bestaetigen(conn, tid)
+            if not r:
                 return jsonify({"ok": False, "error": "Angebot nicht gefunden."}), 404
-            jetzt = _jetzt()
-            cur = conn.execute("INSERT INTO vertrag_editor (tagesliste_id, status, felder_json, erstellt_am, geaendert_am) VALUES (?, 'wartend', ?, ?, ?)",
-                               (tid, json.dumps(f, ensure_ascii=False), jetzt, jetzt))
-            conn.commit()
-            return jsonify({"ok": True, "id": cur.lastrowid})
+            return jsonify({"ok": True, "id": r["id"], "schon": True} if r["schon"] else {"ok": True, "id": r["id"]})
         finally:
             conn.close()
 

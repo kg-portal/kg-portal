@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>Unterschriftsprotokoll {{ nr }}</title>
+<!-- Letzte Seite des digital unterschriebenen PDFs (esign.py → signiertes_pdf). Variablen: v (Vorgang mit name, funktion,
+     unterschrieben_am, ip, geraet), sig (Unterschrift als data-URI), logo, nr, versendet, geoeffnet, unterschrieben, gueltig_bis, zustimmung. -->
+<style>
+  @page { size: A4; margin: 0; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: #fff; }
+  body { font-family: Arial, Helvetica, sans-serif; color: #0f172a; font-size: 9.6pt; line-height: 1.4; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .blatt { position: relative; width: 210mm; height: 297mm; padding: 0 16mm; overflow: hidden; }
+  .band { position: absolute; left: 0; right: 0; top: 0; height: 4.5mm; background: linear-gradient(90deg, #0f1d4a 0%, #1d4ed8 70%, #ea580c 70%, #f97316 100%); }
+  .kopf { display: flex; justify-content: space-between; align-items: flex-start; padding-top: 10mm; }
+  .kopf b { display: block; font-size: 12.5pt; color: #0f1d4a; }
+  .kopf span { display: block; margin-top: 1mm; font-size: 8.4pt; color: #475569; }
+  .kopf img { width: 40mm; height: auto; display: block; }
+  h1 { margin: 6mm 0 1mm; font-size: 21pt; color: #0f1d4a; letter-spacing: -.2px; }
+  .unter { font-size: 9.5pt; color: #475569; }
+  .linie { margin-top: 2.5mm; height: 1mm; width: 22mm; border-radius: 1mm; background: linear-gradient(90deg, #ea580c, #f59e0b); }
+  .box { margin-top: 5mm; border: .35mm solid #c7d2e3; border-radius: 2.5mm; overflow: hidden; }
+  .box table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+  .box th { padding: 1.8mm 3mm; text-align: left; font-size: 9.8pt; color: #fff; background: #1d4ed8; }
+  .box.gruen th { background: #15803d; }
+  .box td { padding: 1.7mm 3mm; border-top: .3mm solid #d5deeb; vertical-align: top; word-break: break-word; }
+  .box td.lab { background: #f3f6fb; color: #334155; font-weight: 700; font-size: 8.8pt; }
+  .mono { font-family: "Courier New", monospace; font-size: 8.4pt; }
+  .sig { height: 26mm; padding: 2mm 3mm; }
+  .sig img { max-height: 22mm; max-width: 90mm; display: block; }
+  .text { margin-top: 5mm; font-size: 8.6pt; line-height: 1.5; color: #334155; }
+  .fuss { position: absolute; left: 16mm; right: 16mm; bottom: 8mm; padding-top: 2mm; border-top: .3mm solid #1d4ed8; display: flex; justify-content: space-between;
+          font-size: 7.6pt; color: #1e3a8a; }
+</style>
+</head>
+<body>
+<div class="blatt">
+  <div class="band"></div>
+  <div class="kopf">
+    <div><b>KG-Gebäudereinigung</b><span>Fliederstr. 59 · 47055 Duisburg</span></div>
+    {% if logo %}<img src="{{ logo }}" alt="KG Gebäudereinigung">{% endif %}
+  </div>
+  <h1>Unterschriftsprotokoll</h1>
+  <div class="unter">Elektronische Unterschrift · Vorgang {{ nr }}</div>
+  <div class="linie"></div>
+
+  <div class="box">
+    <table>
+      <colgroup><col style="width:52mm"><col></colgroup>
+      <tr><th colspan="2">Dokument</th></tr>
+      <tr><td class="lab">Dokument</td><td>{{ v.titel }}</td></tr>
+      <tr><td class="lab">Firma</td><td>{{ v.firma }}</td></tr>
+      <tr><td class="lab">Seiten</td><td>{{ v.seiten }} (dieses Protokoll ist zusätzlich angehängt)</td></tr>
+      <tr><td class="lab">Prüfwert (SHA-256) des versendeten Dokuments</td><td class="mono">{{ v.original_sha256 }}</td></tr>
+    </table>
+  </div>
+
+  <div class="box">
+    <table>
+      <colgroup><col style="width:52mm"><col></colgroup>
+      <tr><th colspan="2">Verlauf</th></tr>
+      <tr><td class="lab">Link versendet</td><td>{{ versendet }}{% if v.email %} an {{ v.email }}{% endif %}</td></tr>
+      <tr><td class="lab">Link gültig bis</td><td>{{ gueltig_bis }}</td></tr>
+      {% if geoeffnet %}<tr><td class="lab">Erstmals geöffnet</td><td>{{ geoeffnet }}</td></tr>{% endif %}
+      <tr><td class="lab">Unterschrieben</td><td><b>{{ unterschrieben }}</b> (Zeitzone Europe/Berlin)</td></tr>
+    </table>
+  </div>
+
+  <div class="box gruen">
+    <table>
+      <colgroup><col style="width:52mm"><col></colgroup>
+      <tr><th colspan="2">Unterschrift des Auftraggebers</th></tr>
+      <tr><td class="lab">Name</td><td><b>{{ v.name }}</b></td></tr>
+      {% if v.funktion %}<tr><td class="lab">Funktion</td><td>{{ v.funktion }}</td></tr>{% endif %}
+      <tr><td class="lab">Bestätigung</td><td>☑ {{ zustimmung }}</td></tr>
+      <tr><td class="lab">Unterschrift</td><td class="sig"><img src="{{ sig }}" alt="Unterschrift"></td></tr>
+      <tr><td class="lab">IP-Adresse</td><td class="mono">{{ v.ip }}</td></tr>
+      <tr><td class="lab">Gerät / Browser</td><td class="mono">{{ v.geraet }}</td></tr>
+    </table>
+  </div>
+
+  <div class="text">
+    Das Dokument wurde über einen persönlichen Link der KG-Gebäudereinigung elektronisch unterschrieben (einfache elektronische Signatur).
+    Die Unterschrift wurde auf der Unterschriftslinie des Auftraggebers eingefügt; der Inhalt des Dokuments entspricht dem versendeten Dokument
+    mit dem oben genannten Prüfwert.
+  </div>
+
+  <div class="fuss"><span>KG-Gebäudereinigung · Fliederstr. 59 · 47055 Duisburg · Tel. 0203 47966822 · info@kg-reinigung.de</span><span>Vorgang {{ nr }}</span></div>
+</div>
+</body>
+</html>
