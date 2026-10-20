@@ -64,7 +64,7 @@
       {% if Adresse %}<div>{{ Adresse }}</div>{% endif %}
       <div>{{ Plz }} {{ Ort }}</div>
     </div>
-    <div class="abs rechts" style="right:30.7mm;top:124.0mm">{{ Ort }}, {{ Datum }}</div>
+    <div class="abs rechts" style="right:30.7mm;top:124.0mm">{{ BueroOrt or 'Duisburg' }}, {{ Datum }}</div>
     <div class="abs mitte titel" style="top:136.1mm">Reinigungsvertrag</div>
     <div class="abs mitte zeilen42" style="top:148.7mm">
       <div>Zwischen</div>
@@ -166,7 +166,7 @@
     <div class="abs" style="left:31.3mm;top:235.1mm"><b>{{ Ort }}, den {{ Datum }}</b></div>
     <div class="abs strich" style="left:125.4mm;top:235.1mm;width:67.1mm"><b>X</b></div>
     <div class="abs rechts" style="right:17.7mm;top:239.4mm"><b>Auftraggeber</b></div>
-    <div class="abs" style="left:31.7mm;top:264.8mm"><b>{{ Ort }}, den {{ Datum }}</b></div>
+    <div class="abs" style="left:31.7mm;top:264.8mm"><b>{{ BueroOrt or 'Duisburg' }}, den {{ Datum }}</b></div>
     <div class="abs strich" style="left:127.9mm;top:264.8mm;width:64.7mm">&nbsp;</div>
     <div class="abs rechts" style="right:17.4mm;top:269.0mm"><b>Auftragnehmer</b></div>
     <div class="abs seitennr" style="left:17.4mm;top:277.4mm">4</div>
