@@ -39,8 +39,7 @@ nahtlos weiterzuarbeiten. Andere Systeme (Leon, KG Business, KG Scan, Leon SaaS)
 
 Repo: `github.com/kg-portal/kg-portal`
 - Entwicklung: Branch **`claude/nifty-galileo-19dve0`** (Stand `4acdb4c`)
-- Live: Branch **`server-stand-20261019`** (letzter gepushter Live-Commit **`3b19ba2`**)
-- Murat hat zuletzt bis `c0e22a8` bestätigt; ob `3b19ba2` („und mittig“) schon installiert ist, ist offen.
+- Live: Branch **`server-stand-20261019`**, Server steht auf **`3b19ba2`** (am 22.10. geprüft).
   Prüfen: `ssh root@46.224.155.41 'cd /opt/kg-crm; git log --oneline -1'`
 
 **CRLF-Dateien – CRLF beibehalten:** `app2.py`, `templates/datenbank.html`, `besichtigung.html`, `base.html`,
@@ -133,15 +132,14 @@ Bei Vorlagen-Änderungen: alte und neue Version als Bild vergleichen (pixelgleic
 
 ## 7. Offene Punkte (CRM)
 
-1. Prüfen, ob Live-Stand `3b19ba2` installiert ist (sonst „und mittig“-Befehl ausführen lassen).
-2. E-Unterschrift: Vertrag live testen; danach Kästchen standardmäßig an; ggf. Status in Kundenakte/Vertrag-Liste anzeigen.
-3. Vertrag auch mit Leistung 5–8 (§ 7 passt heute nur 4 sicher – Layout prüfen).
-4. KG Scan → CRM: Endpunkte `/internal/kg-scan/*` mit Header `X-KG-SCAN-TOKEN`, Server-Variable `KG_SCAN_API_TOKEN`.
+1. E-Unterschrift: Vertrag live testen; danach Kästchen standardmäßig an; ggf. Status in Kundenakte/Vertrag-Liste anzeigen.
+2. Vertrag auch mit Leistung 5–8 (§ 7 passt heute nur 4 sicher – Layout prüfen).
+3. KG Scan → CRM: Endpunkte `/internal/kg-scan/*` mit Header `X-KG-SCAN-TOKEN`, Server-Variable `KG_SCAN_API_TOKEN`.
    App sendet jetzt an `portal.kg-reinigung.de` (Branch im Repo `kgscanv2test`). Prüfbefehl Token-Gleichheit wurde gegeben
    (erwartet „TOKEN PASST“ + 403). Token steht in der App im Code – Sicherheitsrisiko, später austauschen.
-5. Backlog: Rechner „Std/Woche“ direkt, LV-Zeilen-Kasten offen, Besichtigung 35 €/Std-Zusammenfassung, Teppich ×1,15,
+4. Backlog: Rechner „Std/Woche“ direkt, LV-Zeilen-Kasten offen, Besichtigung 35 €/Std-Zusammenfassung, Teppich ×1,15,
    eine Einstellungsseite (Lohn/%/€-m²), verlorene Besichtigung-Daten aus Sicherung, Vertrag-Feld „zeiten“ als Textarea.
-6. Server-Wartung (nur mit Murats OK): Log 1,7 GB, `/opt/kg-portal` (alte Kopie) aufräumen, `tokenlar.env` schützen,
+5. Server-Wartung (nur mit Murats OK): Log 1,7 GB, `/opt/kg-portal` (alte Kopie) aufräumen, `tokenlar.env` schützen,
    Hetzner-Backup im Panel aktivieren.
 
 ## 8. Nicht anfassen (andere Chats)
