@@ -1740,13 +1740,13 @@ if (window.__kgTheme) {
     const schalt = (J % 4 === 0 && J % 100 !== 0) || J % 400 === 0, tageJahr = schalt ? 366 : 365;
     const tagNr = (m, d) => Math.round((Date.UTC(J, m, d) - Date.UTC(J, 0, 1)) / 86400000) + 1;
     const tagImJahr = tagNr(M, tagImMonat);
-    const wochenStriche = [], monatsStriche = [];
+    const wochenStriche = [], quartalsStriche = [];
     for (let d = 2; d <= tage; d++) if (new Date(J, M, d).getDay() === 1) wochenStriche.push((d - 1) / tage);
-    for (let m = 1; m < 12; m++) monatsStriche.push((tagNr(m, 1) - 1) / tageJahr);
+    for (let m = 3; m < 12; m += 3) quartalsStriche.push((tagNr(m, 1) - 1) / tageJahr);   // Jahr: 4 Teile (Quartale) wie die Wochen beim Monat
     const nochText = n => (n === 1 ? 'noch 1 Tag' : 'noch ' + n + ' Tage');
     const ringe = [
         { karte: document.getElementById('current-month-label'), anteil: tagImMonat / tage, unter: 'vom Monat', fuss: nochText(tage - tagImMonat), striche: wochenStriche },
-        { karte: document.getElementById('current-year-label'), anteil: tagImJahr / tageJahr, unter: 'vom Jahr', fuss: nochText(tageJahr - tagImJahr), striche: monatsStriche }
+        { karte: document.getElementById('current-year-label'), anteil: tagImJahr / tageJahr, unter: 'vom Jahr', fuss: nochText(tageJahr - tagImJahr), striche: quartalsStriche }
     ];
     function ringZeichnen(r) {
         const W = 104, H = 122, dpr = window.devicePixelRatio || 1, c = r.canvas, x = c.getContext('2d');
@@ -2344,7 +2344,7 @@ const percent = kgTodoPercent;
                 el.style.setProperty('--kf', ein ? '#059669' : '#dc2626');
                 el.classList.add('kgk-k');
             });
-            [['current-month-label', 'euro', '#2563eb'], ['current-year-label', 'chart', '#4f46e5']].forEach(x => {
+            [['current-month-label', 'euro', '#2563eb'], ['current-year-label', 'chart', '#059669']].forEach(x => {
                 const marke = document.getElementById(x[0]), karte = marke && marke.closest('.kpi-card'), w = karte && karte.querySelector('.card-value');
                 if (!w) return;
                 const z = document.createElement('span'); z.className = 'kgk-z'; z.textContent = w.textContent.trim();
