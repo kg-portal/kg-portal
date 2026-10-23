@@ -304,6 +304,9 @@ html.kg-st-warten .dashboard-grid > .module-container:not(.kg-st-an) { opacity: 
     .mt-rechts span { display: inline-block; margin-top: 4px; padding: 2px 6px; border-radius: 999px; background: #eff6ff; color: #1d4ed8; font-size: 9.5px; font-weight: 900; }
     .mt-rechts span:empty { display: none; }
     canvas { width: 100% !important; height: 180px !important; }
+    /* Obere Kacheln Monat / Jahr: Zeit-Ring rechts (wird per Skript eingefügt) */
+    .kpi-card.kg-zeitring-karte { position: relative; }
+    .kpi-card canvas.kg-zeitring { position: absolute; right: 16px; top: 84px; width: 104px !important; height: 122px !important; pointer-events: none; }
 
     .dashboard-grid {
         display: grid;
@@ -1654,16 +1657,15 @@ if (window.__kgTheme) {
     initDashboardHideSystem();
 
     // GRAFİKLER (Verilere dokunulmadı)
-    // 📈 MONATSTREND – Einnahmen Tag für Tag aufsummiert, gestrichelt die Hochrechnung bis Monatsende
+    // 📈 MONATSTREND – Einnahmen je Kalenderwoche als 3D-Säulen (wie die Jahresübersicht); im Kopf Summe bis heute und Hochrechnung
 (function () {
     const euro = v => Math.round(v).toLocaleString('de-DE') + ' €';
+    const kurz = v => v >= 1000 ? (v / 1000).toLocaleString('de-DE', { maximumFractionDigits: 1 }) + 'k' : Math.round(v).toLocaleString('de-DE');
     // ohne Tageswerte (z. B. andere Seite): nur der heutige Stand als ein Punkt
     const kum = kgMonatstrendTage.length ? kgMonatstrendTage
         : Array.from({ length: new Date().getDate() }, (_, i) => i === new Date().getDate() - 1 ? Number(kgMonatstrendGrafikVerisi[4] || 0) : null);
     const heute = kum.length, tage = Math.max(kgMonatstrendTageImMonat, heute), stand = Number(kum[heute - 1] || 0);
     const ende = heute ? Math.round(stand / heute * tage) : 0;
-    const labels = Array.from({ length: tage }, (_, i) => i + 1);
-    const prognose = labels.map(d => d < heute ? null : stand + (ende - stand) * (d - heute) / Math.max(1, tage - heute));
     const zeigeHochrechnung = heute >= 5 && stand > 0 && tage > heute;
 
     document.getElementById('mtSumme').textContent = euro(stand);
@@ -1671,53 +1673,134 @@ if (window.__kgTheme) {
     document.getElementById('mtHoch').textContent = zeigeHochrechnung ? 'Ende ≈ ' + euro(ende) : '';
     document.getElementById('mtHoch').title = 'Hochrechnung: Durchschnitt je Tag bis heute × Tage im Monat';
 
-    const leuchten = { id: 'mtLeuchten',
-        beforeDatasetDraw(c, a) { if (a.index === 0) { c.ctx.save(); c.ctx.shadowColor = 'rgba(37,99,235,.55)'; c.ctx.shadowBlur = 12; } },
-        afterDatasetDraw(c, a) { if (a.index === 0) c.ctx.restore(); } };
-    const heutePunkt = { id: 'mtHeute', afterDatasetsDraw(c) {
-        const p = c.getDatasetMeta(0).data[heute - 1]; if (!p || p.skip) return; const x = c.ctx;
-        const farbe = (c.options.scales.y.ticks && c.options.scales.y.ticks.color) || '#0f1d4a';
-        x.save();
-        x.setLineDash([3, 3]); x.strokeStyle = 'rgba(100,116,139,.45)'; x.lineWidth = 1;
-        x.beginPath(); x.moveTo(p.x, p.y + 9); x.lineTo(p.x, c.chartArea.bottom); x.stroke(); x.setLineDash([]);
-        x.beginPath(); x.arc(p.x, p.y, 9, 0, 7); x.fillStyle = 'rgba(37,99,235,.18)'; x.fill();
-        x.beginPath(); x.arc(p.x, p.y, 4.5, 0, 7); x.fillStyle = '#ffffff'; x.fill(); x.lineWidth = 2.5; x.strokeStyle = '#2563eb'; x.stroke();
-        x.fillStyle = farbe; x.font = '900 10px Arial'; x.textAlign = 'center'; x.fillText('heute', p.x, c.chartArea.bottom - 4);
-        x.restore(); } };
+    // Einnahmen je Tag aus der Tagessumme (Tage ohne Wert zählen wie der Vortag)
+    let vortag = 0;
+    const tagWert = kum.map(v => { const n = v === null || v === undefined ? vortag : Number(v) || 0; const d = n - vortag; vortag = n; return d; });
+    // Kalenderwochen (ISO) des laufenden Monats; spätere Wochen bleiben leer
+    const jetzt = new Date(), J = jetzt.getFullYear(), M = jetzt.getMonth();
+    const kwVon = d => { const t = new Date(Date.UTC(J, M, d)), n = t.getUTCDay() || 7; t.setUTCDate(t.getUTCDate() + 4 - n); return Math.ceil(((t - Date.UTC(t.getUTCFullYear(), 0, 1)) / 86400000 + 1) / 7); };
+    const wochen = [];
+    for (let d = 1; d <= tage; d++) {
+        const kw = kwVon(d);
+        let w = wochen[wochen.length - 1];
+        if (!w || w.kw !== kw) wochen.push(w = { kw: kw, von: d, bis: d, summe: 0 });
+        w.bis = d;
+        if (d <= heute) w.summe += tagWert[d - 1] || 0;
+    }
+    const werte = wochen.map(w => (w.von > heute ? null : Math.round(w.summe * 100) / 100));
+
+    // Wert über jeder Säule (wie Jahresübersicht)
+    const werteOben = { id: 'mtWerte', afterDatasetsDraw(chart) {
+        const ctx = chart.ctx;
+        ctx.save();
+        ctx.font = '800 10px Inter, Segoe UI, Arial, sans-serif';
+        ctx.fillStyle = document.documentElement.getAttribute('data-kg-x') === 'on' ? '#bfdbfe' : '#1e3a8a';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'bottom';
+        chart.getDatasetMeta(0).data.forEach((el, i) => {
+            const v = Number(werte[i]);
+            if (!v || !isFinite(el.y)) return;
+            const d = Math.max(3, Math.min(9, (el.width || 0) * 0.32));
+            ctx.fillText(kurz(v), el.x + d / 2, el.y - d * 0.6 - 3);
+        });
+        ctx.restore();
+    } };
 
     new Chart(document.getElementById('monthlyTrendChart'), {
-        type: 'line',
-        plugins: [leuchten, heutePunkt],
-        data: { labels: labels, datasets: [
-            { label: 'Einnahmen', data: kum, borderColor: '#2563eb', borderWidth: 3, tension: 0.25, fill: true, pointRadius: 0, spanGaps: true,
-              backgroundColor: c => { const g = c.chart.ctx.createLinearGradient(0, c.chart.chartArea ? c.chart.chartArea.top : 0, 0, c.chart.chartArea ? c.chart.chartArea.bottom : 180);
-                  g.addColorStop(0, 'rgba(37,99,235,.33)'); g.addColorStop(1, 'rgba(37,99,235,0)'); return g; } },
-            { label: 'Hochrechnung', data: zeigeHochrechnung ? prognose : [], borderColor: '#94a3b8', borderDash: [5, 5], borderWidth: 2, fill: false,
-              pointRadius: c => c.dataIndex === tage - 1 ? 4 : 0, pointBackgroundColor: '#94a3b8' }
+        type: 'bar',
+        plugins: [werteOben],
+        data: { labels: wochen.map(w => ['KW', String(w.kw)]), datasets: [
+            { label: 'Einnahmen', data: werte, backgroundColor: wochen.map((_, i) => (i % 2 ? '#059669' : '#1e40af')), borderRadius: 5, maxBarThickness: 46 }
         ] },
         options: {
             responsive: true,
             maintainAspectRatio: false,
+            layout: { padding: { top: 18 } },
             interaction: { intersect: false, mode: 'index' },
             plugins: {
                 legend: { display: false },
                 tooltip: {
-                    backgroundColor: 'rgba(30, 64, 175, 0.92)',
-                    filter: item => item.raw !== null && item.raw !== undefined && !(item.datasetIndex === 1 && item.dataIndex === heute - 1),
+                    backgroundColor: 'rgba(30, 64, 175, 0.95)',
                     callbacks: {
-                        title: items => items.length ? items[0].label + '. ' + new Date().toLocaleDateString('de-DE', { month: 'long' }) : '',
-                        label: c => ' ' + (c.datasetIndex === 1 ? 'Hochrechnung ≈ ' : '') + c.parsed.y.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €'
+                        title: items => { const w = wochen[items[0].dataIndex]; return 'KW ' + w.kw + ' (' + w.von + '.–' + w.bis + '.)'; },
+                        label: c => ' Einnahmen: ' + c.parsed.y.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €'
                     }
                 }
             },
             scales: {
-                x: { grid: { display: false }, ticks: { autoSkip: false, maxRotation: 0, font: { weight: 'bold' },
-                    callback: (v, i) => [1, 8, 15, 22, 29].includes(i + 1) ? (i + 1) + '.' : '' } },
-                y: { beginAtZero: true, border: { display: false }, ticks: { font: { weight: 'bold' }, maxTicksLimit: 5,
-                    callback: v => v >= 1000 ? (v / 1000).toLocaleString('de-DE') + 'k' : v } }
+                x: { grid: { display: false }, ticks: { font: { weight: 'bold' }, maxRotation: 0, autoSkip: false } },
+                y: { beginAtZero: true, ticks: { font: { weight: 'bold' }, maxTicksLimit: 5, callback: v => v >= 1000 ? (v / 1000).toLocaleString('de-DE') + 'k' : v } }
             }
         }
     });
+
+    // ⭕ Obere Kacheln „Monatlicher Umsatz“ und „Aktueller Gesamtumsatz“: Ring rechts zeigt, wie viel vom Monat / Jahr
+    // schon vergangen ist (Zeit, kein Umsatz). Blau = vergangen, Grün = noch übrig. Nur Anzeige.
+    const tagImMonat = Math.min(heute || jetzt.getDate(), tage);
+    const schalt = (J % 4 === 0 && J % 100 !== 0) || J % 400 === 0, tageJahr = schalt ? 366 : 365;
+    const tagNr = (m, d) => Math.round((Date.UTC(J, m, d) - Date.UTC(J, 0, 1)) / 86400000) + 1;
+    const tagImJahr = tagNr(M, tagImMonat);
+    const wochenStriche = [], monatsStriche = [];
+    for (let d = 2; d <= tage; d++) if (new Date(J, M, d).getDay() === 1) wochenStriche.push((d - 1) / tage);
+    for (let m = 1; m < 12; m++) monatsStriche.push((tagNr(m, 1) - 1) / tageJahr);
+    const nochText = n => (n === 1 ? 'noch 1 Tag' : 'noch ' + n + ' Tage');
+    const ringe = [
+        { karte: document.getElementById('current-month-label'), anteil: tagImMonat / tage, unter: 'vom Monat', fuss: nochText(tage - tagImMonat), striche: wochenStriche },
+        { karte: document.getElementById('current-year-label'), anteil: tagImJahr / tageJahr, unter: 'vom Jahr', fuss: nochText(tageJahr - tagImJahr), striche: monatsStriche }
+    ];
+    function ringZeichnen(r) {
+        const W = 104, H = 122, dpr = window.devicePixelRatio || 1, c = r.canvas, x = c.getContext('2d');
+        const dunkel = document.documentElement.getAttribute('data-kg-x') === 'on';
+        c.width = Math.round(W * dpr); c.height = Math.round(H * dpr);
+        x.setTransform(dpr, 0, 0, dpr, 0, 0);
+        x.clearRect(0, 0, W, H);
+        const cx = W / 2, cy = 52, rad = 40, dicke = 13, a0 = -Math.PI / 2, a1 = a0 + Math.PI * 2 * r.anteil;
+        const verlauf = (f1, f2) => { const g = x.createLinearGradient(cx - rad, cy - rad, cx + rad, cy + rad); g.addColorStop(0, f1); g.addColorStop(1, f2); return g; };
+        x.lineWidth = dicke;
+        x.strokeStyle = verlauf('#34d399', '#059669');
+        x.beginPath(); x.arc(cx, cy, rad, 0, Math.PI * 2); x.stroke();
+        if (r.anteil > 0) {
+            x.save();
+            x.shadowColor = 'rgba(15, 29, 74, 0.3)'; x.shadowBlur = 6; x.shadowOffsetY = 2;
+            x.lineCap = 'round'; x.strokeStyle = verlauf('#60a5fa', '#1e40af');
+            x.beginPath(); x.arc(cx, cy, rad, a0, a1); x.stroke();
+            x.restore();
+        }
+        x.lineWidth = 2; x.strokeStyle = dunkel ? '#111a2e' : '#ffffff';
+        r.striche.forEach(t => { const a = a0 + Math.PI * 2 * t; x.beginPath(); x.moveTo(cx + Math.cos(a) * (rad - dicke / 2 - 1), cy + Math.sin(a) * (rad - dicke / 2 - 1)); x.lineTo(cx + Math.cos(a) * (rad + dicke / 2 + 1), cy + Math.sin(a) * (rad + dicke / 2 + 1)); x.stroke(); });
+        x.fillStyle = '#ffffff'; x.beginPath(); x.arc(cx + Math.cos(a1) * rad, cy + Math.sin(a1) * rad, 4.5, 0, Math.PI * 2); x.fill();
+        x.textAlign = 'center';
+        x.fillStyle = dunkel ? '#e2e8f0' : '#0f1d4a'; x.font = '900 16px Inter, Segoe UI, Arial, sans-serif'; x.fillText(Math.round(r.anteil * 100) + ' %', cx, cy + 4);
+        x.fillStyle = dunkel ? '#94a3b8' : '#64748b'; x.font = '800 8.5px Inter, Segoe UI, Arial, sans-serif'; x.fillText(r.unter, cx, cy + 16);
+        x.fillStyle = dunkel ? '#cbd5e1' : '#334155'; x.font = '800 10px Inter, Segoe UI, Arial, sans-serif'; x.fillText(r.fuss, cx, H - 4);
+    }
+    // Ring nur zeigen, wenn er Titel und Betrag nicht überdeckt (z. B. schmale Bildschirme)
+    // Titel ist ein Block über die ganze Breite: dort zählt nur die Fläche des Textes selbst
+    const textFlaeche = el => { if (!el.classList.contains('card-label') || !document.createRange) return el.getBoundingClientRect(); const rg = document.createRange(); rg.selectNodeContents(el); return rg.getBoundingClientRect(); };
+    function ringPlatz(r) {
+        r.canvas.style.display = '';
+        const a = r.canvas.getBoundingClientRect();
+        const k = r.karte.getBoundingClientRect();
+        const frei = a.bottom <= k.bottom + 2 && Array.from(r.karte.querySelectorAll('.card-label, .card-value')).every(el => { const b = textFlaeche(el); return b.right <= a.left - 6 || b.bottom <= a.top || b.top >= a.bottom; });
+        r.canvas.style.display = frei ? '' : 'none';
+    }
+    ringe.forEach(r => {
+        r.karte = r.karte && r.karte.closest('.kpi-card');
+        if (!r.karte) return;
+        r.karte.classList.add('kg-zeitring-karte');
+        r.canvas = document.createElement('canvas');
+        r.canvas.className = 'kg-zeitring';
+        r.canvas.setAttribute('aria-hidden', 'true');
+        r.karte.appendChild(r.canvas);
+        ringZeichnen(r);
+    });
+    const aktiv = ringe.filter(r => r.canvas);
+    const pruefen = () => aktiv.forEach(ringPlatz);
+    let ringWarte = 0;
+    window.addEventListener('resize', () => { clearTimeout(ringWarte); ringWarte = setTimeout(pruefen, 150); });
+    window.addEventListener('load', () => { pruefen(); setTimeout(pruefen, 2600); });   // nach dem Hochzählen der Beträge noch einmal
+    pruefen();
+    if (window.MutationObserver) new MutationObserver(() => aktiv.forEach(ringZeichnen)).observe(document.documentElement, { attributes: true, attributeFilter: ['data-kg-x'] });
 })();
 new Chart(document.getElementById('yearlyOverviewChart'), {
     type: 'bar',
