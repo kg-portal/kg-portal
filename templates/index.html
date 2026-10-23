@@ -1710,7 +1710,7 @@ if (window.__kgTheme) {
         type: 'bar',
         plugins: [werteOben],
         data: { labels: wochen.map(w => ['KW', String(w.kw)]), datasets: [
-            { label: 'Einnahmen', data: werte, backgroundColor: wochen.map((_, i) => (i % 2 ? '#059669' : '#1e40af')), borderRadius: 5, maxBarThickness: 46 }
+            { label: 'Einnahmen', data: werte, backgroundColor: wochen.map((_, i) => (i % 2 ? '#059669' : '#1e40af')), borderRadius: 5, maxBarThickness: 22 }
         ] },
         options: {
             responsive: true,
@@ -1748,11 +1748,12 @@ if (window.__kgTheme) {
         { karte: document.getElementById('current-month-label'), anteil: tagImMonat / tage, unter: 'vom Monat', fuss: nochText(tage - tagImMonat), striche: wochenStriche },
         { karte: document.getElementById('current-year-label'), anteil: tagImJahr / tageJahr, unter: 'vom Jahr', fuss: nochText(tageJahr - tagImJahr), striche: quartalsStriche }
     ];
+    const W = 104, H = 122;   // Grundmaß; der Ring wird auf den freien Platz in der Kachel skaliert
     function ringZeichnen(r) {
-        const W = 104, H = 122, dpr = window.devicePixelRatio || 1, c = r.canvas, x = c.getContext('2d');
+        const s = r.groesse || 1, dpr = window.devicePixelRatio || 1, c = r.canvas, x = c.getContext('2d');
         const dunkel = document.documentElement.getAttribute('data-kg-x') === 'on';
-        c.width = Math.round(W * dpr); c.height = Math.round(H * dpr);
-        x.setTransform(dpr, 0, 0, dpr, 0, 0);
+        c.width = Math.round(W * s * dpr); c.height = Math.round(H * s * dpr);
+        x.setTransform(dpr * s, 0, 0, dpr * s, 0, 0);
         x.clearRect(0, 0, W, H);
         const cx = W / 2, cy = 52, rad = 40, dicke = 13, a0 = -Math.PI / 2, a1 = a0 + Math.PI * 2 * r.anteil;
         const verlauf = (f1, f2) => { const g = x.createLinearGradient(cx - rad, cy - rad, cx + rad, cy + rad); g.addColorStop(0, f1); g.addColorStop(1, f2); return g; };
@@ -1774,15 +1775,19 @@ if (window.__kgTheme) {
         x.fillStyle = dunkel ? '#94a3b8' : '#64748b'; x.font = '800 8.5px Inter, Segoe UI, Arial, sans-serif'; x.fillText(r.unter, cx, cy + 16);
         x.fillStyle = dunkel ? '#cbd5e1' : '#334155'; x.font = '800 10px Inter, Segoe UI, Arial, sans-serif'; x.fillText(r.fuss, cx, H - 4);
     }
-    // Ring nur zeigen, wenn er Titel und Betrag nicht überdeckt (z. B. schmale Bildschirme)
-    // Titel ist ein Block über die ganze Breite: dort zählt nur die Fläche des Textes selbst
+    // Größe: so groß wie der freie Platz rechts erlaubt (unter den Knöpfen, neben Titel und Betrag); beide Ringe gleich groß.
+    // Ist zu wenig Platz (z. B. Handy), bleibt der Ring aus. Titel ist ein Block über die ganze Breite: dort zählt nur der Text.
     const textFlaeche = el => { if (!el.classList.contains('card-label') || !document.createRange) return el.getBoundingClientRect(); const rg = document.createRange(); rg.selectNodeContents(el); return rg.getBoundingClientRect(); };
     function ringPlatz(r) {
-        r.canvas.style.display = '';
-        const a = r.canvas.getBoundingClientRect();
-        const k = r.karte.getBoundingClientRect();
-        const frei = a.bottom <= k.bottom + 2 && Array.from(r.karte.querySelectorAll('.card-label, .card-value')).every(el => { const b = textFlaeche(el); return b.right <= a.left - 6 || b.bottom <= a.top || b.top >= a.bottom; });
-        r.canvas.style.display = frei ? '' : 'none';
+        const k = r.karte.getBoundingClientRect(), titel = r.karte.querySelector('.card-label'), wert = r.karte.querySelector('.card-value');
+        const t = titel ? textFlaeche(titel) : null, v = wert ? wert.getBoundingClientRect() : null, rechts = k.right - 16, unten = k.bottom - 8;
+        let best = { s: 0, oben: 0, h: 0 };
+        // A: neben Titel und Betrag (ab unter den Knöpfen) · B: unter dem Titel, neben dem Betrag
+        [[k.top + 40, Math.max(t ? t.right : k.left, v ? v.right : k.left)], [t ? t.bottom + 4 : k.top + 40, v ? v.right : k.left]].forEach(([oben, links]) => {
+            const s = Math.min(1.45, (rechts - links - 10) / W, (unten - oben) / H);
+            if (s > best.s) best = { s: s, oben: oben - k.top, h: unten - oben };
+        });
+        return best;
     }
     ringe.forEach(r => {
         r.karte = r.karte && r.karte.closest('.kpi-card');
@@ -1795,7 +1800,19 @@ if (window.__kgTheme) {
         ringZeichnen(r);
     });
     const aktiv = ringe.filter(r => r.canvas);
-    const pruefen = () => aktiv.forEach(ringPlatz);
+    const pruefen = () => {
+        const p = aktiv.map(ringPlatz), s = Math.min.apply(null, p.map(q => q.s));
+        aktiv.forEach((r, i) => {
+            const st = r.canvas.style;
+            if (!(s >= 0.85)) { st.display = 'none'; return; }
+            r.groesse = s;
+            st.display = '';
+            st.setProperty('width', Math.round(W * s) + 'px', 'important');
+            st.setProperty('height', Math.round(H * s) + 'px', 'important');
+            st.top = Math.round(p[i].oben + (p[i].h - H * s) / 2) + 'px';
+            ringZeichnen(r);
+        });
+    };
     let ringWarte = 0;
     window.addEventListener('resize', () => { clearTimeout(ringWarte); ringWarte = setTimeout(pruefen, 150); });
     window.addEventListener('load', () => { pruefen(); setTimeout(pruefen, 2600); });   // nach dem Hochzählen der Beträge noch einmal
