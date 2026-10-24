@@ -1771,19 +1771,41 @@ if (window.__kgTheme) {
         r.striche.forEach(t => { const a = a0 + Math.PI * 2 * t; x.beginPath(); x.moveTo(cx + Math.cos(a) * (rad - dicke / 2 - 1), cy + Math.sin(a) * (rad - dicke / 2 - 1)); x.lineTo(cx + Math.cos(a) * (rad + dicke / 2 + 1), cy + Math.sin(a) * (rad + dicke / 2 + 1)); x.stroke(); });
         x.fillStyle = '#ffffff'; x.beginPath(); x.arc(cx + Math.cos(a1) * rad, cy + Math.sin(a1) * rad, 4.5, 0, Math.PI * 2); x.fill();
         x.textAlign = 'center';
-        x.fillStyle = dunkel ? '#e2e8f0' : '#0f1d4a'; x.font = '900 16px Inter, Segoe UI, Arial, sans-serif'; x.fillText(Math.round(r.anteil * 100) + ' %', cx, cy + 4);
-        x.fillStyle = dunkel ? '#94a3b8' : '#64748b'; x.font = '800 8.5px Inter, Segoe UI, Arial, sans-serif'; x.fillText(r.unter, cx, cy + 16);
-        x.fillStyle = dunkel ? '#cbd5e1' : '#334155'; x.font = '800 10px Inter, Segoe UI, Arial, sans-serif'; x.fillText(r.fuss, cx, H - 4);
+        // Schrift nie kleiner als lesbar (Prozent ≥ 12 px, unten ≥ 9 px); „vom Monat/Jahr“ nur, wenn der Ring groß genug ist
+        const gross = Math.max(16, 12 / s), fuss = Math.max(10, 9 / s);
+        x.fillStyle = dunkel ? '#e2e8f0' : '#0f1d4a'; x.font = '900 ' + gross + 'px Inter, Segoe UI, Arial, sans-serif'; x.fillText(Math.round(r.anteil * 100) + ' %', cx, cy + (s >= 0.8 ? 4 : gross * 0.36));
+        if (s >= 0.8) { x.fillStyle = dunkel ? '#94a3b8' : '#64748b'; x.font = '800 8.5px Inter, Segoe UI, Arial, sans-serif'; x.fillText(r.unter, cx, cy + 16); }
+        x.fillStyle = dunkel ? '#cbd5e1' : '#334155'; x.font = '800 ' + fuss + 'px Inter, Segoe UI, Arial, sans-serif'; x.fillText(r.fuss, cx, H - 4);
     }
     // Größe: so groß wie der freie Platz rechts erlaubt (unter den Knöpfen, neben Titel und Betrag); beide Ringe gleich groß.
-    // Ist zu wenig Platz (z. B. Handy), bleibt der Ring aus. Titel ist ein Block über die ganze Breite: dort zählt nur der Text.
+    // Gemessen wird mit dem endgültigen Betrag, nicht mit dem gerade hochzählenden. Reicht der Platz nicht, wird die
+    // Betragsschrift in beiden Kacheln etwas kleiner (bis 18 px). Nur wenn auch das nicht reicht (sehr schmale Handys),
+    // bleibt der Ring aus. Titel ist ein Block über die ganze Breite: dort zählt nur der Text.
     const textFlaeche = el => { if (!el.classList.contains('card-label') || !document.createRange) return el.getBoundingClientRect(); const rg = document.createRange(); rg.selectNodeContents(el); return rg.getBoundingClientRect(); };
-    function ringPlatz(r) {
-        const k = r.karte.getBoundingClientRect(), titel = r.karte.querySelector('.card-label'), wert = r.karte.querySelector('.card-value');
-        const t = titel ? textFlaeche(titel) : null, v = wert ? wert.getBoundingClientRect() : null, rechts = k.right - 16, unten = k.bottom - 8;
+    // Schriftgröße des Betrags setzen (0 = wie im Stil). Die Startseite schreibt den Betrag beim Hochzählen als reinen Text
+    // in .card-value (das innere .kgk-z verschwindet dabei) – darum beide setzen.
+    function schrift(w, px) {
+        [w, w.querySelector('.kgk-z')].forEach(el => { if (!el) return; if (px) el.style.setProperty('font-size', px + 'px', 'important'); else el.style.removeProperty('font-size'); });
+    }
+    // rechter Rand des Betrags mit dem Endwert und der Schriftgröße px: unsichtbare Kopie messen
+    function wertRechts(r, px) {
+        const w = r.karte.querySelector('.card-value');
+        if (!w) return r.karte.getBoundingClientRect().left;
+        const kopie = w.cloneNode(true), z = kopie.querySelector('.kgk-z');
+        (z || kopie).textContent = r.endText;
+        schrift(kopie, px);
+        kopie.style.position = 'absolute'; kopie.style.visibility = 'hidden'; kopie.style.left = '0'; kopie.style.top = '0';
+        w.parentNode.appendChild(kopie);
+        const rechts = w.getBoundingClientRect().left + kopie.getBoundingClientRect().width;
+        kopie.remove();
+        return rechts;
+    }
+    function ringPlatz(r, px) {
+        const k = r.karte.getBoundingClientRect(), titel = r.karte.querySelector('.card-label');
+        const t = titel ? textFlaeche(titel) : null, v = wertRechts(r, px), rechts = k.right - 16, unten = k.bottom - 8;
         let best = { s: 0, oben: 0, h: 0 };
         // A: neben Titel und Betrag (ab unter den Knöpfen) · B: unter dem Titel, neben dem Betrag
-        [[k.top + 40, Math.max(t ? t.right : k.left, v ? v.right : k.left)], [t ? t.bottom + 4 : k.top + 40, v ? v.right : k.left]].forEach(([oben, links]) => {
+        [[k.top + 40, Math.max(t ? t.right : k.left, v)], [t ? t.bottom + 4 : k.top + 40, v]].forEach(([oben, links]) => {
             const s = Math.min(1.45, (rechts - links - 10) / W, (unten - oben) / H);
             if (s > best.s) best = { s: s, oben: oben - k.top, h: unten - oben };
         });
@@ -1797,14 +1819,22 @@ if (window.__kgTheme) {
         r.canvas.className = 'kg-zeitring';
         r.canvas.setAttribute('aria-hidden', 'true');
         r.karte.appendChild(r.canvas);
-        ringZeichnen(r);
+        const w = r.karte.querySelector('.card-value');
+        r.endText = w ? w.textContent.trim() : '';   // Endwert, bevor die Startseite ihn hochzählt
+        r.canvas.style.display = 'none';            // erst zeigen, wenn der Platz gemessen ist
     });
     const aktiv = ringe.filter(r => r.canvas);
     const pruefen = () => {
-        const p = aktiv.map(ringPlatz), s = Math.min.apply(null, p.map(q => q.s));
+        let px = 0, p = [], s = 0;
+        for (const f of [0, 22, 20, 18]) {   // 0 = Schrift wie im Stil
+            px = f; p = aktiv.map(r => ringPlatz(r, f)); s = Math.min.apply(null, p.map(q => q.s));
+            if (s >= 0.85) break;
+        }
+        aktiv.forEach(r => { const w = r.karte.querySelector('.card-value'); if (w) schrift(w, s >= 0.6 ? px : 0); });
+        if (s >= 0.6) { p = aktiv.map(r => ringPlatz(r, px)); s = Math.min.apply(null, p.map(q => q.s)); }   // Kachel kann mit kleinerer Schrift niedriger sein
         aktiv.forEach((r, i) => {
             const st = r.canvas.style;
-            if (!(s >= 0.85)) { st.display = 'none'; return; }
+            if (!(s >= 0.6)) { st.display = 'none'; return; }
             r.groesse = s;
             st.display = '';
             st.setProperty('width', Math.round(W * s) + 'px', 'important');
@@ -1814,9 +1844,18 @@ if (window.__kgTheme) {
         });
     };
     let ringWarte = 0;
-    window.addEventListener('resize', () => { clearTimeout(ringWarte); ringWarte = setTimeout(pruefen, 150); });
-    window.addEventListener('load', () => { pruefen(); setTimeout(pruefen, 2600); });   // nach dem Hochzählen der Beträge noch einmal
-    pruefen();
+    const spaeter = () => { clearTimeout(ringWarte); ringWarte = setTimeout(pruefen, 150); };
+    window.addEventListener('resize', spaeter);
+    window.addEventListener('orientationchange', spaeter);
+    // Betrag wird beim Einblenden hochgezählt (Kachel kann dabei niedriger werden): danach neu messen
+    if (window.MutationObserver) {
+        const mo = new MutationObserver(spaeter);
+        aktiv.forEach(r => { const w = r.karte.querySelector('.card-value'); if (w) mo.observe(w, { childList: true, characterData: true, subtree: true }); });
+    }
+    window.addEventListener('load', () => { pruefen(); setTimeout(pruefen, 2600); });   // Schrift geladen, Kacheln gleich hoch
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(spaeter);
+    // erst messen, wenn die Beträge als Kästchen aufgebaut sind (Skript weiter unten auf der Seite)
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', () => setTimeout(pruefen, 0)); else setTimeout(pruefen, 0);
     if (window.MutationObserver) new MutationObserver(() => aktiv.forEach(ringZeichnen)).observe(document.documentElement, { attributes: true, attributeFilter: ['data-kg-x'] });
 })();
 new Chart(document.getElementById('yearlyOverviewChart'), {
@@ -2821,6 +2860,12 @@ const percent = kgTodoPercent;
             }, 30);
         }, { threshold: 0.18 });
         spaeter.forEach(t => io.observe(t));
+        // Handy drehen oder Fenstergröße ändern: alle restlichen Kacheln sofort zeigen (keine bleibt unsichtbar)
+        let gezeigt = false;
+        const alle = () => { if (gezeigt) return; gezeigt = true; io.disconnect(); spaeter.filter(t => !t.classList.contains('kg-st-an')).forEach((t, i) => zeigen(t, i)); };
+        const breite = window.innerWidth;   // nur echte Breitenänderung zählt (Adressleiste beim Scrollen ändert nur die Höhe)
+        window.addEventListener('orientationchange', alle);
+        window.addEventListener('resize', () => { if (Math.abs(window.innerWidth - breite) > 40) alle(); });
     }
 
     // sobald alles aufgebaut ist (Kacheln umgebaut, Grafiken erstellt) – ohne zusätzliche Wartezeit
