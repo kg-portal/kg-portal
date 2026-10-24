@@ -1755,12 +1755,13 @@ if (window.__kgTheme) {
         c.width = Math.round(W * s * dpr); c.height = Math.round(H * s * dpr);
         x.setTransform(dpr * s, 0, 0, dpr * s, 0, 0);
         x.clearRect(0, 0, W, H);
-        const cx = W / 2, cy = 52, rad = 40, dicke = 13, a0 = -Math.PI / 2, a1 = a0 + Math.PI * 2 * r.anteil;
+        const teil = r.anteil * (r.fuell == null ? 1 : r.fuell);   // beim Erscheinen füllt sich der Ring (siehe fuellen)
+        const cx = W / 2, cy = 52, rad = 40, dicke = 13, a0 = -Math.PI / 2, a1 = a0 + Math.PI * 2 * teil;
         const verlauf = (f1, f2) => { const g = x.createLinearGradient(cx - rad, cy - rad, cx + rad, cy + rad); g.addColorStop(0, f1); g.addColorStop(1, f2); return g; };
         x.lineWidth = dicke;
         x.strokeStyle = verlauf('#34d399', '#059669');
         x.beginPath(); x.arc(cx, cy, rad, 0, Math.PI * 2); x.stroke();
-        if (r.anteil > 0) {
+        if (teil > 0) {
             x.save();
             x.shadowColor = 'rgba(15, 29, 74, 0.3)'; x.shadowBlur = 6; x.shadowOffsetY = 2;
             x.lineCap = 'round'; x.strokeStyle = verlauf('#60a5fa', '#1e40af');
@@ -1773,7 +1774,7 @@ if (window.__kgTheme) {
         x.textAlign = 'center';
         // Schrift nie kleiner als lesbar (Prozent ≥ 12 px, unten ≥ 9 px); „vom Monat/Jahr“ nur, wenn der Ring groß genug ist
         const gross = Math.max(16, 12 / s), fuss = Math.max(10, 9 / s);
-        x.fillStyle = dunkel ? '#e2e8f0' : '#0f1d4a'; x.font = '900 ' + gross + 'px Inter, Segoe UI, Arial, sans-serif'; x.fillText(Math.round(r.anteil * 100) + ' %', cx, cy + (s >= 0.8 ? 4 : gross * 0.36));
+        x.fillStyle = dunkel ? '#e2e8f0' : '#0f1d4a'; x.font = '900 ' + gross + 'px Inter, Segoe UI, Arial, sans-serif'; x.fillText(Math.round(teil * 100) + ' %', cx, cy + (s >= 0.8 ? 4 : gross * 0.36));
         if (s >= 0.8) { x.fillStyle = dunkel ? '#94a3b8' : '#64748b'; x.font = '800 8.5px Inter, Segoe UI, Arial, sans-serif'; x.fillText(r.unter, cx, cy + 16); }
         x.fillStyle = dunkel ? '#cbd5e1' : '#334155'; x.font = '800 ' + fuss + 'px Inter, Segoe UI, Arial, sans-serif'; x.fillText(r.fuss, cx, H - 4);
     }
@@ -1800,16 +1801,31 @@ if (window.__kgTheme) {
         kopie.remove();
         return rechts;
     }
-    function ringPlatz(r, px) {
-        const k = r.karte.getBoundingClientRect(), titel = r.karte.querySelector('.card-label');
-        const t = titel ? textFlaeche(titel) : null, v = wertRechts(r, px), rechts = k.right - 16, unten = k.bottom - 8;
-        let best = { s: 0, oben: 0, h: 0 };
-        // A: neben Titel und Betrag (ab unter den Knöpfen) · B: unter dem Titel, neben dem Betrag
-        [[k.top + 40, Math.max(t ? t.right : k.left, v)], [t ? t.bottom + 4 : k.top + 40, v]].forEach(([oben, links]) => {
-            const s = Math.min(1.45, (rechts - links - 10) / W, (unten - oben) / H);
-            if (s > best.s) best = { s: s, oben: oben - k.top, h: unten - oben };
-        });
-        return best;
+    // Maße einer Kachel: Titel-Text, Betrag (rechter Rand mit Endwert in Schrift px) und Höhe der Betrags-Mitte
+    function ringGeo(r, px) {
+        const k = r.karte.getBoundingClientRect(), titel = r.karte.querySelector('.card-label'), w = r.karte.querySelector('.card-value');
+        const t = titel ? textFlaeche(titel) : null, wb = w ? w.getBoundingClientRect() : k;
+        return { k: k, titelR: t ? t.right : k.left, titelU: t ? t.bottom : k.top + 40, wertR: wertRechts(r, px), mitte: (wb.top + wb.bottom) / 2 };
+    }
+    // Erlaubter Bereich für den Abstand von oben bei Größe s (in der Kachel); wunsch = Kreis-Mitte auf Höhe des Betrags.
+    // Neben dem Titel darf der Ring nur liegen, wenn rechts davon Platz ist. null = passt nicht.
+    function ringBereich(g, s) {
+        const h = H * s, links = g.k.right - 16 - W * s;
+        if (links < g.wertR + 10) return null;
+        const lo = (links >= g.titelR + 10 ? g.k.top + 40 : g.titelU + 4) - g.k.top, hi = g.k.bottom - 8 - h - g.k.top;
+        return hi < lo ? null : { lo: lo, hi: hi, wunsch: g.mitte - 52 * s - g.k.top };
+    }
+    // größte Größe, bei der beide Ringe gleich groß UND gleich hoch (gleicher Abstand von oben) passen
+    function ringGroesse(geos) {
+        for (let s = 1.45; s >= 0.6; s -= 0.01) {
+            const b = geos.map(g => ringBereich(g, s));
+            if (!b.every(Boolean)) continue;
+            const lo = Math.max.apply(null, b.map(x => x.lo)), hi = Math.min.apply(null, b.map(x => x.hi));
+            if (lo > hi) continue;
+            const wunsch = b.reduce((a, x) => a + x.wunsch, 0) / b.length;
+            return { s: s, oben: Math.min(Math.max(wunsch, lo), hi) };
+        }
+        return { s: 0, oben: 0 };
     }
     ringe.forEach(r => {
         r.karte = r.karte && r.karte.closest('.kpi-card');
@@ -1822,24 +1838,61 @@ if (window.__kgTheme) {
         const w = r.karte.querySelector('.card-value');
         r.endText = w ? w.textContent.trim() : '';   // Endwert, bevor die Startseite ihn hochzählt
         r.canvas.style.display = 'none';            // erst zeigen, wenn der Platz gemessen ist
+        r.fuell = 0;                                 // leer, bis der Ring zu sehen ist
     });
     const aktiv = ringe.filter(r => r.canvas);
+    // Ring füllt sich, sobald er im Bild ist – gleichzeitig mit dem Hochzählen des Betrags (blau wächst, Prozent zählt mit);
+    // bei „weniger Bewegung“ sofort voll
+    const ruhig = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+    function fuellen(r, gewartet) {
+        if (r.gestartet) return;
+        const h = document.documentElement, teil = r.karte.closest('.module-container');
+        const bereit = () => !teil || !h.classList.contains('kg-st-warten') || teil.classList.contains('kg-st-an');
+        if (!bereit() && window.MutationObserver) {   // Kachel wird noch eingeblendet: auf ihren Start warten
+            const mo = new MutationObserver(() => { if (bereit()) { mo.disconnect(); fuellen(r, true); } });
+            mo.observe(teil, { attributes: true, attributeFilter: ['class'] });
+            mo.observe(h, { attributes: true, attributeFilter: ['class'] });
+            return;
+        }
+        r.gestartet = true;
+        if (ruhig || !window.requestAnimationFrame) { r.fuell = 1; ringZeichnen(r); return; }
+        const start = performance.now() + (gewartet ? 220 : 0), dauer = 1500;   // wie das Hochzählen der Beträge (startet 220 ms nach dem Einblenden)
+        const schritt = t => {
+            const p = Math.min(1, Math.max(0, (t - start) / dauer));
+            r.fuell = 1 - Math.pow(1 - p, 3);
+            if (r.canvas.style.display !== 'none') ringZeichnen(r);
+            if (p < 1) requestAnimationFrame(schritt);
+        };
+        requestAnimationFrame(schritt);
+    }
+    if (window.IntersectionObserver) {
+        const sicht = new IntersectionObserver(e => e.forEach(x => {
+            if (!x.isIntersecting) return;
+            sicht.unobserve(x.target);
+            const r = aktiv.find(q => q.canvas === x.target);
+            if (r) fuellen(r);
+        }), { threshold: 0.4 });
+        aktiv.forEach(r => sicht.observe(r.canvas));
+    } else aktiv.forEach(r => { r.fuell = 1; });
     const pruefen = () => {
-        let px = 0, p = [], s = 0;
+        let px = 0, s = 0;
         for (const f of [0, 22, 20, 18]) {   // 0 = Schrift wie im Stil
-            px = f; p = aktiv.map(r => ringPlatz(r, f)); s = Math.min.apply(null, p.map(q => q.s));
+            px = f; s = ringGroesse(aktiv.map(r => ringGeo(r, f))).s;
             if (s >= 0.85) break;
         }
-        aktiv.forEach(r => { const w = r.karte.querySelector('.card-value'); if (w) schrift(w, s >= 0.6 ? px : 0); });
-        if (s >= 0.6) { p = aktiv.map(r => ringPlatz(r, px)); s = Math.min.apply(null, p.map(q => q.s)); }   // Kachel kann mit kleinerer Schrift niedriger sein
-        aktiv.forEach((r, i) => {
-            const st = r.canvas.style;
-            if (!(s >= 0.6)) { st.display = 'none'; return; }
+        const setzen = f => aktiv.forEach(r => { const w = r.karte.querySelector('.card-value'); if (w) schrift(w, f); });
+        setzen(s ? px : 0);
+        let lage = { s: 0, oben: 0 };
+        if (s) { lage = ringGroesse(aktiv.map(r => ringGeo(r, px))); if (!lage.s) setzen(0); }   // Kachel kann mit kleinerer Schrift niedriger sein
+        s = lage.s;
+        aktiv.forEach(r => {
+            const st = r.canvas.style, oben = lage.oben;
+            if (!s) { st.display = 'none'; return; }
             r.groesse = s;
             st.display = '';
             st.setProperty('width', Math.round(W * s) + 'px', 'important');
             st.setProperty('height', Math.round(H * s) + 'px', 'important');
-            st.top = Math.round(p[i].oben + (p[i].h - H * s) / 2) + 'px';
+            st.top = Math.round(oben) + 'px';
             ringZeichnen(r);
         });
     };
