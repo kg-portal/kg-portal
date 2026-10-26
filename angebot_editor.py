@@ -246,6 +246,7 @@ def _sauber(f):
     aus["positionen"] = pos
     aus["nr"] = _nr(f.get("nr"))
     aus["nr_manuell"] = bool(f.get("nr_manuell")) and bool(aus["nr"])
+    aus["preisliste"] = "1" if _txt(f.get("preisliste")) == "1" else ""   # Preisliste (PDF) mit der Angebot-Mail senden
     return aus
 
 
@@ -618,6 +619,8 @@ def register_angebot_editor(app, login_required, get_db_connection, app2_modul):
             mail = {"modus": "angebot", "angebot_id": tid, "empfaenger": f["email"], "firma": f["firma"], "ansprechpartner": f["ansprechpartner"],
                     "adresse": f["adresse"], "ort": " ".join(x for x in (f["plz"], f["ort"]) if x), "telefon": f["telefon"],
                     "angebot_nr": f"AN-{nr}", "angebot_datum": f["datum"], "angebot_netto": _euro(netto), "leistungsart": f["leistungsart"]}
+            if f["preisliste"]:
+                mail["preisliste"] = "1"
             return jsonify({"ok": True, "angebot_nr": nr, "angebot_datum": f["datum"], "netto": netto, "mwst": mwst, "brutto": brutto,
                             "mail_url": "/datenbank/mail-mini?" + urlencode(mail)})
         finally:

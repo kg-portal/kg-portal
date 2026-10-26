@@ -296,7 +296,21 @@ async function getAngebotPdfAttachments(){
         throw new Error(data.message || 'PDF-Anhänge konnten nicht erstellt werden.');
     }
 
-    return data.attachments || [];
+    const anhaenge = data.attachments || [];
+
+    // Preisliste (PDF), wenn im Angebot-Editor „+ Preisliste“ gewählt ist
+    if(new URLSearchParams(window.location.search).get('preisliste') === '1'){
+        const plRes = await fetch('/api/angebot-anhang/preisliste/mail');
+        const plData = await plRes.json().catch(function(){ return {}; });
+
+        if(!plRes.ok || !plData.ok || !plData.attachment){
+            throw new Error(plData.message || 'Preisliste konnte nicht angehängt werden.');
+        }
+
+        anhaenge.push(plData.attachment);
+    }
+
+    return anhaenge;
 }
 
 let angebotPdfAttachmentsCache = [];

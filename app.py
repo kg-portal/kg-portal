@@ -940,6 +940,13 @@ try:
 except Exception as exc:
     print(f"⚠️ Angebot-Editor: {exc}")
 
+# Angebot-Mail: Preisliste (PDF) als zusätzlicher Anhang, Datei nur auf dem Server (data/anhaenge)
+try:
+    from angebot_anhang import register_angebot_anhang
+    register_angebot_anhang(app, login_required)
+except Exception as exc:
+    print(f"⚠️ Angebot-Anhang: {exc}")
+
 # Vertrag-Editor (/vertrag/editor): bestätigtes Angebot → Reinigungsvertrag mit Live-Vorschau und Mail; eigene Tabelle vertrag_editor
 try:
     from vertrag_editor import register_vertrag_editor

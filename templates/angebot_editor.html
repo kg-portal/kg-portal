@@ -238,6 +238,10 @@ a.kgae-knopf { display: inline-block; text-decoration: none; }
 .kgae-aktionen { position: sticky; bottom: 12px; z-index: 5; display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-top: 14px; padding: 12px 14px; border-radius: 18px;
     background: rgba(255, 255, 255, .92); border: 1px solid var(--rand); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); box-shadow: 0 16px 34px -22px rgba(15, 23, 42, .5); }
 .kgae-aktionen .rechts { margin-left: auto; display: flex; gap: 10px; flex-wrap: wrap; }
+.kgae-knopf.kgae-preisliste.an { background: #ecfdf5; color: #047857; box-shadow: inset 0 0 0 2px #10b981; }
+.kgae-preisliste-info { margin-top: 10px; padding: 9px 14px; border-radius: 14px; background: #ecfdf5; border: 1px solid #a7f3d0; color: #065f46; font-size: 13px; font-weight: 800; }
+.kgae-preisliste-info[hidden] { display: none; }
+.kgae-preisliste-info a, .kgae-preisliste-info button { padding: 0; border: 0; background: none; color: #047857; font: inherit; text-decoration: underline; cursor: pointer; }
 .kgae-meldung { margin-top: 12px; padding: 12px 14px; border-radius: 14px; font-size: 14px; font-weight: 800; }
 .kgae-meldung.ok { background: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0; }
 .kgae-meldung.fehler { background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; }
@@ -445,9 +449,13 @@ a.kgae-knopf { display: inline-block; text-decoration: none; }
                     <div class="rechts">
                         <button type="button" class="kgae-knopf hell" id="kgaePdf">PDF ansehen</button>
                         <button type="button" class="kgae-knopf hell" data-laden="angebot">PDF herunterladen</button>
+                        <button type="button" class="kgae-knopf hell kgae-preisliste" id="kgaePreisliste" aria-pressed="false" title="Preisliste (PDF) zusammen mit dem Angebot mailen">+ Preisliste</button>
                         <button type="button" class="kgae-knopf gruen" id="kgaeSenden">Angebot senden</button>
                     </div>
+                    <input type="hidden" id="kgaePreislisteFeld" data-feld="preisliste">
+                    <input type="file" id="kgaePreislisteDatei" accept="application/pdf,.pdf" hidden>
                 </div>
+                <div class="kgae-preisliste-info" id="kgaePreislisteInfo" hidden></div>
                 <div id="kgaeMeldung"></div>
             </div>
         </main>
@@ -569,6 +577,7 @@ a.kgae-knopf { display: inline-block; text-decoration: none; }
     let posAnzahl = 4;
     function felderSetzen(f) {
         document.querySelectorAll('[data-feld]').forEach(el => { el.value = f[el.dataset.feld] || ''; });
+        preislisteZeigen();
         if (f.nr && f.nr_manuell) nrSetzen(f.nr, '', true);
         const posListe = (f.positionen || []).slice(0, POS_MAX);
         while (posListe.length < POS_MAX) posListe.push(posListe.length < 4 ? null : { text: '', einheit: 'monatlich', preis: '' });
@@ -1294,6 +1303,53 @@ a.kgae-knopf { display: inline-block; text-decoration: none; }
         laFeld.dispatchEvent(new Event('input', { bubbles: true }));
     });
     document.addEventListener('click', e => { if (!e.target.closest('#kgaeLaListe') && e.target !== laFeld) laListe.hidden = true; });
+
+    // „+ Preisliste“: Preisliste (PDF) mit der Angebot-Mail senden (wird je Angebot gemerkt).
+    // Liegt noch keine Preisliste auf dem Server, öffnet der Knopf zuerst die Dateiauswahl.
+    let preislisteInfo = null;
+    function preislisteZeigen() {
+        const an = $('kgaePreislisteFeld').value === '1', knopf = $('kgaePreisliste'), box = $('kgaePreislisteInfo');
+        knopf.classList.toggle('an', an);
+        knopf.setAttribute('aria-pressed', an ? 'true' : 'false');
+        knopf.textContent = an ? '✓ Preisliste' : '+ Preisliste';
+        if (!an || !preislisteInfo || !preislisteInfo.vorhanden) { box.hidden = true; return; }
+        box.innerHTML = '📎 „' + esc(preislisteInfo.name) + '“ wird mit der Angebot-Mail gesendet · <a href="/api/angebot-anhang/preisliste" target="_blank" rel="noopener">ansehen</a> · <button type="button" data-ersetzen>andere Datei hochladen</button>';
+        box.hidden = false;
+    }
+    function preislisteLaden() {
+        return fetch('/api/angebot-anhang/preisliste/info', { credentials: 'same-origin' }).then(r => r.json())
+            .then(d => { preislisteInfo = d; preislisteZeigen(); return d; }).catch(() => null);
+    }
+    function preislisteSetzen(an) {
+        $('kgaePreislisteFeld').value = an ? '1' : '';
+        preislisteZeigen();
+        geaendertMelden();
+    }
+    $('kgaePreisliste').addEventListener('click', () => {
+        if (!aktuell) return;
+        if ($('kgaePreislisteFeld').value === '1') { preislisteSetzen(false); return; }
+        (preislisteInfo && preislisteInfo.vorhanden ? Promise.resolve(preislisteInfo) : preislisteLaden()).then(info => {
+            if (info && info.vorhanden) preislisteSetzen(true);
+            else $('kgaePreislisteDatei').click();
+        });
+    });
+    $('kgaePreislisteInfo').addEventListener('click', e => { if (e.target.closest('[data-ersetzen]')) $('kgaePreislisteDatei').click(); });
+    $('kgaePreislisteDatei').addEventListener('change', () => {
+        const datei = $('kgaePreislisteDatei').files[0];
+        if (!datei) return;
+        const fd = new FormData();
+        fd.append('datei', datei);
+        meldung('ok', 'Preisliste wird hochgeladen …');
+        fetch('/api/angebot-anhang/preisliste', { method: 'POST', credentials: 'same-origin', body: fd })
+            .then(r => r.json()).then(d => {
+                if (!d.ok) throw new Error(d.message || 'Fehler');
+                preislisteInfo = d;
+                if (aktuell) preislisteSetzen(true); else preislisteZeigen();
+                meldung('ok', '✓ Preisliste „' + esc(d.name) + '“ gespeichert – sie wird mit der Angebot-Mail gesendet.');
+            }).catch(e => meldung('fehler', 'Preisliste nicht gespeichert: ' + esc(e.message)))
+            .finally(() => { $('kgaePreislisteDatei').value = ''; });
+    });
+    preislisteLaden();
 
     $('kgaeSenden').addEventListener('click', () => {
         if (!aktuell) return;
