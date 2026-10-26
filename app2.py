@@ -837,6 +837,18 @@ def ensure_tagesliste_table():
     except Exception:
         pass
 
+    # Besichtigung „Entfernen“ (Besichtigung-Seite): nur aus den Besichtigung-Listen ausblenden, nichts löschen
+    # (zurueck_am gesetzt = wieder in Besichtigung). Siehe besichtigung_entfernen.py
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS besichtigung_entfernt (
+            tagesliste_id INTEGER PRIMARY KEY,
+            firma TEXT,
+            ort TEXT,
+            entfernt_am TEXT,
+            zurueck_am TEXT
+        )
+    """)
+
     conn.commit()
     conn.close()
 
@@ -2914,6 +2926,7 @@ www.kg-reinigung.de
                 besichtigung_data_json
             FROM tagesliste_leads
             WHERE status = 'besichtigung'
+            AND id NOT IN (SELECT tagesliste_id FROM besichtigung_entfernt WHERE zurueck_am IS NULL)
 
             UNION ALL
 
@@ -2939,6 +2952,7 @@ www.kg-reinigung.de
                 FROM tagesliste_leads t
                 WHERE t.id = b.tagesliste_id
             )
+            AND b.tagesliste_id NOT IN (SELECT tagesliste_id FROM besichtigung_entfernt WHERE zurueck_am IS NULL)
 
             ORDER BY id DESC
         """).fetchall()
@@ -4669,6 +4683,15 @@ www.kg-reinigung.de
             except Exception as akte_fehler:
                 print("Kundenakte (sichern):", akte_fehler)
 
+        # wieder in Besichtigung genommen → nicht mehr ausgeblendet (Besichtigung „Entfernen“)
+        if status == "besichtigung":
+            cursor.execute("""
+                UPDATE besichtigung_entfernt
+                SET zurueck_am = ?
+                WHERE tagesliste_id = ?
+                AND zurueck_am IS NULL
+            """, (db_zeit, tagesliste_id))
+
 
         if status == "offen":
 
@@ -5087,6 +5110,7 @@ www.kg-reinigung.de
                     angebot_brutto
                 FROM tagesliste_leads
                 WHERE status = 'besichtigung'
+                AND id NOT IN (SELECT tagesliste_id FROM besichtigung_entfernt WHERE zurueck_am IS NULL)
 
                 UNION ALL
 
@@ -5122,6 +5146,7 @@ www.kg-reinigung.de
                     WHERE t.id = b.tagesliste_id
                     AND COALESCE(t.status, 'offen') != 'offen'
                 )
+                AND b.tagesliste_id NOT IN (SELECT tagesliste_id FROM besichtigung_entfernt WHERE zurueck_am IS NULL)
 
                 ORDER BY id DESC
             """).fetchall()
@@ -5203,6 +5228,7 @@ www.kg-reinigung.de
                 'spaeter',
                 'verloren'
             )
+            AND NOT (status = 'besichtigung' AND tagesliste_id IN (SELECT tagesliste_id FROM besichtigung_entfernt WHERE zurueck_am IS NULL))
             GROUP BY status
         """).fetchall()
 

@@ -397,6 +397,74 @@ body{background:#edf2f7;font-family:'Inter',sans-serif;color:#0f172a}
   background: #f8fafc;
 }
 
+/* „+ Direktes Angebot“ (wie oben in der Datenbank) und „Entfernen“ an den Terminkarten */
+.besichtigung-plus-btn {
+  border: 1px solid #16a34a;
+  background: #16a34a;
+  color: #ffffff;
+  border-radius: 999px;
+  padding: 8px 12px;
+  font-size: 12px;
+  font-weight: 900;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.besichtigung-plus-btn:hover {
+  filter: brightness(.95);
+}
+
+.besichtigung-termin-top-rechts {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 0 0 auto;
+}
+
+.besichtigung-entfernen-btn {
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border-radius: 9px;
+  border: 1px solid #fecaca;
+  background: #ffffff;
+  color: #dc2626;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+}
+
+.besichtigung-entfernen-btn:hover {
+  background: #fef2f2;
+  border-color: #f87171;
+}
+
+.besichtigung-plus-handy {
+  display: none;
+}
+
+/* Handy: Leiste oben bleibt wie vorher, „+ Direktes Angebot“ steht oben in der geöffneten Liste;
+   Karte so breit wie der Bildschirm (Entfernen-Knopf bleibt sichtbar) */
+@media (max-width: 600px) {
+  .besichtigung-picker-bar .besichtigung-plus-btn {
+    display: none;
+  }
+
+  .besichtigung-plus-btn.besichtigung-plus-handy {
+    display: block;
+    width: 100%;
+    margin: 0 0 12px 0;
+    padding: 11px 14px;
+    border-radius: 13px;
+    font-size: 13px;
+  }
+
+  .besichtigung-termin-card {
+    min-width: 100%;
+    max-width: 100%;
+  }
+}
+
 /* Action Buttons Footer Style */
 .action-footer {
   display: flex;
@@ -557,12 +625,14 @@ body{background:#f4f7fc}
         </div>
 
         <div class="besichtigung-picker-right">
+          <button type="button" class="besichtigung-plus-btn" onclick="event.stopPropagation(); openDirectAngebotModal();" title="Spontanen Kunden direkt zur Besichtigung hinzufügen" aria-label="Direktes Angebot">+ Direktes Angebot</button>
           <div class="besichtigung-picker-count" id="besichtigungPickerCount">0</div>
           <button type="button" class="besichtigung-picker-toggle" onclick="event.stopPropagation(); toggleBesichtigungPicker();">Öffnen</button>
         </div>
       </div>
 
       <div class="besichtigung-picker-body" id="besichtigungPickerBody">
+        <button type="button" class="besichtigung-plus-btn besichtigung-plus-handy" onclick="openDirectAngebotModal();">+ Direktes Angebot</button>
         <div class="besichtigung-termin-list" id="besichtigungTerminList">
           <div class="besichtigung-empty">Besichtigungstermine werden geladen...</div>
         </div>
@@ -2753,7 +2823,10 @@ function renderBesichtigungTermine() {
     card.innerHTML = `
       <div class="besichtigung-termin-top">
         <div class="besichtigung-termin-firma">${escapeHtml(lead.firma || "Ohne Firma")}</div>
-        <div class="besichtigung-termin-badge">Besichtigung</div>
+        <div class="besichtigung-termin-top-rechts">
+          <div class="besichtigung-termin-badge">Besichtigung</div>
+          <button type="button" class="besichtigung-entfernen-btn" title="Entfernen" aria-label="Entfernen" onclick="entferneBesichtigung(${index})"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/></svg></button>
+        </div>
       </div>
       <div class="besichtigung-termin-line">📍 ${escapeHtml(adresse || "Keine Adresse")}</div>
       <div class="besichtigung-termin-line">👤 ${escapeHtml(kontakt)}</div>
@@ -2766,6 +2839,40 @@ function renderBesichtigungTermine() {
 
     list.appendChild(card);
   });
+}
+
+// 🗑 Entfernen: Firma nur aus den Besichtigungsterminen nehmen (hier, Datenbank-Liste „Besichtigung“, KG-Scan-App).
+// Es wird nichts gelöscht; in der Datenbank (Liste „Besichtigung“ → „Entfernte Besichtigungen“) wieder aufnehmbar.
+async function entferneBesichtigung(index) {
+  const lead = besichtigungTermine[index];
+  if (!lead || !lead.id) return;
+
+  const firma = lead.firma || "diese Firma";
+  const ok = confirm(
+    "„" + firma + "“ aus den Besichtigungsterminen entfernen?\n\n"
+    + "Die Firma wird nicht gelöscht. Sie verschwindet nur aus den Besichtigung-Listen "
+    + "(auch in der Datenbank und in der KG-Scan-App) und kann in der Datenbank wieder zur Besichtigung genommen werden."
+  );
+  if (!ok) return;
+
+  try {
+    const response = await fetch("/api/besichtigung/entfernen", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id: lead.id })
+    });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok || !data.ok) {
+      throw new Error(data.message || "Entfernen hat nicht geklappt.");
+    }
+
+    besichtigungTermine.splice(index, 1);
+    const count = document.getElementById("besichtigungPickerCount");
+    if (count) count.textContent = besichtigungTermine.length;
+    renderBesichtigungTermine();
+  } catch (err) {
+    alert("Fehler: " + err.message);
+  }
 }
 
 function startBesichtigung(index) {
@@ -4300,5 +4407,7 @@ window.addEventListener('DOMContentLoaded', () => {
 })();
 </script>
 {% endraw %}
+
+{% include "_direktes_angebot_modal.html" %}
 
 {% endblock %}
