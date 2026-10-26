@@ -118,6 +118,12 @@
 .kgae-bereich-kopf .std b { display: block; font-size: 21px; color: var(--farbe); font-variant-numeric: tabular-nums; }
 .kgae-bereich-felder { display: grid; grid-template-columns: minmax(0, .9fr) minmax(0, 1.3fr); gap: 8px; }
 .kgae-bereich-felder + .kgae-bereich-felder { margin-top: 8px; }
+.kgae-pk { margin-top: 8px; }
+.kgae-pk-label { display: flex; align-items: center; }
+.kgae-pk-label label { margin: 0; }
+.kgae-pk select.anders { border-color: #f59e0b; background: #fffbeb; }
+.kgae-pk-hinweis { margin-top: 5px; padding: 0 2px; font-size: 11.5px; font-weight: 700; line-height: 1.35; color: var(--grau); }
+.kgae-pk.fehlt .kgae-pk-hinweis { color: #b45309; }
 .kgae-bereich-felder label { display: block; margin-bottom: 3px; font-size: 10.5px; font-weight: 900; letter-spacing: .06em; text-transform: uppercase; color: var(--grau); }
 .kgae-bereich .kgae-in { width: 100%; padding: 8px 10px; font-size: 14px; background: #f8fbff; }
 .kgae-bereich .kgae-in.gross { font-size: 18px; font-weight: 900; }
@@ -642,7 +648,8 @@ a.kgae-knopf { display: inline-block; text-decoration: none; }
                 '<div class="kgae-bereich-felder"><div><label for="' + id + '_m2">Fläche m²</label><input class="kgae-in gross" id="' + id + '_m2" data-r="m2" inputmode="decimal" value="' + esc(alt.m2 != null ? alt.m2 : (b.m2 ? String(b.m2).replace('.', ',') : '')) + '" placeholder="0"></div>' +
                 '<div><label for="' + id + '_h">Häufigkeit</label><select class="kgae-in" id="' + id + '_h" data-r="h">' + opts.map(o => '<option' + (o === h ? ' selected' : '') + '>' + esc(o) + '</option>').join('') + '</select></div></div>' +
                 '<div class="kgae-bereich-felder"><div><label for="' + id + '_lw">Leistung m²/Std</label><input class="kgae-in" id="' + id + '_lw" data-r="lw" inputmode="numeric" value="' + esc(alt.lw != null ? alt.lw : k.leistungswert[b.key]) + '"></div>' +
-                '<div><label for="' + id + '_v">Verschmutzung</label><select class="kgae-in" id="' + id + '_v" data-r="v">' + Object.keys(k.verschmutzung).map(v => '<option value="' + esc(v) + '"' + ((alt.v || 'leicht') === v ? ' selected' : '') + '>' + esc(v) + ' ×' + String(k.verschmutzung[v]).replace('.', ',') + '</option>').join('') + '</select></div></div></div>';
+                '<div><label for="' + id + '_v">Verschmutzung</label><select class="kgae-in" id="' + id + '_v" data-r="v">' + Object.keys(k.verschmutzung).map(v => '<option value="' + esc(v) + '"' + ((alt.v || 'leicht') === v ? ' selected' : '') + '>' + esc(v) + ' ×' + String(k.verschmutzung[v]).replace('.', ',') + '</option>').join('') + '</select></div></div>' +
+                (b.key === 'buero' ? pkZeile(id, (kalk.lv || {}).Freq_Muell || '') : '') + '</div>';
         }).join('');
         $('kgaeBereiche').innerHTML = zeilen;
         const st = Object.assign({}, am.stueck || {}, kalk.stueck || {});
@@ -652,6 +659,25 @@ a.kgae-knopf { display: inline-block; text-decoration: none; }
         $('kgaeAufmassQuelle').textContent = am.scan ? 'Flächen aus KG Scan' : (am.bereiche.some(b => b.m2) ? 'Flächen aus der Besichtigung' : 'Flächen bitte eintragen');
         rechnen();
     }
+    // Büro: Papierkörbe mit eigener Häufigkeit (z. B. 2x, wenn beim 2. Einsatz nur WC, Küche und Müll gemacht werden).
+    // Standard „wie Büro“. Gleicher Wert wie die Zeile „Papierkörbe leeren“ im Leistungsverzeichnis (Freq_Muell).
+    function pkZeile(id, wert) {
+        const opts = [''].concat(k.haeufigkeiten); if (wert && opts.indexOf(wert) < 0) opts.push(wert);
+        return '<div class="kgae-pk"><div class="kgae-bereich-felder"><div class="kgae-pk-label"><label for="' + id + '_pk">Papierkörbe leeren</label></div>' +
+            '<div><select class="kgae-in' + (wert ? ' anders' : '') + '" id="' + id + '_pk" data-r="pk">' +
+            opts.map(o => '<option value="' + esc(o) + '"' + (o === wert ? ' selected' : '') + '>' + esc(o || 'wie Büro') + '</option>').join('') + '</select></div></div>' +
+            '<div class="kgae-pk-hinweis" data-r="pkhinweis">Standard wie Büro · abweichend z. B. 2x, wenn beim 2. Einsatz nur WC, Küche und Müll</div></div>';
+    }
+    function pkAbgleichen(von) {
+        const karte = document.querySelector('#kgaeBereiche [data-r="pk"]'), lvz = document.querySelector('#kgaeLvzRaster [data-lvz="Freq_Muell"]');
+        const ziel = von === karte ? lvz : karte;
+        if (!von || !ziel) return;
+        ziel.value = von.value;
+        [von, ziel].forEach(el => el.classList.toggle('anders', !!el.value));
+    }
+    $('kgaeBereiche').addEventListener('change', e => { if (e.target.matches('[data-r="pk"]')) pkAbgleichen(e.target); });
+    $('kgaeLvzRaster').addEventListener('change', e => { if (e.target.matches('[data-lvz="Freq_Muell"]')) pkAbgleichen(e.target); });
+
     // Leistungsverzeichnis: einzelne Zeilen abweichend vom Bereich (leer = wie der Bereich)
     const LVZ = [
         ['Büro', [['Freq_Schreibtische', 'Arbeitsflächen / Schreibtische'], ['Freq_Elektro', 'Elektrogeräte (PC, Bildschirm …)'], ['Freq_Muell', 'Papierkörbe leeren'],
@@ -879,11 +905,21 @@ a.kgae-knopf { display: inline-block; text-decoration: none; }
         $('kgaeBereiche').querySelectorAll('.kgae-bereich').forEach(tr => {
             const key = tr.dataset.key, m2 = zahl(tr.querySelector('[data-r="m2"]').value), lw = zahl(tr.querySelector('[data-r="lw"]').value) || 1;
             const e = einsaetze(tr.querySelector('[data-r="h"]').value), fv = k.verschmutzung[tr.querySelector('[data-r="v"]').value] || 1;
-            let min = m2 / lw * 60 * fv;
+            let min = m2 / lw * 60 * fv, minM = 0, eM = e;
             if (key === 'wc') min += (st.wc || 0) * m.wc + (st.urinal || 0) * m.urinal + (st.wb || 0) * m.wb;
-            if (key === 'buero') min += (st.schreibtisch || 0) * m.schreibtisch + (st.muell || 0) * m.muell;
-            const std = e ? min * e / 60 : 0;
+            if (key === 'buero') {
+                min += (st.schreibtisch || 0) * m.schreibtisch;
+                minM = (st.muell || 0) * m.muell;   // Papierkörbe: eigene Häufigkeit, wenn gewählt
+                const pk = tr.querySelector('[data-r="pk"]'), hinweis = tr.querySelector('[data-r="pkhinweis"]');
+                if (pk && pk.value) eM = einsaetze(pk.value);
+                if (hinweis) hinweis.textContent = !(pk && pk.value) ? 'Standard wie Büro · abweichend z. B. 2x, wenn beim 2. Einsatz nur WC, Küche und Müll'
+                    : (minM ? eins(minM * eM / 60) + ' Std / Monat für ' + String(st.muell).replace('.', ',') + ' Papierkörbe (' + pk.value + ')'
+                        : 'Bitte unten die Anzahl „Mülleimer“ eintragen – sonst zählt die Zeit nicht');
+                tr.querySelector('.kgae-pk').classList.toggle('fehlt', !!(pk && pk.value && !minM));
+            }
+            const std = (e ? min * e / 60 : 0) + (eM ? minM * eM / 60 : 0);
             if (e && min) maxE = Math.max(maxE, e);
+            if (eM && minM) maxE = Math.max(maxE, eM);
             summe += std;
             tr.querySelector('[data-r="std"]').textContent = eins(std);
             tr.classList.toggle('leer', !std);
@@ -893,7 +929,7 @@ a.kgae-knopf { display: inline-block; text-decoration: none; }
         const richt = aufstellung(summe, maxE);
         sonderRechnen();
         $('kgaeFormel').innerHTML = 'Minuten je Einsatz = m² ÷ Leistungswert × 60 × Verschmutzung (+ WC ' + String(m.wc).replace('.', ',') + ' · Urinal ' + String(m.urinal).replace('.', ',') + ' · Waschbecken ' + String(m.wb).replace('.', ',') +
-            ' · Schreibtisch ' + String(m.schreibtisch).replace('.', ',') + ' · Mülleimer ' + String(m.muell).replace('.', ',') + ' Min je Stück) · Einsätze/Monat = x/Woche × ' + String(k.monat).replace('.', ',') +
+            ' · Schreibtisch ' + String(m.schreibtisch).replace('.', ',') + ' · Mülleimer ' + String(m.muell).replace('.', ',') + ' Min je Stück; Mülleimer mit der Häufigkeit „Papierkörbe leeren“) · Einsätze/Monat = x/Woche × ' + String(k.monat).replace('.', ',') +
             ' · + Rüstzeit ' + m.ruest + ' Min je Einsatz (' + eins(ruest) + ' Std) · <b>Kosten = Lohn + Minijob-Abgaben + Material (+ Fahrt) · Richtpreis = Kosten + Aufschlag</b>. Der Preis im Angebot ist immer der, den du oben einträgst' +
             (k.stundensatz ? ' · zum Vergleich: bisher ' + euro(k.stundensatz) + '/Std = ' + euro(summe * k.stundensatz) : '') + '.';
         return richt;
