@@ -4948,6 +4948,29 @@ html[data-kg-x="on"] .kf-wert {
                     <strong>Keine Firmen in dieser Liste.</strong>
                     Sobald Damla einen Lead markiert, erscheint er hier.
                 </div>
+
+                <!-- Liste „Besichtigung“: auf der Besichtigung-Seite entfernte Firmen (nur ausgeblendet) – hier wieder aufnehmen -->
+                <style>
+                    .kg-bes-entfernt { margin-top: 14px; border: 1px dashed #cbd5e1; border-radius: 16px; background: #f8fafc; padding: 0 14px; }
+                    .kg-bes-entfernt summary { cursor: pointer; padding: 12px 0; font-size: 13px; font-weight: 900; color: #334155; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; list-style: none; }
+                    .kg-bes-entfernt summary::-webkit-details-marker { display: none; }
+                    .kg-bes-entfernt summary::before { content: "\25B8"; color: #64748b; }
+                    .kg-bes-entfernt[open] summary::before { content: "\25BE"; }
+                    .kg-bes-entfernt summary b { min-width: 24px; height: 22px; padding: 0 7px; border-radius: 999px; background: #e2e8f0; color: #334155; display: inline-grid; place-items: center; font-size: 12px; }
+                    .kg-bes-entfernt summary span { font-size: 11.5px; font-weight: 700; color: #94a3b8; }
+                    .kg-bes-entfernt-zeile { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 12px; padding: 10px 0; border-top: 1px solid #e2e8f0; }
+                    .kg-bes-entfernt-zeile > div { flex: 1 1 220px; min-width: 0; }
+                    .kg-bes-entfernt-zeile strong { display: block; font-size: 14px; font-weight: 900; color: #0f172a; }
+                    .kg-bes-entfernt-zeile small { display: block; margin-top: 2px; font-size: 12px; font-weight: 700; color: #64748b; }
+                    .kg-bes-entfernt-zeile button { flex: 0 0 auto; border: 1px solid #bfdbfe; background: #ffffff; color: #1d4ed8; border-radius: 12px; padding: 8px 12px; font-size: 12.5px; font-weight: 900; cursor: pointer; }
+                    .kg-bes-entfernt-zeile button:hover { background: #eff6ff; }
+                    html[data-kg-x="on"] .kg-bes-entfernt { background: #111827; border-color: rgba(148,163,184,.3); }
+                    html[data-kg-x="on"] .kg-bes-entfernt summary, html[data-kg-x="on"] .kg-bes-entfernt-zeile strong { color: #e2e8f0; }
+                    html[data-kg-x="on"] .kg-bes-entfernt summary b { background: #1f2937; color: #e2e8f0; }
+                    html[data-kg-x="on"] .kg-bes-entfernt-zeile { border-top-color: rgba(148,163,184,.2); }
+                    html[data-kg-x="on"] .kg-bes-entfernt-zeile button { background: #1e293b; color: #93c5fd; border-color: rgba(147,197,253,.3); }
+                </style>
+                <div id="kgBesEntfernt" style="display:none;"></div>
             </section>
 
             <section class="mv-panel" id="mvPanel" aria-label="Monatsvergleich">
@@ -9260,11 +9283,79 @@ function kgSv2Icon(name, farbe) {
     return `<svg class="sv2-svg" viewBox="0 0 24 24" style="stroke:${farbe || "currentColor"}">${KG_SV2_PFADE[name] || ""}</svg>`;
 }
 
+// Liste „Besichtigung“: auf der Besichtigung-Seite entfernte Firmen (nur ausgeblendet, nichts gelöscht) mit „Zurück in Besichtigung“
+let kgBesEntferntNr = 0;
+
+function kgBesDatum(text) {
+    const m = String(text || "").match(/^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2})/);
+    return m ? `${m[3]}.${m[2]}.${m[1]} ${m[4]}:${m[5]}` : String(text || "");
+}
+
+async function kgBesEntferntZeigen(statusKey) {
+    const box = document.getElementById("kgBesEntfernt");
+    if (!box) return;
+    const nr = ++kgBesEntferntNr;
+    box.style.display = "none";
+    box.innerHTML = "";
+    if (statusKey !== "besichtigung") return;
+
+    let eintraege = [];
+    try {
+        const response = await fetch("/api/besichtigung/entfernt", { cache: "no-store" });
+        const data = await response.json();
+        eintraege = data && data.ok && Array.isArray(data.eintraege) ? data.eintraege : [];
+    } catch (e) {
+        return;
+    }
+    if (nr !== kgBesEntferntNr || !eintraege.length) return;
+
+    box.innerHTML = `
+        <details class="kg-bes-entfernt">
+            <summary>Entfernte Besichtigungen <b>${eintraege.length}</b><span>auf der Besichtigung-Seite entfernt · hier wieder aufnehmen</span></summary>
+            ${eintraege.map(e => `
+                <div class="kg-bes-entfernt-zeile">
+                    <div>
+                        <strong>${kgAwEscape(e.firma || "-")}</strong>
+                        <small>${kgAwEscape([e.ort, e.entfernt_am ? "entfernt am " + kgBesDatum(e.entfernt_am) : ""].filter(Boolean).join(" · "))}</small>
+                    </div>
+                    <button type="button" onclick="kgBesZurueck(${Number(e.id) || 0}, this)">↩ Zurück in Besichtigung</button>
+                </div>
+            `).join("")}
+        </details>
+    `;
+    box.style.display = "block";
+}
+
+async function kgBesZurueck(id, btn) {
+    if (!id) return;
+    if (btn) btn.disabled = true;
+    try {
+        const response = await fetch("/api/besichtigung/zurueck", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ id: id })
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok || !data.ok) {
+            throw new Error(data.message || "Hat nicht geklappt.");
+        }
+        renderStatusCompanies("besichtigung");
+        if (typeof updateStatusBoardCounts === "function") {
+            updateStatusBoardCounts();
+        }
+    } catch (error) {
+        alert("Fehler: " + error.message);
+        if (btn) btn.disabled = false;
+    }
+}
+
 async function renderStatusCompanies(statusKey) {
     const list = document.getElementById("statusCompanyList");
     const empty = document.getElementById("statusEmpty");
 
     if(!list || !empty) return;
+
+    kgBesEntferntZeigen(statusKey);
 
     empty.style.display = "none";
     list.innerHTML = '<div style="padding:20px; text-align:center; font-weight:800; color:#64748b;">Lade Daten...</div>';

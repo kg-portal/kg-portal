@@ -6,6 +6,8 @@ from zoneinfo import ZoneInfo
 
 from flask import jsonify
 
+from besichtigung_entfernen import AUSGEBLENDET_SQL
+
 BERLIN = ZoneInfo("Europe/Berlin")
 
 
@@ -42,6 +44,11 @@ def register_besichtigung_uebersicht(app, login_required, get_db_connection):
             ).fetchall():
                 live[r["id"]] = r
                 datum.setdefault(r["id"], _tag(r["erstellt_am"]))
+            # auf der Besichtigung-Seite „Entfernt“ (nur ausgeblendet, siehe besichtigung_entfernen.py)
+            try:
+                entfernt = {r[0] for r in conn.execute(AUSGEBLENDET_SQL).fetchall()}
+            except Exception:
+                entfernt = set()
         except Exception as exc:
             conn.close()
             return jsonify({"ok": False, "message": str(exc)})
@@ -57,6 +64,8 @@ def register_besichtigung_uebersicht(app, login_required, get_db_connection):
                 nr = live[tid]["angebot_nr"] or ""
             else:
                 status, nr = "", ""
+            if tid in entfernt and not nr:
+                continue
             if status == "besichtigung":
                 stand = "offen"
             elif nr:
