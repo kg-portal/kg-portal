@@ -557,6 +557,10 @@ body {
 }
 </style>
 
+{# Bauendreinigung: allein = eigenes Leistungsverzeichnis (einmalig); zusammen mit Unterhalts-/Büro-/Praxis-/Treppenhausreinigung = zusätzlicher Teil #}
+{% set lv_art_text = ((Leistungsart or '')|striptags|trim|lower) %}
+{% set lv_bau = 'bauend' in lv_art_text %}
+{% set lv_nur_bau = lv_bau and not ('unterhalt' in lv_art_text or 'büro' in lv_art_text or 'praxis' in lv_art_text or 'treppenhaus' in lv_art_text) %}
 <div class="lv-page">
     <section class="lv-hero">
         <h1 class="lv-title">Leistungsverzeichnis</h1>
@@ -579,7 +583,7 @@ body {
 
             <div class="lv-info-box">
                 <div class="lv-info-label">Häufigkeit</div>
-                <div class="lv-info-value multi-line">{{Haeufigkeit|safe}}</div>
+                <div class="lv-info-value multi-line">{% if lv_nur_bau %}einmalig{% else %}{{Haeufigkeit|safe}}{% endif %}</div>
             </div>
         </div>
     </section>
@@ -589,12 +593,76 @@ body {
             {# Überschrift wie oben „Leistung“ (z. B. Praxisreinigung), sonst Büroreinigung #}
             {% set lv_art = ((Leistungsart or '')|striptags|trim) %}
             {% set lv_art = lv_art if lv_art and lv_art != '-' else 'Büroreinigung' %}
+            {% if lv_nur_bau %}
+            <h2>Bauendreinigung – Leistungsumfang</h2>
+            <p>
+    Dieses Leistungsverzeichnis ist Anlage zum Angebot und beschreibt den Umfang der einmaligen Bauendreinigung<br>
+    nach Abschluss der Bauarbeiten, vor Übergabe bzw. Bezug der Räume.
+</p>
+            {% else %}
             <h2>{{ lv_art }} – Standardleistungen</h2>
             <p>
     Dieses Leistungsverzeichnis ist Anlage zum Angebot und beschreibt die regelmäßig auszuführenden Reinigungsarbeiten<br>
     für {{ 'Praxis' if 'praxis' in lv_art|lower else 'Büro' }}-, Küchen-, Sanitär- und Verkehrsflächen.
 </p>
+            {% endif %}
         </div>
+
+        {% if lv_nur_bau %}
+        <section class="standard-grid">
+            <div class="standard-card buro">
+                <div class="standard-head">
+                    <h3>Bauendreinigung</h3>
+                    <span>Bauschmutz, Staub und Spinnweben</span>
+                </div>
+                <div class="standard-body">
+                    <ul>
+                        <li>Groben Bauschmutz und Staub entfernen</li>
+                        <li>Spinnweben entfernen</li>
+                        <li>Türen, Zargen und Heizkörper reinigen</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="standard-card kueche">
+                <div class="standard-head">
+                    <h3>Böden</h3>
+                    <span>Alle Bodenflächen und Sockelleisten</span>
+                </div>
+                <div class="standard-body">
+                    <ul>
+                        <li>Saugen und wischen</li>
+                        <li>Sockelleisten reinigen</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="standard-card flur">
+                <div class="standard-head">
+                    <h3>Fenster und Glas</h3>
+                    <span>Fenster, Rahmen und Glasflächen</span>
+                </div>
+                <div class="standard-body">
+                    <ul>
+                        <li>Fenster innen und außen</li>
+                        <li>Rahmen, Falze und Fensterbänke</li>
+                        <li>Glastüren und Glasflächen</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="standard-card wc">
+                <div class="standard-head">
+                    <h3>Sanitär und Küche</h3>
+                    <span>Sanitärobjekte, Fliesen und Küchenzeile</span>
+                </div>
+                <div class="standard-body">
+                    <ul>
+                        <li>WC, Waschbecken und Duschen</li>
+                        <li>Fliesen, Armaturen und Spiegel</li>
+                        <li>Schränke innen und außen, Spüle</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+        {% else %}
 
         <section class="standard-grid">
             <div class="standard-card buro">
@@ -661,7 +729,11 @@ body {
             </div>
         </section>
 
+        {% endif %}
+
         <div class="lv-detail-title">Detailliertes Leistungsverzeichnis</div>
+
+        {% if not lv_nur_bau %}
 
         <section class="lv-section buro-section">
             <div class="lv-section-title"><span class="dot blue"></span>Büro, Arbeitsplätze & allgemeine Flächen</div>
@@ -791,6 +863,175 @@ body {
             </table>
         </section>
 
+        {% endif %}
+
+        {% if lv_bau %}
+        <section class="lv-section bau-section">
+            <div class="lv-section-title"><span class="dot blue"></span>Bauendreinigung</div>
+            <table class="lv-table">
+                <thead>
+                    <tr>
+                        <th>Leistungsbeschreibung</th>
+                        <th>Umfang</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Groben Bauschmutz und Staub entfernen</td>
+                        <td class="freq">enthalten</td>
+                    </tr>
+                    <tr>
+                        <td>Spinnweben entfernen</td>
+                        <td class="freq">enthalten</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+        <section class="lv-section bau-section">
+            <div class="lv-section-title"><span class="dot green"></span>Böden</div>
+            <table class="lv-table">
+                <thead>
+                    <tr>
+                        <th>Leistungsbeschreibung</th>
+                        <th>Umfang</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Bodenflächen saugen und wischen</td>
+                        <td class="freq">enthalten</td>
+                    </tr>
+                    <tr>
+                        <td>Sockelleisten reinigen</td>
+                        <td class="freq">enthalten</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+        <section class="lv-section bau-section">
+            <div class="lv-section-title"><span class="dot orange"></span>Fenster und Glas</div>
+            <table class="lv-table">
+                <thead>
+                    <tr>
+                        <th>Leistungsbeschreibung</th>
+                        <th>Umfang</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Fenster innen und außen inkl. Rahmen, Falze und Fensterbänke reinigen</td>
+                        <td class="freq">enthalten</td>
+                    </tr>
+                    <tr>
+                        <td>Glastüren und Glasflächen reinigen</td>
+                        <td class="freq">enthalten</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+        <section class="lv-section bau-section">
+            <div class="lv-section-title"><span class="dot purple"></span>Türen und Oberflächen</div>
+            <table class="lv-table">
+                <thead>
+                    <tr>
+                        <th>Leistungsbeschreibung</th>
+                        <th>Umfang</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Türen und Zargen reinigen</td>
+                        <td class="freq">enthalten</td>
+                    </tr>
+                    <tr>
+                        <td>Heizkörper reinigen</td>
+                        <td class="freq">enthalten</td>
+                    </tr>
+                    <tr>
+                        <td>Schalter und Steckdosen abwischen</td>
+                        <td class="freq">enthalten</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+        <section class="lv-section bau-section">
+            <div class="lv-section-title"><span class="dot red"></span>Sanitär</div>
+            <table class="lv-table">
+                <thead>
+                    <tr>
+                        <th>Leistungsbeschreibung</th>
+                        <th>Umfang</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>WC, Waschbecken und Duschen von Bauschmutz, Silikon- und Kalkresten befreien</td>
+                        <td class="freq">enthalten</td>
+                    </tr>
+                    <tr>
+                        <td>Fliesen, Armaturen und Spiegel reinigen</td>
+                        <td class="freq">enthalten</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+        <section class="lv-section bau-section">
+            <div class="lv-section-title"><span class="dot green"></span>Küche / Teeküche</div>
+            <table class="lv-table">
+                <thead>
+                    <tr>
+                        <th>Leistungsbeschreibung</th>
+                        <th>Umfang</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Schränke innen und außen reinigen</td>
+                        <td class="freq">enthalten</td>
+                    </tr>
+                    <tr>
+                        <td>Spüle reinigen</td>
+                        <td class="freq">enthalten</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+        <section class="lv-section bau-section">
+            <div class="lv-section-title"><span class="dot blue"></span>Treppen und Flure</div>
+            <table class="lv-table">
+                <thead>
+                    <tr>
+                        <th>Leistungsbeschreibung</th>
+                        <th>Umfang</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Treppenstufen, Geländer und Handläufe reinigen</td>
+                        <td class="freq">enthalten</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+        <section class="lv-section bau-section">
+            <div class="lv-section-title"><span class="dot orange"></span>Abschluss</div>
+            <table class="lv-table">
+                <thead>
+                    <tr>
+                        <th>Leistungsbeschreibung</th>
+                        <th>Umfang</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Endkontrolle – Räume übergabebereit</td>
+                        <td class="freq">enthalten</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+        {% endif %}
+
         {% if Zusatzleistungen %}
         <section class="lv-section zusatz-section">
             <div class="lv-section-title"><span class="dot purple"></span>Zusatzleistungen / Sonstiges</div>
@@ -814,8 +1055,14 @@ body {
         {% endif %}
 
         <div class="note-box">
+            {% if lv_nur_bau %}
+            <b>Hinweis:</b> Die Bauendreinigung wird einmalig nach Abschluss aller Bauarbeiten ausgeführt.
+            Entsorgung von Bauschutt und groben Bauabfällen, Arbeiten in großer Höhe sowie stark haftende Verschmutzungen
+            (z. B. Zement, Lack, Kleber) nur nach vorheriger Absprache bzw. nach Aufwand.
+            {% else %}
             <b>Hinweis:</b> Dieses Leistungsverzeichnis beschreibt die vereinbarten Standardleistungen der {{ lv_art }}.
             Objektbezogene Zusatzleistungen werden nur nach vorheriger Vereinbarung ausgeführt und separat im Angebot aufgeführt.
+            {% endif %}
             Reinigungsmittel und Arbeitsgeräte werden von der KG Gebäudereinigung gestellt und sind im Preis enthalten,
             sofern nicht anders vereinbart.
         </div>
