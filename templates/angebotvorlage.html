@@ -383,6 +383,13 @@ body {
 .page3 .leistungs-list.kompakt + .meta-section { margin-top: 12px; }
 .page3 .leistungs-list.kompakt ~ .company-box { margin-top: 16px; }
 
+/* Rabatt: alter Preis durchgestrichen, darunter Rabatt und neuer Preis */
+.page3 .leistung-row .right .preis-alt { color: #6b7280; font-weight: 600; text-decoration-thickness: 1.5px; }
+.page3 .leistung-row .right .preis-rabatt { display: block; margin-top: 2px; font-size: 0.92em; font-weight: 600; color: #374151; white-space: nowrap; }
+.page3 .leistung-row .right .preis-rabatt b { color: #1d4ed8; font-size: 1.087em; }
+/* 7–8 Leistungen: Rabatt in derselben Zeile, sonst passt Seite 3 nicht */
+.page3 .leistungs-list.kompakt:has(> .leistung-row:nth-child(7)) .preis-rabatt { display: inline; margin-left: 8px; }
+
 .page3 .info-line {
     text-align: right;
     margin-top: 10px;
@@ -793,45 +800,45 @@ body {
                 <div class="leistungs-list{% if Leistung_5 is defined %} kompakt{% endif %}">
                 <div class="leistung-row">
     <div>Leistung 1: {{Leistung_1 or "-"}}</div>
-    <div class="right">{{Einheiten_1 or "-"}} &nbsp;&nbsp;&nbsp; {{Preis_1 or "-"}}</div>
+    <div class="right">{{Einheiten_1 or "-"}} &nbsp;&nbsp;&nbsp; {% if Rabatt_1 %}<s class="preis-alt">{{PreisAlt_1}}</s><span class="preis-rabatt">−{{Rabatt_1}} % Rabatt &nbsp; <b>{{Preis_1}}</b></span>{% else %}{{Preis_1 or "-"}}{% endif %}</div>
 </div>
 
 <div class="leistung-row">
     <div>Leistung 2: {{Leistung_2 or "-"}}</div>
-    <div class="right">{{Einheiten_2 or "-"}} &nbsp;&nbsp;&nbsp; {{Preis_2 or "-"}}</div>
+    <div class="right">{{Einheiten_2 or "-"}} &nbsp;&nbsp;&nbsp; {% if Rabatt_2 %}<s class="preis-alt">{{PreisAlt_2}}</s><span class="preis-rabatt">−{{Rabatt_2}} % Rabatt &nbsp; <b>{{Preis_2}}</b></span>{% else %}{{Preis_2 or "-"}}{% endif %}</div>
 </div>
 
 <div class="leistung-row">
     <div>Leistung 3: {{Leistung_3 or "-"}}</div>
-    <div class="right">{{Einheiten_3 or "-"}} &nbsp;&nbsp;&nbsp; {{Preis_3 or "-"}}</div>
+    <div class="right">{{Einheiten_3 or "-"}} &nbsp;&nbsp;&nbsp; {% if Rabatt_3 %}<s class="preis-alt">{{PreisAlt_3}}</s><span class="preis-rabatt">−{{Rabatt_3}} % Rabatt &nbsp; <b>{{Preis_3}}</b></span>{% else %}{{Preis_3 or "-"}}{% endif %}</div>
 </div>
 
 <div class="leistung-row">
     <div>Leistung 4: {{Leistung_4 or "-"}}</div>
-    <div class="right">{{Einheiten_4 or "-"}} &nbsp;&nbsp;&nbsp; {{Preis_4 or "-"}}</div>
+    <div class="right">{{Einheiten_4 or "-"}} &nbsp;&nbsp;&nbsp; {% if Rabatt_4 %}<s class="preis-alt">{{PreisAlt_4}}</s><span class="preis-rabatt">−{{Rabatt_4}} % Rabatt &nbsp; <b>{{Preis_4}}</b></span>{% else %}{{Preis_4 or "-"}}{% endif %}</div>
 </div>
 {% if Leistung_5 is defined %}
 <div class="leistung-row">
     <div>Leistung 5: {{Leistung_5 or "-"}}</div>
-    <div class="right">{{Einheiten_5 or "-"}} &nbsp;&nbsp;&nbsp; {{Preis_5 or "-"}}</div>
+    <div class="right">{{Einheiten_5 or "-"}} &nbsp;&nbsp;&nbsp; {% if Rabatt_5 %}<s class="preis-alt">{{PreisAlt_5}}</s><span class="preis-rabatt">−{{Rabatt_5}} % Rabatt &nbsp; <b>{{Preis_5}}</b></span>{% else %}{{Preis_5 or "-"}}{% endif %}</div>
 </div>
 {% endif %}
 {% if Leistung_6 is defined %}
 <div class="leistung-row">
     <div>Leistung 6: {{Leistung_6 or "-"}}</div>
-    <div class="right">{{Einheiten_6 or "-"}} &nbsp;&nbsp;&nbsp; {{Preis_6 or "-"}}</div>
+    <div class="right">{{Einheiten_6 or "-"}} &nbsp;&nbsp;&nbsp; {% if Rabatt_6 %}<s class="preis-alt">{{PreisAlt_6}}</s><span class="preis-rabatt">−{{Rabatt_6}} % Rabatt &nbsp; <b>{{Preis_6}}</b></span>{% else %}{{Preis_6 or "-"}}{% endif %}</div>
 </div>
 {% endif %}
 {% if Leistung_7 is defined %}
 <div class="leistung-row">
     <div>Leistung 7: {{Leistung_7 or "-"}}</div>
-    <div class="right">{{Einheiten_7 or "-"}} &nbsp;&nbsp;&nbsp; {{Preis_7 or "-"}}</div>
+    <div class="right">{{Einheiten_7 or "-"}} &nbsp;&nbsp;&nbsp; {% if Rabatt_7 %}<s class="preis-alt">{{PreisAlt_7}}</s><span class="preis-rabatt">−{{Rabatt_7}} % Rabatt &nbsp; <b>{{Preis_7}}</b></span>{% else %}{{Preis_7 or "-"}}{% endif %}</div>
 </div>
 {% endif %}
 {% if Leistung_8 is defined %}
 <div class="leistung-row">
     <div>Leistung 8: {{Leistung_8 or "-"}}</div>
-    <div class="right">{{Einheiten_8 or "-"}} &nbsp;&nbsp;&nbsp; {{Preis_8 or "-"}}</div>
+    <div class="right">{{Einheiten_8 or "-"}} &nbsp;&nbsp;&nbsp; {% if Rabatt_8 %}<s class="preis-alt">{{PreisAlt_8}}</s><span class="preis-rabatt">−{{Rabatt_8}} % Rabatt &nbsp; <b>{{Preis_8}}</b></span>{% else %}{{Preis_8 or "-"}}{% endif %}</div>
 </div>
 {% endif %}
                     <div class="info-line">

@@ -142,7 +142,7 @@ def felder_aus_angebot(conn, tid):
         f[k] = af.get(k) or (_txt(row[spalte]) if spalte in keys else "")
     f["wochentage"], f["zeiten"] = wochentage, zeiten
     for i, p in enumerate(af["positionen"][:4]):
-        netto = _zahl(p["preis"])
+        netto = ae.endpreis(p)  # mit Rabatt aus dem Angebot
         f["positionen"][i] = {"text": p["text"], "einheit": p["einheit"] or "monatlich",
                               "preis": _betrag(round(netto * (1 + MWST), 2)) if netto else "", "netto": _betrag(netto) if netto else ""}
     return f
