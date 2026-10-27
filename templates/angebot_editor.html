@@ -69,16 +69,21 @@
 .kgae-f label { display: block; margin-bottom: 5px; font-size: 11.5px; font-weight: 900; letter-spacing: .06em; text-transform: uppercase; color: #475569; }
 .kgae-in { width: 100%; padding: 10px 12px; border: 1.5px solid var(--rand); border-radius: 12px; background: #f8fafc; font: inherit; font-size: 15px; color: #0f172a; transition: border-color .2s, background .2s; }
 .kgae-in:focus { outline: none; border-color: var(--b3); background: #fff; box-shadow: 0 0 0 3px rgba(59, 130, 246, .15); }
-.kgae-pos { display: grid; grid-template-columns: 34px minmax(0, 1fr) 150px 130px; gap: 8px; align-items: center; }
+.kgae-pos { display: grid; grid-template-columns: 34px minmax(0, 1fr) 150px 130px 92px; gap: 8px; align-items: center; }
 .kgae-pos + .kgae-pos { margin-top: 8px; }
 .kgae-pos > b { display: grid; place-items: center; height: 42px; border-radius: 12px; background: #eff6ff; color: var(--b1); font-size: 14px; }
 .kgae-pos .kgae-in.preis { text-align: right; font-weight: 900; }
 .kgae-pos[hidden] { display: none; }
+.kgae-pos select.rabatt.an { border-color: #16a34a; background-color: #f0fdf4; color: #15803d; font-weight: 900; }
+.kgae-pos-rabatt { grid-column: 2 / -1; margin-top: -2px; text-align: right; font-size: 12px; font-weight: 700; color: var(--grau); }
+.kgae-pos-rabatt s { margin-right: 6px; }
+.kgae-pos-rabatt b { color: #15803d; }
+.kgae-pos-rabatt[hidden] { display: none; }
 .kgae-pos-plus { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 10px; }
 .kgae-pos-plus .kgae-knopf { padding: 9px 14px; font-size: 13px; }
 .kgae-pos-plus .kgae-knopf[hidden] { display: none; }
 .kgae-pos-voll { font-size: 13px; font-weight: 800; color: #b91c1c; }
-.kgae-pos-kopf { display: grid; grid-template-columns: 34px minmax(0, 1fr) 150px 130px; gap: 8px; margin-bottom: 6px; font-size: 11px; font-weight: 900; letter-spacing: .06em; text-transform: uppercase; color: var(--grau); }
+.kgae-pos-kopf { display: grid; grid-template-columns: 34px minmax(0, 1fr) 150px 130px 92px; gap: 8px; margin-bottom: 6px; font-size: 11px; font-weight: 900; letter-spacing: .06em; text-transform: uppercase; color: var(--grau); }
 .kgae-summen { display: flex; justify-content: flex-end; gap: 22px; flex-wrap: wrap; margin-top: 14px; padding-top: 12px; border-top: 1px dashed var(--rand); }
 .kgae-summen div { text-align: right; font-size: 12px; font-weight: 800; color: var(--grau); }
 .kgae-summen b { display: block; font-size: 18px; color: #0f172a; }
@@ -273,7 +278,7 @@ a.kgae-knopf { display: inline-block; text-decoration: none; }
 }
 @media (max-width: 760px) {
     .kgae-felder { grid-template-columns: minmax(0, 1fr); } .kgae-f, .kgae-f.w3, .kgae-f.w4, .kgae-f.w1 { grid-column: 1 / -1; }
-    .kgae-pos, .kgae-pos-kopf { grid-template-columns: 30px minmax(0, 1fr); } .kgae-pos select, .kgae-pos .preis { grid-column: 2; }
+    .kgae-pos, .kgae-pos-kopf { grid-template-columns: 30px minmax(0, 1fr); } .kgae-pos select, .kgae-pos .preis, .kgae-pos-rabatt { grid-column: 2; }
     .kgae-pos-kopf span:nth-child(n+3) { display: none; }
     .kgae-stueck { grid-template-columns: repeat(2, minmax(0, 1fr)); } .kgae-ergebnis { grid-template-columns: 1fr 1fr; }
     .kgae-bereiche { grid-template-columns: minmax(0, 1fr); } .kgae-sk-felder .kgae-in, .kgae-sk-felder select.kgae-in { width: 100%; } .kgae-sk-felder > div { flex: 1 1 40%; }
@@ -375,13 +380,15 @@ a.kgae-knopf { display: inline-block; text-decoration: none; }
                         <div class="kgae-f w4 kgae-firma-wrap"><label for="kgae_leistungsart">Leistungsart (Überschrift)</label><input class="kgae-in" id="kgae_leistungsart" data-feld="leistungsart" autocomplete="off" placeholder="Bitte wählen – oder selbst schreiben"><div class="kgae-vorschlag" id="kgaeLaListe" role="listbox" hidden></div></div>
                         <div class="kgae-f"><label for="kgae_datum">Datum</label><input class="kgae-in" id="kgae_datum" data-feld="datum" placeholder="TT.MM.JJJJ"></div>
                     </div>
-                    <div class="kgae-pos-kopf"><span></span><span>Leistung</span><span>Einheit</span><span style="text-align:right">Preis € netto</span></div>
+                    <div class="kgae-pos-kopf"><span></span><span>Leistung</span><span>Einheit</span><span style="text-align:right">Preis € netto</span><span>Rabatt</span></div>
                     {% for n in range(1, 9) %}
                     <div class="kgae-pos"{% if n > 4 %} hidden{% endif %}>
                         <b>{{ n }}</b>
                         <input class="kgae-in" data-pos="{{ n }}" data-teil="text" placeholder="{{ 'z. B. 2x wöchentliche Büroreinigung (240 m²)' if n == 1 else ('z. B. Einmalige Grundreinigung' if n == 2 else 'optional') }}">
                         <select class="kgae-in" data-pos="{{ n }}" data-teil="einheit">{% for e in einheiten %}<option>{{ e }}</option>{% endfor %}</select>
                         <input class="kgae-in preis" data-pos="{{ n }}" data-teil="preis" inputmode="decimal" placeholder="0,00">
+                        <select class="kgae-in rabatt" data-pos="{{ n }}" data-teil="rabatt" title="Rabatt auf diesen Preis – im Angebot wird der alte Preis durchgestrichen"><option value="">–</option>{% for r in range(1, 41) %}<option value="{{ r }}">{{ r }} %</option>{% endfor %}</select>
+                        <div class="kgae-pos-rabatt" data-rabatt-info="{{ n }}" hidden></div>
                     </div>
                     {% endfor %}
                     <div class="kgae-pos-plus">
@@ -591,6 +598,7 @@ a.kgae-knopf { display: inline-block; text-decoration: none; }
             if (p.einheit && !Array.from(e.options).some(o => o.value === p.einheit)) { const o = document.createElement('option'); o.textContent = p.einheit; e.appendChild(o); }
             e.value = p.einheit || 'monatlich';
             pr.value = p.preis || '';
+            document.querySelector('[data-pos="' + n + '"][data-teil="rabatt"]').value = p.rabatt || '';
         });
         posZeigen();
     }
@@ -611,6 +619,7 @@ a.kgae-knopf { display: inline-block; text-decoration: none; }
         const n = posAnzahl, t = document.querySelector('[data-pos="' + n + '"][data-teil="text"]'), pr = document.querySelector('[data-pos="' + n + '"][data-teil="preis"]');
         if ((t.value.trim() || pr.value.trim()) && !window.confirm('Leistung ' + n + ' entfernen?')) return;
         t.value = ''; pr.value = ''; document.querySelector('[data-pos="' + n + '"][data-teil="einheit"]').value = 'monatlich';
+        document.querySelector('[data-pos="' + n + '"][data-teil="rabatt"]').value = '';
         posAnzahl--; posZeigen();
         geaendertMelden();
     });
@@ -620,15 +629,31 @@ a.kgae-knopf { display: inline-block; text-decoration: none; }
         f.positionen = Array.from({ length: posAnzahl }, (_, i) => i + 1).map(n => ({
             text: document.querySelector('[data-pos="' + n + '"][data-teil="text"]').value.trim(),
             einheit: document.querySelector('[data-pos="' + n + '"][data-teil="einheit"]').value,
-            preis: document.querySelector('[data-pos="' + n + '"][data-teil="preis"]').value.trim()
+            preis: document.querySelector('[data-pos="' + n + '"][data-teil="preis"]').value.trim(),
+            rabatt: document.querySelector('[data-pos="' + n + '"][data-teil="rabatt"]').value
         }));
         f.nr = $('kgaeNrIn').value.replace(/\D/g, '');
         f.nr_manuell = nrManuell;
         return f;
     }
+    // Rabatt (1–40 %): Preis danach, auf Cent gerundet – gleich wie endpreis() in angebot_editor.py
+    function endpreis(p) {
+        const preis = zahl(p.preis), r = Number(p.rabatt) || 0;
+        return preis && r >= 1 && r <= 40 ? Math.floor(preis * (100 - r) + 0.5) / 100 : preis;
+    }
+    function rabattZeigen() {
+        for (let n = 1; n <= POS_MAX; n++) {
+            const sel = document.querySelector('[data-pos="' + n + '"][data-teil="rabatt"]'), info = document.querySelector('[data-rabatt-info="' + n + '"]');
+            const p = { preis: document.querySelector('[data-pos="' + n + '"][data-teil="preis"]').value, rabatt: sel.value };
+            sel.classList.toggle('an', !!sel.value);
+            info.hidden = !(sel.value && zahl(p.preis));
+            if (!info.hidden) info.innerHTML = '<s>' + esc(euro(zahl(p.preis))) + '</s>− ' + esc(sel.value) + ' % Rabatt = <b>' + esc(euro(endpreis(p))) + '</b> netto';
+        }
+    }
     function summen(f) {
-        const mon = f.positionen.filter(p => p.einheit === 'monatlich' && zahl(p.preis)).map(p => zahl(p.preis));
-        const alle = f.positionen.filter(p => zahl(p.preis)).map(p => zahl(p.preis));
+        rabattZeigen();
+        const mon = f.positionen.filter(p => p.einheit === 'monatlich' && zahl(p.preis)).map(endpreis);
+        const alle = f.positionen.filter(p => zahl(p.preis)).map(endpreis);
         const netto = (mon.length ? mon : alle).reduce((a, b) => a + b, 0);
         $('kgaeNetto').textContent = euro(netto); $('kgaeMwst').textContent = euro(netto * 0.19); $('kgaeBrutto').textContent = euro(netto * 1.19);
         $('kgaeNetto').parentElement.firstChild.textContent = mon.length || !alle.length ? 'netto / Monat' : 'netto';
@@ -862,7 +887,7 @@ a.kgae-knopf { display: inline-block; text-decoration: none; }
     $('kgaeFahrtPlus').addEventListener('click', () => { fahrtZeigen(true); $('kgaeKm').focus(); geaendertMelden(); });
     $('kgaeFahrtWeg').addEventListener('click', () => { $('kgaeKm').value = ''; $('kgaeCent').value = ''; fahrtZeigen(false); geaendertMelden(); });
     function monatsPreis() {
-        return felderLesen().positionen.filter(p => p.einheit === 'monatlich').reduce((a, p) => a + zahl(p.preis), 0);
+        return felderLesen().positionen.filter(p => p.einheit === 'monatlich').reduce((a, p) => a + endpreis(p), 0);
     }
     function aufstellung(std, einsaetzeMonat) {
         const kal = { lohn: wert('kgaeLohn', kk().lohn), abgaben: wert('kgaeAbgaben', kk().abgaben), material: wert('kgaeMaterial', kk().material), auf: wert('kgaeAuf', kk().aufschlag) };
@@ -947,7 +972,7 @@ a.kgae-knopf { display: inline-block; text-decoration: none; }
     // ---------- Vorschau (echte Angebotsvorlage)
     function vorschauUrl(f) {
         const p = new URLSearchParams({ print: '1', nr: f.nr || '…', firma: f.firma, ansprechpartner: f.ansprechpartner, objekt: f.objekt, adresse: f.adresse, plz: f.plz, ort: f.ort, leistungsart: f.leistungsart, zeitraum: f.ausfuehrungszeitraum, datum: f.datum });
-        f.positionen.forEach((x, i) => { p.set('l' + (i + 1), x.text); p.set('e' + (i + 1), x.einheit); p.set('p' + (i + 1), x.preis); });
+        f.positionen.forEach((x, i) => { p.set('l' + (i + 1), x.text); p.set('e' + (i + 1), x.einheit); p.set('p' + (i + 1), x.preis); if (x.rabatt) p.set('r' + (i + 1), x.rabatt); });
         return '/angebot/editor/vorschau?' + p.toString();
     }
     // Seiten in voller Höhe untereinander (Angebot, dann Leistungsverzeichnis), verkleinert; das Blatt scrollt

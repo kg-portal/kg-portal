@@ -11,6 +11,7 @@
 import html
 import io
 import json
+import math
 import re
 from datetime import datetime
 from urllib.parse import urlencode
@@ -24,6 +25,7 @@ BERLIN = ZoneInfo("Europe/Berlin")
 EINHEITEN = ["monatlich", "einmalig", "pro Durchgang", "jährlich", "pro Stunde"]
 MWST = 0.19
 MAX_POS = 8  # Leistung 1–4 immer, 5–8 nur wenn im Editor mit „+ Leistung“ hinzugefügt
+RABATT_MAX = 40  # Rabatt je Leistung: 1–40 % (im Angebot alter Preis durchgestrichen, darunter der neue)
 BEREICHE = [("buero", "Büro"), ("wc", "WC / Sanitär"), ("kueche", "Küche"), ("flur", "Flur / Eingang")]
 # Kalkulation im Rechner (alles im Editor änderbar, wird mit dem Angebot gespeichert):
 # Lohn = Mindestlohn Gebäudereinigung Lohngruppe 1 ab 01.01.2026; Abgaben = Minijob gewerblich 2026
@@ -96,6 +98,21 @@ def _zahl(text):
 
 def _euro(v):
     return f"{float(v or 0):,.2f} €".replace(",", "X").replace(".", ",").replace("X", ".")
+
+
+def _rabatt(v):
+    """Rabatt in % (1–40), sonst 0."""
+    try:
+        r = int(str(v or "").replace("%", "").strip() or 0)
+    except ValueError:
+        return 0
+    return r if 1 <= r <= RABATT_MAX else 0
+
+
+def endpreis(p):
+    """Preis einer Leistung nach Rabatt (netto, auf Cent gerundet – wie im Editor)."""
+    preis, r = _zahl(p.get("preis")), _rabatt(p.get("rabatt"))
+    return math.floor(preis * (100 - r) + 0.5) / 100 if preis and r else preis
 
 
 def _nr(text):
@@ -216,9 +233,10 @@ def _felder_aus_vars(v, row):
     for n in range(1, MAX_POS + 1):
         if n > 4 and f"Leistung_{n}" not in v:
             break
-        preis = _zahl(v.get(f"Preis_{n}"))
+        r = _rabatt(v.get(f"Rabatt_{n}"))
+        preis = _zahl(v.get(f"PreisAlt_{n}") if r else v.get(f"Preis_{n}"))
         pos.append({"text": _txt(v.get(f"Leistung_{n}")), "einheit": _txt(v.get(f"Einheiten_{n}")) or "monatlich",
-                    "preis": (f"{preis:.2f}".replace(".", ",") if preis else "")})
+                    "preis": (f"{preis:.2f}".replace(".", ",") if preis else ""), "rabatt": str(r) if r else ""})
     while len(pos) > 4 and not pos[-1]["text"] and not pos[-1]["preis"]:
         pos.pop()
     return {
@@ -236,11 +254,12 @@ def _sauber(f):
     for p in (f.get("positionen") or [])[:MAX_POS]:
         p = p if isinstance(p, dict) else {}
         einheit = _txt(p.get("einheit"))[:40] or "monatlich"
-        pos.append({"text": _txt(p.get("text"))[:300], "einheit": einheit, "preis": _txt(p.get("preis"))[:20]})
+        r = _rabatt(p.get("rabatt"))
+        pos.append({"text": _txt(p.get("text"))[:300], "einheit": einheit, "preis": _txt(p.get("preis"))[:20], "rabatt": str(r) if r else ""})
     while len(pos) > 4 and not pos[-1]["text"] and not _zahl(pos[-1]["preis"]):
         pos.pop()  # leere Zusatz-Zeilen (5–8) am Ende fallen weg
     while len(pos) < 4:
-        pos.append({"text": "", "einheit": "monatlich", "preis": ""})
+        pos.append({"text": "", "einheit": "monatlich", "preis": "", "rabatt": ""})
     aus = {k: _txt(f.get(k))[:200] for k in ("firma", "ansprechpartner", "objekt", "adresse", "plz", "ort", "email", "telefon",
                                               "leistungsart", "ausfuehrungszeitraum", "datum")}
     aus["positionen"] = pos
@@ -261,13 +280,16 @@ def vorlage_vars(f, nr):
         # leere Zeilen: Leerzeichen statt "-" (rechts bleibt die Zeile leer)
         v[f"Leistung_{n}"] = p["text"] if hat else " "
         v[f"Einheiten_{n}"] = p["einheit"] if hat else " "
-        v[f"Preis_{n}"] = _euro(_zahl(p["preis"])) if _zahl(p["preis"]) else " "
+        v[f"Preis_{n}"] = _euro(endpreis(p)) if _zahl(p["preis"]) else " "
+        if _zahl(p["preis"]) and _rabatt(p.get("rabatt")):  # Vorlage: alter Preis durchgestrichen, darunter Rabatt und neuer Preis
+            v[f"PreisAlt_{n}"] = _euro(_zahl(p["preis"]))
+            v[f"Rabatt_{n}"] = str(_rabatt(p.get("rabatt")))
     return v
 
 
 def summen(f):
-    monatlich = [_zahl(p["preis"]) for p in f["positionen"] if p["einheit"] == "monatlich" and _zahl(p["preis"])]
-    alle = [_zahl(p["preis"]) for p in f["positionen"] if _zahl(p["preis"])]
+    monatlich = [endpreis(p) for p in f["positionen"] if p["einheit"] == "monatlich" and _zahl(p["preis"])]
+    alle = [endpreis(p) for p in f["positionen"] if _zahl(p["preis"])]
     netto = round(sum(monatlich) if monatlich else sum(alle), 2)
     mwst = round(netto * MWST, 2)
     return netto, mwst, round(netto + mwst, 2)
@@ -733,7 +755,8 @@ def register_angebot_editor(app, login_required, get_db_connection, app2_modul):
             "firma": a.get("firma"), "ansprechpartner": a.get("ansprechpartner"), "objekt": a.get("objekt"), "adresse": a.get("adresse"),
             "plz": a.get("plz"), "ort": a.get("ort"), "leistungsart": a.get("leistungsart"), "ausfuehrungszeitraum": a.get("zeitraum"),
             "datum": a.get("datum"),
-            "positionen": [{"text": a.get(f"l{n}"), "einheit": a.get(f"e{n}"), "preis": a.get(f"p{n}")} for n in range(1, MAX_POS + 1)],
+            "positionen": [{"text": a.get(f"l{n}"), "einheit": a.get(f"e{n}"), "preis": a.get(f"p{n}"), "rabatt": a.get(f"r{n}")}
+                           for n in range(1, MAX_POS + 1)],
         })
         v = vorlage_vars(f, a.get("nr") or "…")
         seite_html = render_template("angebotvorlage.html", **v)

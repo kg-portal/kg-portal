@@ -12,6 +12,8 @@ from zoneinfo import ZoneInfo
 
 from flask import jsonify, render_template, request
 
+import angebot_editor as ae
+
 BERLIN = ZoneInfo("Europe/Berlin")
 LEER = ("", "{}", "null")
 STATUS_NAME = {"angerufen": "Angerufen", "interessiert": "Interesse", "besichtigung": "Für Besichtigung vorgemerkt",
@@ -848,7 +850,9 @@ def akte(conn, tid):
     positionen = []
     for p in (ef.get("positionen") or [])[:8]:  # Angebot: Leistung 1–8
         if isinstance(p, dict) and (_txt(p.get("text")) or _zahl(p.get("preis"))):
-            positionen.append({"text": _txt(p.get("text")), "einheit": _txt(p.get("einheit")), "preis": _euro(_zahl(p.get("preis"))) if _zahl(p.get("preis")) else ""})
+            r = ae._rabatt(p.get("rabatt")) if _zahl(p.get("preis")) else 0  # Rabatt: Preis danach, mit Hinweis
+            positionen.append({"text": _txt(p.get("text")), "einheit": _txt(p.get("einheit")),
+                               "preis": (_euro(ae.endpreis(p)) + (f" (−{r} %)" if r else "")) if _zahl(p.get("preis")) else ""})
     stamm = {k: feld(k) for k in ("firma", "ansprechpartner", "strasse", "plz", "ort", "telefon", "email", "website", "branche")}
     for k, ek in (("ansprechpartner", "ansprechpartner"), ("email", "email"), ("telefon", "telefon")):
         if not stamm[k] and _txt(ef.get(ek)):
