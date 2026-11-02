@@ -1434,13 +1434,6 @@ def kunden():
 
         conn.commit()
         conn.close()
-        # Kasten „Fensterreinigung“: mit „Erster Termin“ → Termine in Google-Kalender und LifeHub (fenster_plan.py).
-        # Ein Fehler dort stoppt das Speichern des Kunden nie.
-        try:
-            from fenster_plan import kunde_fenster_sync
-            kunde_fenster_sync(int(kunde_id) if kunde_id else new_kunde_id, form_data)
-        except Exception as exc:
-            print(f"⚠️ Fensterreinigung (Kunde): {exc}")
         return redirect(url_for("kunden"))
 
     # 🔢 OTOMATİK NUMARA HESAPLAMA (YENİ)
