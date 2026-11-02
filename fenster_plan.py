@@ -473,6 +473,20 @@ def register_fenster_plan(app, login_required, get_db_connection, kalender_diens
         kunden.sort(key=lambda k: (not k["fenster_mal"], k["firma"].lower()))
         return jsonify({"ok": True, "kunden": kunden, "mitarbeiter": [m for m in ma if m]})
 
+    @app.route("/api/fenster/kunden")
+    @login_required
+    def fenster_kunden():
+        """Für die Kunden-Seite (Kachel „Fensterreinigung“): aktive Pläne, nur aus der Datenbank (schnell, ohne LifeHub)."""
+        conn = get_db_connection()
+        try:
+            _tabellen(conn)
+            zeilen = conn.execute("SELECT * FROM fenster_plan WHERE aktiv = 1 ORDER BY firma COLLATE NOCASE").fetchall()
+        finally:
+            conn.close()
+        return jsonify({"ok": True, "plaene": [{"id": z["id"], "kunde_id": z["kunde_id"], "firma": z["firma"], "betrag": z["betrag"] or 0,
+                                                "im_jahr": einsaetze_im_jahr(_r_aus_zeile(z)), "rhythmus_text": beschreibung(_r_aus_zeile(z))}
+                                               for z in zeilen]})
+
     @app.route("/api/fenster/uebersicht")
     @login_required
     def fenster_uebersicht():

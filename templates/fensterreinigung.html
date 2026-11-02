@@ -315,7 +315,7 @@
   const NTE_OPT = [[1, '1.'], [2, '2.'], [3, '3.'], [4, '4.'], [-1, 'letzten']];
   const DAUER_OPT = [[0, '–']].concat(Array.from({ length: 16 }, (_, i) => [(i + 1) * 30, dauer((i + 1) * 30)]));
 
-  function formular(p) {
+  function formular(p, kundeId) {
     p = p || null;
     const r = p ? p.rhythmus : { art: 'wochen', intervall: 4, wochentag: 1, monatstag: null, nte: null, monate: '' };
     const zustand = { art: r.art, tagart: r.wochentag != null && r.art !== 'wochen' ? 'wochentag' : 'tag', monate: new Set(String(r.monate || '').split(',').filter(Boolean).map(Number)) };
@@ -357,6 +357,7 @@
           if (k.fenster_notiz) w('frfNotiz', k.fenster_notiz);
           vorschau();
         });
+        if (kundeId && s.kunden.some(x => String(x.id) === String(kundeId))) { sel.value = String(kundeId); sel.dispatchEvent(new Event('change')); }
       });
     }
     let telefon = p ? p.telefon : '';
@@ -486,8 +487,13 @@
     }
   });
   $('frSuche').addEventListener('input', () => daten && kundenZeichnen());
-  if (new URLSearchParams(location.search).get('neu') === '1') formular(null);
-  laden();
+  // aus der Kunden-Seite: ?neu=1&kunde=ID (Kunde vorausgewählt) oder ?plan=ID (Plan bearbeiten)
+  const q = new URLSearchParams(location.search);
+  laden().then(() => {
+    const plan = q.get('plan') && daten ? daten.plaene.find(x => String(x.id) === q.get('plan')) : null;
+    if (plan) formular(plan);
+    else if (q.get('neu') === '1') formular(null, q.get('kunde'));
+  });
 })();
 </script>
 {% endraw %}
