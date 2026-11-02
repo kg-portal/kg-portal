@@ -2263,15 +2263,8 @@ function kalenderwoche(d) {
 
     async function fetchWeather() {
         try {
-            const response = await fetch(
-                'https://api.open-meteo.com/v1/forecast' +
-                '?latitude=51.4344' +
-                '&longitude=6.7623' +
-                '&current=temperature_2m,weather_code,apparent_temperature,relative_humidity_2m,wind_speed_10m' +
-                '&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,sunrise,sunset' +
-                '&forecast_days=7' +
-                '&timezone=Europe%2FBerlin'
-            );
+            // Wetter über den eigenen Server (wetter.py): er holt Open-Meteo und behält den letzten Stand
+            const response = await fetch('/api/wetter', { credentials: 'same-origin' });
 
             if (!response.ok) {
                 throw new Error('Wetter API Fehler');
@@ -2303,7 +2296,7 @@ function kalenderwoche(d) {
                 minTemp;
 
             document.getElementById('weather-update-time').textContent =
-                new Date().toLocaleTimeString('de-DE', {
+                data.kg_stand || new Date().toLocaleTimeString('de-DE', {
                     hour: '2-digit',
                     minute: '2-digit'
                 });
@@ -2360,10 +2353,14 @@ function kalenderwoche(d) {
                 forecastItems + forecastItems;
 
         } catch (error) {
-            document.getElementById('weather-desc').textContent = "Offline";
-            document.getElementById('weather-temp').textContent = "--°";
-            document.getElementById('weather-icon').src = "/static/clouds.png";
-            document.getElementById('weather-forecast-track').innerHTML = "";
+            // schon Daten da → stehen lassen; sonst „Offline“ und in einer Minute neu versuchen
+            if (!window.kgWetter) {
+                document.getElementById('weather-desc').textContent = "Offline";
+                document.getElementById('weather-temp').textContent = "--°";
+                document.getElementById('weather-icon').src = "/static/clouds.png";
+                document.getElementById('weather-forecast-track').innerHTML = "";
+            }
+            setTimeout(fetchWeather, 60000);
         }
         const wetterBox = document.querySelector('.index-wetter-gross');
         if (wetterBox) wetterBox.classList.remove('wg-laedt');

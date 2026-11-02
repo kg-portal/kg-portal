@@ -921,6 +921,13 @@ try:
 except Exception as exc:
     print(f"⚠️ LifeHub-Brücke: {exc}")
 
+# Startseite: Wetter Duisburg über den eigenen Server (/api/wetter, letzter Stand in data/wetter.json)
+try:
+    from wetter import register_wetter
+    register_wetter(app, login_required)
+except Exception as exc:
+    print(f"⚠️ Wetter: {exc}")
+
 # Startseite: Kasten „Objekte“ (Umsatz, Mitarbeiter, Lohn je Objekt) – schreibt nur die eigene Zuordnungstabelle
 try:
     from startseite_objekte import register_startseite_objekte
