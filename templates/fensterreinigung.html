@@ -3,11 +3,11 @@
 <!-- Fensterreinigung: feste Fenster-Kunden mit eigenem Rhythmus (fenster_plan.py). Jeder Kunde ist im KG LifeHub eine
      wiederkehrende Aufgabe (Aufgaben + Kalender); hier: Plan, nächste Termine, „Erledigt“ mit Mitarbeiter/Dauer/Rechnung. -->
 <style>
-  .fr, .fr-panel { --navy:#16328f; --blau:#2563eb; --text:#0f1d4a; --grau:#64748b; --linie:#e6ecf5; --cyan:#0891b2; font-family: Inter, "Segoe UI", Arial, sans-serif; color: var(--text); }
+  .fr, .fr-panel { --navy:#16328f; --blau:#2563eb; --text:#0f1d4a; --grau:#64748b; --linie:#e6ecf5; --cyan:#2563eb; font-family: Inter, "Segoe UI", Arial, sans-serif; color: var(--text); }
   .fr *, .fr-panel * { box-sizing: border-box; }
   .fr button, .fr-panel button { font-family: inherit; cursor: pointer; }
   .fr-kopf { position: relative; overflow: hidden; border-radius: 28px; padding: 26px 28px; color: #fff;
-    background: radial-gradient(120% 140% at 100% 0%, #22d3ee 0%, rgba(34,211,238,0) 50%), linear-gradient(135deg, #10286f 0%, #1d4ed8 68%, #0891b2 100%);
+    background: radial-gradient(120% 140% at 100% 0%, #3b82f6 0%, rgba(59,130,246,0) 55%), linear-gradient(135deg, #10286f 0%, #1d4ed8 70%, #2563eb 100%);
     box-shadow: 0 18px 40px rgba(29,78,216,.22); }
   .fr-zeile1 { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; }
   .fr-icon { width: 58px; height: 58px; border-radius: 16px; display: grid; place-items: center; background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.22); }
@@ -67,11 +67,11 @@
   .fr-k { background: #fff; border: 1px solid var(--linie); border-radius: 22px; padding: 16px; box-shadow: 0 8px 22px rgba(15,29,74,.05); display: flex; flex-direction: column; }
   .fr-k.pause { opacity: .62; }
   .fr-k-oben { display: flex; gap: 12px; align-items: flex-start; }
-  .fr-av { flex: none; width: 46px; height: 46px; border-radius: 14px; display: grid; place-items: center; background: linear-gradient(135deg, #ecfeff, #dbeafe); color: var(--navy); font-weight: 900; font-size: 15px; }
+  .fr-av { flex: none; width: 46px; height: 46px; border-radius: 14px; display: grid; place-items: center; background: linear-gradient(135deg, #eff6ff, #dbeafe); color: var(--navy); font-weight: 900; font-size: 15px; }
   .fr-k-titel { font-size: 15.5px; font-weight: 900; line-height: 1.3; }
   .fr-k-adr { margin-top: 3px; font-size: 12.5px; font-weight: 600; color: var(--grau); }
-  .fr-rh { margin-top: 12px; padding: 10px 12px; border-radius: 14px; background: #f0f9ff; color: #075985; font-size: 13.5px; font-weight: 800; }
-  .fr-rh small { display: block; margin-top: 3px; font-size: 12px; font-weight: 700; color: #0e7490; }
+  .fr-rh { margin-top: 12px; padding: 10px 12px; border-radius: 14px; background: #eff6ff; color: #1e3a8a; font-size: 13.5px; font-weight: 800; }
+  .fr-rh small { display: block; margin-top: 3px; font-size: 12px; font-weight: 700; color: #2563eb; }
   .fr-chips { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-top: 10px; }
   .fr-chip { border: 1px solid var(--linie); border-radius: 13px; padding: 8px 10px; min-width: 0; }
   .fr-chip b { display: block; font-size: 14px; font-weight: 900; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -86,7 +86,7 @@
   .fr-panel { position: fixed; z-index: 9999; left: 50%; top: 50%; transform: translate(-50%, -50%); width: min(820px, calc(100vw - 24px)); max-height: calc(100vh - 32px);
     overflow: hidden; border-radius: 26px; background: #fff; box-shadow: 0 30px 80px rgba(15,23,42,.35); display: flex; flex-direction: column; }
   .fr-panel.schmal { width: min(560px, calc(100vw - 24px)); }
-  .fr-pkopf { position: relative; padding: 22px 26px; color: #fff; background: linear-gradient(135deg, #10286f, #2563eb 70%, #0891b2); }
+  .fr-pkopf { position: relative; padding: 22px 26px; color: #fff; background: linear-gradient(135deg, #10286f, #1d4ed8 70%, #2563eb); }
   .fr-pkopf h2 { margin: 0; font-size: 22px; font-weight: 900; color: #fff !important; padding-right: 44px; }
   .fr-pkopf p { margin: 4px 0 0; font-size: 13.5px; font-weight: 700; color: #dbeafe; }
   .fr-zu { position: absolute; top: 16px; right: 16px; width: 40px; height: 40px; border: 0; border-radius: 12px; background: rgba(255,255,255,.16); color: #fff; font-size: 18px; font-weight: 900; }
@@ -95,14 +95,15 @@
   .fr-pfuss button { flex: 1; height: 46px; border: 0; border-radius: 14px; font-size: 15px; font-weight: 900; }
   .fr-blau { background: linear-gradient(135deg, #16328f, #2563eb); color: #fff; } .fr-hell { background: #eef4ff; color: #16328f; }
   .fr-gruen { background: linear-gradient(135deg, #059669, #10b981); color: #fff; }
-  .fr-abschnitt { margin: 18px 0 8px; font-size: 11.5px; font-weight: 900; letter-spacing: .1em; color: #0e7490; text-transform: uppercase; }
+  .fr-abschnitt { margin: 18px 0 8px; font-size: 11.5px; font-weight: 900; letter-spacing: .1em; color: #1d4ed8; text-transform: uppercase; }
   .fr-abschnitt:first-child { margin-top: 0; }
-  .fr-f { display: grid; gap: 12px; }
+  .fr-f { display: grid; gap: 12px; align-items: end; }  /* Felder auf einer Linie, auch wenn ein Titel umbricht */
   .fr-f[hidden] { display: none; }
   .fr-f.z2 { grid-template-columns: 1fr 1fr; } .fr-f.z3 { grid-template-columns: 2fr 1fr 1.4fr; } .fr-f.z4 { grid-template-columns: repeat(4, 1fr); }
   .fr-f label, .fr-l { display: block; font-size: 12px; font-weight: 900; letter-spacing: .04em; color: #475569; }
   .fr-in { width: 100%; margin-top: 6px; padding: 11px 13px; border: 1px solid #dbe3ef; border-radius: 13px; font-size: 15px; font-family: inherit; color: #0f1d4a; outline: none; background: #fff; }
   .fr-in:focus { border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37,99,235,.15); }
+  input.fr-in, select.fr-in { height: 44px; }  /* alle Felder gleich hoch (Datum/Uhrzeit sonst höher) */
   textarea.fr-in { min-height: 70px; resize: vertical; }
   .fr-seg { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; padding: 5px; border-radius: 15px; background: #f1f5f9; }
   .fr-seg button { height: 40px; border: 0; border-radius: 11px; background: transparent; color: #334155; font-size: 14px; font-weight: 800; }
@@ -112,16 +113,16 @@
   .fr-satz input.fr-in { width: 76px; text-align: center; }
   .fr-mon { display: grid; grid-template-columns: repeat(6, 1fr); gap: 7px; margin-top: 12px; }
   .fr-mon button { height: 38px; border-radius: 11px; border: 1px solid #dbe3ef; background: #fff; color: #334155; font-size: 13.5px; font-weight: 800; }
-  .fr-mon button.an { background: linear-gradient(135deg, #0e7490, #0891b2); border-color: transparent; color: #fff; }
+  .fr-mon button.an { background: linear-gradient(135deg, #1d4ed8, #2563eb); border-color: transparent; color: #fff; }
   .fr-tagart { display: inline-flex; gap: 4px; padding: 4px; border-radius: 12px; background: #f1f5f9; }
   .fr-tagart button { height: 32px; padding: 0 11px; border: 0; border-radius: 9px; background: transparent; font-size: 13px; font-weight: 800; color: #475569; }
   .fr-tagart button.an { background: #fff; color: var(--navy); box-shadow: 0 2px 8px rgba(15,29,74,.1); }
-  .fr-vor { margin-top: 16px; padding: 14px 16px; border-radius: 16px; background: linear-gradient(135deg, #ecfeff, #eff6ff); border: 1px solid #bae6fd; }
-  .fr-vor b { display: block; font-size: 15px; font-weight: 900; color: #075985; }
-  .fr-vor small { display: block; margin-top: 3px; font-size: 13px; font-weight: 700; color: #0e7490; }
-  .fr-vor-tage { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
-  .fr-vor-tage span { padding: 5px 10px; border-radius: 999px; background: #fff; border: 1px solid #bae6fd; font-size: 12.5px; font-weight: 800; color: #0c4a6e; }
-  .fr-vor-tage span:first-child { background: #0891b2; border-color: #0891b2; color: #fff; }
+  .fr-vor { margin-top: 16px; padding: 14px 16px; border-radius: 16px; background: linear-gradient(135deg, #eff6ff, #f8fbff); border: 1px solid #bfdbfe; }
+  .fr-vor b { display: block; font-size: 15px; font-weight: 900; color: #1e3a8a; }
+  .fr-vor small { display: block; margin-top: 3px; font-size: 13px; font-weight: 700; color: #2563eb; }
+  .fr-vor-tage { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; margin-top: 10px; }
+  .fr-vor-tage span { padding: 6px 10px; border-radius: 999px; background: #fff; border: 1px solid #bfdbfe; font-size: 12.5px; font-weight: 800; color: #1e3a8a; text-align: center; white-space: nowrap; }
+  .fr-vor-tage span:first-child { background: #2563eb; border-color: #2563eb; color: #fff; }
   .fr-hinweis { margin-top: 12px; font-size: 12.5px; font-weight: 600; color: #64748b; line-height: 1.5; }
   .fr-meldung { margin-top: 10px; min-height: 18px; font-size: 13.5px; font-weight: 800; color: #dc2626; }
   .fr-haken { display: flex; align-items: center; gap: 12px; margin-top: 14px; padding: 13px 14px; border-radius: 15px; border: 1px solid #dbe3ef; font-size: 15px; font-weight: 800; cursor: pointer; }
@@ -136,7 +137,7 @@
     .fr-grid { grid-template-columns: 1fr; } .fr-suche { min-width: 0; width: 100%; margin-left: 0; }
     .fr-t { grid-template-columns: 52px minmax(0, 1fr) auto; } .fr-t .fr-betrag { display: none; }
     .fr-t-name b, .fr-t-name small { white-space: normal; } .fr-ok { padding: 0 11px; }
-    .fr-f.z2, .fr-f.z3, .fr-f.z4 { grid-template-columns: 1fr 1fr; } .fr-mon { grid-template-columns: repeat(4, 1fr); }
+    .fr-f.z2, .fr-f.z3, .fr-f.z4 { grid-template-columns: 1fr 1fr; } .fr-mon { grid-template-columns: repeat(4, 1fr); } .fr-vor-tage { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .fr-pbody { padding: 16px; } .fr-pkopf { padding: 18px; }
   }
   /* Dunkelmodus */
@@ -328,7 +329,7 @@
         '<div class="fr-f z3" style="margin-top:12px"><label>Straße<input class="fr-in" id="frfStr" autocomplete="off"></label><label>PLZ<input class="fr-in" id="frfPlz" inputmode="numeric" autocomplete="off"></label><label>Ort<input class="fr-in" id="frfOrt" autocomplete="off"></label></div>' +
         '<div class="fr-abschnitt">Erster Termin</div>' +
         '<div class="fr-f z4"><label>Erster Termin *<input class="fr-in" type="date" id="frfStart" required></label><label>Uhrzeit<input class="fr-in" type="time" id="frfZeit"></label>' +
-          '<label>Dauer<select class="fr-in" id="frfDauer">' + opt(DAUER_OPT, p ? p.dauer_min : 120) + '</select></label><label>Betrag je Einsatz (€ netto)<input class="fr-in" id="frfBetrag" inputmode="decimal" placeholder="z. B. 180,00"></label></div>' +
+          '<label>Dauer<select class="fr-in" id="frfDauer">' + opt(DAUER_OPT, p ? p.dauer_min : 120) + '</select></label><label>Betrag (€ netto)<input class="fr-in" id="frfBetrag" inputmode="decimal" placeholder="je Einsatz, z. B. 180,00"></label></div>' +
         '<div class="fr-abschnitt">Danach wiederholen</div>' +
         '<div class="fr-seg" id="frfArt"><button type="button" data-art="wochen">Alle X Wochen</button><button type="button" data-art="monate">Alle X Monate</button><button type="button" data-art="bestimmte">Bestimmte Monate</button></div>' +
         '<div id="frfRegel"></div>' +
