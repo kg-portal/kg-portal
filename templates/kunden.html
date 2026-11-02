@@ -2726,6 +2726,7 @@ document.addEventListener("DOMContentLoaded", function () {
   function fensterDaten(text) {
     try { var d = JSON.parse(text || "{}"); return d && typeof d === "object" ? d : {}; } catch (e) { return {}; }
   }
+  function malText(m) { return Number(m || 0).toLocaleString("de-DE", { maximumFractionDigits: 1 }); }
   function fensterLesen(text) {
     var d = fensterDaten(text);
     var b = fensterZahl(d.fenster_betrag), m = parseInt(d.fenster_mal, 10) || 0;
@@ -2767,9 +2768,10 @@ document.addEventListener("DOMContentLoaded", function () {
         if (ft && !ft.querySelector(".kp-art-fenster")) {
           var fe = document.createElement("span");
           fe.className = "kunden-tag kp-art-fenster";
-          fe.textContent = "Fenster " + k.fenster.mal + "×";
           ft.appendChild(fe);
         }
+        var fz = ft ? ft.querySelector(".kp-art-fenster") : null;
+        if (fz) fz.textContent = "Fenster " + malText(k.fenster.mal) + "×";
       }
       if (k.art in s) s[k.art] += k.art === "jaehrlich" ? jahresWert(k) : k.betrag;
       k.such = sucheNorm([k.firma, txt(k.el, ".t-strasse"), txt(k.el, ".t-plz"), k.ort, txt(k.el, ".t-knr"),
@@ -3019,7 +3021,7 @@ document.addEventListener("DOMContentLoaded", function () {
       kopf.innerHTML = kppKopf("Fensterreinigung", "Zusätzlich zur Unterhaltsreinigung", "Ø " + euro(fj / 12) + " / Monat",
         euro(fj) + " pro Jahr · " + fl2.length + (fl2.length === 1 ? " Kunde" : " Kunden"));
       var zf = fl2.map(function (k, i) {
-        var klein = k.fenster.mal + "× pro Jahr · " + euro(k.fenster.betrag) + " je Einsatz" + (k.fenster.notiz ? " · " + k.fenster.notiz : "");
+        var klein = malText(k.fenster.mal) + "× pro Jahr · " + euro(k.fenster.betrag) + " je Einsatz" + (k.fenster.notiz ? " · " + k.fenster.notiz : "");
         return kppZeile(esc(k.firma), esc(klein), esc(euro(k.fenster.jahr)) + '<span class="kpp-klein">pro Jahr · Ø ' + esc(euro(k.fenster.jahr / 12)) + ' / Monat</span>',
           k.id, "", '<span class="kpp-nr">' + (i + 1) + '</span>');
       });
@@ -3034,10 +3036,10 @@ document.addEventListener("DOMContentLoaded", function () {
     if (art === "fensterneu") {
       var wahl = alle.filter(function (k) { return k.art !== "gekuendigt"; })
         .sort(function (a, b) { return String(a.firma).localeCompare(String(b.firma), "de"); });
-      kopf.innerHTML = kppKopf("Fensterreinigung", "Eintragen", "Kunde wählen", "Danach öffnet sich das Kundenformular beim Abschnitt „Fensterreinigung“");
+      kopf.innerHTML = kppKopf("Fensterreinigung", "Eintragen", "Kunde wählen", "Danach öffnet sich die Seite „Fensterreinigung“ mit diesem Kunden (Erster Termin, Rhythmus)");
       body.innerHTML = '<div class="kpp-suche"><input type="search" id="kppFensterSuche" placeholder="Kunde suchen …" autocomplete="off" aria-label="Kunde suchen"></div>' +
         kppListe(wahl.map(function (k) {
-          var klein = [k.ort, k.freq].filter(Boolean).join(" · ") + (k.fenster ? " · Fenster: " + k.fenster.mal + "× " + euro(k.fenster.betrag) : "");
+          var klein = [k.ort, k.freq].filter(Boolean).join(" · ") + (k.fenster ? " · Fenster: " + malText(k.fenster.mal) + "× " + euro(k.fenster.betrag) : "");
           return '<div class="kpp-zeile" data-fid="' + esc(k.id) + '" data-such="' + esc(k.such || "") + '" title="Fensterreinigung eintragen"><div class="kpp-haupt"><div class="kpp-name">' + esc(k.firma) +
             '</div><span class="kpp-klein">' + esc(klein) + '</span></div><div class="kpp-wert">' + (k.fenster ? "ändern" : "+ eintragen") + '</div></div>';
         }), "Keine aktuellen Kunden.");
@@ -3053,18 +3055,9 @@ document.addEventListener("DOMContentLoaded", function () {
         var z = e.target.closest ? e.target.closest(".kpp-zeile[data-fid]") : null;
         if (!z) return;
         var fid = z.getAttribute("data-fid");
-        kppSchliessen(function () {
-          if (typeof window.editKunde !== "function") return;
-          window.editKunde(fid);
-          setTimeout(function () {
-            var feld = document.getElementById("kpFensterFeld"), b = document.getElementById("f_fenster_betrag");
-            if (feld) {
-              if (feld.scrollIntoView) feld.scrollIntoView({ block: "center" });
-              feld.classList.remove("kp-hervor"); void feld.offsetWidth; feld.classList.add("kp-hervor");
-            }
-            if (b) b.focus();
-          }, 80);
-        });
+        var fk = alle.filter(function (k) { return String(k.id) === String(fid); })[0];
+        window.location.href = fk && fk.fenster && fk.fenster.plan ? "/fensterreinigung?plan=" + encodeURIComponent(fk.fenster.plan)
+                                                                     : "/fensterreinigung?neu=1&kunde=" + encodeURIComponent(fid);
       });
       fuss.textContent = "Neuer Kunde anlegen";
       fuss.onclick = function () { kppSchliessen(function () { if (typeof window.openNewModal === "function") window.openNewModal(); }); };
@@ -3218,6 +3211,18 @@ document.addEventListener("DOMContentLoaded", function () {
     });
     kunden.forEach(function (k) { k.art = kundenArt(k); k.fenster = fensterLesen(k.daten); });
     arten(kunden);
+    // Seite „Fensterreinigung“: Kunden mit Plan zählen hier mit (Plan geht vor den alten Feldern im Kundenformular)
+    fetch("/api/fenster/kunden", { credentials: "same-origin" }).then(function (r) { return r.ok ? r.json() : null; }).then(function (d) {
+      if (!d || !d.ok || !d.plaene || !d.plaene.length) return;
+      var neu = false;
+      d.plaene.forEach(function (p) {
+        var k = kunden.filter(function (x) { return p.kunde_id ? String(x.id) === String(p.kunde_id) : sucheNorm(x.firma) === sucheNorm(p.firma); })[0];
+        if (!k) return;
+        k.fenster = { betrag: Number(p.betrag) || 0, mal: Number(p.im_jahr) || 0, notiz: p.rhythmus_text || "", jahr: (Number(p.betrag) || 0) * (Number(p.im_jahr) || 0), plan: p.id };
+        neu = true;
+      });
+      if (neu) arten(kunden);
+    }).catch(function () {});
 
     // Karten: Initialen-Avatar + Farbe für gekündigte Verträge (nur Klassen/Attribute ergänzt)
     kunden.forEach(function (k) {
