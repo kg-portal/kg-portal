@@ -921,6 +921,14 @@ try:
 except Exception as exc:
     print(f"⚠️ LifeHub-Brücke: {exc}")
 
+# Fensterreinigung (/fensterreinigung): feste Fenster-Kunden; je Kunde ein wiederkehrender Termin im Google-Kalender
+# „Fensterreinigung“ und eine wiederkehrende Aufgabe im KG LifeHub
+try:
+    from fenster_plan import register_fenster_plan
+    register_fenster_plan(app, login_required, get_db_connection, kalender_dienst=lambda: get_calendar_service())
+except Exception as exc:
+    print(f"⚠️ Fensterreinigung: {exc}")
+
 # Startseite: Wetter Duisburg über den eigenen Server (/api/wetter, letzter Stand in data/wetter.json)
 try:
     from wetter import register_wetter

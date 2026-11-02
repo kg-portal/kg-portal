@@ -1,0 +1,475 @@
+{% extends "base.html" %}
+{% block content %}
+<!-- Fensterreinigung: feste Fenster-Kunden mit eigenem Rhythmus (fenster_plan.py). Jeder Kunde ist im KG LifeHub eine
+     wiederkehrende Aufgabe (Aufgaben + Kalender); hier: Plan, nächste Termine, „Erledigt“ mit Mitarbeiter/Dauer/Rechnung. -->
+<style>
+  .fr, .fr-panel { --navy:#16328f; --blau:#2563eb; --text:#0f1d4a; --grau:#64748b; --linie:#e6ecf5; --cyan:#0891b2; font-family: Inter, "Segoe UI", Arial, sans-serif; color: var(--text); }
+  .fr *, .fr-panel * { box-sizing: border-box; }
+  .fr button, .fr-panel button { font-family: inherit; cursor: pointer; }
+  .fr-kopf { position: relative; overflow: hidden; border-radius: 28px; padding: 26px 28px; color: #fff;
+    background: radial-gradient(120% 140% at 100% 0%, #22d3ee 0%, rgba(34,211,238,0) 50%), linear-gradient(135deg, #10286f 0%, #1d4ed8 68%, #0891b2 100%);
+    box-shadow: 0 18px 40px rgba(29,78,216,.22); }
+  .fr-zeile1 { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; }
+  .fr-icon { width: 58px; height: 58px; border-radius: 16px; display: grid; place-items: center; background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.22); }
+  .fr-kopf h1 { margin: 0; font-size: 34px; font-weight: 900; letter-spacing: -.02em; color: #fff !important; }
+  .fr-kopf p { margin: 4px 0 0; font-size: 14px; font-weight: 700; color: #dbeafe; }
+  .fr-rechts { margin-left: auto; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .fr-lh { display: inline-flex; align-items: center; gap: 8px; padding: 9px 13px; border-radius: 13px; font-size: 13px; font-weight: 800; background: rgba(255,255,255,.10); border: 1px solid rgba(255,255,255,.25); }
+  .fr-lh i { width: 9px; height: 9px; border-radius: 50%; background: #34d399; box-shadow: 0 0 0 4px rgba(52,211,153,.25); }
+  .fr-lh.aus i { background: #f87171; box-shadow: 0 0 0 4px rgba(248,113,113,.25); }
+  .fr-neu { display: inline-flex; align-items: center; gap: 8px; height: 46px; padding: 0 18px; border: 0; border-radius: 14px; background: #fff; color: var(--navy); font-size: 15px; font-weight: 900; box-shadow: 0 8px 20px rgba(15,29,74,.18); }
+  .fr-kpis { display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; margin-top: 20px; }
+  .fr-kpi { background: #fff; border: 1px solid var(--linie); border-radius: 22px; padding: 18px 20px; box-shadow: 0 8px 22px rgba(15,29,74,.05); }
+  .fr-kpi small { display: block; font-size: 11.5px; font-weight: 900; letter-spacing: .12em; color: #64748b; }
+  .fr-kpi b { display: block; margin-top: 8px; font-size: 30px; font-weight: 900; line-height: 1; }
+  .fr-kpi b.rot { color: #dc2626; } .fr-kpi b.orange { color: #c2410c; }
+  .fr-kpi i { display: block; margin-top: 9px; font-style: normal; font-size: 13px; font-weight: 700; color: var(--blau); }
+  .fr-raster { display: grid; grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr); gap: 18px; margin-top: 18px; align-items: start; }
+  .fr-box { background: #fff; border: 1px solid var(--linie); border-radius: 24px; padding: 20px 22px; box-shadow: 0 8px 22px rgba(15,29,74,.05); }
+  .fr-box + .fr-box { margin-top: 18px; }
+  .fr-box h2 { display: flex; align-items: center; gap: 10px; margin: 0 0 14px; font-size: 18px; font-weight: 900; color: var(--text) !important; }
+  .fr-box h2 em { margin-left: auto; font-style: normal; font-size: 12.5px; font-weight: 800; color: var(--grau); }
+  .fr-box h2 .zahl { padding: 2px 9px; border-radius: 999px; background: #eff6ff; color: #1d4ed8; font-size: 12.5px; }
+  .fr-box h2 .zahl.rot { background: #fef2f2; color: #dc2626; } .fr-box h2 .zahl.orange { background: #fff7ed; color: #c2410c; }
+  .fr-woche { margin: 16px 0 8px; font-size: 11.5px; font-weight: 900; letter-spacing: .1em; color: #64748b; text-transform: uppercase; }
+  .fr-woche:first-of-type { margin-top: 0; }
+  .fr-t { display: grid; grid-template-columns: 58px minmax(0, 1fr) auto auto; gap: 14px; align-items: center; padding: 11px 12px; border: 1px solid var(--linie); border-radius: 16px; }
+  .fr-t + .fr-t { margin-top: 8px; }
+  .fr-t.ueber { border-color: #fecaca; background: #fff7f7; }
+  .fr-t.faellig { border-color: #bfdbfe; }
+  .fr-dat { text-align: center; border-radius: 13px; padding: 6px 0 7px; background: #eef4ff; color: var(--navy); }
+  .fr-dat small { display: block; font-size: 11px; font-weight: 900; text-transform: uppercase; letter-spacing: .06em; }
+  .fr-dat b { display: block; font-size: 21px; font-weight: 900; line-height: 1.05; }
+  .fr-dat span { display: block; font-size: 11px; font-weight: 800; }
+  .fr-t.ueber .fr-dat { background: #fee2e2; color: #b91c1c; }
+  .fr-t-name b { display: block; font-size: 15.5px; font-weight: 900; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .fr-t-name small { display: block; margin-top: 3px; font-size: 13px; font-weight: 600; color: var(--grau); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .fr-t-name .warn { color: #dc2626; font-weight: 800; }
+  .fr-betrag { font-size: 15px; font-weight: 900; white-space: nowrap; }
+  .fr-ok { display: inline-flex; align-items: center; gap: 7px; height: 40px; padding: 0 14px; border: 0; border-radius: 12px; color: #fff; font-size: 14px; font-weight: 900; background: linear-gradient(135deg, #059669, #10b981); box-shadow: 0 6px 14px rgba(5,150,105,.22); white-space: nowrap; }
+  .fr-geplant { display: inline-block; min-width: 96px; text-align: center; padding: 8px 10px; border-radius: 12px; font-size: 12.5px; font-weight: 800; color: #64748b; background: #f1f5f9; }
+  .fr-leer { padding: 22px 12px; text-align: center; color: var(--grau); font-weight: 700; font-size: 14px; border: 1px dashed #cbd5e1; border-radius: 16px; }
+  .fr-z { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 11px 0; border-top: 1px solid #eef2f7; }
+  .fr-z:first-of-type { border-top: 0; padding-top: 0; }
+  .fr-z b { display: block; font-size: 14.5px; font-weight: 900; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .fr-z small { display: block; margin-top: 2px; font-size: 12.5px; font-weight: 600; color: var(--grau); }
+  .fr-z small.notiz { color: #92400e; }
+  .fr-knopf { height: 36px; padding: 0 12px; border-radius: 11px; border: 1px solid #dbe3ef; background: #fff; color: var(--navy); font-size: 13px; font-weight: 900; white-space: nowrap; }
+  .fr-knopf.gruen { border-color: #a7f3d0; color: #047857; background: #ecfdf5; }
+  .fr-knopf.orange { border-color: #fed7aa; color: #c2410c; background: #fff7ed; }
+  .fr-badge { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 11.5px; font-weight: 800; }
+  .fr-badge.gruen { color: #047857; background: #ecfdf5; } .fr-badge.grau { color: #64748b; background: #f1f5f9; } .fr-badge.orange { color: #c2410c; background: #fff7ed; }
+  .fr-kunden-kopf { display: flex; align-items: center; gap: 14px; margin: 26px 0 0; flex-wrap: wrap; }
+  .fr-kunden-kopf h2 { margin: 0; font-size: 22px; font-weight: 900; color: var(--text) !important; }
+  .fr-suche { margin-left: auto; display: flex; align-items: center; gap: 10px; min-width: 300px; background: #fff; border: 1px solid var(--linie); border-radius: 15px; padding: 0 14px; }
+  .fr-suche input { flex: 1; border: 0; outline: 0; background: transparent; padding: 12px 0; font-size: 14.5px; font-weight: 600; color: var(--text); font-family: inherit; }
+  .fr-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; margin-top: 14px; }
+  .fr-k { background: #fff; border: 1px solid var(--linie); border-radius: 22px; padding: 16px; box-shadow: 0 8px 22px rgba(15,29,74,.05); display: flex; flex-direction: column; }
+  .fr-k.pause { opacity: .62; }
+  .fr-k-oben { display: flex; gap: 12px; align-items: flex-start; }
+  .fr-av { flex: none; width: 46px; height: 46px; border-radius: 14px; display: grid; place-items: center; background: linear-gradient(135deg, #ecfeff, #dbeafe); color: var(--navy); font-weight: 900; font-size: 15px; }
+  .fr-k-titel { font-size: 15.5px; font-weight: 900; line-height: 1.3; }
+  .fr-k-adr { margin-top: 3px; font-size: 12.5px; font-weight: 600; color: var(--grau); }
+  .fr-rh { margin-top: 12px; padding: 10px 12px; border-radius: 14px; background: #f0f9ff; color: #075985; font-size: 13.5px; font-weight: 800; }
+  .fr-rh small { display: block; margin-top: 3px; font-size: 12px; font-weight: 700; color: #0e7490; }
+  .fr-chips { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-top: 10px; }
+  .fr-chip { border: 1px solid var(--linie); border-radius: 13px; padding: 8px 10px; min-width: 0; }
+  .fr-chip b { display: block; font-size: 14px; font-weight: 900; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .fr-chip b.rot { color: #dc2626; }
+  .fr-chip small { display: block; margin-top: 2px; font-size: 11.5px; font-weight: 600; color: var(--grau); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .fr-k-fuss { display: flex; gap: 8px; margin-top: 12px; padding-top: 12px; border-top: 1px solid #eef2f7; align-items: center; }
+  .fr-k-fuss .fr-knopf { flex: 1; }
+  .fr-k-lh { margin-top: 10px; font-size: 12px; font-weight: 700; color: #047857; }
+  .fr-k-lh.fehlt { color: #b91c1c; }
+  /* Fenster (Formular, Erledigt) */
+  .fr-hinter { position: fixed; inset: 0; z-index: 9998; background: rgba(15,23,42,.42); backdrop-filter: blur(4px); }
+  .fr-panel { position: fixed; z-index: 9999; left: 50%; top: 50%; transform: translate(-50%, -50%); width: min(820px, calc(100vw - 24px)); max-height: calc(100vh - 32px);
+    overflow: hidden; border-radius: 26px; background: #fff; box-shadow: 0 30px 80px rgba(15,23,42,.35); display: flex; flex-direction: column; }
+  .fr-panel.schmal { width: min(560px, calc(100vw - 24px)); }
+  .fr-pkopf { position: relative; padding: 22px 26px; color: #fff; background: linear-gradient(135deg, #10286f, #2563eb 70%, #0891b2); }
+  .fr-pkopf h2 { margin: 0; font-size: 22px; font-weight: 900; color: #fff !important; padding-right: 44px; }
+  .fr-pkopf p { margin: 4px 0 0; font-size: 13.5px; font-weight: 700; color: #dbeafe; }
+  .fr-zu { position: absolute; top: 16px; right: 16px; width: 40px; height: 40px; border: 0; border-radius: 12px; background: rgba(255,255,255,.16); color: #fff; font-size: 18px; font-weight: 900; }
+  .fr-pbody { padding: 20px 26px; overflow: auto; flex: 1; }
+  .fr-pfuss { display: flex; gap: 10px; padding: 14px 26px 20px; border-top: 1px solid #eef2f7; }
+  .fr-pfuss button { flex: 1; height: 46px; border: 0; border-radius: 14px; font-size: 15px; font-weight: 900; }
+  .fr-blau { background: linear-gradient(135deg, #16328f, #2563eb); color: #fff; } .fr-hell { background: #eef4ff; color: #16328f; }
+  .fr-gruen { background: linear-gradient(135deg, #059669, #10b981); color: #fff; }
+  .fr-abschnitt { margin: 18px 0 8px; font-size: 11.5px; font-weight: 900; letter-spacing: .1em; color: #0e7490; text-transform: uppercase; }
+  .fr-abschnitt:first-child { margin-top: 0; }
+  .fr-f { display: grid; gap: 12px; }
+  .fr-f[hidden] { display: none; }
+  .fr-f.z2 { grid-template-columns: 1fr 1fr; } .fr-f.z3 { grid-template-columns: 2fr 1fr 1.4fr; } .fr-f.z4 { grid-template-columns: repeat(4, 1fr); }
+  .fr-f label, .fr-l { display: block; font-size: 12px; font-weight: 900; letter-spacing: .04em; color: #475569; }
+  .fr-in { width: 100%; margin-top: 6px; padding: 11px 13px; border: 1px solid #dbe3ef; border-radius: 13px; font-size: 15px; font-family: inherit; color: #0f1d4a; outline: none; background: #fff; }
+  .fr-in:focus { border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37,99,235,.15); }
+  textarea.fr-in { min-height: 70px; resize: vertical; }
+  .fr-seg { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; padding: 5px; border-radius: 15px; background: #f1f5f9; }
+  .fr-seg button { height: 40px; border: 0; border-radius: 11px; background: transparent; color: #334155; font-size: 14px; font-weight: 800; }
+  .fr-seg button.an { background: #fff; color: var(--navy); box-shadow: 0 3px 10px rgba(15,29,74,.12); }
+  .fr-satz { display: flex; flex-wrap: wrap; align-items: center; gap: 9px; margin-top: 12px; font-size: 15px; font-weight: 800; color: #0f1d4a; }
+  .fr-satz .fr-in { width: auto; margin-top: 0; padding: 9px 11px; }
+  .fr-satz input.fr-in { width: 76px; text-align: center; }
+  .fr-mon { display: grid; grid-template-columns: repeat(6, 1fr); gap: 7px; margin-top: 12px; }
+  .fr-mon button { height: 38px; border-radius: 11px; border: 1px solid #dbe3ef; background: #fff; color: #334155; font-size: 13.5px; font-weight: 800; }
+  .fr-mon button.an { background: linear-gradient(135deg, #0e7490, #0891b2); border-color: transparent; color: #fff; }
+  .fr-tagart { display: inline-flex; gap: 4px; padding: 4px; border-radius: 12px; background: #f1f5f9; }
+  .fr-tagart button { height: 32px; padding: 0 11px; border: 0; border-radius: 9px; background: transparent; font-size: 13px; font-weight: 800; color: #475569; }
+  .fr-tagart button.an { background: #fff; color: var(--navy); box-shadow: 0 2px 8px rgba(15,29,74,.1); }
+  .fr-vor { margin-top: 16px; padding: 14px 16px; border-radius: 16px; background: linear-gradient(135deg, #ecfeff, #eff6ff); border: 1px solid #bae6fd; }
+  .fr-vor b { display: block; font-size: 15px; font-weight: 900; color: #075985; }
+  .fr-vor small { display: block; margin-top: 3px; font-size: 13px; font-weight: 700; color: #0e7490; }
+  .fr-vor-tage { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+  .fr-vor-tage span { padding: 5px 10px; border-radius: 999px; background: #fff; border: 1px solid #bae6fd; font-size: 12.5px; font-weight: 800; color: #0c4a6e; }
+  .fr-vor-tage span:first-child { background: #0891b2; border-color: #0891b2; color: #fff; }
+  .fr-hinweis { margin-top: 12px; font-size: 12.5px; font-weight: 600; color: #64748b; line-height: 1.5; }
+  .fr-meldung { margin-top: 10px; min-height: 18px; font-size: 13.5px; font-weight: 800; color: #dc2626; }
+  .fr-haken { display: flex; align-items: center; gap: 12px; margin-top: 14px; padding: 13px 14px; border-radius: 15px; border: 1px solid #dbe3ef; font-size: 15px; font-weight: 800; cursor: pointer; }
+  .fr-haken input { width: 22px; height: 22px; accent-color: #059669; }
+  .fr-info { margin-top: 14px; padding: 12px 14px; border-radius: 14px; background: #f0fdf4; color: #166534; font-size: 13.5px; font-weight: 700; }
+  @media (max-width: 1600px) { .fr-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+  @media (max-width: 1250px) { .fr-raster { grid-template-columns: minmax(0, 1fr); } .fr-kpis { grid-template-columns: repeat(3, 1fr); } }
+  @media (max-width: 900px) { .fr-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @media (max-width: 640px) {
+    .fr-kopf { padding: 20px; border-radius: 22px; } .fr-kopf h1 { font-size: 27px; } .fr-rechts { margin-left: 0; width: 100%; } .fr-neu { flex: 1; justify-content: center; }
+    .fr-kpis { grid-template-columns: repeat(2, 1fr); gap: 10px; } .fr-kpi { padding: 14px; } .fr-kpi b { font-size: 24px; }
+    .fr-grid { grid-template-columns: 1fr; } .fr-suche { min-width: 0; width: 100%; margin-left: 0; }
+    .fr-t { grid-template-columns: 52px minmax(0, 1fr) auto; } .fr-t .fr-betrag { display: none; }
+    .fr-t-name b, .fr-t-name small { white-space: normal; } .fr-ok { padding: 0 11px; }
+    .fr-f.z2, .fr-f.z3, .fr-f.z4 { grid-template-columns: 1fr 1fr; } .fr-mon { grid-template-columns: repeat(4, 1fr); }
+    .fr-pbody { padding: 16px; } .fr-pkopf { padding: 18px; }
+  }
+  /* Dunkelmodus */
+  html[data-kg-x="on"] .fr-kpi, html[data-kg-x="on"] .fr-box, html[data-kg-x="on"] .fr-k, html[data-kg-x="on"] .fr-suche { background: #111a2e !important; border-color: #22304d !important; }
+  html[data-kg-x="on"] .fr-kpi b, html[data-kg-x="on"] .fr-box h2, html[data-kg-x="on"] .fr-t-name b, html[data-kg-x="on"] .fr-z b, html[data-kg-x="on"] .fr-k-titel,
+  html[data-kg-x="on"] .fr-chip b, html[data-kg-x="on"] .fr-betrag, html[data-kg-x="on"] .fr-kunden-kopf h2, html[data-kg-x="on"] .fr-suche input { color: #e2e8f0 !important; }
+  html[data-kg-x="on"] .fr-t, html[data-kg-x="on"] .fr-chip, html[data-kg-x="on"] .fr-z { border-color: #22304d !important; }
+  html[data-kg-x="on"] .fr-t { background: transparent !important; }
+</style>
+<div class="fr">
+  <section class="fr-kopf" data-kg-skip>
+    <div class="fr-zeile1">
+      <div class="fr-icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2.5"/><path d="M12 3v18M3 12h18"/><path d="m15.5 6.5 2 2M6.5 15.5l2 2"/></svg></div>
+      <div><h1>Fensterreinigung</h1><p>Feste Fenster-Kunden · Termine im Google-Kalender „Fensterreinigung“ (Handy, CRM, LifeHub) · Aufgaben im KG LifeHub</p></div>
+      <div class="fr-rechts">
+        <span class="fr-lh" id="frLh" hidden><i></i><span></span></span>
+        <button type="button" class="fr-neu" id="frNeu"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Kunde eintragen</button>
+      </div>
+    </div>
+  </section>
+  <div class="fr-kpis" id="frKpis"></div>
+  <div class="fr-raster">
+    <div>
+      <div class="fr-box"><h2>Nächste 8 Wochen <em id="frTermZahl"></em></h2><div id="frTermine"></div></div>
+    </div>
+    <div>
+      <div class="fr-box" id="frBoxFehlt" hidden><h2>Details fehlen <span class="zahl orange" id="frFehltZahl"></span><em>im LifeHub abgehakt</em></h2><div id="frFehlt"></div></div>
+      <div class="fr-box"><h2>Rechnung offen <span class="zahl rot" id="frRechZahl"></span><em id="frRechSumme"></em></h2><div id="frRechnung"></div></div>
+      <div class="fr-box"><h2>Zuletzt erledigt</h2><div id="frLetzte"></div></div>
+    </div>
+  </div>
+  <div class="fr-kunden-kopf">
+    <h2>Kunden <span id="frKundenZahl" style="font-size:15px;color:#64748b;font-weight:800"></span></h2>
+    <label class="fr-suche"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2.4" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input id="frSuche" type="search" placeholder="Kunde suchen …" autocomplete="off"></label>
+  </div>
+  <div class="fr-grid" id="frKunden"></div>
+</div>
+{% raw %}
+<script>
+(function () {
+  const $ = id => document.getElementById(id);
+  const esc = v => String(v == null ? '' : v).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const TAGE = ['Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag', 'Sonntag'];
+  const TK = ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'];
+  const MON = ['Jan', 'Feb', 'Mär', 'Apr', 'Mai', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dez'];
+  const euro = v => (Number(v) || 0).toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
+  const dat = iso => { const [j, m, t] = String(iso).split('-').map(Number); return new Date(j, m - 1, t); };
+  const dKurz = iso => { if (!iso) return '–'; const d = dat(iso); return TK[d.getDay()] + ' ' + String(d.getDate()).padStart(2, '0') + '.' + String(d.getMonth() + 1).padStart(2, '0') + '.'; };
+  const dLang = iso => iso ? dKurz(iso) + d4(iso) : '–';
+  const d4 = iso => String(iso).slice(0, 4);
+  const dauer = min => { min = Number(min) || 0; if (!min) return ''; const h = Math.floor(min / 60), m = min % 60; return h ? (h + (m ? ':' + String(m).padStart(2, '0') : '') + ' Std') : m + ' Min'; };
+  const mal = v => (Number(v) || 0).toLocaleString('de-DE', { maximumFractionDigits: 1 });
+  const initialen = t => String(t || '?').replace(/^ZZ Test\s+/i, '').split(/\s+/).filter(Boolean).slice(0, 2).map(w => w[0]).join('').toUpperCase();
+  let daten = null, stamm = null;
+
+  function api(url, body) {
+    return fetch(url, body === undefined ? { credentials: 'same-origin' } : { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
+      .then(r => r.json().catch(() => ({ ok: false, fehler: 'Antwort nicht lesbar (' + r.status + ').' })));
+  }
+  function laden() {
+    return api('/api/fenster/uebersicht').then(d => { if (d.ok) { daten = d; zeichnen(); } });
+  }
+  function stammLaden() {
+    return stamm ? Promise.resolve(stamm) : api('/api/fenster/stammdaten').then(d => (stamm = d.ok ? d : { kunden: [], mitarbeiter: [] }));
+  }
+
+  // ---------- Übersicht
+  function zeichnen() {
+    const d = daten, k = d.kpi;
+    const lh = $('frLh'); lh.hidden = false; lh.classList.toggle('aus', !d.lifehub_ok);
+    lh.lastChild.textContent = d.lifehub_ok ? 'LifeHub verbunden' : 'LifeHub nicht erreichbar';
+    lh.title = d.lifehub_meldung || '';
+    $('frKpis').innerHTML =
+      kpi('AKTIVE KUNDEN', k.aktiv, '', 'Fenster-Kunden mit Plan') +
+      kpi('DIESE WOCHE', k.woche, '', 'Termine bis Sonntag') +
+      kpi('ÜBERFÄLLIG', k.ueberfaellig, k.ueberfaellig ? 'rot' : '', k.ueberfaellig ? 'bitte erledigen oder melden' : 'alles im Plan') +
+      kpi('RECHNUNG OFFEN', k.rechnung_offen, k.rechnung_offen ? 'orange' : '', k.rechnung_offen ? euro(k.rechnung_offen_summe) + ' noch abrechnen' : 'alles abgerechnet') +
+      kpi('Ø UMSATZ / MONAT', euro(k.monat), '', 'netto, aus allen aktiven Plänen');
+    termineZeichnen(); seiteZeichnen(); kundenZeichnen();
+  }
+  const kpi = (t, w, kl, i) => '<div class="fr-kpi"><small>' + t + '</small><b class="' + kl + '">' + esc(w) + '</b><i>' + esc(i) + '</i></div>';
+
+  function kw(d) {
+    const t = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate())); const tag = t.getUTCDay() || 7;
+    t.setUTCDate(t.getUTCDate() + 4 - tag); const j1 = new Date(Date.UTC(t.getUTCFullYear(), 0, 1));
+    return Math.ceil(((t - j1) / 86400000 + 1) / 7);
+  }
+  function termineZeichnen() {
+    const liste = daten.termine, heute = daten.heute;
+    $('frTermZahl').textContent = liste.length + ' Termine';
+    if (!liste.length) { $('frTermine').innerHTML = '<div class="fr-leer">Noch keine Termine – oben „Kunde eintragen“.</div>'; return; }
+    let html = '', woche = '';
+    liste.forEach(t => {
+      const d = dat(t.datum), mo = new Date(d); mo.setDate(d.getDate() - ((d.getDay() + 6) % 7)); const so = new Date(mo); so.setDate(mo.getDate() + 6);
+      const w = t.datum < heute ? 'ueber' : 'KW ' + kw(d);
+      if (w !== woche) {
+        woche = w;
+        html += '<div class="fr-woche">' + (w === 'ueber' ? 'Überfällig' : w + ' · ' + mo.getDate() + '.' + (mo.getMonth() + 1) + '. – ' + so.getDate() + '.' + (so.getMonth() + 1) + '.' + (t.datum <= sonntag(heute) ? ' · diese Woche' : '')) + '</div>';
+      }
+      const tageZu = Math.round((dat(heute) - d) / 86400000);
+      const info = [t.uhrzeit ? t.uhrzeit + ' Uhr' : '', dauer(t.dauer_min), t.ort].filter(Boolean).join(' · ');
+      html += '<div class="fr-t' + (t.ueberfaellig ? ' ueber' : (t.faellig ? ' faellig' : '')) + '">' +
+        '<div class="fr-dat"><small>' + TK[d.getDay()] + '</small><b>' + d.getDate() + '</b><span>' + MON[d.getMonth()] + '</span></div>' +
+        '<div class="fr-t-name"><b>' + esc(t.firma) + '</b><small>' + (t.ueberfaellig ? '<span class="warn">seit ' + tageZu + (tageZu === 1 ? ' Tag' : ' Tagen') + ' fällig</span> · ' : '') + esc(info) + '</small></div>' +
+        '<div class="fr-betrag">' + (t.betrag ? euro(t.betrag) : '') + '</div>' +
+        (t.faellig && t.datum <= plusTage(heute, 14) ? '<button type="button" class="fr-ok" data-erledigt="' + t.plan_id + '" data-datum="' + t.datum + '">✓ Erledigt</button>' : '<span class="fr-geplant">geplant</span>') +
+        '</div>';
+    });
+    $('frTermine').innerHTML = html;
+  }
+  function plusTage(iso, n) { const d = dat(iso); d.setDate(d.getDate() + n); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
+  function sonntag(iso) { const d = dat(iso); d.setDate(d.getDate() + (7 - (d.getDay() || 7))); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
+
+  function seiteZeichnen() {
+    const e = daten.einsaetze;
+    const fehlt = e.filter(x => x.details_fehlen), offen = e.filter(x => !x.rechnung);
+    $('frBoxFehlt').hidden = !fehlt.length; $('frFehltZahl').textContent = fehlt.length;
+    $('frFehlt').innerHTML = fehlt.map(x => '<div class="fr-z"><div><b>' + esc(x.firma) + '</b><small>' + dLang(x.datum) + ' · Mitarbeiter und Dauer fehlen</small></div>' +
+      '<button type="button" class="fr-knopf orange" data-ergaenzen="' + x.id + '">Ergänzen</button></div>').join('');
+    $('frRechZahl').textContent = offen.length || ''; $('frRechSumme').textContent = offen.length ? euro(offen.reduce((a, x) => a + (x.betrag || 0), 0)) : '';
+    $('frRechnung').innerHTML = offen.length ? offen.map(x => '<div class="fr-z"><div><b>' + esc(x.firma) + '</b><small>' + dLang(x.datum) + (x.mitarbeiter ? ' · ' + esc(x.mitarbeiter) : '') + (x.betrag ? ' · ' + euro(x.betrag) : '') + '</small></div>' +
+      '<button type="button" class="fr-knopf gruen" data-rechnung="' + x.id + '">✓ Rechnung geschrieben</button></div>').join('')
+      : '<div class="fr-leer">Alle erledigten Einsätze sind abgerechnet.</div>';
+    const letzte = e.slice(0, 6);
+    $('frLetzte').innerHTML = letzte.length ? letzte.map(x => '<div class="fr-z"><div><b>' + esc(x.firma) + '</b><small>' + dLang(x.datum) +
+      (x.mitarbeiter ? ' · ' + esc(x.mitarbeiter) : '') + (x.dauer_min ? ' · ' + dauer(x.dauer_min) : '') + '</small>' + (x.notiz ? '<small class="notiz">„' + esc(x.notiz) + '“</small>' : '') + '</div>' +
+      (x.rechnung ? '<span class="fr-badge gruen">Rechnung ✓</span>' : '<span class="fr-badge orange">Rechnung offen</span>') + '</div>').join('')
+      : '<div class="fr-leer">Noch nichts erledigt.</div>';
+  }
+
+  function kundenZeichnen() {
+    const q = $('frSuche').value.trim().toLowerCase();
+    const liste = daten.plaene.filter(p => !q || (p.firma + ' ' + p.ort + ' ' + p.strasse).toLowerCase().includes(q));
+    $('frKundenZahl').textContent = '· ' + daten.plaene.filter(p => p.aktiv).length + ' aktiv' + (daten.plaene.some(p => !p.aktiv) ? ', ' + daten.plaene.filter(p => !p.aktiv).length + ' pausiert' : '');
+    $('frKunden').innerHTML = liste.length ? liste.map(p => {
+      const adr = [p.strasse, [p.plz, p.ort].filter(Boolean).join(' ')].filter(Boolean).join(', ');
+      const zeit = [p.uhrzeit ? p.uhrzeit + ' Uhr' : '', dauer(p.dauer_min)].filter(Boolean).join(' · ');
+      return '<div class="fr-k' + (p.aktiv ? '' : ' pause') + '">' +
+        '<div class="fr-k-oben"><div class="fr-av">' + esc(initialen(p.firma)) + '</div><div style="min-width:0"><div class="fr-k-titel">' + esc(p.firma) + '</div><div class="fr-k-adr">' + esc(adr || '–') + '</div></div></div>' +
+        '<div class="fr-rh">' + esc(p.rhythmus_text) + '<small>' + esc(zeit || 'ohne Uhrzeit') + (p.aktiv ? ' · ' + (Number.isInteger(p.im_jahr) ? '' : '≈ ') + mal(p.im_jahr) + '× im Jahr' : '') + '</small></div>' +
+        '<div class="fr-chips">' +
+          '<div class="fr-chip"><b class="' + (p.ueberfaellig ? 'rot' : '') + '">' + (p.aktiv ? dKurz(p.naechster) + (p.naechster ? d4(p.naechster) : '') : 'Pausiert') + '</b><small>' + (p.aktiv ? (p.ueberfaellig ? 'überfällig' : 'nächster Termin') : 'seit ' + esc(String(p.pausiert_am).slice(0, 10).split('-').reverse().join('.'))) + '</small></div>' +
+          '<div class="fr-chip"><b>' + (p.betrag ? euro(p.betrag) : '–') + '</b><small>je Einsatz netto</small></div>' +
+          '<div class="fr-chip" style="grid-column:1/-1"><b>' + (p.letzter ? dLang(p.letzter.datum) + (p.letzter.mitarbeiter ? ' · ' + esc(p.letzter.mitarbeiter) : '') : '–') + '</b><small>zuletzt erledigt</small></div>' +
+        '</div>' +
+        (p.notiz ? '<div class="fr-hinweis" style="margin-top:10px">📝 ' + esc(p.notiz) + '</div>' : '') +
+        (p.aktiv ? (p.google ? '<div class="fr-k-lh">✓ Im Google-Kalender „Fensterreinigung“</div>' : '<div class="fr-k-lh fehlt">Nicht im Google-Kalender' + (p.google_fehler ? ': ' + esc(p.google_fehler) : '') + ' – bitte erneut speichern</div>') +
+                   (p.lifehub ? '<div class="fr-k-lh" style="margin-top:3px">✓ In den LifeHub-Aufgaben</div>' : '<div class="fr-k-lh fehlt" style="margin-top:3px">Nicht im LifeHub' + (p.lifehub_fehler ? ': ' + esc(p.lifehub_fehler) : '') + ' – bitte erneut speichern</div>') : '') +
+        '<div class="fr-k-fuss"><button type="button" class="fr-knopf" data-bearbeiten="' + p.id + '">Bearbeiten</button>' +
+        '<button type="button" class="fr-knopf" data-pause="' + p.id + '" data-weiter="' + (p.aktiv ? '' : '1') + '">' + (p.aktiv ? 'Pausieren' : 'Fortsetzen') + '</button></div>' +
+        '</div>';
+    }).join('') : '<div class="fr-leer" style="grid-column:1/-1">' + (q ? 'Kein Kunde gefunden.' : 'Noch keine Fenster-Kunden – oben „Kunde eintragen“.') + '</div>';
+  }
+
+  // ---------- Fenster (Panel)
+  let panelZu = null;
+  function panel(html, schmal) {
+    schliessen();
+    const h = document.createElement('div'); h.className = 'fr-hinter';
+    const p = document.createElement('div'); p.className = 'fr-panel' + (schmal ? ' schmal' : ''); p.innerHTML = html;
+    document.body.appendChild(h); document.body.appendChild(p);
+    h.addEventListener('click', schliessen); p.querySelector('.fr-zu').addEventListener('click', schliessen);
+    panelZu = () => { h.remove(); p.remove(); };
+    return p;
+  }
+  function schliessen() { if (panelZu) { panelZu(); panelZu = null; } }
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') schliessen(); });
+
+  // ---------- Formular „Kunde eintragen / bearbeiten“
+  const heuteIso = () => { const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); };
+  function opt(liste, wert) { return liste.map(([v, t]) => '<option value="' + esc(v) + '"' + (String(v) === String(wert) ? ' selected' : '') + '>' + esc(t) + '</option>').join(''); }
+  const TAG_OPT = TAGE.map((t, i) => [i, t]);
+  const MTAG_OPT = Array.from({ length: 28 }, (_, i) => [i + 1, (i + 1) + '.']).concat([[-1, 'letzten Tag']]);
+  const NTE_OPT = [[1, '1.'], [2, '2.'], [3, '3.'], [4, '4.'], [-1, 'letzten']];
+  const DAUER_OPT = [[0, '–']].concat(Array.from({ length: 16 }, (_, i) => [(i + 1) * 30, dauer((i + 1) * 30)]));
+
+  function formular(p) {
+    p = p || null;
+    const r = p ? p.rhythmus : { art: 'wochen', intervall: 4, wochentag: 1, monatstag: null, nte: null, monate: '' };
+    const zustand = { art: r.art, tagart: r.wochentag != null && r.art !== 'wochen' ? 'wochentag' : 'tag', monate: new Set(String(r.monate || '').split(',').filter(Boolean).map(Number)) };
+    const el = panel(
+      '<div class="fr-pkopf"><h2>' + (p ? 'Fensterreinigung bearbeiten' : 'Fenster-Kunde eintragen') + '</h2><p>' + (p ? esc(p.firma) : 'Plan anlegen – Termine kommen in den Google-Kalender „Fensterreinigung“ und in die LifeHub-Aufgaben') + '</p><button type="button" class="fr-zu" aria-label="Schließen">✕</button></div>' +
+      '<div class="fr-pbody">' +
+        '<div class="fr-abschnitt">Kunde</div>' +
+        (p ? '' : '<div class="fr-f" style="margin-bottom:12px"><label>Aus der Kundenliste übernehmen (optional)<select class="fr-in" id="frfKunde"><option value="">– Kunde wählen –</option></select></label></div>') +
+        '<div class="fr-f z2"><label>Firma *<input class="fr-in" id="frfFirma" autocomplete="off"></label><label>Ansprechpartner<input class="fr-in" id="frfAp" autocomplete="off"></label></div>' +
+        '<div class="fr-f z3" style="margin-top:12px"><label>Straße<input class="fr-in" id="frfStr" autocomplete="off"></label><label>PLZ<input class="fr-in" id="frfPlz" inputmode="numeric" autocomplete="off"></label><label>Ort<input class="fr-in" id="frfOrt" autocomplete="off"></label></div>' +
+        '<div class="fr-abschnitt">Rhythmus</div>' +
+        '<div class="fr-seg" id="frfArt"><button type="button" data-art="wochen">Alle X Wochen</button><button type="button" data-art="monate">Alle X Monate</button><button type="button" data-art="bestimmte">Bestimmte Monate</button></div>' +
+        '<div id="frfRegel"></div>' +
+        '<div class="fr-f z4" style="margin-top:14px"><label>Erster Termin ab<input class="fr-in" type="date" id="frfStart"></label><label>Uhrzeit<input class="fr-in" type="time" id="frfZeit"></label>' +
+          '<label>Dauer<select class="fr-in" id="frfDauer">' + opt(DAUER_OPT, p ? p.dauer_min : 120) + '</select></label><label>Betrag je Einsatz (€ netto)<input class="fr-in" id="frfBetrag" inputmode="decimal" placeholder="z. B. 180,00"></label></div>' +
+        '<div class="fr-f" style="margin-top:12px"><label>Notiz (für das Team)<input class="fr-in" id="frfNotiz" placeholder="z. B. innen + außen, Schlüssel beim Hausmeister" autocomplete="off"></label></div>' +
+        '<div class="fr-vor" id="frfVor"><b>…</b></div>' +
+        '<div class="fr-hinweis">Wird als <b>wiederkehrender Termin im Google-Kalender „Fensterreinigung“</b> eingetragen (Handy, CRM-Kalender, LifeHub-Kalender) ' +
+          'und als <b>wiederkehrende Aufgabe im KG LifeHub</b> („Fensterreinigung – Firma“, mit Erinnerung am Vortag). ' +
+          'Fester Plan: Wird ein Termin später erledigt, bleiben die nächsten Termine, wie sie sind.</div>' +
+        '<div class="fr-meldung" id="frfMeldung"></div>' +
+      '</div>' +
+      '<div class="fr-pfuss"><button type="button" class="fr-hell" id="frfAbbr">Abbrechen</button><button type="button" class="fr-blau" id="frfSpeichern">' + (p ? 'Änderungen speichern' : 'Speichern &amp; im LifeHub anlegen') + '</button></div>');
+    const w = (id, v) => { el.querySelector('#' + id).value = v == null ? '' : v; };
+    if (p) {
+      w('frfFirma', p.firma); w('frfAp', p.ansprechpartner); w('frfStr', p.strasse); w('frfPlz', p.plz); w('frfOrt', p.ort);
+      w('frfStart', p.start); w('frfZeit', p.uhrzeit); w('frfBetrag', p.betrag ? String(p.betrag.toFixed(2)).replace('.', ',') : ''); w('frfNotiz', p.notiz);
+    } else {
+      w('frfStart', heuteIso()); w('frfZeit', '08:00');
+      stammLaden().then(s => {
+        const sel = el.querySelector('#frfKunde'); if (!sel) return;
+        sel.innerHTML += s.kunden.map(k => '<option value="' + k.id + '">' + esc(k.firma) + (k.ort ? ' · ' + esc(k.ort) : '') + (k.fenster_mal ? ' · Fenster ' + esc(k.fenster_mal) + '×/Jahr' : '') + '</option>').join('');
+        sel.addEventListener('change', () => {
+          const k = s.kunden.find(x => String(x.id) === sel.value); if (!k) return;
+          w('frfFirma', k.firma); w('frfAp', k.ansprechpartner); w('frfStr', k.strasse); w('frfPlz', k.plz); w('frfOrt', k.ort);
+          if (k.fenster_betrag) w('frfBetrag', k.fenster_betrag);
+          if (k.fenster_notiz) w('frfNotiz', k.fenster_notiz);
+          vorschau();
+        });
+      });
+    }
+    let telefon = p ? p.telefon : '';
+
+    function regel() {
+      const tagWahl = () => '<span class="fr-tagart" id="frfTagart"><button type="button" data-t="tag">am Tag</button><button type="button" data-t="wochentag">am Wochentag</button></span>' +
+        (zustand.tagart === 'tag' ? '<span>am</span><select class="fr-in" id="frfMtag">' + opt(MTAG_OPT, r.monatstag || 1) + '</select>'
+          : '<span>am</span><select class="fr-in" id="frfNte">' + opt(NTE_OPT, r.nte || 1) + '</select><select class="fr-in" id="frfWtag">' + opt(TAG_OPT, r.wochentag == null ? 1 : r.wochentag) + '</select>');
+      let html;
+      if (zustand.art === 'wochen') html = '<div class="fr-satz"><span>Alle</span><input class="fr-in" id="frfInt" type="number" min="1" max="52" value="' + (r.art === 'wochen' ? r.intervall : 4) + '"><span>Wochen am</span><select class="fr-in" id="frfWtag">' + opt(TAG_OPT, r.wochentag == null ? 1 : r.wochentag) + '</select></div>';
+      else if (zustand.art === 'monate') html = '<div class="fr-satz"><span>Alle</span><input class="fr-in" id="frfInt" type="number" min="1" max="24" value="' + (r.art === 'monate' ? r.intervall : 1) + '"><span>Monat(e)</span>' + tagWahl() + '</div>';
+      else html = '<div class="fr-mon" id="frfMon">' + MON.map((m, i) => '<button type="button" data-m="' + (i + 1) + '" class="' + (zustand.monate.has(i + 1) ? 'an' : '') + '">' + m + '</button>').join('') + '</div><div class="fr-satz">' + tagWahl() + '</div>';
+      el.querySelector('#frfRegel').innerHTML = html;
+      el.querySelectorAll('#frfArt button').forEach(b => b.classList.toggle('an', b.dataset.art === zustand.art));
+      el.querySelectorAll('#frfTagart button').forEach(b => b.classList.toggle('an', b.dataset.t === zustand.tagart));
+    }
+    function lesenRegel() {
+      const v = id => { const x = el.querySelector('#' + id); return x ? x.value : null; };
+      // aktuelle Auswahl merken, damit sie beim Umschalten bleibt
+      if (v('frfWtag') != null) r.wochentag = Number(v('frfWtag'));
+      if (v('frfMtag') != null) r.monatstag = Number(v('frfMtag'));
+      if (v('frfNte') != null) r.nte = Number(v('frfNte'));
+      return { art: zustand.art, intervall: v('frfInt'), wochentag: r.wochentag, monatstag: r.monatstag, nte: r.nte, tagart: zustand.tagart, monate: Array.from(zustand.monate) };
+    }
+    let vt = 0;
+    function vorschau() {
+      clearTimeout(vt);
+      vt = setTimeout(() => api('/api/fenster/vorschau', { rhythmus: lesenRegel(), start: el.querySelector('#frfStart').value }).then(d => {
+        const box = el.querySelector('#frfVor');
+        if (!d.ok) { box.innerHTML = '<b>' + esc(d.fehler || 'Bitte Rhythmus vervollständigen.') + '</b>'; return; }
+        const b = parseFloat(String(el.querySelector('#frfBetrag').value).replace(/\./g, '').replace(',', '.')) || 0;
+        box.innerHTML = '<b>' + esc(d.text) + (el.querySelector('#frfZeit').value ? ' · ' + esc(el.querySelector('#frfZeit').value) + ' Uhr' : '') + '</b>' +
+          '<small>' + (Number.isInteger(d.im_jahr) ? '' : '≈ ') + mal(d.im_jahr) + ' Einsätze im Jahr' + (b ? ' · ≈ ' + euro(b * d.im_jahr / 12) + ' pro Monat (' + euro(b * d.im_jahr) + ' im Jahr)' : '') + '</small>' +
+          '<div class="fr-vor-tage">' + d.termine.map(t => '<span>' + dLang(t) + '</span>').join('') + '</div>';
+      }), 180);
+    }
+    regel(); vorschau();
+    el.querySelector('#frfArt').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; lesenRegel(); zustand.art = b.dataset.art; if (zustand.art === 'bestimmte' && !zustand.monate.size) { zustand.monate = new Set([3, 9]); } regel(); vorschau(); });
+    el.querySelector('#frfRegel').addEventListener('click', e => {
+      const t = e.target.closest('#frfTagart button'), m = e.target.closest('#frfMon button');
+      if (t) { lesenRegel(); zustand.tagart = t.dataset.t; regel(); vorschau(); }
+      if (m) { const n = Number(m.dataset.m); zustand.monate.has(n) ? zustand.monate.delete(n) : zustand.monate.add(n); m.classList.toggle('an'); vorschau(); }
+    });
+    el.addEventListener('input', vorschau); el.addEventListener('change', vorschau);
+    el.querySelector('#frfAbbr').addEventListener('click', schliessen);
+    el.querySelector('#frfSpeichern').addEventListener('click', () => {
+      const knopf = el.querySelector('#frfSpeichern'); knopf.disabled = true;
+      const v = id => el.querySelector('#' + id).value;
+      const kSel = el.querySelector('#frfKunde');
+      api('/api/fenster/plan', { id: p ? p.id : null, kunde_id: kSel ? kSel.value : (p ? p.kunde_id : null), firma: v('frfFirma'), ansprechpartner: v('frfAp'), telefon: telefon,
+        strasse: v('frfStr'), plz: v('frfPlz'), ort: v('frfOrt'), rhythmus: lesenRegel(), start: v('frfStart'), uhrzeit: v('frfZeit'),
+        dauer_min: v('frfDauer'), betrag: v('frfBetrag'), notiz: v('frfNotiz') }).then(d => {
+        knopf.disabled = false;
+        if (!d.ok) { el.querySelector('#frfMeldung').textContent = d.fehler || 'Fehler beim Speichern.'; return; }
+        schliessen(); laden();
+        if (d.meldung && d.meldung.indexOf('Gespeichert, aber') === 0) window.alert(d.meldung);
+      });
+    });
+  }
+
+  // ---------- „Erledigt“ / „Ergänzen“
+  function erledigtFenster(planId, datum, einsatz) {
+    const p = daten.plaene.find(x => x.id === planId) || {};
+    const naechster = einsatz ? null : daten.termine.filter(t => t.plan_id === planId && !t.faellig)[0];
+    stammLaden().then(s => {
+      const ma = s.mitarbeiter || [];
+      const el = panel(
+        '<div class="fr-pkopf"><h2>' + (einsatz ? 'Angaben ergänzen' : 'Fensterreinigung erledigt') + '</h2><p>' + esc(p.firma || einsatz.firma) + ' · ' + dLang(einsatz ? einsatz.datum : datum) + '</p><button type="button" class="fr-zu" aria-label="Schließen">✕</button></div>' +
+        '<div class="fr-pbody">' +
+          '<div class="fr-f z2"><label>Wer hat gereinigt?<select class="fr-in" id="frePerson"><option value="">– Mitarbeiter wählen –</option>' + ma.map(m => '<option>' + esc(m) + '</option>').join('') + '<option value="__andere">Andere …</option></select></label>' +
+            '<label>Dauer<select class="fr-in" id="freDauer">' + opt(DAUER_OPT, einsatz ? einsatz.dauer_min : (p.dauer_min || 0)) + '</select></label></div>' +
+          '<div class="fr-f" id="freAndereBox" style="margin-top:12px" hidden><label>Name<input class="fr-in" id="freAndere" autocomplete="off"></label></div>' +
+          '<div class="fr-f" style="margin-top:12px"><label>Notiz / Problem<textarea class="fr-in" id="freNotiz" placeholder="z. B. Kunde nicht da – nur außen gereinigt"></textarea></label></div>' +
+          '<label class="fr-haken"><input type="checkbox" id="freRechnung"> Rechnung geschrieben' + (p.betrag ? ' <span style="margin-left:auto;color:#64748b;font-size:13.5px">' + euro(p.betrag) + ' netto</span>' : '') + '</label>' +
+          (einsatz ? '' : '<div class="fr-info">✓ Die Aufgabe wird im LifeHub abgehakt.' + (naechster ? ' Nächster Termin: <b>' + dLang(naechster.datum) + '</b>.' : ' LifeHub legt den nächsten Termin an.') + '</div>') +
+          '<div class="fr-meldung" id="freMeldung"></div>' +
+        '</div>' +
+        '<div class="fr-pfuss"><button type="button" class="fr-hell" id="freAbbr">Abbrechen</button><button type="button" class="fr-gruen" id="freOk">' + (einsatz ? 'Speichern' : '✓ Erledigt speichern') + '</button></div>', true);
+      if (einsatz) {
+        if (einsatz.mitarbeiter && !ma.includes(einsatz.mitarbeiter)) { el.querySelector('#frePerson').value = '__andere'; el.querySelector('#freAndereBox').hidden = false; el.querySelector('#freAndere').value = einsatz.mitarbeiter; }
+        else el.querySelector('#frePerson').value = einsatz.mitarbeiter || '';
+        el.querySelector('#freNotiz').value = einsatz.notiz || ''; el.querySelector('#freRechnung').checked = !!einsatz.rechnung;
+      }
+      el.querySelector('#frePerson').addEventListener('change', e => { el.querySelector('#freAndereBox').hidden = e.target.value !== '__andere'; });
+      el.querySelector('#freAbbr').addEventListener('click', schliessen);
+      el.querySelector('#freOk').addEventListener('click', () => {
+        const person = el.querySelector('#frePerson').value === '__andere' ? el.querySelector('#freAndere').value : el.querySelector('#frePerson').value;
+        const werte = { mitarbeiter: person, dauer_min: el.querySelector('#freDauer').value, notiz: el.querySelector('#freNotiz').value, rechnung: el.querySelector('#freRechnung').checked };
+        const knopf = el.querySelector('#freOk'); knopf.disabled = true;
+        (einsatz ? api('/api/fenster/einsatz/' + einsatz.id, werte) : api('/api/fenster/plan/' + planId + '/erledigt', Object.assign({ datum: datum }, werte))).then(d => {
+          knopf.disabled = false;
+          if (!d.ok) { el.querySelector('#freMeldung').textContent = d.fehler || 'Fehler beim Speichern.'; return; }
+          schliessen(); laden();
+        });
+      });
+    });
+  }
+
+  // ---------- Klicks
+  document.querySelector('.fr').addEventListener('click', e => {
+    const b = e.target.closest('button'); if (!b) return;
+    if (b.id === 'frNeu') formular(null);
+    else if (b.dataset.erledigt) erledigtFenster(Number(b.dataset.erledigt), b.dataset.datum, null);
+    else if (b.dataset.ergaenzen) erledigtFenster(null, null, daten.einsaetze.find(x => x.id === Number(b.dataset.ergaenzen)));
+    else if (b.dataset.rechnung) { b.disabled = true; api('/api/fenster/einsatz/' + b.dataset.rechnung, { rechnung: true }).then(laden); }
+    else if (b.dataset.bearbeiten) formular(daten.plaene.find(x => x.id === Number(b.dataset.bearbeiten)));
+    else if (b.dataset.pause) {
+      const weiter = !!b.dataset.weiter, p = daten.plaene.find(x => x.id === Number(b.dataset.pause));
+      if (!weiter && !window.confirm('„' + p.firma + '“ pausieren?\nKommende Termine verschwinden aus dem Google-Kalender (vergangene bleiben), die LifeHub-Aufgabe wird gestoppt und archiviert.')) return;
+      b.disabled = true;
+      api('/api/fenster/plan/' + p.id + '/pause', { fortsetzen: weiter }).then(d => { if (!d.ok || d.meldung) window.alert(d.fehler || d.meldung || 'Fehler'); laden(); });
+    }
+  });
+  $('frSuche').addEventListener('input', () => daten && kundenZeichnen());
+  if (new URLSearchParams(location.search).get('neu') === '1') formular(null);
+  laden();
+})();
+</script>
+{% endraw %}
+{% endblock %}
