@@ -29,8 +29,6 @@ LH_GRUPPE, LH_FARBE = "Kunden & Angebote", "pfau"
 G_KALENDER = "f678773df8f3612fe9c77aff8c35941bf8ece7eb7d6e6f503c85d277b4e190b0@group.calendar.google.com"
 G_ZONE = "Europe/Berlin"
 KALENDER_DIENST = None  # beim Start gesetzt: app.get_calendar_service
-KUNDE_SYNC = None       # beim Start gesetzt: Plan aus dem Kundenformular (Kasten „Fensterreinigung“)
-MAL_MONATE = {1: 12, 2: 6, 3: 4, 4: 3, 6: 2, 12: 1}  # „Wie oft pro Jahr“ im Kundenformular → alle X Monate
 
 
 def _tabellen(conn):
@@ -360,11 +358,6 @@ def g_serie_beenden(termin_id):
     _g_ausfuehren(lambda e: e.patch(calendarId=G_KALENDER, eventId=termin_id, body={"recurrence": regeln}))
 
 
-def kunde_fenster_sync(kunde_id, form):
-    """Aufruf aus app.py (Kunde speichern): Fenster-Plan aus dem Kundenformular."""
-    return KUNDE_SYNC(kunde_id, form) if KUNDE_SYNC else None
-
-
 # ---------------------------------------------------------------- Routen
 
 def register_fenster_plan(app, login_required, get_db_connection, kalender_dienst=None):
@@ -576,19 +569,21 @@ def register_fenster_plan(app, login_required, get_db_connection, kalender_diens
                     "monat": round(monat_summe, 2)},
         })
 
-    def plan_speichern(e):
-        """Neu anlegen oder ändern. Bei geändertem Rhythmus/Start/Uhrzeit/Dauer/Firma: alte Serien enden, neue beginnen.
-        → (HTTP-Status, Antwort)"""
+    @app.route("/api/fenster/plan", methods=["POST"])
+    @login_required
+    def fenster_plan_speichern():
+        """Neu anlegen oder ändern. Bei geändertem Rhythmus/Start/Uhrzeit/Dauer/Firma: alte LifeHub-Serie stoppen, neue anlegen."""
+        e = request.get_json(silent=True) or {}
         f, r, fehler = plan_aus_eingabe(e)
         if fehler:
-            return 400, {"ok": False, "fehler": fehler}
+            return jsonify({"ok": False, "fehler": fehler}), 400
         pid = _int(e.get("id"), 1, 10 ** 9)
         conn = get_db_connection()
         try:
             _tabellen(conn)
             alt = plan_laden(conn, pid) if pid else None
             if pid and not alt:
-                return 404, {"ok": False, "fehler": "Plan nicht gefunden."}
+                return jsonify({"ok": False, "fehler": "Plan nicht gefunden."}), 404
             if not pid:  # zweimal gedrückt / Antwort nicht angekommen: denselben neuen Plan nicht doppelt anlegen
                 kurz_vorher = (datetime.now(BERLIN) - timedelta(minutes=10)).strftime("%Y-%m-%d %H:%M:%S")
                 gleich = conn.execute("""SELECT * FROM fenster_plan WHERE aktiv = 1 AND firma = ? AND rrule = ? AND erster_termin = ?
@@ -617,43 +612,8 @@ def register_fenster_plan(app, login_required, get_db_connection, kalender_diens
                                        lifehub=neu_serie or not p["lifehub_serie"], google=neu_serie or not p["google_termin"])
         finally:
             conn.close()
-        return 200, {"ok": True, "id": pid, "meldung": ("Gespeichert, aber " + " und ".join(fehlt)) if fehlt else
-                     "Gespeichert – im Google-Kalender „Fensterreinigung“ und in den LifeHub-Aufgaben."}
-
-    @app.route("/api/fenster/plan", methods=["POST"])
-    @login_required
-    def fenster_plan_speichern():
-        status, antwort = plan_speichern(request.get_json(silent=True) or {})
-        return jsonify(antwort), status
-
-    def kunde_sync(kunde_id, form):
-        """Kundenformular, Kasten „Fensterreinigung“: mit „Erster Termin“ und „Wie oft pro Jahr“ wird der Plan angelegt
-        bzw. angepasst (alle X Monate am Tag des ersten Termins). Ohne „Erster Termin“ bleibt alles wie bisher."""
-        mal, start = _int(form.get("fenster_mal"), 1, 12), _datum(form.get("fenster_start"))
-        if not kunde_id or not start or mal not in MAL_MONATE:
-            return None
-        conn = get_db_connection()
-        try:
-            _tabellen(conn)
-            vorhanden = conn.execute("SELECT id FROM fenster_plan WHERE kunde_id = ? AND aktiv = 1 ORDER BY id DESC LIMIT 1",
-                                     (kunde_id,)).fetchone()
-        finally:
-            conn.close()
-        anrede, name = _txt(form.get("anrede"), 20), _txt(form.get("name"), 200)
-        e = {"id": vorhanden["id"] if vorhanden else None, "kunde_id": kunde_id, "firma": form.get("firma"),
-             "ansprechpartner": f"{anrede} {name}" if anrede and name and not name.startswith(anrede) else name,
-             "telefon": form.get("telefon"), "strasse": form.get("strasse"), "plz": form.get("plz"), "ort": form.get("stadt"),
-             "rhythmus": {"art": "monate", "intervall": MAL_MONATE[mal], "tagart": "tag",
-                          "monatstag": start.day if start.day <= 28 else -1},
-             "start": start.isoformat(), "uhrzeit": form.get("fenster_uhrzeit") or "", "dauer_min": form.get("fenster_dauer") or 0,
-             "betrag": form.get("fenster_betrag") or "", "notiz": form.get("fenster_notiz") or ""}
-        status, antwort = plan_speichern(e)
-        if status != 200:
-            print("Fensterreinigung (Kunde):", antwort.get("fehler"))
-        return antwort
-
-    global KUNDE_SYNC
-    KUNDE_SYNC = kunde_sync
+        return jsonify({"ok": True, "id": pid, "meldung": ("Gespeichert, aber " + " und ".join(fehlt)) if fehlt else
+                        "Gespeichert – im Google-Kalender „Fensterreinigung“ und in den LifeHub-Aufgaben."})
 
     @app.route("/api/fenster/plan/<int:pid>/pause", methods=["POST"])
     @login_required
