@@ -583,6 +583,13 @@ def register_fenster_plan(app, login_required, get_db_connection, kalender_diens
             alt = plan_laden(conn, pid) if pid else None
             if pid and not alt:
                 return jsonify({"ok": False, "fehler": "Plan nicht gefunden."}), 404
+            if not pid:  # zweimal gedrückt / Antwort nicht angekommen: denselben neuen Plan nicht doppelt anlegen
+                kurz_vorher = (datetime.now(BERLIN) - timedelta(minutes=10)).strftime("%Y-%m-%d %H:%M:%S")
+                gleich = conn.execute("""SELECT * FROM fenster_plan WHERE aktiv = 1 AND firma = ? AND rrule = ? AND erster_termin = ?
+                                         AND erstellt_am >= ? ORDER BY id DESC LIMIT 1""",
+                                      (f["firma"], f["rrule"], f["erster_termin"], kurz_vorher)).fetchone()
+                if gleich:
+                    pid, alt = gleich["id"], gleich
             spalten = ("kunde_id", "firma", "ansprechpartner", "telefon", "strasse", "plz", "ort", "art", "intervall", "wochentag",
                        "monatstag", "nte", "monate", "start", "uhrzeit", "dauer_min", "betrag", "notiz", "rrule", "erster_termin")
             if alt:

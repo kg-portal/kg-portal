@@ -194,7 +194,8 @@
 
   function api(url, body) {
     return fetch(url, body === undefined ? { credentials: 'same-origin' } : { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
-      .then(r => r.json().catch(() => ({ ok: false, fehler: 'Antwort nicht lesbar (' + r.status + ').' })));
+      .then(r => r.json().catch(() => ({ ok: false, fehler: 'Antwort nicht lesbar (' + r.status + ').' })))
+      .catch(() => ({ ok: false, fehler: 'Keine Verbindung zum Server – bitte die Liste prüfen und erneut versuchen.' }));
   }
   function laden() {
     return api('/api/fenster/uebersicht').then(d => { if (d.ok) { daten = d; zeichnen(); } });
@@ -317,6 +318,7 @@
     p = p || null;
     const r = p ? p.rhythmus : { art: 'wochen', intervall: 4, wochentag: 1, monatstag: null, nte: null, monate: '' };
     const zustand = { art: r.art, tagart: r.wochentag != null && r.art !== 'wochen' ? 'wochentag' : 'tag', monate: new Set(String(r.monate || '').split(',').filter(Boolean).map(Number)) };
+    const intervall = { wochen: r.art === 'wochen' ? r.intervall : 4, monate: r.art === 'monate' ? r.intervall : 1 };  // eingetippte Zahl bleibt beim Umschalten
     const el = panel(
       '<div class="fr-pkopf"><h2>' + (p ? 'Fensterreinigung bearbeiten' : 'Fenster-Kunde eintragen') + '</h2><p>' + (p ? esc(p.firma) : 'Plan anlegen – Termine kommen in den Google-Kalender „Fensterreinigung“ und in die LifeHub-Aufgaben') + '</p><button type="button" class="fr-zu" aria-label="Schließen">✕</button></div>' +
       '<div class="fr-pbody">' +
@@ -324,18 +326,19 @@
         (p ? '' : '<div class="fr-f" style="margin-bottom:12px"><label>Aus der Kundenliste übernehmen (optional)<select class="fr-in" id="frfKunde"><option value="">– Kunde wählen –</option></select></label></div>') +
         '<div class="fr-f z2"><label>Firma *<input class="fr-in" id="frfFirma" autocomplete="off"></label><label>Ansprechpartner<input class="fr-in" id="frfAp" autocomplete="off"></label></div>' +
         '<div class="fr-f z3" style="margin-top:12px"><label>Straße<input class="fr-in" id="frfStr" autocomplete="off"></label><label>PLZ<input class="fr-in" id="frfPlz" inputmode="numeric" autocomplete="off"></label><label>Ort<input class="fr-in" id="frfOrt" autocomplete="off"></label></div>' +
-        '<div class="fr-abschnitt">Rhythmus</div>' +
+        '<div class="fr-abschnitt">Erster Termin</div>' +
+        '<div class="fr-f z4"><label>Erster Termin *<input class="fr-in" type="date" id="frfStart" required></label><label>Uhrzeit<input class="fr-in" type="time" id="frfZeit"></label>' +
+          '<label>Dauer<select class="fr-in" id="frfDauer">' + opt(DAUER_OPT, p ? p.dauer_min : 120) + '</select></label><label>Betrag je Einsatz (€ netto)<input class="fr-in" id="frfBetrag" inputmode="decimal" placeholder="z. B. 180,00"></label></div>' +
+        '<div class="fr-abschnitt">Danach wiederholen</div>' +
         '<div class="fr-seg" id="frfArt"><button type="button" data-art="wochen">Alle X Wochen</button><button type="button" data-art="monate">Alle X Monate</button><button type="button" data-art="bestimmte">Bestimmte Monate</button></div>' +
         '<div id="frfRegel"></div>' +
-        '<div class="fr-f z4" style="margin-top:14px"><label>Erster Termin ab<input class="fr-in" type="date" id="frfStart"></label><label>Uhrzeit<input class="fr-in" type="time" id="frfZeit"></label>' +
-          '<label>Dauer<select class="fr-in" id="frfDauer">' + opt(DAUER_OPT, p ? p.dauer_min : 120) + '</select></label><label>Betrag je Einsatz (€ netto)<input class="fr-in" id="frfBetrag" inputmode="decimal" placeholder="z. B. 180,00"></label></div>' +
         '<div class="fr-f" style="margin-top:12px"><label>Notiz (für das Team)<input class="fr-in" id="frfNotiz" placeholder="z. B. innen + außen, Schlüssel beim Hausmeister" autocomplete="off"></label></div>' +
         '<div class="fr-vor" id="frfVor"><b>…</b></div>' +
         '<div class="fr-hinweis">Wird als <b>wiederkehrender Termin im Google-Kalender „Fensterreinigung“</b> eingetragen (Handy, CRM-Kalender, LifeHub-Kalender) ' +
           'und als <b>wiederkehrende Aufgabe im KG LifeHub</b> („Fensterreinigung – Firma“, mit Erinnerung am Vortag). ' +
           'Fester Plan: Wird ein Termin später erledigt, bleiben die nächsten Termine, wie sie sind.</div>' +
-        '<div class="fr-meldung" id="frfMeldung"></div>' +
       '</div>' +
+      '<div class="fr-meldung" id="frfMeldung" style="margin:0;padding:8px 26px 0" role="alert"></div>' +
       '<div class="fr-pfuss"><button type="button" class="fr-hell" id="frfAbbr">Abbrechen</button><button type="button" class="fr-blau" id="frfSpeichern">' + (p ? 'Änderungen speichern' : 'Speichern &amp; im LifeHub anlegen') + '</button></div>');
     const w = (id, v) => { el.querySelector('#' + id).value = v == null ? '' : v; };
     if (p) {
@@ -348,7 +351,7 @@
         sel.innerHTML += s.kunden.map(k => '<option value="' + k.id + '">' + esc(k.firma) + (k.ort ? ' · ' + esc(k.ort) : '') + (k.fenster_mal ? ' · Fenster ' + esc(k.fenster_mal) + '×/Jahr' : '') + '</option>').join('');
         sel.addEventListener('change', () => {
           const k = s.kunden.find(x => String(x.id) === sel.value); if (!k) return;
-          w('frfFirma', k.firma); w('frfAp', k.ansprechpartner); w('frfStr', k.strasse); w('frfPlz', k.plz); w('frfOrt', k.ort);
+          w('frfFirma', k.firma); w('frfAp', k.ansprechpartner); w('frfStr', k.strasse); w('frfPlz', k.plz); w('frfOrt', k.ort); telefon = k.telefon || '';
           if (k.fenster_betrag) w('frfBetrag', k.fenster_betrag);
           if (k.fenster_notiz) w('frfNotiz', k.fenster_notiz);
           vorschau();
@@ -356,14 +359,24 @@
       });
     }
     let telefon = p ? p.telefon : '';
+    // Tag, Wochentag und Monat aus dem Datum „Erster Termin“ – so ist der erste Termin genau dieses Datum
+    function vomDatum() {
+      const t = el.querySelector('#frfStart').value; if (!t) return;
+      const d = dat(t), tag = d.getDate();
+      r.wochentag = (d.getDay() + 6) % 7;
+      r.monatstag = tag <= 28 ? tag : -1;
+      r.nte = tag > 28 ? -1 : Math.ceil(tag / 7);
+      if (zustand.art === 'bestimmte') zustand.monate.add(d.getMonth() + 1);
+    }
+    if (!p) vomDatum();
 
     function regel() {
       const tagWahl = () => '<span class="fr-tagart" id="frfTagart"><button type="button" data-t="tag">am Tag</button><button type="button" data-t="wochentag">am Wochentag</button></span>' +
         (zustand.tagart === 'tag' ? '<span>am</span><select class="fr-in" id="frfMtag">' + opt(MTAG_OPT, r.monatstag || 1) + '</select>'
           : '<span>am</span><select class="fr-in" id="frfNte">' + opt(NTE_OPT, r.nte || 1) + '</select><select class="fr-in" id="frfWtag">' + opt(TAG_OPT, r.wochentag == null ? 1 : r.wochentag) + '</select>');
       let html;
-      if (zustand.art === 'wochen') html = '<div class="fr-satz"><span>Alle</span><input class="fr-in" id="frfInt" type="number" min="1" max="52" value="' + (r.art === 'wochen' ? r.intervall : 4) + '"><span>Wochen am</span><select class="fr-in" id="frfWtag">' + opt(TAG_OPT, r.wochentag == null ? 1 : r.wochentag) + '</select></div>';
-      else if (zustand.art === 'monate') html = '<div class="fr-satz"><span>Alle</span><input class="fr-in" id="frfInt" type="number" min="1" max="24" value="' + (r.art === 'monate' ? r.intervall : 1) + '"><span>Monat(e)</span>' + tagWahl() + '</div>';
+      if (zustand.art === 'wochen') html = '<div class="fr-satz"><span>Alle</span><input class="fr-in" id="frfInt" type="number" min="1" max="52" value="' + esc(intervall.wochen) + '"><span>Wochen am</span><select class="fr-in" id="frfWtag">' + opt(TAG_OPT, r.wochentag == null ? 1 : r.wochentag) + '</select></div>';
+      else if (zustand.art === 'monate') html = '<div class="fr-satz"><span>Alle</span><input class="fr-in" id="frfInt" type="number" min="1" max="24" value="' + esc(intervall.monate) + '"><span>Monat(e)</span>' + tagWahl() + '</div>';
       else html = '<div class="fr-mon" id="frfMon">' + MON.map((m, i) => '<button type="button" data-m="' + (i + 1) + '" class="' + (zustand.monate.has(i + 1) ? 'an' : '') + '">' + m + '</button>').join('') + '</div><div class="fr-satz">' + tagWahl() + '</div>';
       el.querySelector('#frfRegel').innerHTML = html;
       el.querySelectorAll('#frfArt button').forEach(b => b.classList.toggle('an', b.dataset.art === zustand.art));
@@ -375,6 +388,7 @@
       if (v('frfWtag') != null) r.wochentag = Number(v('frfWtag'));
       if (v('frfMtag') != null) r.monatstag = Number(v('frfMtag'));
       if (v('frfNte') != null) r.nte = Number(v('frfNte'));
+      if (v('frfInt') != null && zustand.art in intervall) intervall[zustand.art] = v('frfInt');
       return { art: zustand.art, intervall: v('frfInt'), wochentag: r.wochentag, monatstag: r.monatstag, nte: r.nte, tagart: zustand.tagart, monate: Array.from(zustand.monate) };
     }
     let vt = 0;
@@ -386,11 +400,13 @@
         const b = parseFloat(String(el.querySelector('#frfBetrag').value).replace(/\./g, '').replace(',', '.')) || 0;
         box.innerHTML = '<b>' + esc(d.text) + (el.querySelector('#frfZeit').value ? ' · ' + esc(el.querySelector('#frfZeit').value) + ' Uhr' : '') + '</b>' +
           '<small>' + (Number.isInteger(d.im_jahr) ? '' : '≈ ') + mal(d.im_jahr) + ' Einsätze im Jahr' + (b ? ' · ≈ ' + euro(b * d.im_jahr / 12) + ' pro Monat (' + euro(b * d.im_jahr) + ' im Jahr)' : '') + '</small>' +
-          '<div class="fr-vor-tage">' + d.termine.map(t => '<span>' + dLang(t) + '</span>').join('') + '</div>';
+          '<div class="fr-vor-tage">' + d.termine.map(t => '<span>' + dLang(t) + '</span>').join('') + '</div>' +
+          (d.termine[0] && d.termine[0] !== el.querySelector('#frfStart').value ? '<small style="color:#b45309;margin-top:8px">Achtung: Der erste Termin ist ' + dLang(d.termine[0]) + ' – nicht das gewählte Datum. Bitte Tag/Wochentag prüfen.</small>' : '');
       }), 180);
     }
     regel(); vorschau();
-    el.querySelector('#frfArt').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; lesenRegel(); zustand.art = b.dataset.art; if (zustand.art === 'bestimmte' && !zustand.monate.size) { zustand.monate = new Set([3, 9]); } regel(); vorschau(); });
+    el.querySelector('#frfArt').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; lesenRegel(); zustand.art = b.dataset.art; if (zustand.art === 'bestimmte' && !zustand.monate.size) vomDatum(); regel(); vorschau(); });
+    el.querySelector('#frfStart').addEventListener('change', () => { lesenRegel(); vomDatum(); regel(); vorschau(); });
     el.querySelector('#frfRegel').addEventListener('click', e => {
       const t = e.target.closest('#frfTagart button'), m = e.target.closest('#frfMon button');
       if (t) { lesenRegel(); zustand.tagart = t.dataset.t; regel(); vorschau(); }
@@ -399,14 +415,16 @@
     el.addEventListener('input', vorschau); el.addEventListener('change', vorschau);
     el.querySelector('#frfAbbr').addEventListener('click', schliessen);
     el.querySelector('#frfSpeichern').addEventListener('click', () => {
-      const knopf = el.querySelector('#frfSpeichern'); knopf.disabled = true;
+      const knopf = el.querySelector('#frfSpeichern');
+      if (!el.querySelector('#frfStart').value) { el.querySelector('#frfMeldung').textContent = 'Bitte den ersten Termin (Datum) wählen.'; el.querySelector('#frfStart').focus(); return; }
+      knopf.disabled = true; knopf.textContent = 'Wird gespeichert …'; el.querySelector('#frfMeldung').textContent = '';
       const v = id => el.querySelector('#' + id).value;
       const kSel = el.querySelector('#frfKunde');
       api('/api/fenster/plan', { id: p ? p.id : null, kunde_id: kSel ? kSel.value : (p ? p.kunde_id : null), firma: v('frfFirma'), ansprechpartner: v('frfAp'), telefon: telefon,
         strasse: v('frfStr'), plz: v('frfPlz'), ort: v('frfOrt'), rhythmus: lesenRegel(), start: v('frfStart'), uhrzeit: v('frfZeit'),
         dauer_min: v('frfDauer'), betrag: v('frfBetrag'), notiz: v('frfNotiz') }).then(d => {
-        knopf.disabled = false;
-        if (!d.ok) { el.querySelector('#frfMeldung').textContent = d.fehler || 'Fehler beim Speichern.'; return; }
+        knopf.disabled = false; knopf.textContent = p ? 'Änderungen speichern' : 'Speichern & im LifeHub anlegen';
+        if (!d.ok) { el.querySelector('#frfMeldung').textContent = d.fehler || 'Fehler beim Speichern.'; laden(); return; }
         schliessen(); laden();
         if (d.meldung && d.meldung.indexOf('Gespeichert, aber') === 0) window.alert(d.meldung);
       });
@@ -428,8 +446,8 @@
           '<div class="fr-f" style="margin-top:12px"><label>Notiz / Problem<textarea class="fr-in" id="freNotiz" placeholder="z. B. Kunde nicht da – nur außen gereinigt"></textarea></label></div>' +
           '<label class="fr-haken"><input type="checkbox" id="freRechnung"> Rechnung geschrieben' + (p.betrag ? ' <span style="margin-left:auto;color:#64748b;font-size:13.5px">' + euro(p.betrag) + ' netto</span>' : '') + '</label>' +
           (einsatz ? '' : '<div class="fr-info">✓ Die Aufgabe wird im LifeHub abgehakt.' + (naechster ? ' Nächster Termin: <b>' + dLang(naechster.datum) + '</b>.' : ' LifeHub legt den nächsten Termin an.') + '</div>') +
-          '<div class="fr-meldung" id="freMeldung"></div>' +
         '</div>' +
+        '<div class="fr-meldung" id="freMeldung" style="margin:0;padding:8px 26px 0" role="alert"></div>' +
         '<div class="fr-pfuss"><button type="button" class="fr-hell" id="freAbbr">Abbrechen</button><button type="button" class="fr-gruen" id="freOk">' + (einsatz ? 'Speichern' : '✓ Erledigt speichern') + '</button></div>', true);
       if (einsatz) {
         if (einsatz.mitarbeiter && !ma.includes(einsatz.mitarbeiter)) { el.querySelector('#frePerson').value = '__andere'; el.querySelector('#freAndereBox').hidden = false; el.querySelector('#freAndere').value = einsatz.mitarbeiter; }
