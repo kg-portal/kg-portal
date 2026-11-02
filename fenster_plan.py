@@ -1,13 +1,16 @@
 # Fensterreinigung (/fensterreinigung): feste Fenster-Kunden mit eigenem Rhythmus planen.
-# Jeder Kunde wird im KG LifeHub als EINE wiederkehrende Aufgabe angelegt („Fensterreinigung – Firma“, fester Plan) –
-# sie steht dort in „Aufgaben“ und im Kalender; nach „Erledigt“ legt LifeHub den nächsten Termin selbst an.
+# Je Kunde: EIN wiederkehrender Termin im gemeinsamen Google-Kalender „Fensterreinigung“ (mit Uhrzeit, alle Termine –
+# Handy, CRM-Kalender und über den Abgleich auch der LifeHub-Kalender) und EINE wiederkehrende Aufgabe im KG LifeHub
+# („Aufgaben“, fester Plan, ohne Uhrzeit – sonst stünde der Termin im LifeHub-Kalender doppelt); nach „Erledigt“ legt
+# LifeHub die nächste Aufgabe selbst an.
 # Das CRM speichert nur den Plan (fenster_plan) und je Einsatz Mitarbeiter, Dauer, Notiz, Rechnung (fenster_einsatz).
-# Es wird nichts gelöscht: „Pausieren“ stoppt die Serie im LifeHub und archiviert den offenen Termin.
+# „Pausieren“ / neuer Rhythmus: LifeHub-Serie stoppen (offene Aufgabe archiviert), Google-Serie endet gestern –
+# vergangene Termine bleiben im Kalender (eine Serie, die erst in der Zukunft beginnt, wird entfernt).
 # LifeHub-Zugang wie /aufgaben (lifehub_bruecke.ZUGANG). Ohne LifeHub: Pläne und Termine werden nur im CRM berechnet.
 import calendar
 import json
 import re
-from datetime import date, datetime, timedelta
+from datetime import date, datetime, time, timedelta, timezone
 from zoneinfo import ZoneInfo
 
 from flask import jsonify, render_template, request
@@ -22,6 +25,10 @@ MONAT_NAME = ("Januar", "Februar", "März", "April", "Mai", "Juni", "Juli", "Aug
 ARTEN = ("wochen", "monate", "bestimmte")
 TITEL = "Fensterreinigung – "
 LH_GRUPPE, LH_FARBE = "Kunden & Angebote", "pfau"
+# Google-Kalender „Fensterreinigung“ (gleiche ID wie im CRM-Kalender, app.py → google_calendar_events_save)
+G_KALENDER = "f678773df8f3612fe9c77aff8c35941bf8ece7eb7d6e6f503c85d277b4e190b0@group.calendar.google.com"
+G_ZONE = "Europe/Berlin"
+KALENDER_DIENST = None  # beim Start gesetzt: app.get_calendar_service
 
 
 def _tabellen(conn):
@@ -43,6 +50,10 @@ def _tabellen(conn):
             rechnung INTEGER NOT NULL DEFAULT 0, rechnung_am TEXT, quelle TEXT
         )""")
     conn.execute("CREATE UNIQUE INDEX IF NOT EXISTS fenster_einsatz_aufgabe ON fenster_einsatz(lifehub_aufgabe)")
+    spalten = {r[1] for r in conn.execute("PRAGMA table_info(fenster_plan)")}
+    for neu in ("google_termin", "google_ab", "google_fehler"):
+        if neu not in spalten:
+            conn.execute(f"ALTER TABLE fenster_plan ADD COLUMN {neu} TEXT")
     conn.commit()
 
 
@@ -221,10 +232,20 @@ def einsaetze_im_jahr(r):
 
 # ---------------------------------------------------------------- LifeHub
 
+def _dauer_text(minuten):
+    h, m = divmod(int(minuten or 0), 60)
+    return (f"{h}:{m:02d} Std" if m else f"{h} Std") if h else (f"{m} Min" if m else "")
+
+
+def _adresse(p):
+    return " ".join(x for x in (p["strasse"], " ".join(y for y in (p["plz"], p["ort"]) if y)) if x)
+
+
 def _lh_beschreibung(p):
     # Rhythmus als Text dazu: LifeHub beschreibt manche Regeln (z. B. mehrere Monate) nur ungenau, die Termine stimmen
-    zeilen = ["Rhythmus: " + beschreibung(_r_aus_zeile(p)) + " (fester Plan)",
-              " ".join(x for x in (p["strasse"], " ".join(y for y in (p["plz"], p["ort"]) if y)) if x)]
+    zeit = " · ".join(x for x in ((p["uhrzeit"] + " Uhr") if p["uhrzeit"] else "", _dauer_text(p["dauer_min"])) if x)
+    zeilen = ["Rhythmus: " + beschreibung(_r_aus_zeile(p)) + " (fester Plan)" + (" · " + zeit if zeit else ""),
+              _adresse(p)]
     if p["ansprechpartner"] or p["telefon"]:
         zeilen.append(" · ".join(x for x in (p["ansprechpartner"], p["telefon"]) if x))
     if p["betrag"]:
@@ -236,18 +257,15 @@ def _lh_beschreibung(p):
     return "\n".join(z for z in zeilen if z)
 
 
-def lh_serie_anlegen(p):
-    """Neue wiederkehrende Aufgabe im LifeHub; gibt die Serien-ID zurück."""
-    neu = {"title": TITEL + p["firma"], "description": _lh_beschreibung(p), "planned_date": p["erster_termin"],
+def lh_serie_anlegen(p, ab=None):
+    """Neue wiederkehrende Aufgabe im LifeHub ab dem Datum ab (sonst erster Termin); gibt die Serien-ID zurück."""
+    neu = {"title": TITEL + p["firma"], "description": _lh_beschreibung(p), "planned_date": (ab.isoformat() if ab else p["erster_termin"]),
            "recurrence": {"rule": p["rrule"], "mode": "schedule"},
            "meta": {"gruppe": LH_GRUPPE, "farbe": LH_FARBE, "quelle": "kg-crm-fenster", "fenster_plan": p["id"]},
            # Erinnerung im LifeHub (Glocke) am Vortag 17:00 – gilt für jeden Termin der Serie
            "reminders": [{"anchor": "planned", "offset_days": -1, "at_time": "17:00", "level": "prep",
                           "label": "Morgen Fensterreinigung: " + p["firma"]}]}
-    if p["uhrzeit"]:
-        neu["planned_time"] = p["uhrzeit"]
-    if p["dauer_min"]:
-        neu["estimated_minutes"] = p["dauer_min"]
+    # ohne Uhrzeit: der Termin mit Uhrzeit kommt aus dem Google-Kalender in den LifeHub-Kalender
     t = ZUGANG.anfrage("POST", "/tasks", json=neu)
     return t.get("recurrence_id")
 
@@ -273,9 +291,78 @@ def lh_offen(serie_daten):
     return tid, _datum(t.get("occurrence_date") or t.get("planned_date"))
 
 
+# ---------------------------------------------------------------- Google-Kalender
+
+class GoogleFehler(Exception):
+    pass
+
+
+def _g_ausfuehren(anfrage_bauen):
+    if KALENDER_DIENST is None:
+        raise GoogleFehler("Google-Kalender nicht eingerichtet.")
+    try:
+        return anfrage_bauen(KALENDER_DIENST().events()).execute()
+    except Exception as exc:  # Schlüssel fehlt, keine Schreibrechte, Netz …
+        status = getattr(getattr(exc, "resp", None), "status", "")
+        raise GoogleFehler(f"Google-Kalender: {type(exc).__name__} {status}".strip())
+
+
+def _g_body(p, ab):
+    """Wiederkehrender Termin ab dem Datum ab (ab = erster Termin der Serie, dieselbe Regel wie im LifeHub)."""
+    body = {"summary": TITEL + p["firma"], "location": _adresse(p), "description": _lh_beschreibung(p),
+            "recurrence": ["RRULE:" + p["rrule"]],
+            "extendedProperties": {"private": {"kg_fenster_plan": str(p["id"])}}}
+    if p["uhrzeit"]:
+        beginn = datetime.combine(ab, time.fromisoformat(p["uhrzeit"]))
+        ende = beginn + timedelta(minutes=p["dauer_min"] or 60)
+        body["start"] = {"dateTime": beginn.isoformat(), "timeZone": G_ZONE}
+        body["end"] = {"dateTime": ende.isoformat(), "timeZone": G_ZONE}
+    else:
+        body["start"] = {"date": ab.isoformat()}
+        body["end"] = {"date": (ab + timedelta(days=1)).isoformat()}
+    return body
+
+
+def g_serie_anlegen(p, ab):
+    t = _g_ausfuehren(lambda ev: ev.insert(calendarId=G_KALENDER, body=_g_body(p, ab)))
+    return t.get("id")
+
+
+def g_serie_beenden(termin_id):
+    """Serie endet gestern (vergangene Termine bleiben). Beginnt sie erst heute oder später, wird sie entfernt."""
+    try:
+        ev = _g_ausfuehren(lambda e: e.get(calendarId=G_KALENDER, eventId=termin_id))
+    except GoogleFehler as exc:
+        if str(exc).endswith((" 404", " 410")):  # im Kalender schon entfernt
+            return
+        raise
+    if ev.get("status") == "cancelled":
+        return
+    start = ev.get("start") or {}
+    heute = _heute()
+    beginn = _datum(start.get("date") or start.get("dateTime"))
+    if not beginn or beginn >= heute:
+        _g_ausfuehren(lambda e: e.delete(calendarId=G_KALENDER, eventId=termin_id))
+        return
+    if start.get("dateTime"):  # UNTIL in UTC: gestern 23:59:59 (Berlin)
+        bis = datetime.combine(heute, time(0), tzinfo=BERLIN).astimezone(timezone.utc) - timedelta(seconds=1)
+        until = bis.strftime("%Y%m%dT%H%M%SZ")
+    else:
+        until = (heute - timedelta(days=1)).strftime("%Y%m%d")
+    regeln = []
+    for zeile in ev.get("recurrence") or []:
+        if zeile.upper().startswith("RRULE:"):
+            teile = [x for x in zeile[6:].split(";") if x and not x.upper().startswith(("UNTIL=", "COUNT="))]
+            zeile = "RRULE:" + ";".join(teile + ["UNTIL=" + until])
+        regeln.append(zeile)
+    _g_ausfuehren(lambda e: e.patch(calendarId=G_KALENDER, eventId=termin_id, body={"recurrence": regeln}))
+
+
 # ---------------------------------------------------------------- Routen
 
-def register_fenster_plan(app, login_required, get_db_connection):
+def register_fenster_plan(app, login_required, get_db_connection, kalender_dienst=None):
+    global KALENDER_DIENST
+    KALENDER_DIENST = kalender_dienst
 
     conn = get_db_connection()
     try:
@@ -285,6 +372,36 @@ def register_fenster_plan(app, login_required, get_db_connection):
 
     def plan_laden(conn, pid):
         return conn.execute("SELECT * FROM fenster_plan WHERE id = ?", (pid,)).fetchone()
+
+    def serien_anlegen(conn, p, alt, lifehub, google):
+        """LifeHub-Aufgabe und/oder Google-Termin (neu) anlegen; alt = vorheriger Stand, dessen Serien enden.
+        Gibt zurück, was nicht geklappt hat (Text für die Meldung); Fehler stehen auch am Plan."""
+        fehlt = []
+        ab = _datum(p["erster_termin"])
+        if alt:  # geänderter Plan: Vergangenes gehört zur alten Serie – die neue beginnt mit dem ersten Termin ab heute
+            neu_ab = termine(_r_aus_zeile(p), ab, max(ab, _heute()) + timedelta(days=800), ab=max(ab, _heute()))
+            ab = neu_ab[0] if neu_ab else ab
+        if lifehub:
+            try:
+                if alt and alt["lifehub_serie"]:
+                    lh_serie_beenden(alt["lifehub_serie"])
+                serie = lh_serie_anlegen(p, ab)
+                conn.execute("UPDATE fenster_plan SET lifehub_serie = ?, lifehub_fehler = NULL WHERE id = ?", (serie, p["id"]))
+            except LifeHubFehler as exc:
+                fehlt.append(f"nicht im LifeHub ({exc})")
+                conn.execute("UPDATE fenster_plan SET lifehub_fehler = ? WHERE id = ?", (str(exc), p["id"]))
+        if google:
+            try:
+                if alt and alt["google_termin"]:
+                    g_serie_beenden(alt["google_termin"])
+                termin = g_serie_anlegen(p, ab)
+                conn.execute("UPDATE fenster_plan SET google_termin = ?, google_ab = ?, google_fehler = NULL WHERE id = ?",
+                             (termin, ab.isoformat(), p["id"]))
+            except GoogleFehler as exc:
+                fehlt.append(f"nicht im Google-Kalender ({exc})")
+                conn.execute("UPDATE fenster_plan SET google_fehler = ? WHERE id = ?", (str(exc), p["id"]))
+        conn.commit()
+        return fehlt
 
     def plan_aus_eingabe(e):
         """Formular → (felder, rhythmus, fehler)."""
@@ -420,6 +537,7 @@ def register_fenster_plan(app, login_required, get_db_connection):
                 "dauer_min": p["dauer_min"] or 0, "betrag": p["betrag"] or 0, "notiz": p["notiz"] or "", "aktiv": bool(p["aktiv"]),
                 "pausiert_am": p["pausiert_am"] or "", "im_jahr": im_jahr, "lifehub": bool(p["lifehub_serie"]),
                 "lifehub_fehler": p["lifehub_fehler"] or "", "offen_aufgabe": offen_id,
+                "google": bool(p["google_termin"]), "google_fehler": p["google_fehler"] or "",
                 "naechster": naechste[0].isoformat() if naechste else "",
                 "ueberfaellig": bool(naechste and naechste[0] < heute),
                 "letzter": {"datum": e_letzt["datum"], "mitarbeiter": e_letzt["mitarbeiter"] or ""} if e_letzt else None,
@@ -479,20 +597,15 @@ def register_fenster_plan(app, login_required, get_db_connection):
                                    ", ".join("?" for _ in spalten) + ", 1, ?, ?)", tuple(f[k] for k in spalten) + (_jetzt(), _jetzt())).lastrowid
             conn.commit()
             p = dict(plan_laden(conn, pid))
-            meldung = ""
-            if neu_serie:
-                try:
-                    if alt and alt["lifehub_serie"]:
-                        lh_serie_beenden(alt["lifehub_serie"])
-                    serie = lh_serie_anlegen(p)
-                    conn.execute("UPDATE fenster_plan SET lifehub_serie = ?, lifehub_fehler = NULL WHERE id = ?", (serie, pid))
-                except LifeHubFehler as exc:
-                    meldung = f"Gespeichert, aber nicht im LifeHub: {exc}"
-                    conn.execute("UPDATE fenster_plan SET lifehub_fehler = ? WHERE id = ?", (str(exc), pid))
-                conn.commit()
+            fehlt = []
+            if p["aktiv"]:
+                # neu anlegen, was geändert ist oder noch fehlt (z. B. beim ersten Mal nicht erreichbar)
+                fehlt = serien_anlegen(conn, p, alt if neu_serie else None,
+                                       lifehub=neu_serie or not p["lifehub_serie"], google=neu_serie or not p["google_termin"])
         finally:
             conn.close()
-        return jsonify({"ok": True, "id": pid, "meldung": meldung or "Gespeichert – steht im LifeHub (Aufgaben und Kalender)."})
+        return jsonify({"ok": True, "id": pid, "meldung": ("Gespeichert, aber " + " und ".join(fehlt)) if fehlt else
+                        "Gespeichert – im Google-Kalender „Fensterreinigung“ und in den LifeHub-Aufgaben."})
 
     @app.route("/api/fenster/plan/<int:pid>/pause", methods=["POST"])
     @login_required
@@ -504,28 +617,35 @@ def register_fenster_plan(app, login_required, get_db_connection):
             p = plan_laden(conn, pid)
             if not p:
                 return jsonify({"ok": False, "fehler": "Plan nicht gefunden."}), 404
-            try:
-                if weiter:
-                    r = _r_aus_zeile(p)
-                    ab = max(_heute(), _datum(p["start"]) or _heute())
-                    erste = termine(r, ab, ab + timedelta(days=800))
-                    if not erste:
-                        return jsonify({"ok": False, "fehler": "Dieser Rhythmus ergibt keinen Termin."}), 400
-                    conn.execute("UPDATE fenster_plan SET aktiv = 1, pausiert_am = NULL, erster_termin = ?, geaendert_am = ? WHERE id = ?",
-                                 (erste[0].isoformat(), _jetzt(), pid))
-                    serie = lh_serie_anlegen(dict(plan_laden(conn, pid)))
-                    conn.execute("UPDATE fenster_plan SET lifehub_serie = ?, lifehub_fehler = NULL WHERE id = ?", (serie, pid))
-                else:
-                    if p["lifehub_serie"]:
+            fehlt = []
+            if weiter:
+                r = _r_aus_zeile(p)
+                ab = max(_heute(), _datum(p["start"]) or _heute())
+                erste = termine(r, ab, ab + timedelta(days=800))
+                if not erste:
+                    return jsonify({"ok": False, "fehler": "Dieser Rhythmus ergibt keinen Termin."}), 400
+                conn.execute("UPDATE fenster_plan SET aktiv = 1, pausiert_am = NULL, erster_termin = ?, google_termin = NULL, "
+                             "geaendert_am = ? WHERE id = ?", (erste[0].isoformat(), _jetzt(), pid))
+                conn.commit()
+                fehlt = serien_anlegen(conn, dict(plan_laden(conn, pid)), None, lifehub=True, google=True)
+            else:
+                if p["google_termin"]:
+                    try:
+                        g_serie_beenden(p["google_termin"])
+                        conn.execute("UPDATE fenster_plan SET google_termin = NULL, google_fehler = NULL WHERE id = ?", (pid,))
+                    except GoogleFehler as exc:
+                        fehlt.append(f"im Google-Kalender nicht beendet ({exc})")
+                        conn.execute("UPDATE fenster_plan SET google_fehler = ? WHERE id = ?", (str(exc), pid))
+                if p["lifehub_serie"]:
+                    try:
                         lh_serie_beenden(p["lifehub_serie"])
-                    conn.execute("UPDATE fenster_plan SET aktiv = 0, pausiert_am = ?, geaendert_am = ? WHERE id = ?", (_jetzt(), _jetzt(), pid))
-            except LifeHubFehler as exc:
-                conn.rollback()
-                return jsonify({"ok": False, "fehler": f"LifeHub: {exc}"}), 503
-            conn.commit()
+                    except LifeHubFehler as exc:
+                        fehlt.append(f"im LifeHub nicht gestoppt ({exc})")
+                conn.execute("UPDATE fenster_plan SET aktiv = 0, pausiert_am = ?, geaendert_am = ? WHERE id = ?", (_jetzt(), _jetzt(), pid))
+                conn.commit()
         finally:
             conn.close()
-        return jsonify({"ok": True})
+        return jsonify({"ok": True, "meldung": ("Achtung: " + " und ".join(fehlt)) if fehlt else ""})
 
     @app.route("/api/fenster/plan/<int:pid>/erledigt", methods=["POST"])
     @login_required

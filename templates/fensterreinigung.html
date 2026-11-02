@@ -150,7 +150,7 @@
   <section class="fr-kopf" data-kg-skip>
     <div class="fr-zeile1">
       <div class="fr-icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2.5"/><path d="M12 3v18M3 12h18"/><path d="m15.5 6.5 2 2M6.5 15.5l2 2"/></svg></div>
-      <div><h1>Fensterreinigung</h1><p>Feste Fenster-Kunden · jeder Termin steht als Aufgabe im KG LifeHub (Aufgaben &amp; Kalender)</p></div>
+      <div><h1>Fensterreinigung</h1><p>Feste Fenster-Kunden · Termine im Google-Kalender „Fensterreinigung“ (Handy, CRM, LifeHub) · Aufgaben im KG LifeHub</p></div>
       <div class="fr-rechts">
         <span class="fr-lh" id="frLh" hidden><i></i><span></span></span>
         <button type="button" class="fr-neu" id="frNeu"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Kunde eintragen</button>
@@ -283,7 +283,8 @@
           '<div class="fr-chip" style="grid-column:1/-1"><b>' + (p.letzter ? dLang(p.letzter.datum) + (p.letzter.mitarbeiter ? ' · ' + esc(p.letzter.mitarbeiter) : '') : '–') + '</b><small>zuletzt erledigt</small></div>' +
         '</div>' +
         (p.notiz ? '<div class="fr-hinweis" style="margin-top:10px">📝 ' + esc(p.notiz) + '</div>' : '') +
-        (p.aktiv ? (p.lifehub ? '<div class="fr-k-lh">✓ Im LifeHub (Aufgaben &amp; Kalender)</div>' : '<div class="fr-k-lh fehlt">Nicht im LifeHub' + (p.lifehub_fehler ? ': ' + esc(p.lifehub_fehler) : '') + ' – bitte erneut speichern</div>') : '') +
+        (p.aktiv ? (p.google ? '<div class="fr-k-lh">✓ Im Google-Kalender „Fensterreinigung“</div>' : '<div class="fr-k-lh fehlt">Nicht im Google-Kalender' + (p.google_fehler ? ': ' + esc(p.google_fehler) : '') + ' – bitte erneut speichern</div>') +
+                   (p.lifehub ? '<div class="fr-k-lh" style="margin-top:3px">✓ In den LifeHub-Aufgaben</div>' : '<div class="fr-k-lh fehlt" style="margin-top:3px">Nicht im LifeHub' + (p.lifehub_fehler ? ': ' + esc(p.lifehub_fehler) : '') + ' – bitte erneut speichern</div>') : '') +
         '<div class="fr-k-fuss"><button type="button" class="fr-knopf" data-bearbeiten="' + p.id + '">Bearbeiten</button>' +
         '<button type="button" class="fr-knopf" data-pause="' + p.id + '" data-weiter="' + (p.aktiv ? '' : '1') + '">' + (p.aktiv ? 'Pausieren' : 'Fortsetzen') + '</button></div>' +
         '</div>';
@@ -317,7 +318,7 @@
     const r = p ? p.rhythmus : { art: 'wochen', intervall: 4, wochentag: 1, monatstag: null, nte: null, monate: '' };
     const zustand = { art: r.art, tagart: r.wochentag != null && r.art !== 'wochen' ? 'wochentag' : 'tag', monate: new Set(String(r.monate || '').split(',').filter(Boolean).map(Number)) };
     const el = panel(
-      '<div class="fr-pkopf"><h2>' + (p ? 'Fensterreinigung bearbeiten' : 'Fenster-Kunde eintragen') + '</h2><p>' + (p ? esc(p.firma) : 'Plan anlegen – Termine erscheinen im LifeHub unter Aufgaben und im Kalender') + '</p><button type="button" class="fr-zu" aria-label="Schließen">✕</button></div>' +
+      '<div class="fr-pkopf"><h2>' + (p ? 'Fensterreinigung bearbeiten' : 'Fenster-Kunde eintragen') + '</h2><p>' + (p ? esc(p.firma) : 'Plan anlegen – Termine kommen in den Google-Kalender „Fensterreinigung“ und in die LifeHub-Aufgaben') + '</p><button type="button" class="fr-zu" aria-label="Schließen">✕</button></div>' +
       '<div class="fr-pbody">' +
         '<div class="fr-abschnitt">Kunde</div>' +
         (p ? '' : '<div class="fr-f" style="margin-bottom:12px"><label>Aus der Kundenliste übernehmen (optional)<select class="fr-in" id="frfKunde"><option value="">– Kunde wählen –</option></select></label></div>') +
@@ -330,7 +331,8 @@
           '<label>Dauer<select class="fr-in" id="frfDauer">' + opt(DAUER_OPT, p ? p.dauer_min : 120) + '</select></label><label>Betrag je Einsatz (€ netto)<input class="fr-in" id="frfBetrag" inputmode="decimal" placeholder="z. B. 180,00"></label></div>' +
         '<div class="fr-f" style="margin-top:12px"><label>Notiz (für das Team)<input class="fr-in" id="frfNotiz" placeholder="z. B. innen + außen, Schlüssel beim Hausmeister" autocomplete="off"></label></div>' +
         '<div class="fr-vor" id="frfVor"><b>…</b></div>' +
-        '<div class="fr-hinweis">Wird im KG LifeHub als <b>eine wiederkehrende Aufgabe</b> angelegt („Fensterreinigung – Firma“) und steht dort unter Aufgaben und im Kalender. ' +
+        '<div class="fr-hinweis">Wird als <b>wiederkehrender Termin im Google-Kalender „Fensterreinigung“</b> eingetragen (Handy, CRM-Kalender, LifeHub-Kalender) ' +
+          'und als <b>wiederkehrende Aufgabe im KG LifeHub</b> („Fensterreinigung – Firma“, mit Erinnerung am Vortag). ' +
           'Fester Plan: Wird ein Termin später erledigt, bleiben die nächsten Termine, wie sie sind.</div>' +
         '<div class="fr-meldung" id="frfMeldung"></div>' +
       '</div>' +
@@ -406,6 +408,7 @@
         knopf.disabled = false;
         if (!d.ok) { el.querySelector('#frfMeldung').textContent = d.fehler || 'Fehler beim Speichern.'; return; }
         schliessen(); laden();
+        if (d.meldung && d.meldung.indexOf('Gespeichert, aber') === 0) window.alert(d.meldung);
       });
     });
   }
@@ -458,9 +461,9 @@
     else if (b.dataset.bearbeiten) formular(daten.plaene.find(x => x.id === Number(b.dataset.bearbeiten)));
     else if (b.dataset.pause) {
       const weiter = !!b.dataset.weiter, p = daten.plaene.find(x => x.id === Number(b.dataset.pause));
-      if (!weiter && !window.confirm('„' + p.firma + '“ pausieren?\nDie Serie im LifeHub wird gestoppt, der offene Termin archiviert. Es wird nichts gelöscht.')) return;
+      if (!weiter && !window.confirm('„' + p.firma + '“ pausieren?\nKommende Termine verschwinden aus dem Google-Kalender (vergangene bleiben), die LifeHub-Aufgabe wird gestoppt und archiviert.')) return;
       b.disabled = true;
-      api('/api/fenster/plan/' + p.id + '/pause', { fortsetzen: weiter }).then(d => { if (!d.ok) window.alert(d.fehler || 'Fehler'); laden(); });
+      api('/api/fenster/plan/' + p.id + '/pause', { fortsetzen: weiter }).then(d => { if (!d.ok || d.meldung) window.alert(d.fehler || d.meldung || 'Fehler'); laden(); });
     }
   });
   $('frSuche').addEventListener('input', () => daten && kundenZeichnen());
