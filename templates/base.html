@@ -1034,6 +1034,11 @@
                 <i class="fa-solid fa-grip-vertical portal-drag-handle"></i>
             </a>
 
+            <a class="portal-nav-item {% if request.path.startswith('/fensterreinigung') %}active{% endif %}" href="/fensterreinigung" data-nav-key="fensterreinigung">
+                <span class="portal-nav-content"><i class="fa-solid fa-table-cells-large icon-cyan"></i> Fensterreinigung</span>
+                <i class="fa-solid fa-grip-vertical portal-drag-handle"></i>
+            </a>
+
             <div class="portal-nav-group-title" id="personalTitle">Personal</div>
 
             <a class="portal-nav-item {% if request.path.startswith('/mitarbeiter') %}active{% endif %}" href="/mitarbeiter" data-nav-key="mitarbeiter">
@@ -1112,6 +1117,7 @@ document.addEventListener('DOMContentLoaded', function () {
         'leistungsverzeichnis',
         'vertrag',
         'kunden',
+        'fensterreinigung',
         'mitarbeiter',
         'stundenzettel',
         'vertretung',

@@ -921,6 +921,13 @@ try:
 except Exception as exc:
     print(f"⚠️ LifeHub-Brücke: {exc}")
 
+# Fensterreinigung (/fensterreinigung): feste Fenster-Kunden; jeder Kunde = wiederkehrende Aufgabe im KG LifeHub
+try:
+    from fenster_plan import register_fenster_plan
+    register_fenster_plan(app, login_required, get_db_connection)
+except Exception as exc:
+    print(f"⚠️ Fensterreinigung: {exc}")
+
 # Startseite: Kasten „Objekte“ (Umsatz, Mitarbeiter, Lohn je Objekt) – schreibt nur die eigene Zuordnungstabelle
 try:
     from startseite_objekte import register_startseite_objekte
