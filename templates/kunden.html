@@ -486,6 +486,33 @@
             <input class="m-input" name="fenster_notiz" id="f_fenster_notiz" placeholder="z. B. innen + außen" autocomplete="off">
           </div>
         </div>
+        <div class="kp-fenster-grid" style="margin-top:10px">
+          <div>
+            <label class="input-lbl" for="f_fenster_start">Erster Termin</label>
+            <input class="m-input" type="date" name="fenster_start" id="f_fenster_start">
+          </div>
+          <div>
+            <label class="input-lbl" for="f_fenster_uhrzeit">Uhrzeit</label>
+            <input class="m-input" type="time" name="fenster_uhrzeit" id="f_fenster_uhrzeit">
+          </div>
+          <div>
+            <label class="input-lbl" for="f_fenster_dauer">Dauer</label>
+            <select class="m-input" name="fenster_dauer" id="f_fenster_dauer">
+              <option value="">–</option>
+              <option value="30">30 Min</option>
+              <option value="60">1 Std</option>
+              <option value="90">1:30 Std</option>
+              <option value="120">2 Std</option>
+              <option value="150">2:30 Std</option>
+              <option value="180">3 Std</option>
+              <option value="240">4 Std</option>
+              <option value="300">5 Std</option>
+              <option value="360">6 Std</option>
+              <option value="480">8 Std</option>
+            </select>
+          </div>
+        </div>
+        <div class="kp-fenster-hinweis">Mit „Erster Termin“ und „Wie oft pro Jahr“ (z. B. 4x jährlich = alle 3 Monate) kommen alle Termine beim Speichern in den Google-Kalender „Fensterreinigung“ und in die LifeHub-Aufgaben – Übersicht auf der Seite „Fensterreinigung“.</div>
       </div>
 
       <!-- 🆕 LAUFZEIT -->
@@ -2164,6 +2191,7 @@
       background:#f0fdff;
     }
     .kp-fenster-titel { color:#0e7490 !important; font-weight:800 !important; }
+    .kp-fenster-hinweis { margin-top:10px; font-size:12.5px; font-weight:600; color:#0e7490; line-height:1.45; }
     .kp-fenster-grid { display:grid; grid-template-columns:1fr 1fr 1.3fr; gap:12px; margin-top:6px; }
     @media (max-width: 760px) {
       .kp-fenster-grid { grid-template-columns:1fr; }
@@ -2729,7 +2757,7 @@ document.addEventListener("DOMContentLoaded", function () {
   function fensterLesen(text) {
     var d = fensterDaten(text);
     var b = fensterZahl(d.fenster_betrag), m = parseInt(d.fenster_mal, 10) || 0;
-    if (!(b > 0) || !(m > 0)) return null;
+    if (!(m > 0)) return null;
     return { betrag: b, mal: m, notiz: String(d.fenster_notiz || "").trim(), jahr: b * m };
   }
   // „Bearbeiten“ bleibt wie es ist; danach werden nur die neuen Fenster-Felder gefüllt
@@ -2745,6 +2773,10 @@ document.addEventListener("DOMContentLoaded", function () {
         if (f1) f1.value = d.fenster_betrag || "";
         if (f2) f2.value = d.fenster_mal || "";
         if (f3) f3.value = d.fenster_notiz || "";
+        ["start", "uhrzeit", "dauer"].forEach(function (k) {
+          var f = document.getElementById("f_fenster_" + k);
+          if (f) f.value = d["fenster_" + k] || "";
+        });
       } catch (e) { if (window.console) console.warn("Fensterreinigung-Felder:", e); }
       return r;
     };
