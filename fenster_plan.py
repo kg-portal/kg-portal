@@ -390,6 +390,7 @@ def register_fenster_plan(app, login_required, get_db_connection, kalender_diens
             except LifeHubFehler as exc:
                 fehlt.append(f"nicht im LifeHub ({exc})")
                 conn.execute("UPDATE fenster_plan SET lifehub_fehler = ? WHERE id = ?", (str(exc), p["id"]))
+            conn.commit()  # sofort schreiben – während der Google-Abfrage bleibt die Datenbank frei
         if google:
             try:
                 if alt and alt["google_termin"]:
