@@ -45,6 +45,7 @@
   .fr-t-name b { display: block; font-size: 15.5px; font-weight: 900; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .fr-t-name small { display: block; margin-top: 3px; font-size: 13px; font-weight: 600; color: var(--grau); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .fr-t-name .warn { color: #dc2626; font-weight: 800; }
+  .fr-t-name .versch { color: #b45309; font-weight: 800; }
   .fr-betrag { font-size: 15px; font-weight: 900; white-space: nowrap; }
   .fr-ok { display: inline-flex; align-items: center; gap: 7px; height: 40px; padding: 0 14px; border: 0; border-radius: 12px; color: #fff; font-size: 14px; font-weight: 900; background: linear-gradient(135deg, #059669, #10b981); box-shadow: 0 6px 14px rgba(5,150,105,.22); white-space: nowrap; }
   .fr-geplant { display: inline-block; min-width: 96px; text-align: center; padding: 8px 10px; border-radius: 12px; font-size: 12.5px; font-weight: 800; color: #64748b; background: #f1f5f9; }
@@ -242,7 +243,8 @@
       const info = [t.uhrzeit ? t.uhrzeit + ' Uhr' : '', dauer(t.dauer_min), t.ort].filter(Boolean).join(' · ');
       html += '<div class="fr-t' + (t.ueberfaellig ? ' ueber' : (t.faellig ? ' faellig' : '')) + '">' +
         '<div class="fr-dat"><small>' + TK[d.getDay()] + '</small><b>' + d.getDate() + '</b><span>' + MON[d.getMonth()] + '</span></div>' +
-        '<div class="fr-t-name"><b>' + esc(t.firma) + '</b><small>' + (t.ueberfaellig ? '<span class="warn">seit ' + tageZu + (tageZu === 1 ? ' Tag' : ' Tagen') + ' fällig</span> · ' : '') + esc(info) + '</small></div>' +
+        '<div class="fr-t-name"><b>' + esc(t.firma) + '</b><small>' + (t.ueberfaellig ? '<span class="warn">seit ' + tageZu + (tageZu === 1 ? ' Tag' : ' Tagen') + ' fällig</span> · ' : '') +
+          (t.verschoben_von ? '<span class="versch">im Kalender verschoben (Plan: ' + esc(dKurz(t.verschoben_von)) + ')</span> · ' : '') + esc(info) + '</small></div>' +
         '<div class="fr-betrag">' + (t.betrag ? euro(t.betrag) : '') + '</div>' +
         (t.faellig && t.datum <= plusTage(heute, 14) ? '<button type="button" class="fr-ok" data-erledigt="' + t.plan_id + '" data-datum="' + t.datum + '">✓ Erledigt</button>' : '<span class="fr-geplant">geplant</span>') +
         '</div>';
