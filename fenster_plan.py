@@ -24,7 +24,9 @@ TAG_KURZ = ("Mo", "Di", "Mi", "Do", "Fr", "Sa", "So")
 MONAT_NAME = ("Januar", "Februar", "März", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober", "November", "Dezember")
 ARTEN = ("wochen", "monate", "bestimmte")
 TITEL = "Fensterreinigung – "
-LH_GRUPPE, LH_FARBE = "Kunden & Angebote", "pfau"
+# Farbe der Fenster-Aufgaben im LifeHub: „salbei“ = dasselbe Grün wie der Kalender „Fensterreinigung“
+LH_GRUPPE, LH_FARBE = "Kunden & Angebote", "salbei"
+LH_OFFEN = ["new", "planned", "in_progress", "on_hold", "waiting_other", "waiting_approval", "postponed"]
 # Google-Kalender „Fensterreinigung“ (gleiche ID wie im CRM-Kalender, app.py → google_calendar_events_save)
 G_KALENDER = "f678773df8f3612fe9c77aff8c35941bf8ece7eb7d6e6f503c85d277b4e190b0@group.calendar.google.com"
 G_ZONE = "Europe/Berlin"
@@ -310,6 +312,13 @@ def lh_serie_beenden(serie):
         ZUGANG.anfrage("POST", f"/tasks/{offen}/archive")
 
 
+def lh_faerben(aufgabe, meta):
+    """Fenster-Aufgabe im LifeHub grün (meta.farbe); die übrigen Angaben in meta bleiben."""
+    meta = dict(meta or {})
+    meta["farbe"] = LH_FARBE
+    ZUGANG.anfrage("PATCH", f"/tasks/{aufgabe}", json={"meta": meta})
+
+
 def lh_serien():
     return {s["id"]: s for s in ZUGANG.anfrage("GET", "/recurrences")}
 
@@ -552,6 +561,14 @@ def register_fenster_plan(app, login_required, get_db_connection, kalender_diens
                     # im CRM zurückgenommen: dieselbe Aufgabe nicht wieder aufnehmen – außer sie wurde danach erneut abgehakt
                     storniert = {z["storniert_aufgabe"]: z["storniert_am"] for z in conn.execute(
                         "SELECT storniert_aufgabe, storniert_am FROM fenster_einsatz WHERE storniert_aufgabe IS NOT NULL ORDER BY id")}
+                    # Fenster-Aufgaben aus dem CRM grün wie im Kalender – auch ältere Serien (Vorlage dort noch „pfau“) und
+                    # die nächste Aufgabe, die LifeHub nach „Erledigt“ aus der alten Vorlage anlegt
+                    offen = ZUGANG.anfrage("GET", "/tasks", params={"recurring": "true", "status": LH_OFFEN, "q": "Fensterreinigung",
+                                                                     "limit": 500, "sort": "updated"}).get("items") or []
+                    for t in fertig + offen:
+                        meta = t.get("meta") or {}
+                        if t.get("id") and meta.get("quelle") == "kg-crm-fenster" and meta.get("farbe") != LH_FARBE:
+                            lh_faerben(t["id"], meta)
                     for t in fertig:
                         pid = ids.get(t.get("recurrence_id"))
                         if t.get("id") in storniert and _berlin_text(t.get("completed_at")) <= (storniert[t["id"]] or ""):
