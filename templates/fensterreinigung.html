@@ -355,7 +355,8 @@
       w('frfStart', heuteIso()); w('frfZeit', '08:00');
       stammLaden().then(s => {
         const sel = el.querySelector('#frfKunde'); if (!sel) return;
-        sel.innerHTML += s.kunden.map(k => '<option value="' + k.id + '">' + esc(k.firma) + (k.ort ? ' · ' + esc(k.ort) : '') + (k.fenster_mal ? ' · Fenster ' + esc(k.fenster_mal) + '×/Jahr' : '') + '</option>').join('');
+        // nur Kunden mit „Fenster: ja“ (Knopf auf der Kundenkarte)
+        sel.innerHTML += s.kunden.filter(k => k.fenster !== false || String(k.id) === String(kundeId)).map(k => '<option value="' + k.id + '">' + esc(k.firma) + (k.ort ? ' · ' + esc(k.ort) : '') + (k.fenster_mal ? ' · Fenster ' + esc(k.fenster_mal) + '×/Jahr' : '') + '</option>').join('');
         sel.addEventListener('change', () => {
           const k = s.kunden.find(x => String(x.id) === sel.value); if (!k) return;
           w('frfFirma', k.firma); w('frfAp', k.ansprechpartner); w('frfStr', k.strasse); w('frfPlz', k.plz); w('frfOrt', k.ort); telefon = k.telefon || '';

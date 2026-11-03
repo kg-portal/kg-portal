@@ -2304,6 +2304,18 @@
     .kpp-name { overflow:hidden; white-space:nowrap; text-overflow:ellipsis; font-weight:800; color:#0f172a; }
     .kpp-klein { display:block; margin-top:1px; font-size:12px; font-weight:600; color:#64748b; }
     .kpp-wert { flex-shrink:0; text-align:right; font-weight:800; color:#0f172a; font-variant-numeric:tabular-nums; }
+    .kpp-ohne { flex-shrink:0; width:30px; height:30px; border-radius:10px; border:1px solid #e2e8f0; background:#fff; color:#94a3b8; font-size:13px; font-weight:900; cursor:pointer; }
+    .kpp-ohne:hover { border-color:#fecaca; background:#fef2f2; color:#dc2626; }
+    .kpp-ohne.zurueck { width:auto; padding:0 10px; color:#1d4ed8; border-color:#bfdbfe; }
+    .kpp-ohne.zurueck:hover { background:#eff6ff; color:#1d4ed8; border-color:#93c5fd; }
+    .kpp-ohne-box { margin-top:14px; }
+    #kppFensterHaupt .kpp-liste:empty { display:none; }
+    .kp-fenster-wahl { display:inline-flex; align-items:center; gap:4px; border-radius:999px; padding:5px 10px; font-size:11px; font-weight:900; line-height:1; cursor:pointer; border:1px solid #a5f3fc; background:#cffafe; color:#0e7490; }
+    .kp-fenster-wahl.nein { border:1px dashed #cbd5e1; background:#f8fafc; color:#64748b; }
+    .kp-fenster-wahl:hover { filter:brightness(.96); box-shadow:0 0 0 2px rgba(14,116,144,.15); }
+    .kp-fenster-wahl:disabled { opacity:.6; cursor:wait; }
+    .kpp-ohne-zeigen { border:0; background:none; padding:4px 2px; color:#64748b; font-size:13px; font-weight:800; cursor:pointer; text-decoration:underline; }
+    .kpp-ohne-box .kpp-liste { margin-top:8px; opacity:.85; }
     .kpp-balken { display:block; height:5px; margin-top:6px; border-radius:3px; background:rgba(100,116,139,0.14); overflow:hidden; }
     .kpp-balken i { display:block; height:100%; border-radius:3px; }
     .kpp-leer { padding:36px 16px; text-align:center; font-weight:700; color:#64748b; }
@@ -2733,6 +2745,47 @@ document.addEventListener("DOMContentLoaded", function () {
     if (!(b > 0) || !(m > 0)) return null;
     return { betrag: b, mal: m, notiz: String(d.fenster_notiz || "").trim(), jahr: b * m };
   }
+  // Knopf „Fenster ja / nein“ auf der Kundenkarte (rechts neben „Aktuell“): nur „ja“ erscheint in Fensterreinigung → Kunde wählen
+  function fensterZaehlen() {
+    if (!KD) return;
+    var n = 0, s = 0;
+    KD.kunden.forEach(function (k) { if (k.fenster && k.art !== "gekuendigt") { n++; s += k.fenster.jahr; } });
+    var setz = function (id, t) { var e = document.getElementById(id); if (e) e.textContent = t; };
+    setz("kpArtFensterN", n); setz("kpArtFensterS", euro(s / 12)); setz("kpArtFensterJ", "Ø pro Monat · " + euro(s) + " / Jahr"); setz("kpRFenster", n);
+  }
+  function fensterWahlSpeichern(k, ja, fertig) {
+    if (!ja && k.fenster && k.fenster.plan && !window.confirm("„" + k.firma + "“ hat einen aktiven Fenster-Plan. Der Plan läuft weiter (auf der Seite Fensterreinigung pausieren).\nTrotzdem auf „Fenster: nein“ stellen?")) { fertig(false); return; }
+    fetch("/api/fenster/kunde-fenster", { method: "POST", credentials: "same-origin", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ kunde_id: Number(k.id), fenster: ja }) })
+      .then(function (r) { return r.json(); }).then(function (d) {
+        if (!d || !d.ok) { window.alert((d && d.fehler) || "Fehler beim Speichern."); fertig(false); return; }
+        k.fensterWahl = ja;
+        if (!ja && k.fenster && !k.fenster.plan) k.fenster = null;
+        if (ja && !k.fenster) k.fenster = fensterLesen(k.daten);
+        fensterKnopfSetzen(k); fensterZaehlen(); fertig(true);
+      }).catch(function () { window.alert("Keine Verbindung zum Server."); fertig(false); });
+  }
+  function fensterKnopfSetzen(k) {
+    var tags = k.el && k.el.querySelector(".kunden-mini-tags");
+    if (!tags) return;
+    var alt = tags.querySelector(".kp-art-fenster");
+    if (alt) alt.parentNode.removeChild(alt);
+    var b = tags.querySelector(".kp-fenster-wahl");
+    if (k.art === "gekuendigt") { if (b) b.parentNode.removeChild(b); return; }
+    if (!b) {
+      b = document.createElement("button");
+      b.type = "button";
+      b.className = "kp-fenster-wahl";
+      b.addEventListener("click", function (e) {
+        e.stopPropagation(); e.preventDefault();
+        b.disabled = true;
+        fensterWahlSpeichern(k, !k.fensterWahl, function () { b.disabled = false; });
+      });
+      tags.appendChild(b);
+    }
+    b.classList.toggle("nein", !k.fensterWahl);
+    b.textContent = k.fensterWahl ? "Fenster: ja" + (k.fenster ? " · " + malText(k.fenster.mal) + "×" : "") : "Fenster: nein";
+    b.title = k.fensterWahl ? "Fensterreinigung: ja – steht in Fensterreinigung → Kunde wählen. Klicken: nein" : "Fensterreinigung: nein – klicken: ja (dann in Fensterreinigung → Kunde wählen)";
+  }
   // „Bearbeiten“ bleibt wie es ist; danach werden nur die neuen Fenster-Felder gefüllt
   (function () {
     var alt = window.editKunde;
@@ -2772,6 +2825,9 @@ document.addEventListener("DOMContentLoaded", function () {
         }
         var fz = ft ? ft.querySelector(".kp-art-fenster") : null;
         if (fz) fz.textContent = "Fenster " + malText(k.fenster.mal) + "×";
+      } else {
+        var fx = k.el.querySelector(".kunden-mini-tags .kp-art-fenster");
+        if (fx) fx.parentNode.removeChild(fx);
       }
       if (k.art in s) s[k.art] += k.art === "jaehrlich" ? jahresWert(k) : k.betrag;
       k.such = sucheNorm([k.firma, txt(k.el, ".t-strasse"), txt(k.el, ".t-plz"), k.ort, txt(k.el, ".t-knr"),
@@ -3034,15 +3090,22 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     if (art === "fensterneu") {
-      var wahl = alle.filter(function (k) { return k.art !== "gekuendigt"; })
-        .sort(function (a, b) { return String(a.firma).localeCompare(String(b.firma), "de"); });
+      var nachName = function (a, b) { return String(a.firma).localeCompare(String(b.firma), "de"); };
+      var wahl = alle.filter(function (k) { return k.art !== "gekuendigt" && k.fensterWahl !== false; }).sort(nachName);
+      var ohneL = alle.filter(function (k) { return k.art !== "gekuendigt" && k.fensterWahl === false; }).sort(nachName);
+      var fZeile = function (k, ohne) {
+        var klein = [k.ort, k.freq].filter(Boolean).join(" · ") + (k.fenster ? " · Fenster: " + malText(k.fenster.mal) + "× " + euro(k.fenster.betrag) : "");
+        var knopf = ohne ? '<button type="button" class="kpp-ohne zurueck" data-zurueck="' + esc(k.id) + '" title="Fenster: ja – in die Liste aufnehmen">+ Fenster: ja</button>'
+          : (k.fenster && k.fenster.plan ? "" : '<button type="button" class="kpp-ohne" data-ohne="' + esc(k.id) + '" title="Fenster: nein – aus dieser Liste nehmen" aria-label="Fenster: nein">✕</button>');
+        return '<div class="kpp-zeile" data-fid="' + esc(k.id) + '" data-such="' + esc(k.such || "") + '" title="Fensterreinigung eintragen"><div class="kpp-haupt"><div class="kpp-name">' + esc(k.firma) +
+          '</div><span class="kpp-klein">' + esc(klein) + '</span></div><div class="kpp-wert">' + (ohne ? "" : (k.fenster ? "ändern" : "+ eintragen")) + '</div>' + knopf + '</div>';
+      };
       kopf.innerHTML = kppKopf("Fensterreinigung", "Eintragen", "Kunde wählen", "Danach öffnet sich die Seite „Fensterreinigung“ mit diesem Kunden (Erster Termin, Rhythmus)");
       body.innerHTML = '<div class="kpp-suche"><input type="search" id="kppFensterSuche" placeholder="Kunde suchen …" autocomplete="off" aria-label="Kunde suchen"></div>' +
-        kppListe(wahl.map(function (k) {
-          var klein = [k.ort, k.freq].filter(Boolean).join(" · ") + (k.fenster ? " · Fenster: " + malText(k.fenster.mal) + "× " + euro(k.fenster.betrag) : "");
-          return '<div class="kpp-zeile" data-fid="' + esc(k.id) + '" data-such="' + esc(k.such || "") + '" title="Fensterreinigung eintragen"><div class="kpp-haupt"><div class="kpp-name">' + esc(k.firma) +
-            '</div><span class="kpp-klein">' + esc(klein) + '</span></div><div class="kpp-wert">' + (k.fenster ? "ändern" : "+ eintragen") + '</div></div>';
-        }), "Keine aktuellen Kunden.");
+        '<div id="kppFensterHaupt"><div class="kpp-liste">' + wahl.map(function (k) { return fZeile(k, false); }).join("") + '</div>' +
+        (wahl.length ? "" : '<div class="kpp-leer" id="kppFensterLeer">Noch kein Kunde mit „Fenster: ja“. Unten bei „Weitere Kunden“ oder auf der Kundenkarte auf „Fenster“ klicken.</div>') + '</div>' +
+        '<div class="kpp-ohne-box" id="kppOhneBox"' + (ohneL.length ? "" : " hidden") + '><button type="button" class="kpp-ohne-zeigen" id="kppOhneZeigen">Weitere Kunden (Fenster: nein): <b id="kppOhneZahl">' +
+        ohneL.length + '</b> – anzeigen</button><div id="kppOhneListe" hidden><div class="kpp-liste">' + ohneL.map(function (k) { return fZeile(k, true); }).join("") + '</div></div></div>';
       var sf = body.querySelector("#kppFensterSuche");
       if (sf) sf.addEventListener("input", function () {
         var w = sucheNorm(sf.value).split(" ").filter(Boolean);
@@ -3052,6 +3115,28 @@ document.addEventListener("DOMContentLoaded", function () {
         });
       });
       body.addEventListener("click", function (e) {
+        if (e.target.closest && e.target.closest("#kppOhneZeigen")) {
+          var ol = body.querySelector("#kppOhneListe"); ol.hidden = !ol.hidden;
+          return;
+        }
+        var ob = e.target.closest ? e.target.closest("[data-ohne],[data-zurueck]") : null;
+        if (ob) {
+          var weg = ob.hasAttribute("data-ohne"), oid = ob.getAttribute(weg ? "data-ohne" : "data-zurueck");
+          var ok = alle.filter(function (k) { return String(k.id) === String(oid); })[0];
+          if (!ok) return;
+          ob.disabled = true;
+          fensterWahlSpeichern(ok, !weg, function (gespeichert) {
+            if (!gespeichert) { ob.disabled = false; return; }
+            var alt = ob.closest(".kpp-zeile"), ziel = body.querySelector(weg ? "#kppOhneListe .kpp-liste" : "#kppFensterHaupt .kpp-liste");
+            var tmp = document.createElement("div"); tmp.innerHTML = fZeile(ok, weg);
+            if (ziel && tmp.firstChild) ziel.insertBefore(tmp.firstChild, ziel.firstChild);
+            if (alt && alt.parentNode) alt.parentNode.removeChild(alt);
+            var n = body.querySelectorAll("#kppOhneListe .kpp-zeile").length, leer = body.querySelector("#kppFensterLeer");
+            body.querySelector("#kppOhneZahl").textContent = n; body.querySelector("#kppOhneBox").hidden = !n;
+            if (leer) leer.hidden = !!body.querySelector("#kppFensterHaupt .kpp-zeile");
+          });
+          return;
+        }
         var z = e.target.closest ? e.target.closest(".kpp-zeile[data-fid]") : null;
         if (!z) return;
         var fid = z.getAttribute("data-fid");
@@ -3213,15 +3298,23 @@ document.addEventListener("DOMContentLoaded", function () {
     arten(kunden);
     // Seite „Fensterreinigung“: Kunden mit Plan zählen hier mit (Plan geht vor den alten Feldern im Kundenformular)
     fetch("/api/fenster/kunden", { credentials: "same-origin" }).then(function (r) { return r.ok ? r.json() : null; }).then(function (d) {
-      if (!d || !d.ok || !d.plaene || !d.plaene.length) return;
+      if (!d || !d.ok) return;
       var neu = false;
-      d.plaene.forEach(function (p) {
+      (d.plaene || []).forEach(function (p) {
         var k = kunden.filter(function (x) { return p.kunde_id ? String(x.id) === String(p.kunde_id) : sucheNorm(x.firma) === sucheNorm(p.firma); })[0];
         if (!k) return;
         k.fenster = { betrag: Number(p.betrag) || 0, mal: Number(p.im_jahr) || 0, notiz: p.rhythmus_text || "", jahr: (Number(p.betrag) || 0) * (Number(p.im_jahr) || 0), plan: p.id };
         neu = true;
       });
+      // Knopf „Fenster ja / nein“: ohne Wahl gilt „ja“, wenn ein Plan oder Fenster-Angaben im Kundenformular da sind
+      var ja = (d.fenster_ja || []).map(String), nein = (d.fenster_nein || []).map(String);
+      kunden.forEach(function (k) {
+        var id = String(k.id);
+        k.fensterWahl = nein.indexOf(id) !== -1 ? false : (ja.indexOf(id) !== -1 ? true : !!k.fenster);
+        if (!k.fensterWahl && k.fenster && !k.fenster.plan) { k.fenster = null; neu = true; }
+      });
       if (neu) arten(kunden);
+      kunden.forEach(fensterKnopfSetzen);
     }).catch(function () {});
 
     // Karten: Initialen-Avatar + Farbe für gekündigte Verträge (nur Klassen/Attribute ergänzt)
