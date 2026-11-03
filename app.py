@@ -929,6 +929,13 @@ try:
 except Exception as exc:
     print(f"⚠️ Fensterreinigung: {exc}")
 
+# ChatGPT ↔ Fensterreinigung (/internal/mcp/fenster/<Schlüssel>): nur Fenster-Pläne, kein Löschen, keine Mails
+try:
+    from fenster_chatgpt import register_fenster_chatgpt
+    register_fenster_chatgpt(app, get_db_connection)
+except Exception as exc:
+    print(f"⚠️ Fensterreinigung-ChatGPT: {exc}")
+
 # Startseite: Wetter Duisburg über den eigenen Server (/api/wetter, letzter Stand in data/wetter.json)
 try:
     from wetter import register_wetter

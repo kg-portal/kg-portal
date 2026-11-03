@@ -29,6 +29,7 @@ LH_GRUPPE, LH_FARBE = "Kunden & Angebote", "pfau"
 G_KALENDER = "f678773df8f3612fe9c77aff8c35941bf8ece7eb7d6e6f503c85d277b4e190b0@group.calendar.google.com"
 G_ZONE = "Europe/Berlin"
 KALENDER_DIENST = None  # beim Start gesetzt: app.get_calendar_service
+FUNKTIONEN = {}         # beim Start gefüllt: dieselben Funktionen wie die Seite – für ChatGPT (fenster_chatgpt.py)
 
 
 def _tabellen(conn):
@@ -448,9 +449,7 @@ def register_fenster_plan(app, login_required, get_db_connection, kalender_diens
         return jsonify({"ok": True, "text": beschreibung(r), "termine": [d.isoformat() for d in liste],
                         "im_jahr": einsaetze_im_jahr(r)})
 
-    @app.route("/api/fenster/stammdaten")
-    @login_required
-    def fenster_stammdaten():
+    def stammdaten_daten():
         """Für das Formular: Kunden (mit Fenster-Angaben aus der Kundenliste) und aktive Mitarbeiter."""
         conn = get_db_connection()
         try:
@@ -471,25 +470,9 @@ def register_fenster_plan(app, login_required, get_db_connection, kalender_diens
         finally:
             conn.close()
         kunden.sort(key=lambda k: (not k["fenster_mal"], k["firma"].lower()))
-        return jsonify({"ok": True, "kunden": kunden, "mitarbeiter": [m for m in ma if m]})
+        return dict({"ok": True, "kunden": kunden, "mitarbeiter": [m for m in ma if m]})
 
-    @app.route("/api/fenster/kunden")
-    @login_required
-    def fenster_kunden():
-        """Für die Kunden-Seite (Kachel „Fensterreinigung“): aktive Pläne, nur aus der Datenbank (schnell, ohne LifeHub)."""
-        conn = get_db_connection()
-        try:
-            _tabellen(conn)
-            zeilen = conn.execute("SELECT * FROM fenster_plan WHERE aktiv = 1 ORDER BY firma COLLATE NOCASE").fetchall()
-        finally:
-            conn.close()
-        return jsonify({"ok": True, "plaene": [{"id": z["id"], "kunde_id": z["kunde_id"], "firma": z["firma"], "betrag": z["betrag"] or 0,
-                                                "im_jahr": einsaetze_im_jahr(_r_aus_zeile(z)), "rhythmus_text": beschreibung(_r_aus_zeile(z))}
-                                               for z in zeilen]})
-
-    @app.route("/api/fenster/uebersicht")
-    @login_required
-    def fenster_uebersicht():
+    def uebersicht_daten():
         heute = _heute()
         bis = heute + timedelta(days=55)
         conn = get_db_connection()
@@ -572,7 +555,7 @@ def register_fenster_plan(app, login_required, get_db_connection, kalender_diens
                           "betrag": next((p["betrag"] for p in plaene if p["id"] == e["plan_id"]), 0) or 0}
                          for e in einsaetze]
         woche_ende = heute + timedelta(days=6 - heute.weekday())
-        return jsonify({
+        return dict({
             "ok": True, "heute": heute.isoformat(), "lifehub_ok": lh_ok, "lifehub_meldung": lh_meldung,
             "plaene": aus_plaene, "termine": kalender, "einsaetze": einsatz_liste[:200],
             "kpi": {"aktiv": sum(1 for p in aus_plaene if p["aktiv"]),
@@ -583,21 +566,18 @@ def register_fenster_plan(app, login_required, get_db_connection, kalender_diens
                     "monat": round(monat_summe, 2)},
         })
 
-    @app.route("/api/fenster/plan", methods=["POST"])
-    @login_required
-    def fenster_plan_speichern():
+    def plan_speichern(e):
         """Neu anlegen oder ändern. Bei geändertem Rhythmus/Start/Uhrzeit/Dauer/Firma: alte LifeHub-Serie stoppen, neue anlegen."""
-        e = request.get_json(silent=True) or {}
         f, r, fehler = plan_aus_eingabe(e)
         if fehler:
-            return jsonify({"ok": False, "fehler": fehler}), 400
+            return dict({"ok": False, "fehler": fehler}), 400
         pid = _int(e.get("id"), 1, 10 ** 9)
         conn = get_db_connection()
         try:
             _tabellen(conn)
             alt = plan_laden(conn, pid) if pid else None
             if pid and not alt:
-                return jsonify({"ok": False, "fehler": "Plan nicht gefunden."}), 404
+                return dict({"ok": False, "fehler": "Plan nicht gefunden."}), 404
             if not pid:  # zweimal gedrückt / Antwort nicht angekommen: denselben neuen Plan nicht doppelt anlegen
                 kurz_vorher = (datetime.now(BERLIN) - timedelta(minutes=10)).strftime("%Y-%m-%d %H:%M:%S")
                 gleich = conn.execute("""SELECT * FROM fenster_plan WHERE aktiv = 1 AND firma = ? AND rrule = ? AND erster_termin = ?
@@ -626,26 +606,23 @@ def register_fenster_plan(app, login_required, get_db_connection, kalender_diens
                                        lifehub=neu_serie or not p["lifehub_serie"], google=neu_serie or not p["google_termin"])
         finally:
             conn.close()
-        return jsonify({"ok": True, "id": pid, "meldung": ("Gespeichert, aber " + " und ".join(fehlt)) if fehlt else
+        return dict({"ok": True, "id": pid, "meldung": ("Gespeichert, aber " + " und ".join(fehlt)) if fehlt else
                         "Gespeichert – im Google-Kalender „Fensterreinigung“ und in den LifeHub-Aufgaben."})
 
-    @app.route("/api/fenster/plan/<int:pid>/pause", methods=["POST"])
-    @login_required
-    def fenster_plan_pause(pid):
+    def plan_pause(pid, weiter):
         """Pausieren (Serie im LifeHub stoppen) oder fortsetzen (neue Serie ab heute). Nichts wird gelöscht."""
-        weiter = bool((request.get_json(silent=True) or {}).get("fortsetzen"))
         conn = get_db_connection()
         try:
             p = plan_laden(conn, pid)
             if not p:
-                return jsonify({"ok": False, "fehler": "Plan nicht gefunden."}), 404
+                return dict({"ok": False, "fehler": "Plan nicht gefunden."}), 404
             fehlt = []
             if weiter:
                 r = _r_aus_zeile(p)
                 ab = max(_heute(), _datum(p["start"]) or _heute())
                 erste = termine(r, ab, ab + timedelta(days=800))
                 if not erste:
-                    return jsonify({"ok": False, "fehler": "Dieser Rhythmus ergibt keinen Termin."}), 400
+                    return dict({"ok": False, "fehler": "Dieser Rhythmus ergibt keinen Termin."}), 400
                 conn.execute("UPDATE fenster_plan SET aktiv = 1, pausiert_am = NULL, erster_termin = ?, google_termin = NULL, "
                              "geaendert_am = ? WHERE id = ?", (erste[0].isoformat(), _jetzt(), pid))
                 conn.commit()
@@ -667,27 +644,24 @@ def register_fenster_plan(app, login_required, get_db_connection, kalender_diens
                 conn.commit()
         finally:
             conn.close()
-        return jsonify({"ok": True, "meldung": ("Achtung: " + " und ".join(fehlt)) if fehlt else ""})
+        return dict({"ok": True, "meldung": ("Achtung: " + " und ".join(fehlt)) if fehlt else ""})
 
-    @app.route("/api/fenster/plan/<int:pid>/erledigt", methods=["POST"])
-    @login_required
-    def fenster_erledigt(pid):
+    def plan_erledigt(pid, e):
         """Fälligen Termin erledigen: Angaben speichern, Aufgabe im LifeHub abhaken (LifeHub legt den nächsten an)."""
-        e = request.get_json(silent=True) or {}
         conn = get_db_connection()
         try:
             p = plan_laden(conn, pid)
             if not p or not p["aktiv"]:
-                return jsonify({"ok": False, "fehler": "Plan nicht gefunden oder pausiert."}), 404
+                return dict({"ok": False, "fehler": "Plan nicht gefunden oder pausiert."}), 404
             datum, aufgabe = _datum(e.get("datum")), None
             if p["lifehub_serie"]:
                 try:
                     aufgabe, lh_datum = lh_offen(ZUGANG.anfrage("GET", f"/recurrences/{p['lifehub_serie']}"))
                     datum = lh_datum or datum
                 except LifeHubFehler as exc:
-                    return jsonify({"ok": False, "fehler": f"LifeHub: {exc}"}), 503
+                    return dict({"ok": False, "fehler": f"LifeHub: {exc}"}), 503
             if not datum:
-                return jsonify({"ok": False, "fehler": "Kein fälliger Termin."}), 400
+                return dict({"ok": False, "fehler": "Kein fälliger Termin."}), 400
             werte = (_txt(e.get("mitarbeiter"), 200), _int(e.get("dauer_min"), 0, 24 * 60, 0), _txt(e.get("notiz"), 1000),
                      1 if e.get("rechnung") else 0, _jetzt() if e.get("rechnung") else None)
             cur = conn.execute("""INSERT INTO fenster_einsatz (plan_id, datum, lifehub_aufgabe, erledigt_am, mitarbeiter, dauer_min, notiz,
@@ -698,23 +672,20 @@ def register_fenster_plan(app, login_required, get_db_connection, kalender_diens
                     ZUGANG.anfrage("POST", f"/tasks/{aufgabe}/complete")
                 except LifeHubFehler as exc:
                     conn.rollback()
-                    return jsonify({"ok": False, "fehler": f"LifeHub: {exc}"}), 503
+                    return dict({"ok": False, "fehler": f"LifeHub: {exc}"}), 503
             conn.commit()
             eid = cur.lastrowid
         finally:
             conn.close()
-        return jsonify({"ok": True, "id": eid})
+        return dict({"ok": True, "id": eid})
 
-    @app.route("/api/fenster/einsatz/<int:eid>", methods=["POST"])
-    @login_required
-    def fenster_einsatz_aendern(eid):
+    def einsatz_aendern(eid, e):
         """Angaben eines Einsatzes ergänzen (z. B. im LifeHub abgehakt) oder „Rechnung geschrieben“ setzen."""
-        e = request.get_json(silent=True) or {}
         conn = get_db_connection()
         try:
             alt = conn.execute("SELECT * FROM fenster_einsatz WHERE id = ?", (eid,)).fetchone()
             if not alt:
-                return jsonify({"ok": False, "fehler": "Einsatz nicht gefunden."}), 404
+                return dict({"ok": False, "fehler": "Einsatz nicht gefunden."}), 404
             neu = {k: alt[k] for k in ("mitarbeiter", "dauer_min", "notiz", "rechnung", "rechnung_am")}
             if "mitarbeiter" in e:
                 neu["mitarbeiter"] = _txt(e.get("mitarbeiter"), 200)
@@ -730,4 +701,56 @@ def register_fenster_plan(app, login_required, get_db_connection, kalender_diens
             conn.commit()
         finally:
             conn.close()
-        return jsonify({"ok": True})
+        return dict({"ok": True})
+
+    # ---- Routen der Seite (gleiche Funktionen wie für ChatGPT)
+    def _http(r):
+        antwort, status = r if isinstance(r, tuple) else (r, 200)
+        return jsonify(antwort), status
+
+    @app.route("/api/fenster/kunden")
+    @login_required
+    def fenster_kunden():
+        """Für die Kunden-Seite (Kachel „Fensterreinigung“): aktive Pläne, nur aus der Datenbank (schnell, ohne LifeHub)."""
+        conn = get_db_connection()
+        try:
+            _tabellen(conn)
+            zeilen = conn.execute("SELECT * FROM fenster_plan WHERE aktiv = 1 ORDER BY firma COLLATE NOCASE").fetchall()
+        finally:
+            conn.close()
+        return jsonify({"ok": True, "plaene": [{"id": z["id"], "kunde_id": z["kunde_id"], "firma": z["firma"], "betrag": z["betrag"] or 0,
+                                                "im_jahr": einsaetze_im_jahr(_r_aus_zeile(z)), "rhythmus_text": beschreibung(_r_aus_zeile(z))}
+                                               for z in zeilen]})
+
+    @app.route("/api/fenster/stammdaten")
+    @login_required
+    def fenster_stammdaten():
+        return _http(stammdaten_daten())
+
+    @app.route("/api/fenster/uebersicht")
+    @login_required
+    def fenster_uebersicht():
+        return _http(uebersicht_daten())
+
+    @app.route("/api/fenster/plan", methods=["POST"])
+    @login_required
+    def fenster_plan_speichern():
+        return _http(plan_speichern(request.get_json(silent=True) or {}))
+
+    @app.route("/api/fenster/plan/<int:pid>/pause", methods=["POST"])
+    @login_required
+    def fenster_plan_pause(pid):
+        return _http(plan_pause(pid, bool((request.get_json(silent=True) or {}).get("fortsetzen"))))
+
+    @app.route("/api/fenster/plan/<int:pid>/erledigt", methods=["POST"])
+    @login_required
+    def fenster_erledigt(pid):
+        return _http(plan_erledigt(pid, request.get_json(silent=True) or {}))
+
+    @app.route("/api/fenster/einsatz/<int:eid>", methods=["POST"])
+    @login_required
+    def fenster_einsatz_aendern(eid):
+        return _http(einsatz_aendern(eid, request.get_json(silent=True) or {}))
+
+    FUNKTIONEN.update(stammdaten=stammdaten_daten, uebersicht=uebersicht_daten, speichern=plan_speichern, pause=plan_pause,
+                      erledigt=plan_erledigt, einsatz=einsatz_aendern, vorschau=lambda r, start: termine(r, start, start + timedelta(days=800))[:6])
