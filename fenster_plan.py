@@ -284,12 +284,12 @@ def lh_serien():
 
 
 def lh_offen(serie_daten):
-    """Offener Termin (Aufgabe) der Serie: (id, datum) oder (None, None)."""
+    """Offener Termin (Aufgabe) der Serie: (id, Termin laut Regel, geplantes Datum) oder (None, None, None)."""
     tid = serie_daten.get("open_instance_id")
     if not tid:
-        return None, None
+        return None, None, None
     t = ZUGANG.anfrage("GET", f"/tasks/{tid}")
-    return tid, _datum(t.get("occurrence_date") or t.get("planned_date"))
+    return tid, _datum(t.get("occurrence_date") or t.get("planned_date")), _datum(t.get("planned_date"))
 
 
 # ---------------------------------------------------------------- Google-Kalender
@@ -357,6 +357,31 @@ def g_serie_beenden(termin_id):
             zeile = "RRULE:" + ";".join(teile + ["UNTIL=" + until])
         regeln.append(zeile)
     _g_ausfuehren(lambda e: e.patch(calendarId=G_KALENDER, eventId=termin_id, body={"recurrence": regeln}))
+
+
+def g_tatsaechlich(von, bis):
+    """Einzeltermine im Google-Kalender „Fensterreinigung“, so wie sie dort stehen (auch verschoben oder gelöscht).
+    → {Serien-ID: {Datum laut Regel: (Datum im Kalender oder None = gelöscht, Uhrzeit)}}"""
+    aus, seite = {}, None
+    t_von = datetime.combine(von, time(0), tzinfo=BERLIN).isoformat()
+    t_bis = datetime.combine(bis, time(0), tzinfo=BERLIN).isoformat()
+    for _ in range(20):
+        d = _g_ausfuehren(lambda ev, seite=seite: ev.list(calendarId=G_KALENDER, timeMin=t_von, timeMax=t_bis, singleEvents=True,
+                                                         showDeleted=True, maxResults=2500, pageToken=seite))
+        for it in d.get("items") or []:
+            serie, orig = it.get("recurringEventId"), it.get("originalStartTime") or {}
+            regel = _datum(orig.get("date") or orig.get("dateTime"))
+            if not serie or not regel:
+                continue
+            if it.get("status") == "cancelled":
+                aus.setdefault(serie, {})[regel] = (None, "")
+                continue
+            st = it.get("start") or {}
+            aus.setdefault(serie, {})[regel] = (_datum(st.get("date") or st.get("dateTime")), str(st.get("dateTime") or "")[11:16])
+        seite = d.get("nextPageToken")
+        if not seite:
+            break
+    return aus
 
 
 # ---------------------------------------------------------------- Routen
@@ -503,15 +528,23 @@ def register_fenster_plan(app, login_required, get_db_connection, kalender_diens
         letzte = {}
         for e in einsaetze:
             letzte.setdefault(e["plan_id"], e)
+        # im Google-Kalender verschobene oder gelöschte Einzeltermine (der Plan selbst bleibt, wie er ist)
+        g_karte, g_meldung = {}, ""
+        if any(p["aktiv"] and p["google_termin"] for p in plaene):
+            try:
+                # 13 Monate: auch ein fälliger Termin weit nach den 8 Wochen (z. B. alle 3 Monate) ist dabei
+                g_karte = g_tatsaechlich(heute - timedelta(days=70), heute + timedelta(days=400))
+            except GoogleFehler as exc:
+                g_meldung = str(exc)
         aus_plaene, kalender, monat_summe = [], [], 0.0
         for p in plaene:
             r = _r_aus_zeile(p)
             start = _datum(p["erster_termin"]) or _datum(p["start"])
             s = serien.get(p["lifehub_serie"]) if p["lifehub_serie"] else None
-            offen_id, offen_datum = None, None
+            offen_id, offen_datum, offen_geplant = None, None, None
             if p["aktiv"] and s:
                 try:
-                    offen_id, offen_datum = lh_offen(s)
+                    offen_id, offen_datum, offen_geplant = lh_offen(s)
                 except LifeHubFehler as exc:
                     lh_ok, lh_meldung = False, str(exc)
             erledigt_bis = max((_datum(e["datum"]) for e in einsaetze if e["plan_id"] == p["id"] and _datum(e["datum"])), default=None)
@@ -527,6 +560,33 @@ def register_fenster_plan(app, login_required, get_db_connection, kalender_diens
                 monat_summe += (p["betrag"] or 0) * im_jahr / 12
             else:
                 im_jahr = 0
+            # Termine so, wie sie im Google-Kalender stehen: verschoben → neues Datum/Uhrzeit, gelöscht → fällt weg
+            karte = g_karte.get(p["google_termin"], {}) if p["google_termin"] else {}
+            echte = []
+            for i, d in enumerate(naechste):
+                neu, zeit = karte.get(d, (d, ""))
+                if neu is not None:
+                    echte.append({"datum": neu, "regel": d, "uhrzeit": zeit or p["uhrzeit"] or "", "faellig": i == 0})
+            if p["aktiv"] and naechste and not echte:  # alle gezeigten im Kalender gelöscht → nächster Termin laut Plan danach
+                for d in termine(r, start, naechste[-1] + timedelta(days=800), ab=naechste[-1] + timedelta(days=1))[:24]:
+                    neu, zeit = karte.get(d, (d, ""))
+                    if neu is not None:
+                        echte.append({"datum": neu, "regel": d, "uhrzeit": zeit or p["uhrzeit"] or "", "faellig": True})
+                        break
+            if echte and not any(x["faellig"] for x in echte):
+                echte[0]["faellig"] = True
+            echte.sort(key=lambda x: x["datum"])
+            # LifeHub-Aufgabe zum fälligen Termin nachziehen (im Kalender verschoben → Datum, gelöscht → überspringen)
+            if offen_id and offen_datum in karte:
+                neu = karte[offen_datum][0]
+                try:
+                    if neu is None:
+                        ZUGANG.anfrage("POST", f"/tasks/{offen_id}/archive")  # archiviert, nicht gelöscht; LifeHub legt den nächsten an
+                    elif neu != offen_geplant:
+                        ZUGANG.anfrage("PATCH", f"/tasks/{offen_id}", json={"planned_date": neu.isoformat()})
+                except LifeHubFehler as exc:
+                    lh_ok, lh_meldung = False, str(exc)
+            faellig = next((x for x in echte if x["faellig"]), None)
             e_letzt = letzte.get(p["id"])
             eintrag = {
                 "id": p["id"], "firma": p["firma"], "kunde_id": p["kunde_id"], "ansprechpartner": p["ansprechpartner"] or "",
@@ -536,16 +596,17 @@ def register_fenster_plan(app, login_required, get_db_connection, kalender_diens
                 "pausiert_am": p["pausiert_am"] or "", "im_jahr": im_jahr, "lifehub": bool(p["lifehub_serie"]),
                 "lifehub_fehler": p["lifehub_fehler"] or "", "offen_aufgabe": offen_id,
                 "google": bool(p["google_termin"]), "google_fehler": p["google_fehler"] or "",
-                "naechster": naechste[0].isoformat() if naechste else "",
-                "ueberfaellig": bool(naechste and naechste[0] < heute),
+                "naechster": echte[0]["datum"].isoformat() if echte else "",
+                "ueberfaellig": bool(faellig and faellig["datum"] < heute),
                 "letzter": {"datum": e_letzt["datum"], "mitarbeiter": e_letzt["mitarbeiter"] or ""} if e_letzt else None,
             }
             aus_plaene.append(eintrag)
-            for i, d in enumerate(naechste):
-                if d <= bis:
-                    kalender.append({"plan_id": p["id"], "datum": d.isoformat(), "firma": p["firma"], "ort": p["ort"] or "",
-                                     "uhrzeit": p["uhrzeit"] or "", "dauer_min": p["dauer_min"] or 0, "betrag": p["betrag"] or 0,
-                                     "faellig": i == 0, "ueberfaellig": d < heute})
+            for x in echte:
+                if x["datum"] <= bis:
+                    kalender.append({"plan_id": p["id"], "datum": x["datum"].isoformat(), "firma": p["firma"], "ort": p["ort"] or "",
+                                     "uhrzeit": x["uhrzeit"], "dauer_min": p["dauer_min"] or 0, "betrag": p["betrag"] or 0,
+                                     "faellig": x["faellig"], "ueberfaellig": x["datum"] < heute,
+                                     "verschoben_von": x["regel"].isoformat() if x["regel"] != x["datum"] else ""})
         kalender.sort(key=lambda k: (k["datum"], k["uhrzeit"] or "99:99", k["firma"].lower()))
         namen = {p["id"]: p["firma"] for p in plaene}
         einsatz_liste = [{"id": e["id"], "plan_id": e["plan_id"], "firma": namen.get(e["plan_id"], "?"), "datum": e["datum"],
@@ -556,7 +617,7 @@ def register_fenster_plan(app, login_required, get_db_connection, kalender_diens
                          for e in einsaetze]
         woche_ende = heute + timedelta(days=6 - heute.weekday())
         return dict({
-            "ok": True, "heute": heute.isoformat(), "lifehub_ok": lh_ok, "lifehub_meldung": lh_meldung,
+            "ok": True, "heute": heute.isoformat(), "lifehub_ok": lh_ok, "lifehub_meldung": lh_meldung, "google_meldung": g_meldung,
             "plaene": aus_plaene, "termine": kalender, "einsaetze": einsatz_liste[:200],
             "kpi": {"aktiv": sum(1 for p in aus_plaene if p["aktiv"]),
                     "woche": sum(1 for k in kalender if heute <= _datum(k["datum"]) <= woche_ende),
@@ -656,8 +717,11 @@ def register_fenster_plan(app, login_required, get_db_connection, kalender_diens
             datum, aufgabe = _datum(e.get("datum")), None
             if p["lifehub_serie"]:
                 try:
-                    aufgabe, lh_datum = lh_offen(ZUGANG.anfrage("GET", f"/recurrences/{p['lifehub_serie']}"))
-                    datum = lh_datum or datum
+                    aufgabe, lh_datum, lh_geplant = lh_offen(ZUGANG.anfrage("GET", f"/recurrences/{p['lifehub_serie']}"))
+                    angezeigt = datum
+                    datum = lh_geplant or lh_datum or datum
+                    if angezeigt and lh_datum and abs((angezeigt - lh_datum).days) <= 45:
+                        datum = angezeigt  # so, wie der Termin auf der Seite/im Kalender stand
                 except LifeHubFehler as exc:
                     return dict({"ok": False, "fehler": f"LifeHub: {exc}"}), 503
             if not datum:

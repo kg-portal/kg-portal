@@ -60,7 +60,8 @@ WERKZEUGE = [
                     "Kennzahlen (Termine diese Woche, überfällig, Rechnung offen, Ø Umsatz/Monat).",
      "inputSchema": {"type": "object", "properties": {}}},
     {"name": "fenster_termine", "title": "Nächste Fenster-Termine",
-     "description": "Termine der nächsten Tage (höchstens 56), sortiert. faellig=true heißt: dieser Termin kann jetzt mit "
+     "description": "Termine der nächsten Tage (höchstens 56), sortiert – so, wie sie im Google-Kalender stehen "
+                    "(verschoben_von = ursprüngliches Datum laut Plan). faellig=true heißt: dieser Termin kann jetzt mit "
                     "fenster_erledigt abgeschlossen werden.",
      "inputSchema": {"type": "object", "properties": {"tage": {"type": "integer", "description": "1–56, Standard 14"}}}},
     {"name": "kunden_suchen", "title": "Kunden suchen",
@@ -251,6 +252,9 @@ def werkzeug(name, a, protokoll):
         pid = int(a.get("plan_id") or 0)
         _plan(pid)
         e = {k: a.get(k) for k in ("mitarbeiter", "dauer_min", "notiz", "rechnung") if a.get(k) is not None}
+        faellig = next((t for t in _f("uebersicht")()["termine"] if t["plan_id"] == pid and t["faellig"]), None)
+        if faellig:
+            e["datum"] = faellig["datum"]  # wie im Kalender (ggf. verschoben)
         antwort = _ergebnis(_f("erledigt")(pid, e))
         protokoll("fenster_erledigt", {"plan_id": pid, "einsatz_id": antwort.get("id")})
         return {"einsatz_id": antwort.get("id"), "plan": _kurz(_plan(pid))}
