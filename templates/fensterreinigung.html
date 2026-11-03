@@ -47,7 +47,11 @@
   .fr-t-name .warn { color: #dc2626; font-weight: 800; }
   .fr-t-name .versch { color: #b45309; font-weight: 800; }
   .fr-betrag { font-size: 15px; font-weight: 900; white-space: nowrap; }
-  .fr-ok { display: inline-flex; align-items: center; gap: 7px; height: 40px; padding: 0 14px; border: 0; border-radius: 12px; color: #fff; font-size: 14px; font-weight: 900; background: linear-gradient(135deg, #059669, #10b981); box-shadow: 0 6px 14px rgba(5,150,105,.22); white-space: nowrap; }
+  /* Aktion (noch nicht erledigt): neutraler Knopf – grün erst, wenn wirklich erledigt */
+  .fr-ok { display: inline-flex; align-items: center; gap: 7px; height: 40px; padding: 0 14px; border: 1.5px solid #bfd3f2; border-radius: 12px; color: var(--navy); font-size: 13.5px; font-weight: 900; background: #fff; white-space: nowrap; cursor: pointer; }
+  .fr-ok:hover { border-color: #1d4ed8; background: #eff6ff; }
+  .fr-z-rechts { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+  .fr-knopf.klein { height: 30px; padding: 0 10px; font-size: 12.5px; color: #475569; }
   .fr-geplant { display: inline-block; min-width: 96px; text-align: center; padding: 8px 10px; border-radius: 12px; font-size: 12.5px; font-weight: 800; color: #64748b; background: #f1f5f9; }
   .fr-leer { padding: 22px 12px; text-align: center; color: var(--grau); font-weight: 700; font-size: 14px; border: 1px dashed #cbd5e1; border-radius: 16px; }
   .fr-z { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 11px 0; border-top: 1px solid #eef2f7; }
@@ -137,7 +141,7 @@
     .fr-kpis { grid-template-columns: repeat(2, 1fr); gap: 10px; } .fr-kpi { padding: 14px; } .fr-kpi b { font-size: 24px; }
     .fr-grid { grid-template-columns: 1fr; } .fr-suche { min-width: 0; width: 100%; margin-left: 0; }
     .fr-t { grid-template-columns: 52px minmax(0, 1fr) auto; } .fr-t .fr-betrag { display: none; }
-    .fr-t-name b, .fr-t-name small { white-space: normal; } .fr-ok { padding: 0 11px; }
+    .fr-t-name b, .fr-t-name small { white-space: normal; } .fr-ok { padding: 4px 10px; height: auto; min-height: 40px; max-width: 112px; white-space: normal; line-height: 1.15; text-align: center; font-size: 12.5px; }
     .fr-f.z2, .fr-f.z3, .fr-f.z4 { grid-template-columns: 1fr 1fr; } .fr-mon { grid-template-columns: repeat(4, 1fr); } .fr-vor-tage { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .fr-pbody { padding: 16px; } .fr-pkopf { padding: 18px; }
   }
@@ -246,7 +250,7 @@
         '<div class="fr-t-name"><b>' + esc(t.firma) + '</b><small>' + (t.ueberfaellig ? '<span class="warn">seit ' + tageZu + (tageZu === 1 ? ' Tag' : ' Tagen') + ' fällig</span> · ' : '') +
           (t.verschoben_von ? '<span class="versch">im Kalender verschoben (Plan: ' + esc(dKurz(t.verschoben_von)) + ')</span> · ' : '') + esc(info) + '</small></div>' +
         '<div class="fr-betrag">' + (t.betrag ? euro(t.betrag) : '') + '</div>' +
-        (t.faellig && t.datum <= plusTage(heute, 14) ? '<button type="button" class="fr-ok" data-erledigt="' + t.plan_id + '" data-datum="' + t.datum + '">✓ Erledigt</button>' : '<span class="fr-geplant">geplant</span>') +
+        (t.faellig && t.datum <= plusTage(heute, 14) ? '<button type="button" class="fr-ok" data-erledigt="' + t.plan_id + '" data-datum="' + t.datum + '">Als erledigt markieren</button>' : '<span class="fr-geplant">geplant</span>') +
         '</div>';
     });
     $('frTermine').innerHTML = html;
@@ -267,7 +271,8 @@
     const letzte = e.slice(0, 6);
     $('frLetzte').innerHTML = letzte.length ? letzte.map(x => '<div class="fr-z"><div><b>' + esc(x.firma) + '</b><small>' + dLang(x.datum) +
       (x.mitarbeiter ? ' · ' + esc(x.mitarbeiter) : '') + (x.dauer_min ? ' · ' + dauer(x.dauer_min) : '') + '</small>' + (x.notiz ? '<small class="notiz">„' + esc(x.notiz) + '“</small>' : '') + '</div>' +
-      (x.rechnung ? '<span class="fr-badge gruen">Rechnung ✓</span>' : '<span class="fr-badge orange">Rechnung offen</span>') + '</div>').join('')
+      '<div class="fr-z-rechts">' + (x.rechnung ? '<span class="fr-badge gruen">Rechnung ✓</span>' : '<span class="fr-badge orange">Rechnung offen</span>') +
+      (x.rueckgaengig ? '<button type="button" class="fr-knopf klein" data-rueckgaengig="' + x.id + '" title="Erledigt zurücknehmen – der Termin ist dann wieder offen">↶ Rückgängig</button>' : '') + '</div></div>').join('')
       : '<div class="fr-leer">Noch nichts erledigt.</div>';
   }
 
@@ -480,6 +485,13 @@
     else if (b.dataset.erledigt) erledigtFenster(Number(b.dataset.erledigt), b.dataset.datum, null);
     else if (b.dataset.ergaenzen) erledigtFenster(null, null, daten.einsaetze.find(x => x.id === Number(b.dataset.ergaenzen)));
     else if (b.dataset.rechnung) { b.disabled = true; api('/api/fenster/einsatz/' + b.dataset.rechnung, { rechnung: true }).then(laden); }
+    else if (b.dataset.rueckgaengig) {
+      const x = daten.einsaetze.find(y => y.id === Number(b.dataset.rueckgaengig)); if (!x) return;
+      if (!window.confirm('„' + x.firma + '“ – Erledigt vom ' + dLang(x.datum) + ' zurücknehmen?\nDer Termin ist danach wieder offen (auch in den LifeHub-Aufgaben).' +
+        (x.rechnung ? '\nAchtung: Rechnung ist als geschrieben markiert.' : ''))) return;
+      b.disabled = true;
+      api('/api/fenster/einsatz/' + x.id + '/rueckgaengig', {}).then(d => { if (!d.ok) window.alert(d.fehler || 'Fehler'); laden(); });
+    }
     else if (b.dataset.bearbeiten) formular(daten.plaene.find(x => x.id === Number(b.dataset.bearbeiten)));
     else if (b.dataset.pause) {
       const weiter = !!b.dataset.weiter, p = daten.plaene.find(x => x.id === Number(b.dataset.pause));
