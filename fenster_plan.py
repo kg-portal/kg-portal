@@ -51,6 +51,9 @@ def _tabellen(conn):
             rechnung INTEGER NOT NULL DEFAULT 0, rechnung_am TEXT, quelle TEXT
         )""")
     conn.execute("CREATE UNIQUE INDEX IF NOT EXISTS fenster_einsatz_aufgabe ON fenster_einsatz(lifehub_aufgabe)")
+    # Knopf „Fenster ja / nein“ auf der Kundenkarte: nur „ja“ steht in den Auswahl-Listen (Kunden → Fensterreinigung, Formular).
+    # Ohne Eintrag gilt „ja“, wenn der Kunde einen Plan oder Fenster-Angaben im Kundenformular hat. Der Kunde selbst bleibt unverändert.
+    conn.execute("CREATE TABLE IF NOT EXISTS fenster_kunde (kunde_id INTEGER PRIMARY KEY, fenster INTEGER NOT NULL, firma TEXT, geaendert_am TEXT)")
     spalten = {r[1] for r in conn.execute("PRAGMA table_info(fenster_plan)")}
     for neu in ("google_termin", "google_ab", "google_fehler"):
         if neu not in spalten:
@@ -69,6 +72,20 @@ def _jetzt():
 
 def _heute():
     return datetime.now(BERLIN).date()
+
+
+def _fenster_angaben(d):
+    """Fenster-Angaben im Kundenformular (fenster_betrag und fenster_mal > 0) – wie fensterLesen() auf der Kunden-Seite."""
+    try:
+        return (_zahl(d.get("fenster_betrag")) or 0) > 0 and int(str(d.get("fenster_mal") or "0").strip() or 0) > 0
+    except (TypeError, ValueError):
+        return False
+
+
+def _fenster_markieren(conn, kunde_id, firma, ja):
+    conn.execute("""INSERT INTO fenster_kunde (kunde_id, fenster, firma, geaendert_am) VALUES (?, ?, ?, ?)
+                    ON CONFLICT(kunde_id) DO UPDATE SET fenster = excluded.fenster, firma = excluded.firma,
+                    geaendert_am = excluded.geaendert_am""", (kunde_id, 1 if ja else 0, firma, _jetzt()))
 
 
 def _berlin_text(iso):
@@ -489,9 +506,12 @@ def register_fenster_plan(app, login_required, get_db_connection, kalender_diens
                         "im_jahr": einsaetze_im_jahr(r)})
 
     def stammdaten_daten():
-        """Für das Formular: Kunden (mit Fenster-Angaben aus der Kundenliste, ohne gekündigte) und aktive Mitarbeiter."""
+        """Für das Formular: Kunden (ohne gekündigte; fenster = Knopf „Fenster ja/nein“ der Kundenkarte) und aktive Mitarbeiter."""
         conn = get_db_connection()
         try:
+            _tabellen(conn)
+            wahl = {z[0]: bool(z[1]) for z in conn.execute("SELECT kunde_id, fenster FROM fenster_kunde")}
+            mit_plan = {z[0] for z in conn.execute("SELECT kunde_id FROM fenster_plan WHERE aktiv = 1 AND kunde_id IS NOT NULL")}
             kunden = []
             for k in conn.execute("SELECT id, firma, strasse, plz, ort, ansprechpartner_name, telefon, data_json, vertragsstatus "
                                   "FROM kunden ORDER BY firma COLLATE NOCASE").fetchall():
@@ -505,7 +525,8 @@ def register_fenster_plan(app, login_required, get_db_connection, kalender_diens
                 kunden.append({"id": k["id"], "firma": k["firma"] or "", "strasse": k["strasse"] or "", "plz": k["plz"] or "",
                                "ort": k["ort"] or "", "ansprechpartner": k["ansprechpartner_name"] or "", "telefon": k["telefon"] or "",
                                "fenster_betrag": d.get("fenster_betrag") or "", "fenster_mal": d.get("fenster_mal") or "",
-                               "fenster_notiz": d.get("fenster_notiz") or ""})
+                               "fenster_notiz": d.get("fenster_notiz") or "",
+                               "fenster": wahl[k["id"]] if k["id"] in wahl else (k["id"] in mit_plan or _fenster_angaben(d))})
             ma = [_txt(f"{m['vorname'] or ''} {m['nachname'] or ''}", 120) for m in
                   conn.execute("SELECT vorname, nachname FROM mitarbeiter WHERE status = 'aktiv' ORDER BY sort_order, vorname").fetchall()]
         finally:
@@ -680,6 +701,8 @@ def register_fenster_plan(app, login_required, get_db_connection, kalender_diens
                 neu_serie = True
                 pid = conn.execute("INSERT INTO fenster_plan (" + ", ".join(spalten) + ", aktiv, erstellt_am, geaendert_am) VALUES (" +
                                    ", ".join("?" for _ in spalten) + ", 1, ?, ?)", tuple(f[k] for k in spalten) + (_jetzt(), _jetzt())).lastrowid
+            if not alt and f["kunde_id"]:  # neuer Plan für einen Kunden aus der Liste → Knopf „Fenster ja“
+                _fenster_markieren(conn, f["kunde_id"], f["firma"], True)
             conn.commit()
             p = dict(plan_laden(conn, pid))
             fehlt = []
@@ -834,11 +857,32 @@ def register_fenster_plan(app, login_required, get_db_connection, kalender_diens
         try:
             _tabellen(conn)
             zeilen = conn.execute("SELECT * FROM fenster_plan WHERE aktiv = 1 ORDER BY firma COLLATE NOCASE").fetchall()
+            wahl = conn.execute("SELECT kunde_id, fenster FROM fenster_kunde ORDER BY kunde_id").fetchall()
         finally:
             conn.close()
-        return jsonify({"ok": True, "plaene": [{"id": z["id"], "kunde_id": z["kunde_id"], "firma": z["firma"], "betrag": z["betrag"] or 0,
+        return jsonify({"ok": True, "fenster_ja": [z[0] for z in wahl if z[1]], "fenster_nein": [z[0] for z in wahl if not z[1]], "plaene": [{"id": z["id"], "kunde_id": z["kunde_id"], "firma": z["firma"], "betrag": z["betrag"] or 0,
                                                 "im_jahr": einsaetze_im_jahr(_r_aus_zeile(z)), "rhythmus_text": beschreibung(_r_aus_zeile(z))}
                                                for z in zeilen]})
+
+    @app.route("/api/fenster/kunde-fenster", methods=["POST"])
+    @login_required
+    def fenster_kunde_wahl():
+        """Knopf „Fenster ja / nein“ auf der Kundenkarte. Nur diese Markierung ändert sich – der Kunde selbst bleibt, wie er ist."""
+        e = request.get_json(silent=True) or {}
+        kid = _int(e.get("kunde_id"), 1, 10 ** 9)
+        if not kid:
+            return jsonify({"ok": False, "fehler": "Kunde fehlt."}), 400
+        conn = get_db_connection()
+        try:
+            _tabellen(conn)
+            k = conn.execute("SELECT id, firma FROM kunden WHERE id = ?", (kid,)).fetchone()
+            if not k:
+                return jsonify({"ok": False, "fehler": "Kunde nicht gefunden."}), 404
+            _fenster_markieren(conn, kid, k["firma"], bool(e.get("fenster")))
+            conn.commit()
+        finally:
+            conn.close()
+        return jsonify({"ok": True, "fenster": bool(e.get("fenster"))})
 
     @app.route("/api/fenster/stammdaten")
     @login_required

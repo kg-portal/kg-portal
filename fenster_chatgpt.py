@@ -69,7 +69,8 @@ WERKZEUGE = [
      "inputSchema": {"type": "object", "properties": {"tage": {"type": "integer", "description": "1–56, Standard 14"}}}},
     {"name": "fenster_kunden_suchen", "title": "Kunden suchen (Fensterreinigung)",
      "description": "Kunden aus der CRM-Kundenliste suchen, ohne gekündigte (für fenster_anlegen: kunde_id übernimmt Adresse "
-                    "und Ansprechpartner).",
+                    "und Ansprechpartner). fenster=false: auf der Kundenkarte steht „Fenster: nein“ – vor dem Anlegen nachfragen; "
+                    "ein neuer Plan stellt den Kunden auf „Fenster: ja“.",
      "inputSchema": {"type": "object", "properties": {"suche": {"type": "string", "description": "Teil des Firmennamens"}},
                      "required": ["suche"]}},
     {"name": "fenster_anlegen", "title": "Fenster-Kunden eintragen",
