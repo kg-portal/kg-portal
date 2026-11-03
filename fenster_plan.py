@@ -24,13 +24,12 @@ TAG_KURZ = ("Mo", "Di", "Mi", "Do", "Fr", "Sa", "So")
 MONAT_NAME = ("Januar", "Februar", "März", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober", "November", "Dezember")
 ARTEN = ("wochen", "monate", "bestimmte")
 TITEL = "Fensterreinigung – "
-LH_GRUPPE, LH_FARBE = "Kunden & Angebote", "pfau"
+# Farbe der Fenster-Aufgaben im LifeHub: „salbei“ = dasselbe Grün wie der Kalender „Fensterreinigung“
+LH_GRUPPE, LH_FARBE = "Kunden & Angebote", "salbei"
+LH_OFFEN = ["new", "planned", "in_progress", "on_hold", "waiting_other", "waiting_approval", "postponed"]
 # Google-Kalender „Fensterreinigung“ (gleiche ID wie im CRM-Kalender, app.py → google_calendar_events_save)
 G_KALENDER = "f678773df8f3612fe9c77aff8c35941bf8ece7eb7d6e6f503c85d277b4e190b0@group.calendar.google.com"
 G_ZONE = "Europe/Berlin"
-# Erledigt = grün: Einzeltermin im Google-Kalender (Farbe 10 „Basilikum“ – so auch im LifeHub-, CRM- und Handy-Kalender)
-# und die LifeHub-Aufgabe (meta.farbe). Zurückgenommen → wieder die normale Farbe.
-G_GRUEN, LH_FARBE_ERLEDIGT = "10", "basilikum"
 KALENDER_DIENST = None  # beim Start gesetzt: app.get_calendar_service
 FUNKTIONEN = {}         # beim Start gefüllt: dieselben Funktionen wie die Seite – für ChatGPT (fenster_chatgpt.py)
 
@@ -63,7 +62,7 @@ def _tabellen(conn):
             conn.execute(f"ALTER TABLE fenster_plan ADD COLUMN {neu} TEXT")
     # „Erledigt“ zurückgenommen: der Einsatz bleibt gespeichert (storniert_am), die LifeHub-Aufgabe steht in storniert_aufgabe
     spalten = {r[1] for r in conn.execute("PRAGMA table_info(fenster_einsatz)")}
-    for neu in ("storniert_am", "storniert_aufgabe", "google_gruen"):
+    for neu in ("storniert_am", "storniert_aufgabe"):
         if neu not in spalten:
             conn.execute(f"ALTER TABLE fenster_einsatz ADD COLUMN {neu} TEXT")
     conn.commit()
@@ -313,6 +312,13 @@ def lh_serie_beenden(serie):
         ZUGANG.anfrage("POST", f"/tasks/{offen}/archive")
 
 
+def lh_faerben(aufgabe, meta):
+    """Fenster-Aufgabe im LifeHub grün (meta.farbe); die übrigen Angaben in meta bleiben."""
+    meta = dict(meta or {})
+    meta["farbe"] = LH_FARBE
+    ZUGANG.anfrage("PATCH", f"/tasks/{aufgabe}", json={"meta": meta})
+
+
 def lh_serien():
     return {s["id"]: s for s in ZUGANG.anfrage("GET", "/recurrences")}
 
@@ -391,48 +397,6 @@ def g_serie_beenden(termin_id):
             zeile = "RRULE:" + ";".join(teile + ["UNTIL=" + until])
         regeln.append(zeile)
     _g_ausfuehren(lambda e: e.patch(calendarId=G_KALENDER, eventId=termin_id, body={"recurrence": regeln}))
-
-
-def _g_plan_von(it):
-    return str(((it.get("extendedProperties") or {}).get("private") or {}).get("kg_fenster_plan") or "")
-
-
-def g_einsaetze_faerben(liste, gruen=True):
-    """Einzeltermine [(plan_id, datum), …] so, wie sie im Kalender stehen, grün färben (erledigt) bzw. die Farbe zurücknehmen.
-    Eine Abfrage für alle; gesucht wird über die Plan-Nummer am Termin (auch in älteren Serien desselben Plans).
-    → {(plan_id, datum): True = gesetzt/schon so, False = an diesem Tag kein Termin}"""
-    if not liste:
-        return {}
-    von, bis = min(d for _, d in liste), max(d for _, d in liste) + timedelta(days=1)
-    t_von = datetime.combine(von, time(0), tzinfo=BERLIN).isoformat()
-    t_bis = datetime.combine(bis, time(0), tzinfo=BERLIN).isoformat()
-    gesucht = {(str(pid), d): (pid, d) for pid, d in liste}
-    aus, seite = {schl: False for schl in gesucht.values()}, None
-    for _ in range(10):
-        r = _g_ausfuehren(lambda ev, seite=seite: ev.list(calendarId=G_KALENDER, timeMin=t_von, timeMax=t_bis, singleEvents=True,
-                                                         maxResults=2500, pageToken=seite))
-        for it in r.get("items") or []:
-            st = it.get("start") or {}
-            schl = gesucht.get((_g_plan_von(it), _datum(st.get("date") or st.get("dateTime"))))
-            if not schl or it.get("status") == "cancelled" or aus[schl]:
-                continue
-            ziel = G_GRUEN if gruen else None
-            if (it.get("colorId") or None) != ziel:
-                _g_ausfuehren(lambda ev, i=it["id"]: ev.patch(calendarId=G_KALENDER, eventId=i, body={"colorId": ziel}))
-            aus[schl] = True
-        seite = r.get("nextPageToken")
-        if not seite:
-            break
-    return aus
-
-
-def lh_faerben(aufgabe, farbe):
-    """Farbe der LifeHub-Aufgabe (meta.farbe) setzen, die übrigen Angaben bleiben."""
-    t = ZUGANG.anfrage("GET", f"/tasks/{aufgabe}")
-    meta = dict(t.get("meta") or {})
-    if meta.get("farbe") != farbe:
-        meta["farbe"] = farbe
-        ZUGANG.anfrage("PATCH", f"/tasks/{aufgabe}", json={"meta": meta})
 
 
 def g_tatsaechlich(von, bis):
@@ -597,6 +561,14 @@ def register_fenster_plan(app, login_required, get_db_connection, kalender_diens
                     # im CRM zurückgenommen: dieselbe Aufgabe nicht wieder aufnehmen – außer sie wurde danach erneut abgehakt
                     storniert = {z["storniert_aufgabe"]: z["storniert_am"] for z in conn.execute(
                         "SELECT storniert_aufgabe, storniert_am FROM fenster_einsatz WHERE storniert_aufgabe IS NOT NULL ORDER BY id")}
+                    # Fenster-Aufgaben aus dem CRM grün wie im Kalender – auch ältere Serien (Vorlage dort noch „pfau“) und
+                    # die nächste Aufgabe, die LifeHub nach „Erledigt“ aus der alten Vorlage anlegt
+                    offen = ZUGANG.anfrage("GET", "/tasks", params={"recurring": "true", "status": LH_OFFEN, "q": "Fensterreinigung",
+                                                                     "limit": 500, "sort": "updated"}).get("items") or []
+                    for t in fertig + offen:
+                        meta = t.get("meta") or {}
+                        if t.get("id") and meta.get("quelle") == "kg-crm-fenster" and meta.get("farbe") != LH_FARBE:
+                            lh_faerben(t["id"], meta)
                     for t in fertig:
                         pid = ids.get(t.get("recurrence_id"))
                         if t.get("id") in storniert and _berlin_text(t.get("completed_at")) <= (storniert[t["id"]] or ""):
@@ -605,24 +577,10 @@ def register_fenster_plan(app, login_required, get_db_connection, kalender_diens
                             conn.execute("""INSERT OR IGNORE INTO fenster_einsatz (plan_id, datum, lifehub_aufgabe, erledigt_am, quelle)
                                             VALUES (?, ?, ?, ?, 'lifehub')""",
                                          (pid, t.get("occurrence_date") or t.get("planned_date") or "", t["id"], _jetzt()))
-                        meta = t.get("meta") or {}  # erledigt = grün – alle Fenster-Aufgaben aus dem CRM, auch aus älteren Serien
-                        if t.get("id") and meta.get("quelle") == "kg-crm-fenster" and meta.get("farbe") != LH_FARBE_ERLEDIGT:
-                            lh_faerben(t["id"], LH_FARBE_ERLEDIGT)
                     conn.commit()
             except LifeHubFehler as exc:
                 lh_ok, lh_meldung = False, str(exc)
             einsaetze = conn.execute("SELECT * FROM fenster_einsatz WHERE storniert_am IS NULL ORDER BY datum DESC, id DESC").fetchall()
-            # erledigte Termine im Google-Kalender grün (einmal je Einsatz; „fehlt“ = an dem Tag kein Kalendertermin)
-            offen_gruen = [e for e in einsaetze if not e["google_gruen"] and _datum(e["datum"])][:60]
-            if offen_gruen and KALENDER_DIENST is not None:
-                try:
-                    ergebnis = g_einsaetze_faerben([(e["plan_id"], _datum(e["datum"])) for e in offen_gruen])
-                    for e in offen_gruen:
-                        conn.execute("UPDATE fenster_einsatz SET google_gruen = ? WHERE id = ?",
-                                     (_jetzt() if ergebnis.get((e["plan_id"], _datum(e["datum"]))) else "fehlt", e["id"]))
-                    conn.commit()
-                except GoogleFehler as exc:
-                    print(f"Fensterreinigung: erledigte Termine nicht grün gefärbt ({exc})")
         finally:
             conn.close()
 
@@ -843,19 +801,6 @@ def register_fenster_plan(app, login_required, get_db_connection, kalender_diens
                     return dict({"ok": False, "fehler": f"LifeHub: {exc}"}), 503
             conn.commit()
             eid = cur.lastrowid
-            # erledigt = grün (LifeHub-Aufgabe und Termin im Google-Kalender); klappt das nicht, holt es die Übersicht nach
-            if aufgabe:
-                try:
-                    lh_faerben(aufgabe, LH_FARBE_ERLEDIGT)
-                except LifeHubFehler as exc:
-                    print(f"Fensterreinigung: LifeHub-Aufgabe nicht grün ({exc})")
-            if KALENDER_DIENST is not None:
-                try:
-                    if g_einsaetze_faerben([(pid, datum)]).get((pid, datum)):
-                        conn.execute("UPDATE fenster_einsatz SET google_gruen = ? WHERE id = ?", (_jetzt(), eid))
-                        conn.commit()
-                except GoogleFehler as exc:
-                    print(f"Fensterreinigung: Termin nicht grün gefärbt ({exc})")
         finally:
             conn.close()
         return dict({"ok": True, "id": eid})
@@ -912,17 +857,6 @@ def register_fenster_plan(app, login_required, get_db_connection, kalender_diens
             conn.execute("UPDATE fenster_einsatz SET storniert_am = ?, storniert_aufgabe = lifehub_aufgabe, lifehub_aufgabe = NULL "
                          "WHERE id = ?", (_jetzt(), eid))
             conn.commit()
-            # wieder offen → wieder die normale Farbe (LifeHub und Google-Kalender)
-            if aufgabe:
-                try:
-                    lh_faerben(aufgabe, LH_FARBE)
-                except LifeHubFehler as exc:
-                    print(f"Fensterreinigung: LifeHub-Farbe nicht zurückgesetzt ({exc})")
-            if e["google_gruen"] and e["google_gruen"] != "fehlt" and KALENDER_DIENST is not None and _datum(e["datum"]):
-                try:
-                    g_einsaetze_faerben([(e["plan_id"], _datum(e["datum"]))], gruen=False)
-                except GoogleFehler as exc:
-                    print(f"Fensterreinigung: Termin-Farbe nicht zurückgesetzt ({exc})")
         finally:
             conn.close()
         return dict({"ok": True})
