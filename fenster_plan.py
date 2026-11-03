@@ -71,6 +71,15 @@ def _heute():
     return datetime.now(BERLIN).date()
 
 
+def _berlin_text(iso):
+    """Zeitstempel aus dem LifeHub (ISO, UTC) → „JJJJ-MM-TT HH:MM:SS“ Berliner Zeit wie _jetzt(); unlesbar → ""."""
+    try:
+        d = datetime.fromisoformat(str(iso).replace("Z", "+00:00"))
+    except (TypeError, ValueError):
+        return ""
+    return (d if d.tzinfo else d.replace(tzinfo=timezone.utc)).astimezone(BERLIN).strftime("%Y-%m-%d %H:%M:%S")
+
+
 def _txt(v, n=300):
     return " ".join(str(v or "").split())[:n]
 
@@ -519,8 +528,13 @@ def register_fenster_plan(app, login_required, get_db_connection, kalender_diens
                 if ids:
                     fertig = ZUGANG.anfrage("GET", "/tasks", params={"recurring": "true", "status": "done", "q": "Fensterreinigung",
                                                                       "limit": 500, "sort": "updated"}).get("items") or []
+                    # im CRM zurückgenommen: dieselbe Aufgabe nicht wieder aufnehmen – außer sie wurde danach erneut abgehakt
+                    storniert = {z["storniert_aufgabe"]: z["storniert_am"] for z in conn.execute(
+                        "SELECT storniert_aufgabe, storniert_am FROM fenster_einsatz WHERE storniert_aufgabe IS NOT NULL ORDER BY id")}
                     for t in fertig:
                         pid = ids.get(t.get("recurrence_id"))
+                        if t.get("id") in storniert and _berlin_text(t.get("completed_at")) <= (storniert[t["id"]] or ""):
+                            continue
                         if pid and t.get("id"):
                             conn.execute("""INSERT OR IGNORE INTO fenster_einsatz (plan_id, datum, lifehub_aufgabe, erledigt_am, quelle)
                                             VALUES (?, ?, ?, ?, 'lifehub')""",
@@ -777,8 +791,9 @@ def register_fenster_plan(app, login_required, get_db_connection, kalender_diens
         return dict({"ok": True})
 
     def einsatz_rueckgaengig(eid):
-        """„Erledigt“ zurücknehmen – nur der letzte Einsatz eines Kunden. Im LifeHub wird die abgehakte Aufgabe wieder geöffnet
-        und die danach angelegte nächste archiviert (nichts gelöscht); der Termin ist damit wieder fällig. Im CRM bleibt der
+        """„Erledigt“ zurücknehmen – nur der letzte Einsatz eines Kunden. Im LifeHub wird die abgehakte Aufgabe wieder geöffnet;
+        sie ist der früheste offene Termin der Serie und damit wieder fällig. Die schon angelegte nächste Aufgabe bleibt offen
+        stehen (nicht archivieren: sonst legt LifeHub nach dem nächsten „Erledigt“ keinen neuen Termin an). Im CRM bleibt der
         Einsatz als „storniert“ gespeichert und verschwindet aus den Listen. Der Google-Kalender bleibt unverändert."""
         conn = get_db_connection()
         try:
@@ -795,20 +810,8 @@ def register_fenster_plan(app, login_required, get_db_connection, kalender_diens
             if aufgabe and p and p["aktiv"] and p["lifehub_serie"]:
                 try:
                     t = ZUGANG.anfrage("GET", f"/tasks/{aufgabe}")
-                    if t.get("recurrence_id") == p["lifehub_serie"]:
-                        if t.get("status") in ("done", "cancelled", "archived"):
-                            ZUGANG.anfrage("POST", f"/tasks/{aufgabe}/reopen")
-                        # danach angelegte offene Aufgabe(n) derselben Serie archivieren – es bleibt genau eine offene
-                        offen = ZUGANG.anfrage("GET", "/tasks", params={
-                            "recurring": "true", "q": "Fensterreinigung", "limit": 500, "sort": "updated",
-                            "status": ["new", "planned", "in_progress", "on_hold", "waiting_other", "waiting_approval", "postponed"],
-                        }).get("items") or []
-                        eigene = _datum(t.get("occurrence_date") or t.get("planned_date"))
-                        for x in offen:
-                            spaeter = _datum(x.get("occurrence_date") or x.get("planned_date"))
-                            if x.get("recurrence_id") == p["lifehub_serie"] and x.get("id") != aufgabe and eigene and spaeter \
-                                    and spaeter > eigene:
-                                ZUGANG.anfrage("POST", f"/tasks/{x['id']}/archive")
+                    if t.get("recurrence_id") == p["lifehub_serie"] and t.get("status") == "done":
+                        ZUGANG.anfrage("POST", f"/tasks/{aufgabe}/reopen")
                 except LifeHubFehler as exc:
                     return dict({"ok": False, "fehler": f"LifeHub: {exc}"}), 503
             conn.execute("UPDATE fenster_einsatz SET storniert_am = ?, storniert_aufgabe = lifehub_aufgabe, lifehub_aufgabe = NULL "

@@ -2,6 +2,8 @@
 # Adresse: https://portal.kg-reinigung.de/internal/mcp/fenster/<geheimer Schlüssel>
 # Den Schlüssel legt ein Server-Befehl an; gespeichert wird nur sein SHA-256 (Tabelle chatgpt_zugang, name „fenster“).
 # Falscher oder fehlender Schlüssel → 404.
+# Zweiter Zugang für „KG Daten“ (kg_mcp/kg_mcp_server.py, ChatGPT-App „KG“ unter mcp.kg-reinigung.de):
+#   POST /internal/mcp/fenster mit Kopfzeile X-KG-MCP-Token (gleiches Token wie /internal/mcp/crm, KG_MCP_TOKEN).
 # Nur Fensterreinigung: Pläne ansehen, anlegen, ändern, pausieren/fortsetzen, Einsatz erledigt, Rechnung geschrieben,
 # Kunden suchen. Kein Löschen, keine Mails, keine anderen CRM-Daten. Es laufen dieselben Funktionen wie auf der Seite
 # (fenster_plan.FUNKTIONEN) – also auch Google-Kalender und LifeHub. Jede Änderung steht in der Tabelle mcp_protokoll.
@@ -9,6 +11,7 @@ import hashlib
 import hmac
 import json
 import math
+import os
 from datetime import date, datetime
 
 from flask import Response, jsonify, request
@@ -64,15 +67,16 @@ WERKZEUGE = [
                     "(verschoben_von = ursprüngliches Datum laut Plan). faellig=true heißt: dieser Termin kann jetzt mit "
                     "fenster_erledigt abgeschlossen werden.",
      "inputSchema": {"type": "object", "properties": {"tage": {"type": "integer", "description": "1–56, Standard 14"}}}},
-    {"name": "kunden_suchen", "title": "Kunden suchen",
-     "description": "Kunden aus der CRM-Kundenliste suchen (für fenster_anlegen: kunde_id übernimmt Adresse und Ansprechpartner).",
+    {"name": "fenster_kunden_suchen", "title": "Kunden suchen (Fensterreinigung)",
+     "description": "Kunden aus der CRM-Kundenliste suchen, ohne gekündigte (für fenster_anlegen: kunde_id übernimmt Adresse "
+                    "und Ansprechpartner).",
      "inputSchema": {"type": "object", "properties": {"suche": {"type": "string", "description": "Teil des Firmennamens"}},
                      "required": ["suche"]}},
     {"name": "fenster_anlegen", "title": "Fenster-Kunden eintragen",
      "description": "Neuen Fenster-Plan anlegen. Trägt alle Termine in den Google-Kalender „Fensterreinigung“ und als "
                     "wiederkehrende Aufgabe in den KG LifeHub ein. Gibt es für die Firma schon einen Plan, fenster_aendern benutzen.",
      "inputSchema": {"type": "object", "properties": {
-         "kunde_id": {"type": "integer", "description": "ID aus kunden_suchen (empfohlen)"},
+         "kunde_id": {"type": "integer", "description": "ID aus fenster_kunden_suchen (empfohlen)"},
          "firma": {"type": "string", "description": "Firmenname, wenn kein kunde_id"}, **_RHYTHMUS, **_DETAILS},
          "required": ["erster_termin", "rhythmus"]}},
     {"name": "fenster_aendern", "title": "Fenster-Plan ändern",
@@ -102,7 +106,16 @@ WERKZEUGE = [
      "inputSchema": {"type": "object", "properties": {
          "einsatz_id": {"type": "integer"}, "mitarbeiter": {"type": "string"}, "dauer_min": {"type": "integer"},
          "notiz": {"type": "string"}, "rechnung": {"type": "boolean"}}, "required": ["einsatz_id"]}},
+    {"name": "fenster_erledigt_rueckgaengig", "title": "Erledigt zurücknehmen",
+     "description": "„Erledigt“ zurücknehmen – nur der letzte erledigte Einsatz eines Kunden (in fenster_einsaetze rueckgaengig=true). "
+                    "Der Termin ist danach wieder offen; im LifeHub wird die Aufgabe wieder geöffnet. Der Einsatz bleibt im CRM "
+                    "als storniert gespeichert. Vorher kurz nachfragen.",
+     "inputSchema": {"type": "object", "properties": {"einsatz_id": {"type": "integer"}}, "required": ["einsatz_id"]}},
 ]
+_NUR_LESEN = {"fenster_uebersicht", "fenster_termine", "fenster_kunden_suchen", "fenster_einsaetze"}
+for _w in WERKZEUGE:
+    _w["annotations"] = {"title": _w["title"], "readOnlyHint": _w["name"] in _NUR_LESEN, "destructiveHint": False,
+                         "idempotentHint": _w["name"] in _NUR_LESEN, "openWorldHint": False}
 
 
 # --------------------------------------------------------------------------- Hilfen
@@ -190,7 +203,7 @@ def werkzeug(name, a, protokoll):
         bis = date.fromordinal(date.fromisoformat(d["heute"]).toordinal() + tage).isoformat()
         return {"heute": d["heute"], "termine": [t for t in d["termine"] if t["datum"] <= bis]}
 
-    if name == "kunden_suchen":
+    if name in ("fenster_kunden_suchen", "kunden_suchen"):  # alter Name: bis ChatGPT die Werkzeuge neu lädt
         q = str(a.get("suche") or "").strip().lower()
         if len(q) < 2:
             raise WerkzeugFehler("Bitte mindestens 2 Buchstaben suchen.")
@@ -202,7 +215,7 @@ def werkzeug(name, a, protokoll):
         if a.get("kunde_id"):
             kunde = next((k for k in _f("stammdaten")()["kunden"] if k["id"] == int(a["kunde_id"])), None)
             if not kunde:
-                raise WerkzeugFehler("kunde_id nicht gefunden – bitte kunden_suchen benutzen.")
+                raise WerkzeugFehler("kunde_id nicht gefunden (oder gekündigt) – bitte fenster_kunden_suchen benutzen.")
         firma = str(a.get("firma") or (kunde or {}).get("firma") or "").strip()
         if not firma:
             raise WerkzeugFehler("firma oder kunde_id fehlt.")
@@ -275,6 +288,14 @@ def werkzeug(name, a, protokoll):
         _ergebnis(_f("einsatz")(eid, e))
         protokoll("fenster_einsatz_aendern", {"einsatz_id": eid, "felder": sorted(e.keys())})
         return {"einsatz_id": eid, "meldung": "gespeichert"}
+
+    if name == "fenster_erledigt_rueckgaengig":
+        eid = int(a.get("einsatz_id") or 0)
+        x = next((y for y in _f("uebersicht")()["einsaetze"] if y["id"] == eid), None)
+        _ergebnis(_f("rueckgaengig")(eid))
+        protokoll("fenster_erledigt_rueckgaengig", {"einsatz_id": eid, "plan_id": x and x["plan_id"]})
+        return {"einsatz_id": eid, "meldung": "zurückgenommen – der Termin ist wieder offen",
+                "plan": _kurz(_plan(x["plan_id"])) if x else None}
 
     raise WerkzeugFehler(f"Unbekanntes Werkzeug: {name}")
 
@@ -357,10 +378,7 @@ def register_fenster_chatgpt(app, get_db_connection):
                                      "structuredContent": daten})
         return _fehler(msg_id, -32601, f"Method not found: {methode}")
 
-    @app.route("/internal/mcp/fenster/<schluessel>", methods=["POST"])
-    def fenster_chatgpt(schluessel):
-        if not _erlaubt(schluessel):
-            return jsonify({"error": "not found"}), 404
+    def _rpc():
         try:
             nachricht = json.loads(request.get_data() or b"null")
         except ValueError:
@@ -370,6 +388,21 @@ def register_fenster_chatgpt(app, get_db_connection):
             return jsonify(antworten) if antworten else Response(status=202)
         antwort = behandeln(nachricht)
         return jsonify(antwort) if antwort is not None else Response(status=202)
+
+    @app.route("/internal/mcp/fenster/<schluessel>", methods=["POST"])
+    def fenster_chatgpt(schluessel):
+        if not _erlaubt(schluessel):
+            return jsonify({"error": "not found"}), 404
+        return _rpc()
+
+    @app.route("/internal/mcp/fenster", methods=["POST"])
+    def fenster_kg_daten():
+        """Für „KG Daten“ (ChatGPT-App „KG“): gleiches Token wie /internal/mcp/crm."""
+        token = (os.getenv("KG_MCP_TOKEN") or "").strip()
+        given = (request.headers.get("X-KG-MCP-Token") or "").strip()
+        if not token or not hmac.compare_digest(given.encode(), token.encode()):
+            return jsonify({"error": "Zugriff verweigert"}), 403
+        return _rpc()
 
     @app.route("/internal/mcp/fenster/<schluessel>", methods=["GET"])
     def fenster_chatgpt_get(schluessel):
