@@ -55,6 +55,11 @@ def _tabellen(conn):
     for neu in ("google_termin", "google_ab", "google_fehler"):
         if neu not in spalten:
             conn.execute(f"ALTER TABLE fenster_plan ADD COLUMN {neu} TEXT")
+    # „Erledigt“ zurückgenommen: der Einsatz bleibt gespeichert (storniert_am), die LifeHub-Aufgabe steht in storniert_aufgabe
+    spalten = {r[1] for r in conn.execute("PRAGMA table_info(fenster_einsatz)")}
+    for neu in ("storniert_am", "storniert_aufgabe"):
+        if neu not in spalten:
+            conn.execute(f"ALTER TABLE fenster_einsatz ADD COLUMN {neu} TEXT")
     conn.commit()
 
 
@@ -64,6 +69,15 @@ def _jetzt():
 
 def _heute():
     return datetime.now(BERLIN).date()
+
+
+def _berlin_text(iso):
+    """Zeitstempel aus dem LifeHub (ISO, UTC) → „JJJJ-MM-TT HH:MM:SS“ Berliner Zeit wie _jetzt(); unlesbar → ""."""
+    try:
+        d = datetime.fromisoformat(str(iso).replace("Z", "+00:00"))
+    except (TypeError, ValueError):
+        return ""
+    return (d if d.tzinfo else d.replace(tzinfo=timezone.utc)).astimezone(BERLIN).strftime("%Y-%m-%d %H:%M:%S")
 
 
 def _txt(v, n=300):
@@ -475,12 +489,14 @@ def register_fenster_plan(app, login_required, get_db_connection, kalender_diens
                         "im_jahr": einsaetze_im_jahr(r)})
 
     def stammdaten_daten():
-        """Für das Formular: Kunden (mit Fenster-Angaben aus der Kundenliste) und aktive Mitarbeiter."""
+        """Für das Formular: Kunden (mit Fenster-Angaben aus der Kundenliste, ohne gekündigte) und aktive Mitarbeiter."""
         conn = get_db_connection()
         try:
             kunden = []
             for k in conn.execute("SELECT id, firma, strasse, plz, ort, ansprechpartner_name, telefon, data_json, vertragsstatus "
                                   "FROM kunden ORDER BY firma COLLATE NOCASE").fetchall():
+                if (k["vertragsstatus"] or "").strip().lower() == "gekuendigt":
+                    continue
                 try:
                     d = json.loads(k["data_json"] or "{}")
                 except ValueError:
@@ -512,8 +528,13 @@ def register_fenster_plan(app, login_required, get_db_connection, kalender_diens
                 if ids:
                     fertig = ZUGANG.anfrage("GET", "/tasks", params={"recurring": "true", "status": "done", "q": "Fensterreinigung",
                                                                       "limit": 500, "sort": "updated"}).get("items") or []
+                    # im CRM zurückgenommen: dieselbe Aufgabe nicht wieder aufnehmen – außer sie wurde danach erneut abgehakt
+                    storniert = {z["storniert_aufgabe"]: z["storniert_am"] for z in conn.execute(
+                        "SELECT storniert_aufgabe, storniert_am FROM fenster_einsatz WHERE storniert_aufgabe IS NOT NULL ORDER BY id")}
                     for t in fertig:
                         pid = ids.get(t.get("recurrence_id"))
+                        if t.get("id") in storniert and _berlin_text(t.get("completed_at")) <= (storniert[t["id"]] or ""):
+                            continue
                         if pid and t.get("id"):
                             conn.execute("""INSERT OR IGNORE INTO fenster_einsatz (plan_id, datum, lifehub_aufgabe, erledigt_am, quelle)
                                             VALUES (?, ?, ?, ?, 'lifehub')""",
@@ -521,7 +542,7 @@ def register_fenster_plan(app, login_required, get_db_connection, kalender_diens
                     conn.commit()
             except LifeHubFehler as exc:
                 lh_ok, lh_meldung = False, str(exc)
-            einsaetze = conn.execute("SELECT * FROM fenster_einsatz ORDER BY datum DESC, id DESC").fetchall()
+            einsaetze = conn.execute("SELECT * FROM fenster_einsatz WHERE storniert_am IS NULL ORDER BY datum DESC, id DESC").fetchall()
         finally:
             conn.close()
 
@@ -613,6 +634,7 @@ def register_fenster_plan(app, login_required, get_db_connection, kalender_diens
                           "mitarbeiter": e["mitarbeiter"] or "", "dauer_min": e["dauer_min"] or 0, "notiz": e["notiz"] or "",
                           "rechnung": bool(e["rechnung"]), "rechnung_am": e["rechnung_am"] or "", "quelle": e["quelle"] or "",
                           "details_fehlen": e["quelle"] == "lifehub" and not e["mitarbeiter"],
+                          "rueckgaengig": letzte.get(e["plan_id"]) is not None and letzte[e["plan_id"]]["id"] == e["id"],
                           "betrag": next((p["betrag"] for p in plaene if p["id"] == e["plan_id"]), 0) or 0}
                          for e in einsaetze]
         woche_ende = heute + timedelta(days=6 - heute.weekday())
@@ -747,7 +769,8 @@ def register_fenster_plan(app, login_required, get_db_connection, kalender_diens
         """Angaben eines Einsatzes ergänzen (z. B. im LifeHub abgehakt) oder „Rechnung geschrieben“ setzen."""
         conn = get_db_connection()
         try:
-            alt = conn.execute("SELECT * FROM fenster_einsatz WHERE id = ?", (eid,)).fetchone()
+            _tabellen(conn)
+            alt = conn.execute("SELECT * FROM fenster_einsatz WHERE id = ? AND storniert_am IS NULL", (eid,)).fetchone()
             if not alt:
                 return dict({"ok": False, "fehler": "Einsatz nicht gefunden."}), 404
             neu = {k: alt[k] for k in ("mitarbeiter", "dauer_min", "notiz", "rechnung", "rechnung_am")}
@@ -762,6 +785,37 @@ def register_fenster_plan(app, login_required, get_db_connection, kalender_diens
                 neu["rechnung_am"] = (alt["rechnung_am"] or _jetzt()) if neu["rechnung"] else None
             conn.execute("UPDATE fenster_einsatz SET mitarbeiter = ?, dauer_min = ?, notiz = ?, rechnung = ?, rechnung_am = ? WHERE id = ?",
                          (neu["mitarbeiter"], neu["dauer_min"], neu["notiz"], neu["rechnung"], neu["rechnung_am"], eid))
+            conn.commit()
+        finally:
+            conn.close()
+        return dict({"ok": True})
+
+    def einsatz_rueckgaengig(eid):
+        """„Erledigt“ zurücknehmen – nur der letzte Einsatz eines Kunden. Im LifeHub wird die abgehakte Aufgabe wieder geöffnet;
+        sie ist der früheste offene Termin der Serie und damit wieder fällig. Die schon angelegte nächste Aufgabe bleibt offen
+        stehen (nicht archivieren: sonst legt LifeHub nach dem nächsten „Erledigt“ keinen neuen Termin an). Im CRM bleibt der
+        Einsatz als „storniert“ gespeichert und verschwindet aus den Listen. Der Google-Kalender bleibt unverändert."""
+        conn = get_db_connection()
+        try:
+            _tabellen(conn)
+            e = conn.execute("SELECT * FROM fenster_einsatz WHERE id = ? AND storniert_am IS NULL", (eid,)).fetchone()
+            if not e:
+                return dict({"ok": False, "fehler": "Einsatz nicht gefunden (schon zurückgenommen?)."}), 404
+            letzter = conn.execute("SELECT id FROM fenster_einsatz WHERE plan_id = ? AND storniert_am IS NULL "
+                                   "ORDER BY datum DESC, id DESC LIMIT 1", (e["plan_id"],)).fetchone()
+            if letzter["id"] != eid:
+                return dict({"ok": False, "fehler": "Nur der letzte erledigte Termin dieses Kunden kann zurückgenommen werden."}), 400
+            p = plan_laden(conn, e["plan_id"])
+            aufgabe = e["lifehub_aufgabe"]
+            if aufgabe and p and p["aktiv"] and p["lifehub_serie"]:
+                try:
+                    t = ZUGANG.anfrage("GET", f"/tasks/{aufgabe}")
+                    if t.get("recurrence_id") == p["lifehub_serie"] and t.get("status") == "done":
+                        ZUGANG.anfrage("POST", f"/tasks/{aufgabe}/reopen")
+                except LifeHubFehler as exc:
+                    return dict({"ok": False, "fehler": f"LifeHub: {exc}"}), 503
+            conn.execute("UPDATE fenster_einsatz SET storniert_am = ?, storniert_aufgabe = lifehub_aufgabe, lifehub_aufgabe = NULL "
+                         "WHERE id = ?", (_jetzt(), eid))
             conn.commit()
         finally:
             conn.close()
@@ -816,5 +870,10 @@ def register_fenster_plan(app, login_required, get_db_connection, kalender_diens
     def fenster_einsatz_aendern(eid):
         return _http(einsatz_aendern(eid, request.get_json(silent=True) or {}))
 
+    @app.route("/api/fenster/einsatz/<int:eid>/rueckgaengig", methods=["POST"])
+    @login_required
+    def fenster_einsatz_rueckgaengig(eid):
+        return _http(einsatz_rueckgaengig(eid))
+
     FUNKTIONEN.update(stammdaten=stammdaten_daten, uebersicht=uebersicht_daten, speichern=plan_speichern, pause=plan_pause,
-                      erledigt=plan_erledigt, einsatz=einsatz_aendern, vorschau=lambda r, start: termine(r, start, start + timedelta(days=800))[:6])
+                      erledigt=plan_erledigt, einsatz=einsatz_aendern, rueckgaengig=einsatz_rueckgaengig, vorschau=lambda r, start: termine(r, start, start + timedelta(days=800))[:6])
