@@ -256,7 +256,9 @@ body {
     color: #0f172a;
 }
 
+.lv-page.lv-folge { margin-top: 40px; }
 @media print {
+    .lv-page.lv-folge { break-before: page !important; page-break-before: always !important; margin-top: 0 !important; }
     @page {
         size: A4 portrait;
         margin: 0;
@@ -557,16 +559,25 @@ body {
 }
 </style>
 
-{# Bauendreinigung / Grundreinigung: allein = eigenes Leistungsverzeichnis (einmalig); zusammen mit Unterhalts-/Büro-/Praxis-/
-   Treppenhausreinigung = zusätzlicher Teil hinter den Standardleistungen. Extra_Normal / Extra_Grund: im Angebot-Editor eingetragen #}
+{# Je gewählter Leistung ein eigenes Leistungsverzeichnis (eigene Seite, eigener Kopf): erst die laufende Reinigung
+   (Unterhalts-/Büro-/Praxis-/Treppenhausreinigung …), dann Grundreinigung, dann Bauendreinigung (diese beiden einmalig).
+   Extra_Normal / Extra_Grund: im Angebot-Editor eingetragen #}
 {% set lv_art_text = ((Leistungsart or '')|striptags|trim|lower) %}
-{% set lv_bau = 'bauend' in lv_art_text %}
-{% set lv_grund = 'grundreinigung' in lv_art_text %}
-{% set lv_standard = ('unterhalt' in lv_art_text or 'büro' in lv_art_text or 'praxis' in lv_art_text or 'treppenhaus' in lv_art_text) %}
-{% set lv_nur_bau = lv_bau and not lv_standard %}
-{% set lv_nur_grund = lv_grund and not lv_standard and not lv_bau %}
-{% set lv_nur_sonder = lv_nur_bau or lv_nur_grund %}
-<div class="lv-page">
+{% set lv_hat_bau = 'bauend' in lv_art_text %}
+{% set lv_hat_grund = 'grundreinigung' in lv_art_text %}
+{% set lv_ns = namespace(std=[]) %}
+{% for x in ((Leistungsart or '')|striptags|replace(' und ', '|')|replace('+', '|')|replace(',', '|')|replace(' & ', '|')).split('|') %}
+{% if x|trim and x|trim != '-' and 'grundreinigung' not in x|lower and 'bauend' not in x|lower %}{% set lv_ns.std = lv_ns.std + [x|trim] %}{% endif %}
+{% endfor %}
+{% set lv_std_name = lv_ns.std|join(' und ') %}
+{% set lv_teile = (['standard'] if (lv_std_name or not (lv_hat_grund or lv_hat_bau)) else []) + (['grund'] if lv_hat_grund else []) + (['bau'] if lv_hat_bau else []) %}
+{% for teil in lv_teile %}
+{% set lv_bau = teil == 'bau' %}
+{% set lv_grund = teil == 'grund' %}
+{% set lv_nur_bau = lv_bau %}
+{% set lv_nur_grund = lv_grund %}
+{% set lv_nur_sonder = teil != 'standard' %}
+<div class="lv-page{% if not loop.first %} lv-folge{% endif %}">
     <section class="lv-hero">
         <h1 class="lv-title">Leistungsverzeichnis</h1>
 
@@ -583,7 +594,7 @@ body {
 
             <div class="lv-info-box">
                 <div class="lv-info-label">Leistung</div>
-                <div class="lv-info-value multi-line">{{Leistungsart}}</div>
+                <div class="lv-info-value multi-line">{% if lv_grund %}Grundreinigung{% elif lv_bau %}Bauendreinigung{% else %}{{ lv_std_name or Leistungsart }}{% endif %}</div>
             </div>
 
             <div class="lv-info-box">
@@ -596,7 +607,7 @@ body {
     <main class="lv-content">
         <div class="lv-intro">
             {# Überschrift wie oben „Leistung“ (z. B. Praxisreinigung), sonst Büroreinigung #}
-            {% set lv_art = ((Leistungsart or '')|striptags|trim) %}
+            {% set lv_art = lv_std_name or ((Leistungsart or '')|striptags|trim) %}
             {% set lv_art = lv_art if lv_art and lv_art != '-' else 'Büroreinigung' %}
             {% if lv_nur_bau %}
             <h2>Bauendreinigung – Leistungsumfang</h2>
@@ -1275,7 +1286,7 @@ body {
         </section>
         {% endif %}
 
-        {% if lv_nur_sonder and Extra_Normal %}
+        {% if loop.first and lv_nur_sonder and Extra_Normal %}
         <section class="lv-section zusatz-section extra-section">
             <div class="lv-section-title"><span class="dot purple"></span>Zusätzlich vereinbart</div>
             <table class="lv-table">
@@ -1297,7 +1308,7 @@ body {
         </section>
         {% endif %}
 
-        {% if Zusatzleistungen %}
+        {% if loop.first and Zusatzleistungen %}
         <section class="lv-section zusatz-section">
             <div class="lv-section-title"><span class="dot purple"></span>Zusatzleistungen / Sonstiges</div>
             <table class="lv-table">
@@ -1337,6 +1348,7 @@ body {
     </main>
 
 </div>
+{% endfor %}
 
 <script>
 document.addEventListener("DOMContentLoaded", function () {
@@ -1350,14 +1362,16 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     if (params.get("print") === "1") {
-        const lvPage = document.querySelector(".lv-page");
+        const lvSeiten = Array.from(document.querySelectorAll(".lv-page"));
+        const lvPage = lvSeiten[0];
 
         if (lvPage) {
             document.body.classList.add("lv-pdf-clean");
 
-            if (lvPage.parentElement !== document.body) {
-                document.body.insertBefore(lvPage, document.body.firstChild);
-            }
+            // alle Leistungsverzeichnisse (je Leistung eines) in ihrer Reihenfolge nach vorn
+            lvSeiten.slice().reverse().forEach(function (seite) {
+                document.body.insertBefore(seite, document.body.firstChild);
+            });
 
             const fixStyle = document.createElement("style");
             fixStyle.innerHTML = `
