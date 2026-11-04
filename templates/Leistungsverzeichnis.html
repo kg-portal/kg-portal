@@ -259,6 +259,8 @@ body {
 .lv-page.lv-folge { margin-top: 40px; }
 @media print {
     .lv-page.lv-folge { break-before: page !important; page-break-before: always !important; margin-top: 0 !important; }
+    /* Rest einer Seite weiß (base.html färbt body.kg-portal-body sonst hellgrau) */
+    html body.kg-portal-body { background: #ffffff !important; }
     @page {
         size: A4 portrait;
         margin: 0;
@@ -973,7 +975,7 @@ body {
                 </thead>
                 <tbody>
                     <tr>
-                        <td>Hartböden maschinell gründlich reinigen, auch Ecken und Kanten</td>
+                        <td>Hartböden reinigen, auch Ecken und Kanten</td>
                         <td class="freq">enthalten</td>
                     </tr>
                     <tr>
@@ -1375,6 +1377,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
             const fixStyle = document.createElement("style");
             fixStyle.innerHTML = `
+                html body.kg-portal-body.lv-pdf-clean { background: #ffffff !important; }
                 html, body {
                     margin: 0 !important;
                     padding: 0 !important;
