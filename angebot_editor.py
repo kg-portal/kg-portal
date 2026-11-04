@@ -316,6 +316,17 @@ def _lv_haeufigkeit(h):
     return LV_KURZ.get(h, h.replace("wöchentlich", "wöch."))
 
 
+def lv_extra_zeilen(text):
+    """Extra-Punkte fürs Leistungsverzeichnis aus dem Editor: eine Zeile = ein Punkt, „Text | Häufigkeit“ (Häufigkeit optional)."""
+    aus = []
+    for zeile in str(text or "").replace("\r", "").split("\n")[:30]:
+        teil, _, freq = zeile.partition("|")
+        teil, freq = _txt(teil)[:200], _txt(freq)[:60]
+        if teil:
+            aus.append({"text": teil, "freq": freq})
+    return aus
+
+
 def lv_mit_editor(v, felder, kalk):
     """Leistungsverzeichnis-Werte (aus der Besichtigung) mit dem überschreiben, was im Angebot-Editor steht:
     Firma, Adresse, Leistungsart und die Häufigkeiten aus dem Richtpreis-Rechner – damit LV und Angebot zusammenpassen."""
@@ -347,6 +358,10 @@ def lv_mit_editor(v, felder, kalk):
     for name, h in lv.items():
         if name in LV_ZEILEN and _txt(h):
             v[name] = _lv_haeufigkeit(h)
+    # Extra-Punkte (Kasten „Extra“ im Editor): unter den Standardleistungen bzw. unter der Grundreinigung
+    extra = (kalk or {}).get("lv_extra") if isinstance((kalk or {}).get("lv_extra"), dict) else {}
+    v["Extra_Normal"] = lv_extra_zeilen(extra.get("normal"))
+    v["Extra_Grund"] = lv_extra_zeilen(extra.get("grund"))
     if lv:  # Kopf „Häufigkeit“ passend zu den Zeilen: je Bereich die Böden, sonst die häufigste Angabe
         teile = []
         for key in ("buero", "wc", "kueche", "flur"):

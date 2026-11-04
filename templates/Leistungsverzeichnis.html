@@ -557,10 +557,15 @@ body {
 }
 </style>
 
-{# Bauendreinigung: allein = eigenes Leistungsverzeichnis (einmalig); zusammen mit Unterhalts-/Büro-/Praxis-/Treppenhausreinigung = zusätzlicher Teil #}
+{# Bauendreinigung / Grundreinigung: allein = eigenes Leistungsverzeichnis (einmalig); zusammen mit Unterhalts-/Büro-/Praxis-/
+   Treppenhausreinigung = zusätzlicher Teil hinter den Standardleistungen. Extra_Normal / Extra_Grund: im Angebot-Editor eingetragen #}
 {% set lv_art_text = ((Leistungsart or '')|striptags|trim|lower) %}
 {% set lv_bau = 'bauend' in lv_art_text %}
-{% set lv_nur_bau = lv_bau and not ('unterhalt' in lv_art_text or 'büro' in lv_art_text or 'praxis' in lv_art_text or 'treppenhaus' in lv_art_text) %}
+{% set lv_grund = 'grundreinigung' in lv_art_text %}
+{% set lv_standard = ('unterhalt' in lv_art_text or 'büro' in lv_art_text or 'praxis' in lv_art_text or 'treppenhaus' in lv_art_text) %}
+{% set lv_nur_bau = lv_bau and not lv_standard %}
+{% set lv_nur_grund = lv_grund and not lv_standard and not lv_bau %}
+{% set lv_nur_sonder = lv_nur_bau or lv_nur_grund %}
 <div class="lv-page">
     <section class="lv-hero">
         <h1 class="lv-title">Leistungsverzeichnis</h1>
@@ -583,7 +588,7 @@ body {
 
             <div class="lv-info-box">
                 <div class="lv-info-label">Häufigkeit</div>
-                <div class="lv-info-value multi-line">{% if lv_nur_bau %}einmalig{% else %}{{Haeufigkeit|safe}}{% endif %}</div>
+                <div class="lv-info-value multi-line">{% if lv_nur_sonder %}einmalig{% else %}{{Haeufigkeit|safe}}{% endif %}</div>
             </div>
         </div>
     </section>
@@ -598,6 +603,12 @@ body {
             <p>
     Dieses Leistungsverzeichnis ist Anlage zum Angebot und beschreibt den Umfang der einmaligen Bauendreinigung<br>
     nach Abschluss der Bauarbeiten, vor Übergabe bzw. Bezug der Räume.
+</p>
+            {% elif lv_nur_grund %}
+            <h2>Grundreinigung – Leistungsumfang</h2>
+            <p>
+    Dieses Leistungsverzeichnis ist Anlage zum Angebot und beschreibt den Umfang der einmaligen Grundreinigung<br>
+    – einer intensiven Reinigung aller vereinbarten Flächen über die laufende Unterhaltsreinigung hinaus.
 </p>
             {% else %}
             <h2>{{ lv_art }} – Standardleistungen</h2>
@@ -658,6 +669,59 @@ body {
                         <li>WC, Waschbecken und Duschen</li>
                         <li>Fliesen, Armaturen und Spiegel</li>
                         <li>Schränke innen und außen, Spüle</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+        {% elif lv_nur_grund %}
+        <section class="standard-grid">
+            <div class="standard-card buro">
+                <div class="standard-head">
+                    <h3>Böden</h3>
+                    <span>Intensive Reinigung aller Bodenflächen</span>
+                </div>
+                <div class="standard-body">
+                    <ul>
+                        <li>Hartböden maschinell reinigen</li>
+                        <li>Teppichböden intensiv saugen</li>
+                        <li>Sockelleisten, Ecken und Kanten</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="standard-card kueche">
+                <div class="standard-head">
+                    <h3>Möbel und Oberflächen</h3>
+                    <span>Möbel, Türen, Heizkörper</span>
+                </div>
+                <div class="standard-body">
+                    <ul>
+                        <li>Schreibtische, Schränke, Regale außen</li>
+                        <li>Türen, Zargen und Griffe</li>
+                        <li>Heizkörper und Fensterbänke</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="standard-card flur">
+                <div class="standard-head">
+                    <h3>Glas</h3>
+                    <span>Glastüren und Glasflächen</span>
+                </div>
+                <div class="standard-body">
+                    <ul>
+                        <li>Glastüren und Glasflächen innen</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="standard-card wc">
+                <div class="standard-head">
+                    <h3>Sanitär und Küche</h3>
+                    <span>Gründlich reinigen und entkalken</span>
+                </div>
+                <div class="standard-body">
+                    <ul>
+                        <li>WC, Waschbecken und Duschen</li>
+                        <li>Fliesen, Fugen und Armaturen</li>
+                        <li>Küchenzeile und Spüle</li>
                     </ul>
                 </div>
             </div>
@@ -733,7 +797,7 @@ body {
 
         <div class="lv-detail-title">Detailliertes Leistungsverzeichnis</div>
 
-        {% if not lv_nur_bau %}
+        {% if not lv_nur_sonder %}
 
         <section class="lv-section buro-section">
             <div class="lv-section-title"><span class="dot blue"></span>Büro, Arbeitsplätze & allgemeine Flächen</div>
@@ -862,7 +926,186 @@ body {
                 </tbody>
             </table>
         </section>
+        {% if Extra_Normal %}
+        <section class="lv-section zusatz-section extra-section">
+            <div class="lv-section-title"><span class="dot purple"></span>Zusätzlich vereinbart</div>
+            <table class="lv-table">
+                <thead>
+                    <tr>
+                        <th>Leistungsbeschreibung</th>
+                        <th>Umfang</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in Extra_Normal %}
+                    <tr>
+                        <td>{{ item.text }}</td>
+                        <td class="freq">{{ item.freq or 'vereinbart' }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </section>
+        {% endif %}
 
+        {% endif %}
+
+        {% if lv_grund %}
+        <section class="lv-section grund-section">
+            <div class="lv-section-title"><span class="dot blue"></span>Grundreinigung – Böden</div>
+            <table class="lv-table">
+                <thead>
+                    <tr>
+                        <th>Leistungsbeschreibung</th>
+                        <th>Umfang</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Hartböden maschinell gründlich reinigen, auch Ecken und Kanten</td>
+                        <td class="freq">enthalten</td>
+                    </tr>
+                    <tr>
+                        <td>Alte Pflegeschichten entfernen und neu einpflegen (elastische Böden)</td>
+                        <td class="freq">nach Absprache</td>
+                    </tr>
+                    <tr>
+                        <td>Teppichböden intensiv saugen, Flecken behandeln</td>
+                        <td class="freq">enthalten</td>
+                    </tr>
+                    <tr>
+                        <td>Sockelleisten reinigen</td>
+                        <td class="freq">enthalten</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+        <section class="lv-section grund-section">
+            <div class="lv-section-title"><span class="dot green"></span>Möbel, Türen und Oberflächen</div>
+            <table class="lv-table">
+                <thead>
+                    <tr>
+                        <th>Leistungsbeschreibung</th>
+                        <th>Umfang</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Schreibtische, Schränke und Regale außen reinigen</td>
+                        <td class="freq">enthalten</td>
+                    </tr>
+                    <tr>
+                        <td>Türen, Zargen und Türgriffe reinigen</td>
+                        <td class="freq">enthalten</td>
+                    </tr>
+                    <tr>
+                        <td>Heizkörper und Fensterbänke reinigen</td>
+                        <td class="freq">enthalten</td>
+                    </tr>
+                    <tr>
+                        <td>Schalter und Steckdosen abwischen</td>
+                        <td class="freq">enthalten</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+        <section class="lv-section grund-section">
+            <div class="lv-section-title"><span class="dot orange"></span>Glas</div>
+            <table class="lv-table">
+                <thead>
+                    <tr>
+                        <th>Leistungsbeschreibung</th>
+                        <th>Umfang</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Glastüren und Glasflächen innen reinigen</td>
+                        <td class="freq">enthalten</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+        <section class="lv-section grund-section">
+            <div class="lv-section-title"><span class="dot red"></span>Sanitär</div>
+            <table class="lv-table">
+                <thead>
+                    <tr>
+                        <th>Leistungsbeschreibung</th>
+                        <th>Umfang</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>WC, Urinale, Waschbecken und Duschen gründlich reinigen und entkalken</td>
+                        <td class="freq">enthalten</td>
+                    </tr>
+                    <tr>
+                        <td>Fliesen, Fugen, Armaturen und Spiegel reinigen</td>
+                        <td class="freq">enthalten</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+        <section class="lv-section grund-section">
+            <div class="lv-section-title"><span class="dot green"></span>Küche / Teeküche</div>
+            <table class="lv-table">
+                <thead>
+                    <tr>
+                        <th>Leistungsbeschreibung</th>
+                        <th>Umfang</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Arbeitsflächen, Spüle und Armaturen gründlich reinigen und entkalken</td>
+                        <td class="freq">enthalten</td>
+                    </tr>
+                    <tr>
+                        <td>Schrankfronten und Küchengeräte außen reinigen</td>
+                        <td class="freq">enthalten</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+        <section class="lv-section grund-section">
+            <div class="lv-section-title"><span class="dot purple"></span>Abschluss</div>
+            <table class="lv-table">
+                <thead>
+                    <tr>
+                        <th>Leistungsbeschreibung</th>
+                        <th>Umfang</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Endkontrolle</td>
+                        <td class="freq">enthalten</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+        {% if Extra_Grund %}
+        <section class="lv-section zusatz-section extra-section">
+            <div class="lv-section-title"><span class="dot purple"></span>Grundreinigung – zusätzlich vereinbart</div>
+            <table class="lv-table">
+                <thead>
+                    <tr>
+                        <th>Leistungsbeschreibung</th>
+                        <th>Umfang</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in Extra_Grund %}
+                    <tr>
+                        <td>{{ item.text }}</td>
+                        <td class="freq">{{ item.freq or 'enthalten' }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </section>
+        {% endif %}
         {% endif %}
 
         {% if lv_bau %}
@@ -1032,6 +1275,28 @@ body {
         </section>
         {% endif %}
 
+        {% if lv_nur_sonder and Extra_Normal %}
+        <section class="lv-section zusatz-section extra-section">
+            <div class="lv-section-title"><span class="dot purple"></span>Zusätzlich vereinbart</div>
+            <table class="lv-table">
+                <thead>
+                    <tr>
+                        <th>Leistungsbeschreibung</th>
+                        <th>Umfang</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in Extra_Normal %}
+                    <tr>
+                        <td>{{ item.text }}</td>
+                        <td class="freq">{{ item.freq or 'vereinbart' }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </section>
+        {% endif %}
+
         {% if Zusatzleistungen %}
         <section class="lv-section zusatz-section">
             <div class="lv-section-title"><span class="dot purple"></span>Zusatzleistungen / Sonstiges</div>
@@ -1059,6 +1324,9 @@ body {
             <b>Hinweis:</b> Die Bauendreinigung wird einmalig nach Abschluss aller Bauarbeiten ausgeführt.
             Entsorgung von Bauschutt und groben Bauabfällen, Arbeiten in großer Höhe sowie stark haftende Verschmutzungen
             (z. B. Zement, Lack, Kleber) nur nach vorheriger Absprache bzw. nach Aufwand.
+            {% elif lv_nur_grund %}
+            <b>Hinweis:</b> Die Grundreinigung wird einmalig ausgeführt. Arbeiten in großer Höhe, Schränke innen sowie stark haftende
+            Verschmutzungen nur nach vorheriger Absprache bzw. nach Aufwand.
             {% else %}
             <b>Hinweis:</b> Dieses Leistungsverzeichnis beschreibt die vereinbarten Standardleistungen der {{ lv_art }}.
             Objektbezogene Zusatzleistungen werden nur nach vorheriger Vereinbarung ausgeführt und separat im Angebot aufgeführt.
