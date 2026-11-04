@@ -69,7 +69,7 @@
 .kgae-f label { display: block; margin-bottom: 5px; font-size: 11.5px; font-weight: 900; letter-spacing: .06em; text-transform: uppercase; color: #475569; }
 .kgae-in { width: 100%; padding: 10px 12px; border: 1.5px solid var(--rand); border-radius: 12px; background: #f8fafc; font: inherit; font-size: 15px; color: #0f172a; transition: border-color .2s, background .2s; }
 .kgae-in:focus { outline: none; border-color: var(--b3); background: #fff; box-shadow: 0 0 0 3px rgba(59, 130, 246, .15); }
-.kgae-pos { display: grid; grid-template-columns: 34px minmax(0, 1fr) 186px 130px 92px; gap: 8px; align-items: center; }
+.kgae-pos { display: grid; grid-template-columns: 34px minmax(0, 1fr) 150px 130px 92px; gap: 8px; align-items: center; }
 .kgae-pos + .kgae-pos { margin-top: 8px; }
 .kgae-pos > b { display: grid; place-items: center; height: 42px; border-radius: 12px; background: #eff6ff; color: var(--b1); font-size: 14px; }
 .kgae-pos .kgae-in.preis { text-align: right; font-weight: 900; }
@@ -83,7 +83,7 @@
 .kgae-pos-plus .kgae-knopf { padding: 9px 14px; font-size: 13px; }
 .kgae-pos-plus .kgae-knopf[hidden] { display: none; }
 .kgae-pos-voll { font-size: 13px; font-weight: 800; color: #b91c1c; }
-.kgae-pos-kopf { display: grid; grid-template-columns: 34px minmax(0, 1fr) 186px 130px 92px; gap: 8px; margin-bottom: 6px; font-size: 11px; font-weight: 900; letter-spacing: .06em; text-transform: uppercase; color: var(--grau); }
+.kgae-pos-kopf { display: grid; grid-template-columns: 34px minmax(0, 1fr) 150px 130px 92px; gap: 8px; margin-bottom: 6px; font-size: 11px; font-weight: 900; letter-spacing: .06em; text-transform: uppercase; color: var(--grau); }
 .kgae-summen { display: flex; justify-content: flex-end; gap: 22px; flex-wrap: wrap; margin-top: 14px; padding-top: 12px; border-top: 1px dashed var(--rand); }
 .kgae-summen div { text-align: right; font-size: 12px; font-weight: 800; color: var(--grau); }
 .kgae-summen b { display: block; font-size: 18px; color: #0f172a; }
@@ -141,11 +141,6 @@
 .kgae-lvz-zeile span { flex: 1; min-width: 0; }
 .kgae-lvz-zeile select.kgae-in { width: 150px; flex: none; padding: 5px 8px; font-size: 12.5px; }
 .kgae-lvz-zeile select.anders { border-color: #f59e0b; background: #fffbeb; }
-.kgae-lvz-a { display: none; align-items: center; gap: 4px; flex: none; font-size: 11.5px; font-weight: 800; color: #1d4ed8; white-space: nowrap; cursor: pointer; }
-#kgaeLvz .kgae-lvz-a input.kgae-in { width: 15px; height: 15px; margin: 0; padding: 0; border: 0; accent-color: #2563eb; }
-#kgaeLvz.mit-varianten .kgae-lvz-a { display: inline-flex; }
-.kgae-lvz-variante { display: none; margin-top: 8px; font-size: 12px; font-weight: 700; color: #1d4ed8; }
-#kgaeLvz.mit-varianten .kgae-lvz-variante { display: block; }
 @media (max-width: 760px) { .kgae-lvz-raster { grid-template-columns: 1fr; } .kgae-lvz-zeile select.kgae-in { width: 130px; } }
 /* Leistungsverzeichnis – Extra: eigene Punkte, erscheinen unten im LV (eine Zeile = ein Punkt) */
 .kgae-lvx { margin-top: 10px; padding: 10px 12px; border-radius: 14px; background: #fff; border: 1px solid #e2e8f0; }
@@ -432,7 +427,6 @@ a.kgae-knopf { display: inline-block; text-decoration: none; }
                     </div>
                     <details class="kgae-lvz" id="kgaeLvz">
                         <summary><b>Leistungsverzeichnis – einzelne Zeilen</b><span>Standard: wie der Bereich oben · hier abweichend wählen (z. B. Elektro „keine“, Papierkörbe 3x)</span></summary>
-                        <div class="kgae-lvz-variante">Varianten im Angebot: „nur A“ anhaken = diese Zeile gilt nur für Variante A (im LV „nur Variante A“).</div>
                         <div class="kgae-lvz-raster" id="kgaeLvzRaster"></div>
                     </details>
                     <div class="kgae-lvx" id="kgaeLvx">
@@ -676,10 +670,8 @@ a.kgae-knopf { display: inline-block; text-decoration: none; }
     function summen(f) {
         rabattZeigen();
         const mon = f.positionen.filter(p => p.einheit === 'monatlich' && zahl(p.preis)).map(endpreis);
-        const alt = p => /\(alternative\)/i.test(p.einheit || '');
-        const alle = f.positionen.filter(p => zahl(p.preis) && !alt(p)).map(endpreis);  // Alternativen (Variante B …) zählen nicht mit
+        const alle = f.positionen.filter(p => zahl(p.preis)).map(endpreis);
         const netto = (mon.length ? mon : alle).reduce((a, b) => a + b, 0);
-        $('kgaeLvz').classList.toggle('mit-varianten', f.positionen.some(p => alt(p) && (p.text || zahl(p.preis))));
         $('kgaeNetto').textContent = euro(netto); $('kgaeMwst').textContent = euro(netto * 0.19); $('kgaeBrutto').textContent = euro(netto * 1.19);
         $('kgaeNetto').parentElement.firstChild.textContent = mon.length || !alle.length ? 'netto / Monat' : 'netto';
     }
@@ -714,7 +706,7 @@ a.kgae-knopf { display: inline-block; text-decoration: none; }
         const st = Object.assign({}, am.stueck || {}, kalk.stueck || {});
         document.querySelectorAll('[data-stueck]').forEach(el => { el.value = st[el.dataset.stueck] ? String(st[el.dataset.stueck]) : ''; });
         kalkAufbauen(kalk);
-        lvzAufbauen(kalk.lv || {}, kalk.lv_nur_a || []);
+        lvzAufbauen(kalk.lv || {});
         const lx = kalk.lv_extra || {};
         $('kgaeLvxNormal').value = lx.normal || ''; $('kgaeLvxGrund').value = lx.grund || '';
         lvxSichtbar();
@@ -750,12 +742,11 @@ a.kgae-knopf { display: inline-block; text-decoration: none; }
                    ['Freq_Boden_Kueche', 'Böden']]],
         ['Flur / Eingang', [['Freq_Flur_Kontakt', 'Empfang abstauben'], ['Freq_Flur_Sicht', 'Eingang / Laufwege'], ['Freq_Flur_Boden', 'Böden']]]
     ];
-    function lvzAufbauen(lv, nurA) {
-        const opts = [''].concat(k.haeufigkeiten), a = nurA || [];
+    function lvzAufbauen(lv) {
+        const opts = [''].concat(k.haeufigkeiten);
         $('kgaeLvzRaster').innerHTML = LVZ.map(g => '<div class="kgae-lvz-gruppe"><b>' + esc(g[0]) + '</b>' + g[1].map(z =>
-            '<div class="kgae-lvz-zeile"><span>' + esc(z[1]) + '</span><select class="kgae-in' + (lv[z[0]] ? ' anders' : '') + '" data-lvz="' + z[0] + '" aria-label="' + esc(z[1]) + '">' +
-            opts.map(o => '<option value="' + esc(o) + '"' + ((lv[z[0]] || '') === o ? ' selected' : '') + '>' + esc(o || 'wie Bereich') + '</option>').join('') + '</select>' +
-            '<label class="kgae-lvz-a" title="nur bei Variante A"><input type="checkbox" class="kgae-in" data-lvza="' + z[0] + '"' + (a.indexOf(z[0]) >= 0 ? ' checked' : '') + '>nur A</label></div>').join('') + '</div>').join('');
+            '<label class="kgae-lvz-zeile"><span>' + esc(z[1]) + '</span><select class="kgae-in' + (lv[z[0]] ? ' anders' : '') + '" data-lvz="' + z[0] + '">' +
+            opts.map(o => '<option value="' + esc(o) + '"' + ((lv[z[0]] || '') === o ? ' selected' : '') + '>' + esc(o || 'wie Bereich') + '</option>').join('') + '</select></label>').join('') + '</div>').join('');
         $('kgaeLvzRaster').querySelectorAll('select').forEach(sel => sel.addEventListener('change', () => sel.classList.toggle('anders', !!sel.value)));
         if (Object.keys(lv).some(x => lv[x])) $('kgaeLvz').open = true;
     }
@@ -780,7 +771,6 @@ a.kgae-knopf { display: inline-block; text-decoration: none; }
             sonder: sonderLesen(),
             lv: lvzLesen(),
             lv_extra: { normal: $('kgaeLvxNormal').value, grund: $('kgaeLvxGrund').value },
-            lv_nur_a: Array.from(document.querySelectorAll('#kgaeLvzRaster [data-lvza]:checked')).map(x => x.dataset.lvza),
             ergebnis: ergebnis
         };
     }
@@ -1115,7 +1105,7 @@ a.kgae-knopf { display: inline-block; text-decoration: none; }
         if (!karte || karte.classList.contains('kgae-rechner')) return;
         fokus = karte.querySelector('[data-pos], #kgae_leistungsart') ? 'leistung' : 'kunde';
     });
-    $('kgaeFormular').addEventListener('change', e => { if (e.target.matches('select.kgae-in, input[type=checkbox].kgae-in')) geaendertMelden(); });
+    $('kgaeFormular').addEventListener('change', e => { if (e.target.matches('select.kgae-in')) geaendertMelden(); });
 
     function entwurf(still) {
         if (!aktuell) return Promise.resolve();
