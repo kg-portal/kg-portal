@@ -257,6 +257,10 @@ body {
 }
 
 .lv-page.lv-folge { margin-top: 40px; }
+.lv-varianten { margin: 18px 0 22px; padding: 14px 18px; background: #eff6ff; border-left: 4px solid #2563eb; border-radius: 10px; color: #0f172a; break-inside: avoid; page-break-inside: avoid; }
+.lv-varianten-titel { font-size: 14px; font-weight: 900; color: #1d4ed8; margin-bottom: 6px; }
+.lv-varianten ul { margin: 0; padding-left: 18px; font-size: 13px; line-height: 1.55; }
+.lv-varianten p { margin: 8px 0 0; font-size: 12px; color: #334155; }
 @media print {
     .lv-page.lv-folge { break-before: page !important; page-break-before: always !important; margin-top: 0 !important; }
     /* Rest einer Seite weiß (base.html färbt body.kg-portal-body sonst hellgrau) */
@@ -631,6 +635,17 @@ body {
 </p>
             {% endif %}
         </div>
+
+        {# Varianten (im Angebot-Editor: Leistung mit Einheit „… (Alternative)“) – gleiche Namen wie im Angebot #}
+        {% if loop.first and Varianten %}
+        <div class="lv-varianten">
+            <div class="lv-varianten-titel">Varianten dieses Angebots</div>
+            <ul>
+                {% for x in Varianten %}<li><b>{{ x.name }}</b> – {{ x.text }}</li>{% endfor %}
+            </ul>
+            {% if Varianten_nur_a %}<p>Mit „nur Variante A“ gekennzeichnete Leistungen entfallen bei {{ Varianten[1:]|map(attribute='name')|join(' und ') }}.</p>{% endif %}
+        </div>
+        {% endif %}
 
         {% if lv_nur_bau %}
         <section class="standard-grid">

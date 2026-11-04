@@ -22,7 +22,11 @@ from flask import jsonify, render_template, request, send_file
 import besichtigung_zeit as bz
 
 BERLIN = ZoneInfo("Europe/Berlin")
-EINHEITEN = ["monatlich", "einmalig", "pro Durchgang", "jährlich", "pro Stunde"]
+EINHEITEN = ["monatlich", "einmalig", "pro Durchgang", "jährlich", "pro Stunde", "monatlich (Alternative)", "einmalig (Alternative)"]
+# Varianten in einem Angebot: eine Leistung mit Einheit „… (Alternative)“ ist eine Wahlmöglichkeit statt der Hauptleistung
+# gleicher Einheit. Angebot und LV schreiben „Variante A – …“, „Variante B – …“; die Summe zählt nur Variante A.
+ALTERNATIVE = "(alternative)"
+VARIANTE_VORNE = re.compile(r"^\s*Variante\s+[A-Z]\s*[–-]\s*", re.I)
 MWST = 0.19
 MAX_POS = 8  # Leistung 1–4 immer, 5–8 nur wenn im Editor mit „+ Leistung“ hinzugefügt
 RABATT_MAX = 40  # Rabatt je Leistung: 1–40 % (im Angebot alter Preis durchgestrichen, darunter der neue)
@@ -113,6 +117,27 @@ def endpreis(p):
     """Preis einer Leistung nach Rabatt (netto, auf Cent gerundet – wie im Editor)."""
     preis, r = _zahl(p.get("preis")), _rabatt(p.get("rabatt"))
     return math.floor(preis * (100 - r) + 0.5) / 100 if preis and r else preis
+
+
+def _alternativ(p):
+    return ALTERNATIVE in _txt(p.get("einheit")).lower()
+
+
+def varianten(positionen):
+    """{Index der Leistung: Buchstabe} – nur wenn es eine Leistung „… (Alternative)“ gibt. Variante A = erste Leistung mit
+    derselben Einheit ohne „(Alternative)“, danach B, C … in der Reihenfolge der Alternativen."""
+    belegt = [(i, p) for i, p in enumerate(positionen or []) if _txt(p.get("text")) or _zahl(p.get("preis"))]
+    alt = [(i, p) for i, p in belegt if _alternativ(p)]
+    if not alt:
+        return {}
+    basis = _txt(alt[0][1].get("einheit")).lower().replace(ALTERNATIVE, "").strip()
+    haupt = next((i for i, p in belegt if not _alternativ(p) and _txt(p.get("einheit")).lower() == basis), None)
+    aus, buchstaben = {}, iter("ABCDEFGH")
+    if haupt is not None:
+        aus[haupt] = next(buchstaben)
+    for i, _ in alt:
+        aus[i] = next(buchstaben)
+    return aus
 
 
 def _nr(text):
@@ -235,7 +260,7 @@ def _felder_aus_vars(v, row):
             break
         r = _rabatt(v.get(f"Rabatt_{n}"))
         preis = _zahl(v.get(f"PreisAlt_{n}") if r else v.get(f"Preis_{n}"))
-        pos.append({"text": _txt(v.get(f"Leistung_{n}")), "einheit": _txt(v.get(f"Einheiten_{n}")) or "monatlich",
+        pos.append({"text": VARIANTE_VORNE.sub("", _txt(v.get(f"Leistung_{n}"))), "einheit": _txt(v.get(f"Einheiten_{n}")) or "monatlich",
                     "preis": (f"{preis:.2f}".replace(".", ",") if preis else ""), "rabatt": str(r) if r else ""})
     while len(pos) > 4 and not pos[-1]["text"] and not pos[-1]["preis"]:
         pos.pop()
@@ -275,10 +300,13 @@ def vorlage_vars(f, nr):
     v = {"Nr": str(nr or ""), "Datum": f["datum"] or _heute(), "Kunde": kunde, "Ansprechpartner": f["ansprechpartner"],
          "Objekt": f["objekt"], "Adresse": f["adresse"], "Plz": f["plz"], "Ort": f["ort"], "Leistungsart": f["leistungsart"],
          "Ausführungszeitraum": f["ausfuehrungszeitraum"]}
+    var = varianten(f["positionen"])
     for n, p in enumerate(f["positionen"], 1):
         hat = bool(p["text"] or _zahl(p["preis"]))
         # leere Zeilen: Leerzeichen statt "-" (rechts bleibt die Zeile leer)
         v[f"Leistung_{n}"] = p["text"] if hat else " "
+        if hat and (n - 1) in var:  # Varianten: „Variante A – …“ (wie im Leistungsverzeichnis)
+            v[f"Leistung_{n}"] = f"Variante {var[n - 1]} – " + VARIANTE_VORNE.sub("", p["text"])
         v[f"Einheiten_{n}"] = p["einheit"] if hat else " "
         v[f"Preis_{n}"] = _euro(endpreis(p)) if _zahl(p["preis"]) else " "
         if _zahl(p["preis"]) and _rabatt(p.get("rabatt")):  # Vorlage: alter Preis durchgestrichen, darunter Rabatt und neuer Preis
@@ -289,7 +317,7 @@ def vorlage_vars(f, nr):
 
 def summen(f):
     monatlich = [endpreis(p) for p in f["positionen"] if p["einheit"] == "monatlich" and _zahl(p["preis"])]
-    alle = [endpreis(p) for p in f["positionen"] if _zahl(p["preis"])]
+    alle = [endpreis(p) for p in f["positionen"] if _zahl(p["preis"]) and not _alternativ(p)]  # Alternativen zählen nicht mit
     netto = round(sum(monatlich) if monatlich else sum(alle), 2)
     mwst = round(netto * MWST, 2)
     return netto, mwst, round(netto + mwst, 2)
@@ -372,6 +400,19 @@ def lv_mit_editor(v, felder, kalk):
             teile.append(f"{LV_NAME[key]}: {boden if boden not in ('', '-') else max(werte, key=werte.count)}")
         if teile:
             v["Haeufigkeit"] = "<br>".join(teile)
+    # Varianten (Leistung mit Einheit „… (Alternative)“): Kasten oben im LV, Zeilen „nur Variante A“
+    pos = f.get("positionen") or []
+    var = varianten(pos)
+    v["Varianten"] = [{"name": f"Variante {b}", "text": VARIANTE_VORNE.sub("", _txt(pos[i].get("text"))) or "–"}
+                      for i, b in sorted(var.items(), key=lambda x: x[1])]
+    nur_a = (kalk or {}).get("lv_nur_a") if isinstance((kalk or {}).get("lv_nur_a"), list) else []
+    v["Varianten_nur_a"] = False
+    if v["Varianten"]:
+        for name in nur_a:
+            if name in LV_ZEILEN:
+                h = _txt(v.get(name))
+                v[name] = (h + " (nur Variante A)") if h not in ("", "-") else "nur Variante A"
+                v["Varianten_nur_a"] = True
     return v
 
 
