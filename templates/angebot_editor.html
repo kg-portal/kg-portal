@@ -142,6 +142,15 @@
 .kgae-lvz-zeile select.kgae-in { width: 150px; flex: none; padding: 5px 8px; font-size: 12.5px; }
 .kgae-lvz-zeile select.anders { border-color: #f59e0b; background: #fffbeb; }
 @media (max-width: 760px) { .kgae-lvz-raster { grid-template-columns: 1fr; } .kgae-lvz-zeile select.kgae-in { width: 130px; } }
+/* Leistungsverzeichnis – Extra: eigene Punkte, erscheinen unten im LV (eine Zeile = ein Punkt) */
+.kgae-lvx { margin-top: 10px; padding: 10px 12px; border-radius: 14px; background: #fff; border: 1px solid #e2e8f0; }
+.kgae-lvx-kopf { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; font-size: 14px; }
+.kgae-lvx-kopf span { font-size: 12px; font-weight: 700; color: var(--grau); }
+.kgae-lvx-felder { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px 16px; margin-top: 10px; }
+.kgae-lvx-felder label { display: block; }
+.kgae-lvx-felder label b { display: block; margin-bottom: 4px; font-size: 12px; font-weight: 900; color: var(--b1); }
+.kgae-lvx-felder textarea.kgae-in { min-height: 74px; resize: vertical; padding: 8px 10px; font-size: 13.5px; line-height: 1.4; }
+@media (max-width: 760px) { .kgae-lvx-felder { grid-template-columns: 1fr; } }
 .kgae-stueck > div { padding: 9px 11px; border-radius: 14px; background: #fff; border: 1px solid #e2e8f0; box-shadow: 0 10px 20px -18px rgba(15, 23, 42, .55); }
 .kgae-stueck .kgae-in { padding: 7px 8px; text-align: center; font-size: 16px; font-weight: 900; background: #f1f5f9; border-color: transparent; }
 /* Sonderleistungen nach m² */
@@ -420,6 +429,13 @@ a.kgae-knopf { display: inline-block; text-decoration: none; }
                         <summary><b>Leistungsverzeichnis – einzelne Zeilen</b><span>Standard: wie der Bereich oben · hier abweichend wählen (z. B. Elektro „keine“, Papierkörbe 3x)</span></summary>
                         <div class="kgae-lvz-raster" id="kgaeLvzRaster"></div>
                     </details>
+                    <div class="kgae-lvx" id="kgaeLvx">
+                        <div class="kgae-lvx-kopf"><b>Leistungsverzeichnis – Extra</b><span>eigene Punkte · eine Zeile = ein Punkt · optional „| Häufigkeit“ · erscheint unten im LV</span></div>
+                        <div class="kgae-lvx-felder">
+                            <label id="kgaeLvxNormalBox"><b>Extra – Unterhalts-/Büroreinigung</b><textarea class="kgae-in" id="kgaeLvxNormal" rows="3" placeholder="z. B. Kühlschrank auswischen | 1x monatlich"></textarea></label>
+                            <label id="kgaeLvxGrundBox"><b>Extra – Grundreinigung</b><textarea class="kgae-in" id="kgaeLvxGrund" rows="3" placeholder="z. B. Teppichboden shampoonieren"></textarea></label>
+                        </div>
+                    </div>
                     <div class="kgae-kalk">
                         <div class="kgae-kalk-kopf"><b>Kalkulation</b><span>Kosten Posten für Posten · dein Aufschlag · dein Gewinn – alle Werte änderbar</span></div>
                         <div class="kgae-kalk-werte">
@@ -584,6 +600,7 @@ a.kgae-knopf { display: inline-block; text-decoration: none; }
     let posAnzahl = 4;
     function felderSetzen(f) {
         document.querySelectorAll('[data-feld]').forEach(el => { el.value = f[el.dataset.feld] || ''; });
+        lvxSichtbar();
         preislisteZeigen();
         if (f.nr && f.nr_manuell) nrSetzen(f.nr, '', true);
         const posListe = (f.positionen || []).slice(0, POS_MAX);
@@ -690,6 +707,9 @@ a.kgae-knopf { display: inline-block; text-decoration: none; }
         document.querySelectorAll('[data-stueck]').forEach(el => { el.value = st[el.dataset.stueck] ? String(st[el.dataset.stueck]) : ''; });
         kalkAufbauen(kalk);
         lvzAufbauen(kalk.lv || {});
+        const lx = kalk.lv_extra || {};
+        $('kgaeLvxNormal').value = lx.normal || ''; $('kgaeLvxGrund').value = lx.grund || '';
+        lvxSichtbar();
         $('kgaeAufmassQuelle').textContent = am.scan ? 'Flächen aus KG Scan' : (am.bereiche.some(b => b.m2) ? 'Flächen aus der Besichtigung' : 'Flächen bitte eintragen');
         rechnen();
     }
@@ -730,6 +750,11 @@ a.kgae-knopf { display: inline-block; text-decoration: none; }
         $('kgaeLvzRaster').querySelectorAll('select').forEach(sel => sel.addEventListener('change', () => sel.classList.toggle('anders', !!sel.value)));
         if (Object.keys(lv).some(x => lv[x])) $('kgaeLvz').open = true;
     }
+    // „Extra – Grundreinigung“ nur, wenn die Leistungsart eine Grundreinigung enthält (oder dort schon etwas steht)
+    function lvxSichtbar() {
+        const la = ($('kgae_leistungsart').value || '').toLowerCase();
+        $('kgaeLvxGrundBox').hidden = la.indexOf('grundreinigung') < 0 && !$('kgaeLvxGrund').value.trim();
+    }
     function lvzLesen() {
         const aus = {};
         document.querySelectorAll('#kgaeLvzRaster [data-lvz]').forEach(sel => { if (sel.value) aus[sel.dataset.lvz] = sel.value; });
@@ -745,6 +770,7 @@ a.kgae-knopf { display: inline-block; text-decoration: none; }
             aufschlag: wert('kgaeAuf', kk().aufschlag),
             sonder: sonderLesen(),
             lv: lvzLesen(),
+            lv_extra: { normal: $('kgaeLvxNormal').value, grund: $('kgaeLvxGrund').value },
             ergebnis: ergebnis
         };
     }
@@ -1310,6 +1336,7 @@ a.kgae-knopf { display: inline-block; text-decoration: none; }
     // Leistungsart: fertige Liste (aus der Besichtigung vorbelegt), Text bleibt änderbar; „+“ hängt eine zweite Leistung an
     const LEISTUNGSARTEN = ['Unterhaltsreinigung', 'Büroreinigung', 'Praxisreinigung', 'Treppenhausreinigung', 'Grundreinigung', 'Bauendreinigung', 'Fensterreinigung', 'Jalousienreinigung'];
     const laFeld = $('kgae_leistungsart'), laListe = $('kgaeLaListe');
+    laFeld.addEventListener('input', lvxSichtbar);
     function laZeigen() {
         const jetzt = laFeld.value.trim();
         laListe.innerHTML = LEISTUNGSARTEN.map(x => '<button type="button" role="option" data-la="' + esc(x) + '"' + (jetzt === x ? ' class="an"' : '') + '><span><b>' + esc(x) + '</b></span>' +
