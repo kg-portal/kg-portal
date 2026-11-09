@@ -28,8 +28,8 @@
 <div class="lo-wrap">
   <div class="lo-head">
     <h1>💶 Lohnabrechnungen versenden</h1>
-    <p>Sammel-PDF hochladen → jede Seite wird über den Namen dem Mitarbeiter zugeordnet → jeder bekommt ein eigenes PDF mit Passwort
-       (Geburtsdatum TTMMJJJJ). Erst prüfen, dann senden. Nichts geht automatisch raus.</p>
+    <p>Sammel-PDF hochladen → jede Seite wird über den Namen dem Mitarbeiter zugeordnet → jeder bekommt ein eigenes PDF.
+       Erst prüfen, dann senden. Nichts geht automatisch raus.</p>
   </div>
 
   <div class="lo-card">
@@ -44,11 +44,10 @@
 
   <div class="lo-card">
     <h2>2. Prüfen und senden</h2>
-    <p class="lo-hint">„PDF“ lädt die verschlüsselte Datei zur Kontrolle (Passwort: Geburtsdatum TTMMJJJJ). Fehlt das Geburtsdatum,
-      kann ein Passwort von Hand gesetzt werden – das teilst du dem Mitarbeiter dann selbst mit.</p>
+    <p class="lo-hint">„PDF“ lädt die Datei zur Kontrolle – vor dem Senden kurz ansehen.</p>
     <div class="lo-tablewrap">
       <table class="lo-table">
-        <thead><tr><th><input type="checkbox" id="loAll" aria-label="Alle auswählen"></th><th>Mitarbeiter</th><th>Seiten</th><th>E-Mail</th><th>Passwort</th><th>Status</th><th></th></tr></thead>
+        <thead><tr><th><input type="checkbox" id="loAll" aria-label="Alle auswählen"></th><th>Mitarbeiter</th><th>Seiten</th><th>E-Mail</th><th>Status</th><th></th></tr></thead>
         <tbody id="loRows"><tr><td colspan="7">Noch nichts hochgeladen.</td></tr></tbody>
       </table>
     </div>
@@ -76,7 +75,6 @@
     $("loRows").innerHTML = rows.length ? rows.map((e) => `<tr data-id="${e.worker_id}">
       <td>${e.status === "bereit" ? '<input type="checkbox" class="lo-sel" aria-label="auswählen">' : ""}</td>
       <td><b>${esc(e.name)}</b></td><td>${esc(e.seiten)}${e.korrektur ? "<br><small style='color:#b45309;font-weight:700'>inkl. Korrektur: " + esc(e.korrektur) + "</small>" : ""}</td><td>${esc(e.email || "—")}</td>
-      <td>${e.status === "passwort_fehlt" ? '<input class="lo-in lo-pw" placeholder="Passwort" style="width:130px"> <button class="lo-btn grey lo-setpw">Setzen</button>' : esc(e.passwort_quelle || "")}</td>
       <td><span class="lo-pill p-${e.status}">${STATUS[e.status] || esc(e.status)}</span>${e.gesendet_am ? "<br><small>" + esc(e.gesendet_am.replace("T", " ").slice(0, 16)) + "</small>" : ""}${e.fehler ? "<br><small style='color:#b91c1c'>" + esc(e.fehler) + "</small>" : ""}</td>
       <td>${e.status !== "gesendet" ? `<a class="lo-btn grey" style="text-decoration:none;display:inline-block" href="/api/lohn/datei/${e.worker_id}?monat=${$("loMonat").value}">PDF</a>` : ""}</td>
     </tr>`).join("") : '<tr><td colspan="7">Für diesen Monat nichts vorhanden.</td></tr>';
