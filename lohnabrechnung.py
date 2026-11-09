@@ -308,6 +308,26 @@ def register_lohnabrechnung(app, login_required, get_db_connection):
         finally:
             conn.close()
 
+    @app.route("/api/lohn/nochmal/<int:worker_id>", methods=["POST"])
+    @login_required
+    def lohn_nochmal(worker_id):
+        """Schon gesendete Abrechnung wieder freigeben (z. B. Mail kam zurück) – danach normal mit „Ausgewählte senden“."""
+        monat = (request.get_json(silent=True) or {}).get("monat", "")
+        if not _monat_ok(monat):
+            return jsonify({"success": False, "error": "Monat fehlt."}), 400
+        conn = _conn()
+        try:
+            row = conn.execute("SELECT * FROM lohn_versand WHERE monat = ? AND worker_id = ?", (monat, worker_id)).fetchone()
+            if not row or row["status"] != "gesendet":
+                return jsonify({"success": False, "error": "Nicht gesendet."}), 409
+            da = bool(row["datei"]) and os.path.exists(row["datei"])
+            # Datei noch da → „bereit“; sonst „datei_fehlt“ – das nächste „Hochladen & aufteilen“ legt sie neu an
+            conn.execute("UPDATE lohn_versand SET status = ?, fehler = NULL WHERE id = ?", ("bereit" if da else "datei_fehlt", row["id"]))
+            conn.commit()
+            return jsonify({"success": True, "status": "bereit" if da else "datei_fehlt"})
+        finally:
+            conn.close()
+
     @app.route("/api/lohn/datei/<int:worker_id>")
     @login_required
     def lohn_datei(worker_id):
