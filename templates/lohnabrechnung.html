@@ -63,7 +63,7 @@
 (function () {
   const $ = (id) => document.getElementById(id);
   const esc = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
-  const STATUS = { bereit: "bereit", gesendet: "gesendet", passwort_fehlt: "Passwort fehlt", email_fehlt: "E-Mail fehlt" };
+  const STATUS = { bereit: "bereit", gesendet: "gesendet", passwort_fehlt: "Passwort fehlt", email_fehlt: "E-Mail fehlt", datei_fehlt: "PDF neu hochladen" };
   const d0 = new Date(); d0.setMonth(d0.getMonth() - 1);
   $("loMonat").value = d0.getFullYear() + "-" + String(d0.getMonth() + 1).padStart(2, "0");
   const msg = (el, t, ok) => { $(el).className = "lo-msg " + (ok ? "ok" : "err"); $(el).textContent = t; };
@@ -75,8 +75,8 @@
     $("loRows").innerHTML = rows.length ? rows.map((e) => `<tr data-id="${e.worker_id}">
       <td>${e.status === "bereit" ? '<input type="checkbox" class="lo-sel" aria-label="auswählen">' : ""}</td>
       <td><b>${esc(e.name)}</b></td><td>${esc(e.seiten)}${e.korrektur ? "<br><small style='color:#b45309;font-weight:700'>inkl. Korrektur: " + esc(e.korrektur) + "</small>" : ""}</td><td>${esc(e.email || "—")}</td>
-      <td><span class="lo-pill p-${e.status}">${STATUS[e.status] || esc(e.status)}</span>${e.gesendet_am ? "<br><small>" + esc(e.gesendet_am.replace("T", " ").slice(0, 16)) + "</small>" : ""}${e.fehler ? "<br><small style='color:#b91c1c'>" + esc(e.fehler) + "</small>" : ""}</td>
-      <td>${e.status !== "gesendet" ? `<a class="lo-btn grey" style="text-decoration:none;display:inline-block" href="/api/lohn/datei/${e.worker_id}?monat=${$("loMonat").value}">PDF</a>` : ""}</td>
+      <td><span class="lo-pill p-${e.status}">${STATUS[e.status] || esc(e.status)}</span>${e.gesendet_am ? "<br><small>" + (e.status === "gesendet" ? "" : "zuletzt gesendet ") + esc(e.gesendet_am.replace("T", " ").slice(0, 16)) + "</small>" : ""}${e.fehler ? "<br><small style='color:#b91c1c'>" + esc(e.fehler) + "</small>" : ""}</td>
+      <td>${e.status !== "gesendet" ? `<a class="lo-btn grey" style="text-decoration:none;display:inline-block" href="/api/lohn/datei/${e.worker_id}?monat=${$("loMonat").value}">PDF</a>` : '<button class="lo-btn grey lo-nochmal" title="Mail kam zurück o. Ä.: wieder freigeben, dann mit „Ausgewählte senden“ verschicken">↻ Nochmal senden</button>'}</td>
     </tr>`).join("") : '<tr><td colspan="7">Für diesen Monat nichts vorhanden.</td></tr>';
   }
 
@@ -97,6 +97,19 @@
   };
 
   $("loRows").addEventListener("click", async (ev) => {
+    const n = ev.target.closest(".lo-nochmal");
+    if (n) {
+      const tr = n.closest("tr");
+      if (!confirm(tr.querySelector("b").textContent + ": Lohnabrechnung wieder freigeben?\nDanach anhaken und „Ausgewählte senden“ drücken.")) return;
+      n.disabled = true;
+      try {
+        const r = await fetch("/api/lohn/nochmal/" + tr.dataset.id, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ monat: $("loMonat").value }) });
+        const d = await r.json(); if (!d.success) throw new Error(d.error);
+        if (d.status === "datei_fehlt") msg("loMsg2", "Die Datei ist nicht mehr da – bitte die Sammel-PDF noch einmal hochladen.", false);
+        await liste();
+      } catch (e) { msg("loMsg2", e.message, false); n.disabled = false; }
+      return;
+    }
     const b = ev.target.closest(".lo-setpw"); if (!b) return;
     const tr = b.closest("tr");
     try {
