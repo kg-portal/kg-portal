@@ -29,7 +29,9 @@ MONATE = ("Januar", "Februar", "März", "April", "Mai", "Juni", "Juli", "August"
 
 
 def _fold(text):
-    text = unicodedata.normalize("NFKD", str(text or "")).encode("ascii", "ignore").decode("ascii")
+    # türkisches ı (ohne Punkt) und ß haben keine Zerlegung – sonst fiele „Fındık“ zu „fndk“
+    text = str(text or "").replace("ı", "i").replace("ß", "ss")
+    text = unicodedata.normalize("NFKD", text).encode("ascii", "ignore").decode("ascii")
     return re.sub(r"[^a-z0-9 ]+", " ", text.lower())
 
 
@@ -64,6 +66,8 @@ def ensure_tables(conn):
             UNIQUE (monat, worker_id)
         )
     """)
+    if "korrektur" not in {r[1] for r in conn.execute("PRAGMA table_info(lohn_versand)")}:
+        conn.execute("ALTER TABLE lohn_versand ADD COLUMN korrektur TEXT")  # z. B. „August 2026, September 2026“
     conn.commit()
 
 
@@ -74,10 +78,11 @@ def monat_name(monat):
 
 
 def name_aus_seite(text):
-    """Wie ayirici.py: Name aus der Zeile „Abrechnung für … - Name“, sonst „Auszahlung an: Name“ (sonst leer)."""
+    """Wie ayirici.py: Name aus der Zeile „Abrechnung für … - Name“ (auch „Korrekturabrechnung für … - Name“),
+    sonst „Auszahlung an: Name“ (sonst leer)."""
     zeilen = str(text or "").split("\n")
     for z in zeilen:
-        if "Abrechnung für" in z and "-" in z:
+        if "abrechnung für" in z.lower() and "-" in z:
             name = z.split("-", 1)[1].strip()
             if name:
                 return name
@@ -89,21 +94,31 @@ def name_aus_seite(text):
     return ""
 
 
+def korrektur_monat(text):
+    """„Korrekturabrechnung für August 2026 - Name“ → „August 2026“ (sonst leer)."""
+    m = re.search(r"Korrekturabrechnung für\s+(\S+\s+\d{4})", str(text or ""), re.I)
+    return m.group(1) if m else ""
+
+
 def _woerter(text):
     return set(_fold(text).split())
 
 
 def _passende(woerter, mitarbeiter):
-    """Mitarbeiter, deren Vor- und Nachname (alle Wörter) in woerter stehen; bei mehreren der mit den meisten Wörtern."""
+    """Mitarbeiter, deren Vor- und Nachname (alle Wörter) in woerter stehen; bei mehreren der mit den meisten Wörtern,
+    bei gleichem Namen zuerst die aktiven (z. B. alter, ausgetretener Eintrag mit demselben Namen)."""
     treffer = []
     for m in mitarbeiter:
         eigene = _woerter(m["vorname"]) | _woerter(m["nachname"])
         if _woerter(m["nachname"]) and eigene <= woerter:
-            treffer.append((len(eigene), m["id"]))
+            treffer.append((len(eigene), m.get("status") == "aktiv", m["id"]))
     if not treffer:
         return []
     beste = max(t[0] for t in treffer)
-    return [mid for n, mid in treffer if n == beste]
+    treffer = [t for t in treffer if t[0] == beste]
+    if len(treffer) > 1 and any(t[1] for t in treffer):
+        treffer = [t for t in treffer if t[1]]
+    return [t[2] for t in treffer]
 
 
 def seiten_zuordnen(texte, mitarbeiter):
@@ -123,9 +138,12 @@ def seiten_zuordnen(texte, mitarbeiter):
     return zuordnung, unklar
 
 
-def mail_inhalt(monat_text, passwort_hinweis):
-    """Text und HTML wie in gonder.py (Signatur Damla Kicci), dazu der Hinweis zum Passwort der PDF."""
-    text = (f"Guten Tag,\n\nhiermit erhalten Sie Ihre Lohnabrechnung für den Monat {monat_text}.\n\n{passwort_hinweis}\n\n"
+def mail_inhalt(monat_text, passwort_hinweis, korrektur=""):
+    """Text und HTML wie in gonder.py (Signatur Damla Kicci), dazu der Hinweis zum Passwort der PDF und ggf. zu den
+    enthaltenen Korrekturabrechnungen früherer Monate."""
+    k_text = f"Zusätzlich enthalten: Korrekturabrechnung für {korrektur}.\n\n" if korrektur else ""
+    k_html = f"Zusätzlich enthalten: Korrekturabrechnung für <b>{korrektur}</b>.<br><br>\n    " if korrektur else ""
+    text = (f"Guten Tag,\n\nhiermit erhalten Sie Ihre Lohnabrechnung für den Monat {monat_text}.\n\n{k_text}{passwort_hinweis}\n\n"
             "Bei Fragen stehe ich Ihnen gern zur Verfügung.\n\nVielen Dank.\n\nMit freundlichen Grüßen\n\n--\n\n"
             "Damla Kicci\nInhaberin\nKG-Gebäudereinigung\nFliederstr. 59\n47055 Duisburg - Wanheimerort\n\n"
             "0203 / 47 96 68 22\n0163 / 194 70 55\ninfo@kg-reinigung.de\nwww.kg-reinigung.de\n")
@@ -133,7 +151,7 @@ def mail_inhalt(monat_text, passwort_hinweis):
   <body style="font-family:Arial,Helvetica,sans-serif;font-size:14px;color:#000;">
     Guten Tag,<br><br>
     hiermit erhalten Sie Ihre Lohnabrechnung für den Monat <b>{monat_text}</b>.<br><br>
-    {passwort_hinweis}<br><br>
+    {k_html}{passwort_hinweis}<br><br>
     Bei Fragen stehe ich Ihnen gern zur Verfügung.<br><br>
     Vielen Dank.<br><br>
     Mit freundlichen Grüßen<br><br>
@@ -220,8 +238,9 @@ def register_lohnabrechnung(app, login_required, get_db_connection):
 
         conn = _conn()
         try:
+            # alle Mitarbeiter – auch ausgetretene bekommen ihre letzte Abrechnung; bei gleichem Namen zählt der aktive
             mitarbeiter = [dict(r) for r in conn.execute(
-                "SELECT id, vorname, nachname, email, geburtsdatum FROM mitarbeiter WHERE status = 'aktiv'")]
+                "SELECT id, vorname, nachname, email, geburtsdatum, status FROM mitarbeiter")]
             zuordnung, unklar = seiten_zuordnen(texte, mitarbeiter)
             ordner = _ordner(monat)
             if os.path.isdir(ordner):
@@ -249,11 +268,12 @@ def register_lohnabrechnung(app, login_required, get_db_connection):
                     writer.write(fh)
                 if not (m.get("email") or "").strip():
                     status = "email_fehlt" if status == "bereit" else status
+                korr = ", ".join(k for k in (korrektur_monat(texte[nr]) for nr in seiten) if k)
                 conn.execute(
-                    "INSERT OR REPLACE INTO lohn_versand (monat, worker_id, seiten, datei, email, passwort_quelle, status, erstellt_am) "
-                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+                    "INSERT OR REPLACE INTO lohn_versand (monat, worker_id, seiten, datei, email, passwort_quelle, status, erstellt_am, "
+                    "korrektur) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
                     (monat, m["id"], ",".join(str(n + 1) for n in seiten), pfad, (m.get("email") or "").strip(), quelle, status,
-                     datetime.now().isoformat(timespec="seconds")))
+                     datetime.now().isoformat(timespec="seconds"), korr or None))
                 ergebnis.append(m["id"])
             conn.commit()
             return jsonify({"success": True, "seiten": len(texte), "mitarbeiter": len(ergebnis), "unklar": unklar})
@@ -344,7 +364,7 @@ def register_lohnabrechnung(app, login_required, get_db_connection):
                     hinweis = ("Die PDF ist mit einem Passwort geschützt: Ihr Geburtsdatum im Format TTMMJJJJ (z. B. 07031990)."
                                if (row["passwort_quelle"] or "").startswith("Geburtsdatum") else
                                "Die PDF ist mit einem Passwort geschützt, das wir Ihnen separat mitteilen.")
-                    text, html = mail_inhalt(monat_text, hinweis)
+                    text, html = mail_inhalt(monat_text, hinweis, row["korrektur"] or "")
                     name = re.sub(r'[\\/:*?"<>|]', "", f"{row['vorname'] or ''} {row['nachname'] or ''}".strip()) or str(wid)
                     _senden(row["email"], f"Lohnabrechnung {monat_text}", text, html, pdf, f"{name} Lohnabrechnung {monat_text}.pdf")
                     conn.execute("UPDATE lohn_versand SET status = 'gesendet', gesendet_am = ?, fehler = NULL WHERE id = ?",
