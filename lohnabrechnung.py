@@ -243,9 +243,12 @@ def register_lohnabrechnung(app, login_required, get_db_connection):
                 "SELECT id, vorname, nachname, email, geburtsdatum, status FROM mitarbeiter")]
             zuordnung, unklar = seiten_zuordnen(texte, mitarbeiter)
             ordner = _ordner(monat)
-            if os.path.isdir(ordner):
-                shutil.rmtree(ordner)
             os.makedirs(ordner, exist_ok=True)
+            # nur die Dateien der noch nicht gesendeten Einträge ersetzen – gesendete bleiben (für „Nochmal senden“)
+            for (alt,) in conn.execute("SELECT datei FROM lohn_versand WHERE monat = ? AND status <> 'gesendet' AND datei IS NOT NULL",
+                                       (monat,)).fetchall():
+                if os.path.isfile(alt) and os.path.dirname(os.path.abspath(alt)) == os.path.abspath(ordner):
+                    os.remove(alt)
             conn.execute("DELETE FROM lohn_versand WHERE monat = ? AND status <> 'gesendet'", (monat,))
             ergebnis = []
             for m in mitarbeiter:
