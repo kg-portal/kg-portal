@@ -1,14 +1,12 @@
 # =====================================================
 # LOHNABRECHNUNGEN VERSENDEN
 # Sammel-PDF (z. B. aus Lexware/DATEV) hochladen → Seiten werden anhand der
-# Namen den Mitarbeitern zugeordnet → je Mitarbeiter ein eigenes PDF mit
-# Passwort (AES-256) → Vorschau prüfen → erst nach Klick per KG-Mail senden.
+# Namen den Mitarbeitern zugeordnet → je Mitarbeiter ein eigenes PDF (ohne Passwort,
+# wie gonder.py) → Vorschau prüfen → erst nach Klick per KG-Mail senden.
 # Wie Murats Programme ayirici.py / gonder.py: Name je Seite aus „Abrechnung für … - Name“
 # oder „Auszahlung an: Name“; Seiten ohne Namen werden NICHT angehängt (nur „bitte prüfen“);
-# Betreff „Lohnabrechnung Oktober 2026“, Text und Signatur wie in gonder.py (+ Hinweis Passwort).
+# Betreff „Lohnabrechnung Oktober 2026“, Text und Signatur wie in gonder.py (ohne Passwort).
 #
-# Passwort: Geburtsdatum des Mitarbeiters im Format TTMMJJJJ (z. B. 07031990).
-# Ohne Geburtsdatum kann ein Passwort von Hand gesetzt werden.
 # Dateien liegen unter data/lohn/<Monat>/ und können gelöscht werden.
 # =====================================================
 import base64
@@ -143,7 +141,9 @@ def mail_inhalt(monat_text, passwort_hinweis, korrektur=""):
     enthaltenen Korrekturabrechnungen früherer Monate."""
     k_text = f"Zusätzlich enthalten: Korrekturabrechnung für {korrektur}.\n\n" if korrektur else ""
     k_html = f"Zusätzlich enthalten: Korrekturabrechnung für <b>{korrektur}</b>.<br><br>\n    " if korrektur else ""
-    text = (f"Guten Tag,\n\nhiermit erhalten Sie Ihre Lohnabrechnung für den Monat {monat_text}.\n\n{k_text}{passwort_hinweis}\n\n"
+    p_text = f"{passwort_hinweis}\n\n" if passwort_hinweis else ""
+    p_html = f"{passwort_hinweis}<br><br>\n    " if passwort_hinweis else ""
+    text = (f"Guten Tag,\n\nhiermit erhalten Sie Ihre Lohnabrechnung für den Monat {monat_text}.\n\n{k_text}{p_text}"
             "Bei Fragen stehe ich Ihnen gern zur Verfügung.\n\nVielen Dank.\n\nMit freundlichen Grüßen\n\n--\n\n"
             "Damla Kicci\nInhaberin\nKG-Gebäudereinigung\nFliederstr. 59\n47055 Duisburg - Wanheimerort\n\n"
             "0203 / 47 96 68 22\n0163 / 194 70 55\ninfo@kg-reinigung.de\nwww.kg-reinigung.de\n")
@@ -151,7 +151,7 @@ def mail_inhalt(monat_text, passwort_hinweis, korrektur=""):
   <body style="font-family:Arial,Helvetica,sans-serif;font-size:14px;color:#000;">
     Guten Tag,<br><br>
     hiermit erhalten Sie Ihre Lohnabrechnung für den Monat <b>{monat_text}</b>.<br><br>
-    {k_html}{passwort_hinweis}<br><br>
+    {k_html}{p_html}
     Bei Fragen stehe ich Ihnen gern zur Verfügung.<br><br>
     Vielen Dank.<br><br>
     Mit freundlichen Grüßen<br><br>
@@ -258,11 +258,7 @@ def register_lohnabrechnung(app, login_required, get_db_connection):
                 writer = PdfWriter()
                 for nr in seiten:
                     writer.add_page(reader.pages[nr])
-                pw = _passwort_aus_geburtsdatum(m.get("geburtsdatum"))
-                quelle = "Geburtsdatum (TTMMJJJJ)" if pw else ""
-                status = "bereit" if pw else "passwort_fehlt"
-                if pw:
-                    writer.encrypt(user_password=pw, owner_password=secrets.token_urlsafe(18), algorithm="AES-256")
+                quelle, status = "", "bereit"  # ohne Passwort (wie gonder.py)
                 pfad = os.path.join(ordner, f"lohn_{m['id']}_{secrets.token_hex(4)}.pdf")
                 with open(pfad, "wb") as fh:
                     writer.write(fh)
@@ -361,9 +357,11 @@ def register_lohnabrechnung(app, login_required, get_db_connection):
                 try:
                     with open(row["datei"], "rb") as fh:
                         pdf = fh.read()
+                    # Passwort-Hinweis nur noch für ältere, schon verschlüsselte Dateien (neu hochgeladene haben keins)
+                    q = row["passwort_quelle"] or ""
                     hinweis = ("Die PDF ist mit einem Passwort geschützt: Ihr Geburtsdatum im Format TTMMJJJJ (z. B. 07031990)."
-                               if (row["passwort_quelle"] or "").startswith("Geburtsdatum") else
-                               "Die PDF ist mit einem Passwort geschützt, das wir Ihnen separat mitteilen.")
+                               if q.startswith("Geburtsdatum") else
+                               "Die PDF ist mit einem Passwort geschützt, das wir Ihnen separat mitteilen." if q else "")
                     text, html = mail_inhalt(monat_text, hinweis, row["korrektur"] or "")
                     name = re.sub(r'[\\/:*?"<>|]', "", f"{row['vorname'] or ''} {row['nachname'] or ''}".strip()) or str(wid)
                     _senden(row["email"], f"Lohnabrechnung {monat_text}", text, html, pdf, f"{name} Lohnabrechnung {monat_text}.pdf")

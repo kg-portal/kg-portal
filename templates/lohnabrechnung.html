@@ -118,15 +118,15 @@
   <div class="lo-head">
     <div class="v2s-eyebrow"><span class="v2s-q"></span>Personal · Lohn</div>
     <h1>💶 Lohnabrechnungen versenden</h1>
-    <p>Sammel-PDF hochladen → jede Seite wird über den Namen dem Mitarbeiter zugeordnet → jeder bekommt ein eigenes PDF mit Passwort
-       (Geburtsdatum TTMMJJJJ). Erst prüfen, dann senden. Nichts geht automatisch raus.</p>
+    <p>Sammel-PDF hochladen → jede Seite wird über den Namen dem Mitarbeiter zugeordnet → jeder bekommt ein eigenes PDF.
+       Erst prüfen, dann senden. Nichts geht automatisch raus.</p>
   </div>
 
   <div class="v2s-kpis" aria-label="Kennzahlen des gewählten Monats">
     <div class="v2s-kpi" style="--v2s-farbe:#7c3aed"><small>Abrechnungen</small><b data-v2s-wert="alle">–</b><span data-v2s-text="alle">im gewählten Monat</span><svg class="v2s-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h4"/></svg><div class="v2s-viz" data-v2s="alle"></div></div>
     <div class="v2s-kpi" style="--v2s-farbe:#16a34a"><small>Gesendet</small><b data-v2s-wert="gesendet">–</b><span data-v2s-text="gesendet">per E-Mail</span><svg class="v2s-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4z"/></svg><div class="v2s-viz" data-v2s="gesendet"></div></div>
-    <div class="v2s-kpi" style="--v2s-farbe:#2563eb"><small>Bereit zum Senden</small><b data-v2s-wert="bereit">–</b><span data-v2s-text="bereit">mit Passwort und E-Mail</span><svg class="v2s-ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8.5 12.5 2.5 2.5 5-5.5"/></svg><div class="v2s-viz" data-v2s="bereit"></div></div>
-    <div class="v2s-kpi" style="--v2s-farbe:#e11d48"><small>Fehlt noch</small><b data-v2s-wert="fehlt">–</b><span data-v2s-text="fehlt">Passwort oder E-Mail</span><svg class="v2s-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4M12 17h.01"/></svg><div class="v2s-viz" data-v2s="fehlt"></div></div>
+    <div class="v2s-kpi" style="--v2s-farbe:#2563eb"><small>Bereit zum Senden</small><b data-v2s-wert="bereit">–</b><span data-v2s-text="bereit">mit E-Mail</span><svg class="v2s-ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8.5 12.5 2.5 2.5 5-5.5"/></svg><div class="v2s-viz" data-v2s="bereit"></div></div>
+    <div class="v2s-kpi" style="--v2s-farbe:#e11d48"><small>Fehlt noch</small><b data-v2s-wert="fehlt">–</b><span data-v2s-text="fehlt">E-Mail fehlt</span><svg class="v2s-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4M12 17h.01"/></svg><div class="v2s-viz" data-v2s="fehlt"></div></div>
   </div>
 
   <div class="lo-card">
@@ -141,11 +141,10 @@
 
   <div class="lo-card">
     <h2>2. Prüfen und senden</h2>
-    <p class="lo-hint">„PDF“ lädt die verschlüsselte Datei zur Kontrolle (Passwort: Geburtsdatum TTMMJJJJ). Fehlt das Geburtsdatum,
-      kann ein Passwort von Hand gesetzt werden – das teilst du dem Mitarbeiter dann selbst mit.</p>
+    <p class="lo-hint">„PDF“ lädt die Datei zur Kontrolle – vor dem Senden kurz ansehen.</p>
     <div class="lo-tablewrap">
       <table class="lo-table">
-        <thead><tr><th><input type="checkbox" id="loAll" aria-label="Alle auswählen"></th><th>Mitarbeiter</th><th>Seiten</th><th>E-Mail</th><th>Passwort</th><th>Status</th><th></th></tr></thead>
+        <thead><tr><th><input type="checkbox" id="loAll" aria-label="Alle auswählen"></th><th>Mitarbeiter</th><th>Seiten</th><th>E-Mail</th><th>Status</th><th></th></tr></thead>
         <tbody id="loRows"><tr><td colspan="7">Noch nichts hochgeladen.</td></tr></tbody>
       </table>
     </div>
@@ -173,7 +172,6 @@
     $("loRows").innerHTML = rows.length ? rows.map((e) => `<tr data-id="${e.worker_id}">
       <td>${e.status === "bereit" ? '<input type="checkbox" class="lo-sel" aria-label="auswählen">' : ""}</td>
       <td><b>${esc(e.name)}</b></td><td>${esc(e.seiten)}${e.korrektur ? "<br><small style='color:#b45309;font-weight:700'>inkl. Korrektur: " + esc(e.korrektur) + "</small>" : ""}</td><td>${esc(e.email || "—")}</td>
-      <td>${e.status === "passwort_fehlt" ? '<input class="lo-in lo-pw" placeholder="Passwort" style="width:130px"> <button class="lo-btn grey lo-setpw">Setzen</button>' : esc(e.passwort_quelle || "")}</td>
       <td><span class="lo-pill p-${e.status}">${STATUS[e.status] || esc(e.status)}</span>${e.gesendet_am ? "<br><small>" + esc(e.gesendet_am.replace("T", " ").slice(0, 16)) + "</small>" : ""}${e.fehler ? "<br><small style='color:#b91c1c'>" + esc(e.fehler) + "</small>" : ""}</td>
       <td>${e.status !== "gesendet" ? `<a class="lo-btn grey" style="text-decoration:none;display:inline-block" href="/api/lohn/datei/${e.worker_id}?monat=${$("loMonat").value}">PDF</a>` : ""}</td>
     </tr>`).join("") : '<tr><td colspan="7">Für diesen Monat nichts vorhanden.</td></tr>';
@@ -276,7 +274,7 @@
     text("gesendet", letzte ? "zuletzt " + letzte.slice(8, 10) + "." + letzte.slice(5, 7) + ". · " + letzte.slice(11, 16) + " Uhr" : "per E-Mail");
     if (viz("gesendet")) linie(viz("gesendet"), n ? ges / n : 0, "#16a34a", n ? Math.round(ges / n * 100) + " % versendet" : "keine Einträge");
     wert("bereit", ber);
-    text("bereit", sel ? sel + " ausgewählt" : "mit Passwort und E-Mail");
+    text("bereit", sel ? sel + " ausgewählt" : "mit E-Mail");
     if (viz("bereit")) linie(viz("bereit"), ber ? sel / ber : 0, "#2563eb", ber ? sel + " von " + ber + " ausgewählt" : "nichts zu senden");
     wert("fehlt", pw + em);
     text("fehlt", pw + em ? "bitte ergänzen" : "alles vollständig");
