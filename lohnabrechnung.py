@@ -3,6 +3,9 @@
 # Sammel-PDF (z. B. aus Lexware/DATEV) hochladen → Seiten werden anhand der
 # Namen den Mitarbeitern zugeordnet → je Mitarbeiter ein eigenes PDF mit
 # Passwort (AES-256) → Vorschau prüfen → erst nach Klick per KG-Mail senden.
+# Wie Murats Programme ayirici.py / gonder.py: Name je Seite aus „Abrechnung für … - Name“
+# oder „Auszahlung an: Name“; Seiten ohne Namen werden NICHT angehängt (nur „bitte prüfen“);
+# Betreff „Lohnabrechnung Oktober 2026“, Text und Signatur wie in gonder.py (+ Hinweis Passwort).
 #
 # Passwort: Geburtsdatum des Mitarbeiters im Format TTMMJJJJ (z. B. 07031990).
 # Ohne Geburtsdatum kann ein Passwort von Hand gesetzt werden.
@@ -22,6 +25,7 @@ from email.message import EmailMessage
 from flask import jsonify, render_template, request, send_file
 
 BASIS = os.path.join("data", "lohn")
+MONATE = ("Januar", "Februar", "März", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober", "November", "Dezember")
 
 
 def _fold(text):
@@ -63,27 +67,89 @@ def ensure_tables(conn):
     conn.commit()
 
 
+def monat_name(monat):
+    """„2026-10“ → „Oktober 2026“."""
+    jahr, mon = str(monat).split("-")
+    return f"{MONATE[int(mon) - 1]} {jahr}"
+
+
+def name_aus_seite(text):
+    """Wie ayirici.py: Name aus der Zeile „Abrechnung für … - Name“, sonst „Auszahlung an: Name“ (sonst leer)."""
+    zeilen = str(text or "").split("\n")
+    for z in zeilen:
+        if "Abrechnung für" in z and "-" in z:
+            name = z.split("-", 1)[1].strip()
+            if name:
+                return name
+    for z in zeilen:
+        if "Auszahlung an:" in z:
+            name = z.replace("Auszahlung an:", "").strip()
+            if name:
+                return name
+    return ""
+
+
+def _woerter(text):
+    return set(_fold(text).split())
+
+
+def _passende(woerter, mitarbeiter):
+    """Mitarbeiter, deren Vor- und Nachname (alle Wörter) in woerter stehen; bei mehreren der mit den meisten Wörtern."""
+    treffer = []
+    for m in mitarbeiter:
+        eigene = _woerter(m["vorname"]) | _woerter(m["nachname"])
+        if _woerter(m["nachname"]) and eigene <= woerter:
+            treffer.append((len(eigene), m["id"]))
+    if not treffer:
+        return []
+    beste = max(t[0] for t in treffer)
+    return [mid for n, mid in treffer if n == beste]
+
+
 def seiten_zuordnen(texte, mitarbeiter):
-    """Jede Seite einem Mitarbeiter zuordnen. Seiten ohne Namen gehören zum vorherigen."""
-    zuordnung, aktuell, unklar = {}, None, []
+    """Jede Seite für sich einem Mitarbeiter zuordnen (wie ayirici.py): erst über den Namen aus „Abrechnung für … - Name“ /
+    „Auszahlung an: Name“, sonst über Vor- und Nachname im Seitentext. Seiten ohne eindeutigen Namen (z. B. Lohnjournal,
+    Zusammenfassung) werden niemandem angehängt und als „unklar“ gemeldet."""
+    zuordnung, unklar = {}, []
     for nr, text in enumerate(texte):
-        t = " " + _fold(text) + " "
-        treffer = []
-        for m in mitarbeiter:
-            vn, nn = _fold(m["vorname"]).strip(), _fold(m["nachname"]).strip()
-            if nn and f" {nn} " in t and (not vn or f" {vn} " in t):
-                treffer.append(m["id"])
+        name = name_aus_seite(text)
+        treffer = _passende(_woerter(name), mitarbeiter) if name else []
+        if len(treffer) != 1:
+            treffer = _passende(_woerter(text), mitarbeiter)
         if len(treffer) == 1:
-            aktuell = treffer[0]
-        elif len(treffer) > 1:
+            zuordnung.setdefault(treffer[0], []).append(nr)
+        else:
             unklar.append(nr + 1)
-            aktuell = None
-        if aktuell is None:
-            if not treffer:
-                unklar.append(nr + 1)
-            continue
-        zuordnung.setdefault(aktuell, []).append(nr)
-    return zuordnung, sorted(set(unklar))
+    return zuordnung, unklar
+
+
+def mail_inhalt(monat_text, passwort_hinweis):
+    """Text und HTML wie in gonder.py (Signatur Damla Kicci), dazu der Hinweis zum Passwort der PDF."""
+    text = (f"Guten Tag,\n\nhiermit erhalten Sie Ihre Lohnabrechnung für den Monat {monat_text}.\n\n{passwort_hinweis}\n\n"
+            "Bei Fragen stehe ich Ihnen gern zur Verfügung.\n\nVielen Dank.\n\nMit freundlichen Grüßen\n\n--\n\n"
+            "Damla Kicci\nInhaberin\nKG-Gebäudereinigung\nFliederstr. 59\n47055 Duisburg - Wanheimerort\n\n"
+            "0203 / 47 96 68 22\n0163 / 194 70 55\ninfo@kg-reinigung.de\nwww.kg-reinigung.de\n")
+    html = f"""<html>
+  <body style="font-family:Arial,Helvetica,sans-serif;font-size:14px;color:#000;">
+    Guten Tag,<br><br>
+    hiermit erhalten Sie Ihre Lohnabrechnung für den Monat <b>{monat_text}</b>.<br><br>
+    {passwort_hinweis}<br><br>
+    Bei Fragen stehe ich Ihnen gern zur Verfügung.<br><br>
+    Vielen Dank.<br><br>
+    Mit freundlichen Grüßen<br><br>
+    --<br><br>
+    <b>Damla Kicci</b><br>
+    Inhaberin<br>
+    KG-Gebäudereinigung<br>
+    Fliederstr. 59<br>
+    47055 Duisburg - Wanheimerort<br><br>
+    0203 / 47 96 68 22<br>
+    0163 / 194 70 55<br>
+    <a href="mailto:info@kg-reinigung.de">info@kg-reinigung.de</a><br>
+    <a href="https://www.kg-reinigung.de">www.kg-reinigung.de</a>
+  </body>
+</html>"""
+    return text, html
 
 
 def _pdf_lib():
@@ -240,13 +306,14 @@ def register_lohnabrechnung(app, login_required, get_db_connection):
         return send_file(os.path.abspath(row["datei"]), mimetype="application/pdf", as_attachment=True,
                          download_name=f"Lohnabrechnung_{monat}_{worker_id}.pdf")
 
-    def _senden(empfaenger, betreff, text, pdf_bytes, dateiname):
+    def _senden(empfaenger, betreff, text, html, pdf_bytes, dateiname):
         import app2
         msg = EmailMessage()
         msg["From"] = "KG-Gebäudereinigung <info@kg-reinigung.de>"
         msg["To"] = empfaenger
         msg["Subject"] = betreff
         msg.set_content(text)
+        msg.add_alternative(html, subtype="html")
         msg.add_attachment(pdf_bytes, maintype="application", subtype="pdf", filename=dateiname)
         raw = base64.urlsafe_b64encode(msg.as_bytes()).decode("utf-8")
         sent = app2.get_gmail_service().users().messages().send(userId="me", body={"raw": raw}).execute()
@@ -260,7 +327,7 @@ def register_lohnabrechnung(app, login_required, get_db_connection):
         ids = [int(x) for x in (d.get("worker_ids") or []) if str(x).isdigit()]
         if not _monat_ok(monat) or not ids:
             return jsonify({"success": False, "error": "Monat und Mitarbeiter auswählen."}), 400
-        monat_text = datetime.strptime(monat, "%Y-%m").strftime("%m/%Y")
+        monat_text = monat_name(monat)  # „Oktober 2026“ wie in gonder.py
         conn = _conn()
         bericht = []
         try:
@@ -274,15 +341,12 @@ def register_lohnabrechnung(app, login_required, get_db_connection):
                 try:
                     with open(row["datei"], "rb") as fh:
                         pdf = fh.read()
-                    hinweis = ("Das Passwort ist Ihr Geburtsdatum im Format TTMMJJJJ (z. B. 07031990)."
-                               if row["passwort_quelle"].startswith("Geburtsdatum") else
-                               "Das Passwort teilen wir Ihnen separat mit.")
-                    text = (f"Hallo {row['vorname'] or ''},\n\n"
-                            f"anbei Ihre Lohnabrechnung für {monat_text}. Die PDF ist mit einem Passwort geschützt.\n"
-                            f"{hinweis}\n\nBei Fragen melden Sie sich gern.\n\n"
-                            "Viele Grüße\nKG-Gebäudereinigung\nFliederstr. 59, 47055 Duisburg · 0203 47966822")
-                    _senden(row["email"], f"Ihre Lohnabrechnung {monat_text}", text, pdf,
-                            f"Lohnabrechnung_{monat}_{_fold(row['nachname']).strip().replace(' ', '_') or wid}.pdf")
+                    hinweis = ("Die PDF ist mit einem Passwort geschützt: Ihr Geburtsdatum im Format TTMMJJJJ (z. B. 07031990)."
+                               if (row["passwort_quelle"] or "").startswith("Geburtsdatum") else
+                               "Die PDF ist mit einem Passwort geschützt, das wir Ihnen separat mitteilen.")
+                    text, html = mail_inhalt(monat_text, hinweis)
+                    name = re.sub(r'[\\/:*?"<>|]', "", f"{row['vorname'] or ''} {row['nachname'] or ''}".strip()) or str(wid)
+                    _senden(row["email"], f"Lohnabrechnung {monat_text}", text, html, pdf, f"{name} Lohnabrechnung {monat_text}.pdf")
                     conn.execute("UPDATE lohn_versand SET status = 'gesendet', gesendet_am = ?, fehler = NULL WHERE id = ?",
                                  (datetime.now().isoformat(timespec="seconds"), row["id"]))
                     bericht.append({"worker_id": wid, "ok": True})
