@@ -1970,8 +1970,8 @@ document.addEventListener('DOMContentLoaded', function () {
 .rc-tag.ende { background:#fee2e2; color:#b91c1c; }
 .rc-betrag { flex:none; min-width:100px; text-align:right; font-weight:900; color:#0f1d4a; font-variant-numeric:tabular-nums; }
 .rc-aktion { flex:none; display:flex; align-items:center; justify-content:flex-end; gap:8px; min-width:190px; }
-.rc-knopf { border:0; border-radius:12px; padding:9px 16px; font-weight:800; font-size:13px; color:#fff; background:linear-gradient(135deg,#183a91,#2563eb); cursor:pointer; box-shadow:0 8px 18px rgba(37,99,235,.25); }
-.rc-knopf:hover { filter:brightness(1.08); }
+.rc-knopf { border:1.5px solid #93b4f5; border-radius:12px; padding:8px 14px; font-weight:800; font-size:13px; color:#2563eb; background:transparent; cursor:pointer; box-shadow:none; }
+.rc-knopf:hover { background:rgba(37,99,235,.08); border-color:#2563eb; }
 .rc-knopf:disabled { opacity:.6; cursor:wait; }
 .rc-ok { color:#047857; font-weight:900; font-size:13px; white-space:nowrap; }
 .rc-weg { border:0; background:none; color:#64748b; font-size:12px; font-weight:700; text-decoration:underline; cursor:pointer; padding:2px 4px; }
@@ -2014,7 +2014,7 @@ document.addEventListener('DOMContentLoaded', function () {
         if (k.letzter_monat) tags += '<span class="rc-tag ende">Letzter Monat' + (k.vertrag_ende ? ' · bis ' + esc(k.vertrag_ende) : '') + '</span>';
         var aktion = k.gesendet_am
             ? '<span class="rc-ok">✓ Gesendet am ' + esc(datumKurz(k.gesendet_am)) + '</span><button type="button" class="rc-weg" data-rc-weg="' + k.id + '">Rückgängig</button>'
-            : '<button type="button" class="rc-knopf" data-rc-senden="' + k.id + '">✓ Gesendet</button>';
+            : '<button type="button" class="rc-knopf" data-rc-senden="' + k.id + '">Als gesendet markieren</button>';
         return '<div class="rc-zeile' + (k.gesendet_am ? ' ok' : '') + '" data-rc-zeile="' + k.id + '">' +
             '<span class="rc-av">' + esc((k.firma || '?').charAt(0).toUpperCase()) + '</span>' +
             '<div class="rc-text"><b>' + esc(k.firma) + '</b><small>' + (info.join(' · ') || '&nbsp;') + '</small></div>' +
