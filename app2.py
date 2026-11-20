@@ -1464,6 +1464,16 @@ def register_app2_routes(app, login_required):
                 }
             ]
 
+            # Nur Fenster-/Jalousienreinigung: Leistungsverzeichnis passt nicht → nicht anhängen
+            lv_weggelassen = False
+            try:
+                lv_daten = lv_vars_fuer_angebot(angebot_id_int)
+                lv_weggelassen = bool(lv_daten) and lv_nur_fenster_jalousien(lv_daten.get("Leistungsart"))
+            except Exception as lv_fehler:
+                print("LV-Prüfung (Mail-Anhänge):", lv_fehler)
+            if lv_weggelassen:
+                pdf_jobs = pdf_jobs[:1]
+
             attachments = []
 
             with sync_playwright() as p:
@@ -1520,7 +1530,8 @@ def register_app2_routes(app, login_required):
 
             return jsonify({
                 "ok": True,
-                "attachments": attachments
+                "attachments": attachments,
+                "lv_weggelassen": lv_weggelassen
             })
 
         except Exception as e:
@@ -5883,6 +5894,66 @@ www.kg-reinigung.de
             "Freq_Flur_Boden": freq_flur,
         }
 
+    def lv_vars_fuer_angebot(angebot_id_int):
+        """Daten für das Leistungsverzeichnis eines Angebots (Besichtigung + Angebot-Editor) oder None."""
+        conn = sqlite3.connect(DB_PATH)
+        conn.row_factory = sqlite3.Row
+        row = conn.execute("""
+            SELECT
+                id,
+                firma,
+                branche,
+                strasse,
+                plz,
+                ort,
+                angebot_nr,
+                besichtigung_data_json
+            FROM tagesliste_leads
+            WHERE id = ?
+        """, (angebot_id_int,)).fetchone()
+
+        # Kundenakte: Besichtigung aus der Sicherung, wenn die Tagesliste-Zeile leer oder schon gelöscht ist
+        akte = app.extensions.get("kg_akte")
+        if akte:
+            try:
+                gesichert = akte.besichtigung(conn, angebot_id_int, row["besichtigung_data_json"] if row else None)
+                if gesichert:
+                    zeile = dict(row) if row else None
+                    if zeile is None:
+                        b = conn.execute("""
+                            SELECT tagesliste_id AS id, firma, branche, strasse, plz, ort
+                            FROM tagesliste_status_backup
+                            WHERE tagesliste_id = ?
+                            ORDER BY backup_am DESC
+                            LIMIT 1
+                        """, (angebot_id_int,)).fetchone()
+                        zeile = dict(b) if b else {}
+                    for k in ("id", "firma", "branche", "strasse", "plz", "ort", "angebot_nr"):
+                        zeile.setdefault(k, "")
+                    zeile["besichtigung_data_json"] = json.dumps(gesichert, ensure_ascii=False)
+                    row = zeile
+            except Exception as akte_fehler:
+                print("Kundenakte (LV):", akte_fehler)
+        conn.commit()
+        conn.close()
+
+        if not row:
+            return None
+        lv_vars = lv_build_vars_from_besichtigung(row)
+        # Angebot-Editor: dort eingetragene Firma, Adresse, Leistungsart und Häufigkeiten gelten auch hier
+        anpassen = app.extensions.get("kg_lv_anpassen")
+        if anpassen:
+            lv_vars = anpassen(angebot_id_int, lv_vars)
+        return lv_vars
+
+    def lv_nur_fenster_jalousien(leistungsart):
+        """True, wenn die Leistungsart nur aus Fenster- und/oder Jalousienreinigung besteht (dann kein LV)."""
+        text = re.sub(r"<[^>]+>", " ", str(leistungsart or ""))
+        for trenner in (" und ", "+", ",", " & "):
+            text = text.replace(trenner, "|")
+        teile = [t.strip().lower() for t in text.split("|") if t.strip() and t.strip() != "-"]
+        return bool(teile) and all(("fenster" in t or "jalousie" in t) for t in teile)
+
     @app.route("/leistungsverzeichnis")
     @app.route("/Leistungsverzeichnis.html")
     @app.route("/leistungsverzeichnis.html")
@@ -5897,53 +5968,8 @@ www.kg-reinigung.de
                 angebot_id_int = 0
 
             if angebot_id_int > 0:
-                conn = sqlite3.connect(DB_PATH)
-                conn.row_factory = sqlite3.Row
-                row = conn.execute("""
-                    SELECT
-                        id,
-                        firma,
-                        branche,
-                        strasse,
-                        plz,
-                        ort,
-                        angebot_nr,
-                        besichtigung_data_json
-                    FROM tagesliste_leads
-                    WHERE id = ?
-                """, (angebot_id_int,)).fetchone()
-
-                # Kundenakte: Besichtigung aus der Sicherung, wenn die Tagesliste-Zeile leer oder schon gelöscht ist
-                akte = app.extensions.get("kg_akte")
-                if akte:
-                    try:
-                        gesichert = akte.besichtigung(conn, angebot_id_int, row["besichtigung_data_json"] if row else None)
-                        if gesichert:
-                            zeile = dict(row) if row else None
-                            if zeile is None:
-                                b = conn.execute("""
-                                    SELECT tagesliste_id AS id, firma, branche, strasse, plz, ort
-                                    FROM tagesliste_status_backup
-                                    WHERE tagesliste_id = ?
-                                    ORDER BY backup_am DESC
-                                    LIMIT 1
-                                """, (angebot_id_int,)).fetchone()
-                                zeile = dict(b) if b else {}
-                            for k in ("id", "firma", "branche", "strasse", "plz", "ort", "angebot_nr"):
-                                zeile.setdefault(k, "")
-                            zeile["besichtigung_data_json"] = json.dumps(gesichert, ensure_ascii=False)
-                            row = zeile
-                    except Exception as akte_fehler:
-                        print("Kundenakte (LV):", akte_fehler)
-                conn.commit()
-                conn.close()
-
-                if row:
-                    lv_vars = lv_build_vars_from_besichtigung(row)
-                    # Angebot-Editor: dort eingetragene Firma, Adresse, Leistungsart und Häufigkeiten gelten auch hier
-                    anpassen = app.extensions.get("kg_lv_anpassen")
-                    if anpassen:
-                        lv_vars = anpassen(angebot_id_int, lv_vars)
+                lv_vars = lv_vars_fuer_angebot(angebot_id_int)
+                if lv_vars:
                     return render_template("Leistungsverzeichnis.html", **lv_vars)
 
         return render_template(

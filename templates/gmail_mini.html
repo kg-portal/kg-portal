@@ -297,6 +297,7 @@ async function getAngebotPdfAttachments(){
     }
 
     const anhaenge = data.attachments || [];
+    angebotLvWeggelassen = !!data.lv_weggelassen;
 
     // Preisliste (PDF), wenn im Angebot-Editor „+ Preisliste“ gewählt ist
     if(new URLSearchParams(window.location.search).get('preisliste') === '1'){
@@ -315,6 +316,22 @@ async function getAngebotPdfAttachments(){
 
 let angebotPdfAttachmentsCache = [];
 let angebotPdfObjectUrls = [];
+// ✕ im Mailfenster: diese Anhänge (Dateiname) werden nicht mitgesendet; ↺ hängt sie wieder an
+let angebotAnhangWeg = new Set();
+let angebotLvWeggelassen = false;
+
+function angebotAnhangUmschalten(index){
+    const att = angebotPdfAttachmentsCache[index];
+    if(!att){
+        return;
+    }
+    if(angebotAnhangWeg.has(att.filename)){
+        angebotAnhangWeg.delete(att.filename);
+    }else{
+        angebotAnhangWeg.add(att.filename);
+    }
+    renderAngebotAttachmentPreview(angebotPdfAttachmentsCache);
+}
 
 function clearAngebotPdfObjectUrls(){
     angebotPdfObjectUrls.forEach(function(url){
@@ -364,12 +381,17 @@ function renderAngebotAttachmentPreview(attachments){
         <div style="font-weight:900;color:#183a91;margin-bottom:8px;">PDF-Anhänge vorbereitet</div>
         <div style="display:grid;gap:8px;">
             ${attachments.map(function(att, index){
+                const weg = angebotAnhangWeg.has(att.filename);
                 return `
-                    <button type="button" onclick="openAngebotPdfAttachment(${index})" style="width:100%;border:1px solid #bfdbfe;background:#ffffff;color:#1d4ed8;border-radius:12px;padding:10px 12px;font-size:12px;font-weight:900;cursor:pointer;text-align:left;">
-                        📎 ${escapeHtml(att.filename || "PDF öffnen")}
-                    </button>
+                    <div style="display:flex;gap:8px;">
+                        <button type="button" onclick="openAngebotPdfAttachment(${index})" style="flex:1;min-width:0;border:1px solid #bfdbfe;background:#ffffff;color:${weg ? "#94a3b8" : "#1d4ed8"};border-radius:12px;padding:10px 12px;font-size:12px;font-weight:900;cursor:pointer;text-align:left;">
+                            📎 ${weg ? "<s>" + escapeHtml(att.filename || "PDF") + "</s> · wird nicht gesendet" : escapeHtml(att.filename || "PDF öffnen")}
+                        </button>
+                        ${index > 0 ? `<button type="button" onclick="angebotAnhangUmschalten(${index})" title="${weg ? "Wieder anhängen" : "Nicht mitsenden"}" aria-label="${weg ? "Wieder anhängen" : "Nicht mitsenden"}" style="flex:none;width:42px;border:1px solid ${weg ? "#bfdbfe" : "#fecaca"};background:#ffffff;color:${weg ? "#1d4ed8" : "#dc2626"};border-radius:12px;font-size:15px;font-weight:900;cursor:pointer;">${weg ? "↺" : "✕"}</button>` : ""}
+                    </div>
                 `;
             }).join("")}
+            ${angebotLvWeggelassen ? '<div style="font-size:12px;font-weight:800;color:#64748b;">Leistungsverzeichnis wird nicht angehängt (nur Fenster-/Jalousienreinigung).</div>' : ""}
         </div>
     `;
 }
@@ -401,7 +423,7 @@ async function preloadAngebotPdfAttachments(){
 }
 async function sendMiniMail(){const kgPrintWindow=window.open('','_blank','width=900,height=1100');if(window.esignVorbereiten&&!(await window.esignVorbereiten(kgPrintWindow)))return;const messageBox=document.getElementById('mailMessage');let messageHtml=messageBox.innerHTML||'';messageHtml=messageHtml.replace(/src="[^"]*KG%20Yeni%20Logo\.png"/g,'src="cid:kg-logo"');messageHtml=messageHtml.replace(/src="[^"]*KG Yeni Logo\.png"/g,'src="cid:kg-logo"');const messageText=messageBox.innerText||'';let automaticAttachments=[];try{
 const kontaktAttachments=await getKontaktformularAttachments();
-const angebotAttachments=await getAngebotPdfAttachments();
+const angebotAttachments=(await getAngebotPdfAttachments()).filter(function(att){return !angebotAnhangWeg.has(att.filename);});
 automaticAttachments=[...kontaktAttachments,...angebotAttachments];
 }catch(fileErr){
 console.log(fileErr);
