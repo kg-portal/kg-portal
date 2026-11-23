@@ -71,7 +71,7 @@ def monatsliste(conn, monat):
     for r in conn.execute("SELECT kunde_id, gesendet_am FROM rechnung_check WHERE monat = ? AND gesendet_am IS NOT NULL", (monat,)):
         gesendet[r["kunde_id"]] = r["gesendet_am"]
 
-    kunden, ohne_ende = [], 0
+    kunden, gekuendigte, ohne_ende = [], [], 0
     for r in conn.execute("SELECT id, firma, kundennummer, monat, vertrag_beginn, vertrag_ende, haeufigkeit, "
                           "vertragsstatus, created_at FROM kunden").fetchall():
         if _ohne_monatsrechnung(r["haeufigkeit"]):
@@ -80,12 +80,24 @@ def monatsliste(conn, monat):
         start = beginn or _datum(str(r["created_at"] or "")[:10]) or datetime.date.min
         gekuendigt = str(r["vertragsstatus"] or "").strip().lower() == "gekuendigt"
         ende = _datum(r["vertrag_ende"]) if gekuendigt else None
-        if gekuendigt and ende is None:
-            # Gekündigt ohne Vertragsende: unklar bis wann → nicht in der Liste, nur gezählt
-            if start <= ende_monat:
-                ohne_ende += 1
+        if start > ende_monat:
             continue
-        if start > ende_monat or (ende is not None and ende < anfang):
+        if gekuendigt and (ende is None or ende < anfang):
+            # Gekündigt ohne Vertragsende oder schon beendet: nicht in der Hauptliste,
+            # nur in „Gekündigte Kunden anzeigen“ (Haken im Reiter)
+            if ende is None:
+                ohne_ende += 1
+            gekuendigte.append({
+                "id": r["id"],
+                "firma": str(r["firma"] or "").strip() or "—",
+                "kundennummer": str(r["kundennummer"] or "").strip(),
+                "betrag": _betrag(r["monat"]),
+                "haeufigkeit": str(r["haeufigkeit"] or "").strip(),
+                "ende_fehlt": ende is None,
+                "vertrag_ende": ende.strftime("%d.%m.%Y") if ende else "",
+                "ende_sort": ende.toordinal() if ende else 10 ** 7,
+                "gesendet_am": gesendet.get(r["id"]) or "",
+            })
             continue
         kunden.append({
             "id": r["id"],
@@ -106,6 +118,10 @@ def monatsliste(conn, monat):
             t = t.replace(x, y)
         return t
     kunden.sort(key=lambda k: (1 if k["gesendet_am"] else 0, _name(k["firma"])))
+    # Gekündigte: ohne Vertragsende zuerst, dann zuletzt beendete zuerst
+    gekuendigte.sort(key=lambda k: (-k["ende_sort"], _name(k["firma"])))
+    for k in gekuendigte:
+        k.pop("ende_sort", None)
     return {
         "monat": monat,
         "monat_name": f"{MONATE[mon - 1]} {jahr}",
@@ -113,6 +129,7 @@ def monatsliste(conn, monat):
         "gesamt": len(kunden),
         "gesendet": sum(1 for k in kunden if k["gesendet_am"]),
         "ohne_ende": ohne_ende,
+        "gekuendigte": gekuendigte,
     }
 
 
