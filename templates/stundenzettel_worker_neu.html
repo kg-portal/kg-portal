@@ -374,12 +374,15 @@ function berechnen(tage) {
     const grundInBase = Math.min(rawGrund, arbeitInBase);
     const normalArbeitInBase = Math.max(0, arbeitInBase - grundInBase);
     const basePay = (normalArbeitInBase * hourlyWage) + (grundInBase * grundreinigungWage) + (krankInBase * hourlyWage) + (urlaubInBase * hourlyWage);
+    // über 600 €: der Rest (z. B. Grundreinigung 18 €) geht nicht verloren, sondern ins Extra (in Std à 15 €)
+    const ueber = Math.max(0, basePay - moneyLimit);
+    const extraEur = totalExtra * hourlyWage + ueber;
     return {
-        hourLimit, grandTotalStd, totalPay: basePay > moneyLimit ? moneyLimit : basePay,
-        arbeit: arbeitInBase, arbeitEur: (normalArbeitInBase * hourlyWage) + (grundInBase * grundreinigungWage),
+        hourLimit, grandTotalStd, totalPay: basePay - ueber,
+        arbeit: arbeitInBase, arbeitEur: (normalArbeitInBase * hourlyWage) + (grundInBase * grundreinigungWage) - ueber,
         urlaub: urlaubInBase, urlaubEur: urlaubInBase * hourlyWage,
         krank: krankInBase, krankEur: krankInBase * hourlyWage,
-        extra: totalExtra, extraEur: totalExtra * hourlyWage
+        extra: extraEur / hourlyWage, extraEur: extraEur
     };
 }
 
