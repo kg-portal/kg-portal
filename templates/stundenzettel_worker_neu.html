@@ -353,7 +353,7 @@ function monatsTage() {
 
 // gleiche Rechnung wie updateCalculations() auf der bisherigen Seite
 function berechnen(tage) {
-    const hourlyWage = 15.00, grundreinigungWage = 17.00, hourLimit = 40.00, moneyLimit = 600.00;
+    const hourlyWage = 15.00, grundreinigungWage = 18.00, hourLimit = 40.00, moneyLimit = 600.00;
     let rawArbeit = 0, rawKrank = 0, rawUrlaub = 0, rawGrund = 0;
     tage.forEach(t => {
         if (!t.e) return;

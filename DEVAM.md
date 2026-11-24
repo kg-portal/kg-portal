@@ -84,4 +84,4 @@ Ekim dolunca beklenen toplam ≈ 543 saat (kullanıcıya tablo verildi). Uygulam
 - Feste Zeiten üretim scripti: `scratchpad/kontrol/server/feste_zeiten.py` (repoya `migration/hetzner/feste_zeiten_einmalig.py` olarak kopyalandı).
 
 ## Hesaplama kuralı (üç yerde aynı olmalı)
-15 €/saat, Grundreinigung 17 €/saat (sadece işçi sayfasında; liste/rapor 15€). 40 saat sınırı, 600 € cap. Sıra: Krank → Urlaub → Arbeit, kalan Extra. Feiertag iş gününe denk gelirse (işçi Feiertag'da çalışmıyorsa) o günün saatiyle "Feiertag" yazılır, ücrete sayılır.
+15 €/saat, Grundreinigung 18 €/saat (sadece işçi sayfasında; liste/rapor 15€). 40 saat sınırı, 600 € cap. Sıra: Krank → Urlaub → Arbeit, kalan Extra. Feiertag iş gününe denk gelirse (işçi Feiertag'da çalışmıyorsa) o günün saatiyle "Feiertag" yazılır, ücrete sayılır.
