@@ -719,20 +719,27 @@ def monat_rechnung(conn, worker_id, monat, stundenlohn=None):
     """Wie updateCalculations() in stundenzettel.html: erst Krank, dann Urlaub, dann Arbeit
     bis 40 Std. (Lohn höchstens 600 €), der Rest ist Extra."""
     roh = {"arbeit": 0.0, "krank": 0.0, "urlaub": 0.0}
+    grund = 0.0
     for l in _logs(conn, worker_id, monat):
         if not (l["start_time"] and l["end_time"]):
             continue
         h = _stunden(l["start_time"], l["end_time"])
         roh["krank" if l["place"] == "Krank" else "urlaub" if l["place"] == "Urlaub" else "arbeit"] += h
+        if l["place"] == "Grundreinigung":
+            grund += h
     lohn = float(stundenlohn) if stundenlohn and float(stundenlohn) > 0 else STUNDENLOHN
     krank = min(roh["krank"], STUNDEN_GRENZE)
     urlaub = min(roh["urlaub"], max(0, STUNDEN_GRENZE - krank))
     arbeit = min(roh["arbeit"], max(0, STUNDEN_GRENZE - krank - urlaub))
     gesamt_roh = sum(roh.values())
     gesamt = min(STUNDEN_GRENZE, gesamt_roh)
-    extra = max(0.0, gesamt_roh - STUNDEN_GRENZE)
-    return {"arbeit": arbeit, "krank": krank, "urlaub": urlaub, "gesamt": gesamt, "extra": extra, "lohn": lohn,
-            "gesamt_eur": min(gesamt * lohn, GELD_GRENZE), "extra_eur": extra * lohn, "roh": roh}
+    # Grundreinigung 18 €/Std wie auf der Mitarbeiter-Seite; über 600 € geht der Rest ins Extra (in Std à Stundenlohn)
+    grund_in = min(grund, arbeit)
+    wert = (arbeit - grund_in + krank + urlaub) * lohn + grund_in * 18.0
+    ueber = max(0.0, wert - GELD_GRENZE)
+    extra_eur = max(0.0, gesamt_roh - STUNDEN_GRENZE) * lohn + ueber
+    return {"arbeit": arbeit, "krank": krank, "urlaub": urlaub, "gesamt": gesamt, "extra": extra_eur / lohn, "lohn": lohn,
+            "gesamt_eur": wert - ueber, "extra_eur": extra_eur, "roh": roh}
 
 
 def _zeile(l, sprache):
