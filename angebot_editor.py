@@ -327,6 +327,15 @@ def lv_extra_zeilen(text):
     return aus
 
 
+def lv_nur_fenster_jalousien(leistungsart):
+    """True, wenn die Leistungsart nur aus Fenster- und/oder Jalousienreinigung besteht (wie app2 beim Mail-Anhang)."""
+    text = re.sub(r"<[^>]+>", " ", str(leistungsart or ""))
+    for trenner in (" und ", "+", ",", " & "):
+        text = text.replace(trenner, "|")
+    teile = [t.strip().lower() for t in text.split("|") if t.strip() and t.strip() != "-"]
+    return bool(teile) and all(("fenster" in t or "jalousie" in t) for t in teile)
+
+
 def lv_mit_editor(v, felder, kalk):
     """Leistungsverzeichnis-Werte (aus der Besichtigung) mit dem überschreiben, was im Angebot-Editor steht:
     Firma, Adresse, Leistungsart und die Häufigkeiten aus dem Richtpreis-Rechner – damit LV und Angebot zusammenpassen."""
@@ -395,6 +404,23 @@ def register_angebot_editor(app, login_required, get_db_connection, app2_modul):
             return v
 
     app.extensions["kg_lv_anpassen"] = lv_anpassen
+
+    def lv_fenster_ohne_extra(tid, leistungsart):
+        """Nur Fenster-/Jalousienreinigung und kein „Extra“ im Editor: Leistungsverzeichnis wäre leer → weglassen."""
+        if not lv_nur_fenster_jalousien(leistungsart):
+            return False
+        try:
+            conn = get_db_connection()
+            try:
+                e = conn.execute("SELECT kalkulation_json FROM angebot_editor_entwuerfe WHERE tagesliste_id = ?", (tid,)).fetchone()
+            finally:
+                conn.close()
+        except Exception as exc:
+            print("Angebot-Editor: Extra fürs LV nicht gelesen:", exc)
+            return False
+        kalk = _json(e["kalkulation_json"], {}) if e else {}
+        extra = kalk.get("lv_extra") if isinstance(kalk.get("lv_extra"), dict) else {}
+        return not lv_extra_zeilen(extra.get("normal"))
 
     def lead_laden(cur, tid):
         row = cur.execute("SELECT * FROM tagesliste_leads WHERE id = ?", (tid,)).fetchone()
@@ -721,7 +747,7 @@ def register_angebot_editor(app, login_required, get_db_connection, app2_modul):
         tid = a.get("id", type=int) or 0
         werte = [(k, v) for k, v in a.items(multi=True) if k not in ("art", "drucken", "id", "ansehen")]
         urls = [f"{basis}/angebot/editor/vorschau?" + urlencode(werte)]
-        if tid > 0:
+        if tid > 0 and not lv_fenster_ohne_extra(tid, a.get("leistungsart")):
             urls.append(f"{basis}/angebot/editor/lv-vorschau?angebot_id={tid}&print=1")
         try:
             from playwright.sync_api import sync_playwright

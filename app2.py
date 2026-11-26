@@ -1468,7 +1468,8 @@ def register_app2_routes(app, login_required):
             lv_weggelassen = False
             try:
                 lv_daten = lv_vars_fuer_angebot(angebot_id_int)
-                lv_weggelassen = bool(lv_daten) and lv_nur_fenster_jalousien(lv_daten.get("Leistungsart"))
+                lv_weggelassen = (bool(lv_daten) and lv_nur_fenster_jalousien(lv_daten.get("Leistungsart"))
+                                  and not lv_daten.get("Extra_Normal"))
             except Exception as lv_fehler:
                 print("LV-Prüfung (Mail-Anhänge):", lv_fehler)
             if lv_weggelassen:

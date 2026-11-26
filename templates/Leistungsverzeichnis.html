@@ -567,6 +567,12 @@ body {
 {% set lv_art_text = ((Leistungsart or '')|striptags|trim|lower) %}
 {% set lv_hat_bau = 'bauend' in lv_art_text %}
 {% set lv_hat_grund = 'grundreinigung' in lv_art_text %}
+{# Nur Fenster-/Jalousienreinigung: keine Standardleistungen – Leistungen nur über „Extra“ im Angebot-Editor #}
+{% set lv_fj = namespace(n=0, alle=true) %}
+{% for x in ((Leistungsart or '')|striptags|replace(' und ', '|')|replace('+', '|')|replace(',', '|')|replace(' & ', '|')).split('|') %}
+{% if x|trim and x|trim != '-' %}{% set lv_fj.n = lv_fj.n + 1 %}{% if 'fenster' not in x|lower and 'jalousie' not in x|lower %}{% set lv_fj.alle = false %}{% endif %}{% endif %}
+{% endfor %}
+{% set lv_nur_fenster = lv_fj.n > 0 and lv_fj.alle %}
 {% set lv_ns = namespace(std=[]) %}
 {% for x in ((Leistungsart or '')|striptags|replace(' und ', '|')|replace('+', '|')|replace(',', '|')|replace(' & ', '|')).split('|') %}
 {% if x|trim and x|trim != '-' and 'grundreinigung' not in x|lower and 'bauend' not in x|lower %}{% set lv_ns.std = lv_ns.std + [x|trim] %}{% endif %}
@@ -622,6 +628,11 @@ body {
             <p>
     Dieses Leistungsverzeichnis ist Anlage zum Angebot und beschreibt den Umfang der einmaligen Grundreinigung<br>
     – einer intensiven Reinigung aller vereinbarten Flächen über die laufende Unterhaltsreinigung hinaus.
+</p>
+            {% elif lv_nur_fenster %}
+            <h2>{{ lv_art }}</h2>
+            <p>
+    Dieses Leistungsverzeichnis ist Anlage zum Angebot und beschreibt die vereinbarten Leistungen.
 </p>
             {% else %}
             <h2>{{ lv_art }} – Standardleistungen</h2>
@@ -739,6 +750,8 @@ body {
                 </div>
             </div>
         </section>
+        {% elif lv_nur_fenster %}
+        {# Fenster-/Jalousienreinigung: keine Standardkästen #}
         {% else %}
 
         <section class="standard-grid">
@@ -808,9 +821,11 @@ body {
 
         {% endif %}
 
+        {% if not lv_nur_fenster or Extra_Normal %}
         <div class="lv-detail-title">Detailliertes Leistungsverzeichnis</div>
+        {% endif %}
 
-        {% if not lv_nur_sonder %}
+        {% if not lv_nur_sonder and not lv_nur_fenster %}
 
         <section class="lv-section buro-section">
             <div class="lv-section-title"><span class="dot blue"></span>Büro, Arbeitsplätze & allgemeine Flächen</div>
@@ -1288,9 +1303,9 @@ body {
         </section>
         {% endif %}
 
-        {% if loop.first and lv_nur_sonder and Extra_Normal %}
+        {% if loop.first and (lv_nur_sonder or lv_nur_fenster) and Extra_Normal %}
         <section class="lv-section zusatz-section extra-section">
-            <div class="lv-section-title"><span class="dot purple"></span>Zusätzlich vereinbart</div>
+            <div class="lv-section-title"><span class="dot purple"></span>{{ 'Vereinbarte Leistungen' if lv_nur_fenster else 'Zusätzlich vereinbart' }}</div>
             <table class="lv-table">
                 <thead>
                     <tr>
@@ -1310,7 +1325,7 @@ body {
         </section>
         {% endif %}
 
-        {% if loop.first and Zusatzleistungen %}
+        {% if loop.first and Zusatzleistungen and not lv_nur_fenster %}
         <section class="lv-section zusatz-section">
             <div class="lv-section-title"><span class="dot purple"></span>Zusatzleistungen / Sonstiges</div>
             <table class="lv-table">
@@ -1340,6 +1355,8 @@ body {
             {% elif lv_nur_grund %}
             <b>Hinweis:</b> Die Grundreinigung wird einmalig ausgeführt. Arbeiten in großer Höhe, Schränke innen sowie stark haftende
             Verschmutzungen nur nach vorheriger Absprache bzw. nach Aufwand.
+            {% elif lv_nur_fenster %}
+            <b>Hinweis:</b>
             {% else %}
             <b>Hinweis:</b> Dieses Leistungsverzeichnis beschreibt die vereinbarten Standardleistungen der {{ lv_art }}.
             Objektbezogene Zusatzleistungen werden nur nach vorheriger Vereinbarung ausgeführt und separat im Angebot aufgeführt.
